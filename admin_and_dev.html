@@ -457,11 +457,21 @@
     getDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Global variables provided by the Canvas environment
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  // Corrected: __firebase_config is already an object in Canvas, no need to parse
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : {};
-  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+  // Manually import your Firebase configuration here
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebaseapp.com",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM" // Optional, if you have it
+  };
+
+  // Remove or comment out these lines if you are not using the Canvas environment variables
+  // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  // const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
 
   // Initialize Firebase
   let app;
@@ -469,7 +479,7 @@
   let db;
   let isFirebaseInitialized = false; // Flag to track initialization
 
-  if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey) {
+  if (firebaseConfig.apiKey) { // Simplified check since you're providing it directly
     try {
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
@@ -486,6 +496,29 @@
     document.getElementById('error-message').style.display = 'block';
     document.getElementById('login-section').style.display = 'block';
   }
+
+  // The rest of your Firebase authentication and Firestore code remains the same.
+  // ... (e.g., githubProvider, onAuthStateChanged, event listeners)
+
+  // If you are no longer using initialAuthToken, you might adjust this block:
+  /*
+  if (initialAuthToken) {
+    signInWithCustomToken(auth, initialAuthToken)
+      .then(() => {
+        console.log("Signed in with custom token.");
+      })
+      .catch((error) => {
+        console.error("Error signing in with custom token:", error);
+        signInAnonymously(auth)
+            .then(() => console.log("Signed in anonymously."))
+            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+      });
+  } else {
+    signInAnonymously(auth)
+        .then(() => console.log("Signed in anonymously (no custom token)."))
+        .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+  }
+  */
 
   // Only proceed with auth providers if Firebase is initialized
   const githubProvider = isFirebaseInitialized ? new GithubAuthProvider() : null;
