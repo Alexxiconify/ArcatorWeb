@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin & Dev - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #1F2937;
+      color: #E5E7EB;
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #374151; /* Darker border for table rows */
+    }
+    th {
+      background-color: #374151; /* Darker header background */
+      color: #F87171; /* Red text for headers */
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:nth-child(even) {
+      background-color: #2F3B4E; /* Slightly different background for even rows */
+    }
+    tr:hover {
+      background-color: #4B5563; /* Lighter background on hover */
+    }
+    .code-block {
+      background-color: #2D3748;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Header Section -->
+<header class="bg-gray-900 py-4 shadow-lg">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
+    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
+  </div>
+</section>
+
+<!-- Admin & Dev Section Content -->
+<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-center mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>
+    <p class="text-lg text-center mb-8 text-gray-300">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
+    <div class="overflow-x-auto mb-12">
+      <table>
+        <thead>
+        <tr>
+          <th>Task</th>
+          <th>Worker</th>
+          <th>Priority</th>
+          <th>ETA</th>
+          <th>Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td>Analyze SSH Clients for Mobile</td><td>Admin</td><td>Low</td><td>1 Hr</td><td></td></tr>
+        <tr><td>Clean up Hub warps</td><td>Alexx</td><td>Low</td><td>1 Hr</td><td>Anyone can try all the warps and then give a list of ones to deprioritize. Let’s then mark a “library” full of warp signs!</td></tr>
+        <tr><td>Advertising & Social Media</td><td>Any</td><td>🙂</td><td>Ongoing</td><td>Using the Socials & ad pages, how to find people, and provide them the same opportunity. As we have improved from finding community.</td></tr>
+        <tr><td>Reoptimize SSMP and Minigames</td><td>Admin</td><td>Low</td><td>3 Hr</td><td><a href="https://docs.papermc.io/paper/aikars-flags" target="_blank" class="text-blue-300 hover:underline">https://docs.papermc.io/paper/aikars-flags</a></td></tr>
+        <tr><td>Arcator V2 Website</td><td>😛 ssh</td><td>Very Low</td><td>Long time</td><td>A new website!</td></tr>
+        <tr><td>Trade off GPU</td><td>Jordan</td><td>Low</td><td>Days</td><td>If we sell the Jylina GPU we can buy a better one for equal price.</td></tr>
+        <tr><td>Train more staff.</td><td>Anyone</td><td>Ongoing</td><td>N/A</td><td>Griefing Guide</td></tr>
+        <tr><td>Setup DB Replication</td><td>Res</td><td>Mid</td><td>1 Hr</td><td>Link Apollo to Jylina’s DB after we move back</td></tr>
+        <tr><td>Also an autorole for being inactive that silences @ roles would be nice</td><td>Res</td><td>Low</td><td>?</td><td>Bot idea. Update table based on last message sent.</td></tr>
+        <tr><td>Migrate Abandoned Plugin to Paper</td><td>Any</td><td>Very Low</td><td>1 Day</td><td><a href="https://github.com/Restitutor/LastLog/" target="_blank" class="text-blue-300 hover:underline">https://github.com/Restitutor/LastLog/</a></td></tr>
+        <tr><td>Update Player Vis</td><td>Res</td><td>Mid</td><td>1 Day</td><td>Move towards counting Discord messages instead of MC activity. This requires associating a lot of discord IDs.</td></tr>
+        <tr><td>Add Census questions</td><td>Any</td><td>Low</td><td></td><td></td></tr>
+        <tr><td>Ensure WorldGuard not necessary for Hub</td><td>Res</td><td>Low</td><td>3 Hr</td><td>We should migrate WG rules to mv gamerules and paper configs where possible. LLM can help find equivalents.</td></tr>
+        <tr><td>Add Optimized Client + Server Mods to Modded Servers</td><td>Local Owners</td><td>Mid</td><td>15M each</td><td><a href="https://github.com/Radk6/MC-Optimization-Guide/blob/main/mods-n-stuff/1.21.1.md" target="_blank" class="text-blue-300 hover:underline">github.com/Radk6/MC-Optimization-Guide/blob/main/mods-n-stuff/1.21.1.md</a></td></tr>
+        <tr><td>Reduce vulpicfim likelihood of response</td><td>Vae</td><td>Low</td><td>1 Hr</td><td></td></tr>
+        <tr><td>Reinstall Vulcan & Fedora for SSH 4</td><td>Angry</td><td>Very Low</td><td>4 1hr-sessions</td><td>Good fallback server, even better SSH practice</td></tr>
+        <tr><td>Remake Matrix server</td><td>Res</td><td>Very Low</td><td>1 Day</td><td>Strategically waiting for more updates before setting up.ETA Fall 2025</td></tr>
+        <tr><td>Migrate Tentorium plugin to Paper API</td><td><a href="https://github.com/Restitutor/Restitutor/Tentorium/" target="_blank" class="text-blue-300 hover:underline">https://github.com/Restitutor/Restitutor/Tentorium/</a></td><td>Staff</td><td>Very Low</td><td>1 Day</td></tr>
+        <tr><td>Migrate:<a href="https://github.com/Restitutor/StaffWarnV" target="_blank" class="text-blue-300 hover:underline">https://github.com/Restitutor/StaffWarnV</a> to Paper API</td><td>Any</td><td>Very Low</td><td>1 Day</td><td>There’s good examples here for checking the world <a href="https://github.com/Darrionat/StaffWarn" target="_blank" class="text-blue-300 hover:underline">https://github.com/Darrionat/StaffWarn</a> which Hub uses</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+      <!-- Darrion API Section -->
+      <div>
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
+        <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
+          <li><span class="font-semibold text-white">GET plugin updates</span></li>
+        </ul>
+      </div>
+
+      <!-- GriefDetection Section -->
+      <div>
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li>Regular checks for griefs and automated analysis of player actions.</li>
+          <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
+          <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
+          <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+          <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Onfim Notifications Section -->
+    <div class="mt-16">
+      <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
+      <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
+      <ul class="list-disc list-inside text-gray-300 space-y-2">
+        <li>Warns staff on Discord when disk space is nearly full.</li>
+        <li>Detects and alerts on drive corruption.</li>
+        <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+        <li>Alerts when Jylina's Ngrok IP address changes.</li>
+        <li>Handles `#machine-status` updates every minute.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white text-red-400 transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Get current year for footer
+  document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
