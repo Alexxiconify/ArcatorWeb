@@ -141,12 +141,10 @@
     <div id="login-section" class="text-center" style="display: none;">
       <h2 class="text-4xl font-bold text-red-400 mb-6">Admin Login Required</h2>
       <p class="text-lg text-gray-300 mb-8">
-        Please log in with your Discord or GitHub account to access the Admin & Dev documentation.
+        Please log in with your GitHub account to access the Admin & Dev documentation.
       </p>
       <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-        <button id="discord-login-btn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-          Login with Discord
-        </button>
+        <!-- Removed Discord login button -->
         <button id="github-login-btn" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
           Login with GitHub
         </button>
@@ -433,7 +431,7 @@
     signOut,
     onAuthStateChanged,
     GithubAuthProvider,
-    DiscordAuthProvider,
+    // Removed DiscordAuthProvider as it's not directly exported
     signInWithCustomToken,
     signInAnonymously
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -466,12 +464,14 @@
   }
 
   const githubProvider = new GithubAuthProvider();
-  const discordProvider = new DiscordAuthProvider();
+  // Removed discordProvider instantiation
+  // const discordProvider = new DiscordAuthProvider();
 
   // DOM Elements
   const loginSection = document.getElementById('login-section');
   const adminContent = document.getElementById('admin-content');
-  const discordLoginBtn = document.getElementById('discord-login-btn');
+  // Removed discordLoginBtn reference
+  // const discordLoginBtn = document.getElementById('discord-login-btn');
   const githubLoginBtn = document.getElementById('github-login-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const userDisplayName = document.getElementById('user-display-name');
@@ -572,16 +572,17 @@
 
 
   // Event Listeners for Login Buttons
-  discordLoginBtn.addEventListener('click', async () => {
-    hideErrorMessage();
-    try {
-      await signInWithPopup(auth, discordProvider);
-      // onAuthStateChanged listener will handle UI updates
-    } catch (error) {
-      console.error("Discord login failed:", error);
-      showErrorMessage("Discord login failed. Please try again. Error: " + error.message);
-    }
-  });
+  // Removed Discord login button event listener
+  // discordLoginBtn.addEventListener('click', async () => {
+  //   hideErrorMessage();
+  //   try {
+  //     await signInWithPopup(auth, discordProvider);
+  //     // onAuthStateChanged listener will handle UI updates
+  //   } catch (error) {
+  //     console.error("Discord login failed:", error);
+  //     showErrorMessage("Discord login failed. Please try again. Error: " + error.message);
+  //   }
+  // });
 
   githubLoginBtn.addEventListener('click', async () => {
     hideErrorMessage();
