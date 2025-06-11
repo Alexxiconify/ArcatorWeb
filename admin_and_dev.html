@@ -144,7 +144,6 @@
         Please log in with your GitHub account to access the Admin & Dev documentation.
       </p>
       <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-        <!-- Removed Discord login button -->
         <button id="github-login-btn" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
           Login with GitHub
         </button>
@@ -320,7 +319,7 @@
           <h5 class="text-xl font-semibold mb-2 text-blue-100">Examples</h5>
           <p class="text-gray-300 mb-2"><strong>IP:</strong> <code>10.0.0.x</code></p>
           <p class="text-gray-300 mb-2"><strong>Database Log IDs:</strong> <code>Ports</code></p>
-          <p class="text-300 mb-4"><code>123x</code> is Backup SSH to Server X. Similar patterns for other services.</p>
+          <p class="text-gray-300 mb-4"><code>123x</code> is Backup SSH to Server X. Similar patterns for other services.</p>
           <h5 class="text-xl font-semibold mb-2 text-blue-100">IDs</h5>
           <ul class="list-disc list-inside text-gray-400 ml-4">
             <li><code>s1</code> - Jylina (Jordan's High Speed Server)</li>
@@ -431,7 +430,6 @@
     signOut,
     onAuthStateChanged,
     GithubAuthProvider,
-    // Removed DiscordAuthProvider as it's not directly exported
     signInWithCustomToken,
     signInAnonymously
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -443,35 +441,40 @@
 
   // Global variables provided by the Canvas environment
   const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+  // Removed JSON.parse() as __firebase_config is already an object in Canvas
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : {};
   const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
   // Initialize Firebase
   let app;
   let auth;
   let db;
+  let isFirebaseInitialized = false; // Flag to track initialization
 
-  if (Object.keys(firebaseConfig).length > 0) {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
+  if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey) {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+    } catch (e) {
+      console.error("Error initializing Firebase:", e);
+      showErrorMessage("Error initializing Firebase. Please check your Firebase configuration.");
+    }
   } else {
-    console.error("Firebase config is missing. Authentication will not work.");
+    console.error("Firebase config is missing or incomplete. Authentication will not work.");
     document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('error-message').textContent = 'Firebase configuration is missing. Cannot proceed with login.';
     document.getElementById('error-message').style.display = 'block';
     document.getElementById('login-section').style.display = 'block';
   }
 
-  const githubProvider = new GithubAuthProvider();
-  // Removed discordProvider instantiation
-  // const discordProvider = new DiscordAuthProvider();
+  // Only proceed with auth providers if Firebase is initialized
+  const githubProvider = isFirebaseInitialized ? new GithubAuthProvider() : null;
 
   // DOM Elements
   const loginSection = document.getElementById('login-section');
   const adminContent = document.getElementById('admin-content');
-  // Removed discordLoginBtn reference
-  // const discordLoginBtn = document.getElementById('discord-login-btn');
   const githubLoginBtn = document.getElementById('github-login-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const userDisplayName = document.getElementById('user-display-name');
@@ -502,7 +505,7 @@
    */
   async function checkWhitelist(uid) {
     if (!db) {
-      console.error("Firestore is not initialized.");
+      console.error("Firestore is not initialized. Cannot check whitelist.");
       return false;
     }
     // Define the path to the whitelist collection.
@@ -518,95 +521,94 @@
     }
   }
 
-  /**
-   * Handles user authentication state changes.
-   * If a user is logged in, checks if they are whitelisted to show content.
-   * Otherwise, shows the login section.
-   */
-  onAuthStateChanged(auth, async (user) => {
-    loadingSpinner.style.display = 'none'; // Hide spinner once auth state is checked
-    hideErrorMessage(); // Clear any previous errors
+  // Only attach onAuthStateChanged listener if auth is initialized
+  if (isFirebaseInitialized && auth) {
+    onAuthStateChanged(auth, async (user) => {
+      loadingSpinner.style.display = 'none'; // Hide spinner once auth state is checked
+      hideErrorMessage(); // Clear any previous errors
 
-    if (user) {
-      userDisplayName.textContent = user.displayName || user.email || 'Guest';
-      userDisplayId.textContent = user.uid; // Display the full UID
+      if (user) {
+        userDisplayName.textContent = user.displayName || user.email || 'Guest';
+        userDisplayId.textContent = user.uid; // Display the full UID
 
-      const isWhitelisted = await checkWhitelist(user.uid);
-      if (isWhitelisted) {
-        loginSection.style.display = 'none';
-        adminContent.style.display = 'block';
+        const isWhitelisted = await checkWhitelist(user.uid);
+        if (isWhitelisted) {
+          loginSection.style.display = 'none';
+          adminContent.style.display = 'block';
+        } else {
+          showErrorMessage("Access Denied: Your account is not whitelisted for this page.");
+          adminContent.style.display = 'none';
+          loginSection.style.display = 'block';
+          // Sign out unauthorized users to prevent incorrect state
+          await signOut(auth);
+        }
       } else {
-        showErrorMessage("Access Denied: Your account is not whitelisted for this page.");
         adminContent.style.display = 'none';
         loginSection.style.display = 'block';
-        // Optionally sign out unauthorized users
-        await signOut(auth);
+        userDisplayName.textContent = '';
+        userDisplayId.textContent = '';
       }
-    } else {
-      adminContent.style.display = 'none';
-      loginSection.style.display = 'block';
-      userDisplayName.textContent = '';
-      userDisplayId.textContent = '';
-    }
-  });
+    });
 
-  // Handle initial custom token sign-in if available (for Canvas environment)
-  if (auth && initialAuthToken) {
-    signInWithCustomToken(auth, initialAuthToken)
-      .then(() => {
-        console.log("Signed in with custom token.");
-      })
-      .catch((error) => {
-        console.error("Error signing in with custom token:", error);
-        // If custom token fails, allow anonymous sign-in or other methods
-        signInAnonymously(auth)
-          .then(() => console.log("Signed in anonymously."))
-          .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+    // Handle initial custom token sign-in if available (for Canvas environment)
+    if (initialAuthToken) {
+      signInWithCustomToken(auth, initialAuthToken)
+        .then(() => {
+          console.log("Signed in with custom token.");
+        })
+        .catch((error) => {
+          console.error("Error signing in with custom token:", error);
+          // If custom token fails, allow anonymous sign-in as fallback
+          signInAnonymously(auth)
+            .then(() => console.log("Signed in anonymously."))
+            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+        });
+    } else {
+      // If no custom token, sign in anonymously to ensure auth is ready for onAuthStateChanged to pick up a user state
+      signInAnonymously(auth)
+        .then(() => console.log("Signed in anonymously (no custom token)."))
+        .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+    }
+
+    // Event Listener for Login Button (only if githubProvider is available)
+    if (githubLoginBtn && githubProvider) {
+      githubLoginBtn.addEventListener('click', async () => {
+        hideErrorMessage();
+        try {
+          await signInWithPopup(auth, githubProvider);
+          // onAuthStateChanged listener will handle UI updates
+        } catch (error) {
+          console.error("GitHub login failed:", error);
+          showErrorMessage("GitHub login failed. Please try again. Error: " + (error.message || "Unknown error"));
+        }
       });
-  } else if (auth) {
-    // If no custom token, sign in anonymously to ensure auth is ready for onAuthStateChanged
-    signInAnonymously(auth)
-      .then(() => console.log("Signed in anonymously (no custom token)."))
-      .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+    } else if (githubLoginBtn) {
+      // If githubProvider is null, disable the button and show a message if needed
+      githubLoginBtn.disabled = true;
+      showErrorMessage("GitHub provider not initialized. Firebase setup might be incomplete.");
+    }
+
+
+    // Event Listener for Logout Button
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        hideErrorMessage();
+        try {
+          await signOut(auth);
+          console.log("User signed out.");
+          // onAuthStateChanged listener will handle UI updates
+        } catch (error) {
+          console.error("Logout failed:", error);
+          showErrorMessage("Logout failed. Please try again. Error: " + (error.message || "Unknown error"));
+        }
+      });
+    }
+  } else {
+    // If Firebase is not initialized, ensure login section is visible and spinner is hidden
+    loadingSpinner.style.display = 'none';
+    loginSection.style.display = 'block';
   }
 
-
-  // Event Listeners for Login Buttons
-  // Removed Discord login button event listener
-  // discordLoginBtn.addEventListener('click', async () => {
-  //   hideErrorMessage();
-  //   try {
-  //     await signInWithPopup(auth, discordProvider);
-  //     // onAuthStateChanged listener will handle UI updates
-  //   } catch (error) {
-  //     console.error("Discord login failed:", error);
-  //     showErrorMessage("Discord login failed. Please try again. Error: " + error.message);
-  //   }
-  // });
-
-  githubLoginBtn.addEventListener('click', async () => {
-    hideErrorMessage();
-    try {
-      await signInWithPopup(auth, githubProvider);
-      // onAuthStateChanged listener will handle UI updates
-    } catch (error) {
-      console.error("GitHub login failed:", error);
-      showErrorMessage("GitHub login failed. Please try again. Error: " + error.message);
-    }
-  });
-
-  // Event Listener for Logout Button
-  logoutBtn.addEventListener('click', async () => {
-    hideErrorMessage();
-    try {
-      await signOut(auth);
-      console.log("User signed out.");
-      // onAuthStateChanged listener will handle UI updates
-    } catch (error) {
-      console.error("Logout failed:", error);
-      showErrorMessage("Logout failed. Please try again.");
-    }
-  });
 
   // Get current year for footer
   document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
