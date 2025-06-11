@@ -6,11 +6,18 @@
   <title>Page Not Found</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /*
+     * Universal reset for line height and margin, ensuring consistent spacing.
+     */
     * {
       line-height: 1.2;
       margin: 0;
     }
 
+    /*
+     * Styles for the HTML element, setting up a full-height, centered layout
+     * for the error message, using a sans-serif font and light grey color.
+     */
     html {
       color: #888;
       display: table;
@@ -20,23 +27,37 @@
       width: 100%;
     }
 
+    /*
+     * Styles for the body element, centering its content vertically within
+     * the HTML table display, with a fixed top/bottom margin.
+     */
     body {
       display: table-cell;
       vertical-align: middle;
       margin: 2em auto;
     }
 
+    /*
+     * Styles for the main heading, setting its color, font size, and weight.
+     */
     h1 {
       color: #555;
       font-size: 2em;
       font-weight: 400;
     }
 
+    /*
+     * Styles for paragraph text, centering it and setting a maximum width.
+     */
     p {
       margin: 0 auto;
       width: 280px;
     }
 
+    /*
+     * Responsive adjustments for screens with a maximum width of 280px.
+     * Adjusts body and paragraph widths to 95% and heading font size.
+     */
     @media only screen and (max-width: 280px) {
 
       body,
@@ -54,9 +75,8 @@
 </head>
 
 <body>
-  <h1>Page Not Found</h1>
-  <p>Sorry, but the page you were trying to view does not exist.</p>
+<h1>Page Not Found</h1>
+<p>Sorry, but the page you were trying to view does not exist.</p>
 </body>
 
 </html>
-<!-- IE needs 512+ bytes: https://docs.microsoft.com/archive/blogs/ieinternals/friendly-http-error-pages -->

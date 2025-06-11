@@ -9,6 +9,8 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Base styles for the body, applying a dark background, light text,
+     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -20,6 +22,8 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
+    /* Styles for the hero banner section, including a background image,
+     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -32,6 +36,8 @@
       position: relative;
       overflow: hidden;
     }
+    /* Pseudo-element for the dark overlay on the hero banner,
+     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -42,6 +48,8 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
+    /* Styles for the content within the hero banner,
+     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
@@ -64,7 +72,8 @@
         <li><a href="community.html" class="text-yellow-400 hover:text-yellow-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <!-- Added rel="noopener noreferrer" for security when opening external links -->
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
       </ul>
@@ -90,10 +99,12 @@
       </div>
       <div class="text-lg leading-relaxed order-1 md:order-2">
         <p class="mb-4">At Arcator, we believe that the heart of any great Minecraft server is its community. We have a dedicated and friendly player base that makes every interaction enjoyable.</p>
-        <p class="mb-4">Join our active <a href="https://discord.gg/GwArgw2" target="_blank" class="font-semibold text-blue-300 hover:underline">Discord server</a> to chat with fellow players, get updates, participate in polls, and report issues. Our staff team is always available to help and ensure a positive experience for everyone.</p>
+        <!-- Added rel="noopener noreferrer" for security when opening external links -->
+        <p class="mb-4">Join our active <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-300 hover:underline">Discord server</a> to chat with fellow players, get updates, participate in polls, and report issues. Our staff team is always available to help and ensure a positive experience for everyone.</p>
         <p class="mb-4">We host regular community events, building contests, and game nights to keep things fresh and exciting. We encourage ice breakers and fostering small social groups to strengthen friendships within the community.</p>
         <p>Come be a part of our growing family and share your interests in our forums!</p>
-        <a href="https://discord.gg/GwArgw2" target="_blank" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+        <!-- Added rel="noopener noreferrer" for security when opening external links -->
+        <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
         <a href="interests.html" class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full mt-6 ml-4 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Community Interests</a>
       </div>
     </div>
@@ -108,7 +119,8 @@
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>

@@ -9,6 +9,8 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Base styles for the body, applying a dark background, light text,
+     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -20,6 +22,8 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
+    /* Styles for the hero banner section, including a background image,
+     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -32,6 +36,8 @@
       position: relative;
       overflow: hidden;
     }
+    /* Pseudo-element for the dark overlay on the hero banner,
+     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -42,6 +48,8 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
+    /* Styles for the content within the hero banner,
+     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
@@ -64,7 +72,8 @@
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-indigo-400 hover:text-indigo-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <!-- Added rel="noopener noreferrer" for security when opening external links -->
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
       </ul>
@@ -84,4 +93,70 @@
   <div class="container mx-auto px-4">
     <h2 class="text-4xl font-bold text-center mb-12 text-indigo-400">Discover More Fun!</h2>
     <p class="text-xl text-center mb-8 text-gray-300">While Minecraft is our core, our community enjoys a variety of other games and activities together!</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-col
+    <!-- Corrected the incomplete grid class: lg:grid-col changed to lg:grid-cols-3 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Example Game Card 1 -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Rocket League</h3>
+        <p class="text-gray-300 mb-6">Experience high-flying, car-based soccer! Rocket League combines vehicle chaos with the competitive thrill of football.</p>
+        <p class="text-gray-400 text-sm">Join us for casual matches and competitive ranks.</p>
+      </div>
+
+      <!-- Example Game Card 2 -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Valorant</h3>
+        <p class="text-gray-300 mb-6">A tactical first-person shooter with unique agent abilities. Team up and outsmart your opponents in intense 5v5 matches.</p>
+        <p class="text-gray-400 text-sm">Form a squad and climb the ranks together!</p>
+      </div>
+
+      <!-- Example Game Card 3 -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Terraria</h3>
+        <p class="text-gray-300 mb-6">Dig, fight, explore, and build in this sandbox adventure game. Terraria offers endless possibilities for creativity and discovery.</p>
+        <p class="text-gray-400 text-sm">Collaborate on epic builds or embark on boss hunts!</p>
+      </div>
+
+      <!-- Add more game cards as desired following the pattern above -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Overwatch 2</h3>
+        <p class="text-gray-300 mb-6">Dive into a futuristic world where heroes battle in fast-paced, team-based combat. A dynamic hero shooter with diverse characters and roles.</p>
+        <p class="text-gray-400 text-sm">Join our community for quickplay or competitive matches.</p>
+      </div>
+
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Phasmophobia</h3>
+        <p class="text-gray-300 mb-6">Gather your ghost-hunting gear and investigate haunted locations. A cooperative psychological horror game where you identify paranormal entities.</p>
+        <p class="text-gray-400 text-sm">Perfect for spooky game nights with friends!</p>
+      </div>
+
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Space Engineers</h3>
+        <p class="text-gray-300 mb-6">Build and maintain space stations, planetary outposts, and spacecraft in a vast, open-world sandbox. Explore, mine, and survive in space.</p>
+        <p class="text-gray-400 text-sm">Unleash your engineering creativity in multiplayer!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-games"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Get current year for footer
+  document.getElementById('current-year-games').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
