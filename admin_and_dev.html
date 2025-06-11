@@ -141,13 +141,28 @@
     <div id="login-section" class="text-center" style="display: none;">
       <h2 class="text-4xl font-bold text-red-400 mb-6">Admin Login Required</h2>
       <p class="text-lg text-gray-300 mb-8">
-        Please log in with your GitHub account to access the Admin & Dev documentation.
+        Please log in with your GitHub account or an email and password to access the Admin & Dev documentation.
       </p>
-      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
         <button id="github-login-btn" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
           Login with GitHub
         </button>
       </div>
+
+      <div class="mt-8 p-6 bg-gray-900 rounded-lg shadow-md max-w-md mx-auto">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Email & Password Login</h3>
+        <input type="email" id="email-input" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+        <input type="password" id="password-input" placeholder="Password" class="w-full p-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6">
+        <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-3">
+          <button id="email-signup-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+            Sign Up
+          </button>
+          <button id="email-login-btn" class="bg-purple-600 text-white font-bold py-3 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+            Login
+          </button>
+        </div>
+      </div>
+
       <p id="error-message" class="text-red-500 mt-4" style="display: none;"></p>
     </div>
 
@@ -232,7 +247,7 @@
           <p class="text-gray-300 mb-2 font-semibold">Q: What is the | in a command.</p>
           <p class="text-gray-300 mb-4">A: The pipe command sends input from the left command to right command.</p>
 
-          <p class="text-gray-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
+          <p class="text-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
           <p class="text-gray-300 mb-4">A: The current directory.</p>
 
           <p class="text-gray-300 mb-2 font-semibold">Q: Prompt Y/n</p>
@@ -292,7 +307,7 @@
           <p class="code-block mb-4">
             <code>systemctl enable backups.timer</code><br>
             <code>systemctl enable backups_pull.timer</code><br>
-            <code>systemctl start backups.timer</code><br>
+            <code>systemctl start backups.timer</code><<br>
             <code>systemctl start backups_pull.timer</code>
           </p>
           <p class="text-gray-300 mb-4">To fix selinux run: <code>restorecon -rv /usr/local/bin</code></p>
@@ -431,7 +446,10 @@
     onAuthStateChanged,
     GithubAuthProvider,
     signInWithCustomToken,
-    signInAnonymously
+    signInAnonymously,
+    // New imports for email/password auth
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
@@ -441,7 +459,7 @@
 
   // Global variables provided by the Canvas environment
   const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  // Removed JSON.parse() as __firebase_config is already an object in Canvas
+  // Corrected: __firebase_config is already an object in Canvas, no need to parse
   const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : {};
   const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -481,6 +499,13 @@
   const userDisplayId = document.getElementById('user-display-id');
   const errorMessage = document.getElementById('error-message');
   const loadingSpinner = document.getElementById('loading-spinner');
+
+  // New DOM Elements for Email/Password
+  const emailInput = document.getElementById('email-input');
+  const passwordInput = document.getElementById('password-input');
+  const emailSignupBtn = document.getElementById('email-signup-btn');
+  const emailLoginBtn = document.getElementById('email-login-btn');
+
 
   /**
    * Displays an error message to the user.
@@ -570,7 +595,7 @@
         .catch((anonError) => console.error("Error signing in anonymously:", anonError));
     }
 
-    // Event Listener for Login Button (only if githubProvider is available)
+    // Event Listener for GitHub Login Button (only if githubProvider is available)
     if (githubLoginBtn && githubProvider) {
       githubLoginBtn.addEventListener('click', async () => {
         hideErrorMessage();
@@ -585,9 +610,55 @@
     } else if (githubLoginBtn) {
       // If githubProvider is null, disable the button and show a message if needed
       githubLoginBtn.disabled = true;
-      showErrorMessage("GitHub provider not initialized. Firebase setup might be incomplete.");
+      // Optionally show specific message if GitHub provider isn't available/configured
+      // showErrorMessage("GitHub provider not initialized. Firebase setup might be incomplete.");
     }
 
+    // Event Listener for Email Signup Button
+    if (emailSignupBtn) {
+      emailSignupBtn.addEventListener('click', async () => {
+        hideErrorMessage();
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+          showErrorMessage("Please enter both email and password.");
+          return;
+        }
+
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+          console.log("Email user signed up and logged in.");
+          // onAuthStateChanged listener will handle UI updates
+        } catch (error) {
+          console.error("Email signup failed:", error);
+          showErrorMessage("Email signup failed: " + (error.message || "Unknown error"));
+        }
+      });
+    }
+
+    // Event Listener for Email Login Button
+    if (emailLoginBtn) {
+      emailLoginBtn.addEventListener('click', async () => {
+        hideErrorMessage();
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+          showErrorMessage("Please enter both email and password.");
+          return;
+        }
+
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          console.log("Email user logged in.");
+          // onAuthStateChanged listener will handle UI updates
+        } catch (error) {
+          console.error("Email login failed:", error);
+          showErrorMessage("Email login failed: " + (error.message || "Unknown error"));
+        }
+      });
+    }
 
     // Event Listener for Logout Button
     if (logoutBtn) {
