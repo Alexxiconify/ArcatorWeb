@@ -115,6 +115,9 @@
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <!-- Added links to new Privacy Policy and Terms of Service pages -->
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -128,249 +131,280 @@
   </div>
 </section>
 
-<!-- Admin & Dev Section Content -->
-<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Login Section / Admin Content Section -->
+<section id="admin-dev-content" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <!-- Removed the old "Our Development Roadmap (Todo List)" section and replaced it with a link -->
-    <div class="text-center mb-12">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Our Development Roadmap</h2>
-      <p class="text-lg text-gray-300 mb-4">
-        For the most up-to-date information on our development roadmap, tasks, and future plans, please refer to our dedicated Google Doc:
+    <div id="loading-spinner" class="flex justify-center items-center h-48">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <div id="login-section" class="text-center" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Admin Login Required</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        Please log in with your Discord or GitHub account to access the Admin & Dev documentation.
       </p>
-      <a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-        View Development Roadmap
-      </a>
+      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <button id="discord-login-btn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+          Login with Discord
+        </button>
+        <button id="github-login-btn" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+          Login with GitHub
+        </button>
+      </div>
+      <p id="error-message" class="text-red-500 mt-4" style="display: none;"></p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-      <!-- Darrion API Section -->
-      <div>
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-        <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+    <div id="admin-content" style="display: none;">
+      <div class="flex justify-between items-center mb-12">
+        <h2 class="text-4xl font-bold text-red-400">Administration & Development Content</h2>
+        <div class="flex items-center">
+          <p class="text-gray-300 mr-4">Logged in as: <span id="user-display-name" class="font-semibold"></span> (<span id="user-display-id" class="font-semibold"></span>)</p>
+          <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Removed the old "Our Development Roadmap (Todo List)" section and replaced it with a link -->
+      <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold text-red-400 mb-6">Our Development Roadmap</h2>
+        <p class="text-lg text-gray-300 mb-4">
+          For the most up-to-date information on our development roadmap, tasks, and future plans, please refer to our dedicated Google Doc:
+        </p>
+        <a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+          View Development Roadmap
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+        <!-- Darrion API Section -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
+          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
+            <li><span class="font-semibold text-white">GET plugin updates</span></li>
+          </ul>
+        </div>
+
+        <!-- GriefDetection Section -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Regular checks for griefs and automated analysis of player actions.</li>
+            <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
+            <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+            <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Onfim Notifications Section -->
+      <div class="mt-16 mb-12">
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
         <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-          <li><span class="font-semibold text-white">GET plugin updates</span></li>
+          <li>Warns staff on Discord when disk space is nearly full.</li>
+          <li>Detects and alerts on drive corruption.</li>
+          <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+          <li>Alerts when Jylina's Ngrok IP address changes.</li>
+          <li>Handles `#machine-status` updates every minute.</li>
         </ul>
       </div>
 
-      <!-- GriefDetection Section -->
-      <div>
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
-        <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li>Regular checks for griefs and automated analysis of player actions.</li>
-          <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
-          <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
-          <!-- Added rel="noopener noreferrer" for security when opening external links -->
-          <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
-          <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
-        </ul>
-      </div>
-    </div>
+      <!-- New Section: Sysadmin Documentation -->
+      <div class="mt-16">
+        <h3 class="text-3xl font-bold mb-4 text-blue-300">Sysadmin Documentation & Guides</h3>
+        <p class="text-gray-300 mb-6">Here you'll find essential documentation and guides related to system administration, server management, and database operations for Arcator.</p>
 
-    <!-- Onfim Notifications Section -->
-    <div class="mt-16 mb-12">
-      <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
-      <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-      <ul class="list-disc list-inside text-gray-300 space-y-2">
-        <li>Warns staff on Discord when disk space is nearly full.</li>
-        <li>Detects and alerts on drive corruption.</li>
-        <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-        <li>Alerts when Jylina's Ngrok IP address changes.</li>
-        <li>Handles `#machine-status` updates every minute.</li>
-      </ul>
-    </div>
+        <!-- Sub-section: FAQ -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
+          <h4 class="text-2xl font-bold mb-3 text-blue-200">Frequently Asked Questions (FAQ)</h4>
+          <p class="text-gray-300 mb-4">
+            This section covers common questions and troubleshooting tips for administrators.
+          </p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: How to scroll on tmux.</p>
+          <p class="text-gray-300 mb-4">A: Use <code>ctrl-b</code> then hit <code>[</code>. Scroll with the arrow keys or page up / down. Then hit <code>Q</code> to stop scrolling.</p>
 
-    <!-- New Section: Sysadmin Documentation -->
-    <div class="mt-16">
-      <h3 class="text-3xl font-bold mb-4 text-blue-300">Sysadmin Documentation & Guides</h3>
-      <p class="text-gray-300 mb-6">Here you'll find essential documentation and guides related to system administration, server management, and database operations for Arcator.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: What is the | in a command.</p>
+          <p class="text-gray-300 mb-4">A: The pipe command sends input from the left command to right command.</p>
 
-      <!-- Sub-section: FAQ -->
-      <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-        <h4 class="text-2xl font-bold mb-3 text-blue-200">Frequently Asked Questions (FAQ)</h4>
-        <p class="text-gray-300 mb-4">
-          This section covers common questions and troubleshooting tips for administrators.
-        </p>
-        <p class="text-gray-300 mb-2 font-semibold">Q: How to scroll on tmux.</p>
-        <p class="text-gray-300 mb-4">A: Use <code>ctrl-b</code> then hit <code>[</code>. Scroll with the arrow keys or page up / down. Then hit <code>Q</code> to stop scrolling.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
+          <p class="text-gray-300 mb-4">A: The current directory.</p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: What is the | in a command.</p>
-        <p class="text-gray-300 mb-4">A: The pipe command sends input from the left command to right command.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: Prompt Y/n</p>
+          <p class="text-gray-300 mb-4">A: If you hit enter Y is the default. Similarly y/N means N is default.</p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
-        <p class="text-gray-300 mb-4">A: The current directory.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. tar.gz or rpm?</p>
+          <p class="text-gray-300 mb-4">A: <code>tar.gz</code> is harder to install but works on more distros of Linux. <code>rpm</code> is easier to install but works on Fedora.</p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: Prompt Y/n</p>
-        <p class="text-gray-300 mb-4">A: If you hit enter Y is the default. Similarly y/N means N is default.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. Software manager vs download from site?</p>
+          <p class="text-gray-300 mb-4">A: Software manager is a repo that may be outdated but easy to use. Check for an official download from a site / PPA first.</p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. tar.gz or rpm?</p>
-        <p class="text-gray-300 mb-4">A: <code>tar.gz</code> is harder to install but works on more distros of Linux. <code>rpm</code> is easier to install but works on Fedora.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: Check NVME drive status.</p>
+          <p class="text-gray-300 mb-4">A: Use <code>nvme help</code>. Drive checks: <code>nvme device-self-test /dev/nvme0 -n 1 -s 2</code></p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. Software manager vs download from site?</p>
-        <p class="text-gray-300 mb-4">A: Software manager is a repo that may be outdated but easy to use. Check for an official download from a site / PPA first.</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: Find dead symlinks</p>
+          <p class="text-gray-300 mb-4">A: <a href="https://unix.stackexchange.com/a/34260" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://unix.stackexchange.com/a/34260</a></p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: Check NVME drive status.</p>
-        <p class="text-gray-300 mb-4">A: Use <code>nvme help</code>. Drive checks: <code>nvme device-self-test /dev/nvme0 -n 1 -s 2</code></p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: How to Debug Some System Errors</p>
+          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+            <li>Run: <code>sudo journalctl -xe</code></li>
+            <li>How to scroll: Page up and down (like tmux scroll)</li>
+            <li>How to exit: <code>Q</code> (like tmux scroll)</li>
+          </ul>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: Find dead symlinks</p>
-        <p class="text-gray-300 mb-4">A: <a href="https://unix.stackexchange.com/a/34260" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://unix.stackexchange.com/a/34260</a></p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: <code>nano /etc/thing ok why</code></p>
+          <p class="text-gray-300 mb-4">A: Opens <code>/etc/thing</code> then "ok" then "why". Putting quotes is important when using spaces in arguments.</p>
+        </div>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: How to Debug Some System Errors</p>
-        <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-          <li>Run: <code>sudo journalctl -xe</code></li>
-          <li>How to scroll: Page up and down (like tmux scroll)</li>
-          <li>How to exit: <code>Q</code> (like tmux scroll)</li>
-        </ul>
+        <!-- Sub-section: Snapshot Setup -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
+          <h4 class="text-2xl font-bold mb-3 text-blue-200">Snapshot Setup</h4>
+          <p class="text-gray-300 mb-4">
+            Learn how to configure and manage server snapshots to ensure data integrity and quick recovery.
+            Snapshots are crucial for disaster recovery and maintaining server uptime. This guide details the process of setting them up and managing them effectively.
+          </p>
+          <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
+          <p class="text-gray-300 mb-2">In short snapshots use Btrfs to perform instantaneous snapshots.</p>
+          <p class="text-gray-300 mb-2">These folders are automatically backed up with strong transparent compression.</p>
+          <p class="text-gray-300 mb-2">They are in: <code>/mnt/Main/Sync</code></p>
+          <p class="text-gray-300 mb-2">The common subvolumes there are home, nginx, OtherServers, postgres, Servers.</p>
+          <p class="text-gray-300 mb-4">Note <code>/home</code> is a btrfs mount to home here.</p>
+          <p class="text-gray-300 mb-2">We use a program called <code>btrbk</code> to manage it. This is useful documentation <a href="https://github.com/digint/btrbk/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/digint/btrbk/</a></p>
 
-        <p class="text-gray-300 mb-2 font-semibold">Q: <code>nano /etc/thing ok why</code></p>
-        <p class="text-gray-300 mb-4">A: Opens <code>/etc/thing</code> then "ok" then "why". Putting quotes is important when using spaces in arguments.</p>
-      </div>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">General Use</h5>
+          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+            <li>Server snapshot at: <code>~/Backups/Snapshot</code></li>
+            <li>Home snapshot at: <code>~/HomeSnapshots</code></li>
+          </ul>
 
-      <!-- Sub-section: Snapshot Setup -->
-      <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-        <h4 class="text-2xl font-bold mb-3 text-blue-200">Snapshot Setup</h4>
-        <p class="text-gray-300 mb-4">
-          Learn how to configure and manage server snapshots to ensure data integrity and quick recovery.
-          Snapshots are crucial for disaster recovery and maintaining server uptime. This guide details the process of setting them up and managing them effectively.
-        </p>
-        <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
-        <p class="text-gray-300 mb-2">In short snapshots use Btrfs to perform instantaneous snapshots.</p>
-        <p class="text-gray-300 mb-2">These folders are automatically backed up with strong transparent compression.</p>
-        <p class="text-gray-300 mb-2">They are in: <code>/mnt/Main/Sync</code></p>
-        <p class="text-gray-300 mb-2">The common subvolumes there are home, nginx, OtherServers, postgres, Servers.</p>
-        <p class="text-gray-300 mb-4">Note <code>/home</code> is a btrfs mount to home here.</p>
-        <p class="text-gray-300 mb-2">We use a program called <code>btrbk</code> to manage it. This is useful documentation <a href="https://github.com/digint/btrbk/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/digint/btrbk/</a></p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Setup</h5>
+          <p class="text-gray-300 mb-2">For set up refer to existing files in <code>/etc/btrbk</code>.</p>
+          <p class="text-gray-300 mb-2">Make the corresponding common subvolumes above:</p>
+          <p class="code-block mb-4"><code>btrfs subvol create /mnt/Main/Sync/[name]</code></p>
+          <p class="text-gray-300 mb-2">Create a regular folder for snapshots and Servers_snapshots.</p>
+          <p class="text-gray-300 mb-2">Get the <code>btrbk sh</code> files in <code>/usr/local/bin</code></p>
+          <p class="text-gray-300 mb-2">Also get the backups service and timer systemd files in <code>/etc/systemd/system</code>. Check systemd page for more info.</p>
+          <p class="code-block mb-4">
+            <code>systemctl enable backups.timer</code><br>
+            <code>systemctl enable backups_pull.timer</code><br>
+            <code>systemctl start backups.timer</code><br>
+            <code>systemctl start backups_pull.timer</code>
+          </p>
+          <p class="text-gray-300 mb-4">To fix selinux run: <code>restorecon -rv /usr/local/bin</code></p>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">General Use</h5>
-        <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-          <li>Server snapshot at: <code>~/Backups/Snapshot</code></li>
-          <li>Home snapshot at: <code>~/HomeSnapshots</code></li>
-        </ul>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions Setup</h5>
+          <p class="code-block mb-4">
+            <code># Restrict to mcsa</code><br>
+            <code>chown -R mcsa:mcsa /mnt/Main/Sync/Servers</code><br>
+            <code>chown mcsa:mcsa /mnt/Main/Sync/Servers_snapshots</code><br>
+            <code>chmod 750 /mnt/Main/Sync/*Servers /mnt/Main/Sync/*Servers/* /mnt/Main/Sync/Servers_snapshots</code><br>
+            <code># Looser world permissions</code><br>
+            <code>chmod 755 /mnt/Main/Sync /mnt/Main/Sync/OtherServers /mnt/Main/Sync/snapshots</code>
+          </p>
+        </div>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Setup</h5>
-        <p class="text-gray-300 mb-2">For set up refer to existing files in <code>/etc/btrbk</code>.</p>
-        <p class="text-gray-300 mb-2">Make the corresponding common subvolumes above:</p>
-        <p class="code-block mb-4"><code>btrfs subvol create /mnt/Main/Sync/[name]</code></p>
-        <p class="text-gray-300 mb-2">Create a regular folder for snapshots and Servers_snapshots.</p>
-        <p class="text-gray-300 mb-2">Get the <code>btrbk sh</code> files in <code>/usr/local/bin</code></p>
-        <p class="text-gray-300 mb-2">Also get the backups service and timer systemd files in <code>/etc/systemd/system</code>. Check systemd page for more info.</p>
-        <p class="code-block mb-4">
-          <code>systemctl enable backups.timer</code><br>
-          <code>systemctl enable backups_pull.timer</code><br>
-          <code>systemctl start backups.timer</code><br>
-          <code>systemctl start backups_pull.timer</code>
-        </p>
-        <p class="text-gray-300 mb-4">To fix selinux run: <code>restorecon -rv /usr/local/bin</code></p>
+        <!-- Sub-section: Server IDs (s#'s) -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
+          <h4 class="text-2xl font-bold mb-3 text-blue-200">Server IDs (s#'s)</h4>
+          <p class="text-gray-300 mb-4">
+            A comprehensive list and explanation of all server IDs used across the Arcator network.
+            Understanding server IDs is vital for direct management and troubleshooting specific server instances. This section provides a detailed breakdown of each ID and its purpose.
+          </p>
+          <p class="text-gray-300 mb-2"><strong>Purpose:</strong> We use these IDs to prevent conflicts between machines.</p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Examples</h5>
+          <p class="text-gray-300 mb-2"><strong>IP:</strong> <code>10.0.0.x</code></p>
+          <p class="text-gray-300 mb-2"><strong>Database Log IDs:</strong> <code>Ports</code></p>
+          <p class="text-300 mb-4"><code>123x</code> is Backup SSH to Server X. Similar patterns for other services.</p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">IDs</h5>
+          <ul class="list-disc list-inside text-gray-400 ml-4">
+            <li><code>s1</code> - Jylina (Jordan's High Speed Server)</li>
+            <li><code>s2</code> - Thoth (Jordan's Raspberry Pi)</li>
+            <li><code>s3</code> - Dust's Network</li>
+            <li><code>s4, s5</code> - Reserved</li>
+            <li><code>s6, s7, s8</code> - Kieraan (Venus, Apollo, Icarus?)</li>
+            <li><code>s9, s10</code> - Sputnik, Vulcan (Angry)</li>
+          </ul>
+        </div>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions Setup</h5>
-        <p class="code-block mb-4">
-          <code># Restrict to mcsa</code><br>
-          <code>chown -R mcsa:mcsa /mnt/Main/Sync/Servers</code><br>
-          <code>chown mcsa:mcsa /mnt/Main/Sync/Servers_snapshots</code><br>
-          <code>chmod 750 /mnt/Main/Sync/*Servers /mnt/Main/Sync/*Servers/* /mnt/Main/Sync/Servers_snapshots</code><br>
-          <code># Looser world permissions</code><br>
-          <code>chmod 755 /mnt/Main/Sync /mnt/Main/Sync/OtherServers /mnt/Main/Sync/snapshots</code>
-        </p>
-      </div>
+        <!-- Sub-section: Database Management -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+          <h4 class="text-2xl font-bold mb-3 text-blue-200">Database Management</h4>
+          <p class="text-gray-300 mb-4">
+            Guidelines and best practices for managing Arcator's databases.
+            This includes information on database structure, backup procedures, and common maintenance tasks to ensure optimal performance and data security.
+          </p>
+          <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
+          <p class="text-gray-300 mb-2">We use MariaDB to run the database.</p>
+          <p class="text-gray-300 mb-4">Administration uses the <code>dba</code> user instead of <code>mcsa</code>.</p>
 
-      <!-- Sub-section: Server IDs (s#'s) -->
-      <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-        <h4 class="text-2xl font-bold mb-3 text-blue-200">Server IDs (s#'s)</h4>
-        <p class="text-gray-300 mb-4">
-          A comprehensive list and explanation of all server IDs used across the Arcator network.
-          Understanding server IDs is vital for direct management and troubleshooting specific server instances. This section provides a detailed breakdown of each ID and its purpose.
-        </p>
-        <p class="text-gray-300 mb-2"><strong>Purpose:</strong> We use these IDs to prevent conflicts between machines.</p>
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Examples</h5>
-        <p class="text-gray-300 mb-2"><strong>IP:</strong> <code>10.0.0.x</code></p>
-        <p class="text-gray-300 mb-2"><strong>Database Log IDs:</strong> <code>Ports</code></p>
-        <p class="text-gray-300 mb-4"><code>123x</code> is Backup SSH to Server X. Similar patterns for other services.</p>
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">IDs</h5>
-        <ul class="list-disc list-inside text-gray-400 ml-4">
-          <li><code>s1</code> - Jylina (Jordan's High Speed Server)</li>
-          <li><code>s2</code> - Thoth (Jordan's Raspberry Pi)</li>
-          <li><code>s3</code> - Dust's Network</li>
-          <li><code>s4, s5</code> - Reserved</li>
-          <li><code>s6, s7, s8</code> - Kieraan (Venus, Apollo, Icarus?)</li>
-          <li><code>s9, s10</code> - Sputnik, Vulcan (Angry)</li>
-        </ul>
-      </div>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Backups</h5>
+          <p class="text-gray-300 mb-2">We use a simple cron: <code>0 * * * * /home/dba/doAll.sh</code></p>
+          <p class="text-gray-300 mb-4"><code>/home/dba/doAll.sh</code> calls <code>dbBackup.py</code> with appropriate permissions and target destination in argument. For example: <code>/mnt/Main/Backups/DB_BACKUPS</code> or <code>/mnt/RAID1/Vulcan/DB</code></p>
 
-      <!-- Sub-section: Database Management -->
-      <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-        <h4 class="text-2xl font-bold mb-3 text-blue-200">Database Management</h4>
-        <p class="text-gray-300 mb-4">
-          Guidelines and best practices for managing Arcator's databases.
-          This includes information on database structure, backup procedures, and common maintenance tasks to ensure optimal performance and data security.
-        </p>
-        <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
-        <p class="text-gray-300 mb-2">We use MariaDB to run the database.</p>
-        <p class="text-gray-300 mb-4">Administration uses the <code>dba</code> user instead of <code>mcsa</code>.</p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Replication</h5>
+          <p class="text-gray-300 mb-4">Replication syncs the DB in real time to other machines. <a href="https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication</a></p>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Backups</h5>
-        <p class="text-gray-300 mb-2">We use a simple cron: <code>0 * * * * /home/dba/doAll.sh</code></p>
-        <p class="text-gray-300 mb-4"><code>/home/dba/doAll.sh</code> calls <code>dbBackup.py</code> with appropriate permissions and target destination in argument. For example: <code>/mnt/Main/Backups/DB_BACKUPS</code> or <code>/mnt/RAID1/Vulcan/DB</code></p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Data Location</h5>
+          <p class="text-gray-300 mb-4">There are 3 <code>btrfs</code> subvolume with <code>nodatacow fstab</code> for performance. Each of these are mounted to a corresponding <code>/var</code> location.</p>
+          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+            <li><code>/mnt/DB/mysql</code>, <code>/mnt/DB/log_mysql</code>, <code>/mnt/DB/postgres</code></li>
+          </ul>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Replication</h5>
-        <p class="text-gray-300 mb-4">Replication syncs the DB in real time to other machines. <a href="https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication</a></p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Install Database</h5>
+          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+            <li><a href="https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo</a>
+              <ul class="list-circle list-inside text-gray-400 ml-8">
+                <li>Only follow: Install from Fedora Main Repo and Configuring MySql/MariaDB</li>
+              </ul>
+            </li>
+            <li><a href="https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn</a></li>
+          </ul>
+          <p class="code-block mb-4">
+            <code>dnf install mariadb-connector-c-devel MariaDB-server MariaDB-client MariaDB-backup</code><br>
+            <code>systemctl enable mariadb</code><br>
+            <code>systemctl start mariadb</code>
+          </p>
+          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+            <li>Only For Ubuntu: <code>/etc/mysql/mariadb.conf.d/50-server.cnf</code>
+              <ul class="list-circle list-inside text-gray-400 ml-8">
+                <li>Replace <code>bind-address = 127.0.0.1</code> with the proper <code>10.0.0.x</code> IP</li>
+              </ul>
+            </li>
+            <li>In <code>/etc/my.cnf.d</code> (Ubuntu is <code>/etc/mysql/conf.d</code>)
+              <ul class="list-circle list-inside text-gray-400 ml-8">
+                <li>Add <code>arcator.cnf</code> and relevant host (example <code>jylina.cnf</code>)</li>
+              </ul>
+            </li>
+            <li>Remember to reapply <code>restorecon -v -R /etc</code></li>
+            <li>Install <a href="https://docs.fedoraproject.org/en-US/quick-docs/postgresql/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/postgresql/</a>
+              <ul class="list-circle list-inside text-gray-400 ml-8">
+                <li>Extra docs <a href="https://computingforgeeks.com/install-postgresql-database-fedora-linux/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://computingforgeforgeeks.com/install-postgresql-database-fedora-linux/</a></li>
+                <li>Whitelist <code>pg_hba.conf</code> using a pre-existing machine config</li>
+                <li>To set the <code>datadir</code> use <code>fstab</code> to mount <code>/var/lib/pgsql</code>. Then <code>restorecon</code> it.</li>
+              </ul>
+            </li>
+          </ul>
 
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Data Location</h5>
-        <p class="text-gray-300 mb-4">There are 3 <code>btrfs</code> subvolume with <code>nodatacow fstab</code> for performance. Each of these are mounted to a corresponding <code>/var</code> location.</p>
-        <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-          <li><code>/mnt/DB/mysql</code>, <code>/mnt/DB/log_mysql</code>, <code>/mnt/DB/postgres</code></li>
-        </ul>
-
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Install Database</h5>
-        <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-          <li><a href="https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo</a>
-            <ul class="list-circle list-inside text-gray-400 ml-8">
-              <li>Only follow: Install from Fedora Main Repo and Configuring MySql/MariaDB</li>
-            </ul>
-          </li>
-          <li><a href="https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn</a></li>
-        </ul>
-        <p class="code-block mb-4">
-          <code>dnf install mariadb-connector-c-devel MariaDB-server MariaDB-client MariaDB-backup</code><br>
-          <code>systemctl enable mariadb</code><br>
-          <code>systemctl start mariadb</code>
-        </p>
-        <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-          <li>Only For Ubuntu: <code>/etc/mysql/mariadb.conf.d/50-server.cnf</code>
-            <ul class="list-circle list-inside text-gray-400 ml-8">
-              <li>Replace <code>bind-address = 127.0.0.1</code> with the proper <code>10.0.0.x</code> IP</li>
-            </ul>
-          </li>
-          <li>In <code>/etc/my.cnf.d</code> (Ubuntu is <code>/etc/mysql/conf.d</code>)
-            <ul class="list-circle list-inside text-gray-400 ml-8">
-              <li>Add <code>arcator.cnf</code> and relevant host (example <code>jylina.cnf</code>)</li>
-            </ul>
-          </li>
-          <li>Remember to reapply <code>restorecon -v -R /etc</code></li>
-          <li>Install <a href="https://docs.fedoraproject.org/en-US/quick-docs/postgresql/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/postgresql/</a>
-            <ul class="list-circle list-inside text-gray-400 ml-8">
-              <li>Extra docs <a href="https://computingforgeeks.com/install-postgresql-database-fedora-linux/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://computingforgeeks.com/install-postgresql-database-fedora-linux/</a></li>
-              <li>Whitelist <code>pg_hba.conf</code> using a pre-existing machine config</li>
-              <li>To set the <code>datadir</code> use <code>fstab</code> to mount <code>/var/lib/pgsql</code>. Then <code>restorecon</code> it.</li>
-            </ul>
-          </li>
-        </ul>
-
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Configuration</h5>
-        <p class="text-gray-300 mb-2">Take <code>/etc/my.cnf.d/arcator.cnf</code> (Ubuntu uses <code>/etc/mysql/arcator.cnf</code>)</p>
-        <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions (for backups to work from dba)</h5>
-        <p class="code-block mb-4">
-          <code>find /var/lib/mysql -type d -exec chmod 770 {} \;</code><br>
-          <code>find /var/lib/mysql -type f -exec chmod 660 {} \;</code><br>
-          <code>usermod -a -G mysql dba</code>
-        </p>
-        <p class="text-gray-300 mb-2">Get <code>.my.cnf</code> and <code>dbBackup.py</code> for <code>/home/dba</code></p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Configuration</h5>
+          <p class="text-gray-300 mb-2">Take <code>/etc/my.cnf.d/arcator.cnf</code> (Ubuntu uses <code>/etc/mysql/arcator.cnf</code>)</p>
+          <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions (for backups to work from dba)</h5>
+          <p class="code-block mb-4">
+            <code>find /var/lib/mysql -type d -exec chmod 770 {} \;</code><br>
+            <code>find /var/lib/mysql -type f -exec chmod 660 {} \;</code><br>
+            <code>usermod -a -G mysql dba</code>
+          </p>
+          <p class="text-gray-300 mb-2">Get <code>.my.cnf</code> and <code>dbBackup.py</code> for <code>/home/dba</code></p>
+        </div>
       </div>
     </div>
-
   </div>
 </section>
 
@@ -380,8 +414,9 @@
     <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <!-- Updated footer links to new Privacy Policy and Terms of Service pages -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white text-purple-400 transition duration-300 ease-in-out">Admin & Dev</a>
@@ -389,7 +424,189 @@
   </div>
 </footer>
 
-<script>
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged,
+    GithubAuthProvider,
+    DiscordAuthProvider,
+    signInWithCustomToken,
+    signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Global variables provided by the Canvas environment
+  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+  // Initialize Firebase
+  let app;
+  let auth;
+  let db;
+
+  if (Object.keys(firebaseConfig).length > 0) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } else {
+    console.error("Firebase config is missing. Authentication will not work.");
+    document.getElementById('loading-spinner').style.display = 'none';
+    document.getElementById('error-message').textContent = 'Firebase configuration is missing. Cannot proceed with login.';
+    document.getElementById('error-message').style.display = 'block';
+    document.getElementById('login-section').style.display = 'block';
+  }
+
+  const githubProvider = new GithubAuthProvider();
+  const discordProvider = new DiscordAuthProvider();
+
+  // DOM Elements
+  const loginSection = document.getElementById('login-section');
+  const adminContent = document.getElementById('admin-content');
+  const discordLoginBtn = document.getElementById('discord-login-btn');
+  const githubLoginBtn = document.getElementById('github-login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userDisplayName = document.getElementById('user-display-name');
+  const userDisplayId = document.getElementById('user-display-id');
+  const errorMessage = document.getElementById('error-message');
+  const loadingSpinner = document.getElementById('loading-spinner');
+
+  /**
+   * Displays an error message to the user.
+   * @param {string} message - The error message to display.
+   */
+  function showErrorMessage(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+  }
+
+  /**
+   * Hides the error message.
+   */
+  function hideErrorMessage() {
+    errorMessage.style.display = 'none';
+  }
+
+  /**
+   * Checks if a user is whitelisted in Firestore.
+   * @param {string} uid - The user's Firebase UID.
+   * @returns {Promise<boolean>} - True if whitelisted, false otherwise.
+   */
+  async function checkWhitelist(uid) {
+    if (!db) {
+      console.error("Firestore is not initialized.");
+      return false;
+    }
+    // Define the path to the whitelist collection.
+    // For public data, use /artifacts/{appId}/public/data/whitelisted_admins
+    const whitelistDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, uid);
+    try {
+      const docSnap = await getDoc(whitelistDocRef);
+      return docSnap.exists();
+    } catch (error) {
+      console.error("Error checking whitelist:", error);
+      showErrorMessage("Error checking access. Please try again.");
+      return false;
+    }
+  }
+
+  /**
+   * Handles user authentication state changes.
+   * If a user is logged in, checks if they are whitelisted to show content.
+   * Otherwise, shows the login section.
+   */
+  onAuthStateChanged(auth, async (user) => {
+    loadingSpinner.style.display = 'none'; // Hide spinner once auth state is checked
+    hideErrorMessage(); // Clear any previous errors
+
+    if (user) {
+      userDisplayName.textContent = user.displayName || user.email || 'Guest';
+      userDisplayId.textContent = user.uid; // Display the full UID
+
+      const isWhitelisted = await checkWhitelist(user.uid);
+      if (isWhitelisted) {
+        loginSection.style.display = 'none';
+        adminContent.style.display = 'block';
+      } else {
+        showErrorMessage("Access Denied: Your account is not whitelisted for this page.");
+        adminContent.style.display = 'none';
+        loginSection.style.display = 'block';
+        // Optionally sign out unauthorized users
+        await signOut(auth);
+      }
+    } else {
+      adminContent.style.display = 'none';
+      loginSection.style.display = 'block';
+      userDisplayName.textContent = '';
+      userDisplayId.textContent = '';
+    }
+  });
+
+  // Handle initial custom token sign-in if available (for Canvas environment)
+  if (auth && initialAuthToken) {
+    signInWithCustomToken(auth, initialAuthToken)
+      .then(() => {
+        console.log("Signed in with custom token.");
+      })
+      .catch((error) => {
+        console.error("Error signing in with custom token:", error);
+        // If custom token fails, allow anonymous sign-in or other methods
+        signInAnonymously(auth)
+          .then(() => console.log("Signed in anonymously."))
+          .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+      });
+  } else if (auth) {
+    // If no custom token, sign in anonymously to ensure auth is ready for onAuthStateChanged
+    signInAnonymously(auth)
+      .then(() => console.log("Signed in anonymously (no custom token)."))
+      .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+  }
+
+
+  // Event Listeners for Login Buttons
+  discordLoginBtn.addEventListener('click', async () => {
+    hideErrorMessage();
+    try {
+      await signInWithPopup(auth, discordProvider);
+      // onAuthStateChanged listener will handle UI updates
+    } catch (error) {
+      console.error("Discord login failed:", error);
+      showErrorMessage("Discord login failed. Please try again. Error: " + error.message);
+    }
+  });
+
+  githubLoginBtn.addEventListener('click', async () => {
+    hideErrorMessage();
+    try {
+      await signInWithPopup(auth, githubProvider);
+      // onAuthStateChanged listener will handle UI updates
+    } catch (error) {
+      console.error("GitHub login failed:", error);
+      showErrorMessage("GitHub login failed. Please try again. Error: " + error.message);
+    }
+  });
+
+  // Event Listener for Logout Button
+  logoutBtn.addEventListener('click', async () => {
+    hideErrorMessage();
+    try {
+      await signOut(auth);
+      console.log("User signed out.");
+      // onAuthStateChanged listener will handle UI updates
+    } catch (error) {
+      console.error("Logout failed:", error);
+      showErrorMessage("Logout failed. Please try again.");
+    }
+  });
+
   // Get current year for footer
   document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
 </script>
