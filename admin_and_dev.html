@@ -457,13 +457,6 @@
     getDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Global variables provided by the Canvas environment (ensure they are declared)
-  // Even if you manually provide firebaseConfig, these variables need to exist
-  // for the rest of the script to avoid ReferenceErrors.
-  // Re-introducing the declarations for __app_id and __initial_auth_token
-  const __app_id = typeof __app_id !== 'undefined' ? __app_id : null;
-  const __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
   // You can choose to manually provide firebaseConfig here if you prefer,
   // or rely on the Canvas environment's __firebase_config.
   // If you manually provide it, ensure it's a valid object.
@@ -477,11 +470,10 @@
     measurementId: "G-DJXNT1L7CM" // Optional, if you have it
   };
 
-  // Determine appId for Firestore path - prioritize Canvas provided, then project ID
-  // If __app_id is null, it will use firebaseConfig.projectId. If that's also null, it will use 'default-app-id'.
-  const appId = __app_id || firebaseConfig.projectId || 'default-app-id';
-  // Use the declared env variable (which is now guaranteed to be defined as null if not provided)
-  const initialAuthToken = __initial_auth_token;
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  const initialAuthToken = canvasInitialAuthToken;
 
   // Initialize Firebase
   let app;
