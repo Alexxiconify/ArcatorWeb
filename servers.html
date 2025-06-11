@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servers - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
+      background-color: #1F2937;
+      /* Light text color for contrast */
+      color: #E5E7EB;
+      /* Subtle diagonal gradient for background texture, simulating a pattern */
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px; /* Size of the repeating pattern */
+      background-attachment: fixed; /* Keeps background fixed during scroll */
+    }
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px; /* Adjust height for inner pages */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Header Section -->
+<header class="bg-gray-900 py-4 shadow-lg">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Our Minecraft Servers</h1>
+  </div>
+</section>
+
+<!-- Servers Section Content -->
+<section id="servers" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-center mb-12 text-green-400">Explore Our Worlds</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- SSMP Server Card (updated) -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-green-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-green-300">SSMP (Strawberry Survival Multiplayer)</h3>
+        <p class="text-gray-300 mb-6">SSMP, or Strawberry SMP, is a vanilla survival multiplayer server where you can connect with others, build together, form teams, or embark on solo adventures. Wars are not a part of this peaceful experience. We invite you to join this history-rich server!</p>
+        <p class="text-gray-300 mb-6 font-semibold">History:</p>
+        <p class="text-gray-300 mb-4">The SSMP began in summer 2019, sparking a revival for Arcator after a period of inactivity. Around 20 friends, many reuniting after years, came together to create this new SMP, eventually naming it Strawberry SMP.</p>
+        <p class="text-gray-300 mb-4">The server's first day saw players establishing bases around a small village on a cape, with some venturing to other islands. Road systems, homes, and gardens flourished, and a thriving economy emerged, connecting everything through the Nether.</p>
+        <p class="text-gray-300 mb-4">As the community grew, so did challenges. Pillager raids became a daily occurrence, uniting players to build walls and defend the village. These raids transformed into community events, strengthening bonds as players fought side-by-side.</p>
+        <p class="text-gray-300 mb-4">Despite a period of decline and a server crash, the SSMP returned in December 2019 as a new server, bringing new players and activities. It continues to run actively today.</p>
+        <p class="text-gray-300 mb-6 font-semibold">The Six Hour War:</p>
+        <p class="text-gray-300 mb-6">A period of intense conflict, the "Six Hour War" saw cities burn and players band together. Despite initial desires for peace, war became inevitable, leading to a fierce struggle where communities fought to defend their territories.</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6">
+          <li>Vanilla Survival Experience</li>
+          <li>Community Building & Exploration</li>
+          <li>Peaceful Gameplay (No Wars)</li>
+          <li>Ping-Friendly Experience</li>
+        </ul>
+        <a href="index.html#join-us" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out">Play Now</a>
+      </div>
+
+      <!-- Hub Server Card -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-purple-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-purple-300">Hub (MC1)</h3>
+        <p class="text-gray-300 mb-6">The original Arcator server, launched in December 2010, serving as the central hub for all adventures. It features diverse game modes and historical worlds.</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6">
+          <li><span class="font-semibold text-purple-200">Freebuild:</span> Build without restrictions or claiming.</li>
+          <li><span class="font-semibold text-purple-200">Plots:</span> Build in specified land pieces with grief protection.</li>
+          <li><span class="font-semibold text-purple-200">Peaceful Survival:</span> Survival without monsters, griefing, or theft, with disabled fall damage. Explore builds and memories from past members.</li>
+          <li><span class="font-semibold text-purple-200">Modified Survival:</span> Basic survival with hostile mobs, but no PvP, raiding, or griefing. Features various plugins for unique gameplay.</li>
+          <li>Historical Worlds (since 2011), including "Sky City" (built 2013-2014)</li>
+          <li>Integrated Minigame Section</li>
+        </ul>
+        <a href="index.html#join-us" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out">Explore Hub</a>
+      </div>
+
+      <!-- Other MC Servers Card -->
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-red-500 transition duration-300 ease-in-out transform hover:scale-105">
+        <h3 class="text-3xl font-bold mb-4 text-red-300">Other MC Servers</h3>
+        <p class="text-gray-300 mb-6">Beyond our core offerings, explore Factions, Modded Minecraft, and a variety of other exciting minigames!</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6">
+          <li>Factions</li>
+          <li>Modded Servers</li>
+          <li>SkyWars</li>
+          <li>BedWars</li>
+          <li>Parkour Challenges</li>
+        </ul>
+        <a href="index.html#join-us" class="inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out">Discover More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-servers"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex justify-center space-x-6 mt-4">
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Get current year for footer
+  document.getElementById('current-year-servers').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
