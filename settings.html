@@ -74,6 +74,8 @@
         <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -107,12 +109,10 @@
 
       <div class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md space-y-6">
         <div class="flex flex-col items-center">
-          <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/FFFFFF?text=JP" alt="Current Profile Picture">
-          <label for="profile-picture-upload" class="block text-gray-300 text-sm font-bold mb-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300 ease-in-out">
-            Upload New Profile Picture
-          </label>
-          <input type="file" id="profile-picture-upload" accept="image/*" class="hidden">
-          <p id="upload-status" class="text-gray-400 text-sm mt-2" style="display: none;"></p>
+          <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg';">
+          <label for="profile-picture-url" class="block text-gray-300 text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
+          <input type="url" id="profile-picture-url" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="https://cdn.discordapp.com/avatars/...">
+          <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Changes will be reflected after saving.</p>
         </div>
 
         <div>
@@ -152,15 +152,15 @@
     onAuthStateChanged,
     signInWithCustomToken,
     signInAnonymously,
-    updateProfile
+    updateProfile // To update display name directly in Auth
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+    getFirestore,
+    doc,
+    setDoc, // To save profile URL and displayName in Firestore
+    getDoc // To retrieve profile data
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
@@ -180,14 +180,14 @@
 
   let app;
   let auth;
-  let storage;
+  let db;
   let currentUser = null;
   let isFirebaseInitialized = false;
 
   try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
-    storage = getStorage(app);
+    db = getFirestore(app);
     isFirebaseInitialized = true;
     console.log("Firebase initialized successfully on settings page.");
   } catch (e) {
@@ -202,13 +202,14 @@
   const loginRequiredMessage = document.getElementById('login-required-message');
   const settingsContent = document.getElementById('settings-content');
   const profilePictureDisplay = document.getElementById('profile-picture-display');
-  const profilePictureUpload = document.getElementById('profile-picture-upload');
+  const profilePictureUrlInput = document.getElementById('profile-picture-url'); // Changed from upload to URL input
   const displayNameInput = document.getElementById('display-name-input');
   const updateProfileBtn = document.getElementById('update-profile-btn');
   const settingsMessage = document.getElementById('settings-message');
-  const uploadStatus = document.getElementById('upload-status');
+  const urlPreviewMessage = document.getElementById('url-preview-message');
 
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/FFFFFF?text=JP';
+  // Default profile picture (Discord default avatar)
+  const DEFAULT_PROFILE_PIC = 'https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg';
 
   /**
    * Displays a message on the settings page (success/error).
@@ -229,16 +230,61 @@
     }, 5000);
   }
 
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    if (!db) return null;
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
+
+  /**
+   * Updates user profile data in Firestore.
+   * @param {string} uid - The user's UID.
+   * @param {Object} profileData - The data to update (displayName, photoURL).
+   */
+  async function updateUserProfileInFirestore(uid, profileData) {
+    if (!db) {
+      showSettingsMessage("Database not initialized. Cannot save profile.", true);
+      return;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
+      console.log("User profile updated in Firestore:", uid, profileData);
+    } catch (error) {
+      console.error("Error updating user profile in Firestore:", error);
+      showSettingsMessage(`Error saving profile: ${error.message}`, true);
+    }
+  }
+
+
   // Function to update UI based on user state
-  function updateUI(user) {
+  async function updateUI(user) {
     if (user) {
       currentUser = user;
       loadingSpinner.style.display = 'none';
       loginRequiredMessage.style.display = 'none';
       settingsContent.style.display = 'block';
 
-      displayNameInput.value = user.displayName || '';
-      profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
+      // Load existing profile from Firestore
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+
+      displayNameInput.value = userProfile?.displayName || user.displayName || '';
+      profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
+      profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+
     } else {
       currentUser = null;
       loadingSpinner.style.display = 'none';
@@ -272,52 +318,7 @@
     }
   }
 
-  // Handle profile picture upload
-  profilePictureUpload.addEventListener('change', async (event) => {
-    if (!currentUser) {
-      showSettingsMessage("Please log in to upload a profile picture.", true);
-      return;
-    }
-
-    const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
-
-    // Basic file type validation (optional but good practice)
-    if (!file.type.startsWith('image/')) {
-      showSettingsMessage("Please upload an image file (e.g., JPG, PNG, GIF).", true);
-      return;
-    }
-
-    uploadStatus.textContent = 'Uploading...';
-    uploadStatus.style.display = 'block';
-    showSettingsMessage('', false); // Clear previous messages
-
-    const storageRef = ref(storage, `user_profiles/${currentUser.uid}/profile.png`);
-
-    try {
-      // Upload the file
-      const snapshot = await uploadBytes(storageRef, file);
-      // Get the public download URL
-      const photoURL = await getDownloadURL(snapshot.ref);
-
-      // Update user's profile with the new photo URL
-      await updateProfile(currentUser, { photoURL: photoURL });
-
-      profilePictureDisplay.src = photoURL; // Update immediate display
-      uploadStatus.textContent = 'Upload successful!';
-      showSettingsMessage("Profile picture updated successfully!", false);
-      console.log('Profile picture updated:', photoURL);
-
-    } catch (error) {
-      console.error("Error uploading or updating profile picture:", error);
-      uploadStatus.textContent = 'Upload failed!';
-      showSettingsMessage(`Error updating profile picture: ${error.message || 'Unknown error'}`, true);
-    }
-  });
-
-  // Handle display name update
+  // Handle display name and profile picture URL update
   updateProfileBtn.addEventListener('click', async () => {
     if (!currentUser) {
       showSettingsMessage("Please log in to update your profile.", true);
@@ -325,30 +326,69 @@
     }
 
     const newDisplayName = displayNameInput.value.trim();
-    if (newDisplayName === '' && (currentUser.displayName || '') !== '') {
-      // Allow clearing display name, but Firebase auth sometimes sets it to null for provider logins.
-      // For custom email/password, it might default to email if displayName is null.
-      // This case is tricky, so we'll just allow setting to empty string.
-      // If they want to remove it entirely, they can make it empty.
-    } else if (newDisplayName === '' && (currentUser.displayName || '') === '') {
+    const newPhotoURL = profilePictureUrlInput.value.trim();
+
+    if (newDisplayName === '') {
       showSettingsMessage("Display name cannot be empty.", true);
       return;
     }
 
-    if (newDisplayName === currentUser.displayName) {
-      showSettingsMessage("Display name is already set to that value.", false);
+    // Basic URL validation
+    if (newPhotoURL && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(newPhotoURL)) {
+      showSettingsMessage("Please enter a valid image URL (JPG, PNG, GIF, WEBP, SVG).", true);
       return;
     }
 
+    // Prepare data to save to Firestore
+    const profileDataToSave = {
+      displayName: newDisplayName,
+      photoURL: newPhotoURL || DEFAULT_PROFILE_PIC // Save default if URL is empty
+    };
+
     try {
-      await updateProfile(currentUser, { displayName: newDisplayName });
-      showSettingsMessage("Display name updated successfully!", false);
-      console.log('Display name updated:', newDisplayName);
+      // Update Firebase Auth profile directly (for displayName and photoURL from provider)
+      // Note: For email/password users, photoURL and displayName updated here are not persisted by Firebase Auth
+      // across sessions without a separate DB. We are handling persistence in Firestore.
+      await updateProfile(currentUser, {
+        displayName: newDisplayName,
+        photoURL: newPhotoURL || null // Set to null if empty so Auth cleans it up if possible
+      });
+
+      // Also save to Firestore for persistence and easy retrieval across the app
+      await updateUserProfileInFirestore(currentUser.uid, profileDataToSave);
+
+      // Update UI immediately (especially for photo if Auth update is delayed or doesn't apply)
+      profilePictureDisplay.src = profileDataToSave.photoURL;
+
+      showSettingsMessage("Profile updated successfully!", false);
+      console.log('Profile updated: Display Name:', newDisplayName, 'Photo URL:', newPhotoURL);
     } catch (error) {
-      console.error("Error updating display name:", error);
-      showSettingsMessage(`Error updating display name: ${error.message || 'Unknown error'}`, true);
+      console.error("Error updating profile:", error);
+      showSettingsMessage(`Error updating profile: ${error.message || 'Unknown error'}`, true);
     }
   });
+
+  // Optional: Live preview of profile picture URL
+  profilePictureUrlInput.addEventListener('input', () => {
+    const url = profilePictureUrlInput.value;
+    if (url.startsWith('http') && (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png') || url.endsWith('.gif') || url.endsWith('.webp') || url.endsWith('.svg'))) {
+      profilePictureDisplay.src = url;
+      urlPreviewMessage.style.display = 'block';
+      urlPreviewMessage.textContent = 'Previewing new URL. Click Update Profile to save.';
+      urlPreviewMessage.classList.remove('text-red-500');
+      urlPreviewMessage.classList.add('text-gray-400');
+    } else if (url === '') {
+      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      urlPreviewMessage.style.display = 'none';
+    } else {
+      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      urlPreviewMessage.style.display = 'block';
+      urlPreviewMessage.textContent = 'Invalid URL. Please enter a direct link to an image.';
+      urlPreviewMessage.classList.remove('text-gray-400');
+      urlPreviewMessage.classList.add('text-red-500');
+    }
+  });
+
 
   // Get current year for footer
   document.getElementById('current-year-settings').textContent = new Date().getFullYear();
