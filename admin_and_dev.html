@@ -93,6 +93,64 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
+    /* Styles for the custom message box */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+    }
+    .message-box.success {
+      background-color: #4CAF50; /* Green for success */
+    }
+    .message-box.error {
+      background-color: #F44336; /* Red for error */
+    }
+    /* Modal styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1001; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #2D3748;
+      margin: auto;
+      padding: 20px;
+      border-radius: 0.75rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+    }
+    .close-button {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close-button:hover,
+    .close-button:focus {
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -110,48 +168,215 @@
 <!-- Admin & Dev Section Content -->
 <section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-      <!-- Darrion API Section -->
-      <div>
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-        <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
-        <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-          <li><span class="font-semibold text-white">GET plugin updates</span></li>
-        </ul>
-      </div>
-
-      <!-- GriefDetection Section -->
-      <div>
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
-        <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li>Regular checks for griefs and automated analysis of player actions.</li>
-          <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
-          <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
-          <!-- Added rel="noopener noreferrer" for security when opening external links -->
-          <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
-          <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
-        </ul>
-      </div>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="flex justify-center items-center h-48">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <!-- Onfim Notifications Section -->
-    <div class="mt-16">
-      <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
-      <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-      <ul class="list-disc list-inside text-gray-300 space-y-2">
-        <li>Warns staff on Discord when disk space is nearly full.</li>
-        <li>Detects and alerts on drive corruption.</li>
-        <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-        <li>Alerts when Jylina's Ngrok IP address changes.</li>
-        <li>Handles `#machine-status` updates every minute.</li>
-      </ul>
+    <!-- Login Required Message / Redirect -->
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You must be logged in as an administrator to access this page.
+      </p>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    </div>
+
+    <!-- Admin Content Section (visible only to authenticated admins) -->
+    <div id="admin-content" style="display: none;">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-red-400">Welcome, Admin <span id="admin-user-display"></span>!</h2>
+        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
+      </div>
+
+      <p class="text-lg text-gray-300 mb-8">
+        This portal provides tools and information for managing Arcator infrastructure and development.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Infrastructure Management Card (Existing) -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Infrastructure Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Review server logs and performance metrics.</li>
+            <li>Perform routine maintenance tasks.</li>
+            <li>Manage user permissions on core systems.</li>
+            <li>Oversee backup and recovery procedures.</li>
+          </ul>
+          <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
+        </div>
+
+        <!-- Development Tools Card (Existing) -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Development Tools & Wiki</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Access the code repositories and version control.</li>
+            <li>Contribute to ongoing development projects.</li>
+            <li>Update and maintain the official Arcator Wiki.</li>
+            <li>Collaborate on new features and bug fixes.</li>
+          </ul>
+          <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
+        </div>
+
+        <!-- NEW: User Management Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">User Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">View and manage registered user profiles.</p>
+          <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left table-auto">
+              <thead>
+              <tr class="bg-gray-800">
+                <th class="px-4 py-2">Email</th>
+                <th class="px-4 py-2">Display Name</th>
+                <th class="px-4 py-2">Theme</th>
+                <th class="px-4 py-2">Actions</th>
+              </tr>
+              </thead>
+              <tbody id="user-list-tbody">
+              <tr><td colspan="4" class="text-center py-4 text-gray-400">No users loaded yet. Click "Load Users".</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- NEW: Form Management Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Form Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Overview of form submissions and structure.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Review recent form submissions.</li>
+            <li>Analyze form data trends.</li>
+            <li>(Future: Edit form questions/fields directly)</li>
+          </ul>
+          <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
+        </div>
+
+        <!-- NEW: Temporary Pages Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Temporary Pages</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
+          <form id="create-temp-page-form" class="space-y-4">
+            <div>
+              <label for="temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+              <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title">
+            </div>
+            <div>
+              <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+              <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here..."></textarea>
+            </div>
+            <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
+          </form>
+          <h4 class="text-xl font-semibold text-gray-200 mt-6 mb-3">Existing Temporary Pages:</h4>
+          <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
+            <li>No temporary pages created yet.</li>
+          </ul>
+        </div>
+
+        <!-- NEW: Important Links Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Important Links</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Quick access to essential internal and external documentation.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Internal Documentation (Google Doc)</a></li>
+            <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Official Wiki</a></li>
+            <li><a href="infrastructure.html" class="text-blue-400 hover:underline">Infrastructure Details Page</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="text-4xl font-bold text-center mt-16 mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>
+      <p class="text-lg text-center mb-8 text-gray-300">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
+      <div class="overflow-x-auto mb-12">
+        <table>
+          <thead>
+          <tr>
+            <th>Task</th>
+            <th>Worker</th>
+            <th>Priority</th>
+            <th>ETA</th>
+            <th>Notes</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr><td>Analyze SSH Clients for Mobile</td><td>Admin</td><td>Low</td><td>1 Hr</td><td></td></tr>
+          <tr><td>Clean up Hub warps</td><td>Alexx</td><td>Low</td><td>1 Hr</td><td>Anyone can try all the warps and then give a list of ones to deprioritize. Let’s then mark a “library” full of warp signs!</td></tr>
+          <tr><td>Advertising & Social Media</td><td>Any</td><td>🙂</td><td>Ongoing</td><td>Using the Socials & ad pages, how to find people, and provide them the same opportunity. As we have improved from finding community.</td></tr>
+          <tr><td>Reoptimize SSMP and Minigames</td><td>Admin</td><td>Low</td><td>3 Hr</td>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <td><a href="https://docs.papermc.io/paper/aikars-flags" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.papermc.io/paper/aikars-flags</a></td></tr>
+          <tr><td>Arcator V2 Website</td><td>😛 ssh</td><td>Very Low</td><td>Long time</td><td>A new website!</td></tr>
+          <tr><td>Trade off GPU</td><td>Jordan</td><td>Low</td><td>Days</td><td>If we sell the Jylina GPU we can buy a better one for equal price.</td></tr>
+          <tr><td>Train more staff.</td><td>Anyone</td><td>Ongoing</td><td>N/A</td><td>Griefing Guide</td></tr>
+          <tr><td>Setup DB Replication</td><td>Res</td><td>Mid</td><td>1 Hr</td><td>Link Apollo to Jylina’s DB after we move back</td></tr>
+          <tr><td>Also an autorole for being inactive that silences @ roles would be nice</td><td>Res</td><td>Low</td><td>?</td><td>Bot idea. Update table based on last message sent.</td></tr>
+          <tr><td>Migrate Abandoned Plugin to Paper</td><td>Any</td><td>Very Low</td><td>1 Day</td>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <td><a href="https://github.com/Restitutor/LastLog/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Restitutor/LastLog/</a></td></tr>
+          <tr><td>Update Player Vis</td><td>Res</td><td>Mid</td><td>1 Day</td><td>Move towards counting Discord messages instead of MC activity. This requires associating a lot of discord IDs.</td></tr>
+          <tr><td>Add Census questions</td><td>Any</td><td>Low</td><td></td><td></td></tr>
+          <tr><td>Ensure WorldGuard not necessary for Hub</td><td>Res</td><td>Low</td><td>3 Hr</td><td>We should migrate WG rules to mv gamerules and paper configs where possible. LLM can help find equivalents.</td></tr>
+          <tr><td>Add Optimized Client + Server Mods to Modded Servers</td><td>Local Owners</td><td>Mid</td><td>15M each</td>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <td><a href="https://github.com/Radk6/MC-Optimization-Guide/blob/main/mods-n-stuff/1.21.1.md" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">github.com/Radk6/MC-Optimization-Guide/blob/main/mods-n-stuff/1.21.1.md</a></td></tr>
+          <tr><td>Reduce vulpicfim likelihood of response</td><td>Vae</td><td>Low</td><td>1 Hr</td><td></td></tr>
+          <tr><td>Reinstall Vulcan & Fedora for SSH 4</td><td>Angry</td><td>Very Low</td><td>4 1hr-sessions</td><td>Good fallback server, even better SSH practice</td></tr>
+          <tr><td>Remake Matrix server</td><td>Res</td><td>Very Low</td><td>1 Day</td><td>Strategically waiting for more updates before setting up.ETA Fall 2025</td></tr>
+          <tr><td>Migrate Tentorium plugin to Paper API</td>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <td><a href="https://github.com/Restitutor/Restitutor/Tentorium/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Restitutor/Restitutor/Tentorium/</a></td><td>Staff</td><td>Very Low</td><td>1 Day</td></tr>
+          <tr><td>Migrate:
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <a href="https://github.com/Restitutor/StaffWarnV" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Restitutor/StaffWarnV</a> to Paper API</td><td>Any</td><td>Very Low</td><td>1 Day</td>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <td>There’s good examples here for checking the world <a href="https://github.com/Darrionat/StaffWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Darrionat/StaffWarn</a> which Hub uses</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+        <!-- Darrion API Section (Existing) -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
+          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
+            <li><span class="font-semibold text-white">GET plugin updates</span></li>
+          </ul>
+        </div>
+
+        <!-- GriefDetection Section (Existing) -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Regular checks for griefs and automated analysis of player actions.</li>
+            <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
+            <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+            <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Onfim Notifications Section (Existing) -->
+      <div class="mt-16">
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li>Warns staff on Discord when disk space is nearly full.</li>
+          <li>Detects and alerts on drive corruption.</li>
+          <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+          <li>Alerts when Jylina's Ngrok IP address changes.</li>
+          <li>Handles `#machine-status` updates every minute.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -175,6 +400,43 @@
 <!-- Message Box Element -->
 <div id="message-box" class="message-box" style="display: none;"></div>
 
+<!-- Modals -->
+<div id="edit-user-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
+    <div class="mb-4">
+      <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
+      <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+    </div>
+    <div class="mb-4">
+      <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
+      <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </div>
+    <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+  </div>
+</div>
+
+<div id="edit-temp-page-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
+    <div class="mb-4">
+      <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+      <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+    </div>
+    <div class="mb-4">
+      <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+      <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
+    </div>
+    <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+  </div>
+</div>
+
+
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -188,7 +450,13 @@
   import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    setDoc,
+    collection,
+    getDocs,
+    deleteDoc,
+    addDoc,
+    updateDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Function to load the navigation bar
@@ -254,6 +522,26 @@
   const adminUserDisplay = document.getElementById('admin-user-display');
   const messageBox = document.getElementById('message-box');
 
+  // User Management DOM elements
+  const loadUsersBtn = document.getElementById('load-users-btn');
+  const userListTbody = document.getElementById('user-list-tbody');
+  const editUserModal = document.getElementById('edit-user-modal');
+  const editUserDisplayNameInput = document.getElementById('edit-user-display-name');
+  const editUserThemeSelect = document.getElementById('edit-user-theme');
+  const saveUserChangesBtn = document.getElementById('save-user-changes-btn');
+  let currentEditingUserUid = null; // To store the UID of the user being edited
+
+  // Temporary Pages DOM elements
+  const createTempPageForm = document.getElementById('create-temp-page-form');
+  const tempPageTitleInput = document.getElementById('temp-page-title');
+  const tempPageContentInput = document.getElementById('temp-page-content');
+  const tempPageList = document.getElementById('temp-page-list');
+  const editTempPageModal = document.getElementById('edit-temp-page-modal');
+  const editTempPageTitleInput = document.getElementById('edit-temp-page-title');
+  const editTempPageContentInput = document.getElementById('edit-temp-page-content');
+  const saveTempPageChangesBtn = document.getElementById('save-temp-page-changes-btn');
+  let currentEditingTempPageId = null; // To store the ID of the temp page being edited
+
   // Default theme (dark) for styling application
   const DEFAULT_THEME = 'dark';
 
@@ -291,8 +579,335 @@
       }
     } catch (error) {
       console.error("Error fetching user profile from Firestore:", error);
+      showMessageBox(`Error fetching user profile: ${error.message}`, true);
     }
     return null;
+  }
+
+  /**
+   * Updates user profile data in Firestore.
+   * @param {string} uid - The user's UID.
+   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
+   */
+  async function updateUserProfileInFirestore(uid, profileData) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot save profile.", true);
+      return false;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
+      console.log("User profile updated in Firestore:", uid, profileData);
+      showMessageBox("User profile updated successfully!", false);
+      return true;
+    } catch (error) {
+      console.error("Error updating user profile in Firestore:", error);
+      showMessageBox(`Error saving profile: ${error.message}`, true);
+      return false;
+    }
+  }
+
+  /**
+   * Deletes a user's profile from Firestore (does not delete Auth account).
+   * @param {string} uid - The user's UID.
+   */
+  async function deleteUserProfileFromFirestore(uid) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete profile.", true);
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete user profile for UID: ${uid}? This will NOT delete the Firebase Authentication account.`)) {
+      return; // User cancelled
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      await deleteDoc(userDocRef);
+      showMessageBox(`User profile ${uid} deleted successfully!`, false);
+      renderUserList(); // Refresh list
+    } catch (error) {
+      console.error("Error deleting user profile:", error);
+      showMessageBox(`Error deleting user profile: ${error.message}`, true);
+    }
+  }
+
+  /**
+   * Fetches all user profiles from Firestore.
+   * @returns {Promise<Array>} - Array of user profile objects with their UIDs.
+   */
+  async function fetchAllUserProfiles() {
+    if (!db) return [];
+    const userProfilesCol = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    try {
+      const querySnapshot = await getDocs(userProfilesCol);
+      const users = [];
+      querySnapshot.forEach((doc) => {
+        users.push({ id: doc.id, ...doc.data() });
+      });
+      return users;
+    } catch (error) {
+      console.error("Error fetching all user profiles:", error);
+      showMessageBox(`Error loading users: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  /**
+   * Renders the list of users in the table.
+   */
+  async function renderUserList() {
+    userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
+    const users = await fetchAllUserProfiles();
+    userListTbody.innerHTML = ''; // Clear existing
+    if (users.length === 0) {
+      userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
+      return;
+    }
+
+    users.forEach(user => {
+      const row = userListTbody.insertRow();
+      row.innerHTML = `
+        <td class="px-4 py-2 break-all">${user.id}</td>
+        <td class="px-4 py-2">${user.displayName || 'N/A'}</td>
+        <td class="px-4 py-2">${user.themePreference || DEFAULT_THEME}</td>
+        <td class="px-4 py-2">
+          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME}">Edit</button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
+        </td>
+      `;
+    });
+
+    // Attach event listeners to new buttons
+    document.querySelectorAll('.edit-user-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const uid = event.target.dataset.uid;
+        const displayName = event.target.dataset.displayname;
+        const theme = event.target.dataset.theme;
+        openEditUserModal(uid, displayName, theme);
+      });
+    });
+
+    document.querySelectorAll('.delete-user-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const uid = event.target.dataset.uid;
+        deleteUserProfileFromFirestore(uid);
+      });
+    });
+  }
+
+  /**
+   * Opens the modal for editing a user's profile.
+   * @param {string} uid - The UID of the user to edit.
+   * @param {string} displayName - The current display name.
+   * @param {string} theme - The current theme preference.
+   */
+  function openEditUserModal(uid, displayName, theme) {
+    currentEditingUserUid = uid;
+    editUserDisplayNameInput.value = displayName;
+    editUserThemeSelect.value = theme;
+    editUserModal.style.display = 'flex'; // Use flex to center
+  }
+
+  // Handle saving user changes from modal
+  if (saveUserChangesBtn) {
+    saveUserChangesBtn.addEventListener('click', async () => {
+      if (!currentEditingUserUid) return;
+      const newDisplayName = editUserDisplayNameInput.value.trim();
+      const newTheme = editUserThemeSelect.value;
+      const success = await updateUserProfileInFirestore(currentEditingUserUid, {
+        displayName: newDisplayName,
+        themePreference: newTheme
+      });
+      if (success) {
+        editUserModal.style.display = 'none'; // Close modal
+        renderUserList(); // Refresh user list in the table
+      }
+    });
+  }
+
+  // Close modal buttons
+  document.querySelectorAll('.close-button').forEach(button => {
+    button.addEventListener('click', () => {
+      editUserModal.style.display = 'none';
+      editTempPageModal.style.display = 'none';
+    });
+  });
+
+  // Close modal if user clicks outside of it
+  window.addEventListener('click', (event) => {
+    if (event.target === editUserModal) {
+      editUserModal.style.display = 'none';
+    }
+    if (event.target === editTempPageModal) {
+      editTempPageModal.style.display = 'none';
+    }
+  });
+
+
+  // Temporary Pages Functions
+
+  /**
+   * Creates a new temporary page in Firestore.
+   * @param {string} title - The title of the page.
+   * @param {string} content - The content of the page (Markdown allowed).
+   */
+  async function createTempPage(title, content) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot create page.", true);
+      return;
+    }
+    const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+    try {
+      const docRef = await addDoc(tempPagesCol, {
+        title: title,
+        content: content,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authorUid: auth.currentUser ? auth.currentUser.uid : 'anonymous'
+      });
+      showMessageBox("Temporary page created successfully!", false);
+      tempPageTitleInput.value = '';
+      tempPageContentInput.value = '';
+      renderTempPages(); // Refresh list
+    } catch (error) {
+      console.error("Error creating temporary page:", error);
+      showMessageBox(`Error creating page: ${error.message}`, true);
+    }
+  }
+
+  /**
+   * Fetches all temporary pages from Firestore.
+   * @returns {Promise<Array>} - Array of temporary page objects with their IDs.
+   */
+  async function fetchAllTempPages() {
+    if (!db) return [];
+    const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+    try {
+      const querySnapshot = await getDocs(tempPagesCol);
+      const pages = [];
+      querySnapshot.forEach((doc) => {
+        pages.push({ id: doc.id, ...doc.data() });
+      });
+      return pages;
+    } catch (error) {
+      console.error("Error fetching temporary pages:", error);
+      showMessageBox(`Error loading temporary pages: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  /**
+   * Renders the list of temporary pages.
+   */
+  async function renderTempPages() {
+    tempPageList.innerHTML = '<li>Loading temporary pages...</li>';
+    const pages = await fetchAllTempPages();
+    tempPageList.innerHTML = ''; // Clear existing
+    if (pages.length === 0) {
+      tempPageList.innerHTML = '<li>No temporary pages created yet.</li>';
+      return;
+    }
+
+    pages.forEach(page => {
+      const li = document.createElement('li');
+      li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'bg-gray-700', 'p-3', 'rounded-md', 'mb-2');
+      li.innerHTML = `
+        <span class="font-semibold text-white break-all md:w-3/5">${page.title}</span>
+        <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
+          <a href="#" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page" data-id="${page.id}">View</a>
+          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${page.title}" data-content="${page.content}">Edit</button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-temp-page-btn" data-id="${page.id}">Delete</button>
+        </div>
+      `;
+      tempPageList.appendChild(li);
+    });
+
+    // Attach event listeners for temp pages
+    document.querySelectorAll('.view-temp-page').forEach(link => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const pageId = event.target.dataset.id;
+        // For simplicity, we'll navigate to a generic temporary page viewer URL
+        // In a real app, you'd have a dynamic route like /temp-page?id=pageId
+        window.open(`temp-page-viewer.html?id=${pageId}`, '_blank');
+      });
+    });
+    document.querySelectorAll('.edit-temp-page-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const id = event.target.dataset.id;
+        const title = event.target.dataset.title;
+        const content = event.target.dataset.content;
+        openEditTempPageModal(id, title, content);
+      });
+    });
+    document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const id = event.target.dataset.id;
+        deleteTempPage(id);
+      });
+    });
+  }
+
+  /**
+   * Opens the modal for editing a temporary page.
+   * @param {string} id - The ID of the page to edit.
+   * @param {string} title - The current title.
+   * @param {string} content - The current content.
+   */
+  function openEditTempPageModal(id, title, content) {
+    currentEditingTempPageId = id;
+    editTempPageTitleInput.value = title;
+    editTempPageContentInput.value = content;
+    editTempPageModal.style.display = 'flex';
+  }
+
+  // Handle saving temp page changes from modal
+  if (saveTempPageChangesBtn) {
+    saveTempPageChangesBtn.addEventListener('click', async () => {
+      if (!currentEditingTempPageId) return;
+      const newTitle = editTempPageTitleInput.value.trim();
+      const newContent = editTempPageContentInput.value.trim();
+      if (!newTitle || !newContent) {
+        showMessageBox("Title and Content cannot be empty.", true);
+        return;
+      }
+      const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, currentEditingTempPageId);
+      try {
+        await updateDoc(tempPageDocRef, {
+          title: newTitle,
+          content: newContent,
+          updatedAt: new Date()
+        });
+        showMessageBox("Temporary page updated successfully!", false);
+        editTempPageModal.style.display = 'none';
+        renderTempPages(); // Refresh list
+      } catch (error) {
+        console.error("Error updating temporary page:", error);
+        showMessageBox(`Error updating page: ${error.message}`, true);
+      }
+    });
+  }
+
+  /**
+   * Deletes a temporary page from Firestore.
+   * @param {string} id - The ID of the page to delete.
+   */
+  async function deleteTempPage(id) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete page.", true);
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete this temporary page? This action cannot be undone.`)) {
+      return; // User cancelled
+    }
+    const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, id);
+    try {
+      await deleteDoc(tempPageDocRef);
+      showMessageBox("Temporary page deleted successfully!", false);
+      renderTempPages(); // Refresh list
+    } catch (error) {
+      console.error("Error deleting temporary page:", error);
+      showMessageBox(`Error deleting page: ${error.message}`, true);
+    }
   }
 
   /**
@@ -333,6 +948,9 @@
           adminContent.style.display = 'block';
           adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid; // Display user info
           console.log("Admin user logged in:", user.uid);
+          // Load data for admin sections once user is confirmed as admin
+          renderUserList();
+          renderTempPages();
         } else {
           // User is logged in but not an admin
           loginRequiredMessage.style.display = 'block';
@@ -397,6 +1015,25 @@
       }
     });
   }
+
+  // Attach event listeners for new functionalities
+  if (loadUsersBtn) {
+    loadUsersBtn.addEventListener('click', renderUserList);
+  }
+
+  if (createTempPageForm) {
+    createTempPageForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = tempPageTitleInput.value.trim();
+      const content = tempPageContentInput.value.trim();
+      if (!title || !content) {
+        showMessageBox("Please enter both title and content for the temporary page.", true);
+        return;
+      }
+      await createTempPage(title, content);
+    });
+  }
+
 </script>
 </body>
 </html>
