@@ -11,11 +11,18 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
+      /* Default to dark theme for consistency */
       background-color: #1F2937;
       color: #E5E7EB;
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
+    }
+    /* Light theme styles - these will be applied dynamically */
+    body.theme-light {
+      background-color: #F3F4F6; /* Light gray */
+      color: #1F2937; /* Dark text */
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
     }
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
@@ -52,6 +59,39 @@
       object-fit: cover;
       border: 4px solid #60A5FA;
       box-shadow: 0 0 15px rgba(96, 165, 250, 0.5); /* Blue glow */
+    }
+    .form-section {
+      background-color: #2D3748; /* Darker grey background for forms */
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .theme-light .form-section {
+      background-color: #FFFFFF; /* White background for forms in light theme */
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .form-section input[type="email"],
+    .form-section input[type="password"],
+    .form-section input[type="text"],
+    .form-section input[type="url"],
+    .form-section select {
+      background-color: #4A5568; /* Input background */
+      color: #E5E7EB; /* Input text color */
+      border: 1px solid #60A5FA; /* Blue border */
+    }
+    .theme-light .form-section input[type="email"],
+    .theme-light .form-section input[type="password"],
+    .theme-light .form-section input[type="text"],
+    .theme-light .form-section input[type="url"],
+    .theme-light .form-section select {
+      background-color: #E5E7EB; /* Light input background */
+      color: #1F2937; /* Dark input text */
+      border: 1px solid #9CA3AF; /* Gray border */
+    }
+    .form-section input:focus,
+    .form-section select:focus {
+      border-color: #3B82F6; /* Brighter blue on focus */
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
     }
   </style>
 </head>
@@ -100,23 +140,32 @@
       <p class="text-lg text-gray-300 mb-8">
         You need to be logged in to access your user settings.
       </p>
-      <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
     </div>
 
-    <div id="settings-content" style="display: none;">
+    <div id="settings-content" class="form-section" style="display: none;">
       <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Your Profile</h2>
 
-      <div class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md space-y-6">
+      <div class="max-w-md mx-auto space-y-6">
         <div class="flex flex-col items-center">
           <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/128x128/1F2937/E5E7EB?text=AV';">
           <label for="profile-picture-url" class="block text-gray-300 text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
-          <input type="url" id="profile-picture-url" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="https://cdn.discordapp.com/avatars/...">
+          <input type="url" id="profile-picture-url" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="https://cdn.discordapp.com/avatars/...">
           <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Changes will be reflected after saving.</p>
         </div>
 
         <div>
           <label for="display-name-input" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
-          <input type="text" id="display-name-input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="Your display name">
+          <input type="text" id="display-name-input" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="Your display name">
+        </div>
+
+        <div class="mt-8 pt-4 border-t border-gray-700">
+          <label for="theme-selector" class="block text-gray-300 text-lg font-bold mb-2 text-center">Choose Theme:</label>
+          <select id="theme-selector" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500 text-center">
+            <option value="dark">Dark Theme</option>
+            <option value="light">Light Theme</option>
+          </select>
+          <p id="theme-message" class="text-center text-green-400 mt-4" style="display: none;"></p>
         </div>
 
         <button id="update-profile-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
@@ -148,8 +197,6 @@
   import {
     getAuth,
     onAuthStateChanged,
-    signInWithCustomToken,
-    signInAnonymously,
     updateProfile // To update display name directly in Auth
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
@@ -200,14 +247,18 @@
   const loginRequiredMessage = document.getElementById('login-required-message');
   const settingsContent = document.getElementById('settings-content');
   const profilePictureDisplay = document.getElementById('profile-picture-display');
-  const profilePictureUrlInput = document.getElementById('profile-picture-url'); // Changed from upload to URL input
+  const profilePictureUrlInput = document.getElementById('profile-picture-url');
   const displayNameInput = document.getElementById('display-name-input');
   const updateProfileBtn = document.getElementById('update-profile-btn');
   const settingsMessage = document.getElementById('settings-message');
   const urlPreviewMessage = document.getElementById('url-preview-message');
+  const themeSelector = document.getElementById('theme-selector');
+  const themeMessage = document.getElementById('theme-message');
 
   // Default profile picture (generic placeholder)
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV';
+  // Default theme (dark) for styling application
+  const DEFAULT_THEME = 'dark';
 
   /**
    * Displays a message on the settings page (success/error).
@@ -250,7 +301,7 @@
   /**
    * Updates user profile data in Firestore.
    * @param {string} uid - The user's UID.
-   * @param {Object} profileData - The data to update (displayName, photoURL).
+   * @param {Object} profileData - The data to update (displayName, photoURL, themePreference).
    */
   async function updateUserProfileInFirestore(uid, profileData) {
     if (!db) {
@@ -264,6 +315,20 @@
     } catch (error) {
       console.error("Error updating user profile in Firestore:", error);
       showSettingsMessage(`Error saving profile: ${error.message}`, true);
+    }
+  }
+
+  /**
+   * Applies the selected theme to the body element.
+   * @param {string} theme - 'dark' or 'light'.
+   */
+  function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light');
+    if (theme === 'light') {
+      body.classList.add('theme-light');
+    } else {
+      body.classList.add('theme-dark');
     }
   }
 
@@ -285,11 +350,18 @@
       // Set the display image with Firestore data first, then Auth, then default
       profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
 
+      // Set theme selector and apply theme
+      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+      themeSelector.value = themePreference;
+      applyTheme(themePreference);
+
+
     } else {
       currentUser = null;
       loadingSpinner.style.display = 'none';
       loginRequiredMessage.style.display = 'block';
       settingsContent.style.display = 'none';
+      applyTheme(DEFAULT_THEME); // Apply default theme if no user
     }
   }
 
@@ -298,24 +370,6 @@
     onAuthStateChanged(auth, (user) => {
       updateUI(user);
     });
-
-    // Handle initial custom token sign-in
-    if (initialAuthToken) {
-      signInWithCustomToken(auth, initialAuthToken)
-        .then(() => {
-          console.log("Signed in with custom token on settings page.");
-        })
-        .catch((error) => {
-          console.error("Error signing in with custom token on settings page:", error);
-          signInAnonymously(auth)
-            .then(() => console.log("Signed in anonymously on settings page."))
-            .catch((anonError) => console.error("Error signing in anonymously on settings page:", anonError));
-        });
-    } else {
-      signInAnonymously(auth)
-        .then(() => console.log("Signed in anonymously (no custom token) on settings page."))
-        .catch((anonError) => console.error("Error signing in anonymously on settings page:", anonError));
-    }
   }
 
   // Handle display name and profile picture URL update
@@ -327,6 +381,7 @@
 
     const newDisplayName = displayNameInput.value.trim();
     const newPhotoURL = profilePictureUrlInput.value.trim();
+    const selectedTheme = themeSelector.value;
 
     if (newDisplayName === '') {
       showSettingsMessage("Display name cannot be empty.", true);
@@ -343,7 +398,8 @@
     // Prepare data to save to Firestore
     const profileDataToSave = {
       displayName: newDisplayName,
-      photoURL: newPhotoURL || DEFAULT_PROFILE_PIC // Save default if URL is empty
+      photoURL: newPhotoURL || DEFAULT_PROFILE_PIC, // Save default if URL is empty
+      themePreference: selectedTheme // Save theme preference
     };
 
     try {
@@ -359,9 +415,10 @@
 
       // Update UI immediately (especially for photo if Auth update is delayed or doesn't apply)
       profilePictureDisplay.src = profileDataToSave.photoURL;
+      applyTheme(selectedTheme); // Apply theme immediately
 
       showSettingsMessage("Profile updated successfully!", false);
-      console.log('Profile updated: Display Name:', newDisplayName, 'Photo URL:', newPhotoURL);
+      console.log('Profile updated: Display Name:', newDisplayName, 'Photo URL:', newPhotoURL, 'Theme:', selectedTheme);
     } catch (error) {
       console.error("Error updating profile:", error);
       showSettingsMessage(`Error updating profile: ${error.message || 'Unknown error'}`, true);
@@ -390,6 +447,14 @@
     }
   });
 
+  // Listen for theme selector changes and update live preview
+  themeSelector.addEventListener('change', () => {
+    applyTheme(themeSelector.value);
+    themeMessage.textContent = "Theme changed locally. Click 'Update Profile' to save.";
+    themeMessage.style.display = 'block';
+    themeMessage.classList.remove('text-green-400');
+    themeMessage.classList.add('text-gray-400');
+  });
 
   // Get current year for footer
   document.getElementById('current-year-settings').textContent = new Date().getFullYear();

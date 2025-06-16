@@ -13,11 +13,18 @@
      * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
+      /* Default to dark theme for consistency */
       background-color: #1F2937;
       color: #E5E7EB;
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
+    }
+    /* Light theme styles - these will be applied dynamically */
+    body.theme-light {
+      background-color: #F3F4F6; /* Light gray */
+      color: #1F2937; /* Dark text */
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
     }
     /* Styles for the hero banner section, including a background image,
      * sizing, positioning, and a dark overlay for text readability. */
@@ -59,6 +66,10 @@
       box-shadow: 0 5px 10px rgba(0,0,0,0.2); /* Subtle shadow for depth */
       margin-bottom: 1.5rem; /* Space between cards */
     }
+    .theme-light .card-section {
+      background-color: #FFFFFF; /* White background for cards in light theme */
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
     /* Styling for tables, ensuring readability and visual separation. */
     table {
       width: 100%;
@@ -75,11 +86,21 @@
       color: #E5E7EB; /* Light text for headers */
       font-weight: 600; /* Semi-bold font for headers */
     }
+    .theme-light th {
+      background-color: #D1D5DB; /* Light gray for headers in light theme */
+      color: #1F2937; /* Dark text */
+    }
     tr:nth-child(even) {
       background-color: #2D3748; /* Zebra striping for table rows */
     }
+    .theme-light tr:nth-child(even) {
+      background-color: #F9FAFB; /* Lighter background for even rows in light theme */
+    }
     tr:hover {
       background-color: #374151; /* Hover effect for table rows */
+    }
+    .theme-light tr:hover {
+      background-color: #E5E7EB; /* Lighter hover for light theme */
     }
     /* Message box styles for alerts/feedback instead of browser alerts */
     .message-box {
@@ -146,23 +167,13 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <!-- Login/Authentication Section -->
-    <div id="auth-section" class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md" style="display: none;">
-      <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Admin Login</h2>
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label for="email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-          <input type="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="admin@arcator.co.uk">
-        </div>
-        <div>
-          <label for="password" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-          <input type="password" id="password" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
-        </div>
-        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-          Login as Admin
-        </button>
-        <p id="login-error-message" class="text-center text-red-500 mt-4" style="display: none;"></p>
-      </form>
+    <!-- Login Required Message / Redirect -->
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You must be logged in as an administrator to access this page.
+      </p>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
     </div>
 
     <!-- Admin Content Section (visible only to authenticated admins) -->
@@ -244,7 +255,6 @@
   import {
     getAuth,
     onAuthStateChanged,
-    signInWithEmailAndPassword,
     signOut,
     signInWithCustomToken,
     signInAnonymously
@@ -260,7 +270,7 @@
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app", // Corrected storageBucket value
+    storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
@@ -293,15 +303,14 @@
 
   // DOM elements
   const loadingSpinner = document.getElementById('loading-spinner');
-  const authSection = document.getElementById('auth-section');
+  const loginRequiredMessage = document.getElementById('login-required-message');
   const adminContent = document.getElementById('admin-content');
-  const loginForm = document.getElementById('login-form');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const loginErrorMessage = document.getElementById('login-error-message');
   const logoutBtn = document.getElementById('logout-btn');
   const adminUserDisplay = document.getElementById('admin-user-display');
   const messageBox = document.getElementById('message-box');
+
+  // Default theme (dark) for styling application
+  const DEFAULT_THEME = 'dark';
 
   /**
    * Displays a custom message box for user feedback.
@@ -323,6 +332,40 @@
   }
 
   /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    if (!db) return null;
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
+
+  /**
+   * Applies the selected theme to the body element.
+   * @param {string} theme - 'dark' or 'light'.
+   */
+  function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light');
+    if (theme === 'light') {
+      body.classList.add('theme-light');
+    } else {
+      body.classList.add('theme-dark');
+    }
+  }
+
+
+  /**
    * Updates the UI based on the user's authentication and admin status.
    * @param {Object|null} user - The Firebase User object or null.
    */
@@ -330,35 +373,40 @@
     loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
 
     if (user) {
+      // Fetch user profile to get theme preference
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+      applyTheme(themePreference);
+
       // Check if user is a whitelisted admin
       const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
       try {
         const adminDocSnap = await getDoc(adminDocRef);
         if (adminDocSnap.exists()) {
           // User is an admin
-          authSection.style.display = 'none';
+          loginRequiredMessage.style.display = 'none';
           adminContent.style.display = 'block';
-          adminUserDisplay.textContent = user.displayName || user.email || user.uid; // Display user info
-          showMessageBox("Admin access granted!", false);
+          adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid; // Display user info
           console.log("Admin user logged in:", user.uid);
         } else {
           // User is logged in but not an admin
-          authSection.style.display = 'block';
+          loginRequiredMessage.style.display = 'block';
           adminContent.style.display = 'none';
           showMessageBox("You are logged in, but do not have admin privileges.", true);
           console.log("Regular user logged in, no admin access:", user.uid);
         }
       } catch (error) {
         console.error("Error checking admin whitelist:", error);
-        authSection.style.display = 'block';
+        loginRequiredMessage.style.display = 'block';
         adminContent.style.display = 'none';
         showMessageBox("Error checking admin status. Please try again.", true);
       }
     } else {
       // No user is logged in
-      authSection.style.display = 'block';
+      loginRequiredMessage.style.display = 'block';
       adminContent.style.display = 'none';
       console.log("No user logged in.");
+      applyTheme(DEFAULT_THEME); // Apply default theme if no user
     }
   }
 
@@ -368,56 +416,25 @@
       updateAdminUI(user);
     });
 
-    // Attempt to sign in with custom token for Canvas environment
-    if (initialAuthToken) {
+    // Handle initial custom token sign-in for Canvas environment only if no user already authenticated
+    if (initialAuthToken && !auth.currentUser) {
       signInWithCustomToken(auth, initialAuthToken)
         .then(() => {
-          console.log("Signed in with custom token from Canvas.");
+          console.log("Signed in with custom token from Canvas (admin_dev page).");
         })
         .catch((error) => {
-          console.error("Error signing in with custom token:", error);
+          console.error("Error signing in with custom token (admin_dev page):", error);
           // Fallback to anonymous sign-in if custom token fails (e.g., expired)
           signInAnonymously(auth)
-            .then(() => console.log("Signed in anonymously."))
-            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+            .then(() => console.log("Signed in anonymously (admin_dev page)."))
+            .catch((anonError) => console.error("Error signing in anonymously (admin_dev page):", anonError));
         });
-    } else {
-      // If no custom token, sign in anonymously by default
+    } else if (!auth.currentUser) {
+      // If no custom token and no current user, sign in anonymously by default
       signInAnonymously(auth)
-        .then(() => console.log("Signed in anonymously (no custom token)."))
-        .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+        .then(() => console.log("Signed in anonymously (no custom token) on admin_dev page."))
+        .catch((anonError) => console.error("Error signing in anonymously (admin_dev page):", anonError));
     }
-  }
-
-
-  // Event Listener for Login Form Submission
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (event) => {
-      event.preventDefault(); // Prevent default form submission
-
-      loginErrorMessage.style.display = 'none'; // Hide previous errors
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        showMessageBox("Please enter both email and password.", true);
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged listener will handle UI updates if login is successful
-      } catch (error) {
-        console.error("Email login failed:", error);
-        let errorMessage = "Login failed. Please check your credentials.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-          errorMessage = "Invalid email or password.";
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMessage = "Too many login attempts. Please try again later.";
-        }
-        showMessageBox(errorMessage, true);
-      }
-    });
   }
 
   // Event Listener for Logout Button
@@ -428,7 +445,7 @@
         await signOut(auth);
         console.log("User signed out.");
         showMessageBox("You have been signed out.", false);
-        // onAuthStateChanged listener will handle UI updates
+        // updateAdminUI will be called by onAuthStateChanged
       } catch (error) {
         console.error("Logout failed:", error);
         showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);

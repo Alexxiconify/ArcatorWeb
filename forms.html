@@ -13,11 +13,18 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
+      /* Default to dark theme for consistency */
       background-color: #1F2937;
       color: #E5E7EB;
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
+    }
+    /* Light theme styles - these will be applied dynamically */
+    body.theme-light {
+      background-color: #F3F4F6; /* Light gray */
+      color: #1F2937; /* Dark text */
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
     }
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
@@ -55,6 +62,23 @@
       margin-bottom: 1.5rem;
       word-wrap: break-word; /* Ensure long words break */
     }
+    .theme-light .thread-card {
+      background-color: #FFFFFF;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+    .thread-card input[type="text"],
+    .thread-card textarea {
+      background-color: #4A5568;
+      color: #E5E7EB;
+      border: 1px solid #60A5FA;
+    }
+    .theme-light .thread-card input[type="text"],
+    .theme-light .thread-card textarea {
+      background-color: #E5E7EB;
+      color: #1F2937;
+      border: 1px solid #9CA3AF;
+    }
+
     .thread-card img, .thread-card video {
       max-width: 100%;
       height: auto;
@@ -78,12 +102,19 @@
       border-top: 1px solid #4A5568;
       padding-top: 1.5rem;
     }
+    .theme-light .comment-section {
+      border-top: 1px solid #D1D5DB;
+    }
     .comment-card {
       background-color: #374151; /* Slightly darker for comments */
       border-radius: 0.5rem;
       padding: 1rem;
       margin-bottom: 0.75rem;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    .theme-light .comment-card {
+      background-color: #F0F4F8; /* Lighter background for comments in light theme */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
     }
     .profile-info {
       display: flex;
@@ -111,6 +142,10 @@
       border: none;
       cursor: pointer;
     }
+    .theme-light .vote-buttons button {
+      background-color: #D1D5DB;
+      color: #1F2937;
+    }
     .vote-buttons button:hover {
       background-color: #60A5FA; /* hover:bg-blue-500 */
       color: white;
@@ -122,6 +157,9 @@
     .vote-buttons span {
       margin: 0 0.4rem;
       color: #CBD5E0;
+    }
+    .theme-light .vote-buttons span {
+      color: #4A5568;
     }
 
     /* Modal Styles */
@@ -150,16 +188,27 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.4);
       text-align: center;
     }
+    .theme-light .modal-content {
+      background-color: #F9FAFB;
+      border: 1px solid #D1D5DB;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
 
     .modal-content h3 {
       color: #EF4444; /* red-500 */
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }
+    .theme-light .modal-content h3 {
+      color: #DC2626;
+    }
 
     .modal-content p {
       color: #E5E7EB;
       margin-bottom: 1.5rem;
+    }
+    .theme-light .modal-content p {
+      color: #374151;
     }
 
     .modal-buttons {
@@ -192,6 +241,13 @@
 
     .modal-buttons .cancel-btn:hover {
       background-color: #6B7280; /* gray-700 */
+    }
+    .theme-light .modal-buttons .cancel-btn {
+      background-color: #9CA3AF;
+      color: #1F2937;
+    }
+    .theme-light .modal-buttons .cancel-btn:hover {
+      background-color: #6B7280;
     }
   </style>
 </head>
@@ -241,7 +297,7 @@
         You need to be logged in to create new discussion threads and post comments.
         You can view existing threads and comments without logging in.
       </p>
-      <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
     </div>
 
     <!-- New Thread Form (visible only to logged-in users) -->
@@ -250,11 +306,11 @@
       <form id="create-thread-form" class="space-y-6">
         <div>
           <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
-          <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Ideas for New Mini-Games">
+          <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Ideas for New Mini-Games">
         </div>
         <div>
           <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content (Markdown, HTML, or plain text. Link images/videos directly):</label>
-          <textarea id="thread-content" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Start your discussion here. You can include links to images (.jpg, .png, .gif) and videos (.mp4, .webm) and they will be embedded."></textarea>
+          <textarea id="thread-content" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Start your discussion here. You can include links to images (.jpg, .png, .gif) and videos (.mp4, .webm) and they will be embedded."></textarea>
           <p class="text-gray-400 text-xs mt-1">Example image: `https://example.com/image.png`</p>
           <p class="text-gray-400 text-xs mt-1">Example video: `https://example.com/video.mp4`</p>
         </div>
@@ -333,7 +389,7 @@
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
+    storageBucket: "arcator-web.firebasestorage.app", // Corrected storageBucket value
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
@@ -388,6 +444,8 @@
 
   // Default profile picture (generic placeholder)
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+  // Default theme (dark) for styling application
+  const DEFAULT_THEME = 'dark';
 
   // Cache for user profiles to avoid repeated Firestore reads
   const userProfileCache = {};
@@ -517,6 +575,20 @@
     return processedContent;
   }
 
+  /**
+   * Applies the selected theme to the body element.
+   * @param {string} theme - 'dark' or 'light'.
+   */
+  function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light');
+    if (theme === 'light') {
+      body.classList.add('theme-light');
+    } else {
+      body.classList.add('theme-dark');
+    }
+  }
+
 
   // Set up Firebase Authentication listener
   if (auth) {
@@ -529,34 +601,19 @@
         loginRequiredMessage.style.display = 'none';
         newThreadSection.style.display = 'block';
         console.log("User is logged in:", user.uid, user.displayName || user.email, "Is Admin:", isAdminUser);
+
+        // Apply user's saved theme
+        const userProfile = await getUserProfile(user.uid);
+        const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+        applyTheme(themePreference);
+
       } else {
-        // Only attempt to sign in if no user is found by onAuthStateChanged
         currentUser = null;
         isAdminUser = false; // Reset admin status
         loginRequiredMessage.style.display = 'block';
         newThreadSection.style.display = 'none';
-
-        if (initialAuthToken) {
-          try {
-            await signInWithCustomToken(auth, initialAuthToken);
-            console.log("Signed in with custom token (from onAuthStateChanged).");
-          } catch (error) {
-            console.error("Error signing in with custom token (from onAuthStateChanged):", error);
-            try {
-              await signInAnonymously(auth);
-              console.log("Signed in anonymously (from onAuthStateChanged after custom token failure).");
-            } catch (anonError) {
-              console.error("Error signing in anonymously (from onAuthStateChanged):", anonError);
-            }
-          }
-        } else {
-          try {
-            await signInAnonymously(auth);
-            console.log("Signed in anonymously (from onAuthStateChanged, no custom token).");
-          } catch (anonError) {
-            console.error("Error signing in anonymously (from onAuthStateChanged):", anonError);
-          }
-        }
+        console.log("User is logged out.");
+        applyTheme(DEFAULT_THEME); // Apply default theme if no user
       }
     });
   }
