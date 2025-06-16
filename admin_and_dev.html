@@ -26,15 +26,14 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 250px; /* Adjust height for inner pages */
+      min-height: 250px; /* Ensures the banner has a minimum height */
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
+      position: relative; /* Needed for the pseudo-element overlay */
+      overflow: hidden; /* Hides any overflow from the background image */
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
+    /* Pseudo-element for a dark overlay on the hero banner, improving text contrast. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -42,58 +41,67 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-      z-index: 1;
+      background: rgba(0, 0, 0, 0.5); /* 50% black overlay */
+      z-index: 1; /* Ensures the overlay is above the image but below content */
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
+    /* Styles for the content within the hero banner, placing it above the overlay. */
     .hero-content {
       position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+      z-index: 2; /* Ensures content is above the overlay */
+      color: white; /* White text for contrast */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Adds shadow for readability */
     }
-    /* Basic table styling for full width and collapsed borders. */
+    /* General styling for cards or sections, providing a distinct background and rounded corners. */
+    .card-section {
+      background-color: #2D3748; /* Darker grey background for sections */
+      border-radius: 0.75rem; /* Rounded corners for the cards/sections */
+      padding: 1.5rem; /* Padding inside the cards */
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+      margin-bottom: 1.5rem; /* Space between cards */
+    }
+    /* Styling for tables, ensuring readability and visual separation. */
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem; /* Added margin for spacing */
-      margin-bottom: 1rem; /* Added margin for spacing */
+      border-collapse: collapse; /* Collapses borders between cells */
+      margin-top: 1.5rem; /* Space above the table */
     }
-    /* Styles for table headers and data cells, including padding,
-     * text alignment, and bottom border. */
     th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #374151; /* Darker border for table rows */
+      border: 1px solid #4A5568; /* Light grey border for cells */
+      padding: 0.75rem; /* Padding inside cells */
+      text-align: left; /* Aligns text to the left */
     }
-    /* Styles specifically for table headers, including background color,
-     * text color, font weight, and text transformation. */
     th {
-      background-color: #374151; /* Darker header background */
-      color: #F87171; /* Red text for headers */
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      background-color: #4A5568; /* Darker background for table headers */
+      color: #E5E7EB; /* Light text for headers */
+      font-weight: 600; /* Semi-bold font for headers */
     }
-    /* Alternating background color for even table rows for better readability. */
     tr:nth-child(even) {
-      background-color: #2F3B4E; /* Slightly different background for even rows */
+      background-color: #2D3748; /* Zebra striping for table rows */
     }
-    /* Hover effect for table rows, changing background color on mouse-over. */
     tr:hover {
-      background-color: #4B5563; /* Lighter background on hover */
+      background-color: #374151; /* Hover effect for table rows */
     }
-    /* Styling for code blocks, including background, padding, border-radius,
-     * font family, and overflow properties for better code display. */
-    .code-block {
-      background-color: #2D3748;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
+    /* Message box styles for alerts/feedback instead of browser alerts */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+    }
+    .message-box.success {
+      background-color: #4CAF50; /* Green for success */
+    }
+    .message-box.error {
+      background-color: #F44336; /* Red for error */
     }
   </style>
 </head>
@@ -113,10 +121,10 @@
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
-        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
-        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
+        <!-- Removed for brevity: Privacy Policy and Terms of Service -->
       </ul>
     </nav>
   </div>
@@ -125,330 +133,88 @@
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
-    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Admin & Dev Portal</h1>
+    <p class="text-xl md:text-2xl mb-8">Exclusive access for Arcator administrators and developers.</p>
   </div>
 </section>
 
-<!-- Login Section / Admin Content Section -->
-<section id="admin-dev-content" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
+    <!-- Loading Spinner -->
     <div id="loading-spinner" class="flex justify-center items-center h-48">
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <div id="login-section" class="text-center" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Admin Login Required</h2>
-      <p class="text-lg text-gray-300 mb-8">
-        Please log in with your GitHub account or an email and password to access the Admin & Dev documentation.
-      </p>
-      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-        <button id="github-login-btn" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-          Login with GitHub
-        </button>
-      </div>
-
-      <div class="mt-8 p-6 bg-gray-900 rounded-lg shadow-md max-w-md mx-auto">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Email & Password Login</h3>
-        <input type="email" id="email-input" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-        <input type="password" id="password-input" placeholder="Password" class="w-full p-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6">
-        <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-3">
-          <button id="email-signup-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-            Sign Up
-          </button>
-          <button id="email-login-btn" class="bg-purple-600 text-white font-bold py-3 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-            Login
-          </button>
+    <!-- Login/Authentication Section -->
+    <div id="auth-section" class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md" style="display: none;">
+      <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Admin Login</h2>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
+          <input type="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="admin@arcator.co.uk">
         </div>
-      </div>
-
-      <p id="error-message" class="text-red-500 mt-4" style="display: none;"></p>
+        <div>
+          <label for="password" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
+          <input type="password" id="password" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+        </div>
+        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
+          Login as Admin
+        </button>
+        <p id="login-error-message" class="text-center text-red-500 mt-4" style="display: none;"></p>
+      </form>
     </div>
 
+    <!-- Admin Content Section (visible only to authenticated admins) -->
     <div id="admin-content" style="display: none;">
-      <div class="flex justify-between items-center mb-12">
-        <h2 class="text-4xl font-bold text-red-400">Administration & Development Content</h2>
-        <div class="flex items-center">
-          <p class="text-gray-300 mr-4">Logged in as: <span id="user-display-name" class="font-semibold"></span> (<span id="user-display-id" class="font-semibold"></span>)</p>
-          <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-            Logout
-          </button>
-        </div>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-red-400">Welcome, Admin <span id="admin-user-display"></span>!</h2>
+        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
       </div>
 
-      <!-- New Section: Page Management -->
-      <div class="mt-16 bg-gray-900 p-8 rounded-lg shadow-md mb-12">
-        <h3 class="text-3xl font-bold text-blue-300 mb-6 text-center">Manage Dynamic Pages</h3>
-        <p class="text-gray-300 mb-6 text-center max-w-3xl mx-auto">
-          Add new dynamic content pages to the website. These pages will be accessible via a `dynamic_page.html?path=YOUR_PAGE_PATH` URL.
-        </p>
+      <p class="text-lg text-gray-300 mb-8">
+        This portal provides tools and information for managing Arcator infrastructure and development.
+      </p>
 
-        <form id="add-page-form" class="space-y-6">
-          <div>
-            <label for="page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-            <input type="text" id="page-title" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Our New Feature">
-          </div>
-          <div>
-            <label for="page-path" class="block text-gray-300 text-sm font-bold mb-2">Page Path (e.g., 'new-feature' for 'dynamic_page.html?path=new-feature'):</label>
-            <input type="text" id="page-path" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., new-feature">
-            <p class="text-gray-400 text-xs mt-1">Use URL-friendly text (no spaces or special characters other than hyphens).</p>
-          </div>
-          <div>
-            <label for="content-type" class="block text-gray-300 text-sm font-bold mb-2">Content Type:</label>
-            <select id="content-type" class="shadow border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500">
-              <option value="html">HTML</option>
-              <option value="markdown">Markdown</option>
-              <option value="plaintext">Plain Text</option>
-            </select>
-          </div>
-          <div>
-            <label for="page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content:</label>
-            <textarea id="page-content" rows="15" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Enter your page content here (HTML, Markdown, or plain text)"></textarea>
-          </div>
-          <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-            Add Page
-          </button>
-          <p id="page-management-message" class="text-center mt-4 text-green-400" style="display: none;"></p>
-        </form>
-      </div>
-
-      <!-- Removed the old "Our Development Roadmap (Todo List)" section and replaced it with a link -->
-      <div class="text-center mb-12">
-        <h2 class="text-4xl font-bold text-red-400 mb-6">Our Development Roadmap</h2>
-        <p class="text-lg text-gray-300 mb-4">
-          For the most up-to-date information on our development roadmap, tasks, and future plans, please refer to our dedicated Google Doc:
-        </p>
-        <a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-          View Development Roadmap
-        </a>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-        <!-- Darrion API Section -->
-        <div>
-          <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
-          <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Infrastructure Management Card -->
+        <div class="card-section">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Infrastructure Management</h3>
+          <p class="text-gray-300 mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
           <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-            <li><span class="font-semibold text-white">GET plugin updates</span></li>
+            <li>Review server logs and performance metrics.</li>
+            <li>Perform routine maintenance tasks.</li>
+            <li>Manage user permissions on core systems.</li>
+            <li>Oversee backup and recovery procedures.</li>
           </ul>
+          <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
         </div>
 
-        <!-- GriefDetection Section -->
-        <div>
-          <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
-          <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+        <!-- Development Tools Card -->
+        <div class="card-section">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Development Tools & Wiki</h3>
+          <p class="text-gray-300 mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
           <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Regular checks for griefs and automated analysis of player actions.</li>
-            <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
-            <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
-            <!-- Added rel="noopener noreferrer" for security when opening external links -->
-            <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
-            <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+            <li>Access the code repositories and version control.</li>
+            <li>Contribute to ongoing development projects.</li>
+            <li>Update and maintain the official Arcator Wiki.</li>
+            <li>Collaborate on new features and bug fixes.</li>
           </ul>
-        </div>
-      </div>
-
-      <!-- Onfim Notifications Section -->
-      <div class="mt-16 mb-12">
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-        <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li>Warns staff on Discord when disk space is nearly full.</li>
-          <li>Detects and alerts on drive corruption.</li>
-          <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-          <li>Alerts when Jylina's Ngrok IP address changes.</li>
-          <li>Handles `#machine-status` updates every minute.</li>
-        </ul>
-      </div>
-
-      <!-- New Section: Sysadmin Documentation -->
-      <div class="mt-16">
-        <h3 class="text-3xl font-bold mb-4 text-blue-300">Sysadmin Documentation & Guides</h3>
-        <p class="text-gray-300 mb-6">Here you'll find essential documentation and guides related to system administration, server management, and database operations for Arcator.</p>
-
-        <!-- Sub-section: FAQ -->
-        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-          <h4 class="text-2xl font-bold mb-3 text-blue-200">Frequently Asked Questions (FAQ)</h4>
-          <p class="text-gray-300 mb-4">
-            This section covers common questions and troubleshooting tips for administrators.
-          </p>
-          <p class="text-gray-300 mb-2 font-semibold">Q: How to scroll on tmux.</p>
-          <p class="text-gray-300 mb-4">A: Use <code>ctrl-b</code> then hit <code>[</code>. Scroll with the arrow keys or page up / down. Then hit <code>Q</code> to stop scrolling.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: What is the | in a command.</p>
-          <p class="text-gray-300 mb-4">A: The pipe command sends input from the left command to right command.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
-          <p class="text-gray-300 mb-4">A: The current directory.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: Prompt Y/n</p>
-          <p class="text-gray-300 mb-4">A: If you hit enter Y is the default. Similarly y/N means N is default.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. tar.gz or rpm?</p>
-          <p class="text-gray-300 mb-4">A: <code>tar.gz</code> is harder to install but works on more distros of Linux. <code>rpm</code> is easier to install but works on Fedora.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: How to install programs. Software manager vs download from site?</p>
-          <p class="text-gray-300 mb-4">A: Software manager is a repo that may be outdated but easy to use. Check for an official download from a site / PPA first.</p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: Check NVME drive status.</p>
-          <p class="text-gray-300 mb-4">A: Use <code>nvme help</code>. Drive checks: <code>nvme device-self-test /dev/nvme0 -n 1 -s 2</code></p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: Find dead symlinks</p>
-          <p class="text-gray-300 mb-4">A: <a href="https://unix.stackexchange.com/a/34260" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://unix.stackexchange.com/a/34260</a></p>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: How to Debug Some System Errors</p>
-          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-            <li>Run: <code>sudo journalctl -xe</code></li>
-            <li>How to scroll: Page up and down (like tmux scroll)</li>
-            <li>How to exit: <code>Q</code> (like tmux scroll)</li>
-          </ul>
-
-          <p class="text-gray-300 mb-2 font-semibold">Q: <code>nano /etc/thing ok why</code></p>
-          <p class="text-gray-300 mb-4">A: Opens <code>/etc/thing</code> then "ok" then "why". Putting quotes is important when using spaces in arguments.</p>
+          <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
         </div>
 
-        <!-- Sub-section: Snapshot Setup -->
-        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-          <h4 class="text-2xl font-bold mb-3 text-blue-200">Snapshot Setup</h4>
-          <p class="text-gray-300 mb-4">
-            Learn how to configure and manage server snapshots to ensure data integrity and quick recovery.
-            Snapshots are crucial for disaster recovery and maintaining server uptime. This guide details the process of setting them up and managing them effectively.
-          </p>
-          <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
-          <p class="text-gray-300 mb-2">In short snapshots use Btrfs to perform instantaneous snapshots.</p>
-          <p class="text-gray-300 mb-2">These folders are automatically backed up with strong transparent compression.</p>
-          <p class="text-gray-300 mb-2">They are in: <code>/mnt/Main/Sync</code></p>
-          <p class="text-gray-300 mb-2">The common subvolumes there are home, nginx, OtherServers, postgres, Servers.</p>
-          <p class="text-gray-300 mb-4">Note <code>/home</code> is a btrfs mount to home here.</p>
-          <p class="text-gray-300 mb-2">We use a program called <code>btrbk</code> to manage it. This is useful documentation <a href="https://github.com/digint/btrbk/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/digint/btrbk/</a></p>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">General Use</h5>
-          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-            <li>Server snapshot at: <code>~/Backups/Snapshot</code></li>
-            <li>Home snapshot at: <code>~/HomeSnapshots</code></li>
+        <!-- System Monitoring and Alerts -->
+        <div class="card-section md:col-span-2">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">System Monitoring and Alerts</h3>
+          <p class="text-gray-300 mb-4">Critical alerts and system status updates for immediate action.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Monitors server uptime and service availability.</li>
+            <li>Checks if disk space is critically low or nearly full.</li>
+            <li>Detects and alerts on drive corruption.</li>
+            <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+            <li>Alerts when Jylina's Ngrok IP address changes.</li>
+            <li>Handles `#machine-status` updates every minute.</li>
           </ul>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Setup</h5>
-          <p class="text-gray-300 mb-2">For set up refer to existing files in <code>/etc/btrbk</code>.</p>
-          <p class="text-gray-300 mb-2">Make the corresponding common subvolumes above:</p>
-          <p class="code-block mb-4"><code>btrfs subvol create /mnt/Main/Sync/[name]</code></p>
-          <p class="text-gray-300 mb-2">Create a regular folder for snapshots and Servers_snapshots.</p>
-          <p class="text-gray-300 mb-2">Get the <code>btrbk sh</code> files in <code>/usr/local/bin</code></p>
-          <p class="text-gray-300 mb-2">Also get the backups service and timer systemd files in <code>/etc/systemd/system</code>. Check systemd page for more info.</p>
-          <p class="code-block mb-4">
-            <code>systemctl enable backups.timer</code><br>
-            <code>systemctl enable backups_pull.timer</code><br>
-            <code>systemctl start backups.timer</code><<br>
-            <code>systemctl start backups_pull.timer</code>
-          </p>
-          <p class="text-gray-300 mb-4">To fix selinux run: <code>restorecon -rv /usr/local/bin</code></p>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions Setup</h5>
-          <p class="code-block mb-4">
-            <code># Restrict to mcsa</code><br>
-            <code>chown -R mcsa:mcsa /mnt/Main/Sync/Servers</code><br>
-            <code>chown mcsa:mcsa /mnt/Main/Sync/Servers_snapshots</code><br>
-            <code>chmod 750 /mnt/Main/Sync/*Servers /mnt/Main/Sync/*Servers/* /mnt/Main/Sync/Servers_snapshots</code><br>
-            <code># Looser world permissions</code><br>
-            <code>chmod 755 /mnt/Main/Sync /mnt/Main/Sync/OtherServers /mnt/Main/Sync/snapshots</code>
-          </p>
-        </div>
-
-        <!-- Sub-section: Server IDs (s#'s) -->
-        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-700">
-          <h4 class="text-2xl font-bold mb-3 text-blue-200">Server IDs (s#'s)</h4>
-          <p class="text-gray-300 mb-4">
-            A comprehensive list and explanation of all server IDs used across the Arcator network.
-            Understanding server IDs is vital for direct management and troubleshooting specific server instances. This section provides a detailed breakdown of each ID and its purpose.
-          </p>
-          <p class="text-gray-300 mb-2"><strong>Purpose:</strong> We use these IDs to prevent conflicts between machines.</p>
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Examples</h5>
-          <p class="text-gray-300 mb-2"><strong>IP:</strong> <code>10.0.0.x</code></p>
-          <p class="text-gray-300 mb-2"><strong>Database Log IDs:</strong> <code>Ports</code></p>
-          <p class="text-gray-300 mb-4"><code>123x</code> is Backup SSH to Server X. Similar patterns for other services.</p>
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">IDs</h5>
-          <ul class="list-disc list-inside text-gray-400 ml-4">
-            <li><code>s1</code> - Jylina (Jordan's High Speed Server)</li>
-            <li><code>s2</code> - Thoth (Jordan's Raspberry Pi)</li>
-            <li><code>s3</code> - Dust's Network</li>
-            <li><code>s4, s5</code> - Reserved</li>
-            <li><code>s6, s7, s8</code> - Kieraan (Venus, Apollo, Icarus?)</li>
-            <li><code>s9, s10</code> - Sputnik, Vulcan (Angry)</li>
-          </ul>
-        </div>
-
-        <!-- Sub-section: Database Management -->
-        <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-          <h4 class="text-2xl font-bold mb-3 text-blue-200">Database Management</h4>
-          <p class="text-gray-300 mb-4">
-            Guidelines and best practices for managing Arcator's databases.
-            This includes information on database structure, backup procedures, and common maintenance tasks to ensure optimal performance and data security.
-          </p>
-          <p class="text-gray-300 mb-2">Do not worry about this section unless you're either an admin, or someone who is learning how to use Termius/SSH!</p>
-          <p class="text-gray-300 mb-2">We use MariaDB to run the database.</p>
-          <p class="text-gray-300 mb-4">Administration uses the <code>dba</code> user instead of <code>mcsa</code>.</p>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Backups</h5>
-          <p class="text-gray-300 mb-2">We use a simple cron: <code>0 * * * * /home/dba/doAll.sh</code></p>
-          <p class="text-gray-300 mb-4"><code>/home/dba/doAll.sh</code> calls <code>dbBackup.py</code> with appropriate permissions and target destination in argument. For example: <code>/mnt/Main/Backups/DB_BACKUPS</code> or <code>/mnt/RAID1/Vulcan/DB</code></p>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Replication</h5>
-          <p class="text-gray-300 mb-4">Replication syncs the DB in real time to other machines. <a href="https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://wiki.arcator.co.uk/en/Sysadmin/MachineSetup/DBReplication</a></p>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Data Location</h5>
-          <p class="text-gray-300 mb-4">There are 3 <code>btrfs</code> subvolume with <code>nodatacow fstab</code> for performance. Each of these are mounted to a corresponding <code>/var</code> location.</p>
-          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-            <li><code>/mnt/DB/mysql</code>, <code>/mnt/DB/log_mysql</code>, <code>/mnt/DB/postgres</code></li>
-          </ul>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Install Database</h5>
-          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-            <li><a href="https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/#install-from-fedora-main-repo</a>
-              <ul class="list-circle list-inside text-gray-400 ml-8">
-                <li>Only follow: Install from Fedora Main Repo and Configuring MySql/MariaDB</li>
-              </ul>
-            </li>
-            <li><a href="https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://mariadb.org/download/?t=repo-config&d=Fedora+Linux&v=11.1&r_m=acorn</a></li>
-          </ul>
-          <p class="code-block mb-4">
-            <code>dnf install mariadb-connector-c-devel MariaDB-server MariaDB-client MariaDB-backup</code><br>
-            <code>systemctl enable mariadb</code><br>
-            <code>systemctl start mariadb</code>
-          </p>
-          <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
-            <li>Only For Ubuntu: <code>/etc/mysql/mariadb.conf.d/50-server.cnf</code>
-              <ul class="list-circle list-inside text-gray-400 ml-8">
-                <li>Replace <code>bind-address = 127.0.0.1</code> with the proper <code>10.0.0.x</code> IP</li>
-              </ul>
-            </li>
-            <li>In <code>/etc/my.cnf.d</code> (Ubuntu is <code>/etc/mysql/conf.d</code>)
-              <ul class="list-circle list-inside text-gray-400 ml-8">
-                <li>Add <code>arcator.cnf</code> and relevant host (example <code>jylina.cnf</code>)</li>
-              </ul>
-            </li>
-            <li>Remember to reapply <code>restorecon -v -R /etc</code></li>
-            <li>Install <a href="https://docs.fedoraproject.org/en-US/quick-docs/postgresql/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://docs.fedoraproject.org/en-US/quick-docs/postgresql/</a>
-              <ul class="list-circle list-inside text-gray-400 ml-8">
-                <li>Extra docs <a href="https://computingforgeeks.com/install-postgresql-database-fedora-linux/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://computingforgeforgeeks.com/install-postgresql-database-fedora-linux/</a></li>
-                <li>Whitelist <code>pg_hba.conf</code> using a pre-existing machine config</li>
-                <li>To set the <code>datadir</code> use <code>fstab</code> to mount <code>/var/lib/pgsql</code>. Then <code>restorecon</code> it.</li>
-              </ul>
-            </li>
-          </ul>
-
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Configuration</h5>
-          <p class="text-gray-300 mb-2">Take <code>/etc/my.cnf.d/arcator.cnf</code> (Ubuntu uses <code>/etc/mysql/arcator.cnf</code>)</p>
-          <h5 class="text-xl font-semibold mb-2 text-blue-100">Permissions (for backups to work from dba)</h5>
-          <p class="code-block mb-4">
-            <code>find /var/lib/mysql -type d -exec chmod 770 {} \;</code><br>
-            <code>find /var/lib/mysql -type f -exec chmod 660 {} \;</code><br>
-            <code>usermod -a -G mysql dba</code>
-          </p>
-          <p class="text-gray-300 mb-2">Get <code>.my.cnf</code> and <code>dbBackup.py</code> for <code>/home/dba</code></p>
         </div>
       </div>
     </div>
@@ -459,44 +225,37 @@
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <!-- Updated footer links to new Privacy Policy and Terms of Service pages -->
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white text-purple-400 transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
   </div>
 </footer>
+
+<!-- Message Box Element -->
+<div id="message-box" class="message-box" style="display: none;"></div>
 
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
-    signInWithPopup,
-    signOut,
     onAuthStateChanged,
-    GithubAuthProvider,
+    signInWithEmailAndPassword,
+    signOut,
     signInWithCustomToken,
-    signInAnonymously,
-    // New imports for email/password auth
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword
+    signInAnonymously
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
     doc,
-    getDoc,
-    setDoc // Added for saving page content
+    getDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // You can choose to manually provide firebaseConfig here if you prefer,
-  // or rely on the Canvas environment's __firebase_config.
-  // If you manually provide it, ensure it's a valid object.
+  // Firebase configuration object
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -504,316 +263,178 @@
     storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM" // Optional, if you have it
+    measurementId: "G-DJXNT1L7CM"
   };
 
-  // Ensure global __app_id and __initial_auth_token are accessible without re-declaration errors
-  // They are provided by the Canvas environment as globals. We just reference them directly.
-  // We'll use a local variable to store its value if it exists or default to null.
+  // Ensure global __app_id and __initial_auth_token are accessible
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
   const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-  // Determine appId for Firestore path - prioritize Canvas provided, then project ID from firebaseConfig
+  // Determine appId for Firestore path - prioritize Canvas provided, then project ID
   const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-  // Use the defined canvasInitialAuthToken variable
   const initialAuthToken = canvasInitialAuthToken;
 
-  // Initialize Firebase
+  // Initialize Firebase App, Auth, and Firestore instances
   let app;
   let auth;
   let db;
-  let isFirebaseInitialized = false; // Flag to track initialization
+  let isFirebaseInitialized = false;
 
-  if (firebaseConfig && firebaseConfig.apiKey) { // Check if firebaseConfig exists and has apiKey
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      isFirebaseInitialized = true;
-      console.log("Firebase initialized successfully.");
-    } catch (e) {
-      console.error("Error initializing Firebase:", e);
-      showErrorMessage("Error initializing Firebase. Please check your Firebase configuration in console.");
-    }
-  } else {
-    console.error("Firebase config is missing or incomplete. Authentication will not work.");
-    document.getElementById('loading-spinner').style.display = 'none';
-    document.getElementById('error-message').textContent = 'Firebase configuration is missing. Cannot proceed with login.';
-    document.getElementById('error-message').style.display = 'block';
-    document.getElementById('login-section').style.display = 'block';
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    isFirebaseInitialized = true;
+    console.log("Firebase initialized successfully.");
+  } catch (e) {
+    console.error("Error initializing Firebase:", e);
+    showMessageBox("Error initializing Firebase. Cannot perform authentication.", true);
   }
 
-  // Only proceed with auth providers if Firebase is initialized
-  const githubProvider = isFirebaseInitialized ? new GithubAuthProvider() : null;
-
-  // DOM Elements
-  const loginSection = document.getElementById('login-section');
-  const adminContent = document.getElementById('admin-content');
-  const githubLoginBtn = document.getElementById('github-login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const userDisplayName = document.getElementById('user-display-name');
-  const userDisplayId = document.getElementById('user-display-id');
-  const errorMessage = document.getElementById('error-message');
+  // DOM elements
   const loadingSpinner = document.getElementById('loading-spinner');
-
-  // New DOM Elements for Email/Password
-  const emailInput = document.getElementById('email-input');
-  const passwordInput = document.getElementById('password-input');
-  const emailSignupBtn = document.getElementById('email-signup-btn');
-  const emailLoginBtn = document.getElementById('email-login-btn');
-
-  // New DOM Elements for Page Management Form
-  const addPageForm = document.getElementById('add-page-form');
-  const pageTitleInput = document.getElementById('page-title');
-  const pagePathInput = document.getElementById('page-path');
-  const contentTypeSelect = document.getElementById('content-type');
-  const pageContentTextarea = document.getElementById('page-content');
-  const pageManagementMessage = document.getElementById('page-management-message');
-
+  const authSection = document.getElementById('auth-section');
+  const adminContent = document.getElementById('admin-content');
+  const loginForm = document.getElementById('login-form');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const loginErrorMessage = document.getElementById('login-error-message');
+  const logoutBtn = document.getElementById('logout-btn');
+  const adminUserDisplay = document.getElementById('admin-user-display');
+  const messageBox = document.getElementById('message-box');
 
   /**
-   * Displays an error message to the user.
-   * @param {string} message - The error message to display.
-   */
-  function showErrorMessage(message) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-  }
-
-  /**
-   * Hides the error message.
-   */
-  function hideErrorMessage() {
-    errorMessage.style.display = 'none';
-  }
-
-  /**
-   * Displays a success or error message for page management.
+   * Displays a custom message box for user feedback.
    * @param {string} message - The message to display.
-   * @param {boolean} isError - True if it's an error, false for success.
+   * @param {boolean} isError - True for error, false for success.
    */
-  function showPageManagementMessage(message, isError) {
-    pageManagementMessage.textContent = message;
-    pageManagementMessage.style.display = 'block';
-    pageManagementMessage.classList.remove('text-green-400', 'text-red-500');
+  function showMessageBox(message, isError) {
+    messageBox.textContent = message;
+    messageBox.className = 'message-box'; // Reset classes
     if (isError) {
-      pageManagementMessage.classList.add('text-red-500');
+      messageBox.classList.add('error');
     } else {
-      pageManagementMessage.classList.add('text-green-400');
+      messageBox.classList.add('success');
     }
+    messageBox.style.display = 'block';
     setTimeout(() => {
-      pageManagementMessage.style.display = 'none';
+      messageBox.style.display = 'none';
     }, 5000); // Hide after 5 seconds
   }
 
   /**
-   * Checks if a user is whitelisted in Firestore.
-   * @param {string} uid - The user's Firebase UID.
-   * @returns {Promise<boolean>} - True if whitelisted, false otherwise.
+   * Updates the UI based on the user's authentication and admin status.
+   * @param {Object|null} user - The Firebase User object or null.
    */
-  async function checkWhitelist(uid) {
-    if (!db) {
-      console.error("Firestore is not initialized. Cannot check whitelist.");
-      return false;
-    }
-    // Define the path to the whitelist collection.
-    // For public data, use /artifacts/{appId}/public/data/whitelisted_admins
-    const whitelistDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, uid);
-    try {
-      const docSnap = await getDoc(whitelistDocRef);
-      return docSnap.exists();
-    } catch (error) {
-      console.error("Error checking whitelist:", error);
-      showErrorMessage("Error checking access. Please try again.");
-      return false;
+  async function updateAdminUI(user) {
+    loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
+
+    if (user) {
+      // Check if user is a whitelisted admin
+      const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
+      try {
+        const adminDocSnap = await getDoc(adminDocRef);
+        if (adminDocSnap.exists()) {
+          // User is an admin
+          authSection.style.display = 'none';
+          adminContent.style.display = 'block';
+          adminUserDisplay.textContent = user.displayName || user.email || user.uid; // Display user info
+          showMessageBox("Admin access granted!", false);
+          console.log("Admin user logged in:", user.uid);
+        } else {
+          // User is logged in but not an admin
+          authSection.style.display = 'block';
+          adminContent.style.display = 'none';
+          showMessageBox("You are logged in, but do not have admin privileges.", true);
+          console.log("Regular user logged in, no admin access:", user.uid);
+        }
+      } catch (error) {
+        console.error("Error checking admin whitelist:", error);
+        authSection.style.display = 'block';
+        adminContent.style.display = 'none';
+        showMessageBox("Error checking admin status. Please try again.", true);
+      }
+    } else {
+      // No user is logged in
+      authSection.style.display = 'block';
+      adminContent.style.display = 'none';
+      console.log("No user logged in.");
     }
   }
 
-  // Only attach onAuthStateChanged listener if auth is initialized
+  // Set up Firebase Authentication listener
   if (isFirebaseInitialized && auth) {
-    onAuthStateChanged(auth, async (user) => {
-      loadingSpinner.style.display = 'none'; // Hide spinner once auth state is checked
-      hideErrorMessage(); // Clear any previous errors
-
-      if (user) {
-        userDisplayName.textContent = user.displayName || user.email || 'Guest';
-        userDisplayId.textContent = user.uid; // Display the full UID
-
-        const isWhitelisted = await checkWhitelist(user.uid);
-        if (isWhitelisted) {
-          loginSection.style.display = 'none';
-          adminContent.style.display = 'block';
-        } else {
-          showErrorMessage("Access Denied: Your account is not whitelisted for this page.");
-          adminContent.style.display = 'none';
-          loginSection.style.display = 'block';
-          // Sign out unauthorized users to prevent incorrect state
-          await signOut(auth);
-        }
-      } else {
-        adminContent.style.display = 'none';
-        loginSection.style.display = 'block';
-        userDisplayName.textContent = '';
-        userDisplayId.textContent = '';
-      }
+    onAuthStateChanged(auth, (user) => {
+      updateAdminUI(user);
     });
 
-    // Handle initial custom token sign-in if available (for Canvas environment)
+    // Attempt to sign in with custom token for Canvas environment
     if (initialAuthToken) {
       signInWithCustomToken(auth, initialAuthToken)
         .then(() => {
-          console.log("Signed in with custom token.");
+          console.log("Signed in with custom token from Canvas.");
         })
         .catch((error) => {
           console.error("Error signing in with custom token:", error);
-          // If custom token fails, allow anonymous sign-in as fallback
+          // Fallback to anonymous sign-in if custom token fails (e.g., expired)
           signInAnonymously(auth)
             .then(() => console.log("Signed in anonymously."))
             .catch((anonError) => console.error("Error signing in anonymously:", anonError));
         });
     } else {
-      // If no custom token, sign in anonymously to ensure auth is ready for onAuthStateChanged to pick up a user state
+      // If no custom token, sign in anonymously by default
       signInAnonymously(auth)
         .then(() => console.log("Signed in anonymously (no custom token)."))
         .catch((anonError) => console.error("Error signing in anonymously:", anonError));
     }
-
-    // Event Listener for GitHub Login Button (only if githubProvider is available)
-    if (githubLoginBtn && githubProvider) {
-      githubLoginBtn.addEventListener('click', async () => {
-        hideErrorMessage();
-        try {
-          await signInWithPopup(auth, githubProvider);
-          // onAuthStateChanged listener will handle UI updates
-        } catch (error) {
-          console.error("GitHub login failed:", error);
-          showErrorMessage("GitHub login failed. Please try again. Error: " + (error.message || "Unknown error"));
-        }
-      });
-    } else if (githubLoginBtn) {
-      // If githubProvider is null, disable the button and show a message if needed
-      githubLoginBtn.disabled = true;
-      // Optionally show specific message if GitHub provider isn't available/configured
-      // showErrorMessage("GitHub provider not initialized. Firebase setup might be incomplete.");
-    }
-
-    // Event Listener for Email Signup Button
-    if (emailSignupBtn) {
-      emailSignupBtn.addEventListener('click', async () => {
-        hideErrorMessage();
-        const email = emailInput.value;
-        const password = passwordInput.value;
-
-        if (!email || !password) {
-          showErrorMessage("Please enter both email and password.");
-          return;
-        }
-
-        try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          console.log("Email user signed up and logged in.");
-          // onAuthStateChanged listener will handle UI updates
-        } catch (error) {
-          console.error("Email signup failed:", error);
-          showErrorMessage("Email signup failed: " + (error.message || "Unknown error"));
-        }
-      });
-    }
-
-    // Event Listener for Email Login Button
-    if (emailLoginBtn) {
-      emailLoginBtn.addEventListener('click', async () => {
-        hideErrorMessage();
-        const email = emailInput.value;
-        const password = passwordInput.value;
-
-        if (!email || !password) {
-          showErrorMessage("Please enter both email and password.");
-          return;
-        }
-
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-          console.log("Email user logged in.");
-          // onAuthStateChanged listener will handle UI updates
-        } catch (error) {
-          console.error("Email login failed:", error);
-          showErrorMessage("Email login failed: " + (error.message || "Unknown error"));
-        }
-      });
-    }
-
-    // Event Listener for Logout Button
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
-        hideErrorMessage();
-        try {
-          await signOut(auth);
-          console.log("User signed out.");
-          // onAuthStateChanged listener will handle UI updates
-        } catch (error) {
-          console.error("Logout failed:", error);
-          showErrorMessage("Logout failed. Please try again. Error: " + (error.message || "Unknown error"));
-        }
-      });
-    }
-
-    // Event Listener for Add Page Form submission
-    if (addPageForm) {
-      addPageForm.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
-
-        const title = pageTitleInput.value.trim();
-        const path = pagePathInput.value.trim();
-        const contentType = contentTypeSelect.value;
-        const content = pageContentTextarea.value.trim();
-
-        if (!title || !path || !content) {
-          showPageManagementMessage("All fields are required to add a page.", true);
-          return;
-        }
-
-        // Basic validation for path: only alphanumeric, hyphens, no leading/trailing hyphens
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(path)) {
-          showPageManagementMessage("Page Path must be URL-friendly (lowercase alphanumeric and hyphens only, no leading/trailing hyphens).", true);
-          return;
-        }
-
-        if (!db) {
-          showPageManagementMessage("Firestore is not initialized. Cannot add page.", true);
-          return;
-        }
-
-        // Store pages in a new 'dynamic_pages' collection
-        const pageDocRef = doc(db, `artifacts/${appId}/public/data/dynamic_pages`, path);
-
-        try {
-          await setDoc(pageDocRef, {
-            title: title,
-            path: path,
-            contentType: contentType,
-            content: content,
-            createdAt: new Date().toISOString(),
-            createdBy: auth.currentUser ? auth.currentUser.uid : 'anonymous'
-          });
-          showPageManagementMessage(`Page '${title}' added successfully! You can view it at dynamic_page.html?path=${path}`, false);
-          // Clear form
-          pageTitleInput.value = '';
-          pagePathInput.value = '';
-          pageContentTextarea.value = '';
-        } catch (error) {
-          console.error("Error adding document: ", error);
-          showPageManagementMessage(`Error adding page: ${error.message || 'Unknown error'}`, true);
-        }
-      });
-    }
-
-  } else {
-    // If Firebase is not initialized, ensure login section is visible and spinner is hidden
-    loadingSpinner.style.display = 'none';
-    loginSection.style.display = 'block';
   }
 
+
+  // Event Listener for Login Form Submission
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault(); // Prevent default form submission
+
+      loginErrorMessage.style.display = 'none'; // Hide previous errors
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email || !password) {
+        showMessageBox("Please enter both email and password.", true);
+        return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged listener will handle UI updates if login is successful
+      } catch (error) {
+        console.error("Email login failed:", error);
+        let errorMessage = "Login failed. Please check your credentials.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          errorMessage = "Invalid email or password.";
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMessage = "Too many login attempts. Please try again later.";
+        }
+        showMessageBox(errorMessage, true);
+      }
+    });
+  }
+
+  // Event Listener for Logout Button
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      showMessageBox("", false); // Clear any existing messages
+      try {
+        await signOut(auth);
+        console.log("User signed out.");
+        showMessageBox("You have been signed out.", false);
+        // onAuthStateChanged listener will handle UI updates
+      } catch (error) {
+        console.error("Logout failed:", error);
+        showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
+      }
+    });
+  }
 
   // Get current year for footer
   document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
