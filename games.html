@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -22,8 +20,6 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -36,8 +32,6 @@
       position: relative;
       overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -48,13 +42,22 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+    }
+    .game-card {
+      background-color: #2D3748; /* Slightly lighter dark grey for cards */
+      border-radius: 0.75rem; /* More rounded corners */
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3); /* Stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .game-card:hover {
+      transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -71,11 +74,12 @@
         <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-indigo-400 hover:text-indigo-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -85,55 +89,64 @@
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Beyond Minecraft: Other Games We Play</h1>
+    <p class="text-xl md:text-2xl mb-8">Join us in adventures across different gaming worlds!</p>
   </div>
 </section>
 
 <!-- Other Games Section Content -->
-<section id="games" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+<section id="games" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-indigo-400">Discover More Fun!</h2>
-    <p class="text-xl text-center mb-8 text-gray-300">While Minecraft is our core, our community enjoys a variety of other games and activities together!</p>
-    <!-- Corrected the incomplete grid class: lg:grid-col changed to lg:grid-cols-3 -->
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Favorite Non-Minecraft Games</h2>
+    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-12 text-center">
+      While Minecraft is our main hub, many Arcator community members enjoy playing a variety of other games together. Join our Discord to find groups, organize sessions, and discover new favorites!
+    </p>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Example Game Card 1 -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Rocket League</h3>
-        <p class="text-gray-300 mb-6">Experience high-flying, car-based soccer! Rocket League combines vehicle chaos with the competitive thrill of football.</p>
-        <p class="text-gray-400 text-sm">Join us for casual matches and competitive ranks.</p>
+      <!-- Game Card 1: Factorio -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Factorio</h3>
+        <p class="text-gray-300">Build and maintain factories, automate production, and fend off alien creatures in this highly addictive simulation game. Perfect for those who love intricate logistics.</p>
+        <a href="https://www.factorio.com/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-blue-400 hover:text-blue-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
 
-      <!-- Example Game Card 2 -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Valorant</h3>
-        <p class="text-gray-300 mb-6">A tactical first-person shooter with unique agent abilities. Team up and outsmart your opponents in intense 5v5 matches.</p>
-        <p class="text-gray-400 text-sm">Form a squad and climb the ranks together!</p>
+      <!-- Game Card 2: Satisfactory -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Satisfactory</h3>
+        <p class="text-gray-300">An open-world factory building game with a first-person perspective. Explore an alien planet, harvest resources, and construct massive automated factories.</p>
+        <a href="https://www.satisfactorygame.com/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-yellow-400 hover:text-yellow-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
 
-      <!-- Example Game Card 3 -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Terraria</h3>
-        <p class="text-gray-300 mb-6">Dig, fight, explore, and build in this sandbox adventure game. Terraria offers endless possibilities for creativity and discovery.</p>
-        <p class="text-gray-400 text-sm">Collaborate on epic builds or embark on boss hunts!</p>
+      <!-- Game Card 3: Kerbal Space Program (KSP) -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-green-300 mb-4">Kerbal Space Program</h3>
+        <p class="text-gray-300">Design, build, and launch rockets and spacecraft to explore the Kerbal solar system. Master orbital mechanics and conquer the cosmos!</p>
+        <a href="https://www.kerbalspaceprogram.com/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-green-400 hover:text-green-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
 
-      <!-- Add more game cards as desired following the pattern above -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Overwatch 2</h3>
-        <p class="text-gray-300 mb-6">Dive into a futuristic world where heroes battle in fast-paced, team-based combat. A dynamic hero shooter with diverse characters and roles.</p>
-        <p class="text-gray-400 text-sm">Join our community for quickplay or competitive matches.</p>
+      <!-- Game Card 4: Stellaris -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-purple-300 mb-4">Stellaris</h3>
+        <p class="text-gray-300">A grand strategy game set in space. Explore a vast galaxy, encounter diverse alien races, and forge your empire through diplomacy, trade, or war.</p>
+        <a href="https://www.paradoxplaza.com/stellaris/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-purple-400 hover:text-purple-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
 
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Phasmophobia</h3>
-        <p class="text-gray-300 mb-6">Gather your ghost-hunting gear and investigate haunted locations. A cooperative psychological horror game where you identify paranormal entities.</p>
-        <p class="text-gray-400 text-sm">Perfect for spooky game nights with friends!</p>
+      <!-- Game Card 5: Cities: Skylines -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-red-300 mb-4">Cities: Skylines</h3>
+        <p class="text-300">Build your dream city from the ground up! Manage services, traffic, and citizen happiness in this modern take on classic city simulation games.</p>
+        <a href="https://www.paradoxplaza.com/cities-skylines/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-red-400 hover:text-red-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
 
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-indigo-300">Space Engineers</h3>
-        <p class="text-gray-300 mb-6">Build and maintain space stations, planetary outposts, and spacecraft in a vast, open-world sandbox. Explore, mine, and survive in space.</p>
-        <p class="text-gray-400 text-sm">Unleash your engineering creativity in multiplayer!</p>
+      <!-- Game Card 6: Terraria -->
+      <div class="game-card text-center">
+        <h3 class="text-2xl font-bold text-teal-300 mb-4">Terraria</h3>
+        <p class="text-gray-300">Dig, fight, explore, build! This 2D sandbox adventure game offers endless possibilities, crafting, combat, and boss battles in a vibrant pixel world.</p>
+        <a href="https://terraria.org/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-teal-400 hover:text-teal-200 transition duration-300 ease-in-out">Official Website &rarr;</a>
       </div>
+    </div>
+
+    <div class="mt-12 text-center">
+      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord to Play Together!</a>
     </div>
   </div>
 </section>
@@ -144,9 +157,8 @@
     <p>© 2012 - <span id="current-year-games"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>

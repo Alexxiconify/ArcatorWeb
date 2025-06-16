@@ -48,6 +48,34 @@
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
     }
+    .server-card {
+      background-color: #2D3748; /* Slightly lighter dark grey for cards */
+      border-radius: 0.75rem; /* More rounded corners */
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3); /* Stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .server-card:hover {
+      transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
+    }
+    .minecraft-ip-box {
+      background-color: #1A202C; /* Even darker for the IP box */
+      border: 2px solid #4A5568; /* Subtle border */
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    .copy-button {
+      background-color: #4CAF50; /* Green for copy button */
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+    }
+    .copy-button:hover {
+      background-color: #45a049; /* Darker green on hover */
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -60,13 +88,15 @@
     <nav class="mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
         <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-green-400 hover:text-green-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -76,65 +106,61 @@
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Our Minecraft Servers</h1>
+    <p class="text-xl md:text-2xl mb-8">Diverse Experiences for Every Player</p>
   </div>
 </section>
 
-<!-- Servers Section Content -->
-<section id="servers" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Server Descriptions -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-green-400">Explore Our Worlds</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- SSMP Server Card (updated) -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-green-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-green-300">SSMP (Strawberry Survival Multiplayer)</h3>
-        <p class="text-gray-300 mb-6">SSMP, or Strawberry SMP, is a vanilla survival multiplayer server where you can connect with others, build together, form teams, or embark on solo adventures. Wars are not a part of this peaceful experience. We invite you to join this history-rich server!</p>
-        <p class="text-gray-300 mb-6 font-semibold">History:</p>
-        <p class="text-gray-300 mb-4">The SSMP began in summer 2019, sparking a revival for Arcator after a period of inactivity. Around 20 friends, many reuniting after years, came together to create this new SMP, eventually naming it Strawberry SMP.</p>
-        <p class="text-gray-300 mb-4">The server's first day saw players establishing bases around a small village on a cape, with some venturing to other islands. Road systems, homes, and gardens flourished, and a thriving economy emerged, connecting everything through the Nether.</p>
-        <p class="text-gray-300 mb-4">As the community grew, so did challenges. Pillager raids became a daily occurrence, uniting players to build walls and defend the village. These raids transformed into community events, strengthening bonds as players fought side-by-side.</p>
-        <p class="text-gray-300 mb-4">Despite a period of decline and a server crash, the SSMP returned in December 2019 as a new server, bringing new players and activities. It continues to run actively today.</p>
-        <p class="text-gray-300 mb-6 font-semibold">The Six Hour War:</p>
-        <p class="text-gray-300 mb-6">A period of intense conflict, the "Six Hour War" saw cities burn and players band together. Despite initial desires for peace, war became inevitable, leading to a fierce struggle where communities fought to defend their territories.</p>
-        <ul class="list-disc list-inside text-gray-400 mb-6">
-          <li>Vanilla Survival Experience</li>
-          <li>Community Building & Exploration</li>
-          <li>Peaceful Gameplay (No Wars)</li>
-          <li>Ping-Friendly Experience</li>
-        </ul>
-        <a href="index.html#join-us" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out">Play Now</a>
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Explore Our Worlds</h2>
+    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-12 text-center">
+      Arcator hosts a variety of Minecraft servers, each offering a unique gameplay experience. Whether you prefer the challenge of survival, the freedom of creative building, or specialized game modes, you'll find a place to call home here.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <!-- Server Card 1: Survival Multiplayer (SMP) -->
+      <div class="server-card">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Survival Multiplayer (SMP)</h3>
+        <p class="text-gray-300 mb-4">Join our thriving SMP server for a classic Minecraft experience. Build, explore, survive with friends, and participate in a dynamic player-driven economy.</p>
+        <p class="text-lg font-semibold text-gray-400">IP: <span class="text-white">play.arcator.co.uk</span></p>
+        <button onclick="copyIp('play.arcator.co.uk')" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Copy IP</button>
       </div>
 
-      <!-- Hub Server Card -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-purple-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-purple-300">Hub (MC1)</h3>
-        <p class="text-gray-300 mb-6">The original Arcator server, launched in December 2010, serving as the central hub for all adventures. It features diverse game modes and historical worlds.</p>
-        <ul class="list-disc list-inside text-gray-400 mb-6">
-          <li><span class="font-semibold text-purple-200">Freebuild:</span> Build without restrictions or claiming.</li>
-          <li><span class="font-semibold text-purple-200">Plots:</span> Build in specified land pieces with grief protection.</li>
-          <li><span class="font-semibold text-purple-200">Peaceful Survival:</span> Survival without monsters, griefing, or theft, with disabled fall damage. Explore builds and memories from past members.</li>
-          <li><span class="font-semibold text-purple-200">Modified Survival:</span> Basic survival with hostile mobs, but no PvP, raiding, or griefing. Features various plugins for unique gameplay.</li>
-          <li>Historical Worlds (since 2011), including "Sky City" (built 2013-2014)</li>
-          <li>Integrated Minigame Section</li>
-        </ul>
-        <a href="index.html#join-us" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out">Explore Hub</a>
+      <!-- Server Card 2: Creative Server -->
+      <div class="server-card">
+        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Creative Server</h3>
+        <p class="text-gray-300 mb-4">Unleash your imagination on our creative server. With unlimited resources and plot protection, build anything you can dream of without limitations.</p>
+        <p class="text-lg font-semibold text-gray-400">IP: <span class="text-white">creative.arcator.co.uk</span></p>
+        <button onclick="copyIp('creative.arcator.co.uk')" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Copy IP</button>
       </div>
 
-      <!-- Other MC Servers Card -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-red-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <h3 class="text-3xl font-bold mb-4 text-red-300">Other MC Servers</h3>
-        <p class="text-gray-300 mb-6">Beyond our core offerings, explore Factions, Modded Minecraft, and a variety of other exciting minigames!</p>
-        <ul class="list-disc list-inside text-gray-400 mb-6">
-          <li>Factions</li>
-          <li>Modded Servers</li>
-          <li>SkyWars</li>
-          <li>BedWars</li>
-          <li>Parkour Challenges</li>
-        </ul>
-        <a href="index.html#join-us" class="inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out">Discover More</a>
+      <!-- Server Card 3: Mini-Games (Coming Soon) -->
+      <div class="server-card">
+        <h3 class="text-2xl font-bold text-purple-300 mb-4">Mini-Games Arena</h3>
+        <p class="text-gray-300 mb-4">Coming Soon! Get ready for exciting mini-games, competitive challenges, and fun events designed to test your skills and provide endless entertainment.</p>
+        <p class="text-lg font-semibold text-gray-400">Status: <span class="text-red-400">Under Development</span></p>
+        <a href="community.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Discover More</a>
+      </div>
+
+      <!-- Server Card 4: Modded Server (Experimental) -->
+      <div class="server-card">
+        <h3 class="text-2xl font-bold text-teal-300 mb-4">Modded Server (Experimental)</h3>
+        <p class="text-gray-300 mb-4">For players looking for a unique twist, our experimental modded server offers custom content, new mechanics, and enhanced gameplay possibilities.</p>
+        <p class="text-lg font-semibold text-gray-400">Status: <span class="text-orange-400">Beta Testing</span></p>
+        <a href="community.html" class="inline-block bg-teal-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-teal-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Discover More</a>
       </div>
     </div>
+
     <div class="mt-12 text-center">
       <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
+    </div>
+
+    <div class="mt-8 text-center">
+      <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-4">
+        Join our Discord for real-time server status, community events, and to find players for your favorite game modes!
+      </p>
+      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
     </div>
   </div>
 </section>
@@ -145,9 +171,9 @@
     <p>© 2012 - <span id="current-year-servers"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
@@ -157,6 +183,19 @@
 <script>
   // Get current year for footer
   document.getElementById('current-year-servers').textContent = new Date().getFullYear();
+
+  // Function to copy IP address to clipboard
+  function copyIp(ipAddress) {
+    const tempInput = document.createElement('input');
+    tempInput.value = ipAddress;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    // Provide feedback (could be a small pop-up or button text change)
+    // For simplicity, this example just logs to console
+    console.log('Copied IP: ' + ipAddress);
+    document.body.removeChild(tempInput);
+  }
 </script>
 </body>
 </html>

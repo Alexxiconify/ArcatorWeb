@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -22,8 +20,6 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -36,8 +32,6 @@
       position: relative;
       overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -48,13 +42,22 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+    }
+    .feature-card {
+      background-color: #2D3748; /* Slightly lighter dark grey for cards */
+      border-radius: 0.75rem; /* More rounded corners */
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3); /* Stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -67,7 +70,7 @@
     <!-- Navigation -->
     <nav class="mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-amber-400 hover:text-amber-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
         <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
@@ -75,6 +78,8 @@
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -84,66 +89,66 @@
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">About Arcator.co.uk</h1>
+    <p class="text-xl md:text-2xl mb-8">Our Journey, Mission, and Community Values</p>
   </div>
 </section>
 
-<!-- About Us Section Content -->
-<section id="about" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Our Story & Mission -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-amber-400">Our Story and Mission</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      <div class="text-lg leading-relaxed text-gray-100">
-        <p class="mb-4">Arcator.co.uk has been a thriving Minecraft community since its inception in <span class="font-semibold text-amber-300">2012</span>. We pride ourselves on creating a friendly, engaging, and stable environment for Minecraft players of all ages and playstyles.</p>
-        <p class="mb-4">Our mission is to foster a strong community where players can connect, build, explore, and embark on epic adventures together. We believe in fair play, respect, and continuous improvement to deliver the best possible Minecraft experience.</p>
-        <p class="mb-4">For newcomers, we offer a dedicated Freebuild Creative server for unrestricted building, allowing you to unleash your imagination without limits. We also have a robust survival server with added plugins to enhance your gameplay.</p>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
-        <p>You can also check out our <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-300 hover:underline">Wiki</a> for more historical information, including our official trailer from 2016 and older videos dating back to 2010 and 2012, showcasing our journey through the years.</p>
-        <h3 class="text-2xl font-bold text-amber-400 mt-8 mb-4">Philosophical Insights</h3>
-        <p class="mb-2">"People leave Discord when they feel disconnected, not necessarily because they didn't care. Understanding this is empowering."</p>
-        <p class="mb-2">"Starting a community is like starting a fire. Hardest is getting things going. Once it starts, everyone helps it be self-fulfilling."</p>
-        <p class="mb-2">"Small habits build momentum; procrastination leads to fear of failure, creating a cycle that must be broken."</p>
-        <p class="mb-2">"The joy has little to do with the circumstances of our lives and everything to do with the focus of our lives. Believe in others, yourself, and the world you want to be."</p>
-        <p class="mb-2">"True friendships require willingness to overcome trials and disagreements together."</p>
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Story & Mission</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6">
+      <p>Arcator.co.uk began its journey in **October 2012**, born from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the standard game.</p>
+      <p>Our mission is simple: to provide a long-lasting, fun, and safe environment for Minecraft players of all ages and playstyles. We believe in fostering a community where creativity flourishes, friendships are made, and every player feels welcome and valued. We are committed to continuous improvement, adapting to the evolving landscape of Minecraft while retaining the core values that have defined us for over a decade.</p>
+      <p>Over the years, we've hosted countless adventures, witnessed incredible builds, and built a dedicated global community. We are passionate about Minecraft and even more passionate about the community we've built together.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Values Section -->
+<section class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Core Values</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Community First</h3>
+        <p class="text-gray-300">We prioritize a welcoming and inclusive atmosphere where every member feels respected and heard. Our community's feedback drives our development.</p>
       </div>
-      <div class="flex justify-center flex-col items-center">
-        <!-- Cyndaquil image updated -->
-        <img src="https://cdn2.bulbagarden.net/upload/7/79/Spr_4d_155.png" alt="Cyndaquil Pixel Sprite" class="rounded-lg shadow-xl max-w-full h-auto mb-8">
-        <!-- Embedded YouTube Trailer -->
-        <h3 class="text-2xl font-bold text-amber-400 mb-4">Arcator Server Trailer</h3>
-        <div class="relative w-full" style="padding-bottom: 56.25%;">
-          <!-- Updated YouTube embed URL -->
-          <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-xl" src="https://www.youtube.com/embed/8ffb9CDJp5M" title="Arcator Server Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Innovation & Fun</h3>
+        <p class="text-gray-300">We constantly explore new ways to enhance the Minecraft experience, introducing fresh content, challenges, and events to keep things exciting for our players.</p>
+      </div>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-green-300 mb-4">Stability & Reliability</h3>
+        <p class="text-gray-300">Our robust infrastructure and dedicated administration ensure a smooth, low-lag gameplay experience with high uptime and secure data.</p>
+      </div>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-purple-300 mb-4">Transparency & Communication</h3>
+        <p class="text-gray-300">We believe in open communication with our community, providing regular updates on server status, development, and decisions that affect our players.</p>
       </div>
     </div>
-    <h3 class="text-4xl font-bold text-center mt-16 mb-12 text-amber-400">Areas for Growth</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg leading-relaxed text-gray-100">
-      <div>
-        <h4 class="text-2xl font-semibold mb-4 text-amber-300">Immediate Growth & Development:</h4>
-        <ul class="list-disc list-inside space-y-2">
-          <li>Seek unique ideas to grow and discuss new concepts for modded Minecraft.</li>
-          <li>Prioritize community games equally with Minecraft.</li>
-          <li>Create unique channels/forums/threads for small social groups and ice breakers (e.g., Watch2gether).</li>
-          <li>Host Game Nights to build and strengthen friendships.</li>
-          <li>Increase frequency and consistency of games through better event coordination.</li>
-          <li>For SSMP: Find community activities (goals/minigames/events) to keep it fresh.</li>
-          <li>Weekly anime movie nights for a successful clique example.</li>
-          <li>Encourage forums for sharing interests.</li>
-          <li>Rocket League has great potential.</li>
-          <li>Explore other games like Valorant, Siege, Brawlhalla, Overwatch, Phasmophobia, Space Engineers, and Terraria.</li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="text-2xl font-semibold mb-4 text-amber-300">Continued & Backburner Growth:</h4>
-        <ul class="list-disc list-inside space-y-2">
-          <li>Keep the community census up-to-date to help members find common interests.</li>
-          <li>Advertising: Currently deprioritized server-wide, but individual ads are welcomed.</li>
-          <li>Server merges: Deprioritized but always open for new ideas.</li>
-          <li>Consider reviving the Arcator YouTube channel, allowing members to practice cinematography.</li>
-          <li>For other Minecraft aspects: Explore mod packs (Beta in 1.19, Beta Mod), adventure maps.</li>
-          <li>Nostalgia: Provide maps and encourage sharing screenshots of historical/cool builds.</li>
-        </ul>
-      </div>
+  </div>
+</section>
+
+<!-- Community Engagement Section -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-red-400 mb-6">Join Our Thriving Community!</h2>
+    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
+      The heart of Arcator is its community. Join our Discord server to chat, connect with other players, participate in discussions, and get real-time updates.
+    </p>
+    <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+    <div class="mt-8">
+      <h3 class="text-3xl font-bold text-blue-300 mb-4">What's Happening in Our Community:</h3>
+      <ul class="list-disc list-inside text-gray-300 max-w-2xl mx-auto text-left space-y-2">
+        <li>**Regular Events:** From building competitions to mini-game tournaments, there's always something fun happening.</li>
+        <li>**Voice Chat & Hangouts:** Connect with other members in our Discord voice channels during game sessions or just to chat.</li>
+        <li>**Community Suggestions:** We actively listen to player feedback and implement suggestions to improve the server.</li>
+        <li>**Collaborative Builds:** Participate in large-scale community projects and leave your mark on the Arcator world.</li>
+        <li>**Creative Cinematography:** Utilize features from the Arcator YouTube channel, allowing members to practice cinematography.</li>
+        <li>**Other Minecraft aspects:** Explore mod packs (Beta in 1.19, Beta Mod), adventure maps.</li>
+        <li>**Nostalgia:** Provide maps and encourage sharing screenshots of historical/cool builds.</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -154,9 +159,8 @@
     <p>© 2012 - <span id="current-year-about"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
