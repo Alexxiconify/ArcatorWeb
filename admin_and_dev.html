@@ -175,6 +175,42 @@
         </div>
       </div>
 
+      <!-- New Section: Page Management -->
+      <div class="mt-16 bg-gray-900 p-8 rounded-lg shadow-md mb-12">
+        <h3 class="text-3xl font-bold text-blue-300 mb-6 text-center">Manage Dynamic Pages</h3>
+        <p class="text-gray-300 mb-6 text-center max-w-3xl mx-auto">
+          Add new dynamic content pages to the website. These pages will be accessible via a `dynamic_page.html?path=YOUR_PAGE_PATH` URL.
+        </p>
+
+        <form id="add-page-form" class="space-y-6">
+          <div>
+            <label for="page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+            <input type="text" id="page-title" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Our New Feature">
+          </div>
+          <div>
+            <label for="page-path" class="block text-gray-300 text-sm font-bold mb-2">Page Path (e.g., 'new-feature' for 'dynamic_page.html?path=new-feature'):</label>
+            <input type="text" id="page-path" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., new-feature">
+            <p class="text-gray-400 text-xs mt-1">Use URL-friendly text (no spaces or special characters other than hyphens).</p>
+          </div>
+          <div>
+            <label for="content-type" class="block text-gray-300 text-sm font-bold mb-2">Content Type:</label>
+            <select id="content-type" class="shadow border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500">
+              <option value="html">HTML</option>
+              <option value="markdown">Markdown</option>
+              <option value="plaintext">Plain Text</option>
+            </select>
+          </div>
+          <div>
+            <label for="page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content:</label>
+            <textarea id="page-content" rows="15" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Enter your page content here (HTML, Markdown, or plain text)"></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
+            Add Page
+          </button>
+          <p id="page-management-message" class="text-center mt-4 text-green-400" style="display: none;"></p>
+        </form>
+      </div>
+
       <!-- Removed the old "Our Development Roadmap (Todo List)" section and replaced it with a link -->
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold text-red-400 mb-6">Our Development Roadmap</h2>
@@ -245,7 +281,7 @@
           <p class="text-gray-300 mb-2 font-semibold">Q: What is the | in a command.</p>
           <p class="text-gray-300 mb-4">A: The pipe command sends input from the left command to right command.</p>
 
-          <p class="text-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
+          <p class="text-gray-300 mb-2 font-semibold">Q: What is a . argument in a command taking a path?</p>
           <p class="text-gray-300 mb-4">A: The current directory.</p>
 
           <p class="text-gray-300 mb-2 font-semibold">Q: Prompt Y/n</p>
@@ -452,7 +488,8 @@
   import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    setDoc // Added for saving page content
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // You can choose to manually provide firebaseConfig here if you prefer,
@@ -460,9 +497,9 @@
   // If you manually provide it, ensure it's a valid object.
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
+    authDomain: "arcator-web.firebasestorage.app",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
+    storageBucket: "arcator-web.firebase.com",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM" // Optional, if you have it
@@ -523,6 +560,14 @@
   const emailSignupBtn = document.getElementById('email-signup-btn');
   const emailLoginBtn = document.getElementById('email-login-btn');
 
+  // New DOM Elements for Page Management Form
+  const addPageForm = document.getElementById('add-page-form');
+  const pageTitleInput = document.getElementById('page-title');
+  const pagePathInput = document.getElementById('page-path');
+  const contentTypeSelect = document.getElementById('content-type');
+  const pageContentTextarea = document.getElementById('page-content');
+  const pageManagementMessage = document.getElementById('page-management-message');
+
 
   /**
    * Displays an error message to the user.
@@ -538,6 +583,25 @@
    */
   function hideErrorMessage() {
     errorMessage.style.display = 'none';
+  }
+
+  /**
+   * Displays a success or error message for page management.
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True if it's an error, false for success.
+   */
+  function showPageManagementMessage(message, isError) {
+    pageManagementMessage.textContent = message;
+    pageManagementMessage.style.display = 'block';
+    pageManagementMessage.classList.remove('text-green-400', 'text-red-500');
+    if (isError) {
+      pageManagementMessage.classList.add('text-red-500');
+    } else {
+      pageManagementMessage.classList.add('text-green-400');
+    }
+    setTimeout(() => {
+      pageManagementMessage.style.display = 'none';
+    }, 5000); // Hide after 5 seconds
   }
 
   /**
@@ -691,6 +755,57 @@
         }
       });
     }
+
+    // Event Listener for Add Page Form submission
+    if (addPageForm) {
+      addPageForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const title = pageTitleInput.value.trim();
+        const path = pagePathInput.value.trim();
+        const contentType = contentTypeSelect.value;
+        const content = pageContentTextarea.value.trim();
+
+        if (!title || !path || !content) {
+          showPageManagementMessage("All fields are required to add a page.", true);
+          return;
+        }
+
+        // Basic validation for path: only alphanumeric, hyphens, no leading/trailing hyphens
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(path)) {
+          showPageManagementMessage("Page Path must be URL-friendly (lowercase alphanumeric and hyphens only, no leading/trailing hyphens).", true);
+          return;
+        }
+
+        if (!db) {
+          showPageManagementMessage("Firestore is not initialized. Cannot add page.", true);
+          return;
+        }
+
+        // Store pages in a new 'dynamic_pages' collection
+        const pageDocRef = doc(db, `artifacts/${appId}/public/data/dynamic_pages`, path);
+
+        try {
+          await setDoc(pageDocRef, {
+            title: title,
+            path: path,
+            contentType: contentType,
+            content: content,
+            createdAt: new Date().toISOString(),
+            createdBy: auth.currentUser ? auth.currentUser.uid : 'anonymous'
+          });
+          showPageManagementMessage(`Page '${title}' added successfully! You can view it at dynamic_page.html?path=${path}`, false);
+          // Clear form
+          pageTitleInput.value = '';
+          pagePathInput.value = '';
+          pageContentTextarea.value = '';
+        } catch (error) {
+          console.error("Error adding document: ", error);
+          showPageManagementMessage(`Error adding page: ${error.message || 'Unknown error'}`, true);
+        }
+      });
+    }
+
   } else {
     // If Firebase is not initialized, ensure login section is visible and spinner is hidden
     loadingSpinner.style.display = 'none';

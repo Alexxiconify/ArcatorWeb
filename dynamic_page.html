@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title-display">Dynamic Page - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Markdown It for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #1F2937;
+      color: #E5E7EB;
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+    .content-area img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    /* Basic styling for markdown elements */
+    .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 {
+        color: #F87171; /* Red headings */
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: bold;
+    }
+    .content-area h1 { font-size: 2.5em; }
+    .content-area h2 { font-size: 2em; }
+    .content-area h3 { font-size: 1.75em; }
+    .content-area p {
+        margin-bottom: 1em;
+        line-height: 1.6;
+    }
+    .content-area ul, .content-area ol {
+        list-style-position: inside;
+        margin-bottom: 1em;
+        padding-left: 1.5em;
+    }
+    .content-area ul { list-style-type: disc; }
+    .content-area ol { list-style-type: decimal; }
+    .content-area a {
+        color: #60A5FA; /* Blue links */
+        text-decoration: underline;
+    }
+    .content-area code {
+        background-color: #2D3748;
+        padding: 0.2em 0.4em;
+        border-radius: 0.25rem;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+    .content-area pre {
+        background-color: #2D3748;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Header Section -->
+<header class="bg-gray-900 py-4 shadow-lg">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 id="hero-page-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Loading Page...</h1>
+  </div>
+</section>
+
+<!-- Main Content Section: Dynamic Content -->
+<section id="dynamic-content-section" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <div id="page-content-display" class="content-area max-w-4xl mx-auto text-lg leading-relaxed text-gray-300">
+      <!-- Content will be loaded here dynamically -->
+      <div id="loading-message" class="text-center text-xl text-blue-300">Loading page content...</div>
+      <div id="error-message" class="text-center text-xl text-red-500" style="display: none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-dynamic-page"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Firebase SDKs and Dynamic Page Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Manually provided Firebase config (replace with your actual config if needed)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.appspot.com",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  // Determine appId for Firestore path - prioritize Canvas provided, then project ID from firebaseConfig
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+
+  // Initialize Firebase
+  let app;
+  let db;
+  let isFirebaseInitialized = false;
+
+  if (firebaseConfig && firebaseConfig.apiKey) {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+      console.log("Firebase initialized successfully on dynamic page.");
+    } catch (e) {
+      console.error("Error initializing Firebase:", e);
+      document.getElementById('error-message').textContent = 'Error initializing Firebase. Cannot load page.';
+      document.getElementById('error-message').style.display = 'block';
+    }
+  } else {
+    console.error("Firebase config is missing or incomplete. Cannot load page.");
+    document.getElementById('error-message').textContent = 'Firebase configuration is missing. Cannot load page.';
+    document.getElementById('error-message').style.display = 'block';
+  }
+
+  // Markdown-It instance
+  const md = new markdownit();
+
+  // DOM elements for display
+  const heroPageTitle = document.getElementById('hero-page-title');
+  const pageContentDisplay = document.getElementById('page-content-display');
+  const loadingMessage = document.getElementById('loading-message');
+  const pageErrorMessage = document.getElementById('error-message');
+
+  /**
+   * Parses URL query parameters.
+   * @returns {URLSearchParams}
+   */
+  function getQueryParams() {
+    return new URLSearchParams(window.location.search);
+  }
+
+  /**
+   * Loads and renders dynamic page content from Firestore.
+   */
+  async function loadDynamicPage() {
+    loadingMessage.style.display = 'block';
+    pageErrorMessage.style.display = 'none';
+    pageContentDisplay.innerHTML = ''; // Clear previous content
+
+    const queryParams = getQueryParams();
+    const pagePath = queryParams.get('path');
+
+    if (!pagePath) {
+      heroPageTitle.textContent = "Page Not Found";
+      pageErrorMessage.textContent = "Error: No page path specified in the URL. Example: dynamic_page.html?path=your-page-name";
+      pageErrorMessage.style.display = 'block';
+      loadingMessage.style.display = 'none';
+      return;
+    }
+
+    if (!isFirebaseInitialized || !db) {
+      heroPageTitle.textContent = "Error";
+      pageErrorMessage.textContent = "Database not initialized. Cannot load page content.";
+      pageErrorMessage.style.display = 'block';
+      loadingMessage.style.display = 'none';
+      return;
+    }
+
+    const pageDocRef = doc(db, `artifacts/${appId}/public/data/dynamic_pages`, pagePath);
+
+    try {
+      const docSnap = await getDoc(pageDocRef);
+
+      if (docSnap.exists()) {
+        const pageData = docSnap.data();
+        heroPageTitle.textContent = pageData.title || 'Dynamic Page';
+        document.title = `${pageData.title || 'Dynamic Page'} - Arcator.co.uk`;
+
+        if (pageData.contentType === 'html') {
+          pageContentDisplay.innerHTML = pageData.content;
+        } else if (pageData.contentType === 'markdown') {
+          pageContentDisplay.innerHTML = md.render(pageData.content);
+        } else { // Default to plaintext
+          pageContentDisplay.textContent = pageData.content;
+        }
+      } else {
+        heroPageTitle.textContent = "Page Not Found";
+        pageContentDisplay.innerHTML = `
+          <p class="text-center text-red-400 text-xl mb-4">Sorry, the page '${pagePath}' could not be found.</p>
+          <p class="text-center text-gray-300">Please check the URL or return to the <a href="index.html" class="text-blue-400 hover:underline">homepage</a>.</p>
+          <p class="text-center text-gray-300 mt-4">If you believe this is an error, please contact an administrator or check the <a href="admin_and_dev.html" class="text-blue-400 hover:underline">Admin & Dev page</a> for adding content.</p>
+        `;
+      }
+    } catch (error) {
+      console.error("Error fetching dynamic page:", error);
+      heroPageTitle.textContent = "Error";
+      pageErrorMessage.textContent = `Error loading page: ${error.message || 'Unknown error'}`;
+      pageErrorMessage.style.display = 'block';
+    } finally {
+      loadingMessage.style.display = 'none';
+    }
+  }
+
+  // Load the page content when the script runs
+  window.onload = function() {
+    loadDynamicPage();
+    // Get current year for footer
+    document.getElementById('current-year-dynamic-page').textContent = new Date().getFullYear();
+  };
+</script>
+</body>
+</html>
