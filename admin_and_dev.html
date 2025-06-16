@@ -11,165 +11,175 @@
   <!-- EasyMDE (Markdown Editor) CSS -->
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
+    /* Base styles for the body, applying transitions for smooth theme changes. */
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #1F2937;
-      color: #E5E7EB;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Default Dark Theme */
+    body.theme-dark {
+      background-color: #1F2937; /* Dark background */
+      color: #E5E7EB; /* Light text */
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px; /* Size of the repeating pattern */
+      background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+    body.theme-dark .bg-gray-800 {
+      background-color: #1F2937 !important; /* Ensure content section matches body */
+    }
+    body.theme-dark .bg-gray-700 {
+      background-color: #2D3748 !important; /* Darker card backgrounds */
+    }
+    body.theme-dark table th {
+      background-color: #374151 !important;
+    }
+    body.theme-dark table tr:nth-child(even) {
+      background-color: #2F3B4E !important;
+    }
+    body.theme-dark input,
+    body.theme-dark select,
+    body.theme-dark textarea {
+      background-color: #374151 !important;
+      color: #E5E7EB !important;
+      border-color: #4B5563 !important;
+    }
+    body.theme-dark input::placeholder,
+    body.theme-dark textarea::placeholder {
+      color: #9CA3AF !important;
+    }
+    body.theme-dark .text-gray-700 {
+      color: #E5E7EB !important;
+    }
+    body.theme-dark .bg-gray-900 {
+      background-color: #111827 !important; /* Footer */
+    }
+
+
+    /* Light Theme */
+    body.theme-light {
+      background-color: #F3F4F6; /* Light background */
+      color: #1F2937; /* Dark text */
+      background-image: none; /* No pattern for light theme */
+    }
+    body.theme-light .bg-gray-800 {
+      background-color: #E5E7EB !important; /* Light content section */
+    }
+    body.theme-light .bg-gray-700 {
+      background-color: #FFFFFF !important; /* White card backgrounds */
+    }
+    body.theme-light table th {
+      background-color: #D1D5DB !important;
+      color: #4B5563 !important;
+    }
+    body.theme-light table tr:nth-child(even) {
+      background-color: #F9FAFB !important;
+    }
+    body.theme-light input,
+    body.theme-light select,
+    body.theme-light textarea {
+      background-color: #FFFFFF !important;
+      color: #1F2937 !important;
+      border-color: #D1D5DB !important;
+    }
+    body.theme-light input::placeholder,
+    body.theme-light textarea::placeholder {
+      color: #6B7280 !important;
+    }
+    body.theme-light .text-gray-700 {
+      color: #1F2937 !important;
+    }
+    body.theme-light .bg-gray-900 {
+      background-color: #F9FAFB !important; /* Footer */
+      color: #6B7280 !important;
+    }
+    body.theme-light .text-red-400 {
+      color: #DC2626 !important; /* Darker red for light theme headings */
+    }
+    body.theme-light .text-blue-300 {
+      color: #3B82F6 !important; /* Darker blue for light theme headings */
+    }
+    body.theme-light .text-gray-300 {
+      color: #4B5563 !important;
+    }
+    body.theme-light .text-gray-400 {
+      color: #6B7280 !important;
+    }
+    body.theme-light .text-blue-400 {
+      color: #2563EB !important;
+    }
+    body.theme-light .text-gray-200 {
+      color: #374151 !important;
+    }
+
+    /* Arcator Blue Theme */
+    body.theme-arcator-blue {
+      background-color: #1a202c; /* Deep blue-grey */
+      color: #E2E8F0; /* Light off-white text */
+      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px; /* Ensures the banner has a minimum height */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative; /* Needed for the pseudo-element overlay */
-      overflow: hidden; /* Hides any overflow from the background image */
+      background-attachment: fixed;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
+    body.theme-arcator-blue .bg-gray-800 {
+      background-color: #1a202c !important; /* Ensure content section matches body */
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    body.theme-arcator-blue .bg-gray-700 {
+      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
-    /* Basic table styling for full width and collapsed borders. */
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    body.theme-arcator-blue table th {
+      background-color: #3b4d6b !important;
+      color: #90CDF4 !important; /* Lighter blue for table headers */
     }
-    /* Styles for table headers and data cells, including padding,
-     * text alignment, and bottom border. */
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #374151; /* Darker border for table rows */
+    body.theme-arcator-blue table tr:nth-child(even) {
+      background-color: #2F3B4E !important;
     }
-    /* Styles specifically for table headers, including background color,
-     * text color, font weight, and text transformation. */
-    th {
-      background-color: #374151; /* Darker header background */
-      color: #F87171; /* Red text for headers */
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    body.theme-arcator-blue input,
+    body.theme-arcator-blue select,
+    body.theme-arcator-blue textarea {
+      background-color: #3b4d6b !important;
+      color: #E2E8F0 !important;
+      border-color: #5a6e8f !important;
     }
-    /* Alternating background color for even table rows for better readability. */
-    tr:nth-child(even) {
-      background-color: #2F3B4E; /* Slightly different background for even rows */
+    body.theme-arcator-blue input::placeholder,
+    body.theme-arcator-blue textarea::placeholder {
+      color: #94A3B8 !important;
     }
-    /* Hover effect for table rows, changing background color on mouse-over. */
-    tr:hover {
-      background-color: #4B5563; /* Lighter background on hover */
+    body.theme-arcator-blue .text-gray-700 {
+      color: #E2E8F0 !important;
     }
-    /* Styling for code blocks, including background, padding, border-radius,
-     * font family, and overflow properties for better code display. */
-    .code-block {
-      background-color: #2D3748;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
+    body.theme-arcator-blue .bg-gray-900 {
+      background-color: #111827 !important; /* Footer */
     }
-    /* Styles for the custom message box */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
+    body.theme-arcator-blue .text-red-400 {
+      color: #FC8181 !important; /* Adjust red for blue theme */
     }
-    .message-box.success {
-      background-color: #4CAF50; /* Green for success */
+    body.theme-arcator-blue .text-blue-300 {
+      color: #63B3ED !important; /* Adjust blue for blue theme */
     }
-    .message-box.error {
-      background-color: #F44336; /* Red for error */
+    body.theme-arcator-blue .text-gray-300 {
+      color: #CBD5E0 !important;
     }
-    /* Modal styles */
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1001; /* Sit on top */
-      left: 0;
-      top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
-      justify-content: center;
-      align-items: center;
+    body.theme-arcator-blue .text-gray-400 {
+      color: #A0AEC0 !important;
     }
-    .modal-content {
-      background-color: #2D3748;
-      margin: auto;
-      padding: 20px;
-      border-radius: 0.75rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      width: 80%;
-      max-width: 500px;
-      position: relative;
+    body.theme-arcator-blue .text-blue-400 {
+      color: #63B3ED !important;
     }
-    .close-button {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
+    body.theme-arcator-blue .text-gray-200 {
+      color: #E2E8F0 !important;
     }
-    .close-button:hover,
-    .close-button:focus {
-      color: white;
-      text-decoration: none;
-      cursor: pointer;
+
+
+    /* Common styling elements (buttons, links) */
+    .btn {
+      transition: background-color 0.2s, transform 0.2s;
     }
-    /* Custom confirmation modal */
-    .custom-confirm-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #2D3748;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      z-index: 1002;
-      text-align: center;
-      color: white;
-      width: 90%;
-      max-width: 400px;
-      display: none; /* Hidden by default */
+    .btn:hover {
+      transform: translateY(-1px);
     }
+
     /* EasyMDE specific styling adjustments for dark theme */
     .editor-toolbar {
       background-color: #374151 !important; /* Darker toolbar */
@@ -194,6 +204,57 @@
     .CodeMirror-placeholder {
       color: #6B7280 !important; /* Placeholder color */
     }
+
+    /* Adjust EasyMDE for Light Theme */
+    body.theme-light .editor-toolbar {
+      background-color: #E2E8F0 !important;
+      border-bottom: 1px solid #CBD5E0 !important;
+    }
+    body.theme-light .editor-toolbar button {
+      color: #4A5568 !important;
+    }
+    body.theme-light .editor-toolbar button.active, body.theme-light .editor-toolbar button:hover {
+      background-color: #CBD5E0 !important;
+    }
+    body.theme-light .CodeMirror, body.theme-light .CodeMirror-scroll {
+      background-color: #FFFFFF !important;
+      color: #1A202C !important;
+    }
+    body.theme-light .CodeMirror-cursor {
+      border-left: 1px solid #1A202C !important;
+    }
+    body.theme-light .CodeMirror-selected {
+      background-color: #BEE3F8 !important;
+    }
+    body.theme-light .CodeMirror-placeholder {
+      color: #A0AEC0 !important;
+    }
+
+    /* Adjust EasyMDE for Arcator Blue Theme */
+    body.theme-arcator-blue .editor-toolbar {
+      background-color: #3b4d6b !important;
+      border-bottom: 1px solid #5a6e8f !important;
+    }
+    body.theme-arcator-blue .editor-toolbar button {
+      color: #E2E8F0 !important;
+    }
+    body.theme-arcator-blue .editor-toolbar button.active, body.theme-arcator-blue .editor-toolbar button:hover {
+      background-color: #5a6e8f !important;
+    }
+    body.theme-arcator-blue .CodeMirror, body.theme-arcator-blue .CodeMirror-scroll {
+      background-color: #1a202c !important;
+      color: #E2E8F0 !important;
+    }
+    body.theme-arcator-blue .CodeMirror-cursor {
+      border-left: 1px solid #E2E8F0 !important;
+    }
+    body.theme-arcator-blue .CodeMirror-selected {
+      background-color: #4299E1 !important;
+    }
+    body.theme-arcator-blue .CodeMirror-placeholder {
+      color: #94A3B8 !important;
+    }
+
   </style>
 </head>
 <body class="antialiased">
@@ -394,7 +455,7 @@
         <div>
           <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
           <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+          <h4 class="2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
           <ul class="list-disc list-inside text-gray-300 space-y-2">
             <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
             <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
@@ -465,6 +526,7 @@
       <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         <option value="dark">Dark</option>
         <option value="light">Light</option>
+        <option value="arcator-blue">Arcator Blue</option>
       </select>
     </div>
     <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
@@ -496,7 +558,7 @@
       <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
       <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div>
         <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
         <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -652,7 +714,7 @@
   let easyMDEEdit;
 
   // Default theme (dark) for styling application
-  const DEFAULT_THEME = 'dark';
+  const DEFAULT_THEME = 'dark'; // Define a default theme
 
   /**
    * Displays a custom message box for user feedback.
@@ -895,6 +957,10 @@
       if (success) {
         editUserModal.style.display = 'none'; // Close modal
         renderUserList(); // Refresh user list in the table
+        // If the current user is the one whose theme was changed, apply it immediately
+        if (auth.currentUser && auth.currentUser.uid === currentEditingUserUid) {
+          applyTheme(newTheme);
+        }
       }
     });
   }
@@ -1120,16 +1186,15 @@
 
   /**
    * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark' or 'light'.
+   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
    */
   function applyTheme(theme) {
     const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light');
-    if (theme === 'light') {
-      body.classList.add('theme-light');
-    } else {
-      body.classList.add('theme-dark');
-    }
+    // Remove all existing theme classes to prevent conflicts
+    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
+    // Add the new theme class
+    body.classList.add(`theme-${theme}`);
+    console.log(`Applied theme: ${theme}`);
   }
 
   /**
@@ -1146,7 +1211,7 @@
       // Fetch user profile to get theme preference and display name
       const userProfile = await getUserProfileFromFirestore(user.uid);
       const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-      applyTheme(themePreference);
+      applyTheme(themePreference); // Apply the user's preferred theme
 
       // Check if user is a whitelisted admin
       const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
@@ -1349,7 +1414,7 @@
       showMessageBox("Task deleted successfully!", false);
       renderTodoList(); // Refresh list
     } catch (error) {
-      console.error("Error deleting todo item:", error);
+      console.error("ERROR: Error deleting todo item:", error);
       showMessageBox(`Error deleting task: ${error.message}`, true);
     }
   }

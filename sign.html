@@ -192,12 +192,61 @@
     .close-button:focus {
       color: white;
     }
+
+    /* Social buttons */
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      transition: background-color 0.2s, transform 0.2s;
+      margin-bottom: 0.75rem;
+      width: 100%;
+    }
+    .social-btn img {
+      width: 24px;
+      height: 24px;
+      margin-right: 0.75rem;
+    }
+    .google-btn {
+      background-color: #4285F4;
+      color: white;
+    }
+    .google-btn:hover {
+      background-color: #357ae8;
+    }
+    .github-btn {
+      background-color: #333;
+      color: white;
+    }
+    .github-btn:hover {
+      background-color: #000;
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen theme-dark">
 <div class="auth-container w-full max-w-md mx-auto p-4 flex flex-col items-center">
   <!-- Logo/Header Placeholder -->
   <img src="https://placehold.co/150x50/333/white?text=Arcator.co.uk" alt="Arcator Logo" class="mb-8 rounded-lg shadow-md">
+
+  <!-- User Settings/Logged In Section (Hidden by default) -->
+  <div id="user-settings-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6 hidden">
+    <h2 class="text-3xl font-bold text-center mb-6">Welcome, <span id="user-display-name"></span>!</h2>
+    <p class="text-center text-lg mb-4">You are logged in with: <span id="user-email"></span></p>
+    <div class="input-field">
+      <label for="logged-in-theme">Select Theme:</label>
+      <select id="logged-in-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="arcator-blue">Arcator Blue</option>
+      </select>
+    </div>
+    <button id="save-theme-btn" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-4">Save Theme</button>
+    <button id="logout-btn" class="btn-primary bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Log Out</button>
+  </div>
+
 
   <!-- Login Form -->
   <div id="login-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6">
@@ -224,6 +273,17 @@
     <p class="text-center text-sm mt-4">
       <a href="#" id="forgot-password-link" class="text-blue-500 hover:underline">Forgot Password?</a>
     </p>
+    <div class="mt-6 text-center">
+      <p class="mb-4">Or sign in with:</p>
+      <button id="google-login-btn" class="social-btn google-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_of_Google_G_Suite.svg" alt="Google Logo">
+        Sign in with Google
+      </button>
+      <button id="github-login-btn" class="social-btn github-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo">
+        Sign in with GitHub
+      </button>
+    </div>
     <p class="text-center text-sm mt-4">
       Don't have an account? <a href="#" id="show-signup" class="text-blue-500 hover:underline">Sign Up</a>
     </p>
@@ -255,6 +315,17 @@
       </div>
       <button type="submit" class="btn-primary bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Sign Up</button>
     </form>
+    <div class="mt-6 text-center">
+      <p class="mb-4">Or sign up with:</p>
+      <button id="google-signup-btn" class="social-btn google-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_of_Google_G_Suite.svg" alt="Google Logo">
+        Sign up with Google
+      </button>
+      <button id="github-signup-btn" class="social-btn github-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo">
+        Sign up with GitHub
+      </button>
+    </div>
     <p class="text-center text-sm mt-4">
       Already have an account? <a href="#" id="show-login" class="text-blue-500 hover:underline">Log In</a>
     </p>
@@ -285,7 +356,10 @@
     sendPasswordResetEmail,
     signOut,
     onAuthStateChanged,
-    signInAnonymously // For canvas environment
+    GoogleAuthProvider, // Import GoogleAuthProvider
+    GithubAuthProvider, // Import GithubAuthProvider
+    signInWithPopup,    // Import signInWithPopup
+    signInAnonymously
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
@@ -329,6 +403,7 @@
   // DOM Elements
   const loginSection = document.getElementById('login-section');
   const signupSection = document.getElementById('signup-section');
+  const userSettingsSection = document.getElementById('user-settings-section'); // New
   const showSignupBtn = document.getElementById('show-signup');
   const showLoginBtn = document.getElementById('show-login');
   const loginForm = document.getElementById('login-form');
@@ -339,10 +414,24 @@
   const closeModalButtons = document.querySelectorAll('.close-button');
   const sendResetEmailBtn = document.getElementById('send-reset-email-btn');
   const resetEmailInput = document.getElementById('reset-email');
+  const logoutBtn = document.getElementById('logout-btn'); // New
 
   // Theme preference dropdowns
   const loginThemeSelect = document.getElementById('login-theme');
   const signupThemeSelect = document.getElementById('signup-theme');
+  const loggedInThemeSelect = document.getElementById('logged-in-theme'); // New
+  const saveThemeBtn = document.getElementById('save-theme-btn'); // New
+
+  // User display elements
+  const userDisplayName = document.getElementById('user-display-name'); // New
+  const userEmail = document.getElementById('user-email'); // New
+
+  // Social login buttons
+  const googleLoginBtn = document.getElementById('google-login-btn'); // New
+  const githubLoginBtn = document.getElementById('github-login-btn'); // New
+  const googleSignupBtn = document.getElementById('google-signup-btn'); // New
+  const githubSignupBtn = document.getElementById('github-signup-btn'); // New
+
 
   const DEFAULT_THEME = 'dark'; // Define a default theme
 
@@ -417,17 +506,76 @@
     }
   }
 
+  /**
+   * Handles social login/signup flow (Google, GitHub).
+   * @param {string} providerName - 'google' or 'github'.
+   * @param {string} selectedTheme - The theme chosen by the user.
+   */
+  async function handleSocialAuth(providerName, selectedTheme) {
+    let provider;
+    if (providerName === 'google') {
+      provider = new GoogleAuthProvider();
+    } else if (providerName === 'github') {
+      provider = new GithubAuthProvider();
+    } else {
+      console.error("Invalid provider name:", providerName);
+      return;
+    }
+
+    showMessageBox("", false); // Clear any existing messages
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      console.log(`Signed in with ${providerName}:`, user.uid);
+
+      // Check if user profile exists, if not, create it
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+      if (!userProfile) {
+        const profileData = {
+          email: user.email,
+          displayName: user.displayName || user.email,
+          photoURL: user.photoURL || null,
+          themePreference: selectedTheme, // Use selected theme for new social logins
+          createdAt: new Date(),
+          lastLoginAt: new Date()
+        };
+        await createUserProfileInFirestore(user.uid, profileData);
+      } else {
+        // For existing users logging in via social, update their last login and potentially theme
+        await createUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), themePreference: selectedTheme });
+      }
+
+      applyTheme(selectedTheme);
+      window.location.href = 'admin_and_dev.html'; // Redirect to admin page after successful login
+
+    } catch (error) {
+      console.error(`Social login (${providerName}) failed:`, error);
+      let errorMessage = `Failed to sign in with ${providerName}.`;
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = `Sign-in with ${providerName} cancelled.`;
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = `Sign-in with ${providerName} already in progress or cancelled.`;
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = `An account already exists with the same email address but different sign-in credentials. Please sign in using your existing method.`;
+      }
+      showMessageBox(errorMessage, true);
+    }
+  }
+
+
   // Event Listeners
   showSignupBtn.addEventListener('click', (e) => {
     e.preventDefault();
     loginSection.classList.add('hidden');
     signupSection.classList.remove('hidden');
+    userSettingsSection.classList.add('hidden'); // Hide settings if shown
   });
 
   showLoginBtn.addEventListener('click', (e) => {
     e.preventDefault();
     signupSection.classList.add('hidden');
     loginSection.classList.remove('hidden');
+    userSettingsSection.classList.add('hidden'); // Hide settings if shown
   });
 
   loginForm.addEventListener('submit', async (e) => {
@@ -442,7 +590,7 @@
       const user = userCredential.user;
       console.log("Logged in:", user.uid);
       // Update theme preference in Firestore
-      await createUserProfileInFirestore(user.uid, { themePreference: selectedTheme });
+      await createUserProfileInFirestore(user.uid, { themePreference: selectedTheme, lastLoginAt: new Date() });
       applyTheme(selectedTheme); // Apply theme immediately
 
       // Redirect after successful login
@@ -504,6 +652,21 @@
     }
   });
 
+  // Social Login Button Event Listeners
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', () => handleSocialAuth('google', loginThemeSelect.value));
+  }
+  if (githubLoginBtn) {
+    githubLoginBtn.addEventListener('click', () => handleSocialAuth('github', loginThemeSelect.value));
+  }
+  if (googleSignupBtn) {
+    googleSignupBtn.addEventListener('click', () => handleSocialAuth('google', signupThemeSelect.value));
+  }
+  if (githubSignupBtn) {
+    githubSignupBtn.addEventListener('click', () => handleSocialAuth('github', signupThemeSelect.value));
+  }
+
+
   forgotPasswordLink.addEventListener('click', (e) => {
     e.preventDefault();
     passwordResetModal.style.display = 'flex';
@@ -543,6 +706,35 @@
     }
   });
 
+  // Logout functionality
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      showMessageBox("", false);
+      try {
+        await signOut(auth);
+        showMessageBox("You have been signed out.", false);
+        // onAuthStateChanged will handle UI update
+      } catch (error) {
+        console.error("Logout failed:", error);
+        showMessageBox("Logout failed: " + error.message, true);
+      }
+    });
+  }
+
+  // Save theme from logged-in settings section
+  if (saveThemeBtn) {
+    saveThemeBtn.addEventListener('click', async () => {
+      const newTheme = loggedInThemeSelect.value;
+      if (auth.currentUser) {
+        await createUserProfileInFirestore(auth.currentUser.uid, { themePreference: newTheme });
+        applyTheme(newTheme);
+        showMessageBox("Theme saved successfully!", false);
+      } else {
+        showMessageBox("You must be logged in to save theme preferences.", true);
+      }
+    });
+  }
+
   // Handle initial auth state for Canvas environment and existing users
   if (isFirebaseInitialized && auth) {
     onAuthStateChanged(auth, async (user) => {
@@ -552,13 +744,23 @@
         const themePreference = userProfile?.themePreference || DEFAULT_THEME;
         applyTheme(themePreference);
 
-        // Pre-select theme in dropdowns if user is logged in
-        if (loginThemeSelect) loginThemeSelect.value = themePreference;
-        if (signupThemeSelect) signupThemeSelect.value = themePreference;
+        // Show user settings section
+        userSettingsSection.classList.remove('hidden');
+        loginSection.classList.add('hidden');
+        signupSection.classList.add('hidden');
+
+        userDisplayName.textContent = userProfile?.displayName || user.email;
+        userEmail.textContent = user.email;
+        loggedInThemeSelect.value = themePreference;
 
       } else {
         console.log("DEBUG: No user detected on sign.html. Applying default theme.");
         applyTheme(DEFAULT_THEME);
+
+        // Show login form by default if not logged in
+        userSettingsSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        signupSection.classList.add('hidden');
       }
       // For Canvas: Sign in anonymously if no initial auth token
       if (typeof __initial_auth_token !== 'undefined' && !user) {
@@ -567,7 +769,7 @@
         }).catch(error => {
           console.error("ERROR: Anonymous sign-in failed on sign.html:", error);
         });
-      } else if (!user) {
+      } else if (!user && !__initial_auth_token) {
         // If no custom token and no current user, sign in anonymously by default
         signInAnonymously(auth)
           .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on sign.html."))
