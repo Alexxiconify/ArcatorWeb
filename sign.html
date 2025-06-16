@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -169,6 +171,21 @@
         <p class="text-center text-gray-400 mt-4">
           Don't have an account? <a href="#" id="show-signup-link" class="text-blue-400 hover:underline">Sign Up</a>
         </p>
+
+        <div class="relative flex py-5 items-center">
+          <div class="flex-grow border-t border-gray-400"></div>
+          <span class="flex-shrink mx-4 text-gray-400">Or sign in with</span>
+          <div class="flex-grow border-t border-gray-400"></div>
+        </div>
+
+        <div class="flex justify-center space-x-4">
+          <button type="button" id="google-login-btn" class="flex items-center justify-center bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+            <i class="fab fa-google mr-2"></i> Google
+          </button>
+          <button type="button" id="github-login-btn" class="flex items-center justify-center bg-gray-700 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+            <i class="fab fa-github mr-2"></i> GitHub
+          </button>
+        </div>
       </form>
 
       <!-- Sign Up Form (hidden by default) -->
@@ -254,7 +271,10 @@
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     sendPasswordResetEmail,
-    signOut
+    signOut,
+    GoogleAuthProvider, // Import GoogleAuthProvider
+    GithubAuthProvider, // Import GithubAuthProvider
+    signInWithPopup,    // Import signInWithPopup
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
@@ -312,6 +332,9 @@
   const loginErrorMessage = document.getElementById('login-error-message');
   const forgotPasswordLink = document.getElementById('forgot-password-link');
   const showSignupLink = document.getElementById('show-signup-link');
+  const googleLoginBtn = document.getElementById('google-login-btn');
+  const githubLoginBtn = document.getElementById('github-login-btn');
+
 
   // Sign Up Form elements
   const signupForm = document.getElementById('signup-form');
@@ -333,6 +356,7 @@
   const themeMessage = document.getElementById('theme-message');
 
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV';
+  const DEFAULT_THEME = 'dark';
 
   /**
    * Displays a custom message box for user feedback.
@@ -376,7 +400,7 @@
   /**
    * Updates user profile data in Firestore.
    * @param {string} uid - The user's UID.
-   * @param {Object} profileData - The data to update (themePreference).
+   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
    */
   async function updateUserProfileInFirestore(uid, profileData) {
     if (!db) {
@@ -446,14 +470,14 @@
       formTitle.textContent = `Welcome, ${user.displayName || user.email}!`;
       userEmail.textContent = user.email;
 
-      // Fetch user profile from Firestore to get display name and photoURL
+      // Fetch user profile from Firestore to get display name, photoURL, and theme preference
       const userProfile = await getUserProfileFromFirestore(user.uid);
       userDisplayName.textContent = userProfile?.displayName || user.displayName || 'User';
       userProfilePic.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
       userProfilePic.onerror = () => { userProfilePic.src = DEFAULT_PROFILE_PIC; }; // Fallback if image fails
 
       // Set theme selector based on user preference
-      const themePreference = userProfile?.themePreference || 'dark'; // Default to dark
+      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
       themeSelector.value = themePreference;
       applyTheme(themePreference); // Apply the theme
 
@@ -463,7 +487,7 @@
       loginForm.style.display = 'block'; // Show login form by default
       signupForm.style.display = 'none';
       formTitle.textContent = "Sign In";
-      applyTheme('dark'); // Default to dark theme for unauthenticated users
+      applyTheme(DEFAULT_THEME); // Default to dark theme for unauthenticated users
     }
   }
 
@@ -482,15 +506,12 @@
         })
         .catch((error) => {
           console.error("Error signing in with custom token on sign page initial load:", error);
-          signInAnonymously(auth)
-            .then(() => console.log("Signed in anonymously on sign page initial load."))
-            .catch((anonError) => console.error("Error signing in anonymously on sign page initial load:", anonError));
+          // Removed anonymous sign-in fallback here to encourage explicit sign-in through the page.
+          // If a user refreshes and their session is gone, they'll just see the login form.
         });
     } else if (!auth.currentUser) {
-      // If no custom token and no current user, sign in anonymously by default
-      signInAnonymously(auth)
-        .then(() => console.log("Signed in anonymously (no custom token) on sign page initial load."))
-        .catch((anonError) => console.error("Error signing in anonymously on sign page initial load:", anonError));
+      // If no custom token and no current user, user is simply unauthenticated, show forms.
+      // No anonymous sign-in here as it conflicts with explicit login flow.
     }
   }
 
@@ -550,7 +571,7 @@
         await updateUserProfileInFirestore(userCredential.user.uid, {
           displayName: userCredential.user.email.split('@')[0], // Default display name from email
           photoURL: DEFAULT_PROFILE_PIC,
-          themePreference: 'dark' // Default theme for new users
+          themePreference: DEFAULT_THEME // Default theme for new users
         });
         showMessageBox("Account created successfully! You are now logged in.", false);
         signupEmailInput.value = '';
@@ -568,6 +589,89 @@
         showMessageBox(errorMessage, true);
         signupErrorMessage.textContent = errorMessage;
         signupErrorMessage.style.display = 'block';
+      }
+    });
+  }
+
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        // The signed-in user info.
+        const user = result.user;
+        console.log("Google Sign-in successful:", user);
+
+        // Check if user profile exists in Firestore, create if not, merge if exists
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        if (!userProfile) {
+          await updateUserProfileInFirestore(user.uid, {
+            displayName: user.displayName || user.email.split('@')[0],
+            photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+            themePreference: DEFAULT_THEME
+          });
+        } else {
+          // Update photoURL and displayName if they changed from provider (e.g. user changed Google profile pic)
+          await updateUserProfileInFirestore(user.uid, {
+            displayName: user.displayName || userProfile.displayName,
+            photoURL: user.photoURL || userProfile.photoURL || DEFAULT_PROFILE_PIC,
+          });
+        }
+        showMessageBox("Signed in with Google successfully!", false);
+      } catch (error) {
+        console.error("Google Sign-in failed:", error);
+        let errorMessage = "Google Sign-in failed.";
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = "Sign-in popup closed. Please try again.";
+        } else if (error.code === 'auth/cancelled-popup-request') {
+          errorMessage = "Sign-in already in progress. Please wait.";
+        } else if (error.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = "An account with this email already exists using a different sign-in method. Please sign in with your existing method.";
+        } else {
+          errorMessage += ` ${error.message}`;
+        }
+        showMessageBox(errorMessage, true);
+      }
+    });
+  }
+
+  if (githubLoginBtn) {
+    githubLoginBtn.addEventListener('click', async () => {
+      const provider = new GithubAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        // The signed-in user info.
+        const user = result.user;
+        console.log("GitHub Sign-in successful:", user);
+
+        // Check if user profile exists in Firestore, create if not, merge if exists
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        if (!userProfile) {
+          await updateUserProfileInFirestore(user.uid, {
+            displayName: user.displayName || user.email?.split('@')[0] || 'GitHub User',
+            photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+            themePreference: DEFAULT_THEME
+          });
+        } else {
+          await updateUserProfileInFirestore(user.uid, {
+            displayName: user.displayName || userProfile.displayName,
+            photoURL: user.photoURL || userProfile.photoURL || DEFAULT_PROFILE_PIC,
+          });
+        }
+        showMessageBox("Signed in with GitHub successfully!", false);
+      } catch (error) {
+        console.error("GitHub Sign-in failed:", error);
+        let errorMessage = "GitHub Sign-in failed.";
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = "Sign-in popup closed. Please try again.";
+        } else if (error.code === 'auth/cancelled-popup-request') {
+          errorMessage = "Sign-in already in progress. Please wait.";
+        } else if (error.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = "An account with this email already exists using a different sign-in method. Please sign in with your existing method.";
+        } else {
+          errorMessage += ` ${error.message}`;
+        }
+        showMessageBox(errorMessage, true);
       }
     });
   }
