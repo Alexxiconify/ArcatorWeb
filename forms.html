@@ -220,7 +220,7 @@
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.appspot.com",
+    storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
@@ -263,8 +263,8 @@
   const noThreadsMessage = document.getElementById('no-threads-message');
   const threadsLoadingError = document.getElementById('threads-loading-error');
 
-  // Default profile picture if none is available (a generic placeholder or Discord default)
-  const DEFAULT_PROFILE_PIC = 'https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg';
+  // Default profile picture if none is available (a generic placeholder)
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 
   // Cache for user profiles to avoid repeated Firestore reads
   const userProfileCache = {};

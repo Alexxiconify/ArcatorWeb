@@ -108,7 +108,7 @@
 
       <div class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md space-y-6">
         <div class="flex flex-col items-center">
-          <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg';">
+          <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/128x128/1F2937/E5E7EB?text=AV';">
           <label for="profile-picture-url" class="block text-gray-300 text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
           <input type="url" id="profile-picture-url" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="https://cdn.discordapp.com/avatars/...">
           <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Changes will be reflected after saving.</p>
@@ -164,7 +164,7 @@
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.appspot.com",
+    storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
@@ -206,8 +206,8 @@
   const settingsMessage = document.getElementById('settings-message');
   const urlPreviewMessage = document.getElementById('url-preview-message');
 
-  // Default profile picture (Discord default avatar)
-  const DEFAULT_PROFILE_PIC = 'https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg';
+  // Default profile picture (generic placeholder)
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV';
 
   /**
    * Displays a message on the settings page (success/error).
@@ -334,7 +334,7 @@
     }
 
     // Updated URL validation to allow query parameters
-    const imageUrlRegex = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(?:\?.*)?$/i;
+    const imageUrlRegex = /^https?:\/\/.+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?.*)?$/i;
     if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
       showSettingsMessage("Please enter a valid image URL (JPG, PNG, GIF, WEBP, SVG) with optional query parameters.", true);
       return;
@@ -371,7 +371,7 @@
   // Optional: Live preview of profile picture URL
   profilePictureUrlInput.addEventListener('input', () => {
     const url = profilePictureUrlInput.value;
-    const imageUrlRegex = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(?:\?.*)?$/i; // Use the same updated regex
+    const imageUrlRegex = /^https?:\/\/.+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?.*)?$/i; // Use the same updated regex
     if (imageUrlRegex.test(url)) { // Use test method on regex directly
       profilePictureDisplay.src = url;
       urlPreviewMessage.style.display = 'block';
