@@ -507,10 +507,11 @@
     addDoc,
     updateDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // EasyMDE (Markdown Editor) JS
-  import EasyMDE from "https://unpkg.com/easymde/dist/easymde.min.js";
-
-
+  // EasyMDE (Markdown Editor) JS - Changed to regular script load
+  // EasyMDE exposes itself globally, so no 'import EasyMDE from ...' is needed.
+</script>
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script type="module">
   // Function to load the navigation bar
   async function loadNavbar() {
     try {
@@ -1114,6 +1115,7 @@
     document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
 
     // Initialize EasyMDE for the create temporary page form
+    // EasyMDE is now available globally after its script tag loads.
     easyMDECreate = new EasyMDE({
       element: document.getElementById('temp-page-content'),
       spellChecker: false,
