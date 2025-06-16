@@ -950,17 +950,16 @@
     loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
 
     if (user) {
-      // Fetch user profile to get theme preference
-      const userProfile = await getUserProfileFromFirestore(user.uid);
-      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-      applyTheme(themePreference);
+      console.log("Authenticated User UID:", user.uid); // ADD THIS LINE
+      console.log("Authenticated User Email:", user.email); // ADD THIS LINE
 
-      // Check if user is a whitelisted admin
+      // ... (rest of updateAdminUI function) ...
       const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
       try {
         const adminDocSnap = await getDoc(adminDocRef);
         if (adminDocSnap.exists()) {
           // User is an admin
+          console.log("User is confirmed as ADMIN in Firestore."); // ADD THIS LINE
           loginRequiredMessage.style.display = 'none';
           adminContent.style.display = 'block';
           adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid; // Display user info
@@ -970,6 +969,7 @@
           renderTempPages();
         } else {
           // User is logged in but not an admin
+          console.log("User is NOT in whitelisted_admins collection."); // ADD THIS LINE
           loginRequiredMessage.style.display = 'block';
           adminContent.style.display = 'none';
           showMessageBox("You are logged in, but do not have admin privileges.", true);
@@ -983,72 +983,12 @@
       }
     } else {
       // No user is logged in
+      console.log("No user is currently authenticated."); // ADD THIS LINE
       loginRequiredMessage.style.display = 'block';
       adminContent.style.display = 'none';
       console.log("No user logged in.");
       applyTheme(DEFAULT_THEME); // Apply default theme if no user
     }
-  }
-
-  // Set up Firebase Authentication listener
-  if (isFirebaseInitialized && auth) {
-    onAuthStateChanged(auth, (user) => {
-      updateAdminUI(user);
-    });
-
-    // Handle initial custom token sign-in for Canvas environment only if no user already authenticated
-    if (initialAuthToken && !auth.currentUser) {
-      signInWithCustomToken(auth, initialAuthToken)
-        .then(() => {
-          console.log("Signed in with custom token from Canvas (admin_dev page).");
-        })
-        .catch((error) => {
-          console.error("Error signing in with custom token (admin_dev page):", error);
-          // Fallback to anonymous sign-in if custom token fails (e.g., expired)
-          signInAnonymously(auth)
-            .then(() => console.log("Signed in anonymously (admin_dev page)."))
-            .catch((anonError) => console.error("Error signing in anonymously (admin_dev page):", anonError));
-        });
-    } else if (!auth.currentUser) {
-      // If no custom token and no current user, sign in anonymously by default
-      signInAnonymously(auth)
-        .then(() => console.log("Signed in anonymously (no custom token) on admin_dev page."))
-        .catch((anonError) => console.error("Error signing in anonymously (admin_dev page):", anonError));
-    }
-  }
-
-  // Event Listener for Logout Button
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      showMessageBox("", false); // Clear any existing messages
-      try {
-        await signOut(auth);
-        console.log("User signed out.");
-        showMessageBox("You have been signed out.", false);
-        // updateAdminUI will be called by onAuthStateChanged
-      } catch (error) {
-        console.error("Logout failed:", error);
-        showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
-      }
-    });
-  }
-
-  // Attach event listeners for new functionalities
-  if (loadUsersBtn) {
-    loadUsersBtn.addEventListener('click', renderUserList);
-  }
-
-  if (createTempPageForm) {
-    createTempPageForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const title = tempPageTitleInput.value.trim();
-      const content = tempPageContentInput.value.trim();
-      if (!title || !content) {
-        showMessageBox("Please enter both title and content for the temporary page.", true);
-        return;
-      }
-      await createTempPage(title, content);
-    });
   }
 
 </script>
