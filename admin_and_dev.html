@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- EasyMDE (Markdown Editor) CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <style>
     /* Base styles for the body, applying a dark background, light text,
      * and a subtle diagonal gradient for texture. */
@@ -167,6 +169,30 @@
       width: 90%;
       max-width: 400px;
       display: none; /* Hidden by default */
+    }
+    /* EasyMDE specific styling adjustments for dark theme */
+    .editor-toolbar {
+      background-color: #374151 !important; /* Darker toolbar */
+      border-bottom: 1px solid #4B5563 !important;
+    }
+    .editor-toolbar button {
+      color: #E5E7EB !important; /* Lighter icons */
+    }
+    .editor-toolbar button.active, .editor-toolbar button:hover {
+      background-color: #4B5563 !important; /* Hover/active state */
+    }
+    .CodeMirror, .CodeMirror-scroll {
+      background-color: #1F2937 !important; /* Dark editor background */
+      color: #E5E7EB !important; /* Light text */
+    }
+    .CodeMirror-cursor {
+      border-left: 1px solid #E5E7EB !important; /* Light cursor */
+    }
+    .CodeMirror-selected {
+      background-color: #4B5563 !important; /* Selection color */
+    }
+    .CodeMirror-placeholder {
+      color: #6B7280 !important; /* Placeholder color */
     }
   </style>
 </head>
@@ -395,7 +421,6 @@
         </ul>
       </div>
     </div>
-  </div>
 </section>
 
 <!-- Footer Section -->
@@ -406,7 +431,6 @@
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
@@ -483,6 +507,9 @@
     addDoc,
     updateDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  // EasyMDE (Markdown Editor) JS
+  import EasyMDE from "https://unpkg.com/easymde/dist/easymde.min.js";
+
 
   // Function to load the navigation bar
   async function loadNavbar() {
@@ -495,13 +522,6 @@
       console.error("Failed to load navigation bar:", error);
     }
   }
-
-  // Load navbar when the page loads
-  window.onload = function() {
-    loadNavbar();
-    // Get current year for footer
-    document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
-  };
 
   // Firebase configuration object
   const firebaseConfig = {
@@ -570,6 +590,10 @@
   const editTempPageContentInput = document.getElementById('edit-temp-page-content');
   const saveTempPageChangesBtn = document.getElementById('save-temp-page-changes-btn');
   let currentEditingTempPageId = null; // To store the ID of the temp page being edited
+
+  // EasyMDE instances
+  let easyMDECreate;
+  let easyMDEEdit;
 
   // Default theme (dark) for styling application
   const DEFAULT_THEME = 'dark';
@@ -850,7 +874,7 @@
       console.log("DEBUG: Temporary page created successfully with ID:", docRef.id);
       showMessageBox("Temporary page created successfully!", false);
       tempPageTitleInput.value = '';
-      tempPageContentInput.value = '';
+      easyMDECreate.value(''); // Clear the editor content
       renderTempPages(); // Refresh list
     } catch (error) {
       console.error("ERROR: Error creating temporary page:", error);
@@ -943,7 +967,19 @@
   function openEditTempPageModal(id, title, content) {
     currentEditingTempPageId = id;
     editTempPageTitleInput.value = title;
-    editTempPageContentInput.value = content;
+
+    // Initialize or update EasyMDE for the edit modal
+    if (!easyMDEEdit) {
+      easyMDEEdit = new EasyMDE({
+        element: document.getElementById('edit-temp-page-content'),
+        spellChecker: false,
+        forceSync: true, // Crucial to ensure textarea value is updated
+        minHeight: "200px",
+        toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+      });
+    }
+    easyMDEEdit.value(content); // Set the content to the editor
+
     editTempPageModal.style.display = 'flex';
   }
 
@@ -952,7 +988,7 @@
     saveTempPageChangesBtn.addEventListener('click', async () => {
       if (!currentEditingTempPageId) return;
       const newTitle = editTempPageTitleInput.value.trim();
-      const newContent = editTempPageContentInput.value.trim();
+      const newContent = easyMDEEdit.value().trim(); // Get content from EasyMDE
       if (!newTitle || !newContent) {
         showMessageBox("Title and Content cannot be empty.", true);
         return;
@@ -1072,6 +1108,21 @@
     }
   }
 
+  // Load navbar and initialize EasyMDE on page load
+  window.onload = function() {
+    loadNavbar();
+    document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
+
+    // Initialize EasyMDE for the create temporary page form
+    easyMDECreate = new EasyMDE({
+      element: document.getElementById('temp-page-content'),
+      spellChecker: false,
+      forceSync: true, // Crucial to ensure textarea value is updated
+      minHeight: "200px",
+      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+    });
+  };
+
   // Set up Firebase Authentication listener
   if (isFirebaseInitialized && auth) {
     onAuthStateChanged(auth, (user) => {
@@ -1125,7 +1176,7 @@
     createTempPageForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const title = tempPageTitleInput.value.trim();
-      const content = tempPageContentInput.value.trim();
+      const content = easyMDECreate.value().trim(); // Get content from EasyMDE
       if (!title || !content) {
         showMessageBox("Please enter both title and content for the temporary page.", true);
         return;
