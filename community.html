@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -22,8 +20,6 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -36,8 +32,6 @@
       position: relative;
       overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -48,13 +42,22 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+    }
+    .feature-card {
+      background-color: #2D3748; /* Slightly lighter dark grey for cards */
+      border-radius: 0.75rem; /* More rounded corners */
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3); /* Stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -69,13 +72,15 @@
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
         <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
         <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-yellow-400 hover:text-yellow-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -84,28 +89,47 @@
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Our Vibrant Community</h1>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Join Our Vibrant Community!</h1>
+    <p class="text-xl md:text-2xl mb-8">Connect with fellow players on Discord and beyond.</p>
   </div>
 </section>
 
-<!-- Community Section Content -->
-<section id="community" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Discord & Interests -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-yellow-400">Connect and Play Together!</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      <div class="flex justify-center order-2 md:order-1">
-        <!-- Placeholder image for Community -->
-        <img src="https://placehold.co/600x400/F6E05E/333333?text=Arcator+Community+Fun" alt="Arcator Community Fun" class="rounded-lg shadow-xl max-w-full h-auto">
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Connect & Engage</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6">
+      <p>The Arcator community is at the heart of everything we do. Our Discord server is the primary hub for real-time chat, announcements, support, and connecting with other members. Whether you're looking for group activities, sharing your latest builds, or just a friendly chat, our Discord is the place to be.</p>
+      <p>Beyond Discord, we encourage members to share their diverse interests, fostering a rich and welcoming environment for everyone. Our community isn't just about Minecraft; it's about shared passions and making lasting friendships.</p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+      <a href="interests.html" class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Community Interests</a>
+    </div>
+  </div>
+</section>
+
+<!-- Why Join Our Discord Section -->
+<section class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Why Join Our Discord?</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Real-time Chat & Support</h3>
+        <p class="text-gray-300">Get instant help, chat with staff, and connect with other players who share your passion for Minecraft and more.</p>
       </div>
-      <div class="text-lg leading-relaxed order-1 md:order-2">
-        <p class="mb-4">At Arcator, we believe that the heart of any great Minecraft server is its community. We have a dedicated and friendly player base that makes every interaction enjoyable.</p>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
-        <p class="mb-4">Join our active <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-300 hover:underline">Discord server</a> to chat with fellow players, get updates, participate in polls, and report issues. Our staff team is always available to help and ensure a positive experience for everyone.</p>
-        <p class="mb-4">We host regular community events, building contests, and game nights to keep things fresh and exciting. We encourage ice breakers and fostering small social groups to strengthen friendships within the community.</p>
-        <p>Come be a part of our growing family and share your interests in our forums!</p>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
-        <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
-        <a href="interests.html" class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full mt-6 ml-4 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Community Interests</a>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Event Participation</h3>
+        <p class="text-gray-300">Be the first to know about upcoming server events, mini-games, building contests, and community gatherings.</p>
+      </div>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-green-300 mb-4">Announcements & Updates</h3>
+        <p class="text-gray-300">Stay informed with server status updates, new feature releases, and important community news directly in Discord.</p>
+      </div>
+      <div class="feature-card">
+        <h3 class="text-2xl font-bold text-purple-300 mb-4">Share Your Creations</h3>
+        <p class="text-gray-300">Showcase your Minecraft builds, share fan art, or just hang out in voice channels with friends.</p>
       </div>
     </div>
   </div>
@@ -117,9 +141,8 @@
     <p>© 2012 - <span id="current-year-community"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>

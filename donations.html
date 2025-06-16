@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       background-color: #1F2937;
@@ -19,22 +17,18 @@
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 250px;
+      min-height: 250px; /* Adjust height for inner pages */
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -42,43 +36,36 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
     }
-    /* Basic table styling for full width and collapsed borders. */
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 1rem; /* Added margin for spacing */
+      margin-bottom: 1rem; /* Added margin for spacing */
     }
-    /* Styles for table headers and data cells, including padding,
-     * text alignment, and bottom border. */
     th, td {
       padding: 12px 15px;
       text-align: left;
       border-bottom: 1px solid #374151; /* Darker border for table rows */
     }
-    /* Styles specifically for table headers, including background color,
-     * text color, font weight, and text transformation. */
     th {
       background-color: #374151; /* Darker header background */
-      color: #60A5FA; /* Blue text for headers */
+      color: #F87171; /* Red text for headers */
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    /* Alternating background color for even table rows for better readability. */
     tr:nth-child(even) {
       background-color: #2F3B4E; /* Slightly different background for even rows */
     }
-    /* Hover effect for table rows, changing background color on mouse-over. */
     tr:hover {
       background-color: #4B5563; /* Lighter background on hover */
     }
@@ -98,10 +85,12 @@
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
-        <li><a href="donations.html" class="text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -111,38 +100,49 @@
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Support Arcator.co.uk</h1>
-    <p class="text-xl md:text-2xl mb-8">Your contributions help us grow and maintain our community.</p>
+    <p class="text-xl md:text-2xl mb-8">Your contributions help us keep the servers running!</p>
   </div>
 </section>
 
-<!-- Donations/Expenses Section Content -->
+<!-- Main Content Section: Donations -->
 <section id="donations" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-blue-400">Our Expenses & Community Support</h2>
-    <p class="text-lg text-center mb-8 text-gray-300">Running a vibrant community and maintaining servers incurs various costs. Here's a look at some of our expenses and the generous support we've received.</p>
-    <div class="overflow-x-auto">
-      <table>
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">How You Can Help</h2>
+    <div class="max-w-3xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6 text-center">
+      <p>Running and maintaining a dedicated Minecraft server network requires significant resources, including server hosting, domain names, and development tools. Your generous donations help us cover these costs and allow us to continually improve the Arcator experience for everyone.</p>
+      <p>We deeply appreciate any support you can offer. Every contribution, no matter how small, makes a big difference in keeping our community thriving.</p>
+    </div>
+
+    <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
+      <table class="min-w-full bg-gray-700">
         <thead>
         <tr>
-          <th>Expenses</th>
-          <th>Cost</th>
-          <th>Description</th>
-          <th>Donations (Received)</th>
+          <th class="py-3 px-6 text-xl">Donation Method</th>
+          <th class="py-3 px-6 text-xl">Details</th>
         </tr>
         </thead>
         <tbody>
-        <tr><td>Ross</td><td>$300, maybe more</td><td>PC parts to build Jylina</td><td></td></tr>
-        <tr><td>Raze</td><td>??</td><td>Ship GPUs to Jordan</td><td></td></tr>
-        <tr><td>Jordan</td><td>??</td><td>750W+ power supply OR donation</td><td></td></tr>
-        <tr><td>Jordan</td><td>75</td><td>+32 GB RAM</td><td></td></tr>
-        <tr><td></td><td></td><td>Case fans</td><td></td></tr>
-        <tr><td colspan="4" class="text-center text-gray-400 py-4">
-          <h3 class="text-2xl font-bold mb-4 text-blue-300">How You Can Help</h3>
-          <p class="mb-4">We are always grateful for any support to help cover ongoing costs like domain renewals and hardware upgrades.</p>
-          <p class="mb-4">Currently, we are looking for donations for a <span class="font-semibold text-blue-200">$100</span> 10-year domain renewal. If you're interested in contributing, please reach out to Maren or other staff members on our Discord server.</p>
-          <!-- Added rel="noopener noreferrer" for security when opening external links -->
-          <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord to Donate</a>
-        </td></tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">PayPal</td>
+          <td class="py-4 px-6">
+            <p>Donate directly via PayPal. This is a secure and straightforward way to support us financially.</p>
+            <a href="https://www.paypal.com/paypalme/arcator" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Donate via PayPal</a>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Patreon</td>
+          <td class="py-4 px-6">
+            <p>Become a Patreon and get exclusive perks, early access to features, and direct engagement with the development team.</p>
+            <a href="https://www.patreon.com/arcator" target="_blank" rel="noopener noreferrer" class="inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Become a Patreon</a>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Discord</td>
+          <td class="py-4 px-6">
+            <p>Join our Discord server to learn about other ways to support us, including in-game rewards or specific contribution drives.</p>
+            <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord to Donate</a>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -155,9 +155,8 @@
     <p>© 2012 - <span id="current-year-donations"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>

@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       background-color: #1F2937;
@@ -19,22 +17,18 @@
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 250px;
+      min-height: 250px; /* Adjust height for inner pages */
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -42,43 +36,36 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
     }
-    /* Basic table styling for full width and collapsed borders. */
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 1rem; /* Added margin for spacing */
+      margin-bottom: 1rem; /* Added margin for spacing */
     }
-    /* Styles for table headers and data cells, including padding,
-     * text alignment, and bottom border. */
     th, td {
       padding: 12px 15px;
       text-align: left;
       border-bottom: 1px solid #374151; /* Darker border for table rows */
     }
-    /* Styles specifically for table headers, including background color,
-     * text color, font weight, and text transformation. */
     th {
       background-color: #374151; /* Darker header background */
-      color: #A78BFA; /* Purple text for headers */
+      color: #F87171; /* Red text for headers */
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    /* Alternating background color for even table rows for better readability. */
     tr:nth-child(even) {
       background-color: #2F3B4E; /* Slightly different background for even rows */
     }
-    /* Hover effect for table rows, changing background color on mouse-over. */
     tr:hover {
       background-color: #4B5563; /* Lighter background on hover */
     }
@@ -98,10 +85,12 @@
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -110,33 +99,32 @@
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Our Technical Infrastructure</h1>
-    <p class="text-xl md:text-2xl mb-8">Understanding the machines that power Arcator.co.uk</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Arcator Infrastructure</h1>
+    <p class="text-xl md:text-2xl mb-8">Powering Your Minecraft Experience</p>
   </div>
 </section>
 
-<!-- Infrastructure Section Content -->
-<section id="infrastructure" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Infrastructure Overview -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-center mb-12 text-purple-400">Our Machines</h2>
-    <p class="text-lg text-center mb-8 text-gray-300">Arcator.co.uk operates on a distributed infrastructure, with various machines dedicated to specific purposes to ensure a smooth and reliable experience for our community. Each machine plays a vital role in keeping our services online and performing optimally.</p>
-    <div class="overflow-x-auto">
-      <table>
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Robust Network Setup</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6 text-center">
+      <p>Arcator's stability and performance are built upon a foundation of dedicated and well-maintained server infrastructure. We utilize a blend of powerful machines and strategic network configurations to ensure a seamless and low-latency experience for all our players across various Minecraft servers and services.</p>
+      <p>Our setup is designed for efficiency, reliability, and scalability, allowing us to host diverse gamemodes, critical background services, and provide robust redundancy measures.</p>
+    </div>
+
+    <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
+      <table class="min-w-full bg-gray-700">
         <thead>
         <tr>
-          <th>Machine Name</th>
-          <th>Owner</th>
-          <th>Location</th>
-          <th>Purpose</th>
-          <th>s# (Internal)</th>
-          <th>Notes</th>
+          <th class="py-3 px-6 text-xl">Hostname</th>
+          <th class="py-3 px-6 text-xl">Primary Role</th>
         </tr>
         </thead>
         <tbody>
-        <tr><td>Jylina</td><td>Jordan</td><td>Utah</td><td>Minecraft Servers</td><td>s1</td><td>The fast one!</td></tr>
-        <tr><td>Thoth</td><td>Jordan</td><td>Utah</td><td>Controlling Jylina's Smart Plug</td><td>s2</td><td></td></tr>
-        <tr><td>Icarus</td><td>Dust</td><td>Germany</td><td>Dust's cluster</td><td>s6</td><td></td></tr>
-        <tr><td>Apollo</td><td>Kieraan</td><td>Canada</td><td>BungeeCord and outbound servers</td><td>s7</td><td>Dedi/Virtualised</td></tr>
+        <tr><td>jylina</td><td>Main Minecraft Server Host (s1)</td></tr>
+        <tr><td>thoth</td><td>Raspberry Pi Minecraft Server (s2) / Backup Services</td></tr>
+        <tr><td>sputnik</td><td>Web Server / Load Balancer (s9)</td></tr>
         </tbody>
       </table>
     </div>
@@ -150,9 +138,8 @@
     <p>© 2012 - <span id="current-year-infra"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white text-purple-400 transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>

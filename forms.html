@@ -67,9 +67,21 @@
       margin-bottom: 1rem;
     }
     /* Style for links within content */
-    .thread-content a {
+    .thread-content a, .comment-content a {
       color: #60A5FA; /* Blue links */
       text-decoration: underline;
+    }
+    .comment-section {
+      margin-top: 1.5rem;
+      border-top: 1px solid #4A5568;
+      padding-top: 1.5rem;
+    }
+    .comment-card {
+      background-color: #374151; /* Slightly darker for comments */
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
   </style>
 </head>
@@ -91,8 +103,8 @@
         <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
-        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
-        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -116,8 +128,8 @@
     <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
       <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
       <p class="text-lg text-gray-300 mb-8">
-        You need to be logged in to create new discussion threads.
-        You can view existing threads without logging in.
+        You need to be logged in to create new discussion threads and post comments.
+        You can view existing threads and comments without logging in.
       </p>
       <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
     </div>
@@ -258,39 +270,41 @@
   }
 
   /**
-   * Renders thread content, including embedding images and videos.
-   * @param {string} content - The raw content string.
+   * Renders content (thread or comment), embedding images and videos.
+   * @param {string} rawContent - The raw content string.
    * @returns {string} - HTML string with embedded media.
    */
-  function renderThreadContent(content) {
-    // Regex to find common image and video URLs
+  function renderContentWithMedia(rawContent) {
+    // Regex for common image file extensions
     const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))(?:\s|$)/gi;
+    // Regex for common video file extensions
     const videoRegex = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))(?:\s|$)/gi;
 
-    let htmlContent = content;
+    let processedContent = rawContent;
 
     // Replace video URLs with <video> tags
-    htmlContent = htmlContent.replace(videoRegex, (match, url) => {
+    processedContent = processedContent.replace(videoRegex, (match, url) => {
       return `<div class="media-container"><video controls class="w-full rounded-md" src="${url}"><source src="${url}" type="video/${url.split('.').pop()}">Your browser does not support the video tag.</video></div>`;
     });
 
     // Replace image URLs with <img> tags
-    htmlContent = htmlContent.replace(imageRegex, (match, url) => {
+    processedContent = processedContent.replace(imageRegex, (match, url) => {
+      // Add onerror to display a placeholder if the image fails to load
       return `<div class="media-container"><img class="w-full rounded-md" src="${url}" alt="Embedded Image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/cccccc/000000?text=Image+Load+Error';"></div>`;
     });
 
-    // Convert newlines to <br> for basic formatting
-    htmlContent = htmlContent.replace(/\n/g, '<br>');
+    // Convert remaining newlines to <br> for basic paragraph breaks
+    processedContent = processedContent.replace(/\n/g, '<br>');
 
-    // Basic link detection for any remaining URLs that weren't media
+    // Basic link detection for any remaining URLs that weren't caught by media regex
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    htmlContent = htmlContent.replace(urlRegex, (match) => {
+    processedContent = processedContent.replace(urlRegex, (match) => {
       return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
     });
 
-
-    return htmlContent;
+    return processedContent;
   }
+
 
   // Set up Firebase Authentication listener
   if (auth) {
@@ -365,6 +379,36 @@
     });
   }
 
+  /**
+   * Adds a new comment to a specific thread.
+   * @param {string} threadId - The ID of the thread to comment on.
+   * @param {string} commentContent - The content of the comment.
+   */
+  async function addCommentToThread(threadId, commentContent) {
+    if (!currentUser) {
+      showFormMessage("You must be logged in to post a comment.", true);
+      return;
+    }
+    if (!commentContent.trim()) {
+      showFormMessage("Comment cannot be empty.", true);
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), {
+        content: commentContent,
+        authorUid: currentUser.uid,
+        authorName: currentUser.displayName || currentUser.email || 'Anonymous User',
+        timestamp: serverTimestamp()
+      });
+      console.log("Comment added successfully to thread:", threadId);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      showFormMessage(`Error posting comment: ${error.message || 'Unknown error'}`, true);
+    }
+  }
+
+
   // Listen for real-time updates to discussion threads
   if (db) {
     const q = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`), orderBy("timestamp", "desc"));
@@ -377,20 +421,73 @@
       } else {
         noThreadsMessage.style.display = 'none';
         threadsLoadingError.style.display = 'none';
-        snapshot.forEach((doc) => {
-          const thread = doc.data();
+        snapshot.forEach((threadDoc) => {
+          const thread = threadDoc.data();
+          const threadId = threadDoc.id; // Get the ID of the thread document
           const threadElement = document.createElement('div');
           threadElement.classList.add('thread-card');
-          const timestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
+          const threadTimestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
 
           threadElement.innerHTML = `
             <h3 class="text-2xl font-bold text-red-300 mb-2">${thread.title}</h3>
-            <p class="text-gray-400 text-sm mb-4">By ${thread.authorName} on ${timestamp}</p>
-            <div class="thread-content text-gray-200">
-                ${renderThreadContent(thread.content)}
+            <p class="text-gray-400 text-sm mb-4">By ${thread.authorName} on ${threadTimestamp}</p>
+            <div class="thread-content text-gray-200 mb-4">
+                ${renderContentWithMedia(thread.content)}
             </div>
+            <div class="comment-section">
+                <h4 class="text-xl font-semibold text-gray-300 mb-3">Comments:</h4>
+                <div id="comments-${threadId}" class="comments-list">
+                    <!-- Comments will be loaded here -->
+          <p class="text-gray-500">No comments yet.</p>
+          </div>
+            <!-- Comment form -->
+          <div class="mt-4">
+          <textarea id="comment-input-${threadId}" rows="3" class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Add a comment..."></textarea>
+          <button data-thread-id="${threadId}" class="post-comment-btn bg-green-600 text-white font-bold py-2 px-4 rounded-full mt-2 hover:bg-green-700 transition duration-300 ease-in-out">Post Comment</button>
+          </div>
+          </div>
           `;
           threadsContainer.appendChild(threadElement);
+
+          // Listen for comments for this specific thread
+          const commentsQuery = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), orderBy("timestamp", "asc"));
+          onSnapshot(commentsQuery, (commentSnapshot) => {
+              const commentsListDiv = document.getElementById(`comments-${threadId}`);
+              commentsListDiv.innerHTML = ''; // Clear existing comments
+
+              if (commentSnapshot.empty) {
+                  commentsListDiv.innerHTML = '<p class="text-gray-500">No comments yet.</p>';
+              } else {
+                  commentSnapshot.forEach((commentDoc) => {
+                      const comment = commentDoc.data();
+                      const commentTimestamp = comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now';
+                      const commentElement = document.createElement('div');
+                      commentElement.classList.add('comment-card');
+                      commentElement.innerHTML = `
+          <p class="text-gray-300 font-semibold">${comment.authorName} <span class="text-gray-500 text-xs">on ${commentTimestamp}</span></p>
+          <div class="comment-content text-gray-200 mt-1">
+          ${renderContentWithMedia(comment.content)}
+          </div>
+          `;
+                      commentsListDiv.appendChild(commentElement);
+                  });
+              }
+          }, (commentError) => {
+              console.error(`Error fetching comments for thread ${threadId}:`, commentError);
+              const commentsListDiv = document.getElementById(`comments-${threadId}`);
+              commentsListDiv.innerHTML = `<p class="text-red-500">Error loading comments.</p>`;
+          });
+
+          // Add event listener for the comment button after it's been added to DOM
+          const postCommentBtn = threadElement.querySelector(`.post-comment-btn[data-thread-id="${threadId}"]`);
+          if (postCommentBtn) {
+              postCommentBtn.addEventListener('click', () => {
+                  const commentInput = document.getElementById(`comment-input-${threadId}`);
+                  const commentContent = commentInput.value;
+                  addCommentToThread(threadId, commentContent);
+                  commentInput.value = ''; // Clear input after posting
+              });
+          }
         });
       }
     }, (error) => {
