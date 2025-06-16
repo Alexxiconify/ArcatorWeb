@@ -8,83 +8,132 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
-      /* Default to dark theme for consistency */
-      background-color: #1F2937;
-      color: #E5E7EB;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Default Dark Theme */
+    body.theme-dark {
+      background-color: #1F2937; /* Dark background */
+      color: #E5E7EB; /* Light text */
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Light theme styles - these will be applied dynamically */
+    body.theme-dark .bg-white {
+      background-color: #2D3748 !important; /* Darker card background for dark theme */
+      color: #E5E7EB !important; /* Light text for card */
+    }
+    body.theme-dark input,
+    body.theme-dark select {
+      background-color: #374151 !important; /* Darker input background */
+      color: #E5E7EB !important; /* Light text in input */
+      border-color: #4B5563 !important; /* Subtle border for inputs */
+    }
+    body.theme-dark input::placeholder {
+      color: #9CA3AF !important; /* Lighter placeholder text */
+    }
+    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
+      color: #E5E7EB !important;
+    }
+
+    /* Light Theme */
     body.theme-light {
-      background-color: #F3F4F6; /* Light gray */
+      background-color: #F3F4F6; /* Light background */
       color: #1F2937; /* Dark text */
-      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+      background-image: none; /* No pattern for light theme */
     }
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+    body.theme-light .bg-white {
+      background-color: #FFFFFF !important; /* White card background for light theme */
+      color: #1F2937 !important; /* Dark text for card */
+    }
+    body.theme-light input,
+    body.theme-light select {
+      background-color: #FFFFFF !important; /* White input background */
+      color: #1F2937 !important; /* Dark text in input */
+      border-color: #D1D5DB !important; /* Light border for inputs */
+    }
+    body.theme-light input::placeholder {
+      color: #6B7280 !important; /* Darker placeholder text */
+    }
+    body.theme-light .text-gray-700 {
+      color: #1F2937 !important;
+    }
+
+    /* Arcator Blue Theme */
+    body.theme-arcator-blue {
+      background-color: #1a202c; /* Deep blue-grey */
+      color: #E2E8F0; /* Light off-white text */
+      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+      background-attachment: fixed;
     }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
+    body.theme-arcator-blue .bg-white {
+      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
+      color: #E2E8F0 !important; /* Light text for card */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    body.theme-arcator-blue input,
+    body.theme-arcator-blue select {
+      background-color: #3b4d6b !important; /* Darker input background */
+      color: #E2E8F0 !important; /* Light text in input */
+      border-color: #5a6e8f !important; /* Blueish border */
     }
-    .form-card {
-      background-color: #2D3748; /* Darker grey background for forms */
+    body.theme-arcator-blue input::placeholder {
+      color: #94A3B8 !important; /* Subtle blue placeholder */
+    }
+    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
+      background-color: #4299E1 !important; /* Arcator blue */
+      color: white !important;
+    }
+    body.theme-arcator-blue .text-gray-700 {
+      color: #E2E8F0 !important;
+    }
+    body.theme-arcator-blue .text-blue-500 {
+      color: #63B3ED !important;
+    }
+
+
+    /* Common form styling */
+    .auth-form {
+      max-width: 420px;
+      width: 90%;
+      padding: 2.5rem;
       border-radius: 0.75rem;
-      padding: 2rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     }
-    .theme-light .form-card {
-      background-color: #FFFFFF; /* White background for forms in light theme */
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    .input-field {
+      margin-bottom: 1rem;
     }
-    .form-card input[type="email"],
-    .form-card input[type="password"],
-    .form-card input[type="text"],
-    .form-card select {
-      background-color: #4A5568; /* Input background */
-      color: #E5E7EB; /* Input text color */
-      border: 1px solid #60A5FA; /* Blue border */
+    .input-field label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem; /* text-sm */
+      font-weight: 600; /* font-semibold */
     }
-    .theme-light .form-card input[type="email"],
-    .theme-light .form-card input[type="password"],
-    .theme-light .form-card input[type="text"],
-    .theme-light .form-card select {
-      background-color: #E5E7EB; /* Light input background */
-      color: #1F2937; /* Dark input text */
-      border: 1px solid #9CA3AF; /* Gray border */
+    .input-field input, .input-field select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #D1D5DB; /* border-gray-300 */
+      border-radius: 0.5rem; /* rounded-md */
+      font-size: 1rem;
     }
-    .form-card input:focus,
-    .form-card select:focus {
-      border-color: #3B82F6; /* Brighter blue on focus */
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700; /* font-bold */
+      transition: background-color 0.2s, transform 0.2s;
     }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Message box styling */
     .message-box {
       position: fixed;
       top: 20px;
@@ -106,176 +155,137 @@
     .message-box.error {
       background-color: #F44336; /* Red for error */
     }
+
+    /* Modal styles for password reset */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #2D3748;
+      margin: auto;
+      padding: 20px;
+      border-radius: 0.75rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 80%;
+      max-width: 400px;
+      position: relative;
+      color: #E5E7EB;
+    }
+    .close-button {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-button:hover,
+    .close-button:focus {
+      color: white;
+    }
   </style>
 </head>
-<body class="antialiased">
-<!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
-        <li><a href="sign.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
-        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+<body class="flex items-center justify-center min-h-screen theme-dark">
+<div class="auth-container w-full max-w-md mx-auto p-4 flex flex-col items-center">
+  <!-- Logo/Header Placeholder -->
+  <img src="https://placehold.co/150x50/333/white?text=Arcator.co.uk" alt="Arcator Logo" class="mb-8 rounded-lg shadow-md">
 
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Sign In / Sign Up</h1>
-    <p class="text-xl md:text-2xl mb-8">Access your Arcator account or create a new one.</p>
-  </div>
-</section>
-
-<!-- Main Content Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <div id="loading-spinner" class="flex justify-center items-center h-48">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
-
-    <!-- Login/Signup/Account Management Section -->
-    <div id="auth-forms-container" class="max-w-md mx-auto form-card" style="display: none;">
-      <h2 id="form-title" class="text-3xl font-bold text-blue-300 mb-6 text-center">Sign In</h2>
-
-      <!-- Login Form -->
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label for="login-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-          <input type="email" id="login-email" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="your@email.com">
-        </div>
-        <div>
-          <label for="login-password" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-          <input type="password" id="login-password" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
-        </div>
-        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-          Sign In
-        </button>
-        <p id="login-error-message" class="text-center text-red-500 mt-4" style="display: none;"></p>
-        <p class="text-center text-gray-400 mt-4">
-          <a href="#" id="forgot-password-link" class="text-blue-400 hover:underline">Forgot Password?</a>
-        </p>
-        <p class="text-center text-gray-400 mt-4">
-          Don't have an account? <a href="#" id="show-signup-link" class="text-blue-400 hover:underline">Sign Up</a>
-        </p>
-
-        <div class="relative flex py-5 items-center">
-          <div class="flex-grow border-t border-gray-400"></div>
-          <span class="flex-shrink mx-4 text-gray-400">Or sign in with</span>
-          <div class="flex-grow border-t border-gray-400"></div>
-        </div>
-
-        <div class="flex justify-center space-x-4">
-          <button type="button" id="google-login-btn" class="flex items-center justify-center bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-            <i class="fab fa-google mr-2"></i> Google
-          </button>
-          <button type="button" id="github-login-btn" class="flex items-center justify-center bg-gray-700 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-            <i class="fab fa-github mr-2"></i> GitHub
-          </button>
-        </div>
-      </form>
-
-      <!-- Sign Up Form (hidden by default) -->
-      <form id="signup-form" class="space-y-4" style="display: none;">
-        <div>
-          <label for="signup-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-          <input type="email" id="signup-email" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="your@email.com">
-        </div>
-        <div>
-          <label for="signup-password" class="block text-gray-300 text-sm font-bold mb-2">Password (min 6 characters):</label>
-          <input type="password" id="signup-password" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
-        </div>
-        <button type="submit" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-          Sign Up
-        </button>
-        <p id="signup-error-message" class="text-center text-red-500 mt-4" style="display: none;"></p>
-        <p class="text-center text-gray-400 mt-4">
-          Already have an account? <a href="#" id="show-login-link" class="text-blue-400 hover:underline">Sign In</a>
-        </p>
-      </form>
-
-      <!-- Logged In User View (hidden by default) -->
-      <div id="logged-in-view" class="space-y-4" style="display: none;">
-        <h3 class="text-2xl font-bold text-green-300 text-center">Welcome, <span id="user-display-name"></span>!</h3>
-        <p class="text-center text-gray-300">You are logged in with: <span id="user-email"></span></p>
-
-        <div class="flex justify-center my-4">
-          <img id="user-profile-pic" class="w-24 h-24 rounded-full object-cover border-4 border-blue-400" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="User Profile Picture">
-        </div>
-
-        <a href="settings.html" class="block bg-purple-600 text-white font-bold py-3 px-8 rounded-full text-center hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
-          Manage Account Settings
-        </a>
-
-        <button id="reset-password-btn" class="bg-yellow-600 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-          Reset Password
-        </button>
-        <p id="password-reset-message" class="text-center text-green-400 mt-4" style="display: none;"></p>
-
-        <div class="mt-8 pt-4 border-t border-gray-700">
-          <label for="theme-selector" class="block text-gray-300 text-lg font-bold mb-2 text-center">Choose Theme:</label>
-          <select id="theme-selector" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500 text-center">
-            <option value="dark">Dark Theme</option>
-            <option value="light">Light Theme</option>
-          </select>
-          <button id="save-theme-btn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full mt-4">
-            Save Theme
-          </button>
-          <p id="theme-message" class="text-center text-green-400 mt-4" style="display: none;"></p>
-        </div>
-
-        <button id="logout-btn" class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full mt-8">
-          Log Out
-        </button>
+  <!-- Login Form -->
+  <div id="login-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6">
+    <h2 class="text-3xl font-bold text-center mb-6">Login to Your Account</h2>
+    <form id="login-form">
+      <div class="input-field">
+        <label for="login-email">Email:</label>
+        <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="username">
       </div>
-    </div>
+      <div class="input-field">
+        <label for="login-password">Password:</label>
+        <input type="password" id="login-password" placeholder="********" required autocomplete="current-password">
+      </div>
+      <div class="input-field">
+        <label for="login-theme">Theme:</label>
+        <select id="login-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="arcator-blue">Arcator Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Log In</button>
+    </form>
+    <p class="text-center text-sm mt-4">
+      <a href="#" id="forgot-password-link" class="text-blue-500 hover:underline">Forgot Password?</a>
+    </p>
+    <p class="text-center text-sm mt-4">
+      Don't have an account? <a href="#" id="show-signup" class="text-blue-500 hover:underline">Sign Up</a>
+    </p>
   </div>
-</section>
 
-<!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-sign"></span> Arcator.co.uk. All rights reserved.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
+  <!-- Signup Form (hidden by default) -->
+  <div id="signup-section" class="auth-form bg-white text-gray-700 shadow-xl hidden">
+    <h2 class="text-3xl font-bold text-center mb-6">Create New Account</h2>
+    <form id="signup-form">
+      <div class="input-field">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="input-field">
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" placeholder="********" required autocomplete="new-password">
+      </div>
+      <div class="input-field">
+        <label for="signup-display-name">Display Name (Optional):</label>
+        <input type="text" id="signup-display-name" placeholder="Your Name">
+      </div>
+      <div class="input-field">
+        <label for="signup-theme">Theme:</label>
+        <select id="signup-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="arcator-blue">Arcator Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Sign Up</button>
+    </form>
+    <p class="text-center text-sm mt-4">
+      Already have an account? <a href="#" id="show-login" class="text-blue-500 hover:underline">Log In</a>
+    </p>
   </div>
-</footer>
+</div>
 
 <!-- Message Box Element -->
-<div id="message-box" class="message-box" style="display: none;"></div>
+<div id="message-box" class="message-box"></div>
+
+<!-- Password Reset Modal -->
+<div id="password-reset-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h3 class="text-xl font-bold mb-4 text-blue-300">Reset Password</h3>
+    <p class="mb-4">Enter your email address to receive a password reset link.</p>
+    <input type="email" id="reset-email" placeholder="your_email@example.com" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4" />
+    <button id="send-reset-email-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Send Reset Email</button>
+  </div>
+</div>
 
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
     sendPasswordResetEmail,
     signOut,
-    GoogleAuthProvider, // Import GoogleAuthProvider
-    GithubAuthProvider, // Import GithubAuthProvider
-    signInWithPopup,    // Import signInWithPopup
+    onAuthStateChanged,
+    signInAnonymously // For canvas environment
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
@@ -284,7 +294,7 @@
     getDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Firebase configuration object
+  // Firebase configuration object (replace with your actual config)
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -297,17 +307,12 @@
 
   // Ensure global __app_id and __initial_auth_token are accessible
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-  // Determine appId for Firestore path - prioritize Canvas provided, then project ID
   const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-  const initialAuthToken = canvasInitialAuthToken;
 
   // Initialize Firebase App, Auth, and Firestore instances
   let app;
   let auth;
   let db;
-  let currentUser = null;
   let isFirebaseInitialized = false;
 
   try {
@@ -318,46 +323,28 @@
     console.log("Firebase initialized successfully.");
   } catch (e) {
     console.error("Error initializing Firebase:", e);
-    showMessageBox("Error initializing Firebase. Please try again later.", true);
+    showMessageBox("Error initializing Firebase. Please check your console for details.", true);
   }
 
   // DOM Elements
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const authFormsContainer = document.getElementById('auth-forms-container');
-  const formTitle = document.getElementById('form-title');
-
-  // Login Form elements
+  const loginSection = document.getElementById('login-section');
+  const signupSection = document.getElementById('signup-section');
+  const showSignupBtn = document.getElementById('show-signup');
+  const showLoginBtn = document.getElementById('show-login');
   const loginForm = document.getElementById('login-form');
-  const loginEmailInput = document.getElementById('login-email');
-  const loginPasswordInput = document.getElementById('login-password');
-  const loginErrorMessage = document.getElementById('login-error-message');
-  const forgotPasswordLink = document.getElementById('forgot-password-link');
-  const showSignupLink = document.getElementById('show-signup-link');
-  const googleLoginBtn = document.getElementById('google-login-btn');
-  const githubLoginBtn = document.getElementById('github-login-btn');
-
-
-  // Sign Up Form elements
   const signupForm = document.getElementById('signup-form');
-  const signupEmailInput = document.getElementById('signup-email');
-  const signupPasswordInput = document.getElementById('signup-password');
-  const signupErrorMessage = document.getElementById('signup-error-message');
-  const showLoginLink = document.getElementById('show-login-link');
+  const messageBox = document.getElementById('message-box');
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  const passwordResetModal = document.getElementById('password-reset-modal');
+  const closeModalButtons = document.querySelectorAll('.close-button');
+  const sendResetEmailBtn = document.getElementById('send-reset-email-btn');
+  const resetEmailInput = document.getElementById('reset-email');
 
-  // Logged In View elements
-  const loggedInView = document.getElementById('logged-in-view');
-  const userDisplayName = document.getElementById('user-display-name');
-  const userEmail = document.getElementById('user-email');
-  const userProfilePic = document.getElementById('user-profile-pic');
-  const resetPasswordBtn = document.getElementById('reset-password-btn');
-  const passwordResetMessage = document.getElementById('password-reset-message');
-  const logoutBtn = document.getElementById('logout-btn');
-  const themeSelector = document.getElementById('theme-selector');
-  const saveThemeBtn = document.getElementById('save-theme-btn');
-  const themeMessage = document.getElementById('theme-message');
+  // Theme preference dropdowns
+  const loginThemeSelect = document.getElementById('login-theme');
+  const signupThemeSelect = document.getElementById('signup-theme');
 
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV';
-  const DEFAULT_THEME = 'dark';
+  const DEFAULT_THEME = 'dark'; // Define a default theme
 
   /**
    * Displays a custom message box for user feedback.
@@ -365,7 +352,6 @@
    * @param {boolean} isError - True for error, false for success.
    */
   function showMessageBox(message, isError) {
-    const messageBox = document.getElementById('message-box');
     messageBox.textContent = message;
     messageBox.className = 'message-box'; // Reset classes
     if (isError) {
@@ -377,6 +363,19 @@
     setTimeout(() => {
       messageBox.style.display = 'none';
     }, 5000); // Hide after 5 seconds
+  }
+
+  /**
+   * Applies the selected theme to the body element.
+   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
+   */
+  function applyTheme(theme) {
+    const body = document.body;
+    // Remove all existing theme classes to prevent conflicts
+    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
+    // Add the new theme class
+    body.classList.add(`theme-${theme}`);
+    console.log(`Applied theme: ${theme}`);
   }
 
   /**
@@ -393,382 +392,189 @@
         return docSnap.data();
       }
     } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
+      console.error("Error fetching user profile:", error);
     }
     return null;
   }
 
   /**
-   * Updates user profile data in Firestore.
+   * Creates or updates a user's profile in Firestore.
    * @param {string} uid - The user's UID.
    * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
    */
-  async function updateUserProfileInFirestore(uid, profileData) {
+  async function createUserProfileInFirestore(uid, profileData) {
     if (!db) {
-      showMessageBox("Database not initialized. Cannot save profile.", true);
+      console.error("Firestore DB not initialized. Cannot create user profile.");
       return;
     }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
       await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
-      console.log("User profile updated in Firestore:", uid, profileData);
+      console.log("User profile created/updated in Firestore:", uid, profileData);
     } catch (error) {
-      console.error("Error updating user profile in Firestore:", error);
+      console.error("Error creating/updating user profile in Firestore:", error);
       showMessageBox(`Error saving profile: ${error.message}`, true);
     }
   }
 
-  /**
-   * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark' or 'light'.
-   */
-  function applyTheme(theme) {
-    const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light');
-    if (theme === 'light') {
-      body.classList.add('theme-light');
-    } else {
-      body.classList.add('theme-dark');
-    }
-    // Also update form card colors dynamically if not handled by Tailwind automatically
-    const formCard = document.querySelector('.form-card');
-    if (formCard) {
-      if (theme === 'light') {
-        formCard.style.backgroundColor = '#FFFFFF';
-        formCard.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
-      } else {
-        formCard.style.backgroundColor = '#2D3748';
-        formCard.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
-      }
-    }
-    // Update input styles explicitly if not covered by Tailwind's theme-specific classes
-    document.querySelectorAll('.form-card input, .form-card select').forEach(input => {
-      if (theme === 'light') {
-        input.style.backgroundColor = '#E5E7EB';
-        input.style.color = '#1F2937';
-        input.style.borderColor = '#9CA3AF';
-      } else {
-        input.style.backgroundColor = '#4A5568';
-        input.style.color = '#E5E7EB';
-        input.style.borderColor = '#60A5FA';
-      }
-    });
-  }
-
-  /**
-   * Updates the UI based on the current authentication state.
-   * @param {Object|null} user - The Firebase User object or null.
-   */
-  async function updateUI(user) {
-    loadingSpinner.style.display = 'none';
-    authFormsContainer.style.display = 'block';
-
-    if (user) {
-      currentUser = user;
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'none';
-      loggedInView.style.display = 'block';
-      formTitle.textContent = `Welcome, ${user.displayName || user.email}!`;
-      userEmail.textContent = user.email;
-
-      // Fetch user profile from Firestore to get display name, photoURL, and theme preference
-      const userProfile = await getUserProfileFromFirestore(user.uid);
-      userDisplayName.textContent = userProfile?.displayName || user.displayName || 'User';
-      userProfilePic.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-      userProfilePic.onerror = () => { userProfilePic.src = DEFAULT_PROFILE_PIC; }; // Fallback if image fails
-
-      // Set theme selector based on user preference
-      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-      themeSelector.value = themePreference;
-      applyTheme(themePreference); // Apply the theme
-
-    } else {
-      currentUser = null;
-      loggedInView.style.display = 'none';
-      loginForm.style.display = 'block'; // Show login form by default
-      signupForm.style.display = 'none';
-      formTitle.textContent = "Sign In";
-      applyTheme(DEFAULT_THEME); // Default to dark theme for unauthenticated users
-    }
-  }
-
-  // Set up Firebase Authentication listener
-  if (isFirebaseInitialized && auth) {
-    onAuthStateChanged(auth, (user) => {
-      updateUI(user);
-    });
-
-    // Handle initial custom token sign-in if available (for Canvas environment)
-    // This will only run if onAuthStateChanged hasn't already found a user.
-    if (initialAuthToken && !auth.currentUser) {
-      signInWithCustomToken(auth, initialAuthToken)
-        .then(() => {
-          console.log("Signed in with custom token on sign page initial load.");
-        })
-        .catch((error) => {
-          console.error("Error signing in with custom token on sign page initial load:", error);
-          // Removed anonymous sign-in fallback here to encourage explicit sign-in through the page.
-          // If a user refreshes and their session is gone, they'll just see the login form.
-        });
-    } else if (!auth.currentUser) {
-      // If no custom token and no current user, user is simply unauthenticated, show forms.
-      // No anonymous sign-in here as it conflicts with explicit login flow.
-    }
-  }
-
-
   // Event Listeners
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      loginErrorMessage.style.display = 'none';
-      const email = loginEmailInput.value.trim();
-      const password = loginPasswordInput.value.trim();
+  showSignupBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginSection.classList.add('hidden');
+    signupSection.classList.remove('hidden');
+  });
 
-      if (!email || !password) {
-        showMessageBox("Please enter both email and password.", true);
-        return;
-      }
+  showLoginBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    signupSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+  });
 
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessageBox("Signed in successfully!", false);
-      } catch (error) {
-        console.error("Login failed:", error);
-        let errorMessage = "Login failed. Please check your credentials.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-          errorMessage = "Invalid email or password.";
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMessage = "Too many login attempts. Please try again later.";
-        }
-        showMessageBox(errorMessage, true);
-        loginErrorMessage.textContent = errorMessage;
-        loginErrorMessage.style.display = 'block';
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginForm['login-email'].value;
+    const password = loginForm['login-password'].value;
+    const selectedTheme = loginThemeSelect.value;
+
+    showMessageBox("", false); // Clear any existing messages
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log("Logged in:", user.uid);
+      // Update theme preference in Firestore
+      await createUserProfileInFirestore(user.uid, { themePreference: selectedTheme });
+      applyTheme(selectedTheme); // Apply theme immediately
+
+      // Redirect after successful login
+      window.location.href = 'admin_and_dev.html';
+
+    } catch (error) {
+      console.error("Login failed:", error);
+      let errorMessage = "Login failed. Please check your credentials.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many login attempts. Please try again later.";
       }
+      showMessageBox(errorMessage, true);
+    }
+  });
+
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = signupForm['signup-email'].value;
+    const password = signupForm['signup-password'].value;
+    const displayName = signupForm['signup-display-name'].value;
+    const selectedTheme = signupThemeSelect.value;
+
+    showMessageBox("", false); // Clear any existing messages
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log("Signed up:", user.uid);
+
+      // Create user profile in Firestore immediately after signup
+      const profileData = {
+        email: user.email,
+        displayName: displayName || user.email, // Use display name or email if not provided
+        themePreference: selectedTheme,
+        createdAt: new Date(),
+        lastLoginAt: new Date()
+      };
+      await createUserProfileInFirestore(user.uid, profileData);
+      applyTheme(selectedTheme); // Apply theme immediately
+
+      showMessageBox("Account created successfully! Redirecting...", false);
+      // Redirect after successful signup
+      window.location.href = 'admin_and_dev.html';
+
+    } catch (error) {
+      console.error("Signup failed:", error);
+      let errorMessage = "Signup failed.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "This email is already in use.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password should be at least 6 characters.";
+      }
+      showMessageBox(errorMessage, true);
+    }
+  });
+
+  forgotPasswordLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    passwordResetModal.style.display = 'flex';
+  });
+
+  closeModalButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      passwordResetModal.style.display = 'none';
     });
-  }
+  });
 
-  if (signupForm) {
-    signupForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      signupErrorMessage.style.display = 'none';
-      const email = signupEmailInput.value.trim();
-      const password = signupPasswordInput.value.trim();
+  window.addEventListener('click', (event) => {
+    if (event.target === passwordResetModal) {
+      passwordResetModal.style.display = 'none';
+    }
+  });
 
-      if (!email || !password) {
-        showMessageBox("Please enter both email and password.", true);
-        return;
-      }
-      if (password.length < 6) {
-        showMessageBox("Password must be at least 6 characters long.", true);
-        signupErrorMessage.textContent = "Password must be at least 6 characters long.";
-        signupErrorMessage.style.display = 'block';
-        return;
-      }
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // Automatically create a profile entry in Firestore for new users
-        await updateUserProfileInFirestore(userCredential.user.uid, {
-          displayName: userCredential.user.email.split('@')[0], // Default display name from email
-          photoURL: DEFAULT_PROFILE_PIC,
-          themePreference: DEFAULT_THEME // Default theme for new users
-        });
-        showMessageBox("Account created successfully! You are now logged in.", false);
-        signupEmailInput.value = '';
-        signupPasswordInput.value = '';
-      } catch (error) {
-        console.error("Sign up failed:", error);
-        let errorMessage = "Sign up failed.";
-        if (error.code === 'auth/email-already-in-use') {
-          errorMessage = "This email is already in use.";
-        } else if (error.code === 'auth/invalid-email') {
-          errorMessage = "Invalid email address.";
-        } else if (error.code === 'auth/weak-password') {
-          errorMessage = "Password is too weak (must be at least 6 characters).";
-        }
-        showMessageBox(errorMessage, true);
-        signupErrorMessage.textContent = errorMessage;
-        signupErrorMessage.style.display = 'block';
-      }
-    });
-  }
-
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', async () => {
-      const provider = new GoogleAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, provider);
-        // The signed-in user info.
-        const user = result.user;
-        console.log("Google Sign-in successful:", user);
-
-        // Check if user profile exists in Firestore, create if not, merge if exists
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        if (!userProfile) {
-          await updateUserProfileInFirestore(user.uid, {
-            displayName: user.displayName || user.email.split('@')[0],
-            photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
-            themePreference: DEFAULT_THEME
-          });
-        } else {
-          // Update photoURL and displayName if they changed from provider (e.g. user changed Google profile pic)
-          await updateUserProfileInFirestore(user.uid, {
-            displayName: user.displayName || userProfile.displayName,
-            photoURL: user.photoURL || userProfile.photoURL || DEFAULT_PROFILE_PIC,
-          });
-        }
-        showMessageBox("Signed in with Google successfully!", false);
-      } catch (error) {
-        console.error("Google Sign-in failed:", error);
-        let errorMessage = "Google Sign-in failed.";
-        if (error.code === 'auth/popup-closed-by-user') {
-          errorMessage = "Sign-in popup closed. Please try again.";
-        } else if (error.code === 'auth/cancelled-popup-request') {
-          errorMessage = "Sign-in already in progress. Please wait.";
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-          errorMessage = "An account with this email already exists using a different sign-in method. Please sign in with your existing method.";
-        } else {
-          errorMessage += ` ${error.message}`;
-        }
-        showMessageBox(errorMessage, true);
-      }
-    });
-  }
-
-  if (githubLoginBtn) {
-    githubLoginBtn.addEventListener('click', async () => {
-      const provider = new GithubAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, provider);
-        // The signed-in user info.
-        const user = result.user;
-        console.log("GitHub Sign-in successful:", user);
-
-        // Check if user profile exists in Firestore, create if not, merge if exists
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        if (!userProfile) {
-          await updateUserProfileInFirestore(user.uid, {
-            displayName: user.displayName || user.email?.split('@')[0] || 'GitHub User',
-            photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
-            themePreference: DEFAULT_THEME
-          });
-        } else {
-          await updateUserProfileInFirestore(user.uid, {
-            displayName: user.displayName || userProfile.displayName,
-            photoURL: user.photoURL || userProfile.photoURL || DEFAULT_PROFILE_PIC,
-          });
-        }
-        showMessageBox("Signed in with GitHub successfully!", false);
-      } catch (error) {
-        console.error("GitHub Sign-in failed:", error);
-        let errorMessage = "GitHub Sign-in failed.";
-        if (error.code === 'auth/popup-closed-by-user') {
-          errorMessage = "Sign-in popup closed. Please try again.";
-        } else if (error.code === 'auth/cancelled-popup-request') {
-          errorMessage = "Sign-in already in progress. Please wait.";
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-          errorMessage = "An account with this email already exists using a different sign-in method. Please sign in with your existing method.";
-        } else {
-          errorMessage += ` ${error.message}`;
-        }
-        showMessageBox(errorMessage, true);
-      }
-    });
-  }
-
-  if (forgotPasswordLink) {
-    forgotPasswordLink.addEventListener('click', async (event) => {
-      event.preventDefault();
-      passwordResetMessage.style.display = 'none';
-      const email = loginEmailInput.value.trim(); // Use email from login form
-
-      if (!email) {
-        showMessageBox("Please enter your email address to reset password.", true);
-        return;
-      }
-
+  sendResetEmailBtn.addEventListener('click', async () => {
+    const email = resetEmailInput.value.trim();
+    if (email) {
       try {
         await sendPasswordResetEmail(auth, email);
-        showMessageBox(`Password reset email sent to ${email}. Check your inbox!`, false);
-        passwordResetMessage.textContent = `Password reset email sent to ${email}. Check your inbox!`;
-        passwordResetMessage.style.display = 'block';
+        showMessageBox("Password reset email sent. Check your inbox.", false);
+        passwordResetModal.style.display = 'none';
       } catch (error) {
-        console.error("Password reset failed:", error);
-        let errorMessage = "Failed to send password reset email.";
-        if (error.code === 'auth/user-not-found') {
-          errorMessage = "No user found with that email address.";
+        console.error("Password reset error:", error);
+        let errorMessage = "Failed to send reset email. Please try again.";
+        if (error.code === 'auth/invalid-email') {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.code === 'auth/user-not-found') {
+          errorMessage = "No account found with that email address.";
         }
         showMessageBox(errorMessage, true);
-        passwordResetMessage.textContent = errorMessage;
-        passwordResetMessage.style.display = 'block';
-        passwordResetMessage.classList.remove('text-green-400');
-        passwordResetMessage.classList.add('text-red-500');
+      }
+    } else {
+      showMessageBox("Please enter your email address.", true);
+    }
+  });
+
+  // Handle initial auth state for Canvas environment and existing users
+  if (isFirebaseInitialized && auth) {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log("DEBUG: User detected on sign.html:", user.uid);
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+        applyTheme(themePreference);
+
+        // Pre-select theme in dropdowns if user is logged in
+        if (loginThemeSelect) loginThemeSelect.value = themePreference;
+        if (signupThemeSelect) signupThemeSelect.value = themePreference;
+
+      } else {
+        console.log("DEBUG: No user detected on sign.html. Applying default theme.");
+        applyTheme(DEFAULT_THEME);
+      }
+      // For Canvas: Sign in anonymously if no initial auth token
+      if (typeof __initial_auth_token !== 'undefined' && !user) {
+        signInAnonymously(auth).then(() => {
+          console.log("DEBUG: Signed in anonymously on sign.html (Canvas env).");
+        }).catch(error => {
+          console.error("ERROR: Anonymous sign-in failed on sign.html:", error);
+        });
+      } else if (!user) {
+        // If no custom token and no current user, sign in anonymously by default
+        signInAnonymously(auth)
+          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on sign.html."))
+          .catch((anonError) => console.error("ERROR: Error signing in anonymously on sign.html:", anonError));
       }
     });
   }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await signOut(auth);
-        showMessageBox("Logged out successfully.", false);
-        // updateUI will be called by onAuthStateChanged
-      } catch (error) {
-        console.error("Logout failed:", error);
-        showMessageBox(`Logout failed: ${error.message || 'Unknown error'}`, true);
-      }
-    });
-  }
-
-  if (showSignupLink) {
-    showSignupLink.addEventListener('click', (event) => {
-      event.preventDefault();
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'block';
-      formTitle.textContent = "Sign Up";
-      loginErrorMessage.style.display = 'none'; // Clear previous error
-    });
-  }
-
-  if (showLoginLink) {
-    showLoginLink.addEventListener('click', (event) => {
-      event.preventDefault();
-      signupForm.style.display = 'none';
-      loginForm.style.display = 'block';
-      formTitle.textContent = "Sign In";
-      signupErrorMessage.style.display = 'none'; // Clear previous error
-    });
-  }
-
-  if (saveThemeBtn) {
-    saveThemeBtn.addEventListener('click', async () => {
-      if (!currentUser) {
-        showMessageBox("You must be logged in to save theme preferences.", true);
-        return;
-      }
-      const selectedTheme = themeSelector.value;
-      try {
-        await updateUserProfileInFirestore(currentUser.uid, { themePreference: selectedTheme });
-        applyTheme(selectedTheme);
-        showMessageBox("Theme preference saved!", false);
-        themeMessage.textContent = "Theme preference saved!";
-        themeMessage.style.display = 'block';
-        themeMessage.classList.remove('text-red-500');
-        themeMessage.classList.add('text-green-400');
-      } catch (error) {
-        console.error("Error saving theme:", error);
-        showMessageBox(`Error saving theme: ${error.message || 'Unknown error'}`, true);
-        themeMessage.textContent = `Error saving theme: ${error.message || 'Unknown error'}`;
-        themeMessage.style.display = 'block';
-        themeMessage.classList.remove('text-green-400');
-        themeMessage.classList.add('text-red-500');
-      }
-    });
-  }
-
-  // Get current year for footer
-  document.getElementById('current-year-sign').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
