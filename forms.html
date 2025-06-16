@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Forms - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #1F2937;
+      color: #E5E7EB;
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+    .thread-card {
+      background-color: #2D3748;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      margin-bottom: 1.5rem;
+      word-wrap: break-word; /* Ensure long words break */
+    }
+    .thread-card img, .thread-card video {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    .media-container {
+      display: block;
+      max-width: 100%;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    /* Style for links within content */
+    .thread-content a {
+      color: #60A5FA; /* Blue links */
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Header Section -->
+<header class="bg-gray-900 py-4 shadow-lg">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Discussion Forms</h1>
+    <p class="text-xl md:text-2xl mb-8">Create new threads and engage with the Arcator community!</p>
+  </div>
+</section>
+
+<!-- Main Content Section: Forms and Threads -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You need to be logged in to create new discussion threads.
+        You can view existing threads without logging in.
+      </p>
+      <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    </div>
+
+    <!-- New Thread Form (visible only to logged-in users) -->
+    <div id="new-thread-section" class="bg-gray-900 p-8 rounded-lg shadow-md mb-12" style="display: none;">
+      <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Create New Discussion Thread</h2>
+      <form id="create-thread-form" class="space-y-6">
+        <div>
+          <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
+          <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Ideas for New Mini-Games">
+        </div>
+        <div>
+          <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content (Markdown, HTML, or plain text. Link images/videos directly):</label>
+          <textarea id="thread-content" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Start your discussion here. You can include links to images (.jpg, .png, .gif) and videos (.mp4, .webm) and they will be embedded."></textarea>
+          <p class="text-gray-400 text-xs mt-1">Example image: `https://example.com/image.png`</p>
+          <p class="text-gray-400 text-xs mt-1">Example video: `https://example.com/video.mp4`</p>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
+          Create Thread
+        </button>
+        <p id="form-message" class="text-center mt-4 text-green-400" style="display: none;"></p>
+      </form>
+    </div>
+
+    <!-- Existing Discussion Threads -->
+    <div class="mt-12">
+      <h2 class="text-3xl font-bold text-red-400 mb-6 text-center">Recent Discussions</h2>
+      <div id="threads-container">
+        <!-- Threads will be dynamically loaded here -->
+        <p id="no-threads-message" class="text-center text-gray-400" style="display: none;">No discussion threads found yet. Be the first to create one!</p>
+        <p id="threads-loading-error" class="text-center text-red-500" style="display: none;">Error loading threads. Please try again later.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-forms"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Firebase SDKs and Forms Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithCustomToken,
+    signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    query,
+    orderBy,
+    onSnapshot,
+    serverTimestamp,
+    doc // Needed for potential future features like direct thread linking
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.appspot.com",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  // Ensure global __app_id and __initial_auth_token are accessible
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+  // Determine appId for Firestore path - prioritize Canvas provided, then project ID
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  const initialAuthToken = canvasInitialAuthToken;
+
+  // Initialize Firebase
+  let app;
+  let auth;
+  let db;
+  let currentUser = null; // To store the current authenticated user
+
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log("Firebase initialized successfully.");
+  } catch (e) {
+    console.error("Error initializing Firebase:", e);
+    document.getElementById('threads-loading-error').textContent = 'Error initializing Firebase. Cannot load or create threads.';
+    document.getElementById('threads-loading-error').style.display = 'block';
+  }
+
+  // DOM Elements
+  const loadingSpinner = document.getElementById('loading-spinner');
+  const loginRequiredMessage = document.getElementById('login-required-message');
+  const newThreadSection = document.getElementById('new-thread-section');
+  const createThreadForm = document.getElementById('create-thread-form');
+  const threadTitleInput = document.getElementById('thread-title');
+  const threadContentTextarea = document.getElementById('thread-content');
+  const formMessage = document.getElementById('form-message');
+  const threadsContainer = document.getElementById('threads-container');
+  const noThreadsMessage = document.getElementById('no-threads-message');
+  const threadsLoadingError = document.getElementById('threads-loading-error');
+
+  /**
+   * Displays a message for the form (success/error).
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True if it's an error, false for success.
+   */
+  function showFormMessage(message, isError) {
+    formMessage.textContent = message;
+    formMessage.style.display = 'block';
+    formMessage.classList.remove('text-green-400', 'text-red-500');
+    if (isError) {
+      formMessage.classList.add('text-red-500');
+    } else {
+      formMessage.classList.add('text-green-400');
+    }
+    setTimeout(() => {
+      formMessage.style.display = 'none';
+    }, 5000);
+  }
+
+  /**
+   * Renders thread content, including embedding images and videos.
+   * @param {string} content - The raw content string.
+   * @returns {string} - HTML string with embedded media.
+   */
+  function renderThreadContent(content) {
+    // Regex to find common image and video URLs
+    const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))(?:\s|$)/gi;
+    const videoRegex = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))(?:\s|$)/gi;
+
+    let htmlContent = content;
+
+    // Replace video URLs with <video> tags
+    htmlContent = htmlContent.replace(videoRegex, (match, url) => {
+      return `<div class="media-container"><video controls class="w-full rounded-md" src="${url}"><source src="${url}" type="video/${url.split('.').pop()}">Your browser does not support the video tag.</video></div>`;
+    });
+
+    // Replace image URLs with <img> tags
+    htmlContent = htmlContent.replace(imageRegex, (match, url) => {
+      return `<div class="media-container"><img class="w-full rounded-md" src="${url}" alt="Embedded Image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/cccccc/000000?text=Image+Load+Error';"></div>`;
+    });
+
+    // Convert newlines to <br> for basic formatting
+    htmlContent = htmlContent.replace(/\n/g, '<br>');
+
+    // Basic link detection for any remaining URLs that weren't media
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    htmlContent = htmlContent.replace(urlRegex, (match) => {
+      return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
+    });
+
+
+    return htmlContent;
+  }
+
+  // Set up Firebase Authentication listener
+  if (auth) {
+    onAuthStateChanged(auth, async (user) => {
+      loadingSpinner.style.display = 'none'; // Hide initial spinner
+
+      if (user) {
+        currentUser = user;
+        loginRequiredMessage.style.display = 'none';
+        newThreadSection.style.display = 'block';
+        console.log("User is logged in:", user.uid, user.displayName || user.email);
+      } else {
+        currentUser = null;
+        loginRequiredMessage.style.display = 'block';
+        newThreadSection.style.display = 'none';
+        console.log("User is logged out.");
+      }
+    });
+
+    // Handle initial custom token sign-in if available (for Canvas environment)
+    if (initialAuthToken) {
+      signInWithCustomToken(auth, initialAuthToken)
+        .then(() => {
+          console.log("Signed in with custom token.");
+        })
+        .catch((error) => {
+          console.error("Error signing in with custom token:", error);
+          signInAnonymously(auth)
+            .then(() => console.log("Signed in anonymously."))
+            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+        });
+    } else {
+      signInAnonymously(auth)
+        .then(() => console.log("Signed in anonymously (no custom token)."))
+        .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+    }
+  }
+
+  // Handle new thread creation
+  if (createThreadForm && db) {
+    createThreadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!currentUser) {
+        showFormMessage("You must be logged in to create a thread.", true);
+        return;
+      }
+
+      const title = threadTitleInput.value.trim();
+      const content = threadContentTextarea.value.trim();
+
+      if (!title || !content) {
+        showFormMessage("Thread title and content cannot be empty.", true);
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`), {
+          title: title,
+          content: content,
+          authorUid: currentUser.uid,
+          authorName: currentUser.displayName || currentUser.email || 'Anonymous User',
+          timestamp: serverTimestamp()
+        });
+        showFormMessage("Thread created successfully!", false);
+        threadTitleInput.value = '';
+        threadContentTextarea.value = '';
+      } catch (error) {
+        console.error("Error adding thread:", error);
+        showFormMessage(`Error creating thread: ${error.message || 'Unknown error'}`, true);
+      }
+    });
+  }
+
+  // Listen for real-time updates to discussion threads
+  if (db) {
+    const q = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`), orderBy("timestamp", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+      threadsContainer.innerHTML = ''; // Clear existing threads
+      if (snapshot.empty) {
+        noThreadsMessage.style.display = 'block';
+        threadsLoadingError.style.display = 'none';
+      } else {
+        noThreadsMessage.style.display = 'none';
+        threadsLoadingError.style.display = 'none';
+        snapshot.forEach((doc) => {
+          const thread = doc.data();
+          const threadElement = document.createElement('div');
+          threadElement.classList.add('thread-card');
+          const timestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
+
+          threadElement.innerHTML = `
+            <h3 class="text-2xl font-bold text-red-300 mb-2">${thread.title}</h3>
+            <p class="text-gray-400 text-sm mb-4">By ${thread.authorName} on ${timestamp}</p>
+            <div class="thread-content text-gray-200">
+                ${renderThreadContent(thread.content)}
+            </div>
+          `;
+          threadsContainer.appendChild(threadElement);
+        });
+      }
+    }, (error) => {
+      console.error("Error fetching real-time threads:", error);
+      threadsLoadingError.textContent = `Failed to load threads: ${error.message || 'Unknown error'}`;
+      threadsLoadingError.style.display = 'block';
+      noThreadsMessage.style.display = 'none';
+    });
+  }
+
+  // Get current year for footer
+  document.getElementById('current-year-forms').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
