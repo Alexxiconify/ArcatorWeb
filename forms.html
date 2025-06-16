@@ -117,6 +117,8 @@
         <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
@@ -212,7 +214,7 @@
     onSnapshot,
     serverTimestamp,
     doc,
-    getDoc // Added to fetch user profile data
+    getDoc // Added for fetching user profile data
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Firebase config
@@ -239,7 +241,6 @@
   let auth;
   let db;
   let currentUser = null; // To store the current authenticated user
-  let userProfileCache = {}; // Cache for user profiles to reduce Firestore reads
 
   try {
     app = initializeApp(firebaseConfig);
@@ -264,8 +265,37 @@
   const noThreadsMessage = document.getElementById('no-threads-message');
   const threadsLoadingError = document.getElementById('threads-loading-error');
 
-  // Default profile picture if none is available or Base64 is too large
-  const DEFAULT_PROFILE_PIC_BASE64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MEE1RkEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2luZWpvaW49InJvdW5kIj48cGF0aCBkPSJtMTYgNiAzLjQxIDMuNDFhMiAyIDAgMCAxIDAgMi44MmwtNS44NiA1Ljg2YSJTIDkgMTQgMiAyMiAzIDIgMiAyMC4yOSAxMy43MSA4LjQxIDExLjU5IDkuNzEgMTAuMjlaIj48L3BhdGg+PGNpcmNsZSBjeD0iOS41IiBjeT02LjUiIHI9IjEuNSI+PC9jaXJjbGU+PC9zdmc+'; // Simple person icon SVG as Base64
+  // Default profile picture if none is available (a generic placeholder or Discord default)
+  const DEFAULT_PROFILE_PIC = 'https://discord.com/assets/2c21aee833dc582d65203f6f75f2f960.svg'; // Discord default avatar URL
+
+  // Cache for user profiles to avoid repeated Firestore reads
+  const userProfileCache = {};
+
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfile(uid) {
+    if (userProfileCache[uid]) {
+      return userProfileCache[uid];
+    }
+    if (!db) {
+      console.warn("Firestore not initialized, cannot fetch user profile.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        userProfileCache[uid] = docSnap.data();
+        return userProfileCache[uid];
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+    return null;
+  }
 
   /**
    * Displays a message for the form (success/error).
@@ -292,21 +322,28 @@
    * @returns {string} - HTML string with embedded media.
    */
   function renderContentWithMedia(rawContent) {
+    // Regex for common image file extensions
     const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))(?:\s|$)/gi;
+    // Regex for common video file extensions
     const videoRegex = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))(?:\s|$)/gi;
 
     let processedContent = rawContent;
 
+    // Replace video URLs with <video> tags
     processedContent = processedContent.replace(videoRegex, (match, url) => {
       return `<div class="media-container"><video controls class="w-full rounded-md" src="${url}"><source src="${url}" type="video/${url.split('.').pop()}">Your browser does not support the video tag.</video></div>`;
     });
 
+    // Replace image URLs with <img> tags
     processedContent = processedContent.replace(imageRegex, (match, url) => {
+      // Add onerror to display a placeholder if the image fails to load
       return `<div class="media-container"><img class="w-full rounded-md" src="${url}" alt="Embedded Image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/cccccc/000000?text=Image+Load+Error';"></div>`;
     });
 
+    // Convert remaining newlines to <br> for basic paragraph breaks
     processedContent = processedContent.replace(/\n/g, '<br>');
 
+    // Basic link detection for any remaining URLs that weren't caught by media regex
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     processedContent = processedContent.replace(urlRegex, (match) => {
       return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
@@ -315,34 +352,6 @@
     return processedContent;
   }
 
-  /**
-   * Fetches user profile data from Firestore.
-   * Caches results to reduce reads.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object>} - User profile data (displayName, photoData)
-   */
-  async function getUserProfile(uid) {
-    if (userProfileCache[uid]) {
-      return userProfileCache[uid];
-    }
-    if (!db) {
-      console.error("Firestore not initialized for fetching user profile.");
-      return { displayName: 'Unknown User', photoData: DEFAULT_PROFILE_PIC_BASE64 };
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        const profile = docSnap.data();
-        userProfileCache[uid] = profile; // Cache the result
-        return profile;
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    }
-    // Return a default profile if not found or error
-    return { displayName: 'Anonymous User', photoData: DEFAULT_PROFILE_PIC_BASE64 };
-  }
 
   // Set up Firebase Authentication listener
   if (auth) {
@@ -399,10 +408,9 @@
         return;
       }
 
-      // Fetch current user's profile to include in the thread post
       const userProfile = await getUserProfile(currentUser.uid);
-      const authorName = userProfile.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
-      const authorPhotoData = userProfile.photoData || DEFAULT_PROFILE_PIC_BASE64;
+      const authorName = userProfile?.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
+      const authorPhotoURL = userProfile?.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC;
 
       try {
         await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`), {
@@ -410,7 +418,7 @@
           content: content,
           authorUid: currentUser.uid,
           authorName: authorName,
-          authorPhotoData: authorPhotoData, // Use photoData from Firestore profile
+          authorPhotoURL: authorPhotoURL,
           timestamp: serverTimestamp()
         });
         showFormMessage("Thread created successfully!", false);
@@ -438,17 +446,16 @@
       return;
     }
 
-    // Fetch current user's profile to include in the comment
     const userProfile = await getUserProfile(currentUser.uid);
-    const authorName = userProfile.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
-    const authorPhotoData = userProfile.photoData || DEFAULT_PROFILE_PIC_BASE64;
+    const authorName = userProfile?.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
+    const authorPhotoURL = userProfile?.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC;
 
     try {
       await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), {
         content: commentContent,
         authorUid: currentUser.uid,
         authorName: authorName,
-        authorPhotoData: authorPhotoData, // Use photoData from Firestore profile
+        authorPhotoURL: authorPhotoURL,
         timestamp: serverTimestamp()
       });
       console.log("Comment added successfully to thread:", threadId);
@@ -463,7 +470,7 @@
   if (db) {
     const q = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`), orderBy("timestamp", "desc"));
 
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(q, async (snapshot) => { // Made callback async to await getUserProfile
       threadsContainer.innerHTML = ''; // Clear existing threads
       if (snapshot.empty) {
         noThreadsMessage.style.display = 'block';
@@ -471,18 +478,23 @@
       } else {
         noThreadsMessage.style.display = 'none';
         threadsLoadingError.style.display = 'none';
-        snapshot.forEach((threadDoc) => {
+        // Process threads in parallel to fetch user profiles
+        const threadPromises = snapshot.docs.map(async (threadDoc) => {
           const thread = threadDoc.data();
-          const threadId = threadDoc.id; // Get the ID of the thread document
+          const threadId = threadDoc.id;
+          const threadTimestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
+
+          // Fetch author profile
+          const authorProfile = await getUserProfile(thread.authorUid);
+          const authorName = authorProfile?.displayName || thread.authorName || 'Anonymous User';
+          const authorPhotoURL = authorProfile?.photoURL || thread.authorPhotoURL || DEFAULT_PROFILE_PIC;
+
           const threadElement = document.createElement('div');
           threadElement.classList.add('thread-card');
-          const threadTimestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
-          const threadAuthorPhoto = thread.authorPhotoData || DEFAULT_PROFILE_PIC_BASE64; // Use photoData
-
           threadElement.innerHTML = `
             <div class="profile-info">
-                <img src="${threadAuthorPhoto}" alt="${thread.authorName}'s profile picture" class="profile-pic">
-                <p class="font-semibold text-gray-200">${thread.authorName}</p>
+                <img src="${authorPhotoURL}" alt="${authorName}'s profile picture" class="profile-pic" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PIC}';">
+                <p class="font-semibold text-gray-200">${authorName}</p>
             </div>
             <h3 class="text-2xl font-bold text-red-300 mb-2">${thread.title}</h3>
             <p class="text-gray-400 text-sm mb-4">Posted on ${threadTimestamp}</p>
@@ -493,61 +505,68 @@
                 <h4 class="text-xl font-semibold text-gray-300 mb-3">Comments:</h4>
                 <div id="comments-${threadId}" class="comments-list">
                     <!-- Comments will be loaded here -->
-          <p class="text-gray-500">Loading comments...</p>
-          </div>
-            <!-- Comment form -->
-          <div class="mt-4">
-          <textarea id="comment-input-${threadId}" rows="3" class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Add a comment..."></textarea>
-          <button data-thread-id="${threadId}" class="post-comment-btn bg-green-600 text-white font-bold py-2 px-4 rounded-full mt-2 hover:bg-green-700 transition duration-300 ease-in-out">Post Comment</button>
-          </div>
-          </div>
+                    <p class="text-gray-500">Loading comments...</p>
+                </div>
+                <!-- Comment form -->
+                <div class="mt-4">
+                    <textarea id="comment-input-${threadId}" rows="3" class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Add a comment..."></textarea>
+                    <button data-thread-id="${threadId}" class="post-comment-btn bg-green-600 text-white font-bold py-2 px-4 rounded-full mt-2 hover:bg-green-700 transition duration-300 ease-in-out">Post Comment</button>
+                </div>
+            </div>
           `;
           threadsContainer.appendChild(threadElement);
 
           // Listen for comments for this specific thread
           const commentsQuery = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), orderBy("timestamp", "asc"));
-          onSnapshot(commentsQuery, (commentSnapshot) => {
-              const commentsListDiv = document.getElementById(`comments-${threadId}`);
-              commentsListDiv.innerHTML = ''; // Clear existing comments
+          onSnapshot(commentsQuery, async (commentSnapshot) => { // Made callback async
+            const commentsListDiv = document.getElementById(`comments-${threadId}`);
+            commentsListDiv.innerHTML = ''; // Clear existing comments
 
-              if (commentSnapshot.empty) {
-                  commentsListDiv.innerHTML = '<p class="text-gray-500">No comments yet.</p>';
-              } else {
-                  commentSnapshot.forEach((commentDoc) => {
-                      const comment = commentDoc.data();
-                      const commentTimestamp = comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now';
-                      const commentAuthorPhoto = comment.authorPhotoData || DEFAULT_PROFILE_PIC_BASE64;
-                      const commentElement = document.createElement('div');
-                      commentElement.classList.add('comment-card');
-                      commentElement.innerHTML = `
-          <div class="profile-info">
-          <img src="${commentAuthorPhoto}" alt="${comment.authorName}'s profile picture" class="profile-pic">
-          <p class="text-gray-300 font-semibold">${comment.authorName} <span class="text-gray-500 text-xs">on ${commentTimestamp}</span></p>
-          </div>
-          <div class="comment-content text-gray-200 mt-1">
-          ${renderContentWithMedia(comment.content)}
-          </div>
-          `;
-                      commentsListDiv.appendChild(commentElement);
-                  });
-              }
+            if (commentSnapshot.empty) {
+              commentsListDiv.innerHTML = '<p class="text-gray-500">No comments yet.</p>';
+            } else {
+              // Process comments in parallel to fetch user profiles
+              const commentPromises = commentSnapshot.docs.map(async (commentDoc) => {
+                const comment = commentDoc.data();
+                const commentTimestamp = comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now';
+
+                const commentAuthorProfile = await getUserProfile(comment.authorUid);
+                const commentAuthorName = commentAuthorProfile?.displayName || comment.authorName || 'Anonymous User';
+                const commentAuthorPhoto = commentAuthorProfile?.photoURL || comment.authorPhotoURL || DEFAULT_PROFILE_PIC;
+
+                const commentElement = document.createElement('div');
+                commentElement.classList.add('comment-card');
+                commentElement.innerHTML = `
+                          <div class="profile-info">
+                              <img src="${commentAuthorPhoto}" alt="${commentAuthorName}'s profile picture" class="profile-pic" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PIC}';">
+                              <p class="text-gray-300 font-semibold">${commentAuthorName} <span class="text-gray-500 text-xs">on ${commentTimestamp}</span></p>
+                          </div>
+                          <div class="comment-content text-gray-200 mt-1">
+                              ${renderContentWithMedia(comment.content)}
+                          </div>
+                      `;
+                commentsListDiv.appendChild(commentElement);
+              });
+              await Promise.all(commentPromises); // Wait for all comments to be processed
+            }
           }, (commentError) => {
-              console.error(`Error fetching comments for thread ${threadId}:`, commentError);
-              const commentsListDiv = document.getElementById(`comments-${threadId}`);
-              commentsListDiv.innerHTML = `<p class="text-red-500">Error loading comments.</p>`;
+            console.error(`Error fetching comments for thread ${threadId}:`, commentError);
+            const commentsListDiv = document.getElementById(`comments-${threadId}`);
+            commentsListDiv.innerHTML = `<p class="text-red-500">Error loading comments.</p>`;
           });
 
           // Add event listener for the comment button after it's been added to DOM
           const postCommentBtn = threadElement.querySelector(`.post-comment-btn[data-thread-id="${threadId}"]`);
           if (postCommentBtn) {
-              postCommentBtn.addEventListener('click', () => {
-                  const commentInput = document.getElementById(`comment-input-${threadId}`);
-                  const commentContent = commentInput.value;
-                  addCommentToThread(threadId, commentContent);
-                  commentInput.value = ''; // Clear input after posting
-              });
+            postCommentBtn.addEventListener('click', () => {
+              const commentInput = document.getElementById(`comment-input-${threadId}`);
+              const commentContent = commentInput.value;
+              addCommentToThread(threadId, commentContent);
+              commentInput.value = ''; // Clear input after posting
+            });
           }
         });
+        await Promise.all(threadPromises); // Wait for all threads and their initial comments to be processed
       }
     }, (error) => {
       console.error("Error fetching real-time threads:", error);
