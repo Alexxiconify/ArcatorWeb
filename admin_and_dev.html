@@ -151,6 +151,23 @@
       text-decoration: none;
       cursor: pointer;
     }
+    /* Custom confirmation modal */
+    .custom-confirm-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2D3748;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      z-index: 1002;
+      text-align: center;
+      color: white;
+      width: 90%;
+      max-width: 400px;
+      display: none; /* Hidden by default */
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -436,6 +453,14 @@
   </div>
 </div>
 
+<!-- Custom Confirmation Modal (for delete operations) -->
+<div id="custom-confirm-modal" class="custom-confirm-modal" style="display: none;">
+  <p class="mb-4 text-lg" id="confirm-message"></p>
+  <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+  <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+  <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+</div>
+
 
 <!-- Firebase SDKs -->
 <script type="module">
@@ -519,6 +544,12 @@
   const logoutBtn = document.getElementById('logout-btn');
   const adminUserDisplay = document.getElementById('admin-user-display');
   const messageBox = document.getElementById('message-box');
+  const customConfirmModal = document.getElementById('custom-confirm-modal');
+  const confirmMessage = document.getElementById('confirm-message');
+  const confirmSubmessage = document.getElementById('confirm-submessage');
+  const confirmYesBtn = document.getElementById('confirm-yes');
+  const confirmNoBtn = document.getElementById('confirm-no');
+
 
   // User Management DOM elements
   const loadUsersBtn = document.getElementById('load-users-btn');
@@ -561,6 +592,38 @@
       messageBox.style.display = 'none';
     }, 5000); // Hide after 5 seconds
   }
+
+  /**
+   * Shows a custom confirmation modal.
+   * @param {string} message - The main confirmation message.
+   * @param {string} [subMessage=''] - An optional sub-message.
+   * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
+   */
+  function showCustomConfirm(message, subMessage = '') {
+    return new Promise(resolve => {
+      confirmMessage.textContent = message;
+      confirmSubmessage.textContent = subMessage;
+      customConfirmModal.style.display = 'flex'; // Show modal
+
+      const onConfirm = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(false);
+      };
+
+      confirmYesBtn.addEventListener('click', onConfirm);
+      confirmNoBtn.addEventListener('click', onCancel);
+    });
+  }
+
 
   /**
    * Fetches user profile data from Firestore.
@@ -622,9 +685,12 @@
       showMessageBox("Database not initialized. Cannot delete profile.", true);
       return;
     }
-    if (!confirm(`Are you sure you want to delete user profile for UID: ${uid}? This will NOT delete the Firebase Authentication account.`)) {
+    const confirmation = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
       return; // User cancelled
     }
+
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
       console.log(`DEBUG: Attempting to delete user profile for UID: ${uid} from path: artifacts/${appId}/public/data/user_profiles/${uid}`);
@@ -752,6 +818,9 @@
     }
     if (event.target === editTempPageModal) {
       editTempPageModal.style.display = 'none';
+    }
+    if (event.target === customConfirmModal) { // Close custom confirm too
+      customConfirmModal.style.display = 'none';
     }
   });
 
@@ -917,31 +986,7 @@
       return;
     }
     // Using a custom modal instead of browser's confirm() due to iframe restrictions
-    const confirmation = await new Promise(resolve => {
-      const confirmBox = document.createElement('div');
-      confirmBox.style.cssText = `
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #2D3748; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 1002; text-align: center; color: white;
-            width: 90%; max-width: 400px;
-        `;
-      confirmBox.innerHTML = `
-            <p class="mb-4 text-lg">Are you sure you want to delete this temporary page?</p>
-            <p class="mb-6 text-sm text-gray-400">This action cannot be undone.</p>
-            <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes, Delete</button>
-            <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
-        `;
-      document.body.appendChild(confirmBox);
-
-      document.getElementById('confirm-yes').onclick = () => {
-        document.body.removeChild(confirmBox);
-        resolve(true);
-      };
-      document.getElementById('confirm-no').onclick = () => {
-        document.body.removeChild(confirmBox);
-        resolve(false);
-      };
-    });
+    const confirmation = await showCustomConfirm("Are you sure you want to delete this temporary page?", "This action cannot be undone.");
 
     if (!confirmation) {
       showMessageBox("Deletion cancelled.", false);
@@ -1034,8 +1079,9 @@
     });
 
     // Handle initial custom token sign-in for Canvas environment only if no user already authenticated
-    if (initialAuthToken && !auth.currentUser) {
-      signInWithCustomToken(auth, initialAuthToken)
+    // Corrected: Use global __initial_auth_token directly.
+    if (typeof __initial_auth_token !== 'undefined' && !auth.currentUser) {
+      signInWithCustomToken(auth, __initial_auth_token) // Direct use of global variable
         .then(() => {
           console.log("DEBUG: Signed in with custom token from Canvas (admin_dev page).");
         })
