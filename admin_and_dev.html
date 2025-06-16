@@ -13,18 +13,11 @@
      * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
-      /* Default to dark theme for consistency */
       background-color: #1F2937;
       color: #E5E7EB;
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
-    }
-    /* Light theme styles - these will be applied dynamically */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light gray */
-      color: #1F2937; /* Dark text */
-      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
     }
     /* Styles for the hero banner section, including a background image,
      * sizing, positioning, and a dark overlay for text readability. */
@@ -40,7 +33,8 @@
       position: relative; /* Needed for the pseudo-element overlay */
       overflow: hidden; /* Hides any overflow from the background image */
     }
-    /* Pseudo-element for a dark overlay on the hero banner, improving text contrast. */
+    /* Pseudo-element for the dark overlay on the hero banner,
+     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -48,184 +42,116 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* 50% black overlay */
-      z-index: 1; /* Ensures the overlay is above the image but below content */
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
     }
-    /* Styles for the content within the hero banner, placing it above the overlay. */
+    /* Styles for the content within the hero banner,
+     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
-      z-index: 2; /* Ensures content is above the overlay */
-      color: white; /* White text for contrast */
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Adds shadow for readability */
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
-    /* General styling for cards or sections, providing a distinct background and rounded corners. */
-    .card-section {
-      background-color: #2D3748; /* Darker grey background for sections */
-      border-radius: 0.75rem; /* Rounded corners for the cards/sections */
-      padding: 1.5rem; /* Padding inside the cards */
-      box-shadow: 0 5px 10px rgba(0,0,0,0.2); /* Subtle shadow for depth */
-      margin-bottom: 1.5rem; /* Space between cards */
-    }
-    .theme-light .card-section {
-      background-color: #FFFFFF; /* White background for cards in light theme */
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-    }
-    /* Styling for tables, ensuring readability and visual separation. */
+    /* Basic table styling for full width and collapsed borders. */
     table {
       width: 100%;
-      border-collapse: collapse; /* Collapses borders between cells */
-      margin-top: 1.5rem; /* Space above the table */
+      border-collapse: collapse;
     }
+    /* Styles for table headers and data cells, including padding,
+     * text alignment, and bottom border. */
     th, td {
-      border: 1px solid #4A5568; /* Light grey border for cells */
-      padding: 0.75rem; /* Padding inside cells */
-      text-align: left; /* Aligns text to the left */
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #374151; /* Darker border for table rows */
     }
+    /* Styles specifically for table headers, including background color,
+     * text color, font weight, and text transformation. */
     th {
-      background-color: #4A5568; /* Darker background for table headers */
-      color: #E5E7EB; /* Light text for headers */
-      font-weight: 600; /* Semi-bold font for headers */
+      background-color: #374151; /* Darker header background */
+      color: #F87171; /* Red text for headers */
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    .theme-light th {
-      background-color: #D1D5DB; /* Light gray for headers in light theme */
-      color: #1F2937; /* Dark text */
-    }
+    /* Alternating background color for even table rows for better readability. */
     tr:nth-child(even) {
-      background-color: #2D3748; /* Zebra striping for table rows */
+      background-color: #2F3B4E; /* Slightly different background for even rows */
     }
-    .theme-light tr:nth-child(even) {
-      background-color: #F9FAFB; /* Lighter background for even rows in light theme */
-    }
+    /* Hover effect for table rows, changing background color on mouse-over. */
     tr:hover {
-      background-color: #374151; /* Hover effect for table rows */
+      background-color: #4B5563; /* Lighter background on hover */
     }
-    .theme-light tr:hover {
-      background-color: #E5E7EB; /* Lighter hover for light theme */
-    }
-    /* Message box styles for alerts/feedback instead of browser alerts */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
-    }
-    .message-box.success {
-      background-color: #4CAF50; /* Green for success */
-    }
-    .message-box.error {
-      background-color: #F44336; /* Red for error */
+    /* Styling for code blocks, including background, padding, border-radius,
+     * font family, and overflow properties for better code display. */
+    .code-block {
+      background-color: #2D3748;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
   </style>
 </head>
 <body class="antialiased">
-<!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
-        <!-- Removed for brevity: Privacy Policy and Terms of Service -->
-      </ul>
-    </nav>
-  </div>
-</header>
+<!-- Navigation Bar Placeholder -->
+<div id="navbar-placeholder"></div>
 
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Admin & Dev Portal</h1>
-    <p class="text-xl md:text-2xl mb-8">Exclusive access for Arcator administrators and developers.</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
+    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
   </div>
 </section>
 
-<!-- Main Content Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Admin & Dev Section Content -->
+<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <!-- Loading Spinner -->
-    <div id="loading-spinner" class="flex justify-center items-center h-48">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
+    <h2 class="text-4xl font-bold text-center mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>>
 
-    <!-- Login Required Message / Redirect -->
-    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
-      <p class="text-lg text-gray-300 mb-8">
-        You must be logged in as an administrator to access this page.
-      </p>
-      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
-    </div>
-
-    <!-- Admin Content Section (visible only to authenticated admins) -->
-    <div id="admin-content" style="display: none;">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-red-400">Welcome, Admin <span id="admin-user-display"></span>!</h2>
-        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+      <!-- Darrion API Section -->
+      <div>
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
+        <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
+          <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
+          <li><span class="font-semibold text-white">GET plugin updates</span></li>
+        </ul>
       </div>
 
-      <p class="text-lg text-gray-300 mb-8">
-        This portal provides tools and information for managing Arcator infrastructure and development.
-      </p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Infrastructure Management Card -->
-        <div class="card-section">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Infrastructure Management</h3>
-          <p class="text-gray-300 mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Review server logs and performance metrics.</li>
-            <li>Perform routine maintenance tasks.</li>
-            <li>Manage user permissions on core systems.</li>
-            <li>Oversee backup and recovery procedures.</li>
-          </ul>
-          <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
-        </div>
-
-        <!-- Development Tools Card -->
-        <div class="card-section">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Development Tools & Wiki</h3>
-          <p class="text-gray-300 mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Access the code repositories and version control.</li>
-            <li>Contribute to ongoing development projects.</li>
-            <li>Update and maintain the official Arcator Wiki.</li>
-            <li>Collaborate on new features and bug fixes.</li>
-          </ul>
-          <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
-        </div>
-
-        <!-- System Monitoring and Alerts -->
-        <div class="card-section md:col-span-2">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">System Monitoring and Alerts</h3>
-          <p class="text-gray-300 mb-4">Critical alerts and system status updates for immediate action.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Monitors server uptime and service availability.</li>
-            <li>Checks if disk space is critically low or nearly full.</li>
-            <li>Detects and alerts on drive corruption.</li>
-            <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-            <li>Alerts when Jylina's Ngrok IP address changes.</li>
-            <li>Handles `#machine-status` updates every minute.</li>
-          </ul>
-        </div>
+      <!-- GriefDetection Section -->
+      <div>
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li>Regular checks for griefs and automated analysis of player actions.</li>
+          <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
+          <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
+          <!-- Added rel="noopener noreferrer" for security when opening external links -->
+          <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+          <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+        </ul>
       </div>
+    </div>
+
+    <!-- Onfim Notifications Section -->
+    <div class="mt-16">
+      <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
+      <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
+      <ul class="list-disc list-inside text-gray-300 space-y-2">
+        <li>Warns staff on Discord when disk space is nearly full.</li>
+        <li>Detects and alerts on drive corruption.</li>
+        <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+        <li>Alerts when Jylina's Ngrok IP address changes.</li>
+        <li>Handles `#machine-status` updates every minute.</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -234,9 +160,11 @@
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <!-- Added rel="noopener noreferrer" for security when opening external links -->
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
@@ -262,6 +190,25 @@
     doc,
     getDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Function to load the navigation bar
+  async function loadNavbar() {
+    try {
+      const response = await fetch('navbar.html');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const navbarHtml = await response.text();
+      document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
+    } catch (error) {
+      console.error("Failed to load navigation bar:", error);
+    }
+  }
+
+  // Load navbar when the page loads
+  window.onload = function() {
+    loadNavbar();
+    // Get current year for footer
+    document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
+  };
 
   // Firebase configuration object
   const firebaseConfig = {
@@ -450,9 +397,6 @@
       }
     });
   }
-
-  // Get current year for footer
-  document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
