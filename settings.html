@@ -74,6 +74,7 @@
         <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <!-- Removed for brevity: Privacy Policy and Terms of Service -->
       </ul>
     </nav>
   </div>
@@ -131,7 +132,6 @@
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-settings"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
@@ -279,8 +279,10 @@
       // Load existing profile from Firestore
       const userProfile = await getUserProfileFromFirestore(user.uid);
 
+      // Populate input fields with Firestore data first, then Auth data if Firestore is empty
       displayNameInput.value = userProfile?.displayName || user.displayName || '';
       profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
+      // Set the display image with Firestore data first, then Auth, then default
       profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
 
     } else {
@@ -346,14 +348,13 @@
 
     try {
       // Update Firebase Auth profile directly (for displayName and photoURL from provider)
-      // Note: For email/password users, photoURL and displayName updated here are not persisted by Firebase Auth
-      // across sessions without a separate DB. We are handling persistence in Firestore.
+      // For email/password users, these are not persistently stored by Auth, so Firestore is key.
       await updateProfile(currentUser, {
         displayName: newDisplayName,
         photoURL: newPhotoURL || null // Set to null if empty so Auth cleans it up if possible
       });
 
-      // Also save to Firestore for persistence and easy retrieval across the app
+      // Crucially, save to Firestore for persistence and easy retrieval across the app
       await updateUserProfileInFirestore(currentUser.uid, profileDataToSave);
 
       // Update UI immediately (especially for photo if Auth update is delayed or doesn't apply)
