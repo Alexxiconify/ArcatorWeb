@@ -9,8 +9,6 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles for the body, applying a dark background, light text,
-     * and a subtle diagonal gradient for texture. */
     body {
       font-family: 'Inter', sans-serif;
       /* Base background color: A dark grey-blue, reminiscent of Cyndaquil's back/head and dark Minecraft stone */
@@ -22,22 +20,18 @@
       background-size: 20px 20px; /* Size of the repeating pattern */
       background-attachment: fixed; /* Keeps background fixed during scroll */
     }
-    /* Styles for the hero banner section, including a background image,
-     * sizing, positioning, and a dark overlay for text readability. */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 400px; /* Adjust height as needed */
+      min-height: 400px; /* Increased height for visual impact */
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow: hidden; /* Ensure content doesn't overflow rounded corners */
+      overflow: hidden;
     }
-    /* Pseudo-element for the dark overlay on the hero banner,
-     * ensuring text readability over the background image. */
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -48,13 +42,39 @@
       background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
-    /* Styles for the content within the hero banner,
-     * positioning it above the overlay and applying text shadow. */
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
+    }
+    .feature-card {
+      background-color: #2D3748; /* Slightly lighter dark grey for cards */
+      border-radius: 0.75rem; /* More rounded corners */
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3); /* Stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
+    }
+    .minecraft-ip-box {
+      background-color: #1A202C; /* Even darker for the IP box */
+      border: 2px solid #4A5568; /* Subtle border */
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    .copy-button {
+      background-color: #4CAF50; /* Green for copy button */
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+    }
+    .copy-button:hover {
+      background-color: #45a049; /* Darker green on hover */
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -72,69 +92,83 @@
         <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
         <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <!-- Added rel="noopener noreferrer" for security when opening external links -->
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Privacy Policy</a></li>
+        <li><a href="terms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Terms of Service</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
-<!-- Hero Section with Background Image -->
+<!-- Hero Section with Background Image and Call to Action -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Welcome to Arcator.co.uk</h1>
-    <p class="text-xl md:text-2xl mb-8">Your Premier Minecraft Community Since 2012</p>
-    <a href="#join-us" class="bg-amber-400 text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-amber-300 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Adventure!</a>
+    <h1 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight">Arcator.co.uk</h1>
+    <p class="text-xl md:text-3xl mb-8">Your Minecraft Home Since 2012</p>
+    <div class="space-y-4 sm:space-y-0 sm:space-x-4">
+      <a href="servers.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Explore Servers</a>
+      <a href="community.html" class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Community</a>
+    </div>
   </div>
 </section>
 
-<!-- Short Intro Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center">
+<!-- About Section -->
+<section id="about" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold mb-6 text-amber-400">Your Home for Minecraft Adventures</h2>
-    <p class="text-lg leading-relaxed text-gray-100 max-w-3xl mx-auto">
-      Arcator.co.uk is a long-standing Minecraft community founded in 2012, dedicated to providing a friendly and engaging environment for players worldwide. We offer a variety of game modes, foster a vibrant community, and even explore other games together!
+    <h2 class="text-4xl font-bold text-red-400 mb-6">About Arcator.co.uk</h2>
+    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
+      Arcator is a long-standing Minecraft community, first established in 2012. We pride ourselves on providing a stable, fun, and evolving environment for players to enjoy various Minecraft experiences, from survival to creative building, all while fostering a friendly and engaged community.
     </p>
-    <div class="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-      <a href="about.html" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Learn About Us</a>
-      <a href="servers.html" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Explore Servers</a>
+    <a href="about.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Learn More About Us</a>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-12">What We Offer</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Feature Card 1: Diverse Servers -->
+      <div class="feature-card text-center">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Diverse Server Experiences</h3>
+        <p class="text-gray-300">From classic Survival Multiplayer to creative plots and unique mini-games, our servers cater to all playstyles. Find your perfect Minecraft adventure!</p>
+        <a href="servers.html" class="mt-4 inline-block text-blue-400 hover:text-blue-200 transition duration-300 ease-in-out">Explore Servers &rarr;</a>
+      </div>
+      <!-- Feature Card 2: Active Community -->
+      <div class="feature-card text-center">
+        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Engaged & Friendly Community</h3>
+        <p class="text-gray-300">Join our Discord, participate in events, and connect with fellow Minecraft enthusiasts. We believe in fostering a welcoming environment for everyone.</p>
+        <a href="community.html" class="mt-4 inline-block text-yellow-400 hover:text-yellow-200 transition duration-300 ease-in-out">Join Our Discord &rarr;</a>
+      </div>
+      <!-- Feature Card 3: Dedicated Infrastructure -->
+      <div class="feature-card text-center">
+        <h3 class="text-2xl font-bold text-green-300 mb-4">Robust & Reliable Infrastructure</h3>
+        <p class="text-gray-300">Powered by dedicated hardware and custom solutions, our servers ensure a smooth, low-lag experience with excellent uptime and data security.</p>
+        <a href="infrastructure.html" class="mt-4 inline-block text-green-400 hover:text-green-200 transition duration-300 ease-in-out">View Infrastructure &rarr;</a>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Join Us Section -->
-<section id="join-us" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-4xl font-bold mb-8 text-orange-400">Ready to Join Arcator?</h2>
-    <p class="text-xl mb-8 text-gray-300">It's easy to get started! Follow these simple steps to join our Minecraft adventure.</p>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Step 1 Card -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-orange-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <div class="text-5xl mb-4 text-orange-300">1</div>
-        <h3 class="text-2xl font-bold mb-4 text-orange-200">Launch Minecraft</h3>
-        <p class="text-gray-300">Open your Minecraft game client (Java Edition recommended).</p>
-      </div>
-
-      <!-- Step 2 Card -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-orange-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <div class="text-5xl mb-4 text-orange-300">2</div>
-        <h3 class="text-2xl font-bold mb-4 text-orange-200">Add Server</h3>
-        <p class="text-gray-300">Click on 'Multiplayer' then 'Add Server'.</p>
-      </div>
-
-      <!-- Step 3 Card -->
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 hover:border-orange-500 transition duration-300 ease-in-out transform hover:scale-105">
-        <div class="text-5xl mb-4 text-orange-300">3</div>
-        <h3 class="text-2xl font-bold mb-4 text-orange-200">Enter Details</h3>
-        <p class="text-gray-300 mb-6">Server Name: <span class="font-semibold text-white">Arcator.co.uk</span><br>Server Address: <span class="font-semibold text-white">apollo.arcator.co.uk</span></p>
-        <button id="copyIpButton" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out">Copy IP</button>
+<section id="join-us" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-red-400 mb-6">Join Our Minecraft Community!</h2>
+    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
+      Ready to embark on your next Minecraft adventure? Connect to our server, join our Discord, and become a part of the Arcator family!
+    </p>
+    <div class="minecraft-ip-box bg-gray-700 p-6 rounded-lg max-w-lg mx-auto shadow-xl">
+      <p class="text-3xl font-extrabold text-green-400 mb-4">Server IP:</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <span id="minecraft-ip" class="bg-gray-600 text-white text-2xl font-semibold px-6 py-3 rounded-md select-all">play.arcator.co.uk</span>
+        <button id="copyIpButton" class="copy-button">Copy IP</button>
       </div>
     </div>
-
-    <p class="text-lg mt-12 text-gray-400">We look forward to seeing you in-game!</p>
+    <div class="mt-8">
+      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+    </div>
   </div>
 </section>
 
@@ -144,9 +178,8 @@
     <p>© 2012 - <span id="current-year-index"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <!-- Added rel="noopener noreferrer" for security when opening external links -->
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
@@ -165,7 +198,6 @@
     tempInput.value = ipAddress;
     document.body.appendChild(tempInput);
     tempInput.select();
-    // Using the recommended document.execCommand('copy') for better iframe compatibility
     document.execCommand('copy');
     // Provide feedback to the user (e.g., change button text or show a temporary message)
     const originalText = this.textContent;
@@ -173,7 +205,7 @@
     setTimeout(() => {
       this.textContent = originalText;
     }, 2000);
-    document.body.removeChild(tempInput); // Remove the temporary input after copying
+    document.body.removeChild(tempInput); // Clean up the temporary input element
   });
 </script>
 </body>
