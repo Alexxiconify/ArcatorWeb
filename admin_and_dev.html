@@ -254,7 +254,7 @@
           <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
         </div>
 
-        <!-- NEW: Temporary Pages Card -->
+        <!-- Temporary Pages Card -->
         <div class="p-6 bg-gray-700 rounded-lg shadow-md">
           <h3 class="text-2xl font-bold text-blue-300 mb-4">Temporary Pages</h3>
           <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
@@ -273,6 +273,23 @@
           <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
             <li>No temporary pages created yet.</li>
           </ul>
+        </div>
+
+        <!-- Modal for editing temp pages -->
+        <div id="edit-temp-page-modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
+            <div class="mb-4">
+              <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+              <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+              <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+              <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
+            </div>
+            <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+          </div>
         </div>
 
         <!-- NEW: Important Links Card -->
