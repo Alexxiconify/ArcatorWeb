@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Settings - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #1F2937;
+      color: #E5E7EB;
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+    .profile-pic-large {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #60A5FA;
+      box-shadow: 0 0 15px rgba(96, 165, 250, 0.5); /* Blue glow */
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Header Section -->
+<header class="bg-gray-900 py-4 shadow-lg">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
+        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
+        <li><a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Settings</h1>
+    <p class="text-xl md:text-2xl mb-8">Manage your profile and preferences.</p>
+  </div>
+</section>
+
+<!-- Main Content Section: Settings Form -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <div id="loading-spinner" class="flex justify-center items-center h-48">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You need to be logged in to access your user settings.
+      </p>
+      <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    </div>
+
+    <div id="settings-content" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Your Profile</h2>
+
+      <div class="max-w-md mx-auto bg-gray-900 p-8 rounded-lg shadow-md space-y-6">
+        <div class="flex flex-col items-center">
+          <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/FFFFFF?text=JP" alt="Current Profile Picture">
+          <label for="profile-picture-upload" class="block text-gray-300 text-sm font-bold mb-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300 ease-in-out">
+            Upload New Profile Picture
+          </label>
+          <input type="file" id="profile-picture-upload" accept="image/*" class="hidden">
+          <p id="upload-status" class="text-gray-400 text-sm mt-2" style="display: none;"></p>
+        </div>
+
+        <div>
+          <label for="display-name-input" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
+          <input type="text" id="display-name-input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="Your display name">
+        </div>
+
+        <button id="update-profile-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
+          Update Profile
+        </button>
+        <p id="settings-message" class="text-center mt-4 text-green-400" style="display: none;"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-settings"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithCustomToken,
+    signInAnonymously,
+    updateProfile
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.appspot.com",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  const initialAuthToken = canvasInitialAuthToken;
+
+  let app;
+  let auth;
+  let storage;
+  let currentUser = null;
+  let isFirebaseInitialized = false;
+
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    storage = getStorage(app);
+    isFirebaseInitialized = true;
+    console.log("Firebase initialized successfully on settings page.");
+  } catch (e) {
+    console.error("Error initializing Firebase:", e);
+    document.getElementById('loading-spinner').style.display = 'none';
+    document.getElementById('login-required-message').style.display = 'block';
+    document.getElementById('login-required-message').innerHTML = '<h2 class="text-4xl font-bold text-red-400 mb-6">Error</h2><p class="text-lg text-gray-300 mb-8">Error initializing Firebase. Cannot load settings.</p>';
+  }
+
+  // DOM Elements
+  const loadingSpinner = document.getElementById('loading-spinner');
+  const loginRequiredMessage = document.getElementById('login-required-message');
+  const settingsContent = document.getElementById('settings-content');
+  const profilePictureDisplay = document.getElementById('profile-picture-display');
+  const profilePictureUpload = document.getElementById('profile-picture-upload');
+  const displayNameInput = document.getElementById('display-name-input');
+  const updateProfileBtn = document.getElementById('update-profile-btn');
+  const settingsMessage = document.getElementById('settings-message');
+  const uploadStatus = document.getElementById('upload-status');
+
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/FFFFFF?text=JP';
+
+  /**
+   * Displays a message on the settings page (success/error).
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True if it's an error, false for success.
+   */
+  function showSettingsMessage(message, isError) {
+    settingsMessage.textContent = message;
+    settingsMessage.style.display = 'block';
+    settingsMessage.classList.remove('text-green-400', 'text-red-500');
+    if (isError) {
+      settingsMessage.classList.add('text-red-500');
+    } else {
+      settingsMessage.classList.add('text-green-400');
+    }
+    setTimeout(() => {
+      settingsMessage.style.display = 'none';
+    }, 5000);
+  }
+
+  // Function to update UI based on user state
+  function updateUI(user) {
+    if (user) {
+      currentUser = user;
+      loadingSpinner.style.display = 'none';
+      loginRequiredMessage.style.display = 'none';
+      settingsContent.style.display = 'block';
+
+      displayNameInput.value = user.displayName || '';
+      profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
+    } else {
+      currentUser = null;
+      loadingSpinner.style.display = 'none';
+      loginRequiredMessage.style.display = 'block';
+      settingsContent.style.display = 'none';
+    }
+  }
+
+  // Auth state listener
+  if (isFirebaseInitialized && auth) {
+    onAuthStateChanged(auth, (user) => {
+      updateUI(user);
+    });
+
+    // Handle initial custom token sign-in
+    if (initialAuthToken) {
+      signInWithCustomToken(auth, initialAuthToken)
+        .then(() => {
+          console.log("Signed in with custom token on settings page.");
+        })
+        .catch((error) => {
+          console.error("Error signing in with custom token on settings page:", error);
+          signInAnonymously(auth)
+            .then(() => console.log("Signed in anonymously on settings page."))
+            .catch((anonError) => console.error("Error signing in anonymously on settings page:", anonError));
+        });
+    } else {
+      signInAnonymously(auth)
+        .then(() => console.log("Signed in anonymously (no custom token) on settings page."))
+        .catch((anonError) => console.error("Error signing in anonymously on settings page:", anonError));
+    }
+  }
+
+  // Handle profile picture upload
+  profilePictureUpload.addEventListener('change', async (event) => {
+    if (!currentUser) {
+      showSettingsMessage("Please log in to upload a profile picture.", true);
+      return;
+    }
+
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    // Basic file type validation (optional but good practice)
+    if (!file.type.startsWith('image/')) {
+      showSettingsMessage("Please upload an image file (e.g., JPG, PNG, GIF).", true);
+      return;
+    }
+
+    uploadStatus.textContent = 'Uploading...';
+    uploadStatus.style.display = 'block';
+    showSettingsMessage('', false); // Clear previous messages
+
+    const storageRef = ref(storage, `user_profiles/${currentUser.uid}/profile.png`);
+
+    try {
+      // Upload the file
+      const snapshot = await uploadBytes(storageRef, file);
+      // Get the public download URL
+      const photoURL = await getDownloadURL(snapshot.ref);
+
+      // Update user's profile with the new photo URL
+      await updateProfile(currentUser, { photoURL: photoURL });
+
+      profilePictureDisplay.src = photoURL; // Update immediate display
+      uploadStatus.textContent = 'Upload successful!';
+      showSettingsMessage("Profile picture updated successfully!", false);
+      console.log('Profile picture updated:', photoURL);
+
+    } catch (error) {
+      console.error("Error uploading or updating profile picture:", error);
+      uploadStatus.textContent = 'Upload failed!';
+      showSettingsMessage(`Error updating profile picture: ${error.message || 'Unknown error'}`, true);
+    }
+  });
+
+  // Handle display name update
+  updateProfileBtn.addEventListener('click', async () => {
+    if (!currentUser) {
+      showSettingsMessage("Please log in to update your profile.", true);
+      return;
+    }
+
+    const newDisplayName = displayNameInput.value.trim();
+    if (newDisplayName === '' && (currentUser.displayName || '') !== '') {
+      // Allow clearing display name, but Firebase auth sometimes sets it to null for provider logins.
+      // For custom email/password, it might default to email if displayName is null.
+      // This case is tricky, so we'll just allow setting to empty string.
+      // If they want to remove it entirely, they can make it empty.
+    } else if (newDisplayName === '' && (currentUser.displayName || '') === '') {
+      showSettingsMessage("Display name cannot be empty.", true);
+      return;
+    }
+
+    if (newDisplayName === currentUser.displayName) {
+      showSettingsMessage("Display name is already set to that value.", false);
+      return;
+    }
+
+    try {
+      await updateProfile(currentUser, { displayName: newDisplayName });
+      showSettingsMessage("Display name updated successfully!", false);
+      console.log('Display name updated:', newDisplayName);
+    } catch (error) {
+      console.error("Error updating display name:", error);
+      showSettingsMessage(`Error updating display name: ${error.message || 'Unknown error'}`, true);
+    }
+  });
+
+  // Get current year for footer
+  document.getElementById('current-year-settings').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

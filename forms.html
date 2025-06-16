@@ -83,6 +83,19 @@
       margin-bottom: 0.75rem;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
+    .profile-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .profile-pic {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      object-fit: cover;
+      border: 2px solid #60A5FA; /* Small border for profile pic */
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -101,6 +114,7 @@
         <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
         <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
         <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="settings.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Settings</a></li>
         <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
         <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
         <li><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a></li>
@@ -199,7 +213,7 @@
     orderBy,
     onSnapshot,
     serverTimestamp,
-    doc // Needed for potential future features like direct thread linking
+    doc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Firebase config
@@ -249,6 +263,9 @@
   const threadsContainer = document.getElementById('threads-container');
   const noThreadsMessage = document.getElementById('no-threads-message');
   const threadsLoadingError = document.getElementById('threads-loading-error');
+
+  // Default profile picture if none is available
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/FFFFFF?text=JP'; // Default 'JP' for 'Jellyfish Person'
 
   /**
    * Displays a message for the form (success/error).
@@ -367,6 +384,7 @@
           content: content,
           authorUid: currentUser.uid,
           authorName: currentUser.displayName || currentUser.email || 'Anonymous User',
+          authorPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC, // Store photoURL
           timestamp: serverTimestamp()
         });
         showFormMessage("Thread created successfully!", false);
@@ -399,6 +417,7 @@
         content: commentContent,
         authorUid: currentUser.uid,
         authorName: currentUser.displayName || currentUser.email || 'Anonymous User',
+        authorPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC, // Store photoURL
         timestamp: serverTimestamp()
       });
       console.log("Comment added successfully to thread:", threadId);
@@ -427,10 +446,15 @@
           const threadElement = document.createElement('div');
           threadElement.classList.add('thread-card');
           const threadTimestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
+          const threadAuthorPhoto = thread.authorPhotoURL || DEFAULT_PROFILE_PIC;
 
           threadElement.innerHTML = `
+            <div class="profile-info">
+                <img src="${threadAuthorPhoto}" alt="${thread.authorName}'s profile picture" class="profile-pic">
+                <p class="font-semibold text-gray-200">${thread.authorName}</p>
+            </div>
             <h3 class="text-2xl font-bold text-red-300 mb-2">${thread.title}</h3>
-            <p class="text-gray-400 text-sm mb-4">By ${thread.authorName} on ${threadTimestamp}</p>
+            <p class="text-gray-400 text-sm mb-4">Posted on ${threadTimestamp}</p>
             <div class="thread-content text-gray-200 mb-4">
                 ${renderContentWithMedia(thread.content)}
             </div>
@@ -438,7 +462,7 @@
                 <h4 class="text-xl font-semibold text-gray-300 mb-3">Comments:</h4>
                 <div id="comments-${threadId}" class="comments-list">
                     <!-- Comments will be loaded here -->
-          <p class="text-gray-500">No comments yet.</p>
+          <p class="text-gray-500">Loading comments...</p>
           </div>
             <!-- Comment form -->
           <div class="mt-4">
@@ -461,10 +485,14 @@
                   commentSnapshot.forEach((commentDoc) => {
                       const comment = commentDoc.data();
                       const commentTimestamp = comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now';
+                      const commentAuthorPhoto = comment.authorPhotoURL || DEFAULT_PROFILE_PIC;
                       const commentElement = document.createElement('div');
                       commentElement.classList.add('comment-card');
                       commentElement.innerHTML = `
+          <div class="profile-info">
+          <img src="${commentAuthorPhoto}" alt="${comment.authorName}'s profile picture" class="profile-pic">
           <p class="text-gray-300 font-semibold">${comment.authorName} <span class="text-gray-500 text-xs">on ${commentTimestamp}</span></p>
+          </div>
           <div class="comment-content text-gray-200 mt-1">
           ${renderContentWithMedia(comment.content)}
           </div>
