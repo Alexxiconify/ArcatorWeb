@@ -333,7 +333,7 @@
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
     projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app", // Corrected storageBucket value
+    storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
@@ -530,31 +530,35 @@
         newThreadSection.style.display = 'block';
         console.log("User is logged in:", user.uid, user.displayName || user.email, "Is Admin:", isAdminUser);
       } else {
+        // Only attempt to sign in if no user is found by onAuthStateChanged
         currentUser = null;
         isAdminUser = false; // Reset admin status
         loginRequiredMessage.style.display = 'block';
         newThreadSection.style.display = 'none';
-        console.log("User is logged out.");
+
+        if (initialAuthToken) {
+          try {
+            await signInWithCustomToken(auth, initialAuthToken);
+            console.log("Signed in with custom token (from onAuthStateChanged).");
+          } catch (error) {
+            console.error("Error signing in with custom token (from onAuthStateChanged):", error);
+            try {
+              await signInAnonymously(auth);
+              console.log("Signed in anonymously (from onAuthStateChanged after custom token failure).");
+            } catch (anonError) {
+              console.error("Error signing in anonymously (from onAuthStateChanged):", anonError);
+            }
+          }
+        } else {
+          try {
+            await signInAnonymously(auth);
+            console.log("Signed in anonymously (from onAuthStateChanged, no custom token).");
+          } catch (anonError) {
+            console.error("Error signing in anonymously (from onAuthStateChanged):", anonError);
+          }
+        }
       }
     });
-
-    // Handle initial custom token sign-in if available (for Canvas environment)
-    if (initialAuthToken) {
-      signInWithCustomToken(auth, initialAuthToken)
-        .then(() => {
-          console.log("Signed in with custom token.");
-        })
-        .catch((error) => {
-          console.error("Error signing in with custom token:", error);
-          signInAnonymously(auth)
-            .then(() => console.log("Signed in anonymously."))
-            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
-        });
-    } else {
-      signInAnonymously(auth)
-        .then(() => console.log("Signed in anonymously (no custom token)."))
-        .catch((anonError) => console.error("Error signing in anonymously:", anonError));
-    }
   }
 
   // Handle new thread creation
