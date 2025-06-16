@@ -254,7 +254,7 @@
           <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
         </div>
 
-        <!-- Temporary Pages Card -->
+        <!-- NEW: Temporary Pages Card -->
         <div class="p-6 bg-gray-700 rounded-lg shadow-md">
           <h3 class="text-2xl font-bold text-blue-300 mb-4">Temporary Pages</h3>
           <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
@@ -273,23 +273,6 @@
           <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
             <li>No temporary pages created yet.</li>
           </ul>
-        </div>
-
-        <!-- Modal for editing temp pages -->
-        <div id="edit-temp-page-modal" class="modal">
-          <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
-            <div class="mb-4">
-              <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-              <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div class="mb-4">
-              <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
-              <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
-            </div>
-            <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-          </div>
         </div>
 
         <!-- NEW: Important Links Card -->
@@ -348,7 +331,7 @@
             <!-- Added rel="noopener noreferrer" for security when opening external links -->
             <a href="https://github.com/Restitutor/StaffWarnV" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Restitutor/StaffWarnV</a> to Paper API</td><td>Any</td><td>Very Low</td><td>1 Day</td>
             <!-- Added rel="noopener noreferrer" for security when opening external links -->
-            <td>There’s good examples here for checking the world <a href="https://github.com/Darrionat/StaffWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.com/Darrionat/StaffWarn</a> which Hub uses</td></tr>
+            <td>There’s good examples here for checking the world <a href="https://github.com/Darrionat/StaffWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">https://github.2d0d7c.pages.dev/StaffWarn</a> which Hub uses</td></tr>
           </tbody>
         </table>
       </div>
@@ -508,11 +491,9 @@
 
   // Ensure global __app_id and __initial_auth_token are accessible
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-  // Determine appId for Firestore path - prioritize Canvas provided, then project ID
   const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-  const initialAuthToken = canvasInitialAuthToken;
+
+  console.log("Client-side App ID detected:", appId); // ADDED FOR DEBUGGING
 
   // Initialize Firebase App, Auth, and Firestore instances
   let app;
@@ -587,16 +568,23 @@
    * @returns {Promise<Object|null>} - User profile data or null if not found.
    */
   async function getUserProfileFromFirestore(uid) {
-    if (!db) return null;
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
+      console.log(`DEBUG: Attempting to fetch user profile for UID: ${uid} from path: artifacts/${appId}/public/data/user_profiles/${uid}`);
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
+        console.log("DEBUG: User profile found:", docSnap.data());
         return docSnap.data();
+      } else {
+        console.log("DEBUG: User profile NOT found for UID:", uid);
       }
     } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-      showMessageBox(`Error fetching user profile: ${error.message}`, true);
+      console.error("ERROR: Error fetching user profile from Firestore:", error);
+      showMessageBox(`Error fetching user profile: ${error.message}`, true); // Show message box for this specific error
     }
     return null;
   }
@@ -613,12 +601,13 @@
     }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
+      console.log(`DEBUG: Attempting to update user profile for UID: ${uid} with data:`, profileData);
       await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
-      console.log("User profile updated in Firestore:", uid, profileData);
+      console.log("DEBUG: User profile updated in Firestore:", uid, profileData);
       showMessageBox("User profile updated successfully!", false);
       return true;
     } catch (error) {
-      console.error("Error updating user profile in Firestore:", error);
+      console.error("ERROR: Error updating user profile in Firestore:", error);
       showMessageBox(`Error saving profile: ${error.message}`, true);
       return false;
     }
@@ -638,11 +627,13 @@
     }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
+      console.log(`DEBUG: Attempting to delete user profile for UID: ${uid} from path: artifacts/${appId}/public/data/user_profiles/${uid}`);
       await deleteDoc(userDocRef);
+      console.log("DEBUG: User profile deleted successfully:", uid);
       showMessageBox(`User profile ${uid} deleted successfully!`, false);
       renderUserList(); // Refresh list
     } catch (error) {
-      console.error("Error deleting user profile:", error);
+      console.error("ERROR: Error deleting user profile:", error);
       showMessageBox(`Error deleting user profile: ${error.message}`, true);
     }
   }
@@ -652,17 +643,22 @@
    * @returns {Promise<Array>} - Array of user profile objects with their UIDs.
    */
   async function fetchAllUserProfiles() {
-    if (!db) return [];
+    if (!db) {
+      console.error("Firestore DB not initialized for fetchAllUserProfiles.");
+      return [];
+    }
     const userProfilesCol = collection(db, `artifacts/${appId}/public/data/user_profiles`);
     try {
+      console.log(`DEBUG: Attempting to fetch all user profiles from collection: artifacts/${appId}/public/data/user_profiles`);
       const querySnapshot = await getDocs(userProfilesCol);
       const users = [];
       querySnapshot.forEach((doc) => {
         users.push({ id: doc.id, ...doc.data() });
       });
+      console.log("DEBUG: Fetched user profiles:", users);
       return users;
     } catch (error) {
-      console.error("Error fetching all user profiles:", error);
+      console.error("ERROR: Error fetching all user profiles:", error);
       showMessageBox(`Error loading users: ${error.message}`, true);
       return [];
     }
@@ -774,6 +770,7 @@
     }
     const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
     try {
+      console.log(`DEBUG: Attempting to create temp page with title: "${title}" in collection: artifacts/${appId}/public/data/temp_pages`);
       const docRef = await addDoc(tempPagesCol, {
         title: title,
         content: content,
@@ -781,12 +778,13 @@
         updatedAt: new Date(),
         authorUid: auth.currentUser ? auth.currentUser.uid : 'anonymous'
       });
+      console.log("DEBUG: Temporary page created successfully with ID:", docRef.id);
       showMessageBox("Temporary page created successfully!", false);
       tempPageTitleInput.value = '';
       tempPageContentInput.value = '';
       renderTempPages(); // Refresh list
     } catch (error) {
-      console.error("Error creating temporary page:", error);
+      console.error("ERROR: Error creating temporary page:", error);
       showMessageBox(`Error creating page: ${error.message}`, true);
     }
   }
@@ -796,17 +794,22 @@
    * @returns {Promise<Array>} - Array of temporary page objects with their IDs.
    */
   async function fetchAllTempPages() {
-    if (!db) return [];
+    if (!db) {
+      console.error("Firestore DB not initialized for fetchAllTempPages.");
+      return [];
+    }
     const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
     try {
+      console.log(`DEBUG: Attempting to fetch all temporary pages from collection: artifacts/${appId}/public/data/temp_pages`);
       const querySnapshot = await getDocs(tempPagesCol);
       const pages = [];
       querySnapshot.forEach((doc) => {
         pages.push({ id: doc.id, ...doc.data() });
       });
+      console.log("DEBUG: Fetched temporary pages:", pages);
       return pages;
     } catch (error) {
-      console.error("Error fetching temporary pages:", error);
+      console.error("ERROR: Error fetching temporary pages:", error);
       showMessageBox(`Error loading temporary pages: ${error.message}`, true);
       return [];
     }
@@ -838,13 +841,11 @@
       tempPageList.appendChild(li);
     });
 
-    // Attach event listeners for temp pages
+    // Attach event listeners for new buttons created by renderTempPages
     document.querySelectorAll('.view-temp-page').forEach(link => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
         const pageId = event.target.dataset.id;
-        // For simplicity, we'll navigate to a generic temporary page viewer URL
-        // In a real app, you'd have a dynamic route like /temp-page?id=pageId
         window.open(`temp-page-viewer.html?id=${pageId}`, '_blank');
       });
     });
@@ -889,16 +890,18 @@
       }
       const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, currentEditingTempPageId);
       try {
+        console.log(`DEBUG: Attempting to update temp page ID: ${currentEditingTempPageId} with new title: "${newTitle}"`);
         await updateDoc(tempPageDocRef, {
           title: newTitle,
           content: newContent,
           updatedAt: new Date()
         });
+        console.log("DEBUG: Temporary page updated successfully.");
         showMessageBox("Temporary page updated successfully!", false);
         editTempPageModal.style.display = 'none';
         renderTempPages(); // Refresh list
       } catch (error) {
-        console.error("Error updating temporary page:", error);
+        console.error("ERROR: Error updating temporary page:", error);
         showMessageBox(`Error updating page: ${error.message}`, true);
       }
     });
@@ -913,16 +916,47 @@
       showMessageBox("Database not initialized. Cannot delete page.", true);
       return;
     }
-    if (!confirm(`Are you sure you want to delete this temporary page? This action cannot be undone.`)) {
+    // Using a custom modal instead of browser's confirm() due to iframe restrictions
+    const confirmation = await new Promise(resolve => {
+      const confirmBox = document.createElement('div');
+      confirmBox.style.cssText = `
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #2D3748; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 1002; text-align: center; color: white;
+            width: 90%; max-width: 400px;
+        `;
+      confirmBox.innerHTML = `
+            <p class="mb-4 text-lg">Are you sure you want to delete this temporary page?</p>
+            <p class="mb-6 text-sm text-gray-400">This action cannot be undone.</p>
+            <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes, Delete</button>
+            <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+        `;
+      document.body.appendChild(confirmBox);
+
+      document.getElementById('confirm-yes').onclick = () => {
+        document.body.removeChild(confirmBox);
+        resolve(true);
+      };
+      document.getElementById('confirm-no').onclick = () => {
+        document.body.removeChild(confirmBox);
+        resolve(false);
+      };
+    });
+
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
       return; // User cancelled
     }
+
     const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, id);
     try {
+      console.log(`DEBUG: Attempting to delete temp page ID: ${id} from path: artifacts/${appId}/public/data/temp_pages/${id}`);
       await deleteDoc(tempPageDocRef);
+      console.log("DEBUG: Temporary page deleted successfully.");
       showMessageBox("Temporary page deleted successfully!", false);
       renderTempPages(); // Refresh list
     } catch (error) {
-      console.error("Error deleting temporary page:", error);
+      console.error("ERROR: Error deleting temporary page:", error);
       showMessageBox(`Error deleting page: ${error.message}`, true);
     }
   }
@@ -941,7 +975,6 @@
     }
   }
 
-
   /**
    * Updates the UI based on the user's authentication and admin status.
    * @param {Object|null} user - The Firebase User object or null.
@@ -950,47 +983,110 @@
     loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
 
     if (user) {
-      console.log("Authenticated User UID:", user.uid); // ADD THIS LINE
-      console.log("Authenticated User Email:", user.email); // ADD THIS LINE
+      console.log("DEBUG: Authenticated User UID:", user.uid);
+      console.log("DEBUG: Authenticated User Email:", user.email);
 
-      // ... (rest of updateAdminUI function) ...
+      // Fetch user profile to get theme preference and display name
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+      applyTheme(themePreference);
+
+      // Check if user is a whitelisted admin
       const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
       try {
+        console.log(`DEBUG: Checking admin whitelist document at: artifacts/${appId}/public/data/whitelisted_admins/${user.uid}`);
         const adminDocSnap = await getDoc(adminDocRef);
         if (adminDocSnap.exists()) {
           // User is an admin
-          console.log("User is confirmed as ADMIN in Firestore."); // ADD THIS LINE
+          console.log("DEBUG: User is confirmed as ADMIN in Firestore.");
           loginRequiredMessage.style.display = 'none';
           adminContent.style.display = 'block';
           adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid; // Display user info
-          console.log("Admin user logged in:", user.uid);
           // Load data for admin sections once user is confirmed as admin
           renderUserList();
           renderTempPages();
         } else {
           // User is logged in but not an admin
-          console.log("User is NOT in whitelisted_admins collection."); // ADD THIS LINE
+          console.log("DEBUG: User is NOT in whitelisted_admins collection.");
           loginRequiredMessage.style.display = 'block';
           adminContent.style.display = 'none';
           showMessageBox("You are logged in, but do not have admin privileges.", true);
-          console.log("Regular user logged in, no admin access:", user.uid);
         }
       } catch (error) {
-        console.error("Error checking admin whitelist:", error);
+        console.error("ERROR: Error checking admin whitelist:", error);
         loginRequiredMessage.style.display = 'block';
         adminContent.style.display = 'none';
         showMessageBox("Error checking admin status. Please try again.", true);
       }
     } else {
       // No user is logged in
-      console.log("No user is currently authenticated."); // ADD THIS LINE
+      console.log("DEBUG: No user is currently authenticated.");
       loginRequiredMessage.style.display = 'block';
       adminContent.style.display = 'none';
-      console.log("No user logged in.");
       applyTheme(DEFAULT_THEME); // Apply default theme if no user
     }
   }
 
+  // Set up Firebase Authentication listener
+  if (isFirebaseInitialized && auth) {
+    onAuthStateChanged(auth, (user) => {
+      updateAdminUI(user);
+    });
+
+    // Handle initial custom token sign-in for Canvas environment only if no user already authenticated
+    if (initialAuthToken && !auth.currentUser) {
+      signInWithCustomToken(auth, initialAuthToken)
+        .then(() => {
+          console.log("DEBUG: Signed in with custom token from Canvas (admin_dev page).");
+        })
+        .catch((error) => {
+          console.error("ERROR: Error signing in with custom token (admin_dev page):", error);
+          // Fallback to anonymous sign-in if custom token fails (e.g., expired)
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (admin_dev page) after custom token failure."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously (admin_dev page):", anonError));
+        });
+    } else if (!auth.currentUser) {
+      // If no custom token and no current user, sign in anonymously by default
+      signInAnonymously(auth)
+        .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on admin_dev page."))
+        .catch((anonError) => console.error("ERROR: Error signing in anonymously (admin_dev page):", anonError));
+    }
+  }
+
+  // Event Listener for Logout Button
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      showMessageBox("", false); // Clear any existing messages
+      try {
+        await signOut(auth);
+        console.log("DEBUG: User signed out.");
+        showMessageBox("You have been signed out.", false);
+        // updateAdminUI will be called by onAuthStateChanged
+      } catch (error) {
+        console.error("ERROR: Logout failed:", error);
+        showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
+      }
+    });
+  }
+
+  // Attach event listeners for new functionalities
+  if (loadUsersBtn) {
+    loadUsersBtn.addEventListener('click', renderUserList);
+  }
+
+  if (createTempPageForm) {
+    createTempPageForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = tempPageTitleInput.value.trim();
+      const content = tempPageContentInput.value.trim();
+      if (!title || !content) {
+        showMessageBox("Please enter both title and content for the temporary page.", true);
+        return;
+      }
+      await createTempPage(title, content);
+    });
+  }
 </script>
 </body>
 </html>
