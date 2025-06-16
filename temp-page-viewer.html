@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title-display">Loading...</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Markdown renderer (e.g., Marked.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #1F2937;
+      color: #E5E7EB;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #2D3748;
+      border-radius: 0.75rem;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    /* Basic Markdown styling within the container */
+    .markdown-content h1 { font-size: 2.5rem; margin-bottom: 1rem; color: #F87171; }
+    .markdown-content h2 { font-size: 2rem; margin-bottom: 0.8rem; color: #93C5FD; }
+    .markdown-content p { margin-bottom: 1rem; }
+    .markdown-content ul, .markdown-content ol { list-style-position: inside; margin-bottom: 1rem; padding-left: 1.5rem; }
+    .markdown-content a { color: #60A5FA; text-decoration: underline; }
+    .markdown-content code { background-color: #374151; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; }
+    .markdown-content pre { background-color: #1A202C; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
+  </style>
+</head>
+<body class="antialiased">
+<div class="container">
+  <h1 class="text-4xl font-bold mb-4" id="page-display-title"></h1>
+  <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
+  <div id="page-display-content" class="markdown-content">
+    <p class="text-center">Loading page content...</p>
+  </div>
+  <div class="mt-8 text-center">
+    <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out">Back to Admin Panel</a>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Firebase configuration (re-use from admin_and_dev.html or define here)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function loadTemporaryPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageId = urlParams.get('id');
+
+    const pageDisplayTitle = document.getElementById('page-display-title');
+    const pageDisplayContent = document.getElementById('page-display-content');
+    const pageUpdatedAt = document.getElementById('page-updated-at');
+    const pageHtmlTitle = document.getElementById('page-title-display');
+
+    if (!pageId) {
+      pageDisplayTitle.textContent = 'Page Not Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400">No page ID provided in the URL.</p>';
+      pageHtmlTitle.textContent = 'Error - No ID';
+      return;
+    }
+
+    try {
+      const pageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, pageId);
+      const docSnap = await getDoc(pageDocRef);
+
+      if (docSnap.exists()) {
+        const pageData = docSnap.data();
+        pageDisplayTitle.textContent = pageData.title;
+        pageHtmlTitle.textContent = pageData.title; // Update HTML <title>
+        pageDisplayContent.innerHTML = marked.parse(pageData.content || ''); // Render Markdown
+        if (pageData.updatedAt && pageData.updatedAt.toDate) {
+          pageUpdatedAt.textContent = pageData.updatedAt.toDate().toLocaleString();
+        } else {
+          pageUpdatedAt.textContent = 'N/A';
+        }
+      } else {
+        pageDisplayTitle.textContent = 'Page Not Found';
+        pageDisplayContent.innerHTML = '<p class="text-red-400">The temporary page you are looking for does not exist.</p>';
+        pageHtmlTitle.textContent = 'Page Not Found';
+      }
+    } catch (error) {
+      console.error("Error loading temporary page:", error);
+      pageDisplayTitle.textContent = 'Error Loading Page';
+      pageDisplayContent.innerHTML = `<p class="text-red-400">Failed to load page content: ${error.message}</p>`;
+      pageHtmlTitle.textContent = 'Error';
+    }
+  }
+
+  window.addEventListener('load', loadTemporaryPage);
+</script>
+</body>
+</html>
