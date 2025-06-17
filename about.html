@@ -23,22 +23,22 @@
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    body.theme-dark .bg-card {
-      background-color: #2D3748 !important; /* Darker card background for dark theme */
-      color: #E5E7EB !important; /* Light text for card */
-    }
-    body.theme-dark input,
-    body.theme-dark select {
-      background-color: #374151 !important; /* Darker input background */
-      color: #E5E7EB !important; /* Light text in input */
-      border-color: #4B5563 !important; /* Subtle border for inputs */
-    }
-    body.theme-dark input::placeholder {
-      color: #9CA3AF !important; /* Lighter placeholder text */
-    }
-    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-      color: #E5E7EB !important;
-    }
+    body.theme-dark .bg-navbar { background-color: #111827 !important; }
+    body.theme-dark .bg-content-section { background-color: #1F2937 !important; }
+    body.theme-dark .bg-card { background-color: #2D3748 !important; }
+    body.theme-dark .bg-ip-box { background-color: #1A202C !important; border-color: #4A5568 !important; }
+    body.theme-dark .text-primary { color: #E5E7EB !important; }
+    body.theme-dark .text-secondary { color: #CBD5E0 !important; }
+    body.theme-dark .text-heading-main { color: #F87171 !important; } /* Red for main headings */
+    body.theme-dark .text-heading-card { color: #60A5FA !important; } /* Blue for card headings */
+    body.theme-dark .text-link { color: #60A5FA !important; }
+    body.theme-dark .text-copy-button { color: white !important; }
+    body.theme-dark table th { background-color: #374151 !important; color: #F87171 !important; border-bottom: 1px solid #374151; }
+    body.theme-dark table td { border-bottom: 1px solid #374151; }
+    body.theme-dark table tr:nth-child(even) { background-color: #2F3B4E !important; }
+    body.theme-dark input, body.theme-dark select, body.theme-dark textarea { background-color: #374151 !important; color: #E5E7EB !important; border-color: #4B5563 !important; }
+    body.theme-dark input::placeholder, body.theme-dark textarea::placeholder { color: #9CA3AF !important; }
+
 
     /* Light Theme */
     body.theme-light {
@@ -46,22 +46,22 @@
       color: #1F2937; /* Dark text */
       background-image: none; /* No pattern for light theme */
     }
-    body.theme-light .bg-card {
-      background-color: #FFFFFF !important; /* White card background for light theme */
-      color: #1F2937 !important; /* Dark text for card */
-    }
-    body.theme-light input,
-    body.theme-light select {
-      background-color: #FFFFFF !important; /* White input background */
-      color: #1F2937 !important; /* Dark text in input */
-      border-color: #D1D5DB !important; /* Light border for inputs */
-    }
-    body.theme-light input::placeholder {
-      color: #6B7280 !important; /* Darker placeholder text */
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
+    body.theme-light .bg-navbar { background-color: #E5E7EB !important; }
+    body.theme-light .bg-content-section { background-color: #F9FAFB !important; }
+    body.theme-light .bg-card { background-color: #FFFFFF !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    body.theme-light .bg-ip-box { background-color: #E2E8F0 !important; border-color: #CBD5E0 !important; }
+    body.theme-light .text-primary { color: #1F2937 !important; }
+    body.theme-light .text-secondary { color: #4B5563 !important; }
+    body.theme-light .text-heading-main { color: #DC2626 !important; } /* Darker red for main headings */
+    body.theme-light .text-heading-card { color: #2563EB !important; } /* Darker blue for card headings */
+    body.theme-light .text-link { color: #2563EB !important; }
+    body.theme-light .text-copy-button { color: white !important; } /* Ensure buttons remain readable */
+    body.theme-light table th { background-color: #E0E0E0 !important; color: #4B5563 !important; border-bottom: 1px solid #D1D5DB; }
+    body.theme-light table td { border-bottom: 1px solid #E0E0E0; }
+    body.theme-light table tr:nth-child(even) { background-color: #F0F0F0 !important; }
+    body.theme-light input, body.theme-light select, body.theme-light textarea { background-color: #FFFFFF !important; color: #1F2937 !important; border-color: #D1D5DB !important; }
+    body.theme-light input::placeholder, body.theme-light textarea::placeholder { color: #6B7280 !important; }
+
 
     /* Arcator Blue Theme */
     body.theme-arcator-blue {
@@ -72,109 +72,78 @@
       background-size: cover;
       background-attachment: fixed;
     }
-    body.theme-arcator-blue .bg-card {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      color: #E2E8F0 !important; /* Light text for card */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select {
-      background-color: #3b4d6b !important; /* Darker input background */
-      color: #E2E8F0 !important; /* Light text in input */
-      border-color: #5a6e8f !important; /* Blueish border */
-    }
-    body.theme-arcator-blue input::placeholder {
-      color: #94A3B8 !important; /* Subtle blue placeholder */
-    }
-    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-      background-color: #4299E1 !important; /* Arcator blue */
-      color: white !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .text-blue-500 {
-      color: #63B3ED !important;
-    }
+    body.theme-arcator-blue .bg-navbar { background-color: #111827 !important; }
+    body.theme-arcator-blue .bg-content-section { background-color: #1a202c !important; }
+    body.theme-arcator-blue .bg-card { background-color: #2b3b55 !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); }
+    body.theme-arcator-blue .bg-ip-box { background-color: #1A253A !important; border-color: #3B82F6 !important; }
+    body.theme-arcator-blue .text-primary { color: #E2E8F0 !important; }
+    body.theme-arcator-blue .text-secondary { color: #CBD5E0 !important; }
+    body.theme-arcator-blue .text-heading-main { color: #FC8181 !important; } /* Adjusted red for blue theme */
+    body.theme-arcator-blue .text-heading-card { color: #63B3ED !important; } /* Lighter blue for card headings */
+    body.theme-arcator-blue .text-link { color: #63B3ED !important; }
+    body.theme-arcator-blue .text-copy-button { color: white !important; }
+    body.theme-arcator-blue table th { background-color: #3b4d6b !important; color: #90CDF4 !important; border-bottom: 1px solid #5a6e8f; }
+    body.theme-arcator-blue table td { border-bottom: 1px solid #374151; }
+    body.theme-arcator-blue table tr:nth-child(even) { background-color: #2F3B4E !important; }
+    body.theme-arcator-blue input, body.theme-arcator-blue select, body.theme-arcator-blue textarea { background-color: #3b4d6b !important; color: #E2E8F0 !important; border-color: #5a6e8f !important; }
+    body.theme-arcator-blue input::placeholder, body.theme-arcator-blue textarea::placeholder { color: #94A3B8 !important; }
 
-    /* Settings card styling */
-    .settings-card {
-      max-width: 600px;
-      width: 90%;
-      padding: 2.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    /* Hero Banner styles - common for all themes */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
-    .input-field {
-      margin-bottom: 1rem;
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
     }
-    .input-field label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem; /* text-sm */
-      font-weight: 600; /* font-semibold */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
-    .input-field input, .input-field select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid #D1D5DB; /* border-gray-300 */
-      border-radius: 0.5rem; /* rounded-md */
-      font-size: 1rem;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 700; /* font-bold */
+    /* Common button styles */
+    .btn {
       transition: background-color 0.2s, transform 0.2s;
     }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-    }
-
-    /* Message box styling */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
-    }
-    .message-box.success {
-      background-color: #4CAF50; /* Green for success */
-    }
-    .message-box.error {
-      background-color: #F44336; /* Red for error */
+    .btn:hover {
+      transform: translateY(-1px);
     }
   </style>
 </head>
 <body class="antialiased">
 <!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
+<header class="bg-navbar py-4 shadow-lg">
   <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
     <!-- Logo/Site Title -->
     <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
     <!-- Navigation -->
     <nav class="mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="sign.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
-        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="about.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">About Us</a></li>
+        <li><a href="servers.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Servers</a></li>
+        <li><a href="community.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Community</a></li>
+        <li><a href="interests.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Interests</a></li>
+        <li><a href="games.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Wiki</a></li>
+        <li><a href="forms.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Forms</a></li>
+        <li><a href="sign.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Sign In / Account</a></li>
+        <li><a href="donations.html" class="text-secondary hover:text-primary transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-card">Support Us</a></li>
       </ul>
     </nav>
   </div>
@@ -188,84 +157,198 @@
   </div>
 </section>
 
-<!-- Main Content Section: Our Story & Mission -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section -->
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Story & Mission</h2>
-    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6">
-      <p>Arcator.co.uk began its journey in **October 2012**, born from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the standard game.</p>
-      <p>Our mission is simple: to provide a long-lasting, fun, and safe environment for Minecraft players of all ages and playstyles. We believe in fostering a community where creativity flourishes, friendships are made, and every player feels welcome and valued. We are committed to continuous improvement, adapting to the evolving landscape of Minecraft while retaining the core values that have defined us for over a decade.</p>
-      <p>Over the years, we've hosted countless adventures, witnessed incredible builds, and built a dedicated global community. We are passionate about Minecraft and even more passionate about the community we've built together.</p>
-    </div>
-  </div>
-</section>
-
-<!-- Values Section -->
-<section class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Core Values</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
-      <div class="feature-card">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Community First</h3>
-        <p class="text-gray-300">We prioritize a welcoming and inclusive atmosphere where every member feels respected and heard. Our community's feedback drives our development.</p>
-      </div>
-      <div class="feature-card">
-        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Innovation & Fun</h3>
-        <p class="text-gray-300">We constantly explore new ways to enhance the Minecraft experience, introducing fresh content, challenges, and events to keep things exciting for our players.</p>
-      </div>
-      <div class="feature-card">
-        <h3 class="text-2xl font-bold text-green-300 mb-4">Stability & Reliability</h3>
-        <p class="text-gray-300">Our robust infrastructure and dedicated administration ensure a smooth, low-lag gameplay experience with high uptime and secure data.</p>
-      </div>
-      <div class="feature-card">
-        <h3 class="text-2xl font-bold text-purple-300 mb-4">Transparency & Communication</h3>
-        <p class="text-gray-300">We believe in open communication with our community, providing regular updates on server status, development, and decisions that affect our players.</p>
+    <!-- Our Story & Mission -->
+    <div class="mb-12">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Our Story & Mission</h2>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-secondary space-y-6">
+        <p>Arcator.co.uk began its journey in <span class="font-semibold text-primary">October 2012</span>, born from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the standard game.</p>
+        <p>Our mission is simple: to provide a long-lasting, fun, and safe environment for Minecraft players of all ages and backgrounds. We believe in fostering a community where creativity flourishes, friendships are made, and every player feels welcome and valued. We are committed to continuous improvement, adapting to the evolving landscape of Minecraft while upholding the core values that have defined us for over a decade.</p>
+        <p>Over the years, we've hosted countless adventures, witnessed incredible builds, and built a dedicated global community. We are passionate about Minecraft and even more passionate about the community we've built together.</p>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- Community Engagement Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center">
-  <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 mb-6">Join Our Thriving Community!</h2>
-    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
-      The heart of Arcator is its community. Join our Discord server to chat, connect with other players, participate in discussions, and get real-time updates.
-    </p>
-    <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
-    <div class="mt-8">
-      <h3 class="text-3xl font-bold text-blue-300 mb-4">What's Happening in Our Community:</h3>
-      <ul class="list-disc list-inside text-gray-300 max-w-2xl mx-auto text-left space-y-2">
-        <li>**Regular Events:** From building competitions to mini-game tournaments, there's always something fun happening.</li>
-        <li>**Voice Chat & Hangouts:** Connect with other members in our Discord voice channels during game sessions or just to chat.</li>
-        <li>**Community Suggestions:** We actively listen to player feedback and implement suggestions to improve the server.</li>
-        <li>**Collaborative Builds:** Participate in large-scale community projects and leave your mark on the Arcator world.</li>
-        <li>**Creative Cinematography:** Utilize features from the Arcator YouTube channel, allowing members to practice cinematography.</li>
-        <li>**Other Minecraft aspects:** Explore mod packs (Beta in 1.19, Beta Mod), adventure maps.</li>
-        <li>**Nostalgia:** Provide maps and encourage sharing screenshots of historical/cool builds.</li>
-      </ul>
+    <!-- Our Core Values -->
+    <div class="mb-12">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Core Values</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <!-- Value Card 1 -->
+        <div class="bg-card p-6 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-heading-card mb-3">Community First</h3>
+          <p class="text-secondary">We prioritize a welcoming and inclusive atmosphere where every player feels respected and heard. Community is the foundation that drives our development.</p>
+        </div>
+        <!-- Value Card 2 -->
+        <div class="bg-card p-6 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-heading-card mb-3">Innovation & Fun</h3>
+          <p class="text-secondary">We constantly explore new ways to enhance the Minecraft experience, introducing fresh content, challenges, and features to keep things exciting for our players.</p>
+        </div>
+        <!-- Value Card 3 -->
+        <div class="bg-card p-6 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-heading-card mb-3">Stability & Reliability</h3>
+          <p class="text-secondary">Our robust infrastructure and dedicated administration ensure a smooth, low-lag gameplay experience with high uptime and secure data.</p>
+        </div>
+        <!-- Value Card 4 -->
+        <div class="bg-card p-6 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-heading-card mb-3">Transparency & Communication</h3>
+          <p class="text-secondary">We believe in open communication with our community, sharing insights into server development, plans, and decisions that affect our players.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Our Thriving Community! -->
+    <div class="text-center">
+      <h2 class="text-4xl font-bold text-heading-main mb-6">Join Our Thriving Community!</h2>
+      <p class="text-lg leading-relaxed text-secondary max-w-3xl mx-auto mb-8">
+        The heart of Arcator is its community. Join our Discord server to chat, connect with other players, participate in discussions, and get real-time updates.
+      </p>
+      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+    </div>
+
+    <!-- What's Happening in Our Community: -->
+    <div class="mt-12">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">What's Happening in Our Community:</h2>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-secondary space-y-4">
+        <ul class="list-disc list-inside space-y-2">
+          <li><span class="font-semibold text-primary">**Regular Events**</span> From building competitions to mini-game tournaments, there's always something happening!</li>
+          <li><span class="font-semibold text-primary">**Active Voice Chat**</span> Hangout, connect with other members in our Discord voice channels for lively discussions and gaming sessions.</li>
+          <li><span class="font-semibold text-primary">**Community Suggestions**</span> We actively listen to player feedback and implement suggestions to improve the server.</li>
+          <li><span class="font-semibold text-primary">**Collaborative Builds**</span> Participate in large-scale community projects and leave your mark on the Arcator world.</li>
+          <li><span class="font-semibold text-primary">**Creative Cinematography**</span> Utilize footage from the Arcator YouTube channel, showcasing players' creations in cinematic masterpieces.</li>
+          <li><span class="font-semibold text-primary">**Historical Cartography**</span> Explore the world's history in 1:1,000 scale, historical maps.</li>
+          <li><span class="font-semibold text-primary">**Lore Building**</span> Provide ready-to-use documents to aid in the creation of unique histories for settlements.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar py-8 text-center text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-about"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="privacy.html" class="hover:text-primary transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-primary transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-primary transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-primary transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
   </div>
 </footer>
 
-<script>
-  // Get current year for footer
-  document.getElementById('current-year-about').textContent = new Date().getFullYear();
+<!-- Firebase SDKs and Theme Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY", // Replace with your actual Firebase API Key
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
+  };
+
+  // Determine appId for Firestore path - prioritize Canvas provided, then project ID from firebaseConfig
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+
+  let app;
+  let auth;
+  let db;
+  let isFirebaseInitialized = false;
+
+  // Initialize Firebase (only if config is valid)
+  if (firebaseConfig.apiKey && firebaseConfig.projectId !== "YOUR_PROJECT_ID") { // Basic check
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+      console.log("Firebase initialized successfully for theme loading.");
+    } catch (e) {
+      console.error("Error initializing Firebase for theme loading:", e);
+      isFirebaseInitialized = false; // Ensure flag is false on error
+    }
+  } else {
+    console.warn("Firebase configuration is incomplete or placeholder. Theme preference loading will be skipped.");
+  }
+
+
+  const DEFAULT_THEME = 'dark';
+
+  /**
+   * Applies the selected theme to the body element.
+   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
+   */
+  function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
+    body.classList.add(`theme-${theme}`);
+    console.log(`Applied theme: ${theme}`);
+  }
+
+  /**
+   * Fetches user profile data from Firestore to get theme preference.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserThemePreference(uid) {
+    if (!db || !uid) {
+      console.log("Firestore DB not available or UID missing for theme preference.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return data.themePreference || null;
+      }
+    } catch (error) {
+      console.error("Error fetching user theme preference:", error);
+    }
+    return null;
+  }
+
+  // Event listener for DOMContentLoaded to ensure elements are available
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get current year for footer
+    document.getElementById('current-year-about').textContent = new Date().getFullYear();
+
+    if (isFirebaseInitialized) {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const theme = await getUserThemePreference(user.uid);
+          applyTheme(theme || DEFAULT_THEME);
+        } else {
+          // If no user is logged in, attempt anonymous sign-in in Canvas environment
+          if (typeof __initial_auth_token !== 'undefined') {
+            try {
+              await signInAnonymously(auth);
+              console.log("Signed in anonymously for theme loading.");
+              // After anonymous sign-in, still apply default theme as no saved preference
+              applyTheme(DEFAULT_THEME);
+            } catch (error) {
+              console.error("Anonymous sign-in failed during theme loading:", error);
+              applyTheme(DEFAULT_THEME); // Fallback to default even if anonymous sign-in fails
+            }
+          } else {
+            applyTheme(DEFAULT_THEME); // Apply default theme if not in Canvas or no user
+          }
+        }
+      });
+    } else {
+      applyTheme(DEFAULT_THEME); // Apply default theme if Firebase not initialized
+    }
+  });
 </script>
 </body>
 </html>
