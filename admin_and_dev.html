@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to navbar.css for navbar specific styling -->
+  <link rel="stylesheet" href="navbar.css">
   <!-- Import themes.js for centralized JavaScript functions -->
   <script src="themes.js" type="module"></script>
   <!-- Import custom_theme_modal.js for custom theme management logic -->
@@ -31,16 +33,7 @@
     }
 
     /* Navbar specific styling using CSS variables */
-    .navbar {
-      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
-    }
-    .navbar-link {
-      color: var(--color-text-secondary); /* Default link color */
-    }
-    .navbar-link:hover {
-      color: var(--color-text-primary); /* Hover link color */
-      background-color: var(--color-bg-card); /* Slightly different background on hover */
-    }
+    /* These styles will be applied via navbar.css now */
 
     /* Override Tailwind's default dark classes with CSS variables for consistent theming */
     .bg-gray-800 {
@@ -239,27 +232,7 @@
 </head>
 <body class="antialiased">
 <!-- Navigation Bar Placeholder -->
-<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
-        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
