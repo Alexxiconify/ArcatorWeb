@@ -286,17 +286,22 @@
    * @param {boolean} isError - True for error, false for success.
    */
   window.showMessageBox = function(message, isError) {
-    messageBox.textContent = message;
-    messageBox.className = 'message-box'; // Reset classes
-    if (isError) {
-      messageBox.classList.add('error');
+    // Only attempt to update if messageBox element exists
+    if (messageBox) {
+      messageBox.textContent = message;
+      messageBox.className = 'message-box'; // Reset classes
+      if (isError) {
+        messageBox.classList.add('error');
+      } else {
+        messageBox.classList.add('success');
+      }
+      messageBox.style.display = 'block';
+      setTimeout(() => {
+        messageBox.style.display = 'none';
+      }, 5000); // Hide after 5 seconds
     } else {
-      messageBox.classList.add('success');
+      console.warn("showMessageBox called before messageBox element was available:", message);
     }
-    messageBox.style.display = 'block';
-    setTimeout(() => {
-      messageBox.style.display = 'none';
-    }, 5000); // Hide after 5 seconds
   }
 
   // Initialize Firebase - now positioned after showMessageBox and DOM element declarations
@@ -310,12 +315,62 @@
       console.log("Firebase initialized successfully.");
     } else {
       console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
-      window.showMessageBox("Firebase configuration is missing. Some features may not work.", true); // Show message box if config is empty
+      // Do NOT call showMessageBox here immediately. It will be handled in initializeUserSettings if Firebase fails.
     }
   } catch (e) {
     console.error("Error initializing Firebase:", e);
-    window.showMessageBox("Error initializing Firebase. Cannot load settings. Please check your console.", true);
+    // Do NOT call showMessageBox here immediately. It will be handled in initializeUserSettings if Firebase fails.
   }
+
+
+  /**
+   * Shows a custom confirmation modal.
+   * @param {string} message - The main confirmation message.
+   * @param {string} [subMessage=''] - An optional sub-message.
+   * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
+   */
+  // This function remains local as it's not directly imported by custom_theme_modal.js but rather
+  // custom_theme_modal.js calls it if it's passed as a parameter. It's now handled implicitly
+  // through the setupCustomThemeManagement pass-through.
+  /* No longer needed here as a direct global export if custom_theme_modal.js imports it */
+  // function showCustomConfirm(message, subMessage = '') {
+  //   return new Promise(resolve => {
+  //     const confirmMessage = document.getElementById('confirm-message');
+  //     const confirmSubmessage = document.getElementById('confirm-submessage');
+  //     const customConfirmModal = document.getElementById('custom-confirm-modal');
+  //     const confirmYesBtn = document.getElementById('confirm-yes');
+  //     const confirmNoBtn = document.getElementById('confirm-no');
+
+  //     if (!confirmMessage || !customConfirmModal || !confirmYesBtn || !confirmNoBtn) {
+  //       console.error("Confirmation modal elements not found.");
+  //       window.showMessageBox("Error: Confirmation dialog not available.", true);
+  //       resolve(false);
+  //       return;
+  //     }
+
+  //     confirmMessage.textContent = message;
+  //     confirmSubmessage.textContent = subMessage;
+  //     customConfirmModal.style.display = 'flex';
+
+  //     const onConfirm = () => {
+  //       customConfirmModal.style.display = 'none';
+  //       confirmYesBtn.removeEventListener('click', onConfirm);
+  //       confirmNoBtn.removeEventListener('click', onCancel);
+  //       resolve(true);
+  //     };
+
+  //     const onCancel = () => {
+  //       customConfirmModal.style.display = 'none';
+  //       confirmYesBtn.removeEventListener('click', onConfirm);
+  //       confirmNoBtn.removeEventListener('click', onCancel);
+  //       resolve(false);
+  //     };
+
+  //     confirmYesBtn.addEventListener('click', onConfirm);
+  //     confirmNoBtn.addEventListener('click', onCancel);
+  //   });
+  // }
+
 
   /**
    * Fetches user profile data from Firestore.
@@ -436,8 +491,11 @@
 
       // Render custom theme list and set up its handlers
       if (isFirebaseInitialized) { // Ensure Firebase is initialized before calling setupCustomThemeManagement
-        setupCustomThemeManagement(db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, user);
-        renderCustomThemeList();
+        // Pass necessary elements and functions to the custom theme module
+        setupCustomThemeManagement(
+          db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, user
+        );
+        renderCustomThemeList(); // Now called from custom_theme_modal.js
       }
 
 
@@ -458,6 +516,10 @@
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
       if (navbarUserSettingsLink) {
         navbarUserSettingsLink.style.display = 'none';
+      }
+      // If Firebase was supposed to be initialized but isn't
+      if (!isFirebaseInitialized) {
+        window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
       }
     }
   }
@@ -575,6 +637,18 @@
   window.onload = async function() {
     await loadNavbar(); // Assumes loadNavbar is defined elsewhere or will be fetched from another file
     await loadModals(); // Load the custom theme modal HTML
+
+    // Now that modals are loaded, setup the custom theme management module
+    // This needs to be done here so the DOM elements are available.
+    // The `createCustomThemeBtn` is used by the `setupCustomThemeManagement` function
+    // and must exist in the DOM when this function is called.
+    const createCustomThemeBtnElement = document.getElementById('create-custom-theme-btn');
+    if (createCustomThemeBtnElement && isFirebaseInitialized) {
+      // Pass a reference to the actual DOM button to setupCustomThemeManagement
+      // so it can attach its event listener.
+      setupCustomThemeManagement(db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, auth.currentUser);
+    }
+
 
     if (isFirebaseInitialized) {
       await initializeUserSettings(); // Call the new initialization function and await it
