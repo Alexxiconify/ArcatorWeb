@@ -1,367 +1,248 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin & Dev - Arcator.co.uk</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- EasyMDE (Markdown Editor) CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-  <!-- Link to the CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for navbar specific styling -->
-  <link rel="stylesheet" href="navbar.css">
-  <!-- Link to admin_and_dev.css for page-specific styling -->
-  <link rel="stylesheet" href="admin_and_dev.css">
-</head>
-<body class="antialiased">
-<!-- Navigation Bar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
-    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
-  </div>
-</section>
-
-<!-- Admin & Dev Section Content -->
-<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <!-- Loading Spinner -->
-    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
-
-    <!-- Login Required Message / Redirect -->
-    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
-      <p class="text-lg text-gray-300 mb-8">
-        You must be logged in as an administrator to access this page.
-      </p>
-      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
-    </div>
-
-    <!-- Admin Content Section (visible only to authenticated admins) -->
-    <div id="admin-content" style="display: none;">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-red-400">Welcome, Admin <span id="admin-user-display"></span>!</h2>
-        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
-      </div>
-
-      <p class="text-lg text-gray-300 mb-8">
-        This portal provides tools and information for managing Arcator infrastructure and development.
-      </p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Infrastructure Management Card (Existing) -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Infrastructure Management</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Review server logs and performance metrics.</li>
-            <li>Perform routine maintenance tasks.</li>
-            <li>Manage user permissions on core systems.</li>
-            <li>Oversee backup and recovery procedures.</li>
-          </ul>
-          <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
-        </div>
-
-        <!-- Development Tools Card (Existing) -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Development Tools & Wiki</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Access the code repositories and version control.</li>
-            <li>Contribute to ongoing development projects.</li>
-            <li>Update and maintain the official Arcator Wiki.</li>
-            <li>Collaborate on new features and bug fixes.</li>
-          </ul>
-          <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
-        </div>
-
-        <!-- NEW: User Management Card -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">User Management</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">View and manage registered user profiles.</p>
-          <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left table-auto">
-              <thead>
-              <tr class="bg-gray-800">
-                <th class="px-4 py-2">Email</th>
-                <th class="px-4 py-2">Display Name</th>
-                <th class="px-4 py-2">Theme</th>
-                <th class="px-4 py-2">Actions</th>
-              </tr>
-              </thead>
-              <tbody id="user-list-tbody">
-              <tr><td colspan="4" class="text-center py-4 text-gray-400">No users loaded yet. Click "Load Users".</td></tr>
-              </tbody>
-            </table>
-            <div id="edit-user-modal" class="modal">
-              <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
-                <div class="mb-4">
-                  <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
-                  <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-                </div>
-                <div class="mb-4">
-                  <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
-                  <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <!-- Options will be dynamically populated by populateEditUserThemeSelect -->
-                  </select>
-                </div>
-                <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- NEW: Form Management Card -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Form Management</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">Overview of form submissions and structure.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Review recent form submissions.</li>
-            <li>Analyze form data trends.</li>
-            <li>(Future: Edit form questions/fields directly)</li>
-          </ul>
-          <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
-        </div>
-
-        <!-- NEW: Temporary Pages Card -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Temporary Pages</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
-          <form id="create-temp-page-form" class="space-y-4">
-            <div>
-              <label for="temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-              <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title">
-            </div>
-            <div>
-              <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
-              <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here..."></textarea>
-            </div>
-            <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
-          </form>
-          <h4 class="text-xl font-semibold text-gray-200 mt-6 mb-3">Existing Temporary Pages:</h4>
-          <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
-            <li>No temporary pages created yet.</li>
-          </ul>
-          <div id="edit-temp-page-modal" class="modal">
-            <div class="modal-content">
-              <span class="close-button">&times;</span>
-              <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
-              <div class="mb-4">
-                <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-                <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              </div>
-              <div class="mb-4">
-                <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
-                <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
-              </div>
-              <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- NEW: Important Links Card -->
-        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Important Links</h3>
-          <p class="text-gray-300 leading-relaxed mb-4">Quick access to essential internal and external documentation.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Internal Documentation (Google Doc)</a></li>
-            <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Official Wiki</a></li>
-            <li><a href="infrastructure.html" class="text-blue-400 hover:underline">Infrastructure Details Page</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <h2 class="text-4xl font-bold text-center mt-16 mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>
-      <p class="text-lg text-center mb-8 text-gray-300">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
-
-      <!-- NEW: Add New Todo Item Form -->
-      <div class="p-6 bg-gray-700 rounded-lg shadow-md mb-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Add New Roadmap Task</h3>
-        <form id="add-todo-form" class="space-y-4">
-          <div>
-            <label for="todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
-            <input type="text" id="todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter task description" required>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label for="todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
-              <input type="text" id="todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Assigned worker">
-            </div>
-            <div>
-              <label for="todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
-              <select id="todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option value="Very Low">Very Low</option>
-                <option value="Low">Low</option>
-                <option value="Mid">Mid</option>
-                <option value="High">High</option>
-                <option value="Urgent">Urgent</option>
-              </select>
-            </div>
-            <div>
-              <label for="todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
-              <input type="text" id="todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., 1 Day, N/A">
-            </div>
-          </div>
-          <div>
-            <label for="todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
-            <textarea id="todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Additional notes or links"></textarea>
-          </div>
-          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Add Task</button>
-        </form>
-        <div id="edit-todo-modal" class="modal">
-          <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Roadmap Task</h3>
-            <div class="mb-4">
-              <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
-              <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
-                <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              </div>
-              <div>
-                <label for="edit-todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
-                <select id="edit-todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                  <option value="Very Low">Very Low</option>
-                  <option value="Low">Low</option>
-                  <option value="Mid">Mid</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-              <div>
-                <label for="edit-todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
-                <input type="text" id="edit-todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              </div>
-            </div>
-            <div class="mb-4">
-              <label for="edit-todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
-              <textarea id="edit-todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
-            </div>
-            <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-          </div>
-        </div>
-      </div>
+import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+import { loadNavbar } from './navbar.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import {
+getAuth,
+onAuthStateChanged,
+signOut,
+signInWithCustomToken,
+signInAnonymously
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import {
+getFirestore,
+doc,
+getDoc,
+setDoc,
+collection,
+getDocs,
+deleteDoc,
+addDoc,
+updateDoc,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-      <div class="overflow-x-auto mb-12">
-        <table>
-          <thead>
-          <tr>
-            <th>Task</th>
-            <th>Worker</th>
-            <th>Priority</th>
-            <th>ETA</th>
-            <th>Notes</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody id="roadmap-todo-list-tbody">
-          <!-- Todo items will be dynamically loaded here -->
-          <tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>
-          </tbody>
-        </table>
-      </div>
+// Firebase configuration object
+const firebaseConfig = {
+apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+authDomain: "arcator-web.firebaseapp.com",
+projectId: "arcator-web",
+storageBucket: "arcator-web.firebasestorage.app",
+messagingSenderId: "1033082068049",
+appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+measurementId: "G-DJXNT1L7CM"
+};
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-        <!-- Darrion API Section (Existing) -->
-        <div>
-          <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
-          <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-            <li><span class="font-semibold text-white">GET plugin updates</span></li>
-          </ul>
-        </div>
+const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-        <!-- GriefDetection Section (Existing) -->
-        <div>
-          <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
-          <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
-            <li>Regular checks for griefs and automated analysis of player actions.</li>
-            <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
-            <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
-            <!-- Added rel="noopener noreferrer" for security when opening external links -->
-            <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
-            <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
-          </ul>
-        </div>
-      </div>
+let app;
+let auth;
+let db;
+let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+let isFirebaseInitialized = false;
 
-      <!-- Onfim Notifications Section (Existing) -->
-      <div class="mt-16">
-        <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
-        <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-        <ul class="list-disc list-inside text-gray-300 space-y-2">
-          <li>Warns staff on Discord when disk space is nearly full.</li>
-          <li>Detects and alerts on drive corruption.</li>
-          <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-          <li>Alerts when Jylina's Ngrok IP address changes.</li>
-          <li>Handles `#machine-status` updates every minute.</li>
-        </ul>
-      </div>
-    </div>
-</section>
+// DOM elements - Initialize immediately after declaration
+const loadingSpinner = document.getElementById('loading-spinner');
+const loginRequiredMessage = document.getElementById('login-required-message');
+const adminContent = document.getElementById('admin-content');
+const logoutBtn = document.getElementById('logout-btn');
+const adminUserDisplay = document.getElementById('admin-user-display');
+const messageBox = document.getElementById('message-box');
+const customConfirmModal = document.getElementById('custom-confirm-modal');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmSubmessage = document.getElementById('confirm-submessage');
+const confirmYesBtn = document.getElementById('confirm-yes');
+const confirmNoBtn = document.getElementById('confirm-no');
 
 
-<!-- Message Box Element -->
-<div id="message-box" class="message-box"></div>
+// User Management DOM elements
+const loadUsersBtn = document.getElementById('load-users-btn');
+const userListTbody = document.getElementById('user-list-tbody');
+const editUserModal = document.getElementById('edit-user-modal');
+const editUserDisplayNameInput = document.getElementById('edit-user-display-name');
+const editUserThemeSelect = document.getElementById('edit-user-theme');
+const saveUserChangesBtn = document.getElementById('save-user-changes-btn');
+let currentEditingUserUid = null;
 
-<!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
-    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
-  </div>
-</div>
+// Temporary Pages DOM elements
+const createTempPageForm = document.getElementById('create-temp-page-form');
+const tempPageTitleInput = document.getElementById('temp-page-title');
+const tempPageContentInput = document.getElementById('temp-page-content');
+const tempPageList = document.getElementById('temp-page-list');
+const editTempPageModal = document.getElementById('edit-temp-page-modal');
+const editTempPageTitleInput = document.getElementById('edit-temp-page-title');
+const editTempPageContentInput = document.getElementById('edit-temp-page-content');
+const saveTempPageChangesBtn = document.getElementById('save-temp-page-changes-btn');
+let currentEditingTempPageId = null;
 
-<!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
-<!-- Firebase SDKs and Main Script -->
-<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-<!-- Import themes.js for centralized JavaScript functions -->
-<script src="themes.js" type="module"></script>
-<!-- Import custom_theme_modal.js for custom theme management logic -->
-<script src="custom_theme_modal.js" type="module"></script>
-<!-- Import loadNavbar from navbar.js -->
-<script src="navbar.js" type="module"></script>
-<!-- Import admin_and_dev.js for page-specific JavaScript -->
-<script src="admin_and_dev.js" type="module"></script>
-</body>
-</html>
+// Todo List DOM elements
+const addTodoForm = document.getElementById('add-todo-form');
+const todoTaskInput = document.getElementById('todo-task');
+const todoWorkerInput = document.getElementById('todo-worker');
+const todoPrioritySelect = document.getElementById('todo-priority');
+const todoEtaInput = document.getElementById('todo-eta');
+const todoNotesInput = document.getElementById('todo-notes');
+const roadmapTodoListTbody = document.getElementById('roadmap-todo-list-tbody');
+const editTodoModal = document.getElementById('edit-todo-modal');
+const editTodoTaskInput = document.getElementById('edit-todo-task');
+const editTodoWorkerInput = document.getElementById('edit-todo-worker');
+const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
+const editTodoEtaInput = document.getElementById('edit-todo-eta');
+const editTodoNotesInput = document.getElementById('edit-todo-notes');
+const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
+let currentEditingTodoId = null;
+
+
+// EasyMDE instances
+let easyMDECreate;
+let easyMDEEdit;
+
+const DEFAULT_THEME = 'dark';
+const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+
+/**
+* Displays a custom message box for user feedback.
+* @param {string} message - The message to display.
+* @param {boolean} isError - True for error, false for success.
+*/
+function showMessageBox(message, isError) {
+if (!messageBox) {
+console.error("MessageBox element not found. Message:", message);
+return;
+}
+messageBox.textContent = message;
+messageBox.className = 'message-box';
+if (isError) {
+messageBox.classList.add('error');
+} else {
+messageBox.classList.add('success');
+}
+messageBox.style.display = 'block';
+setTimeout(() => {
+messageBox.style.display = 'none';
+}, 5000);
+}
+
+/**
+* Shows a custom confirmation modal.
+* @param {string} message - The main confirmation message.
+* @param {string} [subMessage=''] - An optional sub-message.
+* @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
+  */
+  function showCustomConfirm(message, subMessage = '') {
+  return new Promise(resolve => {
+  confirmMessage.textContent = message;
+  confirmSubmessage.textContent = subMessage;
+  customConfirmModal.style.display = 'flex';
+
+  const onConfirm = () => {
+  customConfirmModal.style.display = 'none';
+  confirmYesBtn.removeEventListener('click', onConfirm);
+  confirmNoBtn.removeEventListener('click', onCancel);
+  resolve(true);
+  };
+
+  const onCancel = () => {
+  customConfirmModal.style.display = 'none';
+  confirmYesBtn.removeEventListener('click', onConfirm);
+  confirmNoBtn.removeEventListener('click', onCancel);
+  resolve(false);
+  };
+
+  confirmYesBtn.addEventListener('click', onConfirm);
+  confirmNoBtn.addEventListener('click', onCancel);
+  });
+  }
+
+  /**
+  * Fetches user profile data from Firestore.
+  * @param {string} uid - The user's UID.
+  * @returns {Promise<Object|null>} - User profile data or null if not found.
+  */
+  async function getUserProfileFromFirestore(uid) {
+  // Wait for Firebase to be ready before attempting Firestore operations
+  await firebaseReadyPromise;
+  if (!db) {
+  console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+  return null;
+  }
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+  const docSnap = await getDoc(userDocRef);
+  if (docSnap.exists()) {
+  return docSnap.data();
+  }
+  } catch (error) {
+  console.error("ERROR: Error fetching user profile from Firestore:", error);
+  showMessageBox(`Error fetching user profile: ${error.message}`, true);
+  }
+  return null;
+  }
+
+  /**
+  * Updates user profile data in Firestore.
+  * @param {string} uid - The user's UID.
+  * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
+  */
+  async function updateUserProfileInFirestore(uid, profileData) {
+  await firebaseReadyPromise;
+  if (!db) {
+  showMessageBox("Database not initialized. Cannot save profile.", true);
+  return false;
+  }
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+  await setDoc(userDocRef, profileData, { merge: true });
+  showMessageBox("User profile updated successfully!", false);
+  return true;
+  } catch (error) {
+  console.error("ERROR: Error updating user profile in Firestore:", error);
+  showMessageBox(`Error saving profile: ${error.message}`, true);
+  return false;
+  }
+  }
+
+  /**
+  * Deletes a user's profile from Firestore (does not delete Auth account).
+  * @param {string} uid - The user's UID.
+  */
+  async function deleteUserProfileFromFirestore(uid) {
+  await firebaseReadyPromise;
+  if (!db) {
+  showMessageBox("Database not initialized. Cannot delete profile.", true);
+  return;
+  }
+  const confirmation = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
+  if (!confirmation) {
+  showMessageBox("Deletion cancelled.", false);
+  return;
+  }
+
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+  await deleteDoc(userDocRef);
+  showMessageBox(`User profile ${uid} deleted successfully!`, false);
+  renderUserList();
+  } catch (error) {
+  console.error("ERROR: Error deleting user profile:", error);
+  showMessageBox(`Error deleting user profile: ${error.message}`, true);
+  }
+  }
+
+  /**
+  * Fetches all user profiles from Firestore.
+  * @returns {Promise<Array>} - Array of user profile objects with their UIDs.
+    */
+    async function fetchAllUserProfiles() {
+    await firebaseReadyPromise;
+    if (!db) {
+    console.error("Firestore DB not initialized for fetchAllUserProfiles.");
+    return [];
+    }
+    const userProfilesCol = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    try {
+    const querySnapshot = await getDocs(userProfilesCol);
+    const users = [];
+    querySnapsh
