@@ -223,6 +223,9 @@
 <!-- Custom Theme and Confirmation Modals will be loaded here -->
 <div id="modals-placeholder"></div>
 
+<!-- Message Box Element -->
+<div id="message-box" class="message-box"></div>
+
 
 <!-- Firebase SDKs -->
 <script type="module">
@@ -247,38 +250,50 @@
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Import functions from custom_theme_modal.js
-  // Changed from 'custom_theme_modal.js' to './custom_theme_modal.js'
   import { setupCustomThemeManagement, renderCustomThemeList, openCustomThemeModal } from './custom_theme_modal.js';
+  // Import setupThemesFirebase from themes.js
+  import { setupThemesFirebase } from './themes.js';
 
 
-  // Global variables provided by the Canvas environment
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  // __firebase_config is already an object, no need to parse
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : {};
-  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+  // Hardcoded Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    databaseURL: "https://arcator-web-default-rtdb.firebaseio.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
 
-  const appId = canvasAppId; // Use the provided __app_id
+  // Set appId explicitly to "arcator-web" for Firestore paths as requested
+  const appId = "arcator-web";
+
+  // No longer use __initial_auth_token as we are hardcoding Firebase config
+  // and expect authentication to be handled through Firebase directly.
+  const initialAuthToken = null;
 
   let app;
   let auth;
   let db;
   let isFirebaseInitialized = false;
 
-  // DOM Elements
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const settingsContent = document.getElementById('settings-content');
-  const userEmailDisplay = document.getElementById('user-email-display');
-  const displayNameInput = document.getElementById('display-name');
-  const userThemeSelect = document.getElementById('user-theme-select');
-  const profilePictureDisplay = document.getElementById('profile-picture-display');
-  const profilePictureUrlInput = document.getElementById('profile-picture-url');
-  const urlPreviewMessage = document.getElementById('url-preview-message');
-  const saveSettingsBtn = document.getElementById('save-settings-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const messageBox = document.getElementById('message-box');
-  const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
-  const customThemeListTbody = document.getElementById('custom-theme-list-tbody');
-  const fontSizeSelect = document.getElementById('font-size-select'); // New: Font size select element
+  // DOM Elements - Declared with 'let' and assigned inside window.onload for safety
+  let loadingSpinner;
+  let settingsContent;
+  let userEmailDisplay;
+  let displayNameInput;
+  let userThemeSelect;
+  let profilePictureDisplay;
+  let profilePictureUrlInput;
+  let urlPreviewMessage;
+  let saveSettingsBtn;
+  let logoutBtn;
+  let messageBox;
+  let createCustomThemeBtn;
+  let customThemeListTbody;
+  let fontSizeSelect;
 
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
   const DEFAULT_THEME_NAME = 'dark'; // Default theme name
@@ -306,22 +321,6 @@
     } else {
       console.warn("showMessageBox called before messageBox element was available:", message);
     }
-  }
-
-  // Initialize Firebase
-  try {
-    // Only initialize if firebaseConfig has keys (i.e., it's not an empty object)
-    if (Object.keys(firebaseConfig).length > 0) {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      isFirebaseInitialized = true;
-      console.log("Firebase initialized successfully.");
-    } else {
-      console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
-    }
-  } catch (e) {
-    console.error("Error initializing Firebase:", e);
   }
 
   /**
@@ -408,9 +407,11 @@
 
     let user = await authStatePromise;
 
-    if (!user && initialAuthToken) {
+    // Use signInAnonymously only if `auth` and `db` are initialized and no user exists.
+    // The initialAuthToken is deprecated with hardcoded Firebase config.
+    if (!user && isFirebaseInitialized) {
       try {
-        console.log("Attempting anonymous sign-in with initialAuthToken...");
+        console.log("Attempting anonymous sign-in (no initialAuthToken used with hardcoded config)...");
         await signInAnonymously(auth);
         user = auth.currentUser;
         console.log("Anonymous sign-in complete. User:", user?.uid);
@@ -419,6 +420,7 @@
         window.showMessageBox("Could not sign in automatically. Please log in manually.", true);
       }
     }
+
 
     loadingSpinner.classList.add('hidden'); // Hide spinner after all initial auth checks
 
@@ -482,114 +484,153 @@
   }
 
 
-  // Event Listeners
-  if (saveSettingsBtn) {
-    saveSettingsBtn.addEventListener('click', async () => {
-      if (!auth.currentUser) {
-        window.showMessageBox("You must be logged in to save settings.", true);
-        return;
-      }
-      const uid = auth.currentUser.uid;
-      const newDisplayName = displayNameInput.value.trim();
-      const newThemeId = userThemeSelect.value;
-      const newPhotoURL = profilePictureUrlInput.value.trim();
-      const newFontSize = fontSizeSelect.value; // Get new font size
-
-      const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
-      if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
-        window.showMessageBox("Please enter a valid URL for the profile picture (e.g., https://example.com/image.png).", true);
-        return;
-      }
-
-      try {
-        await updateProfile(auth.currentUser, {
-          displayName: newDisplayName,
-          photoURL: newPhotoURL || null
-        });
-
-        const allThemes = await window.getAvailableThemes();
-        const selectedTheme = allThemes.find(theme => theme.id === newThemeId);
-
-        await window.updateUserProfileInFirestore(uid, {
-          displayName: newDisplayName,
-          themePreference: newThemeId,
-          photoURL: newPhotoURL || DEFAULT_PROFILE_PIC,
-          fontSizePreference: newFontSize // Save font size preference
-        });
-
-        if (selectedTheme) {
-          window.applyTheme(selectedTheme.id, selectedTheme);
-        } else {
-          window.applyTheme(DEFAULT_THEME_NAME);
-        }
-        applyFontSize(newFontSize); // Apply new font size immediately
-
-        if (profilePictureDisplay) {
-          profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC;
-        }
-        urlPreviewMessage.style.display = 'none';
-
-        const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
-        const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-        const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
-
-        if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
-          navbarUserIcon.src = newPhotoURL || DEFAULT_PROFILE_PIC;
-          navbarUserDisplayName.textContent = newDisplayName || 'Settings';
-        }
-
-      } catch (error) {
-        console.error("Error updating profile:", error);
-        window.showMessageBox(`Error updating profile: ${error.message || 'Unknown error'}`, true);
-      }
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      window.showMessageBox("", false);
-      try {
-        await signOut(auth);
-        window.showMessageBox("You have been signed out.", false);
-      } catch (error) {
-        console.error("Logout failed:", error);
-        window.showMessageBox("Logout failed: " + error.message, true);
-      }
-    });
-  }
-
-  // Live preview of profile picture URL
-  profilePictureUrlInput.addEventListener('input', () => {
-    const url = profilePictureUrlInput.value.trim();
-    const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
-    if (imageUrlRegex.test(url)) {
-      if (profilePictureDisplay) {
-        profilePictureDisplay.src = url;
-      }
-      urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
-      urlPreviewMessage.classList.remove('text-red-500');
-      urlPreviewMessage.classList.add('text-secondary');
-      urlPreviewMessage.style.display = 'block';
-    } else if (url === '') {
-      if (profilePictureDisplay) {
-        profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-      }
-      urlPreviewMessage.style.display = 'none';
-    } else {
-      if (profilePictureDisplay) {
-        profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-      }
-      urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
-      urlPreviewMessage.classList.remove('text-secondary');
-      urlPreviewMessage.classList.add('text-red-500');
-      urlPreviewMessage.style.display = 'block';
-    }
-  });
-
   // Load modals HTML first, then initialize user settings
   window.onload = async function() {
+    // Assign DOM elements here, guaranteeing they exist before any function uses them
+    loadingSpinner = document.getElementById('loading-spinner');
+    settingsContent = document.getElementById('settings-content');
+    userEmailDisplay = document.getElementById('user-email-display');
+    displayNameInput = document.getElementById('display-name');
+    userThemeSelect = document.getElementById('user-theme-select');
+    profilePictureDisplay = document.getElementById('profile-picture-display');
+    profilePictureUrlInput = document.getElementById('profile-picture-url');
+    urlPreviewMessage = document.getElementById('url-preview-message');
+    saveSettingsBtn = document.getElementById('save-settings-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    messageBox = document.getElementById('message-box');
+    createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
+    customThemeListTbody = document.getElementById('custom-theme-list-tbody');
+    fontSizeSelect = document.getElementById('font-size-select');
+
+
     await loadNavbar();
     await loadModals();
+
+    // Initialize Firebase here, after messageBox is available
+    try {
+      if (Object.keys(firebaseConfig).length > 0) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        isFirebaseInitialized = true;
+        console.log("Firebase initialized successfully.");
+        // Pass initialized Firebase instances to themes.js
+        setupThemesFirebase(db, appId);
+      } else {
+        console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
+        window.showMessageBox("Firebase configuration is missing. Some features may not work.", true);
+      }
+    } catch (e) {
+      console.error("Error initializing Firebase:", e);
+      window.showMessageBox("Error initializing Firebase. Cannot load settings. Please check your console.", true);
+    }
+
+    // Event Listeners - now attached AFTER all elements are guaranteed to exist
+    if (saveSettingsBtn) {
+      saveSettingsBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) {
+          window.showMessageBox("You must be logged in to save settings.", true);
+          return;
+        }
+        const uid = auth.currentUser.uid;
+        const newDisplayName = displayNameInput.value.trim();
+        const newThemeId = userThemeSelect.value;
+        const newPhotoURL = profilePictureUrlInput.value.trim();
+        const newFontSize = fontSizeSelect.value; // Get new font size
+
+        const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
+        if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
+          window.showMessageBox("Please enter a valid URL for the profile picture (e.g., https://example.com/image.png).", true);
+          return;
+        }
+
+        try {
+          await updateProfile(auth.currentUser, {
+            displayName: newDisplayName,
+            photoURL: newPhotoURL || null
+          });
+
+          const allThemes = await window.getAvailableThemes();
+          const selectedTheme = allThemes.find(theme => theme.id === newThemeId);
+
+          await window.updateUserProfileInFirestore(uid, {
+            displayName: newDisplayName,
+            themePreference: newThemeId,
+            photoURL: newPhotoURL || DEFAULT_PROFILE_PIC,
+            fontSizePreference: newFontSize // Save font size preference
+          });
+
+          if (selectedTheme) {
+            window.applyTheme(selectedTheme.id, selectedTheme);
+          } else {
+            window.applyTheme(DEFAULT_THEME_NAME);
+          }
+          applyFontSize(newFontSize); // Apply new font size immediately
+
+          if (profilePictureDisplay) {
+            profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC;
+          }
+          urlPreviewMessage.style.display = 'none';
+
+          const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+          const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+          const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+
+          if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
+            navbarUserIcon.src = newPhotoURL || DEFAULT_PROFILE_PIC;
+            navbarUserDisplayName.textContent = newDisplayName || 'Settings';
+          }
+
+        } catch (error) {
+          console.error("Error updating profile:", error);
+          window.showMessageBox(`Error updating profile: ${error.message || 'Unknown error'}`, true);
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        window.showMessageBox("", false);
+        try {
+          await signOut(auth);
+          window.showMessageBox("You have been signed out.", false);
+        } catch (error) {
+          console.error("Logout failed:", error);
+          window.showMessageBox("Logout failed: " + error.message, true);
+        }
+      });
+    }
+
+    // Live preview of profile picture URL
+    if (profilePictureUrlInput) { // Added null check here for safety
+      profilePictureUrlInput.addEventListener('input', () => {
+        const url = profilePictureUrlInput.value.trim();
+        const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
+        if (imageUrlRegex.test(url)) {
+          if (profilePictureDisplay) {
+            profilePictureDisplay.src = url;
+          }
+          urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
+          urlPreviewMessage.classList.remove('text-red-500');
+          urlPreviewMessage.classList.add('text-secondary');
+          urlPreviewMessage.style.display = 'block';
+        } else if (url === '') {
+          if (profilePictureDisplay) {
+            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+          }
+          urlPreviewMessage.style.display = 'none';
+        } else {
+          if (profilePictureDisplay) {
+            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+          }
+          urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
+          urlPreviewMessage.classList.remove('text-secondary');
+          urlPreviewMessage.classList.add('text-red-500');
+          urlPreviewMessage.style.display = 'block';
+        }
+      });
+    }
+
 
     const createCustomThemeBtnElement = document.getElementById('create-custom-theme-btn');
     if (createCustomThemeBtnElement && isFirebaseInitialized) {
