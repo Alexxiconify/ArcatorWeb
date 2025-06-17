@@ -3,7 +3,7 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/f
 
 // Internal variables to hold Firebase instances
 let _db = null;
-let _auth = null; // Although not directly used in getAvailableThemes, good to keep consistent if needed later
+let _auth = null;
 let _appId = null;
 
 // Predefined themes (assuming these are constant and do not come from Firestore)
@@ -114,10 +114,12 @@ window.DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
  * Sets up the Firebase instances for themes.js.
  * This should be called from settings.html after Firebase is initialized.
  * @param {Firestore} dbInstance
+ * @param {Auth} authInstance
  * @param {string} appIdValue
  */
-export function setupThemesFirebase(dbInstance, appIdValue) {
+export function setupThemesFirebase(dbInstance, authInstance, appIdValue) {
   _db = dbInstance;
+  _auth = authInstance; // Initialize _auth here
   _appId = appIdValue;
   console.log("Firebase DB and App ID set up in themes.js");
 }
@@ -167,7 +169,7 @@ window.getAvailableThemes = async function() {
   let allThemes = Object.values(PREDEFINED_THEMES); // Start with predefined themes
 
   if (_db && _appId) {
-    // Corrected to use the imported 'collection' function
+    console.log("DEBUG themes.js: _db value before calling collection:", _db);
     const themesCollectionRef = collection(_db, `artifacts/${_appId}/public/data/custom_themes`);
     try {
       const querySnapshot = await getDocs(themesCollectionRef);
@@ -182,13 +184,9 @@ window.getAvailableThemes = async function() {
       });
     } catch (error) {
       console.error("Error fetching custom themes:", error);
-      // It's possible showMessageBox is not available here or not desired for this internal error.
     }
   } else {
     console.warn("Firestore DB or App ID not available in themes.js. Cannot fetch custom themes.");
   }
   return allThemes;
 };
-
-// No need for initial Firebase setup or onAuthStateChanged listener here anymore.
-// themes.js will be set up by settings.html after Firebase is ready.
