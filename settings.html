@@ -174,6 +174,11 @@
         <input type="text" id="display-name" placeholder="Your Display Name" class="py-2 px-3">
       </div>
       <div class="input-field">
+        <label for="profile-picture-url">Profile Picture URL (e.g., Discord CDN Link):</label>
+        <input type="url" id="profile-picture-url" class="py-2 px-3" placeholder="https://cdn.discordapp.com/avatars/USER_ID/AVATAR_HASH.png">
+        <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Previewing new URL. Click Update Profile to save.</p>
+      </div>
+      <div class="input-field">
         <label for="user-theme-select">Select Theme:</label>
         <select id="user-theme-select" class="py-2 px-3">
           <option value="dark">Dark</option>
@@ -202,7 +207,8 @@
     onAuthStateChanged,
     signOut,
     signInAnonymously,
-    signInWithCustomToken
+    signInWithCustomToken,
+    updateProfile // Import updateProfile for Firebase Auth display name/photoURL
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
@@ -249,11 +255,15 @@
   const loginRequiredMessage = document.getElementById('login-required-message');
   const userEmailDisplay = document.getElementById('user-email-display');
   const displayNameInput = document.getElementById('display-name');
-  const userThemeSelect = document.getElementById('user-theme-select'); // Corrected ID to match HTML
+  const userThemeSelect = document.getElementById('user-theme-select');
+  const profilePictureDisplay = document.getElementById('profile-picture-display'); // Added for profile picture display
+  const profilePictureUrlInput = document.getElementById('profile-picture-url'); // Added for profile picture input
+  const urlPreviewMessage = document.getElementById('url-preview-message'); // Added for profile picture preview message
   const saveSettingsBtn = document.getElementById('save-settings-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const messageBox = document.getElementById('message-box');
 
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
   const DEFAULT_THEME = 'dark'; // Define a default theme
 
   /**
@@ -356,6 +366,9 @@
         userEmailDisplay.textContent = user.email;
         displayNameInput.value = userProfile?.displayName || user.displayName || '';
         userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME;
+        profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
+        profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC; // Set actual image source
+
         applyTheme(userProfile?.themePreference || DEFAULT_THEME);
 
       } else {
@@ -390,13 +403,38 @@
       }
       const uid = auth.currentUser.uid;
       const newDisplayName = displayNameInput.value.trim();
-      const newTheme = userThemeSelect.value; // Corrected variable usage
+      const newTheme = userThemeSelect.value;
+      const newPhotoURL = profilePictureUrlInput.value.trim(); // Get new photo URL
 
-      await updateUserProfileInFirestore(uid, {
-        displayName: newDisplayName,
-        themePreference: newTheme
-      });
-      applyTheme(newTheme); // Apply new theme immediately
+      // Regex for image URL validation, updated to be more robust
+      const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
+      if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
+        showMessageBox("Please enter a valid URL for the profile picture (e.g., https://example.com/image.png).", true);
+        return;
+      }
+
+      try {
+        // Update Firebase Auth profile
+        await updateProfile(auth.currentUser, {
+          displayName: newDisplayName,
+          photoURL: newPhotoURL || null // Set to null if empty
+        });
+
+        // Update Firestore profile
+        await updateUserProfileInFirestore(uid, {
+          displayName: newDisplayName,
+          themePreference: newTheme,
+          photoURL: newPhotoURL || DEFAULT_PROFILE_PIC // Store default if input is empty
+        });
+
+        applyTheme(newTheme); // Apply new theme immediately
+        profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
+        urlPreviewMessage.style.display = 'none'; // Hide preview message
+
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        showMessageBox(`Error updating profile: ${error.message || 'Unknown error'}`, true);
+      }
     });
   }
 
@@ -414,8 +452,27 @@
     });
   }
 
-  // Removed the old theme selector listener as it's no longer needed for direct updates.
-  // The theme is now applied immediately upon fetching from Firestore or saving.
+  // Live preview of profile picture URL
+  profilePictureUrlInput.addEventListener('input', () => {
+    const url = profilePictureUrlInput.value.trim();
+    const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i; // More general URL regex
+    if (imageUrlRegex.test(url)) {
+      profilePictureDisplay.src = url;
+      urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
+      urlPreviewMessage.classList.remove('text-red-500');
+      urlPreviewMessage.classList.add('text-gray-400');
+      urlPreviewMessage.style.display = 'block';
+    } else if (url === '') {
+      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      urlPreviewMessage.style.display = 'none';
+    } else {
+      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
+      urlPreviewMessage.classList.remove('text-gray-400');
+      urlPreviewMessage.classList.add('text-red-500');
+      urlPreviewMessage.style.display = 'block';
+    }
+  });
 
   // Load navbar on page load
   window.onload = function() {
