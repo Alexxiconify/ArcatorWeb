@@ -343,6 +343,25 @@
               <tr><td colspan="4" class="text-center py-4 text-gray-400">No users loaded yet. Click "Load Users".</td></tr>
               </tbody>
             </table>
+            <div id="edit-user-modal" class="modal">
+              <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
+                <div class="mb-4">
+                  <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
+                  <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                </div>
+                <div class="mb-4">
+                  <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
+                  <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="arcator-blue">Arcator Blue</option>
+                  </select>
+                </div>
+                <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -377,6 +396,22 @@
           <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
             <li>No temporary pages created yet.</li>
           </ul>
+          <div id="edit-temp-page-modal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
+              <div class="mb-4">
+                <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+                <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              </div>
+              <div class="mb-4">
+                <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+                <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
+              </div>
+              <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+            </div>
+          </div>
+
         </div>
 
         <!-- NEW: Important Links Card -->
@@ -427,7 +462,41 @@
             <textarea id="todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Additional notes or links"></textarea>
           </div>
           <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Add Task</button>
-        </form>
+        </form>  <div id="edit-todo-modal" class="modal">
+        <div class="modal-content">
+          <span class="close-button">&times;</span>
+          <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Roadmap Task</h3>
+          <div class="mb-4">
+            <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
+            <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
+              <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+              <label for="edit-todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
+              <select id="edit-todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="Very Low">Very Low</option>
+                <option value="Low">Low</option>
+                <option value="Mid">Mid</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label for="edit-todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
+              <input type="text" id="edit-todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="edit-todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
+            <textarea id="edit-todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
+          </div>
+          <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+        </div>
+      </div>
       </div>
 
 
@@ -494,6 +563,21 @@
     </div>
 </section>
 
+
+<!-- Message Box Element -->
+<div id="message-box" class="message-box"></div>
+
+<!-- NEW: Edit Todo Modal -->
+
+
+<!-- Custom Confirmation Modal (for delete operations) -->
+<div id="custom-confirm-modal" class="custom-confirm-modal">
+  <p class="mb-4 text-lg" id="confirm-message"></p>
+  <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+  <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+  <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+</div>
+
 <!-- Footer Section -->
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
@@ -508,94 +592,6 @@
     </div>
   </div>
 </footer>
-
-<!-- Message Box Element -->
-<div id="message-box" class="message-box"></div>
-
-<!-- Modals -->
-<div id="edit-user-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
-    <div class="mb-4">
-      <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
-      <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-    </div>
-    <div class="mb-4">
-      <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
-      <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="arcator-blue">Arcator Blue</option>
-      </select>
-    </div>
-    <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-  </div>
-</div>
-
-<div id="edit-temp-page-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
-    <div class="mb-4">
-      <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-      <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-    </div>
-    <div class="mb-4">
-      <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
-      <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
-    </div>
-    <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-  </div>
-</div>
-
-<!-- NEW: Edit Todo Modal -->
-<div id="edit-todo-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Roadmap Task</h3>
-    <div class="mb-4">
-      <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
-      <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div>
-        <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
-        <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-      </div>
-      <div>
-        <label for="edit-todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
-        <select id="edit-todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-          <option value="Very Low">Very Low</option>
-          <option value="Low">Low</option>
-          <option value="Mid">Mid</option>
-          <option value="High">High</option>
-          <option value="Urgent">Urgent</option>
-        </select>
-      </div>
-      <div>
-        <label for="edit-todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
-        <input type="text" id="edit-todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-      </div>
-    </div>
-    <div class="mb-4">
-      <label for="edit-todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
-      <textarea id="edit-todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
-    </div>
-    <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-  </div>
-</div>
-
-
-<!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
-  <p class="mb-4 text-lg" id="confirm-message"></p>
-  <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
-  <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-  <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
-</div>
-
-
 <!-- Firebase SDKs and Main Script -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script type="module">

@@ -1,0 +1,17 @@
+/* navbar.css */
+/* Navbar background and text colors using CSS variables from theme_variables.css */
+.navbar-bg {
+  background-color: var(--color-bg-navbar, #111827); /* Fallback to dark theme default */
+}
+.navbar-text {
+  color: var(--color-text-primary, #E5E7EB);
+}
+.navbar-link:hover {
+  color: var(--color-link, #60A5FA);
+}
+.profile-pic-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px; /* Tailwind's rounded-full */
+  object-fit: cover;
+}

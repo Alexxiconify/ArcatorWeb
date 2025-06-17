@@ -8,7 +8,7 @@ let _appId = null;
 
 // Predefined themes (assuming these are constant and do not come from Firestore)
 // These should match the default properties used in custom_theme_modal.js
-const PREDEFINED_THEMES = {
+export const PREDEFINED_THEMES = { // Export PREDEFINED_THEMES as well if needed elsewhere
   'dark': {
     id: 'dark',
     name: 'Dark (Default)',
@@ -107,7 +107,8 @@ const PREDEFINED_THEMES = {
 };
 
 // Provide default properties for new custom themes (using dark theme as template)
-window.DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
+// No need for window.DEFAULT_CUSTOM_THEME_PROPERTIES if it's imported as a named export
+export const DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
 
 
 /**
@@ -119,7 +120,7 @@ window.DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
  */
 export function setupThemesFirebase(dbInstance, authInstance, appIdValue) {
   _db = dbInstance;
-  _auth = authInstance; // Initialize _auth here
+  _auth = authInstance;
   _appId = appIdValue;
   console.log("Firebase DB and App ID set up in themes.js");
 }
@@ -129,12 +130,12 @@ export function setupThemesFirebase(dbInstance, authInstance, appIdValue) {
  * @param {string} themeId - The ID of the theme to apply.
  * @param {object} [themeObject] - The full theme object (optional, will be fetched if not provided).
  */
-window.applyTheme = async function(themeId, themeObject = null) {
+export async function applyTheme(themeId, themeObject = null) { // Exported
   let themeToApply = themeObject;
 
   // If themeObject not provided, try to find it in predefined or custom themes
   if (!themeToApply) {
-    const allThemes = await window.getAvailableThemes();
+    const allThemes = await getAvailableThemes(); // Call the exported function directly
     themeToApply = allThemes.find(theme => theme.id === themeId);
   }
 
@@ -165,11 +166,10 @@ window.applyTheme = async function(themeId, themeObject = null) {
  * Fetches all available themes, including predefined and custom themes from Firestore.
  * @returns {Promise<Array>} A promise that resolves to an array of theme objects.
  */
-window.getAvailableThemes = async function() {
+export async function getAvailableThemes() { // Exported
   let allThemes = Object.values(PREDEFINED_THEMES); // Start with predefined themes
 
   if (_db && _appId) {
-    console.log("DEBUG themes.js: _db value before calling collection:", _db);
     const themesCollectionRef = collection(_db, `artifacts/${_appId}/public/data/custom_themes`);
     try {
       const querySnapshot = await getDocs(themesCollectionRef);
