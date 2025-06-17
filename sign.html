@@ -8,103 +8,35 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Link to the CSS variables (for consistent theming) -->
+  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to navbar.css for consistent styling -->
+  <link rel="stylesheet" href="navbar.css">
+  <!-- Import themes.js for applyTheme function -->
+  <script src="themes.js" type="module"></script>
+  <!-- Import loadNavbar from navbar.js -->
+  <script src="navbar.js" type="module"></script>
   <style>
     /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Default Dark Theme */
-    body.theme-dark {
-      background-color: #1F2937; /* Dark background */
-      color: #E5E7EB; /* Light text */
+      background-color: var(--color-body-bg); /* Use CSS variable for body background */
+      color: var(--color-text-primary); /* Use CSS variable for default body text color */
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    body.theme-dark .bg-white {
-      background-color: #2D3748 !important; /* Darker card background for dark theme */
-      color: #E5E7EB !important; /* Light text for card */
-    }
-    body.theme-dark input,
-    body.theme-dark select {
-      background-color: #374151 !important; /* Darker input background */
-      color: #E5E7EB !important; /* Light text in input */
-      border-color: #4B5563 !important; /* Subtle border for inputs */
-    }
-    body.theme-dark input::placeholder {
-      color: #9CA3AF !important; /* Lighter placeholder text */
-    }
-    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-      color: #E5E7EB !important;
-    }
 
-    /* Light Theme */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light background */
-      color: #1F2937; /* Dark text */
-      background-image: none; /* No pattern for light theme */
-    }
-    body.theme-light .bg-white {
-      background-color: #FFFFFF !important; /* White card background for light theme */
-      color: #1F2937 !important; /* Dark text for card */
-    }
-    body.theme-light input,
-    body.theme-light select {
-      background-color: #FFFFFF !important; /* White input background */
-      color: #1F2937 !important; /* Dark text in input */
-      border-color: #D1D5DB !important; /* Light border for inputs */
-    }
-    body.theme-light input::placeholder {
-      color: #6B7280 !important; /* Darker placeholder text */
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
-
-    /* Arcator Blue Theme */
-    body.theme-arcator-blue {
-      background-color: #1a202c; /* Deep blue-grey */
-      color: #E2E8F0; /* Light off-white text */
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-      background-size: cover;
-      background-attachment: fixed;
-    }
-    body.theme-arcator-blue .bg-white {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      color: #E2E8F0 !important; /* Light text for card */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select {
-      background-color: #3b4d6b !important; /* Darker input background */
-      color: #E2E8F0 !important; /* Light text in input */
-      border-color: #5a6e8f !important; /* Blueish border */
-    }
-    body.theme-arcator-blue input::placeholder {
-      color: #94A3B8 !important; /* Subtle blue placeholder */
-    }
-    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-      background-color: #4299E1 !important; /* Arcator blue */
-      color: white !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .text-blue-500 {
-      color: #63B3ED !important;
-    }
-
-
-    /* Common form styling */
-    .auth-form {
-      max-width: 420px;
+    /* Form card styling */
+    .form-card {
+      max-width: 450px;
       width: 90%;
       padding: 2.5rem;
       border-radius: 0.75rem;
       box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      background-color: var(--color-bg-card); /* Use CSS variable */
+      color: var(--color-text-primary); /* Use CSS variable */
     }
     .input-field {
       margin-bottom: 1rem;
@@ -114,13 +46,19 @@
       margin-bottom: 0.5rem;
       font-size: 0.875rem; /* text-sm */
       font-weight: 600; /* font-semibold */
+      color: var(--color-text-secondary); /* Use CSS variable */
     }
-    .input-field input, .input-field select {
+    .input-field input {
       width: 100%;
       padding: 0.75rem 1rem;
-      border: 1px solid #D1D5DB; /* border-gray-300 */
+      border: 1px solid var(--color-input-border); /* Use CSS variable */
       border-radius: 0.5rem; /* rounded-md */
       font-size: 1rem;
+      background-color: var(--color-input-bg); /* Use CSS variable */
+      color: var(--color-input-text); /* Use CSS variable */
+    }
+    .input-field input::placeholder {
+      color: var(--color-placeholder); /* Use CSS variable */
     }
     .btn-primary {
       width: 100%;
@@ -128,9 +66,34 @@
       border-radius: 0.5rem;
       font-weight: 700; /* font-bold */
       transition: background-color 0.2s, transform 0.2s;
+      color: var(--color-button-text); /* Use CSS variable */
     }
     .btn-primary:hover {
       transform: translateY(-2px);
+    }
+    .btn-primary.btn-blue {
+      background-color: var(--color-button-blue-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-blue:hover {
+      background-color: var(--color-button-blue-hover); /* Use CSS variable */
+    }
+    .btn-primary.btn-red {
+      background-color: var(--color-button-red-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-red:hover {
+      background-color: var(--color-button-red-hover); /* Use CSS variable */
+    }
+    .btn-primary.btn-green {
+      background-color: var(--color-button-green-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-green:hover {
+      background-color: var(--color-button-green-hover); /* Use CSS variable */
+    }
+    a {
+      color: var(--color-link); /* Use CSS variable */
+    }
+    h2 {
+      color: var(--color-heading-main); /* Use CSS variable */
     }
 
     /* Message box styling */
@@ -139,8 +102,8 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #333;
-      color: white;
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
       padding: 15px 30px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -150,194 +113,64 @@
       text-align: center;
     }
     .message-box.success {
-      background-color: #4CAF50; /* Green for success */
+      background-color: var(--color-message-box-bg-success);
     }
     .message-box.error {
-      background-color: #F44336; /* Red for error */
-    }
-
-    /* Modal styles for password reset */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.7);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background-color: #2D3748;
-      margin: auto;
-      padding: 20px;
-      border-radius: 0.75rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      width: 80%;
-      max-width: 400px;
-      position: relative;
-      color: #E5E7EB;
-    }
-    .close-button {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .close-button:hover,
-    .close-button:focus {
-      color: white;
-    }
-
-    /* Social buttons */
-    .social-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 700;
-      transition: background-color 0.2s, transform 0.2s;
-      margin-bottom: 0.75rem;
-      width: 100%;
-    }
-    .social-btn img {
-      width: 24px;
-      height: 24px;
-      margin-right: 0.75rem;
-    }
-    .google-btn {
-      background-color: #4285F4;
-      color: white;
-    }
-    .google-btn:hover {
-      background-color: #357ae8;
-    }
-    .github-btn {
-      background-color: #333;
-      color: white;
-    }
-    .github-btn:hover {
-      background-color: #000;
+      background-color: var(--color-message-box-bg-error);
     }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen theme-dark">
-<div class="auth-container w-full max-w-md mx-auto p-4 flex flex-col items-center">
-  <!-- Logo/Header Placeholder -->
-  <img src="https://placehold.co/150x50/333/white?text=Arcator.co.uk" alt="Arcator Logo" class="mb-8 rounded-lg shadow-md">
+<body class="flex flex-col items-center justify-center min-h-screen antialiased">
+<!-- Navbar Placeholder -->
+<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-  <!-- User Settings/Logged In Section (Hidden by default) -->
-  <div id="user-settings-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6 hidden">
-    <h2 class="text-3xl font-bold text-center mb-6">Welcome, <span id="user-display-name"></span>!</h2>
-    <p class="text-center text-lg mb-4">You are logged in with: <span id="user-email"></span></p>
-    <p class="text-center text-lg mb-4">Manage your preferences:</p>
-    <a href="settings.html" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-4 text-center block">Go to Settings</a>
-    <button id="logout-btn" class="btn-primary bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Log Out</button>
+<div class="auth-container w-full max-w-md mx-auto p-4 flex flex-col items-center mt-20">
+  <div id="user-settings-section" class="form-card hidden shadow-xl mb-6">
+    <h2 class="text-3xl font-bold text-center mb-6">Logged In</h2>
+    <p class="text-center text-lg mb-4">You are logged in as: <span id="user-display-email" class="font-semibold"></span></p>
+    <div class="flex flex-col items-center mb-6">
+      <img id="user-profile-picture" class="w-24 h-24 rounded-full mb-4 object-cover" src="https://placehold.co/96x96/1F2937/E5E7EB?text=AV" alt="Profile Picture">
+      <span id="user-display-name" class="font-semibold text-xl"></span>
+    </div>
+    <button id="go-to-settings-btn" class="btn-primary btn-blue mb-4">Go to Settings</button>
+    <button id="logout-btn" class="btn-primary btn-red">Log Out</button>
   </div>
 
-
-  <!-- Login Form -->
-  <div id="login-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6">
-    <h2 class="text-3xl font-bold text-center mb-6">Login to Your Account</h2>
-    <form id="login-form">
-      <div class="input-field">
-        <label for="login-email">Email:</label>
-        <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="username">
-      </div>
-      <div class="input-field">
-        <label for="login-password">Password:</label>
-        <input type="password" id="login-password" placeholder="********" required autocomplete="current-password">
-      </div>
-      <div class="input-field">
-        <label for="login-theme">Theme:</label>
-        <select id="login-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="arcator-blue">Arcator Blue</option>
-        </select>
-      </div>
-      <button type="submit" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Log In</button>
-    </form>
-    <p class="text-center text-sm mt-4">
-      <a href="#" id="forgot-password-link" class="text-blue-500 hover:underline">Forgot Password?</a>
-    </p>
-    <div class="mt-6 text-center">
-      <p class="mb-4">Or sign in with:</p>
-      <button id="google-login-btn" class="social-btn google-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_of_Google_G_Suite.svg" alt="Google Logo">
-        Sign in with Google
-      </button>
-      <button id="github-login-btn" class="social-btn github-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo">
-        Sign in with GitHub
-      </button>
+  <div id="login-section" class="form-card shadow-xl mb-6">
+    <h2 class="text-3xl font-bold text-center mb-6">Sign In</h2>
+    <div class="input-field">
+      <label for="login-email">Email:</label>
+      <input type="email" id="login-email" placeholder="you@example.com" class="py-2 px-3 rounded-md" required>
     </div>
-    <p class="text-center text-sm mt-4">
-      Don't have an account? <a href="#" id="show-signup" class="text-blue-500 hover:underline">Sign Up</a>
-    </p>
+    <div class="input-field">
+      <label for="login-password">Password:</label>
+      <input type="password" id="login-password" placeholder="********" class="py-2 px-3 rounded-md" required>
+    </div>
+    <button id="login-btn" class="btn-primary btn-blue mb-4">Sign In</button>
+    <p class="text-center text-text-secondary">Don't have an account? <a href="#" id="show-signup-btn" class="font-medium text-link">Sign Up</a></p>
   </div>
 
-  <!-- Signup Form (hidden by default) -->
-  <div id="signup-section" class="auth-form bg-white text-gray-700 shadow-xl hidden">
-    <h2 class="text-3xl font-bold text-center mb-6">Create New Account</h2>
-    <form id="signup-form">
-      <div class="input-field">
-        <label for="signup-email">Email:</label>
-        <input type="email" id="signup-email" placeholder="you@example.com" required autocomplete="email">
-      </div>
-      <div class="input-field">
-        <label for="signup-password">Password:</label>
-        <input type="password" id="signup-password" placeholder="********" required autocomplete="new-password">
-      </div>
-      <div class="input-field">
-        <label for="signup-display-name">Display Name (Optional):</label>
-        <input type="text" id="signup-display-name" placeholder="Your Name">
-      </div>
-      <div class="input-field">
-        <label for="signup-theme">Theme:</label>
-        <select id="signup-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="arcator-blue">Arcator Blue</option>
-        </select>
-      </div>
-      <button type="submit" class="btn-primary bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Sign Up</button>
-    </form>
-    <div class="mt-6 text-center">
-      <p class="mb-4">Or sign up with:</p>
-      <button id="google-signup-btn" class="social-btn google-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_of_Google_G_Suite.svg" alt="Google Logo">
-        Sign up with Google
-      </button>
-      <button id="github-signup-btn" class="social-btn github-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo">
-        Sign up with GitHub
-      </button>
+  <div id="signup-section" class="form-card hidden shadow-xl mb-6">
+    <h2 class="text-3xl font-bold text-center mb-6">Sign Up</h2>
+    <div class="input-field">
+      <label for="signup-email">Email:</label>
+      <input type="email" id="signup-email" placeholder="you@example.com" class="py-2 px-3 rounded-md" required>
     </div>
-    <p class="text-center text-sm mt-4">
-      Already have an account? <a href="#" id="show-login" class="text-blue-500 hover:underline">Log In</a>
-    </p>
+    <div class="input-field">
+      <label for="signup-password">Password:</label>
+      <input type="password" id="signup-password" placeholder="********" class="py-2 px-3 rounded-md" required>
+    </div>
+    <div class="input-field">
+      <label for="signup-confirm-password">Confirm Password:</label>
+      <input type="password" id="signup-confirm-password" placeholder="********" class="py-2 px-3 rounded-md" required>
+    </div>
+    <button id="signup-btn" class="btn-primary btn-green mb-4">Sign Up</button>
+    <p class="text-center text-text-secondary">Already have an account? <a href="#" id="show-login-btn" class="font-medium text-link">Sign In</a></p>
   </div>
 </div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
-
-<!-- Password Reset Modal -->
-<div id="password-reset-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h3 class="text-xl font-bold mb-4 text-blue-300">Reset Password</h3>
-    <p class="mb-4">Enter your email address to receive a password reset link.</p>
-    <input type="email" id="reset-email" placeholder="your_email@example.com" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4" />
-    <button id="send-reset-email-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Send Reset Email</button>
-  </div>
-</div>
 
 <!-- Firebase SDKs -->
 <script type="module">
@@ -346,25 +179,30 @@
     getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    sendPasswordResetEmail,
-    signOut,
     onAuthStateChanged,
-    GoogleAuthProvider, // Import GoogleAuthProvider
-    GithubAuthProvider, // Import GithubAuthProvider
-    signInWithPopup,    // Import signInWithPopup
-    signInAnonymously
+    signOut,
+    signInAnonymously,
+    updateProfile
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
     doc,
+    getDoc,
     setDoc,
-    getDoc
+    collection,
+    getDocs // Import getDocs for themes
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Firebase configuration object (replace with your actual config)
+  // Import setupThemesFirebase from themes.js
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js'; // Import applyTheme and getAvailableThemes
+  // Import loadNavbar from navbar.js
+  import { loadNavbar } from './navbar.js';
+
+  // Hardcoded Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
+    databaseURL: "https://arcator-web-default-rtdb.firebaseio.com",
     projectId: "arcator-web",
     storageBucket: "arcator-web.firebasestorage.app",
     messagingSenderId: "1033082068049",
@@ -372,90 +210,57 @@
     measurementId: "G-DJXNT1L7CM"
   };
 
-  // Ensure global __app_id and __initial_auth_token are accessible
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  const appId = "arcator-web"; // Explicitly set appId
 
-  // Initialize Firebase App, Auth, and Firestore instances
   let app;
   let auth;
   let db;
   let isFirebaseInitialized = false;
 
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized successfully.");
-  } catch (e) {
-    console.error("Error initializing Firebase:", e);
-    showMessageBox("Error initializing Firebase. Please check your console for details.", true);
-  }
+  // DOM Elements (assigned inside window.onload)
+  let userSettingsSection;
+  let loginSection;
+  let signupSection;
+  let userDisplayEmail;
+  let userProfilePicture;
+  let userDisplayName;
+  let goToSettingsBtn;
+  let logoutBtn;
+  let loginEmailInput;
+  let loginPasswordInput;
+  let loginBtn;
+  let showSignupBtn;
+  let signupEmailInput;
+  let signupPasswordInput;
+  let signupConfirmPasswordInput;
+  let signupBtn;
+  let showLoginBtn;
+  let messageBox;
 
-  // DOM Elements
-  const loginSection = document.getElementById('login-section');
-  const signupSection = document.getElementById('signup-section');
-  const userSettingsSection = document.getElementById('user-settings-section'); // New
-  const showSignupBtn = document.getElementById('show-signup');
-  const showLoginBtn = document.getElementById('show-login');
-  const loginForm = document.getElementById('login-form');
-  const signupForm = document.getElementById('signup-form');
-  const messageBox = document.getElementById('message-box');
-  const forgotPasswordLink = document.getElementById('forgot-password-link');
-  const passwordResetModal = document.getElementById('password-reset-modal');
-  const closeModalButtons = document.querySelectorAll('.close-button');
-  const sendResetEmailBtn = document.getElementById('send-reset-email-btn');
-  const resetEmailInput = document.getElementById('reset-email');
-  const logoutBtn = document.getElementById('logout-btn'); // New
-
-  // Theme preference dropdowns
-  const loginThemeSelect = document.getElementById('login-theme');
-  const signupThemeSelect = document.getElementById('signup-theme');
-
-  // User display elements
-  const userDisplayName = document.getElementById('user-display-name'); // New
-  const userEmail = document.getElementById('user-email'); // New
-
-  // Social login buttons
-  const googleLoginBtn = document.getElementById('google-login-btn'); // New
-  const githubLoginBtn = document.getElementById('github-login-btn'); // New
-  const googleSignupBtn = document.getElementById('google-signup-btn'); // New
-  const githubSignupBtn = document.getElementById('github-signup-btn'); // New
-
-
-  const DEFAULT_THEME = 'dark'; // Define a default theme
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/96x96/1F2937/E5E7EB?text=AV';
+  const DEFAULT_THEME = 'dark'; // Default theme name
 
   /**
    * Displays a custom message box for user feedback.
    * @param {string} message - The message to display.
    * @param {boolean} isError - True for error, false for success.
    */
-  function showMessageBox(message, isError) {
-    messageBox.textContent = message;
-    messageBox.className = 'message-box'; // Reset classes
-    if (isError) {
-      messageBox.classList.add('error');
+  window.showMessageBox = function(message, isError) {
+    if (messageBox) {
+      messageBox.textContent = message;
+      messageBox.className = 'message-box';
+      if (isError) {
+        messageBox.classList.add('error');
+      } else {
+        messageBox.classList.add('success');
+      }
+      messageBox.style.display = 'block';
+      setTimeout(() => {
+        messageBox.style.display = 'none';
+      }, 5000);
     } else {
-      messageBox.classList.add('success');
+      console.warn("showMessageBox called before messageBox element was available:", message);
     }
-    messageBox.style.display = 'block';
-    setTimeout(() => {
-      messageBox.style.display = 'none';
-    }, 5000); // Hide after 5 seconds
-  }
-
-  /**
-   * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
-   */
-  function applyTheme(theme) {
-    const body = document.body;
-    // Remove all existing theme classes to prevent conflicts
-    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-    // Add the new theme class
-    body.classList.add(`theme-${theme}`);
-    console.log(`Applied theme: ${theme}`);
   }
 
   /**
@@ -464,7 +269,10 @@
    * @returns {Promise<Object|null>} - User profile data or null if not found.
    */
   async function getUserProfileFromFirestore(uid) {
-    if (!db) return null;
+    if (!db) {
+      console.error("Firestore DB not initialized.");
+      return null;
+    }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
       const docSnap = await getDoc(userDocRef);
@@ -473,288 +281,259 @@
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      window.showMessageBox(`Error loading profile: ${error.message}`, true);
     }
     return null;
   }
 
   /**
-   * Creates or updates a user's profile in Firestore.
+   * Updates user profile data in Firestore.
    * @param {string} uid - The user's UID.
-   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
+   * @param {Object} profileData - The data to update.
    */
-  async function createUserProfileInFirestore(uid, profileData) {
+  async function updateUserProfileInFirestore(uid, profileData) {
     if (!db) {
-      console.error("Firestore DB not initialized. Cannot create user profile.");
-      return;
+      window.showMessageBox("Database not initialized. Cannot save profile.", true);
+      return false;
     }
     const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
-      await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
-      console.log("User profile created/updated in Firestore:", uid, profileData);
+      await setDoc(userDocRef, profileData, { merge: true });
+      return true;
     } catch (error) {
-      console.error("Error creating/updating user profile in Firestore:", error);
-      showMessageBox(`Error saving profile: ${error.message}`, true);
+      console.error("Error updating user profile in Firestore:", error);
+      window.showMessageBox(`Error saving profile: ${error.message}`, true);
+      return false;
     }
   }
 
-  /**
-   * Handles social login/signup flow (Google, GitHub).
-   * @param {string} providerName - 'google' or 'github'.
-   * @param {string} selectedTheme - The theme chosen by the user.
-   */
-  async function handleSocialAuth(providerName, selectedTheme) {
-    let provider;
-    if (providerName === 'google') {
-      provider = new GoogleAuthProvider();
-    } else if (providerName === 'github') {
-      provider = new GithubAuthProvider();
-    } else {
-      console.error("Invalid provider name:", providerName);
+  // Main authentication state listener and UI update logic
+  async function setupAuthStateListener() {
+    if (!auth) {
+      console.error("Auth is not initialized. Cannot set up auth state listener.");
       return;
     }
 
-    showMessageBox("", false); // Clear any existing messages
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log(`Signed in with ${providerName}:`, user.uid);
-
-      // Check if user profile exists, if not, create it
-      const userProfile = await getUserProfileFromFirestore(user.uid);
-      if (!userProfile) {
-        const profileData = {
-          email: user.email,
-          displayName: user.displayName || user.email,
-          photoURL: user.photoURL || null,
-          themePreference: selectedTheme, // Use selected theme for new social logins
-          createdAt: new Date(),
-          lastLoginAt: new Date()
-        };
-        await createUserProfileInFirestore(user.uid, profileData);
-      } else {
-        // For existing users logging in via social, update their last login and potentially theme
-        await createUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), themePreference: selectedTheme });
-      }
-
-      applyTheme(selectedTheme);
-      window.location.href = 'admin_and_dev.html'; // Redirect to admin page after successful login
-
-    } catch (error) {
-      console.error(`Social login (${providerName}) failed:`, error);
-      let errorMessage = `Failed to sign in with ${providerName}.`;
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = `Sign-in with ${providerName} cancelled.`;
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = `Sign-in with ${providerName} already in progress or cancelled.`;
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = `An account already exists with the same email address but different sign-in credentials. Please sign in using your existing method.`;
-      }
-      showMessageBox(errorMessage, true);
-    }
-  }
-
-
-  // Event Listeners
-  showSignupBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginSection.classList.add('hidden');
-    signupSection.classList.remove('hidden');
-    userSettingsSection.classList.add('hidden'); // Hide settings if shown
-  });
-
-  showLoginBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    signupSection.classList.add('hidden');
-    loginSection.classList.remove('hidden');
-    userSettingsSection.classList.add('hidden'); // Hide settings if shown
-  });
-
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = loginForm['login-email'].value;
-    const password = loginForm['login-password'].value;
-    const selectedTheme = loginThemeSelect.value;
-
-    showMessageBox("", false); // Clear any existing messages
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      console.log("Logged in:", user.uid);
-      // Update theme preference in Firestore
-      await createUserProfileInFirestore(user.uid, { themePreference: selectedTheme, lastLoginAt: new Date() });
-      applyTheme(selectedTheme); // Apply theme immediately
-
-      // Redirect after successful login
-      window.location.href = 'admin_and_dev.html';
-
-    } catch (error) {
-      console.error("Login failed:", error);
-      let errorMessage = "Login failed. Please check your credentials.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = "Invalid email or password.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Please enter a valid email address.";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many login attempts. Please try again later.";
-      }
-      showMessageBox(errorMessage, true);
-    }
-  });
-
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = signupForm['signup-email'].value;
-    const password = signupForm['signup-password'].value;
-    const displayName = signupForm['signup-display-name'].value;
-    const selectedTheme = signupThemeSelect.value;
-
-    showMessageBox("", false); // Clear any existing messages
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      console.log("Signed up:", user.uid);
-
-      // Create user profile in Firestore immediately after signup
-      const profileData = {
-        email: user.email,
-        displayName: displayName || user.email, // Use display name or email if not provided
-        themePreference: selectedTheme,
-        createdAt: new Date(),
-        lastLoginAt: new Date()
-      };
-      await createUserProfileInFirestore(user.uid, profileData);
-      applyTheme(selectedTheme); // Apply theme immediately
-
-      showMessageBox("Account created successfully! Redirecting...", false);
-      // Redirect after successful signup
-      window.location.href = 'admin_and_dev.html';
-
-    } catch (error) {
-      console.error("Signup failed:", error);
-      let errorMessage = "Signup failed.";
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "This email is already in use.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Please enter a valid email address.";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password should be at least 6 characters.";
-      }
-      showMessageBox(errorMessage, true);
-    }
-  });
-
-  // Social Login Button Event Listeners
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', () => handleSocialAuth('google', loginThemeSelect.value));
-  }
-  if (githubLoginBtn) {
-    githubLoginBtn.addEventListener('click', () => handleSocialAuth('github', loginThemeSelect.value));
-  }
-  if (googleSignupBtn) {
-    googleSignupBtn.addEventListener('click', () => handleSocialAuth('google', signupThemeSelect.value));
-  }
-  if (githubSignupBtn) {
-    githubSignupBtn.addEventListener('click', () => handleSocialAuth('github', signupThemeSelect.value));
-  }
-
-
-  forgotPasswordLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    passwordResetModal.style.display = 'flex';
-  });
-
-  closeModalButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      passwordResetModal.style.display = 'none';
-    });
-  });
-
-  window.addEventListener('click', (event) => {
-    if (event.target === passwordResetModal) {
-      passwordResetModal.style.display = 'none';
-    }
-  });
-
-  sendResetEmailBtn.addEventListener('click', async () => {
-    const email = resetEmailInput.value.trim();
-    if (email) {
-      try {
-        await sendPasswordResetEmail(auth, email);
-        showMessageBox("Password reset email sent. Check your inbox.", false);
-        passwordResetModal.style.display = 'none';
-      }
-      catch (error) {
-        console.error("Password reset error:", error);
-        let errorMessage = "Failed to send reset email. Please try again.";
-        if (error.code === 'auth/invalid-email') {
-          errorMessage = "Please enter a valid email address.";
-        } else if (error.code === 'auth/user-not-found') {
-          errorMessage = "No account found with that email address.";
-        }
-        showMessageBox(errorMessage, true);
-      }
-    } else {
-      showMessageBox("Please enter your email address.", true);
-    }
-  });
-
-  // Logout functionality (now specific to sign.html, redirects to login state)
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      showMessageBox("", false);
-      try {
-        await signOut(auth);
-        showMessageBox("You have been signed out.", false);
-        // UI will automatically update via onAuthStateChanged listener
-      } catch (error) {
-        console.error("Logout failed:", error);
-        showMessageBox("Logout failed: " + error.message, true);
-      }
-    });
-  }
-
-  // Handle initial auth state for Canvas environment and existing users
-  if (isFirebaseInitialized && auth) {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("DEBUG: User detected on sign.html:", user.uid);
+        console.log("User detected on sign.html:", user.uid);
+        // Fetch user profile from Firestore
         const userProfile = await getUserProfileFromFirestore(user.uid);
-        const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-        applyTheme(themePreference);
 
-        // Show user settings section
+        userDisplayEmail.textContent = user.email || "Anonymous User";
+        userProfilePicture.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+        userDisplayName.textContent = userProfile?.displayName || user.displayName || '';
+
+        // Show logged-in section, hide login/signup forms
         userSettingsSection.classList.remove('hidden');
         loginSection.classList.add('hidden');
         signupSection.classList.add('hidden');
 
-        userDisplayName.textContent = userProfile?.displayName || user.email;
-        userEmail.textContent = user.email;
-        // No theme select here, user goes to settings.html for that
+        // Apply user's theme preference if available, otherwise default
+        const userThemePreference = userProfile?.themePreference || DEFAULT_THEME;
+        const allThemes = await getAvailableThemes(); // Call imported function
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+        applyTheme(themeToApply.id, themeToApply); // Call imported function
 
       } else {
-        console.log("DEBUG: No user detected on sign.html. Applying default theme.");
-        applyTheme(DEFAULT_THEME);
+        console.log("No user detected on sign.html. Showing login form.");
+        // Apply default theme if not logged in
+        const allThemes = await getAvailableThemes(); // Call imported function
+        const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
+        applyTheme(defaultThemeObj.id, defaultThemeObj); // Call imported function
 
         // Show login form by default if not logged in
         userSettingsSection.classList.add('hidden');
         loginSection.classList.remove('hidden');
         signupSection.classList.add('hidden');
-      }
-      // For Canvas: Sign in anonymously if no initial auth token
-      if (typeof __initial_auth_token !== 'undefined' && !user) {
-        signInAnonymously(auth).then(() => {
-          console.log("DEBUG: Signed in anonymously on sign.html (Canvas env).");
-        }).catch(error => {
-          console.error("ERROR: Anonymous sign-in failed on sign.html:", error);
-        });
-      } else if (!user && !__initial_auth_token) {
-        // If no custom token and no current user, sign in anonymously by default
-        signInAnonymously(auth)
-          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on sign.html."))
-          .catch((anonError) => console.error("ERROR: Error signing in anonymously on sign.html:", anonError));
+
+        // Attempt anonymous sign-in if Firebase is initialized
+        if (isFirebaseInitialized) {
+          signInAnonymously(auth).then(() => {
+            console.log("Signed in anonymously on sign.html (Canvas env).");
+          }).catch(error => {
+            console.error("Anonymous sign-in failed during theme load:", error);
+          });
+        }
       }
     });
   }
+
+  // Load navbar first, then setup auth listener and initialize Firebase
+  window.onload = async function() {
+    // Assign DOM elements safely inside window.onload
+    userSettingsSection = document.getElementById('user-settings-section');
+    loginSection = document.getElementById('login-section');
+    signupSection = document.getElementById('signup-section');
+    userDisplayEmail = document.getElementById('user-display-email');
+    userProfilePicture = document.getElementById('user-profile-picture');
+    userDisplayName = document.getElementById('user-display-name');
+    goToSettingsBtn = document.getElementById('go-to-settings-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    loginEmailInput = document.getElementById('login-email');
+    loginPasswordInput = document.getElementById('login-password');
+    loginBtn = document.getElementById('login-btn');
+    showSignupBtn = document.getElementById('show-signup-btn');
+    signupEmailInput = document.getElementById('signup-email');
+    signupPasswordInput = document.getElementById('signup-password');
+    signupConfirmPasswordInput = document.getElementById('signup-confirm-password');
+    signupBtn = document.getElementById('signup-btn');
+    showLoginBtn = document.getElementById('show-login-btn');
+    messageBox = document.getElementById('message-box');
+
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME); // Pass necessary arguments
+
+    // Initialize Firebase (moved inside onload after DOM elements are ready)
+    try {
+      if (Object.keys(firebaseConfig).length > 0) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        isFirebaseInitialized = true;
+        console.log("Firebase initialized successfully on sign.html.");
+        setupThemesFirebase(db, auth, appId); // Pass auth to themes.js
+      } else {
+        console.warn("Firebase configuration is empty on sign.html. Auth features will be disabled.");
+        window.showMessageBox("Firebase configuration is missing. Authentication features will not work.", true);
+      }
+    } catch (e) {
+      console.error("Error initializing Firebase on sign.html:", e);
+      window.showMessageBox("Error initializing Firebase. Authentication features will not work. Please check console.", true);
+    }
+
+    if (isFirebaseInitialized) {
+      setupAuthStateListener(); // Start listening for auth changes
+    } else {
+      // If Firebase not initialized, just show login form and apply default theme
+      userSettingsSection.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      signupSection.classList.add('hidden');
+      applyTheme(DEFAULT_THEME); // Call imported function
+    }
+
+    // Event Listeners for login/signup forms
+    if (showSignupBtn) {
+      showSignupBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginSection.classList.add('hidden');
+        signupSection.classList.remove('hidden');
+        window.showMessageBox("", false); // Clear any messages
+      });
+    }
+
+    if (showLoginBtn) {
+      showLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        signupSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        window.showMessageBox("", false); // Clear any messages
+      });
+    }
+
+    if (loginBtn) {
+      loginBtn.addEventListener('click', async () => {
+        window.showMessageBox("", false);
+        const email = loginEmailInput.value;
+        const password = loginPasswordInput.value;
+        if (!email || !password) {
+          window.showMessageBox("Please enter both email and password.", true);
+          return;
+        }
+        if (!auth) {
+          window.showMessageBox("Firebase Auth not initialized.", true);
+          return;
+        }
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          window.showMessageBox("Logged in successfully!", false);
+          // onAuthStateChanged will handle UI update
+        } catch (error) {
+          console.error("Login failed:", error);
+          let errorMessage = "Login failed. Please check your credentials.";
+          if (error.code === 'auth/user-not-found') {
+            errorMessage = "No user found with this email.";
+          } else if (error.code === 'auth/wrong-password') {
+            errorMessage = "Incorrect password.";
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Invalid email format.";
+          }
+          window.showMessageBox(errorMessage, true);
+        }
+      });
+    }
+
+    if (signupBtn) {
+      signupBtn.addEventListener('click', async () => {
+        window.showMessageBox("", false);
+        const email = signupEmailInput.value;
+        const password = signupPasswordInput.value;
+        const confirmPassword = signupConfirmPasswordInput.value;
+
+        if (!email || !password || !confirmPassword) {
+          window.showMessageBox("All fields are required.", true);
+          return;
+        }
+        if (password !== confirmPassword) {
+          window.showMessageBox("Passwords do not match.", true);
+          return;
+        }
+        if (password.length < 6) {
+          window.showMessageBox("Password should be at least 6 characters.", true);
+          return;
+        }
+        if (!auth) {
+          window.showMessageBox("Firebase Auth not initialized.", true);
+          return;
+        }
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          // Create initial user profile in Firestore
+          await updateUserProfileInFirestore(user.uid, {
+            displayName: user.email.split('@')[0], // Default display name
+            photoURL: DEFAULT_PROFILE_PIC,
+            themePreference: DEFAULT_THEME,
+            fontSizePreference: '16px' // Default font size
+          });
+
+          window.showMessageBox("Account created successfully!", false);
+          // onAuthStateChanged will handle UI update
+        } catch (error) {
+          console.error("Signup failed:", error);
+          let errorMessage = "Signup failed.";
+          if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "Email already in use.";
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Invalid email format.";
+          } else if (error.code === 'auth/weak-password') {
+            errorMessage = "Password is too weak.";
+          }
+          window.showMessageBox(errorMessage, true);
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        window.showMessageBox("", false);
+        try {
+          await signOut(auth);
+          window.location.href = 'sign.html'; // Redirect to sign-in page after logout
+          window.showMessageBox("You have been signed out.", false); // This might not show due to redirect
+        } catch (error) {
+          console.error("Logout failed:", error);
+          window.showMessageBox("Logout failed: " + error.message, true);
+        }
+      });
+    }
+
+    if (goToSettingsBtn) {
+      goToSettingsBtn.addEventListener('click', () => {
+        window.location.href = 'settings.html';
+      });
+    }
+  };
 </script>
 </body>
 </html>
