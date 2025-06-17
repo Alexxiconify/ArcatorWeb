@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
   <!-- Import themes.js for centralized JavaScript functions -->
   <script src="themes.js" type="module"></script>
   <!-- Import custom_theme_modal.js for custom theme management logic -->
@@ -43,7 +42,7 @@
       background-color: var(--color-bg-card); /* Slightly different background on hover */
     }
 
-    /* Override Tailwind's default dark classes with CSS variables */
+    /* Override Tailwind's default dark classes with CSS variables for consistent theming */
     .bg-gray-800 {
       background-color: var(--color-bg-content-section) !important;
     }
@@ -66,7 +65,7 @@
       color: var(--color-link) !important; /* Using link color for spinner */
     }
 
-    /* Heading colors */
+    /* Heading colors to ensure clarity with themes */
     .text-red-400 {
       color: var(--color-heading-main) !important;
     }
@@ -90,7 +89,7 @@
       color: var(--color-placeholder) !important;
     }
 
-    /* Button styling */
+    /* Button styling for better visibility */
     .btn-primary,
     .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
       color: var(--color-button-text) !important;
@@ -126,7 +125,7 @@
       color: var(--color-text-primary) !important; /* For footer links */
     }
 
-    /* Table styling */
+    /* Table styling for better readability across themes */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -153,7 +152,7 @@
 
     /* Modals */
     .modal, .custom-confirm-modal {
-      display: none; /* Hidden by default - This is the key change! */
+      display: none; /* Crucial: Hidden by default */
       position: fixed; /* Stay in place */
       z-index: 1001; /* Sit on top */
       left: 0;
@@ -162,13 +161,12 @@
       height: 100%; /* Full height */
       overflow: auto; /* Enable scroll if needed */
       background-color: rgba(0,0,0,0.7); /* Dark overlay */
-      display: flex; /* Use flex for centering */
+      /* display: flex; will be set by JS when needed */
       justify-content: center;
       align-items: center;
       color: var(--color-modal-text); /* Apply modal text color */
     }
     .modal-content {
-      display: none; /* Hidden by default - This is the key change! */
       background-color: var(--color-modal-bg);
       color: var(--color-modal-text);
       padding: 20px;
@@ -512,7 +510,7 @@
             <th>Priority</th>
             <th>ETA</th>
             <th>Notes</th>
-            <th>Actions</th> <!-- NEW: Actions column -->
+            <th>Actions</th>
           </tr>
           </thead>
           <tbody id="roadmap-todo-list-tbody">
@@ -599,7 +597,7 @@
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script type="module">
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js'; // This is the correct import for loadNavbar
+  import { loadNavbar } from './navbar.js';
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
@@ -641,6 +639,7 @@
   let auth;
   let db;
   let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+  let isFirebaseInitialized = false;
 
   // DOM elements - Initialize immediately after declaration
   const loadingSpinner = document.getElementById('loading-spinner');
@@ -969,6 +968,7 @@
       editUserModal.style.display = 'none';
       editTempPageModal.style.display = 'none';
       editTodoModal.style.display = 'none';
+      customConfirmModal.style.display = 'none'; // Ensure custom confirm modal also closes
     });
   });
 
@@ -1261,7 +1261,6 @@
       return [];
     }
     const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
-    // Ensure `orderBy` is used safely, or remove it if not strictly necessary due to Firestore indexing limitations.
     const q = query(todosCol, orderBy("createdAt", "asc"));
     try {
       const querySnapshot = await getDocs(q);
