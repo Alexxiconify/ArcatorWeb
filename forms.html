@@ -13,19 +13,148 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      /* Default to dark theme for consistency */
-      background-color: #1F2937;
-      color: #E5E7EB;
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    /* Light theme styles - these will be applied dynamically */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light gray */
-      color: #1F2937; /* Dark text */
-      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
-    }
+
+      /* Default Dark Theme */
+      body.theme-dark {
+        background-color: #1F2937; /* Dark background */
+        color: #E5E7EB; /* Light text */
+        background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+        background-size: 20px 20px;
+        background-attachment: fixed;
+      }
+      body.theme-dark .bg-card {
+        background-color: #2D3748 !important; /* Darker card background for dark theme */
+        color: #E5E7EB !important; /* Light text for card */
+      }
+      body.theme-dark input,
+      body.theme-dark select {
+        background-color: #374151 !important; /* Darker input background */
+        color: #E5E7EB !important; /* Light text in input */
+        border-color: #4B5563 !important; /* Subtle border for inputs */
+      }
+      body.theme-dark input::placeholder {
+        color: #9CA3AF !important; /* Lighter placeholder text */
+      }
+      body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
+        color: #E5E7EB !important;
+      }
+
+      /* Light Theme */
+      body.theme-light {
+        background-color: #F3F4F6; /* Light background */
+        color: #1F2937; /* Dark text */
+        background-image: none; /* No pattern for light theme */
+      }
+      body.theme-light .bg-card {
+        background-color: #FFFFFF !important; /* White card background for light theme */
+        color: #1F2937 !important; /* Dark text for card */
+      }
+      body.theme-light input,
+      body.theme-light select {
+        background-color: #FFFFFF !important; /* White input background */
+        color: #1F2937 !important; /* Dark text in input */
+        border-color: #D1D5DB !important; /* Light border for inputs */
+      }
+      body.theme-light input::placeholder {
+        color: #6B7280 !important; /* Darker placeholder text */
+      }
+      body.theme-light .text-gray-700 {
+        color: #1F2937 !important;
+      }
+
+      /* Arcator Blue Theme */
+      body.theme-arcator-blue {
+        background-color: #1a202c; /* Deep blue-grey */
+        color: #E2E8F0; /* Light off-white text */
+        background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+        linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
+        background-size: cover;
+        background-attachment: fixed;
+      }
+      body.theme-arcator-blue .bg-card {
+        background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
+        color: #E2E8F0 !important; /* Light text for card */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+      body.theme-arcator-blue input,
+      body.theme-arcator-blue select {
+        background-color: #3b4d6b !important; /* Darker input background */
+        color: #E2E8F0 !important; /* Light text in input */
+        border-color: #5a6e8f !important; /* Blueish border */
+      }
+      body.theme-arcator-blue input::placeholder {
+        color: #94A3B8 !important; /* Subtle blue placeholder */
+      }
+      body.theme-arcator-blue .text-blue-600 { /* Primary button color */
+        background-color: #4299E1 !important; /* Arcator blue */
+        color: white !important;
+      }
+      body.theme-arcator-blue .text-gray-700 {
+        color: #E2E8F0 !important;
+      }
+      body.theme-arcator-blue .text-blue-500 {
+        color: #63B3ED !important;
+      }
+
+      /* Settings card styling */
+      .settings-card {
+        max-width: 600px;
+        width: 90%;
+        padding: 2.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      }
+      .input-field {
+        margin-bottom: 1rem;
+      }
+      .input-field label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem; /* text-sm */
+        font-weight: 600; /* font-semibold */
+      }
+      .input-field input, .input-field select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #D1D5DB; /* border-gray-300 */
+        border-radius: 0.5rem; /* rounded-md */
+        font-size: 1rem;
+      }
+      .btn-primary {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 700; /* font-bold */
+        transition: background-color 0.2s, transform 0.2s;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+      }
+
+      /* Message box styling */
+      .message-box {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        display: none; /* Hidden by default */
+        font-size: 1rem;
+        text-align: center;
+      }
+      .message-box.success {
+        background-color: #4CAF50; /* Green for success */
+      }
+      .message-box.error {
+        background-color: #F44336; /* Red for error */
+      }
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;

@@ -9,89 +9,150 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
-      /* Default to dark theme for consistency */
-      background-color: #1F2937;
-      color: #E5E7EB;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Default Dark Theme */
+    body.theme-dark {
+      background-color: #1F2937; /* Dark background */
+      color: #E5E7EB; /* Light text */
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Light theme styles - these will be applied dynamically */
+    body.theme-dark .bg-card {
+      background-color: #2D3748 !important; /* Darker card background for dark theme */
+      color: #E5E7EB !important; /* Light text for card */
+    }
+    body.theme-dark input,
+    body.theme-dark select {
+      background-color: #374151 !important; /* Darker input background */
+      color: #E5E7EB !important; /* Light text in input */
+      border-color: #4B5563 !important; /* Subtle border for inputs */
+    }
+    body.theme-dark input::placeholder {
+      color: #9CA3AF !important; /* Lighter placeholder text */
+    }
+    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
+      color: #E5E7EB !important;
+    }
+
+    /* Light Theme */
     body.theme-light {
-      background-color: #F3F4F6; /* Light gray */
+      background-color: #F3F4F6; /* Light background */
       color: #1F2937; /* Dark text */
-      background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+      background-image: none; /* No pattern for light theme */
     }
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+    body.theme-light .bg-card {
+      background-color: #FFFFFF !important; /* White card background for light theme */
+      color: #1F2937 !important; /* Dark text for card */
+    }
+    body.theme-light input,
+    body.theme-light select {
+      background-color: #FFFFFF !important; /* White input background */
+      color: #1F2937 !important; /* Dark text in input */
+      border-color: #D1D5DB !important; /* Light border for inputs */
+    }
+    body.theme-light input::placeholder {
+      color: #6B7280 !important; /* Darker placeholder text */
+    }
+    body.theme-light .text-gray-700 {
+      color: #1F2937 !important;
+    }
+
+    /* Arcator Blue Theme */
+    body.theme-arcator-blue {
+      background-color: #1a202c; /* Deep blue-grey */
+      color: #E2E8F0; /* Light off-white text */
+      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+      background-attachment: fixed;
     }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
+    body.theme-arcator-blue .bg-card {
+      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
+      color: #E2E8F0 !important; /* Light text for card */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    body.theme-arcator-blue input,
+    body.theme-arcator-blue select {
+      background-color: #3b4d6b !important; /* Darker input background */
+      color: #E2E8F0 !important; /* Light text in input */
+      border-color: #5a6e8f !important; /* Blueish border */
     }
-    .profile-pic-large {
-      width: 128px;
-      height: 128px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #60A5FA;
-      box-shadow: 0 0 15px rgba(96, 165, 250, 0.5); /* Blue glow */
+    body.theme-arcator-blue input::placeholder {
+      color: #94A3B8 !important; /* Subtle blue placeholder */
     }
-    .form-section {
-      background-color: #2D3748; /* Darker grey background for forms */
+    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
+      background-color: #4299E1 !important; /* Arcator blue */
+      color: white !important;
+    }
+    body.theme-arcator-blue .text-gray-700 {
+      color: #E2E8F0 !important;
+    }
+    body.theme-arcator-blue .text-blue-500 {
+      color: #63B3ED !important;
+    }
+
+    /* Settings card styling */
+    .settings-card {
+      max-width: 600px;
+      width: 90%;
+      padding: 2.5rem;
       border-radius: 0.75rem;
-      padding: 2rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     }
-    .theme-light .form-section {
-      background-color: #FFFFFF; /* White background for forms in light theme */
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    .input-field {
+      margin-bottom: 1rem;
     }
-    .form-section input[type="email"],
-    .form-section input[type="password"],
-    .form-section input[type="text"],
-    .form-section input[type="url"],
-    .form-section select {
-      background-color: #4A5568; /* Input background */
-      color: #E5E7EB; /* Input text color */
-      border: 1px solid #60A5FA; /* Blue border */
+    .input-field label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem; /* text-sm */
+      font-weight: 600; /* font-semibold */
     }
-    .theme-light .form-section input[type="email"],
-    .theme-light .form-section input[type="password"],
-    .theme-light .form-section input[type="text"],
-    .theme-light .form-section input[type="url"],
-    .theme-light .form-section select {
-      background-color: #E5E7EB; /* Light input background */
-      color: #1F2937; /* Dark input text */
-      border: 1px solid #9CA3AF; /* Gray border */
+    .input-field input, .input-field select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #D1D5DB; /* border-gray-300 */
+      border-radius: 0.5rem; /* rounded-md */
+      font-size: 1rem;
     }
-    .form-section input:focus,
-    .form-section select:focus {
-      border-color: #3B82F6; /* Brighter blue on focus */
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700; /* font-bold */
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Message box styling */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+    }
+    .message-box.success {
+      background-color: #4CAF50; /* Green for success */
+    }
+    .message-box.error {
+      background-color: #F44336; /* Red for error */
     }
   </style>
 </head>
