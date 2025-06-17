@@ -1,4 +1,5 @@
 // themes.js
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Internal variables to hold Firebase instances
 let _db = null;
@@ -166,10 +167,10 @@ window.getAvailableThemes = async function() {
   let allThemes = Object.values(PREDEFINED_THEMES); // Start with predefined themes
 
   if (_db && _appId) {
-    // Corrected to use the passed _db instance instead of global firebase.firestore()
-    const themesCollectionRef = _db.collection(`artifacts/${_appId}/public/data/custom_themes`);
+    // Corrected to use the imported 'collection' function
+    const themesCollectionRef = collection(_db, `artifacts/${_appId}/public/data/custom_themes`);
     try {
-      const querySnapshot = await themesCollectionRef.get();
+      const querySnapshot = await getDocs(themesCollectionRef);
       querySnapshot.forEach(docSnap => {
         const data = docSnap.data();
         allThemes.push({
