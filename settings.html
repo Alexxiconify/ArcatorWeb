@@ -6,14 +6,14 @@
   <title>User Settings - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts - Inter and others -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
+  <link rel="stylesheet" href="theme_variables.min.css">
   <!-- Link to navbar.css for consistent styling -->
-  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="navbar.min.css">
   <!-- Link to settings.css for page-specific styling -->
-  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="settings.min.css">
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -35,7 +35,7 @@
     </div>
 
     <div id="settings-content" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile</h2>
+      <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile & Preferences</h2>
 
       <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
         <!-- Profile Picture and Display Name Card -->
@@ -61,7 +61,7 @@
           <button id="save-profile-btn" class="btn-primary btn-blue">Save Profile Changes</button>
         </div>
 
-        <!-- Theme and Font Size Preferences Card -->
+        <!-- Theme and Font Preferences Card -->
         <div class="settings-card bg-gray-700 shadow-xl">
           <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Personalize Experience</h3>
 
@@ -71,11 +71,29 @@
           </div>
 
           <div class="input-field">
-            <label for="font-size-select">Font Size:</label>
+            <label for="font-size-select">Base Font Size:</label>
             <select id="font-size-select">
               <option value="14px">Small (14px)</option>
               <option value="16px">Medium (16px)</option>
               <option value="18px">Large (18px)</option>
+            </select>
+          </div>
+
+          <div class="input-field">
+            <label for="font-family-select">Font Family:</label>
+            <select id="font-family-select">
+              <option value="Inter, sans-serif">Inter</option>
+              <option value="Roboto Mono, monospace">Roboto Mono</option>
+              <option value="Open Sans, sans-serif">Open Sans</option>
+            </select>
+          </div>
+
+          <div class="input-field">
+            <label for="background-pattern-select">Background Pattern:</label>
+            <select id="background-pattern-select">
+              <option value="none">None</option>
+              <option value="dots">Dots</option>
+              <option value="grid">Grid</option>
             </select>
           </div>
 
@@ -85,6 +103,76 @@
           <button id="create-custom-theme-btn" class="btn-primary btn-purple">Create/Manage Custom Themes</button>
         </div>
       </div>
+
+      <!-- Password Management Card -->
+      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Password Management</h3>
+        <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
+        <div class="input-field">
+          <label for="current-password-input">Current Password:</label>
+          <input type="password" id="current-password-input" placeholder="********">
+        </div>
+        <div class="input-field">
+          <label for="new-password-input">New Password:</label>
+          <input type="password" id="new-password-input" placeholder="********">
+        </div>
+        <div class="input-field">
+          <label for="confirm-new-password-input">Confirm New Password:</label>
+          <input type="password" id="confirm-new-password-input" placeholder="********">
+        </div>
+        <button id="change-password-btn" class="btn-primary btn-orange">Change Password</button>
+      </div>
+
+      <!-- Notification Preferences Card (Placeholder) -->
+      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Notification Preferences</h3>
+        <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
+        <div class="input-field flex items-center space-x-2">
+          <input type="checkbox" id="email-notifications-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <label for="email-notifications-checkbox">Receive Email Notifications</label>
+        </div>
+        <div class="input-field flex items-center space-x-2">
+          <input type="checkbox" id="inapp-notifications-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
+        </div>
+        <button id="save-notifications-btn" class="btn-primary btn-blue mt-4">Save Notification Settings</button>
+      </div>
+
+      <!-- Accessibility Settings Card (Placeholder) -->
+      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Accessibility Settings</h3>
+        <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
+        <div class="input-field flex items-center space-x-2">
+          <input type="checkbox" id="high-contrast-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
+        </div>
+        <div class="input-field flex items-center space-x-2">
+          <input type="checkbox" id="reduced-motion-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <label for="reduced-motion-checkbox">Enable Reduced Motion</label>
+        </div>
+        <button id="save-accessibility-btn" class="btn-primary btn-blue mt-4">Save Accessibility Settings</button>
+      </div>
+
+      <!-- Session Management Card (Placeholder) -->
+      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Session Information</h3>
+        <p id="last-login-time" class="text-gray-300 text-center text-lg mb-2">Last Login: N/A</p>
+        <p id="account-creation-time" class="text-gray-300 text-center text-sm">Account Created: N/A</p>
+      </div>
+
+      <!-- Account Deletion Card -->
+      <div class="settings-card bg-red-800 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-red-300 mb-6 text-center">Danger Zone: Account Deletion</h3>
+        <p class="text-red-200 text-center mb-4">
+          Deleting your account is permanent and cannot be undone. All your data, including profile information, custom themes, and associated content, will be irreversibly removed.
+        </p>
+        <div class="input-field">
+          <label for="delete-account-password">Confirm Password to Delete:</label>
+          <input type="password" id="delete-account-password" placeholder="********">
+        </div>
+        <button id="delete-account-btn" class="btn-primary btn-red">Delete My Account</button>
+      </div>
+
     </div>
 
     <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mt-12" style="display: none;">
@@ -104,6 +192,17 @@
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
+<!-- Custom Confirmation Modal (for delete operations) -->
+<div id="custom-confirm-modal" class="custom-confirm-modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <p class="mb-4 text-lg" id="confirm-message"></p>
+    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+  </div>
+</div>
+
 <!-- Footer Section -->
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
@@ -120,12 +219,12 @@
 </footer>
 
 <!-- Import themes.js for centralized JavaScript functions -->
-<script src="themes.js" type="module"></script>
+<script src="themes.min.js" type="module"></script>
 <!-- Import custom_theme_modal.js for custom theme management logic -->
-<script src="custom_theme_modal.js" type="module"></script>
+<script src="custom_theme_modal.min.js" type="module"></script>
 <!-- Import loadNavbar from navbar.js -->
-<script src="navbar.js" type="module"></script>
+<script src="navbar.min.js" type="module"></script>
 <!-- Import settings.js for page-specific JavaScript -->
-<script src="settings.js" type="module"></script>
+<script src="settings.min.js" type="module"></script>
 </body>
 </html>

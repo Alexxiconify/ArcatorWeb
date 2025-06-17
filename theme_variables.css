@@ -1,45 +1,277 @@
-/* theme_variables.css */
-/* These CSS Variables will be set on the <body> tag based on the active theme */
-/* Default fallback variables (for dark theme, or if no theme is applied) */
-body {
+:root {
   --color-body-bg: #1F2937;
   --color-text-primary: #E5E7EB;
-  --color-text-secondary: #CBD5E0;
-  --color-heading-main: #F87171; /* Red */
-  --color-heading-card: #60A5FA; /* Blue */
+  --color-text-secondary: #9CA3AF;
+  --color-link: #60A5FA;
+  --color-link-hover: #3B82F6;
   --color-bg-navbar: #111827;
   --color-bg-content-section: #1F2937;
   --color-bg-card: #2D3748;
-  --color-bg-ip-box: #1A202C;
-  --color-border-ip-box: #4A5568;
+  --color-heading-main: #F9FAFB;
+  --color-heading-card: #93C5FD;
   --color-input-bg: #374151;
   --color-input-text: #E5E7EB;
   --color-input-border: #4B5563;
   --color-placeholder: #9CA3AF;
-  --color-table-th-bg: #374151;
-  --color-table-th-text: #F87171;
-  --color-table-td-border: #4A5568;
-  --color-table-row-even-bg: #2D3748;
-  --color-link: #60A5FA;
   --color-button-text: #FFFFFF;
   --color-button-blue-bg: #3B82F6;
   --color-button-blue-hover: #2563EB;
+  --color-button-green-bg: #10B981;
+  --color-button-green-hover: #059669;
   --color-button-red-bg: #EF4444;
   --color-button-red-hover: #DC2626;
-  --color-button-green-bg: #22C55E;
-  --color-button-green-hover: #16A34A;
-  --color-button-yellow-bg: #F59E0B;
+  --color-button-purple-bg: #9333EA;
+  --color-button-purple-hover: #7E22CE;
+  --color-button-yellow-bg: #FBBF24;
   --color-button-yellow-hover: #D97706;
-  --color-button-purple-bg: #8B5CF6;
-  --color-button-purple-hover: #7C3AED;
+  --color-button-orange-bg: #F97316;
+  --color-button-orange-hover: #EA580C;
   --color-button-indigo-bg: #6366F1;
   --color-button-indigo-hover: #4F46E5;
-  --color-button-teal-bg: #14B8A6;
-  --color-button-teal-hover: #0D9488;
-  --color-message-box-bg-success: #10B981; /* green-500 */
-  --color-message-box-bg-error: #EF4444; /* red-500 */
-  --color-modal-bg: #2D3748; /* Similar to card background */
+  --color-table-th-bg: #1F2937;
+  --color-table-th-text: #E5E7EB;
+  --color-table-td-border: #4B5563;
+  --color-table-row-even-bg: #374151;
+  --color-modal-bg: #2D3748;
   --color-modal-text: #E5E7EB;
   --color-modal-input-bg: #374151;
   --color-modal-input-text: #E5E7EB;
+  --color-message-box-bg-success: #4CAF50;
+  --color-message-box-bg-error: #F44336;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.theme-dark {
+  --color-body-bg: #1F2937;
+  --color-text-primary: #E5E7EB;
+  --color-text-secondary: #9CA3AF;
+  --color-link: #60A5FA;
+  --color-link-hover: #3B82F6;
+  --color-bg-navbar: #111827;
+  --color-bg-content-section: #1F2937;
+  --color-bg-card: #2D3748;
+  --color-heading-main: #F9FAFB;
+  --color-heading-card: #93C5FD;
+  --color-input-bg: #374151;
+  --color-input-text: #E5E7EB;
+  --color-input-border: #4B5563;
+  --color-placeholder: #9CA3AF;
+  --color-button-text: #FFFFFF;
+  --color-button-blue-bg: #3B82F6;
+  --color-button-blue-hover: #2563EB;
+  --color-button-green-bg: #10B981;
+  --color-button-green-hover: #059669;
+  --color-button-red-bg: #EF4444;
+  --color-button-red-hover: #DC2626;
+  --color-button-purple-bg: #9333EA;
+  --color-button-purple-hover: #7E22CE;
+  --color-button-yellow-bg: #FBBF24;
+  --color-button-yellow-hover: #D97706;
+  --color-button-orange-bg: #F97316;
+  --color-button-orange-hover: #EA580C;
+  --color-button-indigo-bg: #6366F1;
+  --color-button-indigo-hover: #4F46E5;
+  --color-table-th-bg: #1F2937;
+  --color-table-th-text: #E5E7EB;
+  --color-table-td-border: #4B5563;
+  --color-table-row-even-bg: #374151;
+  --color-modal-bg: #2D3748;
+  --color-modal-text: #E5E7EB;
+  --color-modal-input-bg: #374151;
+  --color-modal-input-text: #E5E7EB;
+  --color-message-box-bg-success: #4CAF50;
+  --color-message-box-bg-error: #F44336;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.theme-light {
+  --color-body-bg: #F3F4F6;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-link: #2563EB;
+  --color-link-hover: #1D4ED8;
+  --color-bg-navbar: #E5E7EB;
+  --color-bg-content-section: #F3F4F6;
+  --color-bg-card: #FFFFFF;
+  --color-heading-main: #111827;
+  --color-heading-card: #3B82F6;
+  --color-input-bg: #FFFFFF;
+  --color-input-text: #1F2937;
+  --color-input-border: #D1D5DB;
+  --color-placeholder: #9CA3AF;
+  --color-button-text: #FFFFFF;
+  --color-button-blue-bg: #3B82F6;
+  --color-button-blue-hover: #2563EB;
+  --color-button-green-bg: #10B981;
+  --color-button-green-hover: #059669;
+  --color-button-red-bg: #EF4444;
+  --color-button-red-hover: #DC2626;
+  --color-button-purple-bg: #9333EA;
+  --color-button-purple-hover: #7E22CE;
+  --color-button-yellow-bg: #FBBF24;
+  --color-button-yellow-hover: #D97706;
+  --color-button-orange-bg: #F97316;
+  --color-button-orange-hover: #EA580C;
+  --color-button-indigo-bg: #6366F1;
+  --color-button-indigo-hover: #4F46E5;
+  --color-table-th-bg: #E5E7EB;
+  --color-table-th-text: #111827;
+  --color-table-td-border: #D1D5DB;
+  --color-table-row-even-bg: #F9FAFB;
+  --color-modal-bg: #FFFFFF;
+  --color-modal-text: #1F2937;
+  --color-modal-input-bg: #F3F4F6;
+  --color-modal-input-text: #1F2937;
+  --color-message-box-bg-success: #4CAF50;
+  --color-message-box-bg-error: #F44336;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.theme-arcator-green {
+  --color-body-bg: #1A3E2F;
+  --color-text-primary: #EBFBEB;
+  --color-text-secondary: #A3C7B5;
+  --color-link: #34D399;
+  --color-link-hover: #10B981;
+  --color-bg-navbar: #0D2F22;
+  --color-bg-content-section: #1A3E2F;
+  --color-bg-card: #254D3D;
+  --color-heading-main: #DCFCE7;
+  --color-heading-card: #6EE7B7;
+  --color-input-bg: #305C4D;
+  --color-input-text: #EBFBEB;
+  --color-input-border: #4C7C6D;
+  --color-placeholder: #7CA090;
+  --color-button-text: #FFFFFF;
+  --color-button-blue-bg: #34D399;
+  --color-button-blue-hover: #10B981;
+  --color-button-green-bg: #059669;
+  --color-button-green-hover: #047857;
+  --color-button-red-bg: #F87171;
+  --color-button-red-hover: #EF4444;
+  --color-button-purple-bg: #A78BFA;
+  --color-button-purple-hover: #8B5CF6;
+  --color-button-yellow-bg: #FBBF24;
+  --color-button-yellow-hover: #D97706;
+  --color-button-orange-bg: #F97316;
+  --color-button-orange-hover: #EA580C;
+  --color-button-indigo-bg: #6366F1;
+  --color-button-indigo-hover: #4F46E5;
+  --color-table-th-bg: #1A3E2F;
+  --color-table-th-text: #EBFBEB;
+  --color-table-td-border: #4C7C6D;
+  --color-table-row-even-bg: #2C5242;
+  --color-modal-bg: #254D3D;
+  --color-modal-text: #EBFBEB;
+  --color-modal-input-bg: #305C4D;
+  --color-modal-input-text: #EBFBEB;
+  --color-message-box-bg-success: #34D399;
+  --color-message-box-bg-error: #F87171;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.theme-ocean-blue {
+  --color-body-bg: #0A192F;
+  --color-text-primary: #E0F2F7;
+  --color-text-secondary: #7ABACD;
+  --color-link: #29B6F6;
+  --color-link-hover: #03A9F4;
+  --color-bg-navbar: #061325;
+  --color-bg-content-section: #0A192F;
+  --color-bg-card: #1A2F4B;
+  --color-heading-main: #ADD8E6;
+  --color-heading-card: #81D4FA;
+  --color-input-bg: #203E5F;
+  --color-input-text: #E0F2F7;
+  --color-input-border: #3A5F8A;
+  --color-placeholder: #608BA0;
+  --color-button-text: #FFFFFF;
+  --color-button-blue-bg: #29B6F6;
+  --color-button-blue-hover: #03A9F4;
+  --color-button-green-bg: #4CAF50;
+  --color-button-green-hover: #43A047;
+  --color-button-red-bg: #EF5350;
+  --color-button-red-hover: #E53935;
+  --color-button-purple-bg: #7E57C2;
+  --color-button-purple-hover: #673AB7;
+  --color-button-yellow-bg: #FFD54F;
+  --color-button-yellow-hover: #FFC107;
+  --color-button-orange-bg: #FF8A65;
+  --color-button-orange-hover: #FF7043;
+  --color-button-indigo-bg: #4F46E5;
+  --color-button-indigo-hover: #4338CA;
+  --color-table-th-bg: #0A192F;
+  --color-table-th-text: #E0F2F7;
+  --color-table-td-border: #3A5F8A;
+  --color-table-row-even-bg: #142B47;
+  --color-modal-bg: #1A2F4B;
+  --color-modal-text: #E0F2F7;
+  --color-modal-input-bg: #203E5F;
+  --color-modal-input-text: #E0F2F7;
+  --color-message-box-bg-success: #29B6F6;
+  --color-message-box-bg-error: #EF5350;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.theme-high-contrast {
+  --color-body-bg: #000000;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #F5F5F5;
+  --color-link: #FFFF00;
+  --color-link-hover: #FFD700;
+  --color-bg-navbar: #000000;
+  --color-bg-content-section: #111111;
+  --color-bg-card: #333333;
+  --color-heading-main: #FFFFFF;
+  --color-heading-card: #FFFFFF;
+  --color-input-bg: #333333;
+  --color-input-text: #FFFFFF;
+  --color-input-border: #FFFF00;
+  --color-placeholder: #CCCCCC;
+  --color-button-text: #000000;
+  --color-button-blue-bg: #FFFF00;
+  --color-button-blue-hover: #FFD700;
+  --color-button-green-bg: #00FF00;
+  --color-button-green-hover: #00CC00;
+  --color-button-red-bg: #FF0000;
+  --color-button-red-hover: #CC0000;
+  --color-button-purple-bg: #FF00FF;
+  --color-button-purple-hover: #CC00CC;
+  --color-button-yellow-bg: #FFFF00;
+  --color-button-yellow-hover: #FFD700;
+  --color-button-orange-bg: #FFA500;
+  --color-button-orange-hover: #CC8400;
+  --color-button-indigo-bg: #4B0082;
+  --color-button-indigo-hover: #3A0066;
+  --color-table-th-bg: #000000;
+  --color-table-th-text: #FFFFFF;
+  --color-table-td-border: #FFFFFF;
+  --color-table-row-even-bg: #111111;
+  --color-modal-bg: #333333;
+  --color-modal-text: #FFFFFF;
+  --color-modal-input-bg: #111111;
+  --color-modal-input-text: #FFFFFF;
+  --color-message-box-bg-success: #00FF00;
+  --color-message-box-bg-error: #FF0000;
+  --font-family-body: 'Inter', sans-serif
+}
+
+.pattern-dots {
+  background-image: radial-gradient(var(--color-text-secondary) 1px, transparent 1px), radial-gradient(var(--color-text-secondary) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px
+}
+
+.pattern-grid {
+  background-image: linear-gradient(to right, var(--color-text-secondary) 1px, transparent 1px), linear-gradient(to bottom, var(--color-text-secondary) 1px, transparent 1px);
+  background-size: 20px 20px
+}
+
+.high-contrast-mode {
+  filter: contrast(200%) brightness(150%)
+}
+
+.reduced-motion * {
+  transition: none !important;
+  animation: none !important
 }
