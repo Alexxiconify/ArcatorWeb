@@ -154,6 +154,15 @@
     .message-box.error {
       background-color: #F44336; /* Red for error */
     }
+    /* Style for the small profile picture in the navbar */
+    .navbar-profile-pic {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #60A5FA; /* Blue border */
+      vertical-align: middle; /* Align with text */
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen theme-dark">
@@ -241,7 +250,20 @@
     try {
       const response = await fetch('navbar.html');
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const navbarHtml = await response.text();
+      let navbarHtml = await response.text();
+
+      // Inject the user icon link dynamically
+      const userIconLink = `
+                    <li>
+                        <a href="settings.html" id="navbar-user-icon-link" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800" style="display:none;">
+                            <img id="navbar-user-icon" src="${DEFAULT_PROFILE_PIC}" alt="User Icon" class="navbar-profile-pic inline-block mr-2">
+                            Settings
+                        </a>
+                    </li>
+                `;
+      // Find the end of the <ul> and insert the new list item before it
+      navbarHtml = navbarHtml.replace('</ul>', `${userIconLink}</ul>`);
+
       document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
     } catch (error) {
       console.error("Failed to load navigation bar:", error);
@@ -357,6 +379,9 @@
   if (isFirebaseInitialized && auth) {
     onAuthStateChanged(auth, async (user) => {
       loadingSpinner.classList.add('hidden'); // Hide spinner once auth state is known
+      const navbarUserIconLink = document.getElementById('navbar-user-icon-link');
+      const navbarUserIcon = document.getElementById('navbar-user-icon');
+
       if (user) {
         console.log("User logged in:", user.uid);
         loginRequiredMessage.classList.add('hidden');
@@ -371,11 +396,24 @@
 
         applyTheme(userProfile?.themePreference || DEFAULT_THEME);
 
+        // Update navbar user icon
+        if (navbarUserIconLink && navbarUserIcon) {
+          navbarUserIcon.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+          navbarUserIconLink.style.display = 'flex'; // Use flex to align icon and text
+          navbarUserIconLink.innerHTML = `<img id="navbar-user-icon" src="${navbarUserIcon.src}" alt="User Icon" class="navbar-profile-pic inline-block mr-2"> ${userProfile?.displayName || user.displayName || 'Settings'}`;
+        }
+
+
       } else {
         console.log("No user logged in.");
         settingsContent.classList.add('hidden');
         loginRequiredMessage.classList.remove('hidden');
         applyTheme(DEFAULT_THEME); // Apply default theme if not logged in
+
+        // Hide navbar user icon if no user
+        if (navbarUserIconLink) {
+          navbarUserIconLink.style.display = 'none';
+        }
       }
       // For Canvas: Sign in anonymously if no initial auth token
       if (typeof __initial_auth_token !== 'undefined' && !user) {
@@ -431,6 +469,14 @@
         profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
         urlPreviewMessage.style.display = 'none'; // Hide preview message
 
+        // Update navbar user icon immediately after saving
+        const navbarUserIcon = document.getElementById('navbar-user-icon');
+        const navbarUserIconLink = document.getElementById('navbar-user-icon-link');
+        if (navbarUserIcon && navbarUserIconLink) {
+          navbarUserIcon.src = newPhotoURL || DEFAULT_PROFILE_PIC;
+          navbarUserIconLink.innerHTML = `<img id="navbar-user-icon" src="${navbarUserIcon.src}" alt="User Icon" class="navbar-profile-pic inline-block mr-2"> ${newDisplayName || 'Settings'}`;
+        }
+
       } catch (error) {
         console.error("Error updating profile:", error);
         showMessageBox(`Error updating profile: ${error.message || 'Unknown error'}`, true);
@@ -444,7 +490,7 @@
       try {
         await signOut(auth);
         showMessageBox("You have been signed out.", false);
-        // onAuthStateChanged will hide settings and show login message
+        // onAuthStateChanged will hide settings and show login message and also hide navbar icon
       } catch (error) {
         console.error("Logout failed:", error);
         showMessageBox("Logout failed: " + error.message, true);
