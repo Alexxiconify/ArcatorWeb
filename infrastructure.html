@@ -8,174 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* Base styles */
-    body {
-      font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Default Dark Theme */
-    body.theme-dark {
-      background-color: #1F2937; /* Dark background */
-      color: #E5E7EB; /* Light text */
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
-    }
-    body.theme-dark .bg-card {
-      background-color: #2D3748 !important; /* Darker card background for dark theme */
-      color: #E5E7EB !important; /* Light text for card */
-    }
-    body.theme-dark input,
-    body.theme-dark select {
-      background-color: #374151 !important; /* Darker input background */
-      color: #E5E7EB !important; /* Light text in input */
-      border-color: #4B5563 !important; /* Subtle border for inputs */
-    }
-    body.theme-dark input::placeholder {
-      color: #9CA3AF !important; /* Lighter placeholder text */
-    }
-    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-      color: #E5E7EB !important;
-    }
-
-    /* Light Theme */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light background */
-      color: #1F2937; /* Dark text */
-      background-image: none; /* No pattern for light theme */
-    }
-    body.theme-light .bg-card {
-      background-color: #FFFFFF !important; /* White card background for light theme */
-      color: #1F2937 !important; /* Dark text for card */
-    }
-    body.theme-light input,
-    body.theme-light select {
-      background-color: #FFFFFF !important; /* White input background */
-      color: #1F2937 !important; /* Dark text in input */
-      border-color: #D1D5DB !important; /* Light border for inputs */
-    }
-    body.theme-light input::placeholder {
-      color: #6B7280 !important; /* Darker placeholder text */
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
-
-    /* Arcator Blue Theme */
-    body.theme-arcator-blue {
-      background-color: #1a202c; /* Deep blue-grey */
-      color: #E2E8F0; /* Light off-white text */
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-      background-size: cover;
-      background-attachment: fixed;
-    }
-    body.theme-arcator-blue .bg-card {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      color: #E2E8F0 !important; /* Light text for card */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select {
-      background-color: #3b4d6b !important; /* Darker input background */
-      color: #E2E8F0 !important; /* Light text in input */
-      border-color: #5a6e8f !important; /* Blueish border */
-    }
-    body.theme-arcator-blue input::placeholder {
-      color: #94A3B8 !important; /* Subtle blue placeholder */
-    }
-    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-      background-color: #4299E1 !important; /* Arcator blue */
-      color: white !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .text-blue-500 {
-      color: #63B3ED !important;
-    }
-
-    /* Settings card styling */
-    .settings-card {
-      max-width: 600px;
-      width: 90%;
-      padding: 2.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-    }
-    .input-field {
-      margin-bottom: 1rem;
-    }
-    .input-field label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem; /* text-sm */
-      font-weight: 600; /* font-semibold */
-    }
-    .input-field input, .input-field select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid #D1D5DB; /* border-gray-300 */
-      border-radius: 0.5rem; /* rounded-md */
-      font-size: 1rem;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 700; /* font-bold */
-      transition: background-color 0.2s, transform 0.2s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-    }
-
-    /* Message box styling */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
-    }
-    .message-box.success {
-      background-color: #4CAF50; /* Green for success */
-    }
-    .message-box.error {
-      background-color: #F44336; /* Red for error */
-    }
-  </style>
+  <!-- Link to the CSS variables -->
+  <link rel="stylesheet" href="theme_variables.css">
 </head>
 <body class="antialiased">
-<!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Other Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+<!-- Navbar Placeholder -->
+<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
@@ -228,9 +66,136 @@
   </div>
 </footer>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+
+
+  // Firebase configuration object
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  const appId = "arcator-web"; // Explicitly set appId
+
+  let app;
+  let auth;
+  let db;
+  let isFirebaseInitialized = false;
+
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
+
+  // Initialize Firebase
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    isFirebaseInitialized = true;
+    console.log("Firebase initialized successfully in infrastructure.html.");
+    setupThemesFirebase(db, auth, appId); // Pass auth to themes.js
+  } catch (e) {
+    console.error("Error initializing Firebase in infrastructure.html:", e);
+  }
+
+  // Function to load the navigation bar
+  async function loadNavbar() {
+    const navbarPlaceholder = document.getElementById('navbar-placeholder');
+    if (navbarPlaceholder) {
+      try {
+        const response = await fetch('navbar.html');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const navbarHtml = await response.text();
+        navbarPlaceholder.innerHTML = navbarHtml;
+
+        // After navbar is loaded, set up auth state listener for navbar elements
+        if (isFirebaseInitialized) {
+          onAuthStateChanged(auth, async (user) => {
+            const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+            const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+            const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+            const navbarSigninLink = document.getElementById('navbar-signin-link');
+
+            if (user) {
+              const userProfile = await getUserProfileFromFirestore(user.uid);
+              const displayName = userProfile?.displayName || user.displayName || 'Settings';
+              const photoURL = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+              const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
+
+              if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
+                navbarUserIcon.src = photoURL;
+                navbarUserDisplayName.textContent = displayName;
+                navbarUserSettingsLink.style.display = 'flex'; // Show profile link
+              }
+              if (navbarSigninLink) {
+                navbarSigninLink.style.display = 'none'; // Hide sign-in link
+              }
+              applyTheme(themePreference); // Apply user's theme
+            } else {
+              // If not logged in, ensure profile link is hidden and sign-in is shown
+              if (navbarUserSettingsLink) {
+                navbarUserSettingsLink.style.display = 'none';
+              }
+              if (navbarSigninLink) {
+                navbarSigninLink.style.display = 'flex'; // Show sign-in link
+              }
+              applyTheme(DEFAULT_THEME_NAME); // Apply default theme
+              // Attempt anonymous sign-in if not already authenticated
+              if (typeof __initial_auth_token !== 'undefined' && !user) {
+                signInAnonymously(auth).then(() => {
+                  console.log("DEBUG: Signed in anonymously on infrastructure.html (Canvas env).");
+                }).catch(error => {
+                  console.error("ERROR: Anonymous sign-in failed during navbar load on infrastructure.html:", error);
+                });
+              } else if (!user && !__initial_auth_token) {
+                signInAnonymously(auth)
+                  .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure.html."))
+                  .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure.html:", anonError));
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load navigation bar:", error);
+      }
+    }
+  }
+
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
+
   // Get current year for footer
-  document.getElementById('current-year-infra').textContent = new Date().getFullYear();
+  window.onload = function() {
+    loadNavbar();
+    document.getElementById('current-year-infra').textContent = new Date().getFullYear();
+  };
 </script>
 </body>
 </html>
