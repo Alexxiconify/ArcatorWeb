@@ -129,7 +129,7 @@
     <h2 class="text-3xl font-bold text-center mb-6">Logged In</h2>
     <p class="text-center text-lg mb-4">You are logged in as: <span id="user-display-email" class="font-semibold"></span></p>
     <div class="flex flex-col items-center mb-6">
-      <img id="user-profile-picture" class="w-24 h-24 rounded-full mb-4 object-cover" src="https://placehold.co/96x96/1F2937/E5E7EB?text=AV" alt="Profile Picture">
+      <img id="user-profile-picture" class="w-24 h-24 rounded-full mb-4 object-cover" src="https://placehold.co/96x96/1F2937/E5E7EB?text=AV" alt="Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/96x96/1F2937/E5E7EB?text=AV';">
       <span id="user-display-name" class="font-semibold text-xl"></span>
     </div>
     <button id="go-to-settings-btn" class="btn-primary btn-blue mb-4">Go to Settings</button>
@@ -381,25 +381,36 @@
     showLoginBtn = document.getElementById('show-login-btn');
     messageBox = document.getElementById('message-box');
 
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME); // Pass necessary arguments
+    // IMPORTANT: Make sure __app_id and __firebase_config are handled for Canvas
+    const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+    const firebaseConfigFromCanvas = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-    // Initialize Firebase (moved inside onload after DOM elements are ready)
+    // Initialize Firebase
     try {
-      if (Object.keys(firebaseConfig).length > 0) {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        isFirebaseInitialized = true;
-        console.log("Firebase initialized successfully on sign.html.");
-        setupThemesFirebase(db, auth, appId); // Pass auth to themes.js
+      app = initializeApp(firebaseConfigFromCanvas);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+      console.log("Firebase initialized successfully on sign.html.");
+      setupThemesFirebase(db, auth, canvasAppId); // Pass auth and appId to themes.js
+
+      // Attempt initial sign-in for Canvas if token is available
+      if (initialAuthToken) {
+        await signInWithCustomToken(auth, initialAuthToken);
+        console.log("Signed in with custom token from Canvas (sign.html).");
       } else {
-        console.warn("Firebase configuration is empty on sign.html. Auth features will be disabled.");
-        window.showMessageBox("Firebase configuration is missing. Authentication features will not work.", true);
+        // Fallback to anonymous sign-in if no custom token
+        await signInAnonymously(auth);
+        console.log("Signed in anonymously on sign.html (no custom token).");
       }
     } catch (e) {
       console.error("Error initializing Firebase on sign.html:", e);
       window.showMessageBox("Error initializing Firebase. Authentication features will not work. Please check console.", true);
     }
+
+    // Load navbar dynamically after Firebase is initialized
+    await loadNavbar({ auth, db, appId: canvasAppId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     if (isFirebaseInitialized) {
       setupAuthStateListener(); // Start listening for auth changes

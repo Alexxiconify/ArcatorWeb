@@ -10,7 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
+  <!-- Link to navbar.css for navbar specific styling -->
+  <link rel="stylesheet" href="navbar.css">
 
   <style>
     /* Base styles, will be overridden by CSS variables from themes.js */
@@ -22,18 +23,6 @@
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
-    }
-
-    /* Navbar specific styling using CSS variables */
-    .navbar {
-      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
-    }
-    .navbar-link {
-      color: var(--color-text-secondary); /* Default link color */
-    }
-    .navbar-link:hover {
-      color: var(--color-text-primary); /* Hover link color */
-      background-color: var(--color-bg-card); /* Slightly different background on hover */
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -101,28 +90,8 @@
   </style>
 </head>
 <body class="antialiased">
-<!-- Embedded Navbar -->
-<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-primary text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-card">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">About Us</a></li>
-        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Servers</a></li>
-        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Community</a></li>
-        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Interests</a></li>
-        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Wiki</a></li>
-        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Forms</a></li>
-        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Sign In / Account</a></li>
-        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Join Us</a></li>
-        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-card">Support Us</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+<!-- Navbar Placeholder -->
+<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
@@ -217,6 +186,7 @@
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { loadNavbar } from './navbar.js'; // Import loadNavbar
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -241,6 +211,7 @@
   let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
 
   const DEFAULT_THEME = 'dark';
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
 
   /**
    * Fetches user profile data from Firestore.
@@ -310,6 +281,9 @@
   window.onload = async function() {
     // Wait for Firebase to be ready before proceeding
     await firebaseReadyPromise;
+
+    // Load navbar dynamically
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     // Set current year for footer
     document.getElementById('current-year-about').textContent = new Date().getFullYear();
