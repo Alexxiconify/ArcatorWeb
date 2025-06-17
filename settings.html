@@ -253,16 +253,10 @@
       let navbarHtml = await response.text();
 
       // Inject the user icon link dynamically
-      const userIconLink = `
-                    <li>
-                        <a href="settings.html" id="navbar-user-icon-link" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800" style="display:none;">
-                            <img id="navbar-user-icon" src="${DEFAULT_PROFILE_PIC}" alt="User Icon" class="navbar-profile-pic inline-block mr-2">
-                            Settings
-                        </a>
-                    </li>
-                `;
-      // Find the end of the <ul> and insert the new list item before it
-      navbarHtml = navbarHtml.replace('</ul>', `${userIconLink}</ul>`);
+      // This logic is primarily handled within the navbar.html's own script
+      // but this placeholder ensures the #navbar-placeholder div exists
+      // and gets content. The dynamic icon update is handled by the script
+      // embedded within navbar.html itself, which will run once injected.
 
       document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
     } catch (error) {
@@ -375,12 +369,15 @@
     showMessageBox("Error initializing Firebase. Cannot load settings.", true);
   }
 
-  // Handle authentication state changes
-  if (isFirebaseInitialized && auth) {
+  // Function to set up the authentication state listener AFTER navbar is loaded
+  async function setupAuthStateListener() {
+    // Ensure navbar elements are accessible after it's loaded
+    const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+    const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+    const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+
     onAuthStateChanged(auth, async (user) => {
       loadingSpinner.classList.add('hidden'); // Hide spinner once auth state is known
-      const navbarUserIconLink = document.getElementById('navbar-user-icon-link');
-      const navbarUserIcon = document.getElementById('navbar-user-icon');
 
       if (user) {
         console.log("User logged in:", user.uid);
@@ -396,11 +393,11 @@
 
         applyTheme(userProfile?.themePreference || DEFAULT_THEME);
 
-        // Update navbar user icon
-        if (navbarUserIconLink && navbarUserIcon) {
+        // Update navbar user icon AFTER elements are verified to exist
+        if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
           navbarUserIcon.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-          navbarUserIconLink.style.display = 'flex'; // Use flex to align icon and text
-          navbarUserIconLink.innerHTML = `<img id="navbar-user-icon" src="${navbarUserIcon.src}" alt="User Icon" class="navbar-profile-pic inline-block mr-2"> ${userProfile?.displayName || user.displayName || 'Settings'}`;
+          navbarUserDisplayName.textContent = userProfile?.displayName || user.displayName || 'Settings';
+          navbarUserSettingsLink.style.display = 'flex'; // Show the link
         }
 
 
@@ -411,8 +408,8 @@
         applyTheme(DEFAULT_THEME); // Apply default theme if not logged in
 
         // Hide navbar user icon if no user
-        if (navbarUserIconLink) {
-          navbarUserIconLink.style.display = 'none';
+        if (navbarUserSettingsLink) {
+          navbarUserSettingsLink.style.display = 'none';
         }
       }
       // For Canvas: Sign in anonymously if no initial auth token
@@ -470,11 +467,13 @@
         urlPreviewMessage.style.display = 'none'; // Hide preview message
 
         // Update navbar user icon immediately after saving
-        const navbarUserIcon = document.getElementById('navbar-user-icon');
-        const navbarUserIconLink = document.getElementById('navbar-user-icon-link');
-        if (navbarUserIcon && navbarUserIconLink) {
+        const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+        const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+        const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+
+        if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
           navbarUserIcon.src = newPhotoURL || DEFAULT_PROFILE_PIC;
-          navbarUserIconLink.innerHTML = `<img id="navbar-user-icon" src="${navbarUserIcon.src}" alt="User Icon" class="navbar-profile-pic inline-block mr-2"> ${newDisplayName || 'Settings'}`;
+          navbarUserDisplayName.textContent = newDisplayName || 'Settings';
         }
 
       } catch (error) {
@@ -520,9 +519,12 @@
     }
   });
 
-  // Load navbar on page load
-  window.onload = function() {
-    loadNavbar();
+  // Load navbar first, then setup auth listener
+  window.onload = async function() {
+    await loadNavbar();
+    if (isFirebaseInitialized) {
+      setupAuthStateListener();
+    }
   };
 
 </script>
