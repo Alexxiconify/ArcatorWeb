@@ -153,7 +153,7 @@
 
     /* Modals */
     .modal, .custom-confirm-modal {
-      display: none; /* Hidden by default */
+      display: none; /* Hidden by default - This is the key change! */
       position: fixed; /* Stay in place */
       z-index: 1001; /* Sit on top */
       left: 0;
@@ -168,6 +168,7 @@
       color: var(--color-modal-text); /* Apply modal text color */
     }
     .modal-content {
+      display: none; /* Hidden by default - This is the key change! */
       background-color: var(--color-modal-bg);
       color: var(--color-modal-text);
       padding: 20px;
