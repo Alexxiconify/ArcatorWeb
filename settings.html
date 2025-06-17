@@ -185,6 +185,15 @@
           <!-- Options will be dynamically populated -->
         </select>
       </div>
+      <div class="input-field">
+        <label for="font-size-select">Font Size:</label>
+        <select id="font-size-select" class="py-2 px-3">
+          <option value="14px">Small (14px)</option>
+          <option value="16px">Medium (16px)</option>
+          <option value="18px">Large (18px)</option>
+          <option value="20px">Extra Large (20px)</option>
+        </select>
+      </div>
       <button id="save-settings-btn" class="btn-primary btn-blue mb-4">Save Settings</button>
       <button id="logout-btn" class="btn-primary btn-red">Log Out</button>
 
@@ -208,7 +217,6 @@
         </div>
       </div>
     </div>
-    <!-- Removed: login-required-message section -->
   </div>
 </div>
 
@@ -239,7 +247,8 @@
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Import functions from custom_theme_modal.js
-  import { setupCustomThemeManagement, renderCustomThemeList, openCustomThemeModal } from './custom_theme_modal.js';
+  // Changed from './custom_theme_modal.js' to 'custom_theme_modal.js'
+  import { setupCustomThemeManagement, renderCustomThemeList, openCustomThemeModal } from 'custom_theme_modal.js';
 
 
   // Global variables provided by the Canvas environment
@@ -255,10 +264,9 @@
   let db;
   let isFirebaseInitialized = false;
 
-  // DOM Elements - moved up to ensure availability for showMessageBox
+  // DOM Elements
   const loadingSpinner = document.getElementById('loading-spinner');
   const settingsContent = document.getElementById('settings-content');
-  // const loginRequiredMessage = document.getElementById('login-required-message'); // Removed
   const userEmailDisplay = document.getElementById('user-email-display');
   const displayNameInput = document.getElementById('display-name');
   const userThemeSelect = document.getElementById('user-theme-select');
@@ -267,11 +275,10 @@
   const urlPreviewMessage = document.getElementById('url-preview-message');
   const saveSettingsBtn = document.getElementById('save-settings-btn');
   const logoutBtn = document.getElementById('logout-btn');
-  const messageBox = document.getElementById('message-box'); // Ensure this is declared before showMessageBox
-
-  // Custom Theme Management DOM elements (now handled by custom_theme_modal.js)
+  const messageBox = document.getElementById('message-box');
   const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
   const customThemeListTbody = document.getElementById('custom-theme-list-tbody');
+  const fontSizeSelect = document.getElementById('font-size-select'); // New: Font size select element
 
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
   const DEFAULT_THEME_NAME = 'dark'; // Default theme name
@@ -301,7 +308,7 @@
     }
   }
 
-  // Initialize Firebase - now positioned after showMessageBox and DOM element declarations
+  // Initialize Firebase
   try {
     // Only initialize if firebaseConfig has keys (i.e., it's not an empty object)
     if (Object.keys(firebaseConfig).length > 0) {
@@ -312,21 +319,10 @@
       console.log("Firebase initialized successfully.");
     } else {
       console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
-      // Do NOT call showMessageBox here immediately. It will be handled in initializeUserSettings if Firebase fails.
     }
   } catch (e) {
     console.error("Error initializing Firebase:", e);
-    // Do NOT call showMessageBox here immediately. It will be handled in initializeUserSettings if Firebase fails.
   }
-
-
-  /**
-   * Shows a custom confirmation modal.
-   * @param {string} message - The main confirmation message.
-   * @param {string} [subMessage=''] - An optional sub-message.
-   * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
-   */
-
 
   /**
    * Fetches user profile data from Firestore.
@@ -356,7 +352,7 @@
    * Updates user profile data in Firestore.
    * Made globally accessible for custom_theme_modal.js
    * @param {string} uid - The user's UID.
-   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
+   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL, fontSizePreference).
    */
   window.updateUserProfileInFirestore = async function(uid, profileData) {
     if (!db) {
@@ -390,28 +386,33 @@
     });
   }
 
+  /**
+   * Applies the selected font size to the document body.
+   * @param {string} fontSize - The font size value (e.g., '16px').
+   */
+  function applyFontSize(fontSize) {
+    document.body.style.fontSize = fontSize;
+  }
+
   // This function encapsulates the initial authentication and UI setup logic
   async function initializeUserSettings() {
     loadingSpinner.classList.remove('hidden'); // Ensure spinner is visible initially
     settingsContent.classList.add('hidden');
-    // loginRequiredMessage.classList.add('hidden'); // No longer needed
 
-    // Create a promise that resolves once onAuthStateChanged has provided a user or null
     const authStatePromise = new Promise(resolve => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        unsubscribe(); // Unsubscribe after the first emission
+        unsubscribe();
         resolve(user);
       });
     });
 
-    let user = await authStatePromise; // Wait for the initial auth state
+    let user = await authStatePromise;
 
-    // If no user from onAuthStateChanged, and initialAuthToken is present, attempt anonymous sign-in
     if (!user && initialAuthToken) {
       try {
         console.log("Attempting anonymous sign-in with initialAuthToken...");
         await signInAnonymously(auth);
-        user = auth.currentUser; // Get the user after anonymous sign-in
+        user = auth.currentUser;
         console.log("Anonymous sign-in complete. User:", user?.uid);
       } catch (error) {
         console.error("ERROR: Initial anonymous sign-in failed:", error);
@@ -423,7 +424,6 @@
 
     if (user) {
       console.log("User is logged in.", user.uid);
-      // loginRequiredMessage.classList.add('hidden'); // No longer needed
       settingsContent.classList.remove('hidden');
 
       const userProfile = await window.getUserProfileFromFirestore(user.uid);
@@ -445,15 +445,17 @@
         window.applyTheme(DEFAULT_THEME_NAME);
       }
 
-      // Render custom theme list and set up its handlers
-      if (isFirebaseInitialized) { // Ensure Firebase is initialized before calling setupCustomThemeManagement
-        // Pass necessary elements and functions to the custom theme module
+      // Set and apply font size preference
+      const savedFontSize = userProfile?.fontSizePreference || '16px'; // Default to 16px
+      fontSizeSelect.value = savedFontSize;
+      applyFontSize(savedFontSize);
+
+      if (isFirebaseInitialized) {
         setupCustomThemeManagement(
           db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, user
         );
-        renderCustomThemeList(); // Now called from custom_theme_modal.js
+        renderCustomThemeList();
       }
-
 
       const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
       const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
@@ -466,19 +468,13 @@
 
     } else {
       console.log("No user logged in. Redirecting to sign.html.");
-      // Redirect to sign.html if no user is logged in
       window.location.href = 'sign.html';
-
-      // The rest of this else block is no longer reachable after redirection,
-      // but kept for logical completeness if redirection were not desired.
       settingsContent.classList.add('hidden');
-      // loginRequiredMessage.classList.remove('hidden'); // No longer needed
       window.applyTheme(DEFAULT_THEME_NAME);
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
       if (navbarUserSettingsLink) {
         navbarUserSettingsLink.style.display = 'none';
       }
-      // If Firebase was supposed to be initialized but isn't
       if (!isFirebaseInitialized) {
         window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
       }
@@ -495,10 +491,10 @@
       }
       const uid = auth.currentUser.uid;
       const newDisplayName = displayNameInput.value.trim();
-      const newThemeId = userThemeSelect.value; // Get the ID of the selected theme
-      const newPhotoURL = profilePictureUrlInput.value.trim(); // Get new photo URL
+      const newThemeId = userThemeSelect.value;
+      const newPhotoURL = profilePictureUrlInput.value.trim();
+      const newFontSize = fontSizeSelect.value; // Get new font size
 
-      // Regex for image URL validation, updated to be more robust
       const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
       if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
         window.showMessageBox("Please enter a valid URL for the profile picture (e.g., https://example.com/image.png).", true);
@@ -506,36 +502,33 @@
       }
 
       try {
-        // Update Firebase Auth profile
         await updateProfile(auth.currentUser, {
           displayName: newDisplayName,
-          photoURL: newPhotoURL || null // Set to null if empty
+          photoURL: newPhotoURL || null
         });
 
-        // Find the full theme object to pass to applyTheme
         const allThemes = await window.getAvailableThemes();
         const selectedTheme = allThemes.find(theme => theme.id === newThemeId);
 
-        // Update Firestore profile
         await window.updateUserProfileInFirestore(uid, {
           displayName: newDisplayName,
-          themePreference: newThemeId, // Store theme ID
-          photoURL: newPhotoURL || DEFAULT_PROFILE_PIC // Store default if input is empty
+          themePreference: newThemeId,
+          photoURL: newPhotoURL || DEFAULT_PROFILE_PIC,
+          fontSizePreference: newFontSize // Save font size preference
         });
 
-        // Apply new theme using the full theme object
         if (selectedTheme) {
           window.applyTheme(selectedTheme.id, selectedTheme);
         } else {
-          window.applyTheme(DEFAULT_THEME_NAME); // Fallback
+          window.applyTheme(DEFAULT_THEME_NAME);
         }
+        applyFontSize(newFontSize); // Apply new font size immediately
 
         if (profilePictureDisplay) {
-          profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
+          profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC;
         }
-        urlPreviewMessage.style.display = 'none'; // Hide preview message
+        urlPreviewMessage.style.display = 'none';
 
-        // Update navbar user icon immediately after saving
         const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
         const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
         const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
@@ -558,7 +551,6 @@
       try {
         await signOut(auth);
         window.showMessageBox("You have been signed out.", false);
-        // onAuthStateChanged will hide settings and show login message and also hide navbar icon
       } catch (error) {
         console.error("Logout failed:", error);
         window.showMessageBox("Logout failed: " + error.message, true);
@@ -569,9 +561,9 @@
   // Live preview of profile picture URL
   profilePictureUrlInput.addEventListener('input', () => {
     const url = profilePictureUrlInput.value.trim();
-    const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i; // More general URL regex
+    const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
     if (imageUrlRegex.test(url)) {
-      if (profilePictureDisplay) { // Add null check here too
+      if (profilePictureDisplay) {
         profilePictureDisplay.src = url;
       }
       urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
@@ -579,12 +571,12 @@
       urlPreviewMessage.classList.add('text-secondary');
       urlPreviewMessage.style.display = 'block';
     } else if (url === '') {
-      if (profilePictureDisplay) { // Add null check here too
+      if (profilePictureDisplay) {
         profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
       }
       urlPreviewMessage.style.display = 'none';
     } else {
-      if (profilePictureDisplay) { // Add null check here too
+      if (profilePictureDisplay) {
         profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
       }
       urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
@@ -596,27 +588,18 @@
 
   // Load modals HTML first, then initialize user settings
   window.onload = async function() {
-    await loadNavbar(); // Assumes loadNavbar is defined elsewhere or will be fetched from another file
-    await loadModals(); // Load the custom theme modal HTML
+    await loadNavbar();
+    await loadModals();
 
-    // Now that modals are loaded, setup the custom theme management module
-    // This needs to be done here so the DOM elements are available.
-    // The `createCustomThemeBtn` is used by the `setupCustomThemeManagement` function
-    // and must exist in the DOM when this function is called.
     const createCustomThemeBtnElement = document.getElementById('create-custom-theme-btn');
     if (createCustomThemeBtnElement && isFirebaseInitialized) {
-      // Pass a reference to the actual DOM button to setupCustomThemeManagement
-      // so it can attach its event listener.
       setupCustomThemeManagement(db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, auth.currentUser);
     }
 
-
     if (isFirebaseInitialized) {
-      await initializeUserSettings(); // Call the new initialization function and await it
+      await initializeUserSettings();
     } else {
-      // If Firebase not initialized, just hide spinner and show login required
       loadingSpinner.classList.add('hidden');
-      // loginRequiredMessage.classList.remove('hidden'); // No longer needed
       window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
     }
   };
