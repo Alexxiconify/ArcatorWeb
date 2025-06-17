@@ -154,6 +154,15 @@
     .message-box.error {
       background-color: #F44336; /* Red for error */
     }
+    /* Style for the large profile picture in settings */
+    .profile-pic-large {
+      width: 128px; /* Standard avatar size */
+      height: 128px;
+      border-radius: 50%; /* Make it round */
+      object-fit: cover; /* Cover the area */
+      border: 4px solid #60A5FA; /* A strong blue border */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+    }
     /* Style for the small profile picture in the navbar */
     .navbar-profile-pic {
       width: 32px;
@@ -178,14 +187,16 @@
     </div>
     <div id="settings-content" class="hidden">
       <p class="text-center text-lg mb-4">Logged in as: <span id="user-email-display" class="font-semibold"></span></p>
+      <div class="flex flex-col items-center mb-6">
+        <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/128x128/1F2937/E5E7EB?text=AV';">
+        <label for="profile-picture-url" class="block text-gray-300 text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
+        <input type="url" id="profile-picture-url" class="py-2 px-3" placeholder="https://cdn.discordapp.com/avatars/USER_ID/AVATAR_HASH.png">
+        <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Previewing new URL. Click Update Profile to save.</p>
+      </div>
+
       <div class="input-field">
         <label for="display-name">Display Name:</label>
         <input type="text" id="display-name" placeholder="Your Display Name" class="py-2 px-3">
-      </div>
-      <div class="input-field">
-        <label for="profile-picture-url">Profile Picture URL (e.g., Discord CDN Link):</label>
-        <input type="url" id="profile-picture-url" class="py-2 px-3" placeholder="https://cdn.discordapp.com/avatars/USER_ID/AVATAR_HASH.png">
-        <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Previewing new URL. Click Update Profile to save.</p>
       </div>
       <div class="input-field">
         <label for="user-theme-select">Select Theme:</label>
@@ -265,16 +276,17 @@
   }
 
 
-  // DOM Elements
+  // DOM Elements (declared globally as they are static elements in settings.html)
   const loadingSpinner = document.getElementById('loading-spinner');
   const settingsContent = document.getElementById('settings-content');
   const loginRequiredMessage = document.getElementById('login-required-message');
   const userEmailDisplay = document.getElementById('user-email-display');
   const displayNameInput = document.getElementById('display-name');
   const userThemeSelect = document.getElementById('user-theme-select');
-  const profilePictureDisplay = document.getElementById('profile-picture-display'); // Added for profile picture display
-  const profilePictureUrlInput = document.getElementById('profile-picture-url'); // Added for profile picture input
-  const urlPreviewMessage = document.getElementById('url-preview-message'); // Added for profile picture preview message
+  // Ensure these elements are retrieved correctly
+  const profilePictureDisplay = document.getElementById('profile-picture-display');
+  const profilePictureUrlInput = document.getElementById('profile-picture-url');
+  const urlPreviewMessage = document.getElementById('url-preview-message');
   const saveSettingsBtn = document.getElementById('save-settings-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const messageBox = document.getElementById('message-box');
@@ -371,13 +383,13 @@
 
   // Function to set up the authentication state listener AFTER navbar is loaded
   async function setupAuthStateListener() {
-    // Ensure navbar elements are accessible after it's loaded
-    const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
-    const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-    const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
-
     onAuthStateChanged(auth, async (user) => {
       loadingSpinner.classList.add('hidden'); // Hide spinner once auth state is known
+
+      // Retrieve navbar elements here to ensure they exist after navbar.html is loaded
+      const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+      const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+      const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
 
       if (user) {
         console.log("User logged in:", user.uid);
@@ -389,7 +401,13 @@
         displayNameInput.value = userProfile?.displayName || user.displayName || '';
         userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME;
         profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
-        profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC; // Set actual image source
+
+        // Ensure profilePictureDisplay element exists before setting src
+        if (profilePictureDisplay) {
+          profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC; // Set actual image source
+        } else {
+          console.warn("Element #profile-picture-display not found when user data is loaded.");
+        }
 
         applyTheme(userProfile?.themePreference || DEFAULT_THEME);
 
@@ -463,7 +481,13 @@
         });
 
         applyTheme(newTheme); // Apply new theme immediately
-        profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
+
+        // Ensure profilePictureDisplay element exists before setting src
+        if (profilePictureDisplay) {
+          profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
+        } else {
+          console.warn("Element #profile-picture-display not found when saving settings.");
+        }
         urlPreviewMessage.style.display = 'none'; // Hide preview message
 
         // Update navbar user icon immediately after saving
@@ -502,16 +526,22 @@
     const url = profilePictureUrlInput.value.trim();
     const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i; // More general URL regex
     if (imageUrlRegex.test(url)) {
-      profilePictureDisplay.src = url;
+      if (profilePictureDisplay) { // Add null check here too
+        profilePictureDisplay.src = url;
+      }
       urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
       urlPreviewMessage.classList.remove('text-red-500');
       urlPreviewMessage.classList.add('text-gray-400');
       urlPreviewMessage.style.display = 'block';
     } else if (url === '') {
-      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      if (profilePictureDisplay) { // Add null check here too
+        profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      }
       urlPreviewMessage.style.display = 'none';
     } else {
-      profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      if (profilePictureDisplay) { // Add null check here too
+        profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+      }
       urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
       urlPreviewMessage.classList.remove('text-gray-400');
       urlPreviewMessage.classList.add('text-red-500');
