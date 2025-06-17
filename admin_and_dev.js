@@ -580,7 +580,6 @@ async function deleteTempPage(id) {
  */
 async function updateAdminUI(user) {
   loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
-  await firebaseReadyPromise; // Ensure Firebase is initialized and auth state is settled
 
   if (user) {
     console.log("DEBUG: Authenticated User UID:", user.uid);
@@ -796,32 +795,28 @@ firebaseReadyPromise = new Promise((resolve) => {
     db = getFirestore(app);
     isFirebaseInitialized = true;
     console.log("Firebase initialized successfully.");
-    setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
+    setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
 
-    // Critical: Ensure auth state is settled before resolving
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-      unsubscribe(); // Unsubscribe after the first call
-      // Perform initial sign-in if in Canvas and no user is already authenticated
-      if (typeof __initial_auth_token !== 'undefined' && !user) {
-        signInWithCustomToken(auth, __initial_auth_token)
-          .then(() => console.log("DEBUG: Signed in with custom token from Canvas (admin_dev page) during init."))
-          .catch((error) => {
-            console.error("ERROR: Error signing in with custom token (admin_dev page) during init:", error);
-            signInAnonymously(auth)
-              .then(() => console.log("DEBUG: Signed in anonymously (admin_dev page) after custom token failure during init."))
-              .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError));
-          })
-          .finally(() => resolve()); // Resolve promise after token attempt
-      } else if (!user && typeof __initial_auth_token === 'undefined') {
-        signInAnonymously(auth)
-          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on admin_dev page during init."))
-          .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError))
-          .finally(() => resolve()); // Resolve after anonymous attempt
-      } else {
-        resolve(); // Resolve immediately if user is already authenticated or no token to use
-      }
-    });
+    // Perform initial sign-in if in Canvas and no user is already authenticated
+    // This part runs once when the promise is created
+    if (typeof __initial_auth_token !== 'undefined' && !auth.currentUser) {
+      signInWithCustomToken(auth, __initial_auth_token)
+        .then(() => console.log("DEBUG: Signed in with custom token from Canvas (admin_dev page) during init."))
+        .catch((error) => {
+          console.error("ERROR: Error signing in with custom token (admin_dev page) during init:", error);
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (admin_dev page) after custom token failure during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError));
+        })
+        .finally(() => resolve()); // Always resolve after sign-in attempt
+    } else if (!auth.currentUser && typeof __initial_auth_token === 'undefined') {
+      signInAnonymously(auth)
+        .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on admin_dev page during init."))
+        .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError))
+        .finally(() => resolve()); // Always resolve after sign-in attempt
+    } else {
+      resolve(); // Resolve immediately if user is already authenticated (e.g., from a previous page)
+    }
   } catch (e) {
     console.error("Error initializing Firebase (initial block):", e);
     showMessageBox("Error initializing Firebase. Cannot perform authentication.", true);
@@ -831,7 +826,7 @@ firebaseReadyPromise = new Promise((resolve) => {
 });
 
 
-// Load navbar first, then setup auth listener and initialize Firebase
+// Main execution logic on window load
 window.onload = function() {
   // Call the imported loadNavbar function with necessary parameters
   loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
@@ -849,6 +844,7 @@ window.onload = function() {
 
   // After the page content is loaded, wait for firebaseReadyPromise, then update UI based on auth state
   firebaseReadyPromise.then(() => {
+    // This is the ONLY onAuthStateChanged that drives the UI visibility
     onAuthStateChanged(auth, (user) => {
       updateAdminUI(user);
     });
