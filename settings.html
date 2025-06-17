@@ -8,8 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Link to the CSS variables in themes.html -->
-  <link rel="stylesheet" href="themes.html">
+  <!-- Link to the CSS variables in theme_variables.css -->
+  <link rel="stylesheet" href="theme_variables.css">
   <!-- Import themes.js for centralized JavaScript functions -->
   <script src="themes.js" type="module"></script>
   <!-- Import custom_theme_modal.js for custom theme management logic -->
@@ -515,7 +515,7 @@
         isFirebaseInitialized = true;
         console.log("Firebase initialized successfully.");
         // Pass initialized Firebase instances to themes.js
-        setupThemesFirebase(db, appId);
+        setupThemesFirebase(db, auth, appId); // Pass auth as well
       } else {
         console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
         window.showMessageBox("Firebase configuration is missing. Some features may not work.", true);
