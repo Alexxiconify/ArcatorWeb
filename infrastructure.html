@@ -16,6 +16,68 @@
   <script src="themes.js" type="module"></script>
   <!-- Import loadNavbar from navbar.js -->
   <script src="navbar.js" type="module"></script>
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg); /* Ensure body uses the variable for its own background */
+      color: var(--color-text-primary); /* Ensure body uses the variable for its default text color */
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white; /* Hero content text is hardcoded white for readability over image */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Custom classes using CSS variables */
+    .bg-content-section { background-color: var(--color-bg-content-section); }
+    .text-heading-main { color: var(--color-heading-main); }
+    .text-text-primary { color: var(--color-text-primary); }
+    .text-text-secondary { color: var(--color-text-secondary); }
+    .bg-card { background-color: var(--color-bg-card); }
+    .bg-navbar { background-color: var(--color-bg-navbar); }
+    .text-link { color: var(--color-link); }
+    .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links, can be same as text-secondary or a different link variable */
+    .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
+    .text-heading-card { color: var(--color-heading-card); } /* for active link indication */
+
+    /* Table specific theming */
+    .bg-table-th-bg { background-color: var(--color-table-th-bg); }
+    .text-table-th-text { color: var(--color-table-th-text); }
+    .border-table-td-border { border-color: var(--color-table-td-border); }
+    .bg-table-row-even-bg { background-color: var(--color-table-row-even-bg); }
+
+    /* Ensure text colors for table cells correctly inherit or are set */
+    table td {
+      color: var(--color-text-primary);
+    }
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -30,44 +92,44 @@
 </section>
 
 <!-- Main Content Section: Infrastructure Overview -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Our Robust Network Setup</h2>
-    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6 text-center">
+    <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Robust Network Setup</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
       <p>Arcator's stability and performance are built upon a foundation of dedicated and well-maintained server infrastructure. We utilize a blend of powerful machines and strategic network configurations to ensure a seamless and low-latency experience for all our players across various Minecraft servers and services.</p>
       <p>Our setup is designed for efficiency, reliability, and scalability, allowing us to host diverse gamemodes, critical background services, and provide robust redundancy measures.</p>
     </div>
 
     <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
-      <table class="min-w-full bg-gray-700">
+      <table class="min-w-full bg-card">
         <thead>
-        <tr>
+        <tr class="bg-table-th-bg text-table-th-text">
           <th class="py-3 px-6 text-xl">Hostname</th>
           <th class="py-3 px-6 text-xl">Primary Role</th>
         </tr>
         </thead>
         <tbody>
-        <tr><td>jylina</td><td>Main Minecraft Server Host (s1)</td></tr>
-        <tr><td>thoth</td><td>Raspberry Pi Minecraft Server (s2) / Backup Services</td></tr>
-        <tr><td>sputnik</td><td>Web Server / Load Balancer (s9)</td></tr>
+        <tr class="text-text-primary border-t border-table-td-border"><td>jylina</td><td>Main Minecraft Server Host (s1)</td></tr>
+        <tr class="text-text-primary bg-table-row-even-bg border-t border-table-td-border"><td>thoth</td><td>Raspberry Pi Minecraft Server (s2) / Backup Services</td></tr>
+        <tr class="text-text-primary border-t border-table-td-border"><td>sputnik</td><td>Web Server / Load Balancer (s9)</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="text-lg mt-12 text-gray-400 text-center">This setup allows us to efficiently manage different aspects of the network, from hosting Minecraft servers to handling critical background services and providing redundancy.</p>
+    <p class="text-lg mt-12 text-text-secondary text-center">This setup allows us to efficiently manage different aspects of the network, from hosting Minecraft servers to handling critical background services and providing redundancy.</p>
   </div>
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-infra"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white text-purple-400 transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="privacy.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-link text-heading-card transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Admin & Dev</a>
     </div>
   </div>
 </footer>
@@ -76,8 +138,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // Import setupThemesFirebase, applyTheme, getAvailableThemes from themes.js
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  // Import setupThemesFirebase from themes.js (applyTheme and getAvailableThemes are now handled directly by navbar.js)
+  import { setupThemesFirebase } from './themes.js';
   // Import loadNavbar from navbar.js
   import { loadNavbar } from './navbar.js';
 
@@ -119,15 +181,8 @@
   // Get current year for footer
   window.onload = async function() {
     // Pass the necessary Firebase instances and theme-related functions
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Removed applyTheme, getAvailableThemes
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     document.getElementById('current-year-infra').textContent = new Date().getFullYear();
-
-    // Now that the navbar is loaded and auth state is potentially resolved, apply the theme
-    // We need to wait for auth state to be resolved to get the user's theme preference
-    // This part of the logic is now handled within loadNavbar via its onAuthStateChanged listener
-    // However, if themes.js also needs a default theme to be applied immediately on load,
-    // and not rely solely on auth state, we can add a fallback here.
-    // For now, loadNavbar handles it on auth state change. If no user, it applies default.
   };
 </script>
 </body>

@@ -1,16 +1,16 @@
 // navbar.js
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// Import applyTheme and getAvailableThemes as named exports
+import { applyTheme, getAvailableThemes } from './themes.js';
 
 /**
  * Loads the navigation bar HTML and sets up its dynamic behavior based on user authentication.
  * @param {object} firebaseInstances - Object containing initialized Firebase instances (auth, db, appId)
- * @param {function} applyThemeFunc - Reference to the window.applyTheme function from themes.js
- * @param {function} getAvailableThemesFunc - Reference to the window.getAvailableThemes function from themes.js
  * @param {string} defaultProfilePic - Default URL for profile pictures
  * @param {string} defaultThemeName - Default theme name
  */
-export async function loadNavbar(firebaseInstances, applyThemeFunc, getAvailableThemesFunc, defaultProfilePic, defaultThemeName) {
+export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) { // Removed applyThemeFunc, getAvailableThemesFunc from params
   const { auth, db, appId } = firebaseInstances;
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
 
@@ -46,13 +46,13 @@ export async function loadNavbar(firebaseInstances, applyThemeFunc, getAvailable
               navbarSigninLink.style.display = 'none'; // Hide sign-in link
             }
 
-            // Apply user's theme using the passed function
-            const allThemes = await getAvailableThemesFunc();
+            // Apply user's theme using the imported function
+            const allThemes = await getAvailableThemes(); // Directly call imported getAvailableThemes
             const selectedTheme = allThemes.find(theme => theme.id === themePreference);
             if (selectedTheme) {
-              applyThemeFunc(selectedTheme.id, selectedTheme);
+              applyTheme(selectedTheme.id, selectedTheme); // Directly call imported applyTheme
             } else {
-              applyThemeFunc(defaultThemeName);
+              applyTheme(defaultThemeName); // Directly call imported applyTheme
             }
 
           } else {
@@ -63,7 +63,7 @@ export async function loadNavbar(firebaseInstances, applyThemeFunc, getAvailable
             if (navbarSigninLink) {
               navbarSigninLink.style.display = 'flex'; // Show sign-in link
             }
-            applyThemeFunc(defaultThemeName); // Apply default theme
+            applyTheme(defaultThemeName); // Directly call imported applyTheme
           }
         });
       } else {
@@ -71,7 +71,7 @@ export async function loadNavbar(firebaseInstances, applyThemeFunc, getAvailable
         // Ensure sign-in link is shown if auth is not available
         if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
         if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
-        applyThemeFunc(defaultThemeName); // Apply default theme
+        applyTheme(defaultThemeName); // Directly call imported applyTheme
       }
 
     } catch (error) {
