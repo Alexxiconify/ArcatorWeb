@@ -430,10 +430,10 @@
 
   // Global variables provided by the Canvas environment
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+  // __firebase_config is already an object, no need to parse
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : {};
   const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-  const firebaseConfig = JSON.parse(firebaseConfigString);
   const appId = canvasAppId; // Use the provided __app_id
 
   let app;
@@ -443,7 +443,7 @@
 
   // Initialize Firebase
   try {
-    // Only initialize if firebaseConfig is not empty
+    // Only initialize if firebaseConfig has keys (i.e., it's not an empty object)
     if (Object.keys(firebaseConfig).length > 0) {
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
