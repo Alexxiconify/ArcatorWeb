@@ -1,162 +1,65 @@
-<header class="bg-gray-900 py-4 shadow-lg">
-  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-    <!-- Logo/Site Title -->
-    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
-    <!-- Navigation -->
-    <nav class="mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-8 items-center">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="sign.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <!-- User Profile Icon and Link to Settings (Dynamically shown/hidden) -->
-        <li>
-          <a href="settings.html" id="navbar-user-settings-link" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800 flex items-center" style="display:none;">
-            <img id="navbar-user-profile-pic" src="" alt="User Profile" class="w-8 h-8 rounded-full object-cover mr-2 border-2 border-blue-500">
-            <span id="navbar-user-display-name">Settings</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </div>
-</header>
-
-<style>
-  /* Styles for the small profile picture in the navbar */
-  .navbar-profile-pic {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #60A5FA; /* Blue border */
-    vertical-align: middle; /* Align with text */
-  }
-</style>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  // Firebase configuration (replace with your actual config)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-  let app;
-  let auth;
-  let db;
-  let isFirebaseInitialized = false;
-
-  // Initialize Firebase
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized in navbar script.");
-  } catch (e) {
-    console.error("Error initializing Firebase in navbar script:", e);
-  }
-
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV';
-  const DEFAULT_THEME = 'dark'; // Assuming a default theme
-
-  // DOM Elements for the navbar user icon
-  const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
-  const navbarUserProfilePic = document.getElementById('navbar-user-profile-pic');
-  const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  async function getUserProfileFromFirestore(uid) {
-    if (!db) return null;
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore (navbar):", error);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navbar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
     }
-    return null;
-  }
+    /* Assuming theme_variables.css applies colors to :root or body */
+    .navbar-bg {
+      background-color: var(--color-bg-navbar, #111827); /* Fallback to dark theme default */
+    }
+    .navbar-text {
+      color: var(--color-text-primary, #E5E7EB);
+    }
+    .navbar-link:hover {
+      color: var(--color-link, #60A5FA);
+    }
+    .profile-pic-small {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px; /* Tailwind's rounded-full */
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body class="bg-gray-800 text-gray-100">
 
-  /**
-   * Applies the selected theme to the body element.
-   * This function needs to be globally accessible if `navbar.html` is inserted into other pages.
-   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
-   */
-  function applyTheme(theme) {
-    const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-    body.classList.add(`theme-${theme}`);
-  }
+<nav class="navbar-bg p-4 shadow-lg w-full">
+  <div class="container mx-auto flex justify-between items-center">
+    <!-- Logo/Site Title -->
+    <a href="#" class="navbar-text text-2xl font-bold flex items-center gap-2">
+      <svg class="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3m0 0l-1-1h-4l-1 1m0 0h-4a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H9.75z"></path>
+      </svg>
+      Arcator.co.uk
+    </a>
 
+    <!-- Navigation Links and User Info -->
+    <div class="flex items-center space-x-4">
+      <a href="index.html" class="navbar-text navbar-link px-3 py-2 rounded-md font-medium">Home</a>
+      <a href="about.html" class="navbar-text navbar-link px-3 py-2 rounded-md font-medium">About</a>
+      <a href="contact.html" class="navbar-text navbar-link px-3 py-2 rounded-md font-medium">Contact</a>
 
-  // Listen for authentication state changes
-  if (isFirebaseInitialized && auth) {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // User is signed in. Update the navbar icon.
-        console.log("Navbar: User logged in:", user.uid);
-        const userProfile = await getUserProfileFromFirestore(user.uid);
+      <!-- User Profile Link - Hidden by default, shown by settings.html when logged in -->
+      <a id="navbar-user-settings-link" href="settings.html" class="hidden items-center space-x-2 navbar-text navbar-link px-3 py-2 rounded-md font-medium">
+        <img id="navbar-user-profile-pic" class="profile-pic-small" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV" alt="Profile Picture">
+        <span id="navbar-user-display-name">Settings</span>
+      </a>
 
-        const displayName = userProfile?.displayName || user.displayName || 'Settings';
-        const photoURL = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-        const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+      <!-- Sign In/Account Link - Visible by default, hidden by settings.html when logged in -->
+      <a id="navbar-signin-link" href="sign.html" class="flex items-center space-x-2 navbar-text navbar-link px-3 py-2 rounded-md font-medium">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span>Sign In / Account</span>
+      </a>
+    </div>
+  </div>
+</nav>
 
-        // Update theme of the page that imported this navbar
-        applyTheme(themePreference);
-
-        if (navbarUserProfilePic && navbarUserDisplayName && navbarUserSettingsLink) {
-          navbarUserProfilePic.src = photoURL;
-          navbarUserDisplayName.textContent = displayName;
-          navbarUserSettingsLink.style.display = 'flex'; // Show the link
-        }
-
-      } else {
-        // User is signed out. Hide the navbar icon.
-        console.log("Navbar: No user logged in.");
-        if (navbarUserSettingsLink) {
-          navbarUserSettingsLink.style.display = 'none';
-        }
-        // Apply default theme if the user is logged out (or for initial load without user)
-        applyTheme(DEFAULT_THEME);
-
-        // For Canvas: Sign in anonymously if no initial auth token
-        if (typeof __initial_auth_token !== 'undefined') { // Check if Canvas environment provides a token
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in anonymously via custom token in navbar script (Canvas)."))
-            .catch((error) => {
-              console.error("ERROR: Custom token sign-in failed in navbar script:", error);
-              // Fallback to anonymous if custom token fails (e.g., expired)
-              signInAnonymously(auth)
-                .then(() => console.log("DEBUG: Signed in anonymously as fallback in navbar script."))
-                .catch((anonError) => console.error("ERROR: Anonymous sign-in failed as fallback in navbar script:", anonError));
-            });
-        } else {
-          // If no initial auth token from Canvas, sign in anonymously by default
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously by default in navbar script."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously by default in navbar script:", anonError));
-        }
-      }
-    });
-  }
-</script>
+</body>
+</html>
