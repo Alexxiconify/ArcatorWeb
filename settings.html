@@ -295,6 +295,12 @@
   let customThemeListTbody;
   let fontSizeSelect;
 
+  // Navbar elements for controlling visibility
+  let navbarUserIcon;
+  let navbarUserDisplayName;
+  let navbarUserSettingsLink;
+  let navbarSigninLink; // New: Reference to the Sign In/Account link
+
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
   const DEFAULT_THEME_NAME = 'dark'; // Default theme name
 
@@ -424,6 +430,12 @@
 
     loadingSpinner.classList.add('hidden'); // Hide spinner after all initial auth checks
 
+    // Get navbar elements after loadNavbar is called and content is available
+    navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+    navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+    navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+    navbarSigninLink = document.getElementById('navbar-signin-link'); // Assign new element
+
     if (user) {
       console.log("User is logged in.", user.uid);
       settingsContent.classList.remove('hidden');
@@ -459,13 +471,14 @@
         renderCustomThemeList();
       }
 
-      const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
-      const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-      const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+      // Show user profile link, hide sign-in link
       if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
         navbarUserIcon.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
         navbarUserDisplayName.textContent = userProfile?.displayName || user.displayName || 'Settings';
         navbarUserSettingsLink.style.display = 'flex';
+      }
+      if (navbarSigninLink) {
+        navbarSigninLink.style.display = 'none';
       }
 
     } else {
@@ -473,10 +486,15 @@
       window.location.href = 'sign.html';
       settingsContent.classList.add('hidden');
       window.applyTheme(DEFAULT_THEME_NAME);
-      const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+
+      // Ensure user profile link is hidden, show sign-in link
       if (navbarUserSettingsLink) {
         navbarUserSettingsLink.style.display = 'none';
       }
+      if (navbarSigninLink) {
+        navbarSigninLink.style.display = 'flex'; // Or 'block' depending on its default styling
+      }
+
       if (!isFirebaseInitialized) {
         window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
       }
@@ -572,10 +590,7 @@
           }
           urlPreviewMessage.style.display = 'none';
 
-          const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
-          const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-          const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
-
+          // Update navbar user icon immediately after saving
           if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
             navbarUserIcon.src = newPhotoURL || DEFAULT_PROFILE_PIC;
             navbarUserDisplayName.textContent = newDisplayName || 'Settings';
@@ -594,6 +609,13 @@
         try {
           await signOut(auth);
           window.showMessageBox("You have been signed out.", false);
+          // On logout, hide user profile link and show sign-in link
+          if (navbarUserSettingsLink) {
+            navbarUserSettingsLink.style.display = 'none';
+          }
+          if (navbarSigninLink) {
+            navbarSigninLink.style.display = 'flex'; // Or 'block'
+          }
         } catch (error) {
           console.error("Logout failed:", error);
           window.showMessageBox("Logout failed: " + error.message, true);
