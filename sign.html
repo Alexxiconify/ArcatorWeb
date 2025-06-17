@@ -235,15 +235,8 @@
   <div id="user-settings-section" class="auth-form bg-white text-gray-700 shadow-xl mb-6 hidden">
     <h2 class="text-3xl font-bold text-center mb-6">Welcome, <span id="user-display-name"></span>!</h2>
     <p class="text-center text-lg mb-4">You are logged in with: <span id="user-email"></span></p>
-    <div class="input-field">
-      <label for="logged-in-theme">Select Theme:</label>
-      <select id="logged-in-theme" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="arcator-blue">Arcator Blue</option>
-      </select>
-    </div>
-    <button id="save-theme-btn" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-4">Save Theme</button>
+    <p class="text-center text-lg mb-4">Manage your preferences:</p>
+    <a href="settings.html" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-4 text-center block">Go to Settings</a>
     <button id="logout-btn" class="btn-primary bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Log Out</button>
   </div>
 
@@ -414,13 +407,13 @@
   const closeModalButtons = document.querySelectorAll('.close-button');
   const sendResetEmailBtn = document.getElementById('send-reset-email-btn');
   const resetEmailInput = document.getElementById('reset-email');
-  const logoutBtn = document.getElementById('logout-btn'); // New
+  const logoutBtn = document.getElementById('logout-btn'); // Existing, now used for settings section
 
   // Theme preference dropdowns
   const loginThemeSelect = document.getElementById('login-theme');
   const signupThemeSelect = document.getElementById('signup-theme');
-  const loggedInThemeSelect = document.getElementById('logged-in-theme'); // New
-  const saveThemeBtn = document.getElementById('save-theme-btn'); // New
+  // const loggedInThemeSelect = document.getElementById('logged-in-theme'); // Removed from sign.html
+  // const saveThemeBtn = document.getElementById('save-theme-btn'); // Removed from sign.html
 
   // User display elements
   const userDisplayName = document.getElementById('user-display-name'); // New
@@ -691,7 +684,8 @@
         await sendPasswordResetEmail(auth, email);
         showMessageBox("Password reset email sent. Check your inbox.", false);
         passwordResetModal.style.display = 'none';
-      } catch (error) {
+      }
+      catch (error) {
         console.error("Password reset error:", error);
         let errorMessage = "Failed to send reset email. Please try again.";
         if (error.code === 'auth/invalid-email') {
@@ -706,31 +700,17 @@
     }
   });
 
-  // Logout functionality
+  // Logout functionality (now specific to sign.html, redirects to login state)
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       showMessageBox("", false);
       try {
         await signOut(auth);
         showMessageBox("You have been signed out.", false);
-        // onAuthStateChanged will handle UI update
+        // UI will automatically update via onAuthStateChanged listener
       } catch (error) {
         console.error("Logout failed:", error);
         showMessageBox("Logout failed: " + error.message, true);
-      }
-    });
-  }
-
-  // Save theme from logged-in settings section
-  if (saveThemeBtn) {
-    saveThemeBtn.addEventListener('click', async () => {
-      const newTheme = loggedInThemeSelect.value;
-      if (auth.currentUser) {
-        await createUserProfileInFirestore(auth.currentUser.uid, { themePreference: newTheme });
-        applyTheme(newTheme);
-        showMessageBox("Theme saved successfully!", false);
-      } else {
-        showMessageBox("You must be logged in to save theme preferences.", true);
       }
     });
   }
@@ -751,7 +731,7 @@
 
         userDisplayName.textContent = userProfile?.displayName || user.email;
         userEmail.textContent = user.email;
-        loggedInThemeSelect.value = themePreference;
+        // No theme select here, user goes to settings.html for that
 
       } else {
         console.log("DEBUG: No user detected on sign.html. Applying default theme.");
