@@ -164,23 +164,42 @@
       vertical-align: middle;
     }
 
+    /* Specific background-image for dark theme */
+    body.theme-dark {
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    /* Specific background-image for arcator-blue theme */
+    body.theme-arcator-blue {
+      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
+      background-size: cover;
+      background-attachment: fixed;
+    }
+    /* No specific background-image for light theme */
+    body.theme-light {
+      background-image: none;
+    }
+
   </style>
 </head>
 <body>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Firebase configuration (using placeholders, ensure actual keys are used in your deployed environment)
+  // IMPORTANT: Replace these with your actual Firebase project configuration!
+  // These are placeholders and will prevent Firebase from initializing correctly.
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // <-- REPLACE THIS
+    authDomain: "arcator-web.firebaseapp.com", // <-- REPLACE THIS
+    projectId: "arcator-web", // <-- REPLACE THIS
+    storageBucket: "arcator-web.firebasestorage.app", // <-- REPLACE THIS
+    messagingSenderId: "1033082068049", // <-- REPLACE THIS
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70", // <-- REPLACE THIS
+    measurementId: "G-DJXNT1L7CM" // <-- REPLACE THIS
   };
 
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
@@ -192,6 +211,7 @@
   let isFirebaseInitialized = false;
 
   // Initialize Firebase (only if config is valid)
+  // We check for "YOUR_PROJECT_ID" as a strong indicator if config is still placeholder
   if (firebaseConfig.apiKey && firebaseConfig.projectId !== "YOUR_PROJECT_ID") {
     try {
       app = initializeApp(firebaseConfig);
@@ -204,12 +224,13 @@
       isFirebaseInitialized = false;
     }
   } else {
-    console.warn("Firebase configuration incomplete in themes.html. Theme features requiring Firestore will be limited.");
+    console.error("Firebase configuration is incomplete or placeholder in themes.html. Please update firebaseConfig with your actual project details. Theme features requiring Firestore will be disabled.");
   }
 
-  // Predefined themes (can be expanded)
+  // Predefined themes (re-added with all properties)
   const PREDEFINED_THEMES = {
     'dark': {
+      id: 'dark', // Explicit ID for predefined themes
       name: 'Dark',
       isCustom: false,
       properties: {
@@ -256,6 +277,7 @@
       }
     },
     'light': {
+      id: 'light', // Explicit ID
       name: 'Light',
       isCustom: false,
       properties: {
@@ -302,6 +324,7 @@
       }
     },
     'arcator-blue': {
+      id: 'arcator-blue', // Explicit ID
       name: 'Arcator Blue',
       isCustom: false,
       properties: {
@@ -383,23 +406,23 @@
 
   /**
    * Applies a given theme to the document by setting CSS variables.
-   * @param {string} themeName The name of the theme to apply.
+   * @param {string} themeId The ID of the theme to apply (e.g., 'dark', 'my-custom-theme').
    * @param {object} [themeData=null] Optional. The theme object itself. If not provided,
-   * it will attempt to find the theme in PREDEFINED_THEMES
-   * or customThemes.
+   * it will attempt to find the theme in PREDEFINED_THEMES or customThemes.
    */
-  window.applyTheme = function(themeName, themeData = null) {
+  window.applyTheme = function(themeId, themeData = null) {
     let activeTheme = themeData;
 
     if (!activeTheme) {
-      activeTheme = PREDEFINED_THEMES[themeName];
+      activeTheme = PREDEFINED_THEMES[themeId];
       if (!activeTheme) {
-        activeTheme = customThemes[themeName];
+        // Fetch from custom themes if not found in predefined
+        activeTheme = customThemes[themeId];
       }
     }
 
     if (activeTheme && activeTheme.properties) {
-      console.log(`Applying theme: ${themeName}`);
+      console.log(`Applying theme: ${activeTheme.name || themeId}`);
       for (const key in activeTheme.properties) {
         if (activeTheme.properties.hasOwnProperty(key)) {
           document.documentElement.style.setProperty(`--color-${camelToKebab(key)}`, activeTheme.properties[key]);
@@ -407,24 +430,18 @@
       }
       // Add or remove theme-specific body classes for any special background-image logic
       document.body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-      if (activeTheme.name === 'Dark') {
+      if (activeTheme.id === 'dark') { // Use ID for checking predefined themes
         document.body.classList.add('theme-dark');
-      } else if (activeTheme.name === 'Light') {
+      } else if (activeTheme.id === 'light') {
         document.body.classList.add('theme-light');
-      } else if (activeTheme.name === 'Arcator Blue') {
+      } else if (activeTheme.id === 'arcator-blue') {
         document.body.classList.add('theme-arcator-blue');
       }
-      // Ensure the hero-banner's background-image is only set if it's the specific image,
-      // otherwise it will be overridden by the theme, or remain if not explicitly changed.
-      // This can be done by adding a class if a specific background is needed for a theme
-      // or by clearing it if it's not needed (like in light theme).
-      // For now, general hero-banner will just use its own `background-image` CSS.
-
     } else {
-      console.error(`Theme "${themeName}" not found or has no properties.`);
+      console.error(`Theme "${themeId}" not found or has no properties. Falling back to default dark.`);
       // Fallback to default dark theme if specified theme is not found
       if (PREDEFINED_THEMES['dark']) {
-        window.applyTheme('dark');
+        window.applyTheme('dark', PREDEFINED_THEMES['dark']); // Pass the theme object
       }
     }
   };
@@ -447,6 +464,7 @@
       // Only fetch if customThemes is empty AND Firebase is initialized
       customThemes = await fetchCustomThemes();
     }
+    // Return a new array combining values from both objects
     return [
       ...Object.values(PREDEFINED_THEMES),
       ...Object.values(customThemes)
@@ -492,7 +510,7 @@
     }
   });
 
-  // Provide default properties for new custom themes
+  // Provide default properties for new custom themes (using dark theme as template)
   window.DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
 
 </script>
