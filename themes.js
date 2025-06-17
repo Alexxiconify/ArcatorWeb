@@ -48,9 +48,9 @@ export const PREDEFINED_THEMES = { // Export PREDEFINED_THEMES as well if needed
       buttonIndigoHover: '#4F46E5',
       buttonTealBg: '#14B8A6',
       buttonTealHover: '#0D9488',
-      messageBoxBgSuccess: '#10B981', // green-500
-      messageBoxBgError: '#EF4444', // red-500
-      modalBg: '#2D3748', // Similar to card background
+      messageBoxBgSuccess: '#10B981', /* green-500 */
+      messageBoxBgError: '#EF4444', /* red-500 */
+      modalBg: '#2D3748', /* Similar to card background */
       modalText: '#E5E7EB',
       modalInputBg: '#374151',
       modalInputText: '#E5E7EB',
@@ -95,8 +95,8 @@ export const PREDEFINED_THEMES = { // Export PREDEFINED_THEMES as well if needed
       buttonIndigoHover: '#4F46E5',
       buttonTealBg: '#14B8A6',
       buttonTealHover: '#0D9488',
-      messageBoxBgSuccess: '#10B981', // green-500
-      messageBoxBgError: '#EF4444', // red-500
+      messageBoxBgSuccess: '#10B981', /* green-500 */
+      messageBoxBgError: '#EF4444', /* red-500 */
       modalBg: '#FFFFFF',
       modalText: '#1F2937',
       modalInputBg: '#FFFFFF',
