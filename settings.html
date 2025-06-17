@@ -12,290 +12,100 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Import themes.js for centralized JavaScript functions -->
-  <script src="themes.js" type="module"></script>
-  <!-- Import custom_theme_modal.js for custom theme management logic -->
-  <script src="custom_theme_modal.js" type="module"></script>
-  <!-- Import loadNavbar from navbar.js -->
-  <script src="navbar.js" type="module"></script>
-  <style>
-    /* Base styles */
-    body {
-      font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      background-color: var(--color-body-bg); /* Use CSS variable for body background */
-      color: var(--color-text-primary); /* Use CSS variable for default body text color */
-    }
-
-    /* Hero Banner styles - common for all themes, retains background image */
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-      z-index: 1;
-    }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white; /* Hero content text is hardcoded white for readability over image */
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-    }
-
-    /* Settings card styling */
-    .settings-card {
-      max-width: 600px;
-      width: 90%;
-      padding: 2.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-      background-color: var(--color-bg-card); /* Use CSS variable */
-      color: var(--color-text-primary); /* Use CSS variable */
-    }
-    .input-field {
-      margin-bottom: 1rem;
-    }
-    .input-field label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem; /* text-sm */
-      font-weight: 600; /* font-semibold */
-      color: var(--color-text-secondary); /* Use CSS variable */
-    }
-    .input-field input, .input-field select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--color-input-border) !important; /* Use CSS variable and add !important */
-      border-radius: 0.5rem; /* rounded-md */
-      font-size: 1rem;
-      background-color: var(--color-input-bg) !important; /* Use CSS variable and add !important */
-      color: var(--color-input-text) !important; /* Use CSS variable and add !important */
-    }
-    .input-field input::placeholder {
-      color: var(--color-placeholder) !important; /* Use CSS variable and add !important */
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 700; /* font-bold */
-      transition: background-color 0.2s, transform 0.2s;
-      color: var(--color-button-text); /* Use CSS variable */
-    }
-    .btn-primary.btn-blue {
-      background-color: var(--color-button-blue-bg); /* Use CSS variable */
-    }
-    .btn-primary.btn-blue:hover {
-      background-color: var(--color-button-blue-hover); /* Use CSS variable */
-    }
-    .btn-primary.btn-red {
-      background-color: var(--color-button-red-bg); /* Use CSS variable */
-    }
-    .btn-primary.btn-red:hover {
-      background-color: var(--color-button-red-hover); /* Use CSS variable */
-    }
-    .btn-primary.btn-green {
-      background-color: var(--color-button-green-bg); /* Use CSS variable */
-    }
-    .btn-primary.btn-green:hover {
-      background-color: var(--color-button-green-hover); /* Use CSS variable */
-    }
-
-
-    /* Message box styling */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: var(--color-modal-bg); /* Use modal background for consistency */
-      color: var(--color-modal-text); /* Use modal text for consistency */
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
-    }
-    .message-box.success {
-      background-color: var(--color-message-box-bg-success);
-    }
-    .message-box.error {
-      background-color: var(--color-message-box-bg-error);
-    }
-
-    /* Modal for custom themes */
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1001; /* Sit on top */
-      left: 0;
-      top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
-      display: flex; /* Use flex for centering */
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background-color: var(--color-modal-bg);
-      color: var(--color-modal-text);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      width: 90%;
-      max-width: 600px;
-      position: relative;
-    }
-
-    /* Fix for blank text around color pickers */
-    .modal-content label {
-      color: var(--color-modal-text); /* Ensure labels within modal are visible */
-    }
-    .close-button {
-      color: var(--color-text-secondary);
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close-button:hover,
-    .close-button:focus {
-      color: var(--color-text-primary);
-      text-decoration: none;
-    }
-
-    /* Custom theme table styling */
-    #custom-theme-list-tbody {
-      color: var(--color-text-primary);
-    }
-    #custom-theme-list-tbody tr {
-      border-top: 1px solid var(--color-table-td-border);
-    }
-    #custom-theme-list-tbody tr:nth-child(even) {
-      background-color: var(--color-table-row-even-bg);
-    }
-    #custom-theme-list-tbody td {
-      padding: 0.5rem 1rem;
-    }
-    #custom-theme-list-tbody button {
-      /* Apply theme button styles to table action buttons */
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem; /* rounded-md */
-      font-weight: 600; /* font-semibold */
-      transition: background-color 0.2s ease-in-out;
-    }
-    #custom-theme-list-tbody button.edit-btn {
-      background-color: var(--color-button-blue-bg);
-      color: var(--color-button-text);
-    }
-    #custom-theme-list-tbody button.edit-btn:hover {
-      background-color: var(--color-button-blue-hover);
-    }
-    #custom-theme-list-tbody button.delete-btn {
-      background-color: var(--color-button-red-bg);
-      color: var(--color-button-text);
-      margin-left: 0.5rem;
-    }
-    #custom-theme-list-tbody button.delete-btn:hover {
-      background-color: var(--color-button-red-hover);
-    }
-
-  </style>
+  <!-- Link to settings.css for page-specific styling -->
+  <link rel="stylesheet" href="settings.css">
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen antialiased">
+<body class="antialiased">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<div class="settings-container w-full max-w-md mx-auto p-4 flex flex-col items-center mt-20">
-  <!-- Settings Card -->
-  <div id="settings-section" class="settings-card shadow-xl mb-6">
-    <h2 class="text-3xl font-bold text-center mb-6 text-heading-main">User Settings</h2>
-    <div id="loading-spinner" class="flex justify-center items-center h-24">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+<!-- Hero Section -->
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Settings</h1>
+    <p class="text-xl md:text-2xl mb-8">Personalize your Arcator.co.uk experience.</p>
+  </div>
+</section>
+
+<!-- Settings Section -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
-    <div id="settings-content" class="hidden">
-      <p class="text-center text-lg mb-4 text-text-primary">Logged in as: <span id="user-email-display" class="font-semibold"></span></p>
-      <div class="flex flex-col items-center mb-6">
-        <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/128x128/1F2937/E5E7EB?text=AV';">
-        <label for="profile-picture-url" class="block text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
-        <input type="url" id="profile-picture-url" class="py-2 px-3" placeholder="https://cdn.discordapp.com/avatars/USER_ID/AVATAR_HASH.png">
-        <p id="url-preview-message" class="text-sm mt-2" style="display: none;">Previewing new URL. Click Save Settings to apply.</p>
-      </div>
 
-      <div class="input-field">
-        <label for="display-name">Display Name:</label>
-        <input type="text" id="display-name" placeholder="Your Display Name" class="py-2 px-3">
-      </div>
-      <div class="input-field">
-        <label for="user-theme-select">Select Theme:</label>
-        <select id="user-theme-select" class="py-2 px-3">
-          <!-- Options will be dynamically populated -->
-        </select>
-      </div>
-      <div class="input-field">
-        <label for="font-size-select">Font Size:</label>
-        <select id="font-size-select" class="py-2 px-3">
-          <option value="14px">Small (14px)</option>
-          <option value="16px">Medium (16px)</option>
-          <option value="18px">Large (18px)</option>
-          <option value="20px">Extra Large (20px)</option>
-        </select>
-      </div>
-      <button id="save-settings-btn" class="btn-primary btn-blue mb-4">Save Settings</button>
-      <button id="logout-btn" class="btn-primary btn-red">Log Out</button>
+    <div id="settings-content" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile</h2>
 
-      <div class="mt-8 pt-8 border-t border-table-td-border">
-        <h3 class="text-2xl font-bold text-center text-heading-main">Custom Themes</h3>
-        <p class="text-text-secondary text-center mb-4">Create, edit, or delete your own personalized themes.</p>
-        <button id="create-custom-theme-btn" class="btn-primary btn-green mb-4">Create New Custom Theme</button>
+      <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
+        <!-- Profile Picture and Display Name Card -->
+        <div class="settings-card bg-gray-700 shadow-xl">
+          <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Profile Information</h3>
+          <div class="flex flex-col items-center mb-6">
+            <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Profile Picture">
+            <p id="display-name-text" class="text-gray-200 text-2xl font-semibold">Loading...</p>
+            <p id="email-text" class="text-gray-400 text-sm">Loading...</p>
+          </div>
 
-        <div class="overflow-x-auto rounded-lg shadow-xl">
-          <table class="min-w-full text-left table-auto mt-4 bg-card">
-            <thead>
-            <tr class="bg-table-th-bg text-table-th-text">
-              <th class="px-4 py-2">Theme Name</th>
-              <th class="px-4 py-2">Actions</th>
-            </tr>
-            </thead>
-            <tbody id="custom-theme-list-tbody">
-            <tr><td colspan="2" class="text-center py-4">No custom themes.</td></tr>
-            </tbody>
-          </table>
+          <div class="input-field">
+            <label for="display-name-input">Display Name:</label>
+            <input type="text" id="display-name-input" placeholder="Your Display Name">
+          </div>
+
+          <div class="input-field">
+            <label for="profile-picture-url-input">Profile Picture URL:</label>
+            <input type="url" id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg">
+            <p id="url-preview-message" class="text-secondary text-sm mt-1" style="display: none;">Enter a direct link to an image (JPG, PNG, GIF).</p>
+          </div>
+
+          <button id="save-profile-btn" class="btn-primary btn-blue">Save Profile Changes</button>
+        </div>
+
+        <!-- Theme and Font Size Preferences Card -->
+        <div class="settings-card bg-gray-700 shadow-xl">
+          <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Personalize Experience</h3>
+
+          <div class="input-field">
+            <label for="theme-select">Select Theme:</label>
+            <select id="theme-select"></select>
+          </div>
+
+          <div class="input-field">
+            <label for="font-size-select">Font Size:</label>
+            <select id="font-size-select">
+              <option value="14px">Small (14px)</option>
+              <option value="16px">Medium (16px)</option>
+              <option value="18px">Large (18px)</option>
+            </select>
+          </div>
+
+          <button id="save-preferences-btn" class="btn-primary btn-green">Save Preferences</button>
+
+          <h3 class="text-2xl font-bold text-blue-300 mb-6 mt-8 text-center">Custom Themes</h3>
+          <button id="create-custom-theme-btn" class="btn-primary btn-purple">Create/Manage Custom Themes</button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Custom Theme and Confirmation Modals will be loaded here -->
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mt-12" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You must be logged in to manage your settings.
+      </p>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modals Placeholder -->
 <div id="modals-placeholder"></div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8 w-full">
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-settings"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
@@ -309,441 +119,13 @@
   </div>
 </footer>
 
-
-<!-- Firebase SDKs -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import {
-    getAuth,
-    onAuthStateChanged,
-    signOut,
-    signInAnonymously,
-    signInWithCustomToken,
-    updateProfile // Import updateProfile for Firebase Auth display name/photoURL
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    collection,
-    getDocs,
-    deleteDoc,
-    addDoc // Make sure addDoc is imported
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  // Import functions from custom_theme_modal.js
-  import { setupCustomThemeManagement, renderCustomThemeList, openCustomThemeModal } from './custom_theme_modal.js';
-  // Import setupThemesFirebase, applyTheme, getAvailableThemes from themes.js
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  // Import loadNavbar from navbar.js
-  import { loadNavbar } from './navbar.js';
-
-
-  // Hardcoded Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    databaseURL: "https://arcator-web-default-rtdb.firebaseio.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  // Set appId explicitly to "arcator-web" for Firestore paths as requested
-  const appId = "arcator-web";
-
-  // No longer use __initial_auth_token as we are hardcoding Firebase config
-  // and expect authentication to be handled through Firebase directly.
-  const initialAuthToken = null;
-
-  let app;
-  let auth;
-  let db;
-  let isFirebaseInitialized = false;
-
-  // DOM Elements - Declared with 'let' and assigned inside window.onload for safety
-  let loadingSpinner;
-  let settingsContent;
-  let userEmailDisplay;
-  let displayNameInput;
-  let userThemeSelect;
-  let profilePictureDisplay;
-  let profilePictureUrlInput;
-  let urlPreviewMessage;
-  let saveSettingsBtn;
-  let logoutBtn;
-  let messageBox;
-  let createCustomThemeBtn;
-  let customThemeListTbody;
-  let fontSizeSelect;
-
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
-  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
-
-  /**
-   * Displays a custom message box for user feedback.
-   * This function needs to be globally accessible for custom_theme_modal.js
-   * @param {string} message - The message to display.
-   * @param {boolean} isError - True for error, false for success.
-   */
-  window.showMessageBox = function(message, isError) {
-    // Only attempt to update if messageBox element exists
-    if (messageBox) {
-      messageBox.textContent = message;
-      messageBox.className = 'message-box'; // Reset classes
-      if (isError) {
-        messageBox.classList.add('error');
-      } else {
-        messageBox.classList.add('success');
-      }
-      messageBox.style.display = 'block';
-      setTimeout(() => {
-        messageBox.style.display = 'none';
-      }, 5000); // Hide after 5 seconds
-    } else {
-      console.warn("showMessageBox called before messageBox element was available:", message);
-    }
-  }
-
-  /**
-   * Fetches user profile data from Firestore.
-   * Made globally accessible for custom_theme_modal.js
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  window.getUserProfileFromFirestore = async function(uid) {
-    if (!db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      window.showMessageBox(`Error loading profile: ${error.message}`, true);
-    }
-    return null;
-  }
-
-  /**
-   * Updates user profile data in Firestore.
-   * Made globally accessible for custom_theme_modal.js
-   * @param {string} uid - The user's UID.
-   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL, fontSizePreference).
-   */
-  window.updateUserProfileInFirestore = async function(uid, profileData) {
-    if (!db) {
-      window.showMessageBox("Database not initialized. Cannot save profile.", true);
-      return false;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      await setDoc(userDocRef, profileData, { merge: true }); // Use merge to avoid overwriting other fields
-      window.showMessageBox("Settings saved successfully!", false);
-      return true;
-    }
-    catch (error) {
-      console.error("Error updating user profile in Firestore:", error);
-      window.showMessageBox(`Error saving settings: ${error.message}`, true);
-      return false;
-    }
-  }
-
-  /**
-   * Populates the theme selection dropdown.
-   */
-  async function populateThemeSelect() {
-    userThemeSelect.innerHTML = ''; // Clear existing options
-    const availableThemes = await getAvailableThemes(); // Call the imported function directly
-
-    availableThemes.forEach(theme => {
-      const option = document.createElement('option');
-      option.value = theme.id; // Use ID for both predefined and custom themes
-      option.textContent = theme.name;
-      userThemeSelect.appendChild(option);
-    });
-  }
-
-  /**
-   * Applies the selected font size to the document body.
-   * @param {string} fontSize - The font size value (e.g., '16px').
-   */
-  function applyFontSize(fontSize) {
-    document.body.style.fontSize = fontSize;
-  }
-
-  // This function encapsulates the initial authentication and UI setup logic
-  async function initializeUserSettings() {
-    loadingSpinner.classList.remove('hidden'); // Ensure spinner is visible initially
-    settingsContent.classList.add('hidden');
-
-    const authStatePromise = new Promise(resolve => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        unsubscribe();
-        resolve(user);
-      });
-    });
-
-    let user = await authStatePromise;
-
-    // Use signInAnonymously only if `auth` and `db` are initialized and no user exists.
-    // The initialAuthToken is deprecated with hardcoded Firebase config.
-    if (!user && isFirebaseInitialized) {
-      try {
-        console.log("Attempting anonymous sign-in (no initialAuthToken used with hardcoded config)...");
-        await signInAnonymously(auth);
-        user = auth.currentUser;
-        console.log("Anonymous sign-in complete. User:", user?.uid);
-      } catch (error) {
-        console.error("ERROR: Initial anonymous sign-in failed:", error);
-        window.showMessageBox("Could not sign in automatically. Please log in manually.", true);
-      }
-    }
-
-
-    loadingSpinner.classList.add('hidden'); // Hide spinner after all initial auth checks
-
-    if (user) {
-      console.log("User is logged in.", user.uid);
-      settingsContent.classList.remove('hidden');
-
-      const userProfile = await window.getUserProfileFromFirestore(user.uid);
-      userEmailDisplay.textContent = user.email || "Anonymous User";
-      displayNameInput.value = userProfile?.displayName || user.displayName || '';
-      profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
-
-      if (profilePictureDisplay) {
-        profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-      }
-
-      await populateThemeSelect();
-      userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME_NAME;
-      const allThemes = await getAvailableThemes(); // Call the imported function directly
-      const selectedThemeForApply = allThemes.find(theme => theme.id === userThemeSelect.value);
-      if (selectedThemeForApply) {
-        applyTheme(selectedThemeForApply.id, selectedThemeForApply); // Call the imported function directly
-        console.log(`Applied theme: ${selectedThemeForApply.name}`);
-      } else {
-        applyTheme(DEFAULT_THEME_NAME); // Call the imported function directly
-        console.log(`Applied default theme: ${DEFAULT_THEME_NAME}`);
-      }
-
-      // Log the actual CSS variables after theme application
-      console.log('CSS Variable Debug:');
-      console.log('  --color-input-bg:', getComputedStyle(document.body).getPropertyValue('--color-input-bg'));
-      console.log('  --color-input-text:', getComputedStyle(document.body).getPropertyValue('--color-input-text'));
-      console.log('  --color-input-border:', getComputedStyle(document.body).getPropertyValue('--color-input-border'));
-      console.log('  --color-placeholder:', getComputedStyle(document.body).getPropertyValue('--color-placeholder'));
-
-
-      // Set and apply font size preference
-      const savedFontSize = userProfile?.fontSizePreference || '16px'; // Default to 16px
-      fontSizeSelect.value = savedFontSize;
-      applyFontSize(savedFontSize);
-
-      if (isFirebaseInitialized) {
-        setupCustomThemeManagement(
-          db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, user
-        );
-        renderCustomThemeList();
-      }
-
-    } else {
-      console.log("No user logged in. Redirecting to sign.html.");
-      window.location.href = 'sign.html';
-      settingsContent.classList.add('hidden');
-      applyTheme(DEFAULT_THEME_NAME); // Call the imported function directly
-      console.log(`Applied default theme: ${DEFAULT_THEME_NAME} (user logged out)`);
-      // Log the actual CSS variables even if logged out, for consistency
-      console.log('CSS Variable Debug (Logged Out):');
-      console.log('  --color-input-bg:', getComputedStyle(document.body).getPropertyValue('--color-input-bg'));
-      console.log('  --color-input-text:', getComputedStyle(document.body).getPropertyValue('--color-input-text'));
-      console.log('  --color-input-border:', getComputedStyle(document.body).getPropertyValue('--color-input-border'));
-      console.log('  --color-placeholder:', getComputedStyle(document.body).getPropertyValue('--color-placeholder'));
-    }
-  }
-
-
-  // Load modals HTML first, then initialize user settings
-  window.onload = async function() {
-    // Assign DOM elements here, guaranteeing they exist before any function uses them
-    loadingSpinner = document.getElementById('loading-spinner');
-    settingsContent = document.getElementById('settings-content');
-    userEmailDisplay = document.getElementById('user-email-display');
-    displayNameInput = document.getElementById('display-name');
-    userThemeSelect = document.getElementById('user-theme-select');
-    profilePictureDisplay = document.getElementById('profile-picture-display');
-    profilePictureUrlInput = document.getElementById('profile-picture-url');
-    urlPreviewMessage = document.getElementById('url-preview-message');
-    saveSettingsBtn = document.getElementById('save-settings-btn');
-    logoutBtn = document.getElementById('logout-btn');
-    messageBox = document.getElementById('message-box');
-    createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
-    customThemeListTbody = document.getElementById('custom-theme-list-tbody');
-    fontSizeSelect = document.getElementById('font-size-select');
-
-
-    // Initialize Firebase here, after messageBox is available
-    try {
-      if (Object.keys(firebaseConfig).length > 0) {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        isFirebaseInitialized = true;
-        console.log("Firebase initialized successfully.");
-        // Pass initialized Firebase instances to themes.js
-        setupThemesFirebase(db, auth, appId);
-      } else {
-        console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
-        window.showMessageBox("Firebase configuration is missing. Some features may not work.", true);
-      }
-    } catch (e) {
-      console.error("Error initializing Firebase:", e);
-      window.showMessageBox("Error initializing Firebase. Cannot load settings. Please check your console.", true);
-    }
-
-    // Load navbar after Firebase init so that it can receive the auth/db objects
-    // Pass the necessary Firebase instances and theme-related functions
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-    await loadModals();
-
-    // Set current year for footer
-    document.getElementById('current-year-settings').textContent = new Date().getFullYear();
-
-
-    // Event Listeners - now attached AFTER all elements are guaranteed to exist
-    if (saveSettingsBtn) {
-      saveSettingsBtn.addEventListener('click', async () => {
-        if (!auth.currentUser) {
-          window.showMessageBox("You must be logged in to save settings.", true);
-          return;
-        }
-        const uid = auth.currentUser.uid;
-        const newDisplayName = displayNameInput.value.trim();
-        const newThemeId = userThemeSelect.value;
-        const newPhotoURL = profilePictureUrlInput.value.trim();
-        const newFontSize = fontSizeSelect.value; // Get new font size
-
-        const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
-        if (newPhotoURL && !imageUrlRegex.test(newPhotoURL)) {
-          window.showMessageBox("Please enter a valid URL for the profile picture (e.g., https://example.com/image.png).", true);
-          return;
-        }
-
-        try {
-          await updateProfile(auth.currentUser, {
-            displayName: newDisplayName,
-            photoURL: newPhotoURL || null
-          });
-
-          const allThemes = await getAvailableThemes(); // Call the imported function directly
-          const selectedTheme = allThemes.find(theme => theme.id === newThemeId);
-
-          await window.updateUserProfileInFirestore(uid, {
-            displayName: newDisplayName,
-            themePreference: newThemeId,
-            photoURL: newPhotoURL || DEFAULT_PROFILE_PIC,
-            fontSizePreference: newFontSize // Save font size preference
-          });
-
-          if (selectedTheme) {
-            applyTheme(selectedTheme.id, selectedTheme); // Call the imported function directly
-          } else {
-            applyTheme(DEFAULT_THEME_NAME); // Call the imported function directly
-          }
-          applyFontSize(newFontSize); // Apply new font size immediately
-
-          if (profilePictureDisplay) {
-            profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC;
-          }
-          urlPreviewMessage.style.display = 'none';
-
-        } catch (error) {
-          console.error("Error updating profile:", error);
-          window.showMessageBox(`Error updating profile: ${error.message || 'Unknown error'}`, true);
-        }
-      });
-    }
-
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
-        window.showMessageBox("", false);
-        try {
-          await signOut(auth);
-          window.showMessageBox("You have been signed out.", false);
-        } catch (error) {
-          console.error("Logout failed:", error);
-          window.showMessageBox("Logout failed: " + error.message, true);
-        }
-      });
-    }
-
-    // Live preview of profile picture URL
-    if (profilePictureUrlInput) { // Added null check here for safety
-      profilePictureUrlInput.addEventListener('input', () => {
-        const url = profilePictureUrl.value.trim();
-        const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
-        if (imageUrlRegex.test(url)) {
-          if (profilePictureDisplay) {
-            profilePictureDisplay.src = url;
-          }
-          urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
-          urlPreviewMessage.classList.remove('text-red-500');
-          urlPreviewMessage.classList.add('text-secondary');
-          urlPreviewMessage.style.display = 'block';
-        } else if (url === '') {
-          if (profilePictureDisplay) {
-            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-          }
-          urlPreviewMessage.style.display = 'none';
-        } else {
-          if (profilePictureDisplay) {
-            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-          }
-          urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
-          urlPreviewMessage.classList.remove('text-secondary');
-          urlPreviewMessage.classList.add('text-red-500');
-          urlPreviewMessage.style.display = 'block';
-        }
-      });
-    }
-
-
-    const createCustomThemeBtnElement = document.getElementById('create-custom-theme-btn');
-    if (createCustomThemeBtnElement && isFirebaseInitialized) {
-      setupCustomThemeManagement(db, auth, appId, window.showMessageBox, populateThemeSelect, userThemeSelect, DEFAULT_THEME_NAME, auth.currentUser);
-    }
-
-    if (isFirebaseInitialized) {
-      await initializeUserSettings();
-    } else {
-      loadingSpinner.classList.add('hidden');
-      window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
-    }
-  };
-
-  // Function to load the custom theme modal HTML
-  async function loadModals() {
-    const modalsPlaceholder = document.getElementById('modals-placeholder');
-    if (modalsPlaceholder) {
-      try {
-        const response = await fetch('custom_theme_modal.html');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const modalHtml = await response.text();
-        modalsPlaceholder.innerHTML = modalHtml;
-      }
-      catch (error) {
-        console.error("Failed to load custom theme modal:", error);
-      }
-    }
-  }
-</script>
+<!-- Import themes.js for centralized JavaScript functions -->
+<script src="themes.js" type="module"></script>
+<!-- Import custom_theme_modal.js for custom theme management logic -->
+<script src="custom_theme_modal.js" type="module"></script>
+<!-- Import loadNavbar from navbar.js -->
+<script src="navbar.js" type="module"></script>
+<!-- Import settings.js for page-specific JavaScript -->
+<script src="settings.js" type="module"></script>
 </body>
 </html>
