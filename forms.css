@@ -1,0 +1,218 @@
+/* Base styles, will be overridden by CSS variables from themes.js */
+body {
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--color-body-bg);
+  color: var(--color-text-primary);
+  background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  background-attachment: fixed;
+}
+
+/* Hero Banner styles - common for all themes, retains background image */
+.hero-banner {
+  background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+/* Dynamic theme application for various elements */
+.bg-gray-800 {
+  background-color: var(--color-bg-content-section) !important;
+}
+.bg-gray-700 {
+  background-color: var(--color-bg-card) !important;
+}
+.bg-gray-900 {
+  background-color: var(--color-bg-navbar) !important; /* For footer and new thread section */
+}
+.text-gray-300 {
+  color: var(--color-text-secondary) !important;
+}
+.text-gray-400 {
+  color: var(--color-text-secondary) !important;
+}
+.text-gray-50 {
+  color: var(--color-text-primary) !important; /* For logo/site title in navbar */
+}
+.text-red-400 {
+  color: var(--color-heading-main) !important;
+}
+.text-blue-300 {
+  color: var(--color-heading-card) !important;
+}
+.text-blue-500 { /* For spinner */
+  color: var(--color-link) !important;
+}
+.text-red-500 { /* For error messages */
+  color: var(--color-message-box-bg-error) !important;
+}
+.text-green-400 { /* For success messages */
+  color: var(--color-message-box-bg-success) !important;
+}
+.text-gray-200 { /* For general text */
+  color: var(--color-text-primary) !important;
+}
+.text-gray-500 { /* For secondary messages like "No comments yet" */
+  color: var(--color-text-secondary) !important;
+}
+
+/* Buttons */
+.bg-blue-600 { /* Primary button color */
+  background-color: var(--color-button-blue-bg) !important;
+  color: var(--color-button-text) !important;
+}
+.hover\:bg-blue-700:hover {
+  background-color: var(--color-button-blue-hover) !important;
+}
+.bg-green-600 { /* Post comment button */
+  background-color: var(--color-button-green-bg) !important;
+  color: var(--color-button-text) !important;
+}
+.hover\:bg-green-700:hover {
+  background-color: var(--color-button-green-hover) !important;
+}
+.text-red-400.hover\:text-red-600:hover { /* Delete buttons */
+  color: var(--color-button-red-hover) !important;
+}
+.hover\:text-white:hover { /* For footer links */
+  color: var(--color-text-primary) !important;
+}
+
+/* Input fields and textareas */
+input[type="text"],
+textarea {
+  background-color: var(--color-input-bg) !important;
+  color: var(--color-input-text) !important;
+  border: 1px solid var(--color-input-border) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-placeholder) !important;
+}
+
+/* Thread and Comment Card Styling */
+.thread-card {
+  background-color: var(--color-bg-card);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2); /* Keep a subtle shadow */
+  margin-bottom: 1.5rem;
+  word-wrap: break-word;
+}
+.comment-section {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-table-td-border); /* Use table border color */
+  padding-top: 1.5rem;
+}
+.comment-card {
+  background-color: var(--color-table-row-even-bg); /* Use even table row bg for comments */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Subtle shadow */
+}
+
+/* Profile Info & Vote Buttons */
+.profile-info img {
+  border: 2px solid var(--color-heading-card); /* Blueish border for profile pic */
+}
+.vote-buttons button {
+  background-color: var(--color-input-border); /* Use input border for button background */
+  color: var(--color-text-secondary);
+}
+.vote-buttons button:hover {
+  background-color: var(--color-heading-card); /* Blueish hover for vote buttons */
+  color: var(--color-button-text);
+}
+.vote-buttons button.active {
+  background-color: var(--color-heading-card); /* Active state matches hover */
+  color: var(--color-button-text);
+}
+.vote-buttons span {
+  color: var(--color-text-secondary);
+}
+
+/* Modal Styling */
+.modal {
+  background-color: rgba(0,0,0,0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: var(--color-modal-bg);
+  color: var(--color-modal-text);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  position: relative;
+}
+.modal-content h3 {
+  color: var(--color-heading-main); /* Red for modal headings */
+  margin-bottom: 1rem;
+}
+.modal-content p {
+  color: var(--color-text-primary);
+  margin-bottom: 1.5rem;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.modal-buttons button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  transition: background-color 0.2s, transform 0.2s;
+  color: var(--color-button-text);
+}
+.modal-buttons button:hover {
+  transform: translateY(-2px);
+}
+.modal-buttons .confirm-btn {
+  background-color: var(--color-button-red-bg);
+  color: var(--color-button-text);
+}
+.modal-buttons .confirm-btn:hover {
+  background-color: var(--color-button-red-hover);
+}
+.modal-buttons .cancel-btn {
+  background-color: var(--color-text-secondary); /* Grey for cancel */
+  color: var(--color-button-text);
+}
+.modal-buttons .cancel-btn:hover {
+  background-color: var(--color-text-primary);
+}
