@@ -24,246 +24,177 @@
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Default Dark Theme */
-    body.theme-dark {
-      background-color: #1F2937; /* Dark background */
-      color: #E5E7EB; /* Light text */
+      background-color: var(--color-body-bg); /* Use CSS variable for body background */
+      color: var(--color-text-primary); /* Use CSS variable for default body text color */
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    body.theme-dark .bg-gray-800 {
-      background-color: #1F2937 !important; /* Ensure content section matches body */
+
+    /* Override Tailwind's default dark classes with CSS variables */
+    .bg-gray-800 {
+      background-color: var(--color-bg-content-section) !important;
     }
-    body.theme-dark .bg-gray-700 {
-      background-color: #2D3748 !important; /* Darker card backgrounds */
+    .bg-gray-700 {
+      background-color: var(--color-bg-card) !important;
     }
-    body.theme-dark table th {
-      background-color: #374151 !important;
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* Footer background */
     }
-    body.theme-dark table tr:nth-child(even) {
-      background-color: #2F3B4E !important;
+    .text-gray-300 {
+      color: var(--color-text-secondary) !important;
     }
-    body.theme-dark input,
-    body.theme-dark select,
-    body.theme-dark textarea {
-      background-color: #374151 !important;
-      color: #E5E7EB !important;
-      border-color: #4B5563 !important;
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important; /* Adjust if a different grey is needed */
     }
-    body.theme-dark input::placeholder,
-    body.theme-dark textarea::placeholder {
-      color: #9CA3AF !important;
+    .text-gray-200 {
+      color: var(--color-text-primary) !important;
     }
-    body.theme-dark .text-gray-700 {
-      color: #E5E7EB !important;
-    }
-    body.theme-dark .bg-gray-900 {
-      background-color: #111827 !important; /* Footer */
+    .text-blue-500 { /* For spinner */
+      color: var(--color-link) !important; /* Using link color for spinner */
     }
 
-
-    /* Light Theme */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light background */
-      color: #1F2937; /* Dark text */
-      background-image: none; /* No pattern for light theme */
+    /* Heading colors */
+    .text-red-400 {
+      color: var(--color-heading-main) !important;
     }
-    body.theme-light .bg-gray-800 {
-      background-color: #E5E7EB !important; /* Light content section */
+    .text-blue-300 {
+      color: var(--color-heading-card) !important;
     }
-    body.theme-light .bg-gray-700 {
-      background-color: #FFFFFF !important; /* White card backgrounds */
+    .text-red-300 { /* Specific for Darrion API/Grief Detection headings */
+      color: var(--color-heading-main) !important;
     }
-    body.theme-light table th {
-      background-color: #D1D5DB !important;
-      color: #4B5563 !important;
-    }
-    body.theme-light table tr:nth-child(even) {
-      background-color: #F9FAFB !important;
-    }
-    body.theme-light input,
-    body.theme-light select,
-    body.theme-light textarea {
-      background-color: #FFFFFF !important;
-      color: #1F2937 !important;
-      border-color: #D1D5DB !important;
-    }
-    body.theme-light input::placeholder,
-    body.theme-light textarea::placeholder {
-      color: #6B7280 !important;
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
-    body.theme-light .bg-gray-900 {
-      background-color: #F9FAFB !important; /* Footer */
-      color: #6B7280 !important;
-    }
-    body.theme-light .text-red-400 {
-      color: #DC2626 !important; /* Darker red for light theme headings */
-    }
-    body.theme-light .text-blue-300 {
-      color: #3B82F6 !important; /* Darker blue for light theme headings */
-    }
-    body.theme-light .text-gray-300 {
-      color: #4B5563 !important;
-    }
-    body.theme-light .text-gray-400 {
-      color: #6B7280 !important;
-    }
-    body.theme-light .text-blue-400 {
-      color: #2563EB !important;
-    }
-    body.theme-light .text-gray-200 {
-      color: #374151 !important;
+    .text-red-200 { /* Specific for Darrion API subheadings */
+      color: var(--color-text-primary) !important; /* Or a darker version of heading-main */
     }
 
-    /* Arcator Blue Theme */
-    body.theme-arcator-blue {
-      background-color: #1a202c; /* Deep blue-grey */
-      color: #E2E8F0; /* Light off-white text */
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-      background-size: cover;
-      background-attachment: fixed;
+    /* Input field styling */
+    input, select, textarea {
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-input-text) !important;
+      border-color: var(--color-input-border) !important;
     }
-    body.theme-arcator-blue .bg-gray-800 {
-      background-color: #1a202c !important; /* Ensure content section matches body */
-    }
-    body.theme-arcator-blue .bg-gray-700 {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.theme-arcator-blue table th {
-      background-color: #3b4d6b !important;
-      color: #90CDF4 !important; /* Lighter blue for table headers */
-    }
-    body.theme-arcator-blue table tr:nth-child(even) {
-      background-color: #2F3B4E !important;
-    }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select,
-    body.theme-arcator-blue textarea {
-      background-color: #3b4d6b !important;
-      color: #E2E8F0 !important;
-      border-color: #5a6e8f !important;
-    }
-    body.theme-arcator-blue input::placeholder,
-    body.theme-arcator-blue textarea::placeholder {
-      color: #94A3B8 !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .bg-gray-900 {
-      background-color: #111827 !important; /* Footer */
-    }
-    body.theme-arcator-blue .text-red-400 {
-      color: #FC8181 !important; /* Adjust red for blue theme */
-    }
-    body.theme-arcator-blue .text-blue-300 {
-      color: #63B3ED !important; /* Adjust blue for blue theme */
-    }
-    body.theme-arcator-blue .text-gray-300 {
-      color: #CBD5E0 !important;
-    }
-    body.theme-arcator-blue .text-gray-400 {
-      color: #A0AEC0 !important;
-    }
-    body.theme-arcator-blue .text-blue-400 {
-      color: #63B3ED !important;
-    }
-    body.theme-arcator-blue .text-gray-200 {
-      color: #E2E8F0 !important;
+    input::placeholder, textarea::placeholder {
+      color: var(--color-placeholder) !important;
     }
 
-
-    /* Common styling elements (buttons, links) */
-    .btn {
-      transition: background-color 0.2s, transform 0.2s;
+    /* Button styling */
+    .btn-primary,
+    .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
+      color: var(--color-button-text) !important;
     }
-    .btn:hover {
-      transform: translateY(-1px);
+    .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
+    .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+    .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
+    .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+    .bg-green-600 { background-color: var(--color-button-green-bg) !important; }
+    .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
+    .bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
+    .hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
+    .bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
+    .hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
+    .bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
+    .hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+    .bg-gray-500 { background-color: var(--color-text-secondary) !important; } /* For confirm-no button */
+    .hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; } /* For confirm-no button hover */
+
+
+    /* Links */
+    a {
+      color: var(--color-link);
+    }
+    a.text-blue-400 { /* Specific link color used in this page */
+      color: var(--color-link) !important;
+    }
+    a:hover {
+      color: var(--color-link);
+      text-decoration: underline;
+    }
+    .hover\:text-white:hover {
+      color: var(--color-text-primary) !important; /* For footer links */
     }
 
-    /* EasyMDE specific styling adjustments for dark theme */
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--color-bg-card); /* Table background */
+      color: var(--color-text-primary);
+      border-radius: 0.5rem;
+      overflow: hidden; /* Ensures rounded corners apply to content */
+    }
+    table th {
+      background-color: var(--color-table-th-bg);
+      color: var(--color-table-th-text);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 1px solid var(--color-table-td-border);
+    }
+    table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--color-table-td-border);
+    }
+    table tbody tr:nth-child(even) {
+      background-color: var(--color-table-row-even-bg);
+    }
+
+    /* Modals */
+    .modal, .custom-confirm-modal {
+      background-color: rgba(0,0,0,0.7); /* Dark overlay */
+      color: var(--color-modal-text);
+    }
+    .modal-content {
+      background-color: var(--color-modal-bg);
+    }
+    .modal-content h3 {
+      color: var(--color-heading-card); /* Modal heading */
+    }
+    .modal-content label {
+      color: var(--color-text-secondary); /* Modal label text */
+    }
+    .modal-content input, .modal-content select, .modal-content textarea {
+      background-color: var(--color-modal-input-bg) !important;
+      color: var(--color-modal-input-text) !important;
+      border-color: var(--color-input-border) !important; /* Use common input border */
+    }
+
+    /* Message box styling */
+    .message-box {
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+    }
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success);
+    }
+    .message-box.error {
+      background-color: var(--color-message-box-bg-error);
+    }
+
+    /* EasyMDE specific styling adjustments */
     .editor-toolbar {
-      background-color: #374151 !important; /* Darker toolbar */
-      border-bottom: 1px solid #4B5563 !important;
+      background-color: var(--color-input-bg) !important; /* Darker toolbar */
+      border-bottom: 1px solid var(--color-input-border) !important;
     }
     .editor-toolbar button {
-      color: #E5E7EB !important; /* Lighter icons */
+      color: var(--color-input-text) !important; /* Lighter icons */
     }
     .editor-toolbar button.active, .editor-toolbar button:hover {
-      background-color: #4B5563 !important; /* Hover/active state */
+      background-color: var(--color-input-border) !important; /* Hover/active state */
     }
     .CodeMirror, .CodeMirror-scroll {
-      background-color: #1F2937 !important; /* Dark editor background */
-      color: #E5E7EB !important; /* Light text */
+      background-color: var(--color-body-bg) !important; /* Dark editor background */
+      color: var(--color-text-primary) !important; /* Light text */
     }
     .CodeMirror-cursor {
-      border-left: 1px solid #E5E7EB !important; /* Light cursor */
+      border-left: 1px solid var(--color-text-primary) !important; /* Light cursor */
     }
     .CodeMirror-selected {
-      background-color: #4B5563 !important; /* Selection color */
+      background-color: var(--color-table-th-bg) !important; /* Selection color - using a similar dark shade */
     }
     .CodeMirror-placeholder {
-      color: #6B7280 !important; /* Placeholder color */
+      color: var(--color-placeholder) !important; /* Placeholder color */
     }
-
-    /* Adjust EasyMDE for Light Theme */
-    body.theme-light .editor-toolbar {
-      background-color: #E2E8F0 !important;
-      border-bottom: 1px solid #CBD5E0 !important;
-    }
-    body.theme-light .editor-toolbar button {
-      color: #4A5568 !important;
-    }
-    body.theme-light .editor-toolbar button.active, body.theme-light .editor-toolbar button:hover {
-      background-color: #CBD5E0 !important;
-    }
-    body.theme-light .CodeMirror, body.theme-light .CodeMirror-scroll {
-      background-color: #FFFFFF !important;
-      color: #1A202C !important;
-    }
-    body.theme-light .CodeMirror-cursor {
-      border-left: 1px solid #1A202C !important;
-    }
-    body.theme-light .CodeMirror-selected {
-      background-color: #BEE3F8 !important;
-    }
-    body.theme-light .CodeMirror-placeholder {
-      color: #A0AEC0 !important;
-    }
-
-    /* Adjust EasyMDE for Arcator Blue Theme */
-    body.theme-arcator-blue .editor-toolbar {
-      background-color: #3b4d6b !important;
-      border-bottom: 1px solid #5a6e8f !important;
-    }
-    body.theme-arcator-blue .editor-toolbar button {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .editor-toolbar button.active, body.theme-arcator-blue .editor-toolbar button:hover {
-      background-color: #5a6e8f !important;
-    }
-    body.theme-arcator-blue .CodeMirror, body.theme-arcator-blue .CodeMirror-scroll {
-      background-color: #1a202c !important;
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .CodeMirror-cursor {
-      border-left: 1px solid #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .CodeMirror-selected {
-      background-color: #4299E1 !important;
-    }
-    body.theme-arcator-blue .CodeMirror-placeholder {
-      color: #94A3B8 !important;
-    }
-
   </style>
 </head>
 <body class="antialiased">
@@ -576,9 +507,6 @@
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
-<!-- NEW: Edit Todo Modal -->
-
-
 <!-- Custom Confirmation Modal (for delete operations) -->
 <div id="custom-confirm-modal" class="custom-confirm-modal">
   <p class="mb-4 text-lg" id="confirm-message"></p>
@@ -605,7 +533,7 @@
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script type="module">
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
+  import { loadNavbar } from './navbar.js'; // This is the correct import for loadNavbar
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
@@ -628,18 +556,6 @@
     orderBy
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-
-  // Function to load the navigation bar
-  async function loadNavbar() {
-    try {
-      const response = await fetch('navbar.html');
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const navbarHtml = await response.text();
-      document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
-    } catch (error) {
-      console.error("Failed to load navigation bar:", error);
-    }
-  }
 
   // Firebase configuration object
   const firebaseConfig = {
@@ -717,6 +633,7 @@
   let easyMDEEdit;
 
   const DEFAULT_THEME = 'dark';
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
 
   /**
    * Displays a custom message box for user feedback.
@@ -886,11 +803,13 @@
 
     users.forEach(user => {
       const row = userListTbody.insertRow();
+      // Apply theme-aware classes to the table rows/cells for consistency
+      row.classList.add('text-text-primary'); // Apply primary text color
       row.innerHTML = `
-        <td class="px-4 py-2 break-all">${user.id}</td>
-        <td class="px-4 py-2">${user.displayName || 'N/A'}</td>
-        <td class="px-4 py-2">${user.themePreference || DEFAULT_THEME}</td>
-        <td class="px-4 py-2">
+        <td class="px-4 py-2 break-all border-b border-table-td-border">${user.id}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${user.displayName || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">
           <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME}">Edit</button>
           <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
         </td>
@@ -923,9 +842,27 @@
   function openEditUserModal(uid, displayName, theme) {
     currentEditingUserUid = uid;
     editUserDisplayNameInput.value = displayName;
-    editUserThemeSelect.value = theme;
+    // Populate the theme dropdown in the modal with all available themes
+    populateEditUserThemeSelect(theme);
     editUserModal.style.display = 'flex';
   }
+
+  /**
+   * Populates the theme selection dropdown in the edit user modal.
+   * @param {string} selectedThemeId - The currently selected theme ID for the user.
+   */
+  async function populateEditUserThemeSelect(selectedThemeId) {
+    editUserThemeSelect.innerHTML = ''; // Clear existing options
+    const availableThemes = await getAvailableThemes(); // From themes.js
+    availableThemes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.id;
+      option.textContent = theme.name;
+      editUserThemeSelect.appendChild(option);
+    });
+    editUserThemeSelect.value = selectedThemeId; // Set the current theme
+  }
+
 
   if (saveUserChangesBtn) {
     saveUserChangesBtn.addEventListener('click', async () => {
@@ -939,8 +876,11 @@
       if (success) {
         editUserModal.style.display = 'none';
         renderUserList();
+        // If the admin is editing their own profile, apply the theme immediately
         if (auth.currentUser && auth.currentUser.uid === currentEditingUserUid) {
-          applyTheme(newTheme);
+          const allThemes = await getAvailableThemes();
+          const selectedTheme = allThemes.find(t => t.id === newTheme);
+          applyTheme(selectedTheme.id, selectedTheme);
         }
       }
     });
@@ -1028,9 +968,13 @@
 
     pages.forEach(page => {
       const li = document.createElement('li');
-      li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'bg-gray-700', 'p-3', 'rounded-md', 'mb-2');
+      // Apply theme-aware classes to list items for consistency
+      li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
+      li.style.backgroundColor = 'var(--color-bg-card)'; /* Apply card background color */
+      li.style.color = 'var(--color-text-primary)'; /* Apply primary text color */
+
       li.innerHTML = `
-        <span class="font-semibold text-white break-all md:w-3/5">${page.title}</span>
+        <span class="font-semibold break-all md:w-3/5">${page.title}</span>
         <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
           <a href="#" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page" data-id="${page.id}">View</a>
           <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${page.title}" data-content="${page.content}">Edit</button>
@@ -1132,17 +1076,6 @@
   }
 
   /**
-   * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
-   */
-  function applyTheme(theme) {
-    const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-    body.classList.add(`theme-${theme}`);
-    console.log(`Applied theme: ${theme}`);
-  }
-
-  /**
    * Updates the UI based on the user's authentication and admin status.
    * This function now ensures Firebase is ready before proceeding with Firestore checks.
    * @param {Object|null} user - The Firebase User object or null.
@@ -1157,7 +1090,9 @@
 
       const userProfile = await getUserProfileFromFirestore(user.uid);
       const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-      applyTheme(themePreference);
+      const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+      const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(themeToApply.id, themeToApply); // Apply the theme using the imported function
 
       const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
       try {
@@ -1186,7 +1121,9 @@
       console.log("DEBUG: No user is currently authenticated.");
       loginRequiredMessage.style.display = 'block';
       adminContent.style.display = 'none';
-      applyTheme(DEFAULT_THEME);
+      const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+      const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme using the imported function
     }
   }
 
@@ -1227,6 +1164,8 @@
       return [];
     }
     const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
+    // Ensure `orderBy` is used safely, or remove it if not strictly necessary due to Firestore indexing limitations.
+    // For now, I'll keep it as it's common for roadmap/todo lists.
     const q = query(todosCol, orderBy("createdAt", "asc"));
     try {
       const querySnapshot = await getDocs(q);
@@ -1253,13 +1192,18 @@
 
     todos.forEach(todo => {
       const row = roadmapTodoListTbody.insertRow();
+      // Apply theme-aware classes to the table rows/cells for consistency
+      row.classList.add('text-text-primary'); // Apply primary text color
+      if (roadmapTodoListTbody.rows.length % 2 === 0) { // Check if it's an even row
+        row.style.backgroundColor = 'var(--color-table-row-even-bg)';
+      }
       row.innerHTML = `
-        <td class="px-4 py-2">${todo.task || 'N/A'}</td>
-        <td class="px-4 py-2">${todo.worker || 'N/A'}</td>
-        <td class="px-4 py-2">${todo.priority || 'N/A'}</td>
-        <td class="px-4 py-2">${todo.eta || 'N/A'}</td>
-        <td class="px-4 py-2 break-all">${todo.notes || 'N/A'}</td>
-        <td class="px-4 py-2">
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.eta || 'N/A'}</td>
+        <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">
           <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
                   data-id="${todo.id}" data-task="${todo.task || ''}" data-worker="${todo.worker || ''}"
                   data-priority="${todo.priority || ''}" data-eta="${todo.eta || ''}" data-notes="${todo.notes || ''}">Edit</button>
@@ -1349,6 +1293,7 @@
       db = getFirestore(app);
       isFirebaseInitialized = true;
       console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
 
       // Critical: Ensure auth state is settled before resolving
       const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -1362,7 +1307,7 @@
               console.error("ERROR: Error signing in with custom token (admin_dev page) during init:", error);
               signInAnonymously(auth)
                 .then(() => console.log("DEBUG: Signed in anonymously (admin_dev page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously (admin_dev page) during init:", anonError));
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError));
             })
             .finally(() => resolve()); // Resolve promise after token attempt
         } else if (!user && !__initial_auth_token) {
@@ -1385,7 +1330,8 @@
 
   // Load navbar and initialize EasyMDE on page load
   window.onload = function() {
-    loadNavbar();
+    // Call the imported loadNavbar function with necessary parameters
+    loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
     document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
 
     easyMDECreate = new EasyMDE({
