@@ -9,11 +9,10 @@
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- EasyMDE (Markdown Editor) CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for consistent styling -->
-  <link rel="stylesheet" href="navbar.css">
+  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
   <!-- Import themes.js for centralized JavaScript functions -->
   <script src="themes.js" type="module"></script>
   <!-- Import custom_theme_modal.js for custom theme management logic -->
@@ -27,308 +26,603 @@
       transition: background-color 0.3s ease, color 0.3s ease;
       background-color: var(--color-body-bg); /* Use CSS variable for body background */
       color: var(--color-text-primary); /* Use CSS variable for default body text color */
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
     }
 
-    /* Hero Banner styles - common for all themes, retains background image */
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+    /* Navbar specific styling using CSS variables */
+    .navbar {
+      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
     }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-      z-index: 1;
+    .navbar-link {
+      color: var(--color-text-secondary); /* Default link color */
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white; /* Hero content text is hardcoded white for readability over image */
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    .navbar-link:hover {
+      color: var(--color-text-primary); /* Hover link color */
+      background-color: var(--color-bg-card); /* Slightly different background on hover */
     }
 
-    /* Main content section styling using CSS variables */
-    .bg-content-section { background-color: var(--color-bg-content-section); }
-    .text-heading-main { color: var(--color-heading-main); }
-    .text-text-primary { color: var(--color-text-primary); }
-    .text-text-secondary { color: var(--color-text-secondary); }
-    .bg-card { background-color: var(--color-bg-card); }
-    .bg-navbar { background-color: var(--color-bg-navbar); } /* For footer */
-    .text-link { color: var(--color-link); }
-    .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links */
-    .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
-    .text-heading-card { color: var(--color-heading-card); }
-
-    /* Form and input styling */
-    .input-field label {
-      color: var(--color-text-secondary);
+    /* Override Tailwind's default dark classes with CSS variables */
+    .bg-gray-800 {
+      background-color: var(--color-bg-content-section) !important;
     }
-    .input-field input[type="text"],
-    .input-field input[type="url"],
-    .input-field select,
-    .input-field textarea {
+    .bg-gray-700 {
+      background-color: var(--color-bg-card) !important;
+    }
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* Footer background */
+    }
+    .text-gray-300 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important; /* Adjust if a different grey is needed */
+    }
+    .text-gray-200 {
+      color: var(--color-text-primary) !important;
+    }
+    .text-blue-500 { /* For spinner */
+      color: var(--color-link) !important; /* Using link color for spinner */
+    }
+
+    /* Heading colors */
+    .text-red-400 {
+      color: var(--color-heading-main) !important;
+    }
+    .text-blue-300 {
+      color: var(--color-heading-card) !important;
+    }
+    .text-red-300 { /* Specific for Darrion API/Grief Detection headings */
+      color: var(--color-heading-main) !important;
+    }
+    .text-red-200 { /* Specific for Darrion API subheadings */
+      color: var(--color-text-primary) !important; /* Or a darker version of heading-main */
+    }
+
+    /* Input field styling */
+    input, select, textarea {
       background-color: var(--color-input-bg) !important;
       color: var(--color-input-text) !important;
       border-color: var(--color-input-border) !important;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
     }
-    .input-field input::placeholder,
-    .input-field textarea::placeholder {
+    input::placeholder, textarea::placeholder {
       color: var(--color-placeholder) !important;
     }
 
     /* Button styling */
-    .btn-primary {
-      color: var(--color-button-text);
-      font-weight: 700;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      transition: background-color 0.2s, transform 0.2s;
+    .btn-primary,
+    .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
+      color: var(--color-button-text) !important;
     }
-    .btn-blue {
-      background-color: var(--color-button-blue-bg);
+    .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
+    .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+    .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
+    .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+    .bg-green-600 { background-color: var(--color-button-green-bg) !important; }
+    .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
+    .bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
+    .hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
+    .bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
+    .hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
+    .bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
+    .hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+    .bg-gray-500 { background-color: var(--color-text-secondary) !important; } /* For confirm-no button */
+    .hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; } /* For confirm-no button hover */
+
+
+    /* Links */
+    a {
+      color: var(--color-link);
     }
-    .btn-blue:hover {
-      background-color: var(--color-button-blue-hover);
+    a.text-blue-400 { /* Specific link color used in this page */
+      color: var(--color-link) !important;
     }
-    .btn-green {
-      background-color: var(--color-button-green-bg);
+    a:hover {
+      color: var(--color-link);
+      text-decoration: underline;
     }
-    .btn-green:hover {
-      background-color: var(--color-button-green-hover);
-    }
-    .btn-red {
-      background-color: var(--color-button-red-bg);
-    }
-    .btn-red:hover {
-      background-color: var(--color-button-red-hover);
+    .hover\:text-white:hover {
+      color: var(--color-text-primary) !important; /* For footer links */
     }
 
     /* Table styling */
-    .table-header {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--color-bg-card); /* Table background */
+      color: var(--color-text-primary);
+      border-radius: 0.5rem;
+      overflow: hidden; /* Ensures rounded corners apply to content */
+    }
+    table th {
       background-color: var(--color-table-th-bg);
       color: var(--color-table-th-text);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 1px solid var(--color-table-td-border);
     }
-    .table-row-even {
+    table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--color-table-td-border);
+    }
+    table tbody tr:nth-child(even) {
       background-color: var(--color-table-row-even-bg);
     }
-    .table-border {
-      border-color: var(--color-table-td-border);
-    }
-    .table-text-primary {
-      color: var(--color-text-primary);
-    }
 
-    /* Modal styling from custom_theme_modal.js styles */
-    .modal {
-      background-color: rgba(0,0,0,0.7); /* Consistent with modal background */
+    /* Modals */
+    .modal, .custom-confirm-modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1001; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.7); /* Dark overlay */
+      display: flex; /* Use flex for centering */
+      justify-content: center;
+      align-items: center;
+      color: var(--color-modal-text); /* Apply modal text color */
     }
     .modal-content {
       background-color: var(--color-modal-bg);
       color: var(--color-modal-text);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+    .modal-content h3 {
+      color: var(--color-heading-card); /* Modal heading */
     }
     .modal-content label {
-      color: var(--color-modal-text);
+      color: var(--color-text-secondary); /* Modal label text */
     }
-    .modal-content input[type="text"],
-    .modal-content input[type="color"],
-    .modal-content select,
-    .modal-content textarea {
+    .modal-content input, .modal-content select, .modal-content textarea {
       background-color: var(--color-modal-input-bg) !important;
       color: var(--color-modal-input-text) !important;
-      border-color: var(--color-input-border) !important;
+      border-color: var(--color-input-border) !important; /* Use common input border */
     }
-    .modal-content input::placeholder,
-    .modal-content textarea::placeholder {
-      color: var(--color-placeholder) !important;
+
+    /* Message box styling */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+      background-color: var(--color-modal-bg); /* Use modal background for consistency */
+      color: var(--color-modal-text); /* Use modal text for consistency */
+    }
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success);
+    }
+    .message-box.error {
+      background-color: var(--color-message-box-bg-error);
+    }
+
+    /* EasyMDE specific styling adjustments */
+    .editor-toolbar {
+      background-color: var(--color-input-bg) !important; /* Darker toolbar */
+      border-bottom: 1px solid var(--color-input-border) !important;
+    }
+    .editor-toolbar button {
+      color: var(--color-input-text) !important; /* Lighter icons */
+    }
+    .editor-toolbar button.active, .editor-toolbar button:hover {
+      background-color: var(--color-input-border) !important; /* Hover/active state */
+    }
+    .CodeMirror, .CodeMirror-scroll {
+      background-color: var(--color-body-bg) !important; /* Dark editor background */
+      color: var(--color-text-primary) !important; /* Light text */
+    }
+    .CodeMirror-cursor {
+      border-left: 1px solid var(--color-text-primary) !important; /* Light cursor */
+    }
+    .CodeMirror-selected {
+      background-color: var(--color-table-th-bg) !important; /* Selection color - using a similar dark shade */
+    }
+    .CodeMirror-placeholder {
+      color: var(--color-placeholder) !important; /* Placeholder color */
     }
   </style>
 </head>
 <body class="antialiased">
-<!-- Navbar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+<!-- Navigation Bar Placeholder -->
+<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
+        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Admin & Development Tools</h1>
-    <p class="text-xl md:text-2xl mb-8">Manage Content & Track Progress</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
+    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
   </div>
 </section>
 
-<!-- Main Content Section -->
-<main class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+<!-- Admin & Dev Section Content -->
+<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <!-- Temporary Page Creation Section -->
-    <section class="mb-12 bg-card p-6 rounded-lg shadow-md">
-      <h2 class="text-3xl font-bold text-heading-main text-center mb-6">Create Temporary Page</h2>
-      <form id="create-temp-page-form" class="space-y-4">
-        <div class="input-field">
-          <label for="temp-page-title" class="block text-sm font-semibold mb-2">Page Title:</label>
-          <input type="text" id="temp-page-title" class="w-full p-2 border rounded" placeholder="Enter page title" required>
-        </div>
-        <div class="input-field">
-          <label for="temp-page-content" class="block text-sm font-semibold mb-2">Page Content (Markdown):</label>
-          <textarea id="temp-page-content" class="w-full p-2 border rounded" rows="10" placeholder="Write your markdown content here..."></textarea>
-        </div>
-        <button type="submit" class="btn-primary btn-blue w-full">Create Page</button>
-      </form>
-      <div id="temp-page-links" class="mt-8">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Existing Temporary Pages:</h3>
-        <div id="temp-page-list" class="space-y-2">
-          <p class="text-text-secondary">Loading temporary pages...</p>
-        </div>
-      </div>
-    </section>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="flex justify-center items-center h-48">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
 
-    <!-- To-Do List Section -->
-    <section class="mb-12 bg-card p-6 rounded-lg shadow-md">
-      <h2 class="text-3xl font-bold text-heading-main text-center mb-6">Development To-Do List</h2>
-      <form id="add-todo-form" class="space-y-4">
-        <div class="input-field">
-          <label for="todo-task" class="block text-sm font-semibold mb-2">Task:</label>
-          <input type="text" id="todo-task" class="w-full p-2 border rounded" placeholder="e.g., Implement dark mode for forms" required>
+    <!-- Login Required Message / Redirect -->
+    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
+      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
+      <p class="text-lg text-gray-300 mb-8">
+        You must be logged in as an administrator to access this page.
+      </p>
+      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    </div>
+
+    <!-- Admin Content Section (visible only to authenticated admins) -->
+    <div id="admin-content" style="display: none;">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-red-400">Welcome, Admin <span id="admin-user-display"></span>!</h2>
+        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
+      </div>
+
+      <p class="text-lg text-gray-300 mb-8">
+        This portal provides tools and information for managing Arcator infrastructure and development.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Infrastructure Management Card (Existing) -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Infrastructure Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Review server logs and performance metrics.</li>
+            <li>Perform routine maintenance tasks.</li>
+            <li>Manage user permissions on core systems.</li>
+            <li>Oversee backup and recovery procedures.</li>
+          </ul>
+          <a href="infrastructure.html" class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">View Infrastructure Details</a>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="input-field">
-            <label for="todo-worker" class="block text-sm font-semibold mb-2">Assigned Worker:</label>
-            <input type="text" id="todo-worker" class="w-full p-2 border rounded" placeholder="e.g., John Doe">
+
+        <!-- Development Tools Card (Existing) -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Development Tools & Wiki</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Access the code repositories and version control.</li>
+            <li>Contribute to ongoing development projects.</li>
+            <li>Update and maintain the official Arcator Wiki.</li>
+            <li>Collaborate on new features and bug fixes.</li>
+          </ul>
+          <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
+        </div>
+
+        <!-- NEW: User Management Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">User Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">View and manage registered user profiles.</p>
+          <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left table-auto">
+              <thead>
+              <tr class="bg-gray-800">
+                <th class="px-4 py-2">Email</th>
+                <th class="px-4 py-2">Display Name</th>
+                <th class="px-4 py-2">Theme</th>
+                <th class="px-4 py-2">Actions</th>
+              </tr>
+              </thead>
+              <tbody id="user-list-tbody">
+              <tr><td colspan="4" class="text-center py-4 text-gray-400">No users loaded yet. Click "Load Users".</td></tr>
+              </tbody>
+            </table>
+            <div id="edit-user-modal" class="modal">
+              <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
+                <div class="mb-4">
+                  <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
+                  <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                </div>
+                <div class="mb-4">
+                  <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
+                  <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <!-- Options will be dynamically populated by populateEditUserThemeSelect -->
+                  </select>
+                </div>
+                <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+              </div>
+            </div>
           </div>
-          <div class="input-field">
-            <label for="todo-priority" class="block text-sm font-semibold mb-2">Priority:</label>
-            <select id="todo-priority" class="w-full p-2 border rounded">
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
-            </select>
+        </div>
+
+        <!-- NEW: Form Management Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Form Management</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Overview of form submissions and structure.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Review recent form submissions.</li>
+            <li>Analyze form data trends.</li>
+            <li>(Future: Edit form questions/fields directly)</li>
+          </ul>
+          <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
+        </div>
+
+        <!-- NEW: Temporary Pages Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Temporary Pages</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
+          <form id="create-temp-page-form" class="space-y-4">
+            <div>
+              <label for="temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+              <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title">
+            </div>
+            <div>
+              <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+              <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here..."></textarea>
+            </div>
+            <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
+          </form>
+          <h4 class="text-xl font-semibold text-gray-200 mt-6 mb-3">Existing Temporary Pages:</h4>
+          <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
+            <li>No temporary pages created yet.</li>
+          </ul>
+          <div id="edit-temp-page-modal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
+              <div class="mb-4">
+                <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
+                <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              </div>
+              <div class="mb-4">
+                <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+                <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
+              </div>
+              <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+            </div>
           </div>
-          <div class="input-field">
-            <label for="todo-eta" class="block text-sm font-semibold mb-2">ETA:</label>
-            <input type="text" id="todo-eta" class="w-full p-2 border rounded" placeholder="e.g., 3 days / Q4 2024">
+
+        </div>
+
+        <!-- NEW: Important Links Card -->
+        <div class="p-6 bg-gray-700 rounded-lg shadow-md md:col-span-2">
+          <h3 class="text-2xl font-bold text-blue-300 mb-4">Important Links</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">Quick access to essential internal and external documentation.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Internal Documentation (Google Doc)</a></li>
+            <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Official Wiki</a></li>
+            <li><a href="infrastructure.html" class="text-blue-400 hover:underline">Infrastructure Details Page</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="text-4xl font-bold text-center mt-16 mb-12 text-red-400">Our Development Roadmap (Todo List)</h2>
+      <p class="text-lg text-center mb-8 text-gray-300">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
+
+      <!-- NEW: Add New Todo Item Form -->
+      <div class="p-6 bg-gray-700 rounded-lg shadow-md mb-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Add New Roadmap Task</h3>
+        <form id="add-todo-form" class="space-y-4">
+          <div>
+            <label for="todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
+            <input type="text" id="todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter task description" required>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label for="todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
+              <input type="text" id="todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Assigned worker">
+            </div>
+            <div>
+              <label for="todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
+              <select id="todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="Very Low">Very Low</option>
+                <option value="Low">Low</option>
+                <option value="Mid">Mid</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label for="todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
+              <input type="text" id="todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., 1 Day, N/A">
+            </div>
+          </div>
+          <div>
+            <label for="todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
+            <textarea id="todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Additional notes or links"></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Add Task</button>
+        </form>
+        <div id="edit-todo-modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Roadmap Task</h3>
+            <div class="mb-4">
+              <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
+              <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
+                <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              </div>
+              <div>
+                <label for="edit-todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
+                <select id="edit-todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  <option value="Very Low">Very Low</option>
+                  <option value="Low">Low</option>
+                  <option value="Mid">Mid</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+              <div>
+                <label for="edit-todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
+                <input type="text" id="edit-todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              </div>
+            </div>
+            <div class="mb-4">
+              <label for="edit-todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
+              <textarea id="edit-todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
+            </div>
+            <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
           </div>
         </div>
-        <div class="input-field">
-          <label for="todo-notes" class="block text-sm font-semibold mb-2">Notes:</label>
-          <textarea id="todo-notes" class="w-full p-2 border rounded" rows="3" placeholder="Additional details..."></textarea>
-        </div>
-        <button type="submit" class="btn-primary btn-green w-full">Add To-Do Item</button>
-      </form>
+      </div>
 
-      <div class="mt-8">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Current To-Do Items:</h3>
-        <div id="todo-list" class="space-y-4">
-          <p class="text-text-secondary">Loading to-do items...</p>
-        </div>
-      </div>
-    </section>
-  </div>
-</main>
 
-<!-- Modals for editing and confirmation -->
-<!-- Edit To-Do Item Modal -->
-<div id="editTodoModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-  <div class="modal-content bg-card p-6 rounded-lg shadow-lg max-w-lg w-full relative">
-    <span class="close-button absolute top-2 right-4 text-xl cursor-pointer">&times;</span>
-    <h3 class="text-2xl font-bold text-heading-main mb-4">Edit To-Do Item</h3>
-    <form id="edit-todo-form" class="space-y-4">
-      <div class="input-field">
-        <label for="edit-todo-task" class="block text-sm font-semibold mb-2">Task:</label>
-        <input type="text" id="edit-todo-task" class="w-full p-2 border rounded" required>
+      <div class="overflow-x-auto mb-12">
+        <table>
+          <thead>
+          <tr>
+            <th>Task</th>
+            <th>Worker</th>
+            <th>Priority</th>
+            <th>ETA</th>
+            <th>Notes</th>
+            <th>Actions</th> <!-- NEW: Actions column -->
+          </tr>
+          </thead>
+          <tbody id="roadmap-todo-list-tbody">
+          <!-- Todo items will be dynamically loaded here -->
+          <tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>
+          </tbody>
+        </table>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="input-field">
-          <label for="edit-todo-worker" class="block text-sm font-semibold mb-2">Assigned Worker:</label>
-          <input type="text" id="edit-todo-worker" class="w-full p-2 border rounded">
-        </div>
-        <div class="input-field">
-          <label for="edit-todo-priority" class="block text-sm font-semibold mb-2">Priority:</label>
-          <select id="edit-todo-priority" class="w-full p-2 border rounded">
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
-          </select>
-        </div>
-        <div class="input-field">
-          <label for="edit-todo-eta" class="block text-sm font-semibold mb-2">ETA:</label>
-          <input type="text" id="edit-todo-eta" class="w-full p-2 border rounded">
-        </div>
-      </div>
-      <div class="input-field">
-        <label for="edit-todo-notes" class="block text-sm font-semibold mb-2">Notes:</label>
-        <textarea id="edit-todo-notes" class="w-full p-2 border rounded" rows="3"></textarea>
-      </div>
-      <button type="submit" id="save-todo-changes-btn" class="btn-primary btn-blue w-full">Save Changes</button>
-    </form>
-  </div>
-</div>
 
-<!-- Confirmation Modal -->
-<div id="confirmModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-  <div class="modal-content bg-card p-6 rounded-lg shadow-lg max-w-sm w-full text-center relative">
-    <p id="confirmMessage" class="text-lg mb-6">Are you sure?</p>
-    <button id="confirmYesBtn" class="btn-primary btn-red w-1/2 inline-block">Yes</button>
-    <button id="confirmNoBtn" class="btn-primary btn-blue w-1/2 inline-block ml-2">No</button>
-  </div>
-</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+        <!-- Darrion API Section (Existing) -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Darrion API</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
+          <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
+            <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
+            <li><span class="font-semibold text-white">GET plugin updates</span></li>
+          </ul>
+        </div>
+
+        <!-- GriefDetection Section (Existing) -->
+        <div>
+          <h3 class="text-3xl font-bold mb-6 text-red-300">Grief Detection</h3>
+          <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Regular checks for griefs and automated analysis of player actions.</li>
+            <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
+            <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
+            <!-- Added rel="noopener noreferrer" for security when opening external links -->
+            <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+            <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Onfim Notifications Section (Existing) -->
+      <div class="mt-16">
+        <h3 class="text-3xl font-bold mb-6 text-red-300">Onfim Notifications</h3>
+        <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <li>Warns staff on Discord when disk space is nearly full.</li>
+          <li>Detects and alerts on drive corruption.</li>
+          <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
+          <li>Alerts when Jylina's Ngrok IP address changes.</li>
+          <li>Handles `#machine-status` updates every minute.</li>
+        </ul>
+      </div>
+    </div>
+</section>
+
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
+<!-- Custom Confirmation Modal (for delete operations) -->
+<div id="custom-confirm-modal" class="custom-confirm-modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <p class="mb-4 text-lg" id="confirm-message"></p>
+    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+  </div>
+</div>
 
 <!-- Footer Section -->
-<footer class="bg-navbar py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-admin"></span> Arcator.co.uk. All rights reserved.</p>
+    <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-link text-heading-card transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
   </div>
 </footer>
-
-<!-- EasyMDE (Markdown Editor) JS -->
-<script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs and Main Script -->
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script type="module">
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { loadNavbar } from './navbar.js'; // This is the correct import for loadNavbar
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut,
+    signInWithCustomToken,
+    signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
-    collection,
-    addDoc,
-    getDocs,
     doc,
+    getDoc,
+    setDoc,
+    collection,
+    getDocs,
     deleteDoc,
-    query,
-    orderBy,
-    onSnapshot,
+    addDoc,
     updateDoc,
-    serverTimestamp // Import serverTimestamp
+    query,
+    orderBy
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
 
-  // Firebase configuration
+  // Firebase configuration object
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -345,64 +639,79 @@
   let app;
   let auth;
   let db;
-  let isFirebaseInitialized = false;
-  let currentEditingTodoId = null; // Store the ID of the todo item being edited
-  let currentConfirmAction = null; // Stores the action to perform after confirmation (e.g., 'deleteTempPage', 'deleteTodo')
-  let currentConfirmId = null; // Stores the ID related to the current confirmation action
+  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
 
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
-
-  // Initialize Firebase
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized successfully in admin_and_dev.html.");
-    setupThemesFirebase(db, auth, appId); // Pass auth as well to themes.js setup
-  } catch (e) {
-    console.error("Error initializing Firebase in admin_and_dev.html:", e);
-  }
-
-  // EasyMDE instance for creating temporary pages
-  let easyMDECreate;
-
-  // DOM Elements
+  // DOM elements - Initialize immediately after declaration
   const loadingSpinner = document.getElementById('loading-spinner');
+  const loginRequiredMessage = document.getElementById('login-required-message');
+  const adminContent = document.getElementById('admin-content');
+  const logoutBtn = document.getElementById('logout-btn');
+  const adminUserDisplay = document.getElementById('admin-user-display');
+  const messageBox = document.getElementById('message-box');
+  const customConfirmModal = document.getElementById('custom-confirm-modal');
+  const confirmMessage = document.getElementById('confirm-message');
+  const confirmSubmessage = document.getElementById('confirm-submessage');
+  const confirmYesBtn = document.getElementById('confirm-yes');
+  const confirmNoBtn = document.getElementById('confirm-no');
+
+
+  // User Management DOM elements
+  const loadUsersBtn = document.getElementById('load-users-btn');
+  const userListTbody = document.getElementById('user-list-tbody');
+  const editUserModal = document.getElementById('edit-user-modal');
+  const editUserDisplayNameInput = document.getElementById('edit-user-display-name');
+  const editUserThemeSelect = document.getElementById('edit-user-theme');
+  const saveUserChangesBtn = document.getElementById('save-user-changes-btn');
+  let currentEditingUserUid = null;
+
+  // Temporary Pages DOM elements
   const createTempPageForm = document.getElementById('create-temp-page-form');
   const tempPageTitleInput = document.getElementById('temp-page-title');
-  const tempPageContentTextarea = document.getElementById('temp-page-content');
-  const tempPageListDiv = document.getElementById('temp-page-list');
+  const tempPageContentInput = document.getElementById('temp-page-content');
+  const tempPageList = document.getElementById('temp-page-list');
+  const editTempPageModal = document.getElementById('edit-temp-page-modal');
+  const editTempPageTitleInput = document.getElementById('edit-temp-page-title');
+  const editTempPageContentInput = document.getElementById('edit-temp-page-content');
+  const saveTempPageChangesBtn = document.getElementById('save-temp-page-changes-btn');
+  let currentEditingTempPageId = null;
 
+  // Todo List DOM elements
   const addTodoForm = document.getElementById('add-todo-form');
   const todoTaskInput = document.getElementById('todo-task');
   const todoWorkerInput = document.getElementById('todo-worker');
   const todoPrioritySelect = document.getElementById('todo-priority');
   const todoEtaInput = document.getElementById('todo-eta');
   const todoNotesInput = document.getElementById('todo-notes');
-  const todoListDiv = document.getElementById('todo-list');
-
-  const editTodoModal = document.getElementById('editTodoModal');
-  const editTodoCloseButton = editTodoModal ? editTodoModal.querySelector('.close-button') : null;
+  const roadmapTodoListTbody = document.getElementById('roadmap-todo-list-tbody');
+  const editTodoModal = document.getElementById('edit-todo-modal');
   const editTodoTaskInput = document.getElementById('edit-todo-task');
   const editTodoWorkerInput = document.getElementById('edit-todo-worker');
   const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
   const editTodoEtaInput = document.getElementById('edit-todo-eta');
   const editTodoNotesInput = document.getElementById('edit-todo-notes');
   const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
+  let currentEditingTodoId = null;
 
-  const confirmModal = document.getElementById('confirmModal');
-  const confirmMessage = document.getElementById('confirmMessage');
-  const confirmYesBtn = document.getElementById('confirmYesBtn');
-  const confirmNoBtn = document.getElementById('confirmNoBtn');
 
-  const messageBox = document.getElementById('message-box');
+  // EasyMDE instances
+  let easyMDECreate;
+  let easyMDEEdit;
 
-  // Utility function to display messages (like alerts, but custom UI)
-  function showMessageBox(message, isError = false) {
+  const DEFAULT_THEME = 'dark';
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+
+  /**
+   * Displays a custom message box for user feedback.
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True for error, false for success.
+   */
+  function showMessageBox(message, isError) {
+    if (!messageBox) {
+      console.error("MessageBox element not found. Message:", message);
+      return;
+    }
     messageBox.textContent = message;
-    messageBox.className = 'message-box'; // Reset classes
+    messageBox.className = 'message-box';
     if (isError) {
       messageBox.classList.add('error');
     } else {
@@ -414,456 +723,801 @@
     }, 5000);
   }
 
-  // --- Temporary Pages Functions ---
+  /**
+   * Shows a custom confirmation modal.
+   * @param {string} message - The main confirmation message.
+   * @param {string} [subMessage=''] - An optional sub-message.
+   * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
+   */
+  function showCustomConfirm(message, subMessage = '') {
+    return new Promise(resolve => {
+      confirmMessage.textContent = message;
+      confirmSubmessage.textContent = subMessage;
+      customConfirmModal.style.display = 'flex';
+
+      const onConfirm = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(false);
+      };
+
+      confirmYesBtn.addEventListener('click', onConfirm);
+      confirmNoBtn.addEventListener('click', onCancel);
+    });
+  }
 
   /**
-   * Creates a new temporary page document in Firestore.
-   * @param {string} title - The title of the page.
-   * @param {string} content - The markdown content of the page.
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
    */
-  async function createTempPage(title, content) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to create a temporary page.", true);
+  async function getUserProfileFromFirestore(uid) {
+    // Wait for Firebase to be ready before attempting Firestore operations
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("ERROR: Error fetching user profile from Firestore:", error);
+      showMessageBox(`Error fetching user profile: ${error.message}`, true);
+    }
+    return null;
+  }
+
+  /**
+   * Updates user profile data in Firestore.
+   * @param {string} uid - The user's UID.
+   * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
+   */
+  async function updateUserProfileInFirestore(uid, profileData) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot save profile.", true);
+      return false;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      await setDoc(userDocRef, profileData, { merge: true });
+      showMessageBox("User profile updated successfully!", false);
+      return true;
+    } catch (error) {
+      console.error("ERROR: Error updating user profile in Firestore:", error);
+      showMessageBox(`Error saving profile: ${error.message}`, true);
+      return false;
+    }
+  }
+
+  /**
+   * Deletes a user's profile from Firestore (does not delete Auth account).
+   * @param {string} uid - The user's UID.
+   */
+  async function deleteUserProfileFromFirestore(uid) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete profile.", true);
       return;
     }
+    const confirmation = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
+      return;
+    }
+
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/temporary_pages`), {
+      await deleteDoc(userDocRef);
+      showMessageBox(`User profile ${uid} deleted successfully!`, false);
+      renderUserList();
+    } catch (error) {
+      console.error("ERROR: Error deleting user profile:", error);
+      showMessageBox(`Error deleting user profile: ${error.message}`, true);
+    }
+  }
+
+  /**
+   * Fetches all user profiles from Firestore.
+   * @returns {Promise<Array>} - Array of user profile objects with their UIDs.
+   */
+  async function fetchAllUserProfiles() {
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not initialized for fetchAllUserProfiles.");
+      return [];
+    }
+    const userProfilesCol = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    try {
+      const querySnapshot = await getDocs(userProfilesCol);
+      const users = [];
+      querySnapshot.forEach((doc) => {
+        users.push({ id: doc.id, ...doc.data() });
+      });
+      return users;
+    } catch (error) {
+      console.error("ERROR: Error fetching all user profiles:", error);
+      showMessageBox(`Error loading users: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  /**
+   * Renders the list of users in the table.
+   */
+  async function renderUserList() {
+    userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
+    const users = await fetchAllUserProfiles();
+    userListTbody.innerHTML = '';
+    if (users.length === 0) {
+      userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
+      return;
+    }
+
+    users.forEach(user => {
+      const row = userListTbody.insertRow();
+      // Apply theme-aware classes to the table rows/cells for consistency
+      row.classList.add('text-text-primary'); // Apply primary text color
+      row.innerHTML = `
+        <td class="px-4 py-2 break-all border-b border-table-td-border">${user.id}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${user.displayName || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">
+          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME}">Edit</button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
+        </td>
+      `;
+    });
+
+    document.querySelectorAll('.edit-user-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Edit User button clicked.");
+        const uid = event.target.dataset.uid;
+        const displayName = event.target.dataset.displayname;
+        const theme = event.target.dataset.theme;
+        console.log(`DEBUG: Edit User - UID: ${uid}, Display Name: ${displayName}, Theme: ${theme}`);
+        openEditUserModal(uid, displayName, theme);
+      });
+    });
+
+    document.querySelectorAll('.delete-user-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Delete User button clicked.");
+        const uid = event.target.dataset.uid;
+        deleteUserProfileFromFirestore(uid);
+      });
+    });
+  }
+
+  /**
+   * Opens the modal for editing a user's profile.
+   * @param {string} uid - The UID of the user to edit.
+   * @param {string} displayName - The current display name.
+   * @param {string} theme - The current theme preference.
+   */
+  function openEditUserModal(uid, displayName, theme) {
+    currentEditingUserUid = uid;
+    editUserDisplayNameInput.value = displayName;
+    // Populate the theme dropdown in the modal with all available themes
+    populateEditUserThemeSelect(theme);
+    editUserModal.style.display = 'flex';
+    console.log("DEBUG: User Edit Modal opened.");
+  }
+
+  /**
+   * Populates the theme selection dropdown in the edit user modal.
+   * @param {string} selectedThemeId - The currently selected theme ID for the user.
+   */
+  async function populateEditUserThemeSelect(selectedThemeId) {
+    editUserThemeSelect.innerHTML = ''; // Clear existing options
+    const availableThemes = await getAvailableThemes(); // From themes.js
+    availableThemes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.id;
+      option.textContent = theme.name;
+      editUserThemeSelect.appendChild(option);
+    });
+    editUserThemeSelect.value = selectedThemeId; // Set the current theme
+    console.log(`DEBUG: Edit User Theme Select populated with selected theme: ${selectedThemeId}`);
+  }
+
+
+  if (saveUserChangesBtn) {
+    saveUserChangesBtn.addEventListener('click', async () => {
+      console.log("DEBUG: Save User Changes button clicked.");
+      if (!currentEditingUserUid) {
+        console.error("ERROR: currentEditingUserUid is null. Cannot save changes.");
+        return;
+      }
+      const newDisplayName = editUserDisplayNameInput.value.trim();
+      const newTheme = editUserThemeSelect.value;
+      console.log(`DEBUG: Saving User Changes for UID: ${currentEditingUserUid}, Display Name: ${newDisplayName}, Theme: ${newTheme}`);
+      const success = await updateUserProfileInFirestore(currentEditingUserUid, {
+        displayName: newDisplayName,
+        themePreference: newTheme
+      });
+      if (success) {
+        editUserModal.style.display = 'none';
+        renderUserList();
+        // If the admin is editing their own profile, apply the theme immediately
+        if (auth.currentUser && auth.currentUser.uid === currentEditingUserUid) {
+          const allThemes = await getAvailableThemes();
+          const selectedTheme = allThemes.find(t => t.id === newTheme);
+          applyTheme(selectedTheme.id, selectedTheme);
+          console.log("DEBUG: Admin's own theme updated and applied.");
+        }
+      }
+    });
+  }
+
+  document.querySelectorAll('.close-button').forEach(button => {
+    button.addEventListener('click', () => {
+      console.log("DEBUG: Close button clicked on a modal.");
+      editUserModal.style.display = 'none';
+      editTempPageModal.style.display = 'none';
+      editTodoModal.style.display = 'none';
+    });
+  });
+
+  window.addEventListener('click', (event) => {
+    // Only close if click is outside modal content
+    if (event.target === editUserModal) {
+      editUserModal.style.display = 'none';
+      console.log("DEBUG: User Edit Modal closed by clicking outside.");
+    }
+    if (event.target === editTempPageModal) {
+      editTempPageModal.style.display = 'none';
+      console.log("DEBUG: Temp Page Edit Modal closed by clicking outside.");
+    }
+    if (event.target === editTodoModal) {
+      editTodoModal.style.display = 'none';
+      console.log("DEBUG: Todo Edit Modal closed by clicking outside.");
+    }
+    if (event.target === customConfirmModal) {
+      customConfirmModal.style.display = 'none';
+      console.log("DEBUG: Custom Confirm Modal closed by clicking outside.");
+    }
+  });
+
+
+  // Temporary Pages Functions
+  async function createTempPage(title, content) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot create page.", true);
+      return;
+    }
+    const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+    try {
+      const docRef = await addDoc(tempPagesCol, {
         title: title,
         content: content,
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser.uid,
-        lastModified: serverTimestamp()
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authorUid: auth.currentUser ? auth.currentUser.uid : 'anonymous'
       });
       showMessageBox("Temporary page created successfully!", false);
-      easyMDECreate.value(""); // Clear the editor
-      tempPageTitleInput.value = ""; // Clear the title input
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      showMessageBox("Error creating page: " + e.message, true);
+      tempPageTitleInput.value = '';
+      easyMDECreate.value('');
+      renderTempPages();
+      console.log("DEBUG: Temporary page created:", docRef.id);
+    } catch (error) {
+      console.error("ERROR: Error creating temporary page:", error);
+      showMessageBox(`Error creating page: ${error.message}`, true);
     }
   }
 
-  /**
-   * Deletes a temporary page from Firestore.
-   * @param {string} pageId - The ID of the page to delete.
-   */
-  async function deleteTempPage(pageId) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to delete pages.", true);
+  async function fetchAllTempPages() {
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not initialized for fetchAllTempPages.");
+      return [];
+    }
+    const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+    try {
+      const querySnapshot = await getDocs(tempPagesCol);
+      const pages = [];
+      querySnapshot.forEach((doc) => {
+        pages.push({ id: doc.id, ...doc.data() });
+      });
+      console.log("DEBUG: Fetched temporary pages:", pages.length);
+      return pages;
+    } catch (error) {
+      console.error("ERROR: Error fetching temporary pages:", error);
+      showMessageBox(`Error loading temporary pages: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  async function renderTempPages() {
+    tempPageList.innerHTML = '<li>Loading temporary pages...</li>';
+    const pages = await fetchAllTempPages();
+    tempPageList.innerHTML = '';
+    if (pages.length === 0) {
+      tempPageList.innerHTML = '<li>No temporary pages created yet.</li>';
       return;
     }
+
+    pages.forEach(page => {
+      const li = document.createElement('li');
+      // Apply theme-aware classes to list items for consistency
+      li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
+      li.style.backgroundColor = 'var(--color-bg-card)'; /* Apply card background color */
+      li.style.color = 'var(--color-text-primary)'; /* Apply primary text color */
+
+      li.innerHTML = `
+        <span class="font-semibold break-all md:w-3/5">${page.title}</span>
+        <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
+          <a href="#" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page" data-id="${page.id}">View</a>
+          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}">Edit</button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-temp-page-btn" data-id="${page.id}">Delete</button>
+        </div>
+      `;
+      tempPageList.appendChild(li);
+    });
+
+    document.querySelectorAll('.view-temp-page').forEach(link => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const pageId = event.target.dataset.id;
+        window.open(`temp-page-viewer.html?id=${pageId}`, '_blank');
+      });
+    });
+    document.querySelectorAll('.edit-temp-page-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Edit Temporary Page button clicked.");
+        const id = event.target.dataset.id;
+        const title = decodeURIComponent(event.target.dataset.title);
+        const content = decodeURIComponent(event.target.dataset.content);
+        console.log(`DEBUG: Edit Temp Page - ID: ${id}, Title: ${title}`);
+        openEditTempPageModal(id, title, content);
+      });
+    });
+    document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Delete Temporary Page button clicked.");
+        const id = event.target.dataset.id;
+        deleteTempPage(id);
+      });
+    });
+  }
+
+  function openEditTempPageModal(id, title, content) {
+    currentEditingTempPageId = id;
+    editTempPageTitleInput.value = title;
+
+    if (!easyMDEEdit) {
+      easyMDEEdit = new EasyMDE({
+        element: document.getElementById('edit-temp-page-content'),
+        spellChecker: false,
+        forceSync: true,
+        minHeight: "200px",
+        toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+      });
+      console.log("DEBUG: easyMDEEdit initialized.");
+    }
+    easyMDEEdit.value(content);
+    editTempPageModal.style.display = 'flex';
+    console.log("DEBUG: Temporary Page Edit Modal opened.");
+  }
+
+  if (saveTempPageChangesBtn) {
+    saveTempPageChangesBtn.addEventListener('click', async () => {
+      console.log("DEBUG: Save Temp Page Changes button clicked.");
+      if (!currentEditingTempPageId) {
+        console.error("ERROR: currentEditingTempPageId is null. Cannot save changes.");
+        return;
+      }
+      const newTitle = editTempPageTitleInput.value.trim();
+      const newContent = easyMDEEdit.value().trim();
+      if (!newTitle || !newContent) {
+        showMessageBox("Title and Content cannot be empty.", true);
+        return;
+      }
+      console.log(`DEBUG: Saving Temp Page Changes for ID: ${currentEditingTempPageId}, New Title: ${newTitle}`);
+      const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, currentEditingTempPageId);
+      try {
+        await updateDoc(tempPageDocRef, {
+          title: newTitle,
+          content: newContent,
+          updatedAt: new Date()
+        });
+        showMessageBox("Temporary page updated successfully!", false);
+        editTempPageModal.style.display = 'none';
+        renderTempPages();
+        console.log("DEBUG: Temporary page updated successfully in Firestore.");
+      } catch (error) {
+        console.error("ERROR: Error updating temporary page:", error);
+        showMessageBox(`Error updating page: ${error.message}`, true);
+      }
+    });
+  }
+
+  async function deleteTempPage(id) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete page.", true);
+      return;
+    }
+    const confirmation = await showCustomConfirm("Are you sure you want to delete this temporary page?", "This action cannot be undone.");
+
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
+      return;
+    }
+
+    const tempPageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, id);
     try {
-      await deleteDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/temporary_pages`, pageId));
+      await deleteDoc(tempPageDocRef);
       showMessageBox("Temporary page deleted successfully!", false);
-    } catch (e) {
-      console.error("Error deleting document: ", e);
-      showMessageBox("Error deleting page: " + e.message, true);
+      renderTempPages();
+      console.log("DEBUG: Temporary page deleted:", id);
+    } catch (error) {
+      console.error("ERROR: Error deleting temporary page:", error);
+      showMessageBox(`Error deleting page: ${error.message}`, true);
     }
   }
 
   /**
-   * Renders the list of temporary pages and sets up real-time listener.
+   * Updates the UI based on the user's authentication and admin status.
+   * This function now ensures Firebase is ready before proceeding with Firestore checks.
+   * @param {Object|null} user - The Firebase User object or null.
    */
-  function renderTempPages() {
-    if (!db || !auth.currentUser) {
-      tempPageListDiv.innerHTML = '<p class="text-text-secondary">Please log in to view temporary pages.</p>';
-      return;
-    }
+  async function updateAdminUI(user) {
+    loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
+    await firebaseReadyPromise; // Ensure Firebase is initialized and auth state is settled
 
-    const q = query(collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/temporary_pages`), orderBy("createdAt", "desc"));
+    if (user) {
+      console.log("DEBUG: Authenticated User UID:", user.uid);
+      console.log("DEBUG: Authenticated User Email:", user.email);
 
-    onSnapshot(q, (snapshot) => {
-      if (tempPageListDiv) {
-        tempPageListDiv.innerHTML = ''; // Clear current list
-        if (snapshot.empty) {
-          tempPageListDiv.innerHTML = '<p class="text-text-secondary">No temporary pages created yet.</p>';
-          return;
-        }
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+      const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+      const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(themeToApply.id, themeToApply); // Apply the theme using the imported function
 
-        snapshot.forEach((doc) => {
-          const page = doc.data();
-          const pageId = doc.id;
-          const pageElement = document.createElement('div');
-          pageElement.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md shadow-sm mb-2 text-table-text-primary';
-          pageElement.innerHTML = `
-            <span>${page.title}</span>
-            <div>
-              <a href="temp_page.html?id=${pageId}" target="_blank" class="text-link hover:underline mr-4">View</a>
-              <button data-id="${pageId}" class="delete-temp-page-btn btn-red text-white py-1 px-3 rounded-md text-sm">Delete</button>
-            </div>
-          `;
-          tempPageListDiv.appendChild(pageElement);
-        });
-
-        // Attach event listeners to delete buttons
-        tempPageListDiv.querySelectorAll('.delete-temp-page-btn').forEach(button => {
-          button.addEventListener('click', (e) => {
-            currentConfirmAction = 'deleteTempPage';
-            currentConfirmId = e.target.dataset.id;
-            confirmMessage.textContent = 'Are you sure you want to delete this temporary page?';
-            confirmModal.classList.remove('hidden');
-          });
-        });
-      }
-    }, (error) => {
-      console.error("Error fetching temporary pages:", error);
-      tempPageListDiv.innerHTML = `<p class="text-red-500">Error loading pages: ${error.message}</p>`;
-    });
-  }
-
-  // --- To-Do List Functions ---
-
-  /**
-   * Adds a new todo item to Firestore.
-   */
-  async function addTodoItem(task, worker, priority, eta, notes) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to add a to-do item.", true);
-      return;
-    }
-    try {
-      await addDoc(collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/todo_items`), {
-        task: task,
-        worker: worker,
-        priority: priority,
-        eta: eta,
-        notes: notes,
-        completed: false,
-        createdAt: serverTimestamp(),
-        lastModified: serverTimestamp()
-      });
-      showMessageBox("To-do item added successfully!", false);
-      addTodoForm.reset(); // Clear form
-    } catch (e) {
-      console.error("Error adding todo item: ", e);
-      showMessageBox("Error adding to-do item: " + e.message, true);
-    }
-  }
-
-  /**
-   * Updates an existing todo item in Firestore.
-   * @param {string} todoId - The ID of the todo item to update.
-   * @param {string} task - The task description.
-   * @param {string} worker - Assigned worker.
-   * @param {string} priority - Task priority.
-   * @param {string} eta - Estimated time of arrival.
-   * @param {string} notes - Additional notes.
-   */
-  async function updateTodoItem(todoId, task, worker, priority, eta, notes) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to update to-do items.", true);
-      return;
-    }
-    try {
-      const todoRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/todo_items`, todoId);
-      await updateDoc(todoRef, {
-        task: task,
-        worker: worker,
-        priority: priority,
-        eta: eta,
-        notes: notes,
-        lastModified: serverTimestamp()
-      });
-      showMessageBox("To-do item updated successfully!", false);
-      editTodoModal.classList.add('hidden'); // Hide modal after saving
-      currentEditingTodoId = null; // Clear editing state
-    } catch (e) {
-      console.error("Error updating todo item: ", e);
-      showMessageBox("Error updating to-do item: " + e.message, true);
-    }
-  }
-
-  /**
-   * Deletes a todo item from Firestore.
-   * @param {string} todoId - The ID of the todo item to delete.
-   */
-  async function deleteTodoItem(todoId) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to delete to-do items.", true);
-      return;
-    }
-    try {
-      await deleteDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/todo_items`, todoId));
-      showMessageBox("To-do item deleted successfully!", false);
-    } catch (e) {
-      console.error("Error deleting todo item: ", e);
-      showMessageBox("Error deleting to-do item: " + e.message, true);
-    }
-  }
-
-  /**
-   * Toggles the completion status of a todo item.
-   * @param {string} todoId - The ID of the todo item.
-   * @param {boolean} currentStatus - The current completion status.
-   */
-  async function toggleTodoCompletion(todoId, currentStatus) {
-    if (!db || !auth.currentUser) {
-      showMessageBox("Please log in to update to-do items.", true);
-      return;
-    }
-    try {
-      const todoRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/todo_items`, todoId);
-      await updateDoc(todoRef, {
-        completed: !currentStatus,
-        lastModified: serverTimestamp()
-      });
-      showMessageBox("To-do item status updated!", false);
-    } catch (e) {
-      console.error("Error toggling todo completion: ", e);
-      showMessageBox("Error updating status: " + e.message, true);
-    }
-  }
-
-  /**
-   * Renders the list of todo items and sets up real-time listener.
-   */
-  function renderTodoItems() {
-    if (!db || !auth.currentUser) {
-      todoListDiv.innerHTML = '<p class="text-text-secondary">Please log in to view to-do items.</p>';
-      return;
-    }
-
-    const q = query(collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/todo_items`), orderBy("createdAt", "desc"));
-
-    onSnapshot(q, (snapshot) => {
-      if (todoListDiv) {
-        todoListDiv.innerHTML = ''; // Clear current list
-        if (snapshot.empty) {
-          todoListDiv.innerHTML = '<p class="text-text-secondary">No to-do items yet. Add one above!</p>';
-          return;
-        }
-
-        snapshot.forEach((doc) => {
-          const todo = { id: doc.id, ...doc.data() };
-          const todoElement = document.createElement('div');
-          todoElement.className = `bg-gray-700 p-4 rounded-lg shadow-md flex flex-col md:flex-row items-start md:items-center justify-between mb-4 ${todo.completed ? 'opacity-60 line-through' : ''} text-table-text-primary`;
-          todoElement.innerHTML = `
-            <div class="flex-1 mb-2 md:mb-0">
-              <h4 class="text-lg font-semibold">${todo.task}</h4>
-              <p class="text-sm text-text-secondary">Worker: ${todo.worker || 'N/A'}</p>
-              <p class="text-sm text-text-secondary">Priority: ${todo.priority || 'N/A'}</p>
-              <p class="text-sm text-text-secondary">ETA: ${todo.eta || 'N/A'}</p>
-              <p class="text-sm text-text-secondary">Notes: ${todo.notes || 'None'}</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <input type="checkbox" data-id="${todo.id}" class="todo-checkbox w-5 h-5" ${todo.completed ? 'checked' : ''}>
-              <button data-id="${todo.id}"
-                      data-task="${todo.task}"
-                      data-worker="${todo.worker || ''}"
-                      data-priority="${todo.priority || 'Low'}"
-                      data-eta="${todo.eta || ''}"
-                      data-notes="${todo.notes || ''}"
-                      class="edit-todo-btn btn-blue text-white py-1 px-3 rounded-md text-sm">Edit</button>
-              <button data-id="${todo.id}" class="delete-todo-btn btn-red text-white py-1 px-3 rounded-md text-sm">Delete</button>
-            </div>
-          `;
-          todoListDiv.appendChild(todoElement);
-        });
-
-        // Attach event listeners for checkboxes
-        todoListDiv.querySelectorAll('.todo-checkbox').forEach(checkbox => {
-          checkbox.addEventListener('change', (e) => {
-            const todoId = e.target.dataset.id;
-            const isCompleted = e.target.checked;
-            toggleTodoCompletion(todoId, !isCompleted); // Pass current status, toggle it for the update
-          });
-        });
-
-        // Attach event listeners for edit buttons
-        todoListDiv.querySelectorAll('.edit-todo-btn').forEach(button => {
-          button.addEventListener('click', (e) => {
-            currentEditingTodoId = e.target.dataset.id;
-            editTodoTaskInput.value = e.target.dataset.task;
-            editTodoWorkerInput.value = e.target.dataset.worker;
-            editTodoPrioritySelect.value = e.target.dataset.priority;
-            editTodoEtaInput.value = e.target.dataset.eta;
-            editTodoNotesInput.value = e.target.dataset.notes;
-            editTodoModal.classList.remove('hidden');
-          });
-        });
-
-        // Attach event listeners for delete buttons
-        todoListDiv.querySelectorAll('.delete-todo-btn').forEach(button => {
-          button.addEventListener('click', (e) => {
-            currentConfirmAction = 'deleteTodo';
-            currentConfirmId = e.target.dataset.id;
-            confirmMessage.textContent = 'Are you sure you want to delete this to-do item?';
-            confirmModal.classList.remove('hidden');
-          });
-        });
-      }
-    }, (error) => {
-      console.error("Error fetching todo items:", error);
-      todoListDiv.innerHTML = `<p class="text-red-500">Error loading to-do items: ${error.message}</p>`;
-    });
-  }
-
-  // --- Modal Logic ---
-
-  // Close modals when clicking the 'x'
-  if (editTodoCloseButton) {
-    editTodoCloseButton.addEventListener('click', () => {
-      editTodoModal.classList.add('hidden');
-      currentEditingTodoId = null; // Clear editing state
-    });
-  }
-
-  // Close modals when clicking outside content
-  window.addEventListener('click', (event) => {
-    if (event.target === editTodoModal) {
-      editTodoModal.classList.add('hidden');
-      currentEditingTodoId = null; // Clear editing state
-    }
-    if (event.target === confirmModal) {
-      confirmModal.classList.add('hidden');
-      currentConfirmAction = null;
-      currentConfirmId = null;
-    }
-  });
-
-  // Confirmation Modal buttons
-  if (confirmYesBtn) {
-    confirmYesBtn.addEventListener('click', async () => {
-      if (currentConfirmAction === 'deleteTempPage' && currentConfirmId) {
-        await deleteTempPage(currentConfirmId);
-      } else if (currentConfirmAction === 'deleteTodo' && currentConfirmId) {
-        await deleteTodoItem(currentConfirmId);
-      }
-      confirmModal.classList.add('hidden');
-      currentConfirmAction = null;
-      currentConfirmId = null;
-    });
-  }
-
-  if (confirmNoBtn) {
-    confirmNoBtn.addEventListener('click', () => {
-      confirmModal.classList.add('hidden');
-      currentConfirmAction = null;
-      currentConfirmId = null;
-    });
-  }
-
-  // --- Initialization ---
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    // Set current year for footer
-    document.getElementById('current-year-admin').textContent = new Date().getFullYear();
-
-    // Initialize EasyMDE for temp page content
-    easyMDECreate = new EasyMDE({
-      element: tempPageContentTextarea,
-      spellChecker: false,
-      hideIcons: ["guide", "fullscreen", "side-by-side"],
-      showIcons: ["heading", "bold", "italic", "strikethrough", "code", "quote", "unordered-list", "ordered-list", "link", "image", "table", "horizontal-rule"],
-      initialValue: "### Your temporary page content goes here...\n\n- Use **Markdown** for formatting.\n- This page is visible only to you."
-    });
-
-    // Event Listeners for Forms
-    if (createTempPageForm) {
-      createTempPageForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const title = tempPageTitleInput.value.trim();
-        const content = easyMDECreate.value().trim(); // Get content from EasyMDE
-        if (!title || !content) {
-          showMessageBox("Please enter both title and content for the temporary page.", true);
-          return;
-        }
-        await createTempPage(title, content);
-      });
-    }
-
-    if (addTodoForm) {
-      addTodoForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const task = todoTaskInput.value.trim();
-        const worker = todoWorkerInput.value.trim();
-        const priority = todoPrioritySelect.value;
-        const eta = todoEtaInput.value.trim();
-        const notes = todoNotesInput.value.trim();
-
-        if (!task) {
-          showMessageBox("Task description is required.", true);
-          return;
-        }
-        await addTodoItem(task, worker, priority, eta, notes);
-      });
-    }
-
-    if (saveTodoChangesBtn) {
-      saveTodoChangesBtn.addEventListener('click', async () => {
-        if (!currentEditingTodoId) {
-          showMessageBox("No to-do item selected for editing.", true);
-          return;
-        }
-        const task = editTodoTaskInput.value.trim();
-        const worker = editTodoWorkerInput.value.trim();
-        const priority = editTodoPrioritySelect.value;
-        const eta = editTodoEtaInput.value.trim();
-        const notes = editTodoNotesInput.value.trim();
-
-        if (!task) {
-          showMessageBox("Task description is required.", true);
-          return;
-        }
-        await updateTodoItem(currentEditingTodoId, task, worker, priority, eta, notes);
-      });
-    }
-
-
-    // Handle Firebase authentication and data loading
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        console.log("User logged in on Admin & Dev page:", user.uid);
-        // Ensure anonymous sign-in for Canvas environment if no initial token
-        if (typeof __initial_auth_token !== 'undefined' && user.isAnonymous) {
-          try {
-            await signInWithCustomToken(auth, __initial_auth_token);
-            console.log("Signed in with custom token from Canvas.");
-          } catch (error) {
-            console.error("Custom token sign-in failed on Admin & Dev:", error);
-            // Fallback to anonymous if custom token fails (though already anonymous)
-          }
-        }
-        loadingSpinner.classList.add('hidden');
-        renderTempPages(); // Start listening to temp pages
-        renderTodoItems(); // Start listening to todo items
-        // Apply theme for authenticated user
-        const userProfile = await window.getUserProfileFromFirestore(user.uid); // Assuming getUserProfileFromFirestore is globally available from settings.html/themes.js
-        const userThemePreference = userProfile?.themePreference;
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        applyTheme(themeToApply.id, themeToApply);
-
-      } else {
-        console.log("No user on Admin & Dev page. Attempting anonymous sign-in...");
-        // If no user is logged in, attempt anonymous sign-in in Canvas environment
-        if (typeof __initial_auth_token !== 'undefined') {
-          try {
-            await signInAnonymously(auth);
-            console.log("Signed in anonymously on Admin & Dev page.");
-            loadingSpinner.classList.add('hidden');
-            renderTempPages(); // Render for anonymous user (will be empty unless public data)
-            renderTodoItems(); // Render for anonymous user (will be empty unless public data)
-            applyTheme(DEFAULT_THEME_NAME); // Apply default theme for anonymous user
-          } catch (error) {
-            console.error("Anonymous sign-in failed on Admin & Dev page:", error);
-            loadingSpinner.classList.add('hidden');
-            showMessageBox("Could not sign in automatically. Please log in manually for full functionality.", true);
-            applyTheme(DEFAULT_THEME_NAME); // Fallback to default theme
-          }
+      const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, user.uid);
+      try {
+        const adminDocSnap = await getDoc(adminDocRef);
+        if (adminDocSnap.exists()) {
+          console.log("DEBUG: User is confirmed as ADMIN in Firestore.");
+          loginRequiredMessage.style.display = 'none';
+          adminContent.style.display = 'block';
+          adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
+          renderUserList();
+          renderTempPages();
+          renderTodoList();
         } else {
-          // Not in Canvas environment or __initial_auth_token not defined, simply apply default theme
-          loadingSpinner.classList.add('hidden');
-          showMessageBox("Please log in for full functionality.", true);
-          applyTheme(DEFAULT_THEME_NAME);
+          console.log("DEBUG: User is NOT in whitelisted_admins collection.");
+          loginRequiredMessage.style.display = 'block';
+          adminContent.style.display = 'none';
+          showMessageBox("You are logged in, but do not have admin privileges.", true);
         }
+      } catch (error) {
+        console.error("ERROR: Error checking admin whitelist:", error);
+        loginRequiredMessage.style.display = 'block';
+        adminContent.style.display = 'none';
+        showMessageBox("Error checking admin status. Please try again.", true);
       }
+    } else {
+      console.log("DEBUG: No user is currently authenticated.");
+      loginRequiredMessage.style.display = 'block';
+      adminContent.style.display = 'none';
+      const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+      const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme using the imported function
+    }
+  }
+
+  // Todo List Functions
+  async function addTodoItem(task, worker, priority, eta, notes) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot add task.", true);
+      return;
+    }
+    const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
+    try {
+      const docRef = await addDoc(todosCol, {
+        task: task,
+        worker: worker,
+        priority: priority,
+        eta: eta,
+        notes: notes,
+        createdAt: new Date()
+      });
+      showMessageBox("Task added successfully!", false);
+      todoTaskInput.value = '';
+      todoWorkerInput.value = '';
+      todoPrioritySelect.value = 'Low';
+      todoEtaInput.value = '';
+      todoNotesInput.value = '';
+      renderTodoList();
+      console.log("DEBUG: Todo item added:", docRef.id);
+    } catch (error) {
+      console.error("Error adding todo item:", error);
+      showMessageBox(`Error adding task: ${error.message}`, true);
+    }
+  }
+
+  async function fetchAllTodoItems() {
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not initialized for fetchAllTodoItems.");
+      return [];
+    }
+    const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
+    // Ensure `orderBy` is used safely, or remove it if not strictly necessary due to Firestore indexing limitations.
+    const q = query(todosCol, orderBy("createdAt", "asc"));
+    try {
+      const querySnapshot = await getDocs(q);
+      const todos = [];
+      querySnapshot.forEach((doc) => {
+        todos.push({ id: doc.id, ...doc.data() });
+      });
+      console.log("DEBUG: Fetched todo items:", todos.length);
+      return todos;
+    } catch (error) {
+      console.error("ERROR: Error fetching todo items:", error);
+      showMessageBox(`Error loading tasks: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  async function renderTodoList() {
+    roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>';
+    const todos = await fetchAllTodoItems();
+    roadmapTodoListTbody.innerHTML = '';
+    if (todos.length === 0) {
+      roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No roadmap tasks found. Add a new task above.</td></tr>';
+      return;
+    }
+
+    todos.forEach(todo => {
+      const row = roadmapTodoListTbody.insertRow();
+      // Apply theme-aware classes to the table rows/cells for consistency
+      row.classList.add('text-text-primary'); // Apply primary text color
+      if (roadmapTodoListTbody.rows.length % 2 === 0) { // Check if it's an even row
+        row.style.backgroundColor = 'var(--color-table-row-even-bg)';
+      }
+      row.innerHTML = `
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">${todo.eta || 'N/A'}</td>
+        <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
+        <td class="px-4 py-2 border-b border-table-td-border">
+          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
+                  data-id="${todo.id}" data-task="${encodeURIComponent(todo.task || '')}" data-worker="${encodeURIComponent(todo.worker || '')}"
+                  data-priority="${encodeURIComponent(todo.priority || '')}" data-eta="${encodeURIComponent(todo.eta || '')}" data-notes="${encodeURIComponent(todo.notes || '')}">Edit</button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-todo-btn" data-id="${todo.id}">Delete</button>
+        </td>
+      `;
     });
 
-    // Load navbar after Firebase init and auth state
-    // Pass the necessary Firebase instances and theme-related functions
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    document.querySelectorAll('.edit-todo-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Edit Todo button clicked.");
+        const { id, task, worker, priority, eta, notes } = event.target.dataset;
+        openEditTodoModal(id, decodeURIComponent(task), decodeURIComponent(worker), decodeURIComponent(priority), decodeURIComponent(eta), decodeURIComponent(notes));
+      });
+    });
+
+    document.querySelectorAll('.delete-todo-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        console.log("DEBUG: Delete Todo button clicked.");
+        const id = event.target.dataset.id;
+        deleteTodoItem(id);
+      });
+    });
+  }
+
+  function openEditTodoModal(id, task, worker, priority, eta, notes) {
+    currentEditingTodoId = id;
+    editTodoTaskInput.value = task;
+    editTodoWorkerInput.value = worker;
+    editTodoPrioritySelect.value = priority;
+    editTodoEtaInput.value = eta;
+    editTodoNotesInput.value = notes;
+    editTodoModal.style.display = 'flex';
+    console.log("DEBUG: Todo Edit Modal opened.");
+  }
+
+  async function updateTodoItem(id, task, worker, priority, eta, notes) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot save changes.", true);
+      return;
+    }
+    const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
+    try {
+      await updateDoc(todoDocRef, {
+        task: task,
+        worker: worker,
+        priority: priority,
+        eta: eta,
+        notes: notes,
+        updatedAt: new Date()
+      });
+      showMessageBox("Task updated successfully!", false);
+      editTodoModal.style.display = 'none';
+      renderTodoList();
+      console.log("DEBUG: Todo item updated successfully in Firestore.");
+    } catch (error) {
+      console.error("ERROR: Error updating todo item:", error);
+      showMessageBox(`Error updating task: ${error.message}`, true);
+    }
+  }
+
+  async function deleteTodoItem(id) {
+    await firebaseReadyPromise;
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete task.", true);
+      return;
+    }
+    const confirmation = await showCustomConfirm("Are you sure you want to delete this roadmap task?", "This action cannot be undone.");
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
+      return;
+    }
+
+    const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
+    try {
+      await deleteDoc(todoDocRef);
+      showMessageBox("Task deleted successfully!", false);
+      renderTodoList();
+      console.log("DEBUG: Todo item deleted:", id);
+    } catch (error) {
+      console.error("ERROR: Error deleting todo item:", error);
+      showMessageBox(`Error deleting task: ${error.message}`, true);
+    }
+  }
+
+  // Initialize Firebase and setup firebaseReadyPromise
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
+
+      // Critical: Ensure auth state is settled before resolving
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe(); // Unsubscribe after the first call
+        // Perform initial sign-in if in Canvas and no user is already authenticated
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (admin_dev page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (admin_dev page) during init:", error);
+              signInAnonymously(auth)
+                .then(() => console.log("DEBUG: Signed in anonymously (admin_dev page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError));
+            })
+            .finally(() => resolve()); // Resolve promise after token attempt
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on admin_dev page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on admin_dev page during init:", anonError))
+            .finally(() => resolve()); // Resolve after anonymous attempt
+        } else {
+          resolve(); // Resolve immediately if user is already authenticated or no token to use
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase (initial block):", e);
+      showMessageBox("Error initializing Firebase. Cannot perform authentication.", true);
+      // Resolve immediately on error to prevent infinite loading
+      resolve();
+    }
   });
+
+
+  // Load navbar and initialize EasyMDE on page load
+  window.onload = function() {
+    // Call the imported loadNavbar function with necessary parameters
+    loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+    document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
+
+    easyMDECreate = new EasyMDE({
+      element: document.getElementById('temp-page-content'),
+      spellChecker: false,
+      forceSync: true,
+      minHeight: "200px",
+      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+    });
+    console.log("DEBUG: easyMDECreate initialized.");
+
+
+    // After the page content is loaded, wait for firebaseReadyPromise, then update UI based on auth state
+    firebaseReadyPromise.then(() => {
+      onAuthStateChanged(auth, (user) => {
+        updateAdminUI(user);
+      });
+    });
+  };
+
+  // Event Listener for Logout Button
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      showMessageBox("", false);
+      try {
+        await signOut(auth);
+        console.log("DEBUG: User signed out.");
+        showMessageBox("You have been signed out.", false);
+      } catch (error) {
+        console.error("ERROR: Logout failed:", error);
+        showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
+      }
+    });
+  }
+
+  if (loadUsersBtn) {
+    loadUsersBtn.addEventListener('click', renderUserList);
+  }
+
+  if (createTempPageForm) {
+    createTempPageForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = tempPageTitleInput.value.trim();
+      const content = easyMDECreate.value().trim();
+      if (!title || !content) {
+        showMessageBox("Please enter both title and content for the temporary page.", true);
+        return;
+      }
+      await createTempPage(title, content);
+    });
+  }
+
+  if (addTodoForm) {
+    addTodoForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const task = todoTaskInput.value.trim();
+      const worker = todoWorkerInput.value.trim();
+      const priority = todoPrioritySelect.value;
+      const eta = todoEtaInput.value.trim();
+      const notes = todoNotesInput.value.trim();
+
+      if (!task) {
+        showMessageBox("Task description is required.", true);
+        return;
+      }
+      await addTodoItem(task, worker, priority, eta, notes);
+    });
+  }
+
+  if (saveTodoChangesBtn) {
+    saveTodoChangesBtn.addEventListener('click', async () => {
+      if (!currentEditingTodoId) return;
+      const task = editTodoTaskInput.value.trim();
+      const worker = editTodoWorkerInput.value.trim();
+      const priority = editTodoPrioritySelect.value;
+      const eta = editTodoEtaInput.value.trim();
+      const notes = editTodoNotesInput.value.trim();
+
+      if (!task) {
+        showMessageBox("Task description is required.", true);
+        return;
+      }
+      await updateTodoItem(currentEditingTodoId, task, worker, priority, eta, notes);
+    });
+  }
 </script>
 </body>
 </html>
