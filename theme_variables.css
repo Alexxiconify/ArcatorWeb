@@ -1,0 +1,45 @@
+/* theme_variables.css */
+/* These CSS Variables will be set on the <body> tag based on the active theme */
+/* Default fallback variables (for dark theme, or if no theme is applied) */
+body {
+  --color-body-bg: #1F2937;
+  --color-text-primary: #E5E7EB;
+  --color-text-secondary: #CBD5E0;
+  --color-heading-main: #F87171; /* Red */
+  --color-heading-card: #60A5FA; /* Blue */
+  --color-bg-navbar: #111827;
+  --color-bg-content-section: #1F2937;
+  --color-bg-card: #2D3748;
+  --color-bg-ip-box: #1A202C;
+  --color-border-ip-box: #4A5568;
+  --color-input-bg: #374151;
+  --color-input-text: #E5E7EB;
+  --color-input-border: #4B5563;
+  --color-placeholder: #9CA3AF;
+  --color-table-th-bg: #374151;
+  --color-table-th-text: #F87171;
+  --color-table-td-border: #4A5568;
+  --color-table-row-even-bg: #2D3748;
+  --color-link: #60A5FA;
+  --color-button-text: #FFFFFF;
+  --color-button-blue-bg: #3B82F6;
+  --color-button-blue-hover: #2563EB;
+  --color-button-red-bg: #EF4444;
+  --color-button-red-hover: #DC2626;
+  --color-button-green-bg: #22C55E;
+  --color-button-green-hover: #16A34A;
+  --color-button-yellow-bg: #F59E0B;
+  --color-button-yellow-hover: #D97706;
+  --color-button-purple-bg: #8B5CF6;
+  --color-button-purple-hover: #7C3AED;
+  --color-button-indigo-bg: #6366F1;
+  --color-button-indigo-hover: #4F46E5;
+  --color-button-teal-bg: #14B8A6;
+  --color-button-teal-hover: #0D9488;
+  --color-message-box-bg-success: #10B981; /* green-500 */
+  --color-message-box-bg-error: #EF4444; /* red-500 */
+  --color-modal-bg: #2D3748; /* Similar to card background */
+  --color-modal-text: #E5E7EB;
+  --color-modal-input-bg: #374151;
+  --color-modal-input-text: #E5E7EB;
+}
