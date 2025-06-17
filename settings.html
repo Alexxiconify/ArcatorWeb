@@ -426,19 +426,13 @@
     addDoc // Make sure addDoc is imported
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Firebase configuration object
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
+  // Global variables provided by the Canvas environment
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  const firebaseConfig = JSON.parse(firebaseConfigString);
+  const appId = canvasAppId; // Use the provided __app_id
 
   let app;
   let auth;
@@ -447,11 +441,16 @@
 
   // Initialize Firebase
   try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized successfully.");
+    // Only initialize if firebaseConfig is not empty
+    if (Object.keys(firebaseConfig).length > 0) {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      isFirebaseInitialized = true;
+      console.log("Firebase initialized successfully.");
+    } else {
+      console.warn("Firebase configuration is empty. Settings features requiring Firestore will be disabled.");
+    }
   } catch (e) {
     console.error("Error initializing Firebase:", e);
     showMessageBox("Error initializing Firebase. Cannot load settings.", true);
@@ -701,7 +700,8 @@
    */
   async function renderCustomThemeList() {
     customThemeListTbody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-secondary">Loading custom themes...</td></tr>';
-    const customThemes = (await window.getAvailableThemes()).filter(theme => theme.isCustom);
+    const allThemes = await window.getAvailableThemes();
+    const customThemes = allThemes.filter(theme => theme.isCustom);
     customThemeListTbody.innerHTML = '';
 
     if (customThemes.length === 0) {
@@ -742,6 +742,14 @@
         if (success) {
           await populateThemeSelect(); // Re-populate dropdown
           renderCustomThemeList(); // Re-render list
+          // After deletion, if the deleted theme was selected, revert to default
+          if (userThemeSelect.value === themeId) {
+            userThemeSelect.value = DEFAULT_THEME_NAME;
+            window.applyTheme(DEFAULT_THEME_NAME);
+            if (auth.currentUser) {
+              await updateUserProfileInFirestore(auth.currentUser.uid, { themePreference: DEFAULT_THEME_NAME });
+            }
+          }
         }
       });
     });
@@ -761,6 +769,7 @@
       currentEditingCustomThemeId = themeData.id;
       // Populate color inputs from themeData.properties
       colorInputs.forEach(input => {
+        // Convert id like 'theme-body-bg' to 'bodyBg'
         const propertyName = input.id.replace('theme-', '').replace(/-([a-z])/g, (g) => g[1].toUpperCase());
         if (themeData.properties.hasOwnProperty(propertyName)) {
           input.value = themeData.properties[propertyName];
@@ -815,8 +824,19 @@
         loginRequiredMessage.classList.add('hidden');
         settingsContent.classList.remove('hidden');
 
+        // Check if user is anonymous and if initialAuthToken is available to sign in.
+        // This makes sure anonymous users in Canvas environment are properly authenticated for Firestore access.
+        if (user.isAnonymous && initialAuthToken) {
+          try {
+            await signInWithCustomToken(auth, initialAuthToken);
+            console.log("Signed in with custom token (from settings.html).");
+          } catch (error) {
+            console.error("Custom token sign-in failed during auth state change (settings.html):", error);
+          }
+        }
+
         const userProfile = await getUserProfileFromFirestore(user.uid);
-        userEmailDisplay.textContent = user.email;
+        userEmailDisplay.textContent = user.email || "Anonymous User"; // Show "Anonymous User" if no email
         displayNameInput.value = userProfile?.displayName || user.displayName || '';
         profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
 
@@ -828,9 +848,17 @@
         }
 
         // Populate theme select and set current user's theme
-        await populateThemeSelect();
+        await populateThemeSelect(); // Ensure themes are loaded before setting value
         userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME_NAME;
-        window.applyTheme(userThemeSelect.value); // Apply theme from user profile
+
+        // Find the full theme object to pass to applyTheme
+        const allThemes = await window.getAvailableThemes();
+        const selectedThemeForApply = allThemes.find(theme => theme.id === userThemeSelect.value);
+        if (selectedThemeForApply) {
+          window.applyTheme(selectedThemeForApply.id, selectedThemeForApply); // Apply theme from user profile
+        } else {
+          window.applyTheme(DEFAULT_THEME_NAME); // Fallback if selected theme not found
+        }
 
         // Render custom theme list
         renderCustomThemeList();
@@ -852,19 +880,17 @@
         if (navbarUserSettingsLink) {
           navbarUserSettingsLink.style.display = 'none';
         }
-      }
-      // For Canvas: Sign in anonymously if no initial auth token
-      if (typeof __initial_auth_token !== 'undefined' && !user) {
-        signInAnonymously(auth).then(() => {
-          console.log("DEBUG: Signed in anonymously on settings.html (Canvas env).");
-        }).catch(error => {
-          console.error("ERROR: Anonymous sign-in failed on settings.html:", error);
-        });
-      } else if (!user && !__initial_auth_token) {
-        // If no custom token and no current user, sign in anonymously by default
-        signInAnonymously(auth)
-          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on settings.html."))
-          .catch((anonError) => console.error("ERROR: Error signing in anonymously on settings.html:", anonError));
+
+        // For Canvas: Try to sign in anonymously if no user is present and initialAuthToken exists.
+        // This will allow Firestore access for anonymous users in the Canvas environment.
+        if (initialAuthToken) {
+          signInAnonymously(auth).then(() => {
+            console.log("Signed in anonymously on settings.html (Canvas env).");
+            // Re-trigger auth state changed to update UI for anonymous user
+          }).catch(error => {
+            console.error("ERROR: Anonymous sign-in failed on settings.html:", error);
+          });
+        }
       }
     });
   }
@@ -1001,24 +1027,23 @@
       const success = await saveCustomTheme(currentEditingCustomThemeId, themeData);
       if (success) {
         customThemeModal.style.display = 'none';
-        await populateThemeSelect();
+        await populateThemeSelect(); // Re-populate dropdown
         renderCustomThemeList();
-        // Optionally set the new custom theme as the active theme for the user
+
+        // After saving, find the theme (newly created or updated) and apply it if user is logged in
         if (auth.currentUser) {
-          // For a new theme, Firestore generates an ID, so we need to refetch or assume a new ID strategy.
-          // A simple approach for new themes is to use the name as ID (after sanitizing), or refetch all.
-          // For simplicity, after saving, we'll refetch and then set the selected value.
-          // The `saveCustomTheme` function now handles adding a new doc, or updating an existing.
-          // For newly created themes, we don't have the ID immediately, so re-populating is the safest.
-          const allThemes = await window.getAvailableThemes();
-          const newlyAddedTheme = allThemes.find(t => t.name === themeName && t.isCustom);
-          if (newlyAddedTheme) {
-            await updateUserProfileInFirestore(auth.currentUser.uid, { themePreference: newlyAddedTheme.id });
-            userThemeSelect.value = newlyAddedTheme.id; // Update main settings dropdown
-            window.applyTheme(newlyAddedTheme.id, newlyAddedTheme); // Apply immediately
+          // Need to re-fetch custom themes for `window.getAvailableThemes` to be updated
+          // so we can find the newly added theme by its name.
+          await window.getAvailableThemes();
+          const savedTheme = (await window.getAvailableThemes()).find(t => t.name === themeName && t.isCustom);
+          if (savedTheme) {
+            await updateUserProfileInFirestore(auth.currentUser.uid, { themePreference: savedTheme.id });
+            userThemeSelect.value = savedTheme.id; // Update main settings dropdown
+            window.applyTheme(savedTheme.id, savedTheme); // Apply immediately
           } else {
-            // If we can't find it, fall back to default
-            window.applyTheme(DEFAULT_THEME_NAME);
+            // If we can't find it (shouldn't happen often after success), fall back to user's current or default
+            const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+            window.applyTheme(userProfile?.themePreference || DEFAULT_THEME_NAME);
           }
         }
       }
