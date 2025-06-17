@@ -1,0 +1,207 @@
+/* Base styles for the body, applying transitions for smooth theme changes. */
+body {
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--color-body-bg); /* Use CSS variable for body background */
+  color: var(--color-text-primary); /* Use CSS variable for default body text color */
+  background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  background-attachment: fixed;
+}
+
+/* Navbar specific styling using CSS variables */
+/* These styles will be applied via navbar.css now */
+
+/* Override Tailwind's default dark classes with CSS variables for consistent theming */
+.bg-gray-800 {
+  background-color: var(--color-bg-content-section) !important;
+}
+.bg-gray-700 {
+  background-color: var(--color-bg-card) !important;
+}
+.bg-gray-900 {
+  background-color: var(--color-bg-navbar) !important; /* Footer background */
+}
+.text-gray-300 {
+  color: var(--color-text-secondary) !important;
+}
+.text-gray-400 {
+  color: var(--color-text-secondary) !important; /* Adjust if a different grey is needed */
+}
+.text-gray-200 {
+  color: var(--color-text-primary) !important;
+}
+.text-blue-500 { /* For spinner */
+  color: var(--color-link) !important; /* Using link color for spinner */
+}
+
+/* Heading colors to ensure clarity with themes */
+.text-red-400 {
+  color: var(--color-heading-main) !important;
+}
+.text-blue-300 {
+  color: var(--color-heading-card) !important;
+}
+.text-red-300 { /* Specific for Darrion API/Grief Detection headings */
+  color: var(--color-heading-main) !important;
+}
+.text-red-200 { /* Specific for Darrion API subheadings */
+  color: var(--color-text-primary) !important; /* Or a darker version of heading-main */
+}
+
+/* Input field styling */
+input, select, textarea {
+  background-color: var(--color-input-bg) !important;
+  color: var(--color-input-text) !important;
+  border-color: var(--color-input-border) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-placeholder) !important;
+}
+
+/* Button styling for better visibility */
+.btn-primary,
+.bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
+  color: var(--color-button-text) !important;
+}
+.bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+.bg-red-600 { background-color: var(--color-button-red-bg) !important; }
+.hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+.bg-green-600 { background-color: var(--color-button-green-bg) !important; }
+.hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
+.bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
+.hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
+.bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
+.hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
+.bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
+.hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+.bg-gray-500 { background-color: var(--color-text-secondary) !important; } /* For confirm-no button */
+.hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; } /* For confirm-no button hover */
+
+
+/* Links */
+a {
+  color: var(--color-link);
+}
+a.text-blue-400 { /* Specific link color used in this page */
+  color: var(--color-link) !important;
+}
+a:hover {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+.hover\:text-white:hover {
+  color: var(--color-text-primary) !important; /* For footer links */
+}
+
+/* Table styling for better readability across themes */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-card); /* Table background */
+  color: var(--color-text-primary);
+  border-radius: 0.5rem;
+  overflow: hidden; /* Ensures rounded corners apply to content */
+}
+table th {
+  background-color: var(--color-table-th-bg);
+  color: var(--color-table-th-text);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-table-td-border);
+}
+table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-table-td-border);
+}
+table tbody tr:nth-child(even) {
+  background-color: var(--color-table-row-even-bg);
+}
+
+/* Modals */
+.modal, .custom-confirm-modal {
+  display: none; /* Crucial: Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1001; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0,0,0,0.7); /* Dark overlay */
+  /* display: flex; will be set by JS when needed */
+  justify-content: center;
+  align-items: center;
+  color: var(--color-modal-text); /* Apply modal text color */
+}
+.modal-content {
+  background-color: var(--color-modal-bg);
+  color: var(--color-modal-text);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+.modal-content h3 {
+  color: var(--color-heading-card); /* Modal heading */
+}
+.modal-content label {
+  color: var(--color-text-secondary); /* Modal label text */
+}
+.modal-content input, .modal-content select, .modal-content textarea {
+  background-color: var(--color-modal-input-bg) !important;
+  color: var(--color-modal-input-text) !important;
+  border-color: var(--color-input-border) !important; /* Use common input border */
+}
+
+/* Message box styling */
+.message-box {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: none; /* Hidden by default */
+  font-size: 1rem;
+  text-align: center;
+  background-color: var(--color-modal-bg); /* Use modal background for consistency */
+  color: var(--color-modal-text); /* Use modal text for consistency */
+}
+.message-box.success {
+  background-color: var(--color-message-box-bg-success);
+}
+.message-box.error {
+  background-color: var(--color-message-box-bg-error);
+}
+
+/* EasyMDE specific styling adjustments */
+.editor-toolbar {
+  background-color: var(--color-input-bg) !important; /* Darker toolbar */
+  border-bottom: 1px solid var(--color-input-border) !important;
+}
+.editor-toolbar button {
+  color: var(--color-input-text) !important; /* Lighter icons */
+}
+.editor-toolbar button.active, .editor-toolbar button:hover {
+  background-color: var(--color-input-border) !important; /* Hover/active state */
+}
+.CodeMirror, .CodeMirror-scroll {
+  background-color: var(--color-body-bg) !important; /* Dark editor background */
+  color: var(--color-text-primary) !important; /* Light text */
+}
+.CodeMirror-cursor {
+  border-left: 1px solid var(--color-text-primary) !important; /* Light cursor */
+}
+.CodeMirror-selected {
+  background-color: var(--color-table-th-bg) !important; /* Selection color - using a similar dark shade */
+}
+.CodeMirror-placeholder {
+  color: var(--color-placeholder) !important; /* Placeholder color */
+}
