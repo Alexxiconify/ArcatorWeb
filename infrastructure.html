@@ -138,7 +138,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // Import setupThemesFirebase from themes.js (applyTheme and getAvailableThemes are now handled directly by navbar.js)
+  // Import setupThemesFirebase from themes.js
   import { setupThemesFirebase } from './themes.js';
   // Import loadNavbar from navbar.js
   import { loadNavbar } from './navbar.js';
@@ -181,6 +181,7 @@
   // Get current year for footer
   window.onload = async function() {
     // Pass the necessary Firebase instances and theme-related functions
+    // loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
     await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     document.getElementById('current-year-infra').textContent = new Date().getFullYear();
   };
