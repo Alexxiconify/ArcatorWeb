@@ -346,6 +346,8 @@
       let userProfile = null;
       if (user) {
         userProfile = await getUserProfileFromFirestore(user.uid);
+        // Debugging: Log the entire userProfile object
+        console.log("DEBUG: User profile fetched in donations.html:", userProfile);
         userThemePreference = userProfile?.themePreference;
       }
       // Apply the theme: user's preference, or 'dark' default
