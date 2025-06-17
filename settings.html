@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Import themes.html for centralized CSS and theme functions -->
+  <script src="themes.html" type="module"></script>
   <style>
     /* Base styles */
     body {
@@ -15,86 +17,34 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Default Dark Theme */
-    body.theme-dark {
-      background-color: #1F2937; /* Dark background */
-      color: #E5E7EB; /* Light text */
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
-    }
-    body.theme-dark .bg-card {
-      background-color: #2D3748 !important; /* Darker card background for dark theme */
-      color: #E5E7EB !important; /* Light text for card */
-    }
-    body.theme-dark input,
-    body.theme-dark select {
-      background-color: #374151 !important; /* Darker input background */
-      color: #E5E7EB !important; /* Light text in input */
-      border-color: #4B5563 !important; /* Subtle border for inputs */
-    }
-    body.theme-dark input::placeholder {
-      color: #9CA3AF !important; /* Lighter placeholder text */
-    }
-    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-      color: #E5E7EB !important;
-    }
-
-    /* Light Theme */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light background */
-      color: #1F2937; /* Dark text */
-      background-image: none; /* No pattern for light theme */
-    }
-    body.theme-light .bg-card {
-      background-color: #FFFFFF !important; /* White card background for light theme */
-      color: #1F2937 !important; /* Dark text for card */
-    }
-    body.theme-light input,
-    body.theme-light select {
-      background-color: #FFFFFF !important; /* White input background */
-      color: #1F2937 !important; /* Dark text in input */
-      border-color: #D1D5DB !important; /* Light border for inputs */
-    }
-    body.theme-light input::placeholder {
-      color: #6B7280 !important; /* Darker placeholder text */
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
-
-    /* Arcator Blue Theme */
-    body.theme-arcator-blue {
-      background-color: #1a202c; /* Deep blue-grey */
-      color: #E2E8F0; /* Light off-white text */
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
-      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
-    body.theme-arcator-blue .bg-card {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      color: #E2E8F0 !important; /* Light text for card */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
     }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select {
-      background-color: #3b4d6b !important; /* Darker input background */
-      color: #E2E8F0 !important; /* Light text in input */
-      border-color: #5a6e8f !important; /* Blueish border */
-    }
-    body.theme-arcator-blue input::placeholder {
-      color: #94A3B8 !important; /* Subtle blue placeholder */
-    }
-    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-      background-color: #4299E1 !important; /* Arcator blue */
-      color: white !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .text-blue-500 {
-      color: #63B3ED !important;
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
 
     /* Settings card styling */
@@ -117,7 +67,7 @@
     .input-field input, .input-field select {
       width: 100%;
       padding: 0.75rem 1rem;
-      border: 1px solid #D1D5DB; /* border-gray-300 */
+      border: 1px solid var(--color-input-border); /* Use CSS variable */
       border-radius: 0.5rem; /* rounded-md */
       font-size: 1rem;
     }
@@ -138,8 +88,8 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #333;
-      color: white;
+      background-color: var(--color-modal-bg); /* Use modal background for consistency */
+      color: var(--color-modal-text); /* Use modal text for consistency */
       padding: 15px 30px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -149,38 +99,61 @@
       text-align: center;
     }
     .message-box.success {
-      background-color: #4CAF50; /* Green for success */
+      background-color: var(--color-message-box-bg-success);
     }
     .message-box.error {
-      background-color: #F44336; /* Red for error */
+      background-color: var(--color-message-box-bg-error);
     }
-    /* Style for the large profile picture in settings */
-    .profile-pic-large {
-      width: 128px; /* Standard avatar size */
-      height: 128px;
-      border-radius: 50%; /* Make it round */
-      object-fit: cover; /* Cover the area */
-      border: 4px solid #60A5FA; /* A strong blue border */
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+
+    /* Modal for custom themes */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1001; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+      display: flex; /* Use flex for centering */
+      justify-content: center;
+      align-items: center;
     }
-    /* Style for the small profile picture in the navbar */
-    .navbar-profile-pic {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #60A5FA; /* Blue border */
-      vertical-align: middle; /* Align with text */
+
+    .modal-content {
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+
+    .close-button {
+      color: var(--color-text-secondary);
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+      color: var(--color-text-primary);
+      text-decoration: none;
     }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen theme-dark">
+<body class="flex flex-col items-center justify-center min-h-screen antialiased">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <div class="settings-container w-full max-w-md mx-auto p-4 flex flex-col items-center mt-20">
   <!-- Settings Card -->
-  <div id="settings-section" class="settings-card bg-card text-gray-700 shadow-xl mb-6">
+  <div id="settings-section" class="settings-card bg-card text-primary shadow-xl mb-6">
     <h2 class="text-3xl font-bold text-center mb-6">User Settings</h2>
     <div id="loading-spinner" class="flex justify-center items-center h-24">
       <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
@@ -189,9 +162,9 @@
       <p class="text-center text-lg mb-4">Logged in as: <span id="user-email-display" class="font-semibold"></span></p>
       <div class="flex flex-col items-center mb-6">
         <img id="profile-picture-display" class="profile-pic-large mb-4" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Current Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/128x128/1F2937/E5E7EB?text=AV';">
-        <label for="profile-picture-url" class="block text-gray-300 text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
+        <label for="profile-picture-url" class="block text-secondary text-sm font-bold mb-2">Profile Picture URL (e.g., Discord CDN Link):</label>
         <input type="url" id="profile-picture-url" class="py-2 px-3" placeholder="https://cdn.discordapp.com/avatars/USER_ID/AVATAR_HASH.png">
-        <p id="url-preview-message" class="text-gray-400 text-sm mt-2" style="display: none;">Previewing new URL. Click Update Profile to save.</p>
+        <p id="url-preview-message" class="text-secondary text-sm mt-2" style="display: none;">Previewing new URL. Click Save Settings to apply.</p>
       </div>
 
       <div class="input-field">
@@ -201,23 +174,231 @@
       <div class="input-field">
         <label for="user-theme-select">Select Theme:</label>
         <select id="user-theme-select" class="py-2 px-3">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="arcator-blue">Arcator Blue</option>
+          <!-- Options will be dynamically populated -->
         </select>
       </div>
-      <button id="save-settings-btn" class="btn-primary bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-4">Save Settings</button>
-      <button id="logout-btn" class="btn-primary bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Log Out</button>
+      <button id="save-settings-btn" class="btn-primary btn-blue mb-4">Save Settings</button>
+      <button id="logout-btn" class="btn-primary btn-red">Log Out</button>
+
+      <div class="mt-8 pt-8 border-t border-gray-700">
+        <h3 class="text-2xl font-bold text-center text-heading-main mb-6">Custom Themes</h3>
+        <p class="text-secondary text-center mb-4">Create, edit, or delete your own personalized themes.</p>
+        <button id="create-custom-theme-btn" class="btn-primary btn-green mb-4">Create New Custom Theme</button>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left table-auto mt-4">
+            <thead>
+            <tr>
+              <th class="px-4 py-2">Theme Name</th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="custom-theme-list-tbody">
+            <tr><td colspan="2" class="text-center py-4 text-secondary">No custom themes.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div id="login-required-message" class="text-center text-red-500 hidden">
+    <div id="login-required-message" class="text-center text-heading-main hidden">
       <p class="text-lg">You must be logged in to view settings.</p>
-      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-blue-700 transition duration-300 ease-in-out">Login / Sign Up</a>
+      <a href="sign.html" class="inline-block btn-primary btn-blue mt-4">Login / Sign Up</a>
     </div>
   </div>
 </div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
+
+<!-- Custom Theme Modal -->
+<div id="custom-theme-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h3 id="custom-theme-modal-title" class="text-xl font-bold mb-4 text-heading-card">Create Custom Theme</h3>
+    <div class="space-y-4">
+      <div class="input-field">
+        <label for="custom-theme-name">Theme Name:</label>
+        <input type="text" id="custom-theme-name" placeholder="My Awesome Theme" class="py-2 px-3" required>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="theme-body-bg">Body Background:</label>
+          <input type="color" id="theme-body-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-text-primary">Primary Text:</label>
+          <input type="color" id="theme-text-primary" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-text-secondary">Secondary Text:</label>
+          <input type="color" id="theme-text-secondary" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-heading-main">Main Heading Color:</label>
+          <input type="color" id="theme-heading-main" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-heading-card">Card Heading Color:</label>
+          <input type="color" id="theme-heading-card" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-bg-navbar">Navbar Background:</label>
+          <input type="color" id="theme-bg-navbar" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-bg-content-section">Content Section Bg:</label>
+          <input type="color" id="theme-bg-content-section" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-bg-card">Card Background:</label>
+          <input type="color" id="theme-bg-card" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-bg-ip-box">IP Box Background:</label>
+          <input type="color" id="theme-bg-ip-box" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-border-ip-box">IP Box Border:</label>
+          <input type="color" id="theme-border-ip-box" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-input-bg">Input Background:</label>
+          <input type="color" id="theme-input-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-input-text">Input Text:</label>
+          <input type="color" id="theme-input-text" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-input-border">Input Border:</label>
+          <input type="color" id="theme-input-border" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-placeholder">Placeholder Text:</label>
+          <input type="color" id="theme-placeholder" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-table-th-bg">Table Header Bg:</label>
+          <input type="color" id="theme-table-th-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-table-th-text">Table Header Text:</label>
+          <input type="color" id="theme-table-th-text" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-table-td-border">Table Cell Border:</label>
+          <input type="color" id="theme-table-td-border" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-table-row-even-bg">Even Row Bg:</label>
+          <input type="color" id="theme-table-row-even-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-link">Link Color:</label>
+          <input type="color" id="theme-link" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-text">Button Text:</label>
+          <input type="color" id="theme-button-text" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-blue-bg">Blue Button Bg:</label>
+          <input type="color" id="theme-button-blue-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-blue-hover">Blue Button Hover:</label>
+          <input type="color" id="theme-button-blue-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-red-bg">Red Button Bg:</label>
+          <input type="color" id="theme-button-red-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-red-hover">Red Button Hover:</label>
+          <input type="color" id="theme-button-red-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-green-bg">Green Button Bg:</label>
+          <input type="color" id="theme-button-green-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-green-hover">Green Button Hover:</label>
+          <input type="color" id="theme-button-green-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-yellow-bg">Yellow Button Bg:</label>
+          <input type="color" id="theme-button-yellow-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-yellow-hover">Yellow Button Hover:</label>
+          <input type="color" id="theme-button-yellow-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-purple-bg">Purple Button Bg:</label>
+          <input type="color" id="theme-button-purple-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-purple-hover">Purple Button Hover:</label>
+          <input type="color" id="theme-button-purple-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-indigo-bg">Indigo Button Bg:</label>
+          <input type="color" id="theme-button-indigo-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-indigo-hover">Indigo Button Hover:</label>
+          <input type="color" id="theme-button-indigo-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-teal-bg">Teal Button Bg:</label>
+          <input type="color" id="theme-button-teal-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-button-teal-hover">Teal Button Hover:</label>
+          <input type="color" id="theme-button-teal-hover" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-message-box-bg-success">Message Box Success Bg:</label>
+          <input type="color" id="theme-message-box-bg-success" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-message-box-bg-error">Message Box Error Bg:</label>
+          <input type="color" id="theme-message-box-bg-error" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-modal-bg">Modal Background:</label>
+          <input type="color" id="theme-modal-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-modal-text">Modal Text:</label>
+          <input type="color" id="theme-modal-text" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-modal-input-bg">Modal Input Bg:</label>
+          <input type="color" id="theme-modal-input-bg" class="w-full h-10 border-none p-0">
+        </div>
+        <div class="input-field">
+          <label for="theme-modal-input-text">Modal Input Text:</label>
+          <input type="color" id="theme-modal-input-text" class="w-full h-10 border-none p-0">
+        </div>
+      </div>
+      <button id="save-custom-theme-btn" class="btn-primary btn-blue mt-4">Save Custom Theme</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Custom Confirmation Modal (for delete operations) -->
+<div id="custom-confirm-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <p class="mb-4 text-lg" id="confirm-message"></p>
+    <p class="mb-6 text-sm text-secondary" id="confirm-submessage"></p>
+    <button id="confirm-yes" class="btn-red text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+  </div>
+</div>
+
 
 <!-- Firebase SDKs -->
 <script type="module">
@@ -234,7 +415,10 @@
     getFirestore,
     doc,
     getDoc,
-    setDoc
+    setDoc,
+    collection,
+    getDocs,
+    deleteDoc
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   // Firebase configuration object
@@ -256,34 +440,25 @@
   let db;
   let isFirebaseInitialized = false;
 
-  // Function to load the navigation bar
-  async function loadNavbar() {
-    try {
-      const response = await fetch('navbar.html');
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      let navbarHtml = await response.text();
-
-      // Inject the user icon link dynamically
-      // This logic is primarily handled within the navbar.html's own script
-      // but this placeholder ensures the #navbar-placeholder div exists
-      // and gets content. The dynamic icon update is handled by the script
-      // embedded within navbar.html itself, which will run once injected.
-
-      document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
-    } catch (error) {
-      console.error("Failed to load navigation bar:", error);
-    }
+  // Initialize Firebase
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    isFirebaseInitialized = true;
+    console.log("Firebase initialized successfully.");
+  } catch (e) {
+    console.error("Error initializing Firebase:", e);
+    showMessageBox("Error initializing Firebase. Cannot load settings.", true);
   }
 
-
-  // DOM Elements (declared globally as they are static elements in settings.html)
+  // DOM Elements
   const loadingSpinner = document.getElementById('loading-spinner');
   const settingsContent = document.getElementById('settings-content');
   const loginRequiredMessage = document.getElementById('login-required-message');
   const userEmailDisplay = document.getElementById('user-email-display');
   const displayNameInput = document.getElementById('display-name');
   const userThemeSelect = document.getElementById('user-theme-select');
-  // Ensure these elements are retrieved correctly
   const profilePictureDisplay = document.getElementById('profile-picture-display');
   const profilePictureUrlInput = document.getElementById('profile-picture-url');
   const urlPreviewMessage = document.getElementById('url-preview-message');
@@ -291,8 +466,24 @@
   const logoutBtn = document.getElementById('logout-btn');
   const messageBox = document.getElementById('message-box');
 
+  // Custom Theme Management DOM elements
+  const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
+  const customThemeListTbody = document.getElementById('custom-theme-list-tbody');
+  const customThemeModal = document.getElementById('custom-theme-modal');
+  const customThemeModalTitle = document.getElementById('custom-theme-modal-title');
+  const customThemeNameInput = document.getElementById('custom-theme-name');
+  const saveCustomThemeBtn = document.getElementById('save-custom-theme-btn');
+  const customConfirmModal = document.getElementById('custom-confirm-modal');
+  const confirmMessage = document.getElementById('confirm-message');
+  const confirmSubmessage = document.getElementById('confirm-submessage');
+  const confirmYesBtn = document.getElementById('confirm-yes');
+  const confirmNoBtn = document.getElementById('confirm-no');
+
+
+  let currentEditingCustomThemeId = null; // To store the ID of the theme being edited
+
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/128x128/1F2937/E5E7EB?text=AV'; // Default placeholder
-  const DEFAULT_THEME = 'dark'; // Define a default theme
+  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
 
   /**
    * Displays a custom message box for user feedback.
@@ -314,14 +505,34 @@
   }
 
   /**
-   * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark', 'light', or 'arcator-blue'.
+   * Shows a custom confirmation modal.
+   * @param {string} message - The main confirmation message.
+   * @param {string} [subMessage=''] - An optional sub-message.
+   * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
    */
-  function applyTheme(theme) {
-    const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-    body.classList.add(`theme-${theme}`);
-    console.log(`Applied theme: ${theme}`);
+  function showCustomConfirm(message, subMessage = '') {
+    return new Promise(resolve => {
+      confirmMessage.textContent = message;
+      confirmSubmessage.textContent = subMessage;
+      customConfirmModal.style.display = 'flex';
+
+      const onConfirm = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        customConfirmModal.style.display = 'none';
+        confirmYesBtn.removeEventListener('click', onConfirm);
+        confirmNoBtn.removeEventListener('click', onCancel);
+        resolve(false);
+      };
+
+      confirmYesBtn.addEventListener('click', onConfirm);
+      confirmNoBtn.addEventListener('click', onCancel);
+    });
   }
 
   /**
@@ -369,27 +580,212 @@
     }
   }
 
-  // Initialize Firebase
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized successfully.");
-  } catch (e) {
-    console.error("Error initializing Firebase:", e);
-    showMessageBox("Error initializing Firebase. Cannot load settings.", true);
+  /**
+   * Fetches all custom themes from Firestore.
+   * @returns {Promise<Array>} An array of custom theme objects.
+   */
+  async function fetchCustomThemesForSettings() {
+    if (!db) {
+      console.error("Firestore DB not initialized for fetching custom themes.");
+      return [];
+    }
+    const themesCollectionRef = collection(db, `artifacts/${appId}/public/data/custom_themes`);
+    const fetchedThemes = [];
+    try {
+      const querySnapshot = await getDocs(themesCollectionRef);
+      querySnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        fetchedThemes.push({
+          id: docSnap.id,
+          name: data.name || docSnap.id,
+          isCustom: true,
+          properties: data.properties || {}
+        });
+      });
+    } catch (error) {
+      console.error("Error fetching custom themes for settings:", error);
+      showMessageBox(`Error loading custom themes: ${error.message}`, true);
+    }
+    return fetchedThemes;
   }
+
+  /**
+   * Saves a new or updates an existing custom theme in Firestore.
+   * @param {string|null} themeId The ID of the theme to update, or null for new theme.
+   * @param {object} themeData The theme data including name and properties.
+   * @returns {Promise<boolean>} True if successful, false otherwise.
+   */
+  async function saveCustomTheme(themeId, themeData) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot save custom theme.", true);
+      return false;
+    }
+    try {
+      if (themeId) {
+        const themeDocRef = doc(db, `artifacts/${appId}/public/data/custom_themes`, themeId);
+        await setDoc(themeDocRef, themeData, { merge: true });
+        showMessageBox("Custom theme updated successfully!", false);
+      } else {
+        const themesCollectionRef = collection(db, `artifacts/${appId}/public/data/custom_themes`);
+        await addDoc(themesCollectionRef, themeData);
+        showMessageBox("Custom theme created successfully!", false);
+      }
+      return true;
+    } catch (error) {
+      console.error("Error saving custom theme:", error);
+      showMessageBox(`Error saving custom theme: ${error.message}`, true);
+      return false;
+    }
+  }
+
+  /**
+   * Deletes a custom theme from Firestore.
+   * @param {string} themeId The ID of the theme to delete.
+   * @returns {Promise<boolean>} True if successful, false otherwise.
+   */
+  async function deleteCustomTheme(themeId) {
+    if (!db) {
+      showMessageBox("Database not initialized. Cannot delete custom theme.", true);
+      return false;
+    }
+
+    const confirmation = await showCustomConfirm(`Are you sure you want to delete this custom theme?`, "This action cannot be undone.");
+    if (!confirmation) {
+      showMessageBox("Deletion cancelled.", false);
+      return false;
+    }
+
+    const themeDocRef = doc(db, `artifacts/${appId}/public/data/custom_themes`, themeId);
+    try {
+      await deleteDoc(themeDocRef);
+      showMessageBox("Custom theme deleted successfully!", false);
+      return true;
+    } catch (error) {
+      console.error("Error deleting custom theme:", error);
+      showMessageBox(`Error deleting custom theme: ${error.message}`, true);
+      return false;
+    }
+  }
+
+  /**
+   * Populates the theme selection dropdown.
+   */
+  async function populateThemeSelect() {
+    userThemeSelect.innerHTML = ''; // Clear existing options
+    const availableThemes = await window.getAvailableThemes(); // Get all themes from themes.html
+
+    availableThemes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.id || theme.name.toLowerCase().replace(/\s/g, '-'); // Use ID for custom, name for predefined
+      option.textContent = theme.name;
+      userThemeSelect.appendChild(option);
+    });
+  }
+
+  /**
+   * Renders the list of custom themes in the table.
+   */
+  async function renderCustomThemeList() {
+    customThemeListTbody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-secondary">Loading custom themes...</td></tr>';
+    const customThemes = await fetchCustomThemesForSettings();
+    customThemeListTbody.innerHTML = '';
+
+    if (customThemes.length === 0) {
+      customThemeListTbody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-secondary">No custom themes created yet.</td></tr>';
+      return;
+    }
+
+    customThemes.forEach(theme => {
+      const row = customThemeListTbody.insertRow();
+      row.innerHTML = `
+                    <td class="px-4 py-2 text-primary">${theme.name}</td>
+                    <td class="px-4 py-2">
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-custom-theme-btn" data-theme-id="${theme.id}">Edit</button>
+                        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-custom-theme-btn" data-theme-id="${theme.id}">Delete</button>
+                    </td>
+                `;
+    });
+
+    // Add event listeners for edit and delete buttons
+    document.querySelectorAll('.edit-custom-theme-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const themeId = event.target.dataset.themeId;
+        const allThemes = await window.getAvailableThemes();
+        const themeToEdit = allThemes.find(t => t.id === themeId);
+        if (themeToEdit) {
+          openCustomThemeModal(themeToEdit);
+        } else {
+          showMessageBox("Theme not found for editing.", true);
+        }
+      });
+    });
+
+    document.querySelectorAll('.delete-custom-theme-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const themeId = event.target.dataset.themeId;
+        const success = await deleteCustomTheme(themeId);
+        if (success) {
+          await populateThemeSelect(); // Re-populate dropdown
+          renderCustomThemeList(); // Re-render list
+        }
+      });
+    });
+  }
+
+  /**
+   * Opens the custom theme creation/editing modal.
+   * @param {object|null} themeData Optional. The theme object to populate for editing.
+   */
+  function openCustomThemeModal(themeData = null) {
+    if (themeData) {
+      customThemeModalTitle.textContent = 'Edit Custom Theme';
+      customThemeNameInput.value = themeData.name;
+      currentEditingCustomThemeId = themeData.id;
+      // Populate color inputs from themeData.properties
+      for (const key in themeData.properties) {
+        const inputElement = document.getElementById(`theme-${key}`);
+        if (inputElement) {
+          inputElement.value = themeData.properties[key];
+        }
+      }
+    } else {
+      customThemeModalTitle.textContent = 'Create Custom Theme';
+      customThemeNameInput.value = '';
+      currentEditingCustomThemeId = null;
+      // Set default colors from themes.html
+      const defaultProps = window.DEFAULT_CUSTOM_THEME_PROPERTIES;
+      for (const key in defaultProps) {
+        const inputElement = document.getElementById(`theme-${key}`);
+        if (inputElement) {
+          inputElement.value = defaultProps[key];
+        }
+      }
+    }
+    customThemeModal.style.display = 'flex';
+  }
+
+  // Function to extract theme properties from modal inputs
+  function getThemePropertiesFromInputs() {
+    const properties = {};
+    const colorInputs = document.querySelectorAll('#custom-theme-modal input[type="color"]');
+    colorInputs.forEach(input => {
+      // Convert id like 'theme-body-bg' to 'bodyBg'
+      const propertyName = input.id.replace('theme-', '').replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+      properties[propertyName] = input.value;
+    });
+    return properties;
+  }
+
 
   // Function to set up the authentication state listener AFTER navbar is loaded
   async function setupAuthStateListener() {
+    // Ensure navbar elements are accessible after it's loaded
+    const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
+    const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+    const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+
     onAuthStateChanged(auth, async (user) => {
       loadingSpinner.classList.add('hidden'); // Hide spinner once auth state is known
-
-      // Retrieve navbar elements here to ensure they exist after navbar.html is loaded
-      const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
-      const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-      const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
 
       if (user) {
         console.log("User logged in:", user.uid);
@@ -399,7 +795,6 @@
         const userProfile = await getUserProfileFromFirestore(user.uid);
         userEmailDisplay.textContent = user.email;
         displayNameInput.value = userProfile?.displayName || user.displayName || '';
-        userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME;
         profilePictureUrlInput.value = userProfile?.photoURL || user.photoURL || '';
 
         // Ensure profilePictureDisplay element exists before setting src
@@ -409,7 +804,13 @@
           console.warn("Element #profile-picture-display not found when user data is loaded.");
         }
 
-        applyTheme(userProfile?.themePreference || DEFAULT_THEME);
+        // Populate theme select and set current user's theme
+        await populateThemeSelect();
+        userThemeSelect.value = userProfile?.themePreference || DEFAULT_THEME_NAME;
+        window.applyTheme(userThemeSelect.value); // Apply theme from user profile
+
+        // Render custom theme list
+        renderCustomThemeList();
 
         // Update navbar user icon AFTER elements are verified to exist
         if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
@@ -418,12 +819,11 @@
           navbarUserSettingsLink.style.display = 'flex'; // Show the link
         }
 
-
       } else {
         console.log("No user logged in.");
         settingsContent.classList.add('hidden');
         loginRequiredMessage.classList.remove('hidden');
-        applyTheme(DEFAULT_THEME); // Apply default theme if not logged in
+        window.applyTheme(DEFAULT_THEME_NAME); // Apply default theme if not logged in
 
         // Hide navbar user icon if no user
         if (navbarUserSettingsLink) {
@@ -456,7 +856,7 @@
       }
       const uid = auth.currentUser.uid;
       const newDisplayName = displayNameInput.value.trim();
-      const newTheme = userThemeSelect.value;
+      const newThemeName = userThemeSelect.value;
       const newPhotoURL = profilePictureUrlInput.value.trim(); // Get new photo URL
 
       // Regex for image URL validation, updated to be more robust
@@ -476,17 +876,13 @@
         // Update Firestore profile
         await updateUserProfileInFirestore(uid, {
           displayName: newDisplayName,
-          themePreference: newTheme,
+          themePreference: newThemeName,
           photoURL: newPhotoURL || DEFAULT_PROFILE_PIC // Store default if input is empty
         });
 
-        applyTheme(newTheme); // Apply new theme immediately
-
-        // Ensure profilePictureDisplay element exists before setting src
+        window.applyTheme(newThemeName); // Apply new theme immediately
         if (profilePictureDisplay) {
           profilePictureDisplay.src = newPhotoURL || DEFAULT_PROFILE_PIC; // Update image display
-        } else {
-          console.warn("Element #profile-picture-display not found when saving settings.");
         }
         urlPreviewMessage.style.display = 'none'; // Hide preview message
 
@@ -531,7 +927,7 @@
       }
       urlPreviewMessage.textContent = 'Previewing new URL. Click Save Settings to apply.';
       urlPreviewMessage.classList.remove('text-red-500');
-      urlPreviewMessage.classList.add('text-gray-400');
+      urlPreviewMessage.classList.add('text-secondary');
       urlPreviewMessage.style.display = 'block';
     } else if (url === '') {
       if (profilePictureDisplay) { // Add null check here too
@@ -543,20 +939,91 @@
         profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
       }
       urlPreviewMessage.textContent = 'Invalid URL. Please enter a valid direct link to an image.';
-      urlPreviewMessage.classList.remove('text-gray-400');
+      urlPreviewMessage.classList.remove('text-secondary');
       urlPreviewMessage.classList.add('text-red-500');
       urlPreviewMessage.style.display = 'block';
     }
   });
 
+  // Custom Theme Modal Event Listeners
+  if (createCustomThemeBtn) {
+    createCustomThemeBtn.addEventListener('click', () => openCustomThemeModal());
+  }
+
+  if (saveCustomThemeBtn) {
+    saveCustomThemeBtn.addEventListener('click', async () => {
+      const themeName = customThemeNameInput.value.trim();
+      if (!themeName) {
+        showMessageBox("Theme name cannot be empty.", true);
+        return;
+      }
+
+      const themeProperties = getThemePropertiesFromInputs();
+      const themeData = {
+        name: themeName,
+        isCustom: true,
+        properties: themeProperties
+      };
+
+      const success = await saveCustomTheme(currentEditingCustomThemeId, themeData);
+      if (success) {
+        customThemeModal.style.display = 'none';
+        await populateThemeSelect();
+        renderCustomThemeList();
+        // Optionally set the new custom theme as the active theme for the user
+        if (auth.currentUser) {
+          const newThemeId = currentEditingCustomThemeId || themeName.toLowerCase().replace(/\s/g, '-'); // Simple ID for new themes
+          await updateUserProfileInFirestore(auth.currentUser.uid, { themePreference: newThemeId });
+          userThemeSelect.value = newThemeId; // Update main settings dropdown
+          window.applyTheme(newThemeId, themeData); // Apply immediately
+        }
+      }
+    });
+  }
+
+  // Close modal buttons
+  document.querySelectorAll('.modal .close-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.target.closest('.modal').style.display = 'none';
+    });
+  });
+
+  // Close modal when clicking outside content
+  window.addEventListener('click', (event) => {
+    if (event.target === customThemeModal) {
+      customThemeModal.style.display = 'none';
+    }
+    if (event.target === customConfirmModal) {
+      customConfirmModal.style.display = 'none';
+    }
+  });
+
   // Load navbar first, then setup auth listener
   window.onload = async function() {
-    await loadNavbar();
+    await loadNavbar(); // Assumes loadNavbar is defined elsewhere or will be fetched from another file
     if (isFirebaseInitialized) {
       setupAuthStateListener();
+    } else {
+      // If Firebase not initialized, just hide spinner and show login required
+      loadingSpinner.classList.add('hidden');
+      loginRequiredMessage.classList.remove('hidden');
     }
   };
 
+  // Function to load the navigation bar (if not already defined)
+  async function loadNavbar() {
+    const navbarPlaceholder = document.getElementById('navbar-placeholder');
+    if (navbarPlaceholder) {
+      try {
+        const response = await fetch('navbar.html');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const navbarHtml = await response.text();
+        navbarPlaceholder.innerHTML = navbarHtml;
+      } catch (error) {
+        console.error("Failed to load navigation bar:", error);
+      }
+    }
+  }
 </script>
 </body>
 </html>
