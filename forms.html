@@ -344,18 +344,47 @@
   let db;
   let currentUser = null; // To store the current authenticated user
   let isAdminUser = false; // Flag to track if the current user is an admin
+  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
 
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully.");
-    setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
-  } catch (e) {
-    console.error("Error initializing Firebase:", e);
-    document.getElementById('threads-loading-error').textContent = 'Error initializing Firebase. Cannot load or create threads.';
-    document.getElementById('threads-loading-error').style.display = 'block';
-  }
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
+
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe(); // Unsubscribe after the first call
+
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (forms page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (forms page) during init:", error);
+              signInAnonymously(auth)
+                .then(() => console.log("DEBUG: Signed in anonymously (forms page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on forms page during init:", anonError));
+            })
+            .finally(() => resolve());
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on forms page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on forms page during init:", anonError))
+            .finally(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase:", e);
+      document.getElementById('threads-loading-error').textContent = 'Error initializing Firebase. Cannot load or create threads.';
+      document.getElementById('threads-loading-error').style.display = 'block';
+      resolve(); // Resolve even on error to prevent infinite loading
+    }
+  });
+
 
   // DOM Elements
   const loadingSpinner = document.getElementById('loading-spinner');
@@ -392,6 +421,7 @@
    * @returns {Promise<boolean>}
    */
   async function checkAdminStatus(uid) {
+    await firebaseReadyPromise;
     if (!db || !uid) return false;
     const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, uid);
     try {
@@ -440,6 +470,7 @@
     if (userProfileCache[uid]) {
       return userProfileCache[uid];
     }
+    await firebaseReadyPromise; // Ensure Firebase is initialized
     if (!db) {
       console.warn("Firestore not initialized, cannot fetch user profile.");
       return null;
@@ -896,10 +927,6 @@
                 const commentUpvotes = (comment.upvoters || []).length;
                 const commentDownvotes = (comment.downvoters || []).length;
 
-                // Check if current user has upvoted/downvoted this comment
-                const userHasUpvotedComment = currentUser && (comment.upvoters || []).includes(currentUser.uid);
-                const userHasDownvotedComment = currentUser && (comment.downvoters || []).includes(currentUser.uid);
-
                 const commentElement = document.createElement('div');
                 commentElement.classList.add('comment-card');
                 commentElement.innerHTML = `
@@ -987,6 +1014,11 @@
 
   // Get current year for footer
   document.getElementById('current-year-forms').textContent = new Date().getFullYear();
+
+  window.onload = async function() {
+    await firebaseReadyPromise;
+    loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+  };
 </script>
 </body>
 </html>
