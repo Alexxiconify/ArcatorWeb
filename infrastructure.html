@@ -10,8 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for consistent styling -->
-  <link rel="stylesheet" href="navbar.css">
+  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
   <!-- Import themes.js for centralized JavaScript functions -->
   <script src="themes.js" type="module"></script>
   <!-- Import loadNavbar from navbar.js -->
@@ -23,6 +22,18 @@
       transition: background-color 0.3s ease, color 0.3s ease;
       background-color: var(--color-body-bg); /* Ensure body uses the variable for its own background */
       color: var(--color-text-primary); /* Ensure body uses the variable for its default text color */
+    }
+
+    /* Navbar specific styling using CSS variables */
+    .navbar {
+      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
+    }
+    .navbar-link {
+      color: var(--color-text-secondary); /* Default link color */
+    }
+    .navbar-link:hover {
+      color: var(--color-text-primary); /* Hover link color */
+      background-color: var(--color-bg-card); /* Slightly different background on hover */
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -61,11 +72,11 @@
     .text-text-primary { color: var(--color-text-primary); }
     .text-text-secondary { color: var(--color-text-secondary); }
     .bg-card { background-color: var(--color-bg-card); }
-    .bg-navbar { background-color: var(--color-bg-navbar); }
+    .bg-navbar-footer { background-color: var(--color-bg-navbar); } /* For footer */
     .text-link { color: var(--color-link); }
     .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links, can be same as text-secondary or a different link variable */
     .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
-    .text-heading-card { color: var(--color-heading-card); } /* for active link indication */
+    .text-heading-card-active { color: var(--color-heading-card); } /* for active link indication */
 
     /* Table specific theming */
     .bg-table-th-bg { background-color: var(--color-table-th-bg); }
@@ -80,11 +91,31 @@
   </style>
 </head>
 <body class="antialiased">
-<!-- Navbar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+<!-- Embedded Navbar -->
+<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
+  <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+    <!-- Logo/Site Title -->
+    <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
+    <!-- Navigation -->
+    <nav class="mt-4 md:mt-0">
+      <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
+        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Arcator Infrastructure</h1>
     <p class="text-xl md:text-2xl mb-8">Powering Your Minecraft Experience</p>
@@ -120,7 +151,7 @@
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-navbar py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-infra"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
@@ -128,7 +159,7 @@
       <a href="privacy.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Privacy Policy</a>
       <a href="terms.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-link text-heading-card transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="infrastructure.html" class="hover:text-link text-heading-card-active transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-link transition duration-300 ease-in-out text-link-footer">Admin & Dev</a>
     </div>
   </div>
@@ -136,10 +167,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   // Import setupThemesFirebase from themes.js
-  import { setupThemesFirebase } from './themes.js';
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
   // Import loadNavbar from navbar.js
   import { loadNavbar } from './navbar.js';
 
@@ -160,30 +191,98 @@
   let app;
   let auth;
   let db;
-  let isFirebaseInitialized = false;
+  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
 
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
   const DEFAULT_THEME_NAME = 'dark'; // Default theme name
 
-  // Initialize Firebase
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseInitialized = true;
-    console.log("Firebase initialized successfully in infrastructure.html.");
-    // Pass auth as well to themes.js setup
-    setupThemesFirebase(db, auth, appId);
-  } catch (e) {
-    console.error("Error initializing Firebase in infrastructure.html:", e);
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    await firebaseReadyPromise; // Ensure Firebase is initialized
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
   }
 
-  // Get current year for footer
+  // Initialize Firebase and setup firebaseReadyPromise
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
+
+      // Critical: Ensure auth state is settled before resolving
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe(); // Unsubscribe after the first call
+
+        // Perform initial sign-in if in Canvas and no user is already authenticated
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
+              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
+                .then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
+            })
+            .finally(() => resolve()); // Resolve promise after token attempt
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
+            .finally(() => resolve());
+        }
+        else {
+          resolve(); // Resolve immediately if user is already authenticated or no token to use
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase (initial block):", e);
+      resolve(); // Resolve immediately on error to prevent infinite loading
+    }
+  });
+
+
+  // Main execution logic on window load
   window.onload = async function() {
+    // Wait for Firebase to be ready before proceeding
+    await firebaseReadyPromise;
+
     // Pass the necessary Firebase instances and theme-related functions
     // loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
     await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     document.getElementById('current-year-infra').textContent = new Date().getFullYear();
+
+    // After everything is loaded and Firebase is ready, apply the user's theme
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        userThemePreference = userProfile?.themePreference;
+      }
+      // Apply the theme: user's preference, or 'dark' default
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
   };
 </script>
 </body>

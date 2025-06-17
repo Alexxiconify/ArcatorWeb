@@ -80,14 +80,14 @@
     .input-field input, .input-field select {
       width: 100%;
       padding: 0.75rem 1rem;
-      border: 1px solid var(--color-input-border); /* Use CSS variable */
+      border: 1px solid var(--color-input-border) !important; /* Use CSS variable and add !important */
       border-radius: 0.5rem; /* rounded-md */
       font-size: 1rem;
-      background-color: var(--color-input-bg); /* Use CSS variable */
-      color: var(--color-input-text); /* Use CSS variable */
+      background-color: var(--color-input-bg) !important; /* Use CSS variable and add !important */
+      color: var(--color-input-text) !important; /* Use CSS variable and add !important */
     }
     .input-field input::placeholder {
-      color: var(--color-placeholder); /* Use CSS variable */
+      color: var(--color-placeholder) !important; /* Use CSS variable and add !important */
     }
     .btn-primary {
       width: 100%;
@@ -266,7 +266,7 @@
       <button id="logout-btn" class="btn-primary btn-red">Log Out</button>
 
       <div class="mt-8 pt-8 border-t border-table-td-border">
-        <h3 class="text-2xl font-bold text-center text-heading-main mb-6">Custom Themes</h3>
+        <h3 class="text-2xl font-bold text-center text-heading-main">Custom Themes</h3>
         <p class="text-text-secondary text-center mb-4">Create, edit, or delete your own personalized themes.</p>
         <button id="create-custom-theme-btn" class="btn-primary btn-green mb-4">Create New Custom Theme</button>
 
@@ -293,6 +293,21 @@
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
+
+<!-- Footer Section -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8 w-full">
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-settings"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
 
 
 <!-- Firebase SDKs -->
@@ -514,9 +529,19 @@
       const selectedThemeForApply = allThemes.find(theme => theme.id === userThemeSelect.value);
       if (selectedThemeForApply) {
         applyTheme(selectedThemeForApply.id, selectedThemeForApply); // Call the imported function directly
+        console.log(`Applied theme: ${selectedThemeForApply.name}`);
       } else {
         applyTheme(DEFAULT_THEME_NAME); // Call the imported function directly
+        console.log(`Applied default theme: ${DEFAULT_THEME_NAME}`);
       }
+
+      // Log the actual CSS variables after theme application
+      console.log('CSS Variable Debug:');
+      console.log('  --color-input-bg:', getComputedStyle(document.body).getPropertyValue('--color-input-bg'));
+      console.log('  --color-input-text:', getComputedStyle(document.body).getPropertyValue('--color-input-text'));
+      console.log('  --color-input-border:', getComputedStyle(document.body).getPropertyValue('--color-input-border'));
+      console.log('  --color-placeholder:', getComputedStyle(document.body).getPropertyValue('--color-placeholder'));
+
 
       // Set and apply font size preference
       const savedFontSize = userProfile?.fontSizePreference || '16px'; // Default to 16px
@@ -535,6 +560,13 @@
       window.location.href = 'sign.html';
       settingsContent.classList.add('hidden');
       applyTheme(DEFAULT_THEME_NAME); // Call the imported function directly
+      console.log(`Applied default theme: ${DEFAULT_THEME_NAME} (user logged out)`);
+      // Log the actual CSS variables even if logged out, for consistency
+      console.log('CSS Variable Debug (Logged Out):');
+      console.log('  --color-input-bg:', getComputedStyle(document.body).getPropertyValue('--color-input-bg'));
+      console.log('  --color-input-text:', getComputedStyle(document.body).getPropertyValue('--color-input-text'));
+      console.log('  --color-input-border:', getComputedStyle(document.body).getPropertyValue('--color-input-border'));
+      console.log('  --color-placeholder:', getComputedStyle(document.body).getPropertyValue('--color-placeholder'));
     }
   }
 
@@ -581,6 +613,9 @@
     // Pass the necessary Firebase instances and theme-related functions
     await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     await loadModals();
+
+    // Set current year for footer
+    document.getElementById('current-year-settings').textContent = new Date().getFullYear();
 
 
     // Event Listeners - now attached AFTER all elements are guaranteed to exist
@@ -653,7 +688,7 @@
     // Live preview of profile picture URL
     if (profilePictureUrlInput) { // Added null check here for safety
       profilePictureUrlInput.addEventListener('input', () => {
-        const url = profilePictureUrlInput.value.trim();
+        const url = profilePictureUrl.value.trim();
         const imageUrlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
         if (imageUrlRegex.test(url)) {
           if (profilePictureDisplay) {
