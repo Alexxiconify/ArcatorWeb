@@ -10,151 +10,35 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
+  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
+
   <style>
+    /* Base styles, will be overridden by CSS variables from themes.js */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
     }
 
-      /* Default Dark Theme */
-      body.theme-dark {
-        background-color: #1F2937; /* Dark background */
-        color: #E5E7EB; /* Light text */
-        background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-        background-size: 20px 20px;
-        background-attachment: fixed;
-      }
-      body.theme-dark .bg-card {
-        background-color: #2D3748 !important; /* Darker card background for dark theme */
-        color: #E5E7EB !important; /* Light text for card */
-      }
-      body.theme-dark input,
-      body.theme-dark select {
-        background-color: #374151 !important; /* Darker input background */
-        color: #E5E7EB !important; /* Light text in input */
-        border-color: #4B5563 !important; /* Subtle border for inputs */
-      }
-      body.theme-dark input::placeholder {
-        color: #9CA3AF !important; /* Lighter placeholder text */
-      }
-      body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-        color: #E5E7EB !important;
-      }
+    /* Navbar specific styling using CSS variables */
+    .navbar {
+      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
+    }
+    .navbar-link {
+      color: var(--color-text-secondary); /* Default link color */
+    }
+    .navbar-link:hover {
+      color: var(--color-text-primary); /* Hover link color */
+      background-color: var(--color-bg-card); /* Slightly different background on hover */
+    }
 
-      /* Light Theme */
-      body.theme-light {
-        background-color: #F3F4F6; /* Light background */
-        color: #1F2937; /* Dark text */
-        background-image: none; /* No pattern for light theme */
-      }
-      body.theme-light .bg-card {
-        background-color: #FFFFFF !important; /* White card background for light theme */
-        color: #1F2937 !important; /* Dark text for card */
-      }
-      body.theme-light input,
-      body.theme-light select {
-        background-color: #FFFFFF !important; /* White input background */
-        color: #1F2937 !important; /* Dark text in input */
-        border-color: #D1D5DB !important; /* Light border for inputs */
-      }
-      body.theme-light input::placeholder {
-        color: #6B7280 !important; /* Darker placeholder text */
-      }
-      body.theme-light .text-gray-700 {
-        color: #1F2937 !important;
-      }
-
-      /* Arcator Blue Theme */
-      body.theme-arcator-blue {
-        background-color: #1a202c; /* Deep blue-grey */
-        color: #E2E8F0; /* Light off-white text */
-        background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-        linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-        background-size: cover;
-        background-attachment: fixed;
-      }
-      body.theme-arcator-blue .bg-card {
-        background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-        color: #E2E8F0 !important; /* Light text for card */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      }
-      body.theme-arcator-blue input,
-      body.theme-arcator-blue select {
-        background-color: #3b4d6b !important; /* Darker input background */
-        color: #E2E8F0 !important; /* Light text in input */
-        border-color: #5a6e8f !important; /* Blueish border */
-      }
-      body.theme-arcator-blue input::placeholder {
-        color: #94A3B8 !important; /* Subtle blue placeholder */
-      }
-      body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-        background-color: #4299E1 !important; /* Arcator blue */
-        color: white !important;
-      }
-      body.theme-arcator-blue .text-gray-700 {
-        color: #E2E8F0 !important;
-      }
-      body.theme-arcator-blue .text-blue-500 {
-        color: #63B3ED !important;
-      }
-
-      /* Settings card styling */
-      .settings-card {
-        max-width: 600px;
-        width: 90%;
-        padding: 2.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-      }
-      .input-field {
-        margin-bottom: 1rem;
-      }
-      .input-field label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-size: 0.875rem; /* text-sm */
-        font-weight: 600; /* font-semibold */
-      }
-      .input-field input, .input-field select {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 1px solid #D1D5DB; /* border-gray-300 */
-        border-radius: 0.5rem; /* rounded-md */
-        font-size: 1rem;
-      }
-      .btn-primary {
-        width: 100%;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 700; /* font-bold */
-        transition: background-color 0.2s, transform 0.2s;
-      }
-      .btn-primary:hover {
-        transform: translateY(-2px);
-      }
-
-      /* Message box styling */
-      .message-box {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 15px 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        display: none; /* Hidden by default */
-        font-size: 1rem;
-        text-align: center;
-      }
-      .message-box.success {
-        background-color: #4CAF50; /* Green for success */
-      }
-      .message-box.error {
-        background-color: #F44336; /* Red for error */
-      }
+    /* Hero Banner styles - common for all themes, retains background image */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -183,228 +67,181 @@
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
-    .thread-card {
-      background-color: #2D3748;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-      margin-bottom: 1.5rem;
-      word-wrap: break-word; /* Ensure long words break */
+
+    /* Dynamic theme application for various elements */
+    .bg-gray-800 {
+      background-color: var(--color-bg-content-section) !important;
     }
-    .theme-light .thread-card {
-      background-color: #FFFFFF;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    .bg-gray-700 {
+      background-color: var(--color-bg-card) !important;
     }
-    .thread-card input[type="text"],
-    .thread-card textarea {
-      background-color: #4A5568;
-      color: #E5E7EB;
-      border: 1px solid #60A5FA;
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* For footer and new thread section */
     }
-    .theme-light .thread-card input[type="text"],
-    .theme-light .thread-card textarea {
-      background-color: #E5E7EB;
-      color: #1F2937;
-      border: 1px solid #9CA3AF;
+    .text-gray-300 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-50 {
+      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
+    }
+    .text-red-400 {
+      color: var(--color-heading-main) !important;
+    }
+    .text-blue-300 {
+      color: var(--color-heading-card) !important;
+    }
+    .text-blue-500 { /* For spinner */
+      color: var(--color-link) !important;
+    }
+    .text-red-500 { /* For error messages */
+      color: var(--color-message-box-bg-error) !important;
+    }
+    .text-green-400 { /* For success messages */
+      color: var(--color-message-box-bg-success) !important;
+    }
+    .text-gray-200 { /* For general text */
+      color: var(--color-text-primary) !important;
+    }
+    .text-gray-500 { /* For secondary messages like "No comments yet" */
+      color: var(--color-text-secondary) !important;
     }
 
-    .thread-card img, .thread-card video {
-      max-width: 100%;
-      height: auto;
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-      margin-bottom: 1rem;
+    /* Buttons */
+    .bg-blue-600 { /* Primary button color */
+      background-color: var(--color-button-blue-bg) !important;
+      color: var(--color-button-text) !important;
     }
-    .media-container {
-      display: block;
-      max-width: 100%;
-      margin-top: 1rem;
-      margin-bottom: 1rem;
+    .hover\:bg-blue-700:hover {
+      background-color: var(--color-button-blue-hover) !important;
     }
-    /* Style for links within content */
-    .thread-content a, .comment-content a {
-      color: #60A5FA; /* Blue links */
-      text-decoration: underline;
+    .bg-green-600 { /* Post comment button */
+      background-color: var(--color-button-green-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-green-700:hover {
+      background-color: var(--color-button-green-hover) !important;
+    }
+    .text-red-400.hover\:text-red-600:hover { /* Delete buttons */
+      color: var(--color-button-red-hover) !important;
+    }
+    .hover\:text-white:hover { /* For footer links */
+      color: var(--color-text-primary) !important;
+    }
+
+    /* Input fields and textareas */
+    input[type="text"],
+    textarea {
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-input-text) !important;
+      border: 1px solid var(--color-input-border) !important;
+    }
+    input::placeholder, textarea::placeholder {
+      color: var(--color-placeholder) !important;
+    }
+
+    /* Thread and Comment Card Styling */
+    .thread-card {
+      background-color: var(--color-bg-card);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2); /* Keep a subtle shadow */
+      margin-bottom: 1.5rem;
+      word-wrap: break-word;
     }
     .comment-section {
       margin-top: 1.5rem;
-      border-top: 1px solid #4A5568;
+      border-top: 1px solid var(--color-table-td-border); /* Use table border color */
       padding-top: 1.5rem;
     }
-    .theme-light .comment-section {
-      border-top: 1px solid #D1D5DB;
-    }
     .comment-card {
-      background-color: #374151; /* Slightly darker for comments */
+      background-color: var(--color-table-row-even-bg); /* Use even table row bg for comments */
       border-radius: 0.5rem;
       padding: 1rem;
       margin-bottom: 0.75rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Subtle shadow */
     }
-    .theme-light .comment-card {
-      background-color: #F0F4F8; /* Lighter background for comments in light theme */
-      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-    }
-    .profile-info {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-    .profile-pic {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      margin-right: 0.5rem;
-      object-fit: cover;
-      border: 2px solid #60A5FA; /* Small border for profile pic */
+
+    /* Profile Info & Vote Buttons */
+    .profile-info img {
+      border: 2px solid var(--color-heading-card); /* Blueish border for profile pic */
     }
     .vote-buttons button {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.3rem 0.6rem;
-      border-radius: 9999px; /* Full rounded */
-      font-size: 0.875rem; /* text-sm */
-      font-weight: 600; /* font-semibold */
-      transition: background-color 0.2s ease-in-out;
-      color: #CBD5E0; /* text-gray-300 */
-      background-color: #4A5568; /* bg-gray-600 */
-      border: none;
-      cursor: pointer;
-    }
-    .theme-light .vote-buttons button {
-      background-color: #D1D5DB;
-      color: #1F2937;
+      background-color: var(--color-input-border); /* Use input border for button background */
+      color: var(--color-text-secondary);
     }
     .vote-buttons button:hover {
-      background-color: #60A5FA; /* hover:bg-blue-500 */
-      color: white;
+      background-color: var(--color-heading-card); /* Blueish hover for vote buttons */
+      color: var(--color-button-text);
     }
     .vote-buttons button.active {
-      background-color: #60A5FA; /* bg-blue-500 for active */
-      color: white;
+      background-color: var(--color-heading-card); /* Active state matches hover */
+      color: var(--color-button-text);
     }
     .vote-buttons span {
-      margin: 0 0.4rem;
-      color: #CBD5E0;
-    }
-    .theme-light .vote-buttons span {
-      color: #4A5568;
+      color: var(--color-text-secondary);
     }
 
-    /* Modal Styles */
+    /* Modal Styling */
     .modal {
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
       background-color: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-
     .modal-content {
-      background-color: #1F2937;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 500px;
-      border-radius: 0.75rem;
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      border: 1px solid var(--color-input-border);
       box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-      text-align: center;
     }
-    .theme-light .modal-content {
-      background-color: #F9FAFB;
-      border: 1px solid #D1D5DB;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
     .modal-content h3 {
-      color: #EF4444; /* red-500 */
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
+      color: var(--color-heading-main); /* Red for modal headings */
     }
-    .theme-light .modal-content h3 {
-      color: #DC2626;
-    }
-
     .modal-content p {
-      color: #E5E7EB;
-      margin-bottom: 1.5rem;
+      color: var(--color-text-primary);
     }
-    .theme-light .modal-content p {
-      color: #374151;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    .modal-buttons button {
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-    }
-
     .modal-buttons .confirm-btn {
-      background-color: #EF4444; /* red-500 */
-      color: white;
+      background-color: var(--color-button-red-bg);
+      color: var(--color-button-text);
     }
-
     .modal-buttons .confirm-btn:hover {
-      background-color: #DC2626; /* red-600 */
+      background-color: var(--color-button-red-hover);
     }
-
     .modal-buttons .cancel-btn {
-      background-color: #4A5568; /* gray-600 */
-      color: white;
+      background-color: var(--color-text-secondary); /* Grey for cancel */
+      color: var(--color-button-text);
     }
-
     .modal-buttons .cancel-btn:hover {
-      background-color: #6B7280; /* gray-700 */
-    }
-    .theme-light .modal-buttons .cancel-btn {
-      background-color: #9CA3AF;
-      color: #1F2937;
-    }
-    .theme-light .modal-buttons .cancel-btn:hover {
-      background-color: #6B7280;
+      background-color: var(--color-text-primary);
     }
   </style>
 </head>
 <body class="antialiased">
-<!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
+<!-- Embedded Navbar -->
+<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
   <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
     <!-- Logo/Site Title -->
     <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
     <!-- Navigation -->
     <nav class="mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="sign.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <!-- Removed for brevity: Privacy Policy and Terms of Service -->
+        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
+        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Discussion Forms</h1>
     <p class="text-xl md:text-2xl mb-8">Create new threads and engage with the Arcator community!</p>
@@ -488,6 +325,8 @@
 
 <!-- Firebase SDKs and Forms Script -->
 <script type="module">
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  // Removed import { loadNavbar } from './navbar.js'; as navbar is now embedded
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
@@ -542,6 +381,7 @@
     auth = getAuth(app);
     db = getFirestore(app);
     console.log("Firebase initialized successfully.");
+    setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
   } catch (e) {
     console.error("Error initializing Firebase:", e);
     document.getElementById('threads-loading-error').textContent = 'Error initializing Firebase. Cannot load or create threads.';
@@ -702,20 +542,6 @@
     return processedContent;
   }
 
-  /**
-   * Applies the selected theme to the body element.
-   * @param {string} theme - 'dark' or 'light'.
-   */
-  function applyTheme(theme) {
-    const body = document.body;
-    body.classList.remove('theme-dark', 'theme-light');
-    if (theme === 'light') {
-      body.classList.add('theme-light');
-    } else {
-      body.classList.add('theme-dark');
-    }
-  }
-
 
   // Set up Firebase Authentication listener
   if (auth) {
@@ -732,7 +558,9 @@
         // Apply user's saved theme
         const userProfile = await getUserProfile(user.uid);
         const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-        applyTheme(themePreference);
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+        applyTheme(themeToApply.id, themeToApply);
 
       } else {
         currentUser = null;
@@ -740,7 +568,9 @@
         loginRequiredMessage.style.display = 'block';
         newThreadSection.style.display = 'none';
         console.log("User is logged out.");
-        applyTheme(DEFAULT_THEME); // Apply default theme if no user
+        const allThemes = await getAvailableThemes();
+        const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
+        applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme if no user
       }
     });
   }

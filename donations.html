@@ -8,15 +8,36 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
+  <!-- Assuming theme_variables.css defines the CSS variables for different themes -->
+  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Removed link to navbar.css as navbar is now embedded and styled directly -->
+
   <style>
+    /* Base styles, will be overridden by CSS variables from themes.js */
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #1F2937;
-      color: #E5E7EB;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
+
+    /* Navbar specific styling using CSS variables */
+    .navbar {
+      background-color: var(--color-bg-navbar); /* Use CSS variable for navbar background */
+    }
+    .navbar-link {
+      color: var(--color-text-secondary); /* Default link color */
+    }
+    .navbar-link:hover {
+      color: var(--color-text-primary); /* Hover link color */
+      background-color: var(--color-bg-card); /* Slightly different background on hover */
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -45,204 +66,104 @@
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Text shadow for better readability on image */
     }
+
+    /* Dynamic theme application for various elements */
+    .bg-gray-800 {
+      background-color: var(--color-bg-content-section) !important;
+    }
+    .bg-gray-700 {
+      background-color: var(--color-bg-card) !important;
+    }
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* For footer */
+    }
+    .text-gray-300 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-50 {
+      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
+    }
+    .text-red-400 {
+      color: var(--color-heading-main) !important;
+    }
+    .text-blue-600 { /* For buttons */
+      background-color: var(--color-button-blue-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-blue-700:hover {
+      background-color: var(--color-button-blue-hover) !important;
+    }
+    .bg-red-600 { /* For Patreon button */
+      background-color: var(--color-button-red-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-red-700:hover {
+      background-color: var(--color-button-red-hover) !important;
+    }
+    .hover\:text-white:hover { /* For footer links */
+      color: var(--color-text-primary) !important;
+    }
+
+    /* Table styling - using CSS variables */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 1rem; /* Added margin for spacing */
-      margin-bottom: 1rem; /* Added margin for spacing */
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      background-color: var(--color-bg-card); /* Table background */
+      color: var(--color-text-primary);
+      border-radius: 0.5rem;
+      overflow: hidden; /* Ensures rounded corners apply to content */
     }
     th, td {
       padding: 12px 15px;
       text-align: left;
-      border-bottom: 1px solid #374151; /* Darker border for table rows */
+      border-bottom: 1px solid var(--color-table-td-border); /* Dynamic border color */
     }
     th {
-      background-color: #374151; /* Darker header background */
-      color: #F87171; /* Red text for headers */
+      background-color: var(--color-table-th-bg); /* Dynamic header background */
+      color: var(--color-table-th-text); /* Dynamic header text color */
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     tr:nth-child(even) {
-      background-color: #2F3B4E; /* Slightly different background for even rows */
+      background-color: var(--color-table-row-even-bg); /* Dynamic even row background */
     }
     tr:hover {
-      background-color: #4B5563; /* Lighter background on hover */
+      background-color: var(--color-input-border); /* Lighter background on hover (using input border color) */
     }
-  </style>               <style>
-  /* Base styles */
-  body {
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  /* Default Dark Theme */
-  body.theme-dark {
-    background-color: #1F2937; /* Dark background */
-    color: #E5E7EB; /* Light text */
-    background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-    background-size: 20px 20px;
-    background-attachment: fixed;
-  }
-  body.theme-dark .bg-card {
-    background-color: #2D3748 !important; /* Darker card background for dark theme */
-    color: #E5E7EB !important; /* Light text for card */
-  }
-  body.theme-dark input,
-  body.theme-dark select {
-    background-color: #374151 !important; /* Darker input background */
-    color: #E5E7EB !important; /* Light text in input */
-    border-color: #4B5563 !important; /* Subtle border for inputs */
-  }
-  body.theme-dark input::placeholder {
-    color: #9CA3AF !important; /* Lighter placeholder text */
-  }
-  body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-    color: #E5E7EB !important;
-  }
-
-  /* Light Theme */
-  body.theme-light {
-    background-color: #F3F4F6; /* Light background */
-    color: #1F2937; /* Dark text */
-    background-image: none; /* No pattern for light theme */
-  }
-  body.theme-light .bg-card {
-    background-color: #FFFFFF !important; /* White card background for light theme */
-    color: #1F2937 !important; /* Dark text for card */
-  }
-  body.theme-light input,
-  body.theme-light select {
-    background-color: #FFFFFF !important; /* White input background */
-    color: #1F2937 !important; /* Dark text in input */
-    border-color: #D1D5DB !important; /* Light border for inputs */
-  }
-  body.theme-light input::placeholder {
-    color: #6B7280 !important; /* Darker placeholder text */
-  }
-  body.theme-light .text-gray-700 {
-    color: #1F2937 !important;
-  }
-
-  /* Arcator Blue Theme */
-  body.theme-arcator-blue {
-    background-color: #1a202c; /* Deep blue-grey */
-    color: #E2E8F0; /* Light off-white text */
-    background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-    linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-    background-size: cover;
-    background-attachment: fixed;
-  }
-  body.theme-arcator-blue .bg-card {
-    background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-    color: #E2E8F0 !important; /* Light text for card */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  }
-  body.theme-arcator-blue input,
-  body.theme-arcator-blue select {
-    background-color: #3b4d6b !important; /* Darker input background */
-    color: #E2E8F0 !important; /* Light text in input */
-    border-color: #5a6e8f !important; /* Blueish border */
-  }
-  body.theme-arcator-blue input::placeholder {
-    color: #94A3B8 !important; /* Subtle blue placeholder */
-  }
-  body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-    background-color: #4299E1 !important; /* Arcator blue */
-    color: white !important;
-  }
-  body.theme-arcator-blue .text-gray-700 {
-    color: #E2E8F0 !important;
-  }
-  body.theme-arcator-blue .text-blue-500 {
-    color: #63B3ED !important;
-  }
-
-  /* Settings card styling */
-  .settings-card {
-    max-width: 600px;
-    width: 90%;
-    padding: 2.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-  }
-  .input-field {
-    margin-bottom: 1rem;
-  }
-  .input-field label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem; /* text-sm */
-    font-weight: 600; /* font-semibold */
-  }
-  .input-field input, .input-field select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #D1D5DB; /* border-gray-300 */
-    border-radius: 0.5rem; /* rounded-md */
-    font-size: 1rem;
-  }
-  .btn-primary {
-    width: 100%;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 700; /* font-bold */
-    transition: background-color 0.2s, transform 0.2s;
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-  }
-
-  /* Message box styling */
-  .message-box {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: none; /* Hidden by default */
-    font-size: 1rem;
-    text-align: center;
-  }
-  .message-box.success {
-    background-color: #4CAF50; /* Green for success */
-  }
-  .message-box.error {
-    background-color: #F44336; /* Red for error */
-  }
-</style>
+  </style>
 </head>
 <body class="antialiased">
-<!-- Header Section -->
-<header class="bg-gray-900 py-4 shadow-lg">
+<!-- Embedded Navbar -->
+<header class="navbar py-4 shadow-lg w-full absolute top-0 left-0">
   <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
     <!-- Logo/Site Title -->
     <a href="index.html" class="text-gray-50 text-3xl font-bold rounded-lg p-2 transition duration-300 ease-in-out hover:bg-gray-700">Arcator.co.uk</a>
     <!-- Navigation -->
     <nav class="mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <li><a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
-        <li><a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
-        <li><a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
-        <li><a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
-        <li><a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
-        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <li><a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
-        <li><a href="sign.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
-        <li><a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
-        <li><a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
+        <li><a href="about.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a></li>
+        <li><a href="servers.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a></li>
+        <li><a href="community.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a></li>
+        <li><a href="interests.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a></li>
+        <li><a href="games.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a></li>
+        <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
+        <li><a href="forms.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a></li>
+        <li><a href="sign.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Sign In / Account</a></li>
+        <li><a href="index.html#join-us" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a></li>
+        <li><a href="donations.html" class="navbar-link text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Support Arcator.co.uk</h1>
     <p class="text-xl md:text-2xl mb-8">Your contributions help us keep the servers running!</p>
@@ -259,7 +180,7 @@
     </div>
 
     <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
-      <table class="min-w-full bg-gray-700">
+      <table class="min-w-full">
         <thead>
         <tr>
           <th class="py-3 px-6 text-xl">Donation Method</th>
@@ -267,20 +188,6 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-          <td class="py-4 px-6 font-semibold text-white">PayPal</td>
-          <td class="py-4 px-6">
-            <p>Donate directly via PayPal. This is a secure and straightforward way to support us financially.</p>
-            <a href="https://www.paypal.com/paypalme/arcator" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Donate via PayPal</a>
-          </td>
-        </tr>
-        <tr>
-          <td class="py-4 px-6 font-semibold text-white">Patreon</td>
-          <td class="py-4 px-6">
-            <p>Become a Patreon and get exclusive perks, early access to features, and direct engagement with the development team.</p>
-            <a href="https://www.patreon.com/arcator" target="_blank" rel="noopener noreferrer" class="inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-full mt-4 hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Become a Patreon</a>
-          </td>
-        </tr>
         <tr>
           <td class="py-4 px-6 font-semibold text-white">Discord</td>
           <td class="py-4 px-6">
@@ -309,9 +216,126 @@
   </div>
 </footer>
 
-<script>
-  // Get current year for footer
-  document.getElementById('current-year-donations').textContent = new Date().getFullYear();
+<!-- Firebase SDKs and Main Script -->
+<script type="module">
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  // Removed import { loadNavbar } from './navbar.js'; as navbar is now embedded
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+
+  let app;
+  let auth;
+  let db;
+  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+
+  const DEFAULT_THEME = 'dark';
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    await firebaseReadyPromise; // Ensure Firebase is initialized
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
+
+  // Initialize Firebase and setup firebaseReadyPromise
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
+
+      // Critical: Ensure auth state is settled before resolving
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe(); // Unsubscribe after the first call
+
+        // Perform initial sign-in if in Canvas and no user is already authenticated
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (donations page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (donations page) during init:", error);
+              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
+                .then(() => console.log("DEBUG: Signed in anonymously (donations page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on donations page during init:", anonError));
+            })
+            .finally(() => resolve()); // Resolve promise after token attempt
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on donations page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on donations page during init:", anonError))
+            .finally(() => resolve());
+        }
+        else {
+          resolve(); // Resolve immediately if user is already authenticated or no token to use
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase (initial block):", e);
+      resolve(); // Resolve immediately on error to prevent infinite loading
+    }
+  });
+
+
+  // Main execution logic on window load
+  window.onload = async function() {
+    // Wait for Firebase to be ready before proceeding
+    await firebaseReadyPromise;
+
+    // The loadNavbar function is no longer explicitly called since the navbar is embedded.
+    // If you plan to re-modularize the navbar later, uncomment this line and ensure navbar.js is suitable.
+    // await loadNavbar({ auth, db, appId, getAvailableThemesFunc: getAvailableThemes }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+
+    // Set current year for footer
+    document.getElementById('current-year-donations').textContent = new Date().getFullYear();
+
+    // After everything is loaded and Firebase is ready, apply the user's theme
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        userThemePreference = userProfile?.themePreference;
+      }
+      // Apply the theme: user's preference, or 'dark' default
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
+  };
 </script>
 </body>
 </html>
