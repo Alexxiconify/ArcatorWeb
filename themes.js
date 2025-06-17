@@ -2,7 +2,7 @@
 
 // Internal variables to hold Firebase instances
 let _db = null;
-let _auth = null;
+let _auth = null; // Although not directly used in getAvailableThemes, good to keep consistent if needed later
 let _appId = null;
 
 // Predefined themes (assuming these are constant and do not come from Firestore)
@@ -166,7 +166,8 @@ window.getAvailableThemes = async function() {
   let allThemes = Object.values(PREDEFINED_THEMES); // Start with predefined themes
 
   if (_db && _appId) {
-    const themesCollectionRef = firebase.firestore().collection(`artifacts/${_appId}/public/data/custom_themes`);
+    // Corrected to use the passed _db instance instead of global firebase.firestore()
+    const themesCollectionRef = _db.collection(`artifacts/${_appId}/public/data/custom_themes`);
     try {
       const querySnapshot = await themesCollectionRef.get();
       querySnapshot.forEach(docSnap => {
