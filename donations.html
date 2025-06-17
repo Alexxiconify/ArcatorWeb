@@ -368,8 +368,9 @@
 
         if (userProfile) {
           userDisplayName.textContent = userProfile.displayName || 'Settings';
-          userProfilePic.src = userProfile.profilePictureUrl || DEFAULT_PROFILE_PIC;
-          console.log("Navbar profile pic URL from userProfile:", userProfile.profilePictureUrl);
+          // Corrected: Use userProfile.photoURL instead of userProfile.profilePictureUrl
+          userProfilePic.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
+          console.log("Navbar profile pic URL from userProfile:", userProfile.photoURL);
         } else {
           // Fallback if profile not found but user is logged in
           userDisplayName.textContent = 'Settings';
