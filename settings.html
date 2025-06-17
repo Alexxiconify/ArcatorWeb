@@ -208,10 +208,7 @@
         </div>
       </div>
     </div>
-    <div id="login-required-message" class="text-center text-heading-main hidden">
-      <p class="text-lg">You must be logged in to view settings.</p>
-      <a href="sign.html" class="inline-block btn-primary btn-blue mt-4">Login / Sign Up</a>
-    </div>
+    <!-- Removed: login-required-message section -->
   </div>
 </div>
 
@@ -261,7 +258,7 @@
   // DOM Elements - moved up to ensure availability for showMessageBox
   const loadingSpinner = document.getElementById('loading-spinner');
   const settingsContent = document.getElementById('settings-content');
-  const loginRequiredMessage = document.getElementById('login-required-message');
+  // const loginRequiredMessage = document.getElementById('login-required-message'); // Removed
   const userEmailDisplay = document.getElementById('user-email-display');
   const displayNameInput = document.getElementById('display-name');
   const userThemeSelect = document.getElementById('user-theme-select');
@@ -329,47 +326,6 @@
    * @param {string} [subMessage=''] - An optional sub-message.
    * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
    */
-  // This function remains local as it's not directly imported by custom_theme_modal.js but rather
-  // custom_theme_modal.js calls it if it's passed as a parameter. It's now handled implicitly
-  // through the setupCustomThemeManagement pass-through.
-  /* No longer needed here as a direct global export if custom_theme_modal.js imports it */
-  // function showCustomConfirm(message, subMessage = '') {
-  //   return new Promise(resolve => {
-  //     const confirmMessage = document.getElementById('confirm-message');
-  //     const confirmSubmessage = document.getElementById('confirm-submessage');
-  //     const customConfirmModal = document.getElementById('custom-confirm-modal');
-  //     const confirmYesBtn = document.getElementById('confirm-yes');
-  //     const confirmNoBtn = document.getElementById('confirm-no');
-
-  //     if (!confirmMessage || !customConfirmModal || !confirmYesBtn || !confirmNoBtn) {
-  //       console.error("Confirmation modal elements not found.");
-  //       window.showMessageBox("Error: Confirmation dialog not available.", true);
-  //       resolve(false);
-  //       return;
-  //     }
-
-  //     confirmMessage.textContent = message;
-  //     confirmSubmessage.textContent = subMessage;
-  //     customConfirmModal.style.display = 'flex';
-
-  //     const onConfirm = () => {
-  //       customConfirmModal.style.display = 'none';
-  //       confirmYesBtn.removeEventListener('click', onConfirm);
-  //       confirmNoBtn.removeEventListener('click', onCancel);
-  //       resolve(true);
-  //     };
-
-  //     const onCancel = () => {
-  //       customConfirmModal.style.display = 'none';
-  //       confirmYesBtn.removeEventListener('click', onConfirm);
-  //       confirmNoBtn.removeEventListener('click', onCancel);
-  //       resolve(false);
-  //     };
-
-  //     confirmYesBtn.addEventListener('click', onConfirm);
-  //     confirmNoBtn.addEventListener('click', onCancel);
-  //   });
-  // }
 
 
   /**
@@ -438,7 +394,7 @@
   async function initializeUserSettings() {
     loadingSpinner.classList.remove('hidden'); // Ensure spinner is visible initially
     settingsContent.classList.add('hidden');
-    loginRequiredMessage.classList.add('hidden');
+    // loginRequiredMessage.classList.add('hidden'); // No longer needed
 
     // Create a promise that resolves once onAuthStateChanged has provided a user or null
     const authStatePromise = new Promise(resolve => {
@@ -467,7 +423,7 @@
 
     if (user) {
       console.log("User is logged in.", user.uid);
-      loginRequiredMessage.classList.add('hidden');
+      // loginRequiredMessage.classList.add('hidden'); // No longer needed
       settingsContent.classList.remove('hidden');
 
       const userProfile = await window.getUserProfileFromFirestore(user.uid);
@@ -509,9 +465,14 @@
       }
 
     } else {
-      console.log("No user logged in.");
+      console.log("No user logged in. Redirecting to sign.html.");
+      // Redirect to sign.html if no user is logged in
+      window.location.href = 'sign.html';
+
+      // The rest of this else block is no longer reachable after redirection,
+      // but kept for logical completeness if redirection were not desired.
       settingsContent.classList.add('hidden');
-      loginRequiredMessage.classList.remove('hidden');
+      // loginRequiredMessage.classList.remove('hidden'); // No longer needed
       window.applyTheme(DEFAULT_THEME_NAME);
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
       if (navbarUserSettingsLink) {
@@ -655,7 +616,7 @@
     } else {
       // If Firebase not initialized, just hide spinner and show login required
       loadingSpinner.classList.add('hidden');
-      loginRequiredMessage.classList.remove('hidden');
+      // loginRequiredMessage.classList.remove('hidden'); // No longer needed
       window.showMessageBox("Firebase is not initialized. Please ensure your Firebase config is provided.", true);
     }
   };
