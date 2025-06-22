@@ -14,74 +14,270 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for navbar specific styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to forms.css for page-specific styling -->
+  <!-- Link to forms.css for page-specific styling (if you create one) -->
   <link rel="stylesheet" href="forms.css">
+  <style>
+    /* Base styles, will be overridden by CSS variables from themes.js */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white; /* Hero content text is hardcoded white for readability over image */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Specific overrides to use CSS variables */
+    .bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
+    .bg-gray-700 { background-color: var(--color-bg-card) !important; }
+    .bg-gray-600 { background-color: var(--color-input-bg) !important; } /* For comment input */
+    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; } /* Footer background */
+
+    .text-gray-100 { color: var(--color-text-primary) !important; }
+    .text-gray-200 { color: var(--color-text-primary) !important; }
+    .text-gray-300 { color: var(--color-text-secondary) !important; }
+    .text-gray-400 { color: var(--color-text-secondary) !important; }
+    .text-gray-500 { color: var(--color-text-secondary) !important; }
+    .text-gray-700 { color: var(--color-input-text) !important; } /* For reaction buttons */
+
+    .text-blue-300 { color: var(--color-heading-card) !important; }
+    .text-blue-400 { color: var(--color-link) !important; } /* For clickable mentions */
+    .text-red-400 { color: var(--color-heading-main) !important; }
+    .text-red-500 { color: var(--color-message-box-bg-error) !important; }
+
+    /* Input Field Styles */
+    input[type="text"], textarea {
+      background-color: var(--color-input-bg);
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
+    }
+    input[type="text"]::placeholder, textarea::placeholder {
+      color: var(--color-placeholder);
+    }
+
+    /* Button styles */
+    .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
+    .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+    .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
+    .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+
+    /* Message box styling */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+      background-color: var(--color-modal-bg); /* Use modal background for consistency */
+      color: var(--color-modal-text); /* Use modal text for consistency */
+    }
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success); /* Green for success */
+    }
+    .message-box.error {
+      background-color: var(--color-message-box-bg-error); /* Red for error */
+    }
+
+    /* Custom Confirm Modal */
+    .custom-confirm-modal {
+      display: none; /* Crucial: Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1001; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.7); /* Dark overlay */
+      display: flex; /* Will be set to 'flex' by JS when needed */
+      justify-content: center;
+      align-items: center;
+    }
+    .custom-confirm-modal .modal-content {
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      text-align: center;
+    }
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: var(--color-text-secondary);
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
+      color: var(--color-text-primary);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .custom-confirm-modal .modal-content button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    .custom-confirm-modal .modal-content .bg-red-600 {
+      background-color: var(--color-button-red-bg);
+    }
+    .custom-confirm-modal .modal-content .hover\:bg-red-700:hover {
+      background-color: var(--color-button-red-hover);
+    }
+    .custom-confirm-modal .modal-content .bg-gray-500 {
+      background-color: var(--color-text-secondary); /* Use text-secondary for cancel button */
+    }
+    .custom-confirm-modal .modal-content .hover\:bg-gray-600:hover {
+      background-color: var(--color-text-primary); /* Use text-primary for hover */
+    }
+
+    /* Profile picture size for comments/threads */
+    .profile-pic-small {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px; /* rounded-full */
+      object-fit: cover;
+    }
+
+    /* Emoji palette styling */
+    .emoji-palette {
+      border: 1px solid var(--color-input-border);
+      background-color: var(--color-bg-card);
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+    }
+    .emoji-item {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      background-color: var(--color-input-bg);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .emoji-item:hover {
+      background-color: var(--color-input-border);
+    }
+
+    /* Reaction button styling */
+    .reaction-btn {
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      font-weight: 600;
+    }
+    .reaction-btn:hover {
+      transform: translateY(-1px);
+    }
+    .reaction-btn.bg-blue-600 { /* Active/selected reaction */
+      background-color: var(--color-button-blue-bg) !important;
+      color: white !important;
+    }
+    .reaction-btn.bg-gray-200 { /* Inactive reaction */
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-text-primary) !important;
+    }
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
+<!-- Hero Section -->
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Discussion Forms</h1>
-    <p class="text-xl md:text-2xl mb-8">Create new threads and engage with the Arcator community!</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Forums</h1>
+    <p class="text-xl md:text-2xl mb-8">Connect, discuss, and share with the Arcator community.</p>
   </div>
 </section>
 
-<!-- Main Content Section: Forms and Threads -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
+<!-- Main Content Section -->
+<main class="container mx-auto px-4 py-8">
+  <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Forum Threads</h2>
 
-    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
-      <p class="text-lg text-gray-300 mb-8">
-        You need to be logged in to create new discussion threads and post comments.
-        You can view existing threads and comments without logging in.
-      </p>
-      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
-    </div>
-
-    <!-- New Thread Form (visible only to logged-in users) -->
-    <div id="new-thread-section" class="bg-gray-900 p-8 rounded-lg shadow-md mb-12" style="display: none;">
-      <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Create New Discussion Thread</h2>
-      <form id="create-thread-form" class="space-y-6">
-        <div>
-          <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
-          <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="e.g., Ideas for New Mini-Games">
-        </div>
-        <div>
-          <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content (Markdown, HTML, or plain text. Link images/videos directly):</label>
-          <textarea id="thread-content" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Start your discussion here. You can include links to images (.jpg, .png, .gif) and videos (.mp4, .webm) and they will be embedded."></textarea>
-          <p class="text-gray-400 text-xs mt-1">Example image: `https://example.com/image.png`</p>
-          <p class="text-gray-400 text-xs mt-1">Example video: `https://example.com/video.mp4`</p>
-        </div>
-        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg w-full">
-          Create Thread
-        </button>
-        <p id="form-message" class="text-center mt-4 text-green-400" style="display: none;"></p>
-      </form>
-    </div>
-
-    <!-- Existing Discussion Threads -->
-    <div class="mt-12">
-      <h2 class="text-3xl font-bold text-red-400 mb-6 text-center">Recent Discussions</h2>
-      <div id="threads-container">
-        <!-- Threads will be dynamically loaded here -->
-        <p id="no-threads-message" class="text-center text-gray-400" style="display: none;">No discussion threads found yet. Be the first to create one!</p>
-        <p id="threads-loading-error" class="text-center text-red-500" style="display: none;">Error loading threads. Please try again later.</p>
+  <!-- Create New Thread Form -->
+  <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-8">
+    <h3 class="text-2xl font-bold text-blue-300 mb-4">Create New Thread</h3>
+    <form id="create-thread-form" class="space-y-4">
+      <div>
+        <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
+        <input type="text" id="thread-title" placeholder="Enter thread title" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
-    </div>
+      <div>
+        <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
+        <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300">Create Thread</button>
+    </form>
   </div>
-</section>
+
+  <!-- Threads List -->
+  <div id="threads-list" class="space-y-8">
+    <p id="threads-loading-error" class="text-red-500 text-center text-lg hidden">Failed to load threads. Please try again later.</p>
+    <p id="no-threads-message" class="text-gray-400 text-center text-lg hidden">No threads found. Be the first to create one!</p>
+    <!-- Threads will be dynamically loaded here by JavaScript -->
+  </div>
+</main>
+
+<!-- Message Box Element -->
+<div id="message-box" class="message-box"></div>
+
+<!-- Custom Confirmation Modal -->
+<div id="custom-confirm-modal" class="custom-confirm-modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <p class="mb-4 text-lg" id="confirm-message"></p>
+    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <button id="confirm-yes" class="bg-red-600 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
+    <button id="confirm-no" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+  </div>
+</div>
 
 <!-- Footer Section -->
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-forms"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
@@ -92,42 +288,9 @@
   </div>
 </footer>
 
-<!-- Custom Confirmation Modal -->
-<div id="confirmation-modal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h3 id="modal-title">Confirm Action</h3>
-    <p id="modal-message">Are you sure you want to perform this action?</p>
-    <div class="modal-buttons">
-      <button id="confirm-action-btn" class="confirm-btn">Confirm</button>
-      <button id="cancel-action-btn" class="cancel-btn">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Modal -->
-<div id="edit-modal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h3 id="modal-edit-title">Edit Item</h3>
-    <div class="mt-4">
-      <label for="edit-title-input" class="block text-gray-300 text-sm font-bold mb-2" id="edit-title-label" style="display: none;">Title:</label>
-      <input type="text" id="edit-title-input" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="Enter new title">
-    </div>
-    <div class="mt-4">
-      <label for="edit-content-textarea" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
-      <textarea id="edit-content-textarea" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline resize-y focus:ring-2 focus:ring-blue-500" placeholder="Edit content here."></textarea>
-    </div>
-    <div class="modal-buttons mt-6">
-      <button id="save-edit-btn" class="confirm-btn bg-blue-600 hover:bg-blue-700">Save Changes</button>
-      <button id="cancel-edit-btn" class="cancel-btn bg-gray-500 hover:bg-gray-600">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Import themes.js for centralized JavaScript functions -->
+<!-- Firebase SDKs and Main Script -->
 <script src="themes.js" type="module"></script>
-<!-- Import loadNavbar from navbar.js -->
 <script src="navbar.js" type="module"></script>
-<!-- Import forms.js for page-specific JavaScript -->
-<script src="forms.js" type="module"></script>
+<script src="forms.js" type="module"></script> <!-- Link to the new forms.js file -->
 </body>
 </html>

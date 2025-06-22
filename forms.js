@@ -1,844 +1,631 @@
-import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } from './navbar.js'; // Import loadNavbar
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithCustomToken,
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  doc,
-  getDoc,
-  deleteDoc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Unminified themes.js
+import { loadNavbar } from './navbar.js'; // Unminified navbar.js
 
-// Firebase config
+// Firebase configuration object
 const firebaseConfig = {
   apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
   authDomain: "arcator-web.firebaseapp.com",
   projectId: "arcator-web",
-  storageBucket: "arcator-web.firebasestorage.app", // Corrected storageBucket value
+  storageBucket: "arcator-web.firebasestorage.app",
   messagingSenderId: "1033082068049",
   appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
   measurementId: "G-DJXNT1L7CM"
 };
 
-// Ensure global __app_id and __initial_auth_token are accessible
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-const canvasInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Determine appId for Firestore path - prioritize Canvas provided, then project ID
 const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-const initialAuthToken = canvasInitialAuthToken;
 
-// Initialize Firebase
 let app;
 let auth;
 let db;
-let currentUser = null; // To store the current authenticated user
-let isAdminUser = false; // Flag to track if the current user is an admin
-let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+let firebaseReadyPromise;
+let isFirebaseInitialized = false;
+let currentUser = null; // Store current user object
 
-firebaseReadyPromise = new Promise((resolve) => {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully.");
-    setupThemesFirebase(db, auth, appId); // Initialize themes.js with Firebase instances
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-      unsubscribe(); // Unsubscribe after the first call
-
-      if (typeof __initial_auth_token !== 'undefined' && !user) {
-        signInWithCustomToken(auth, __initial_auth_token)
-          .then(() => console.log("DEBUG: Signed in with custom token from Canvas (forms page) during init."))
-          .catch((error) => {
-            console.error("ERROR: Error signing in with custom token (forms page) during init:", error);
-            signInAnonymously(auth)
-              .then(() => console.log("DEBUG: Signed in anonymously (forms page) after custom token failure during init."))
-              .catch((anonError) => console.error("ERROR: Error signing in anonymously on forms page during init:", anonError));
-          })
-          .finally(() => resolve());
-      } else if (!user && typeof __initial_auth_token === 'undefined') {
-        signInAnonymously(auth)
-          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on forms page during init."))
-          .catch((anonError) => console.error("ERROR: Error signing in anonymously on forms page during init:", anonError))
-          .finally(() => resolve());
-      } else {
-        resolve();
-      }
-    });
-  } catch (e) {
-    console.error("Error initializing Firebase:", e);
-    document.getElementById('threads-loading-error').textContent = 'Error initializing Firebase. Cannot load or create threads.';
-    document.getElementById('threads-loading-error').style.display = 'block';
-    resolve(); // Resolve even on error to prevent infinite loading
-  }
-});
-
+const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+const DEFAULT_THEME_NAME = 'dark';
 
 // DOM Elements
-const loadingSpinner = document.getElementById('loading-spinner');
-const loginRequiredMessage = document.getElementById('login-required-message');
-const newThreadSection = document.getElementById('new-thread-section');
+const threadsList = document.getElementById('threads-list');
 const createThreadForm = document.getElementById('create-thread-form');
 const threadTitleInput = document.getElementById('thread-title');
-const threadContentTextarea = document.getElementById('thread-content');
-const formMessage = document.getElementById('form-message');
-const threadsContainer = document.getElementById('threads-container');
-const noThreadsMessage = document.getElementById('no-threads-message');
+const threadContentInput = document.getElementById('thread-content');
 const threadsLoadingError = document.getElementById('threads-loading-error');
+const noThreadsMessage = document.getElementById('no-threads-message');
 
-// Confirmation Modal Elements
-const confirmationModal = document.getElementById('confirmation-modal');
-const modalTitle = document.getElementById('modal-title');
-const modalMessage = document.getElementById('modal-message');
-const confirmActionButton = document.getElementById('confirm-action-btn');
-const cancelActionButton = document.getElementById('cancel-action-btn');
+const messageBox = document.getElementById('message-box');
+const customConfirmModal = document.getElementById('custom-confirm-modal');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmSubmessage = document.getElementById('confirm-submessage');
+const confirmYesBtn = document.getElementById('confirm-yes');
+const confirmNoBtn = document.getElementById('confirm-no');
 
-// Edit Modal Elements
-const editModal = document.getElementById('edit-modal');
-const modalEditTitle = document.getElementById('modal-edit-title');
-const editTitleLabel = document.getElementById('edit-title-label');
-const editModalTitleInput = document.getElementById('edit-title-input');
-const editModalContentTextarea = document.getElementById('edit-content-textarea');
-const saveEditBtn = document.getElementById('save-edit-btn');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
+// --- EMOJI & MENTION CONFIGURATION ---
+const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
+const EMOJI_MAP = {
+  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
+  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
+  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
+  ':cry:': '😢', ': गुस्सा:': '😡', ':sleepy:': '😴'
+};
+let userDisplayNameCache = {}; // Cache for user display names (UID -> DisplayName)
 
-let pendingAction = null; // Stores the function to call after modal confirmation
-let currentEditingDocRef = null; // Stores the docRef for the item being edited
-let currentEditingType = null; // 'thread' or 'comment'
-
-
-// Default profile picture (generic placeholder)
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-// Default theme (dark) for styling application
-const DEFAULT_THEME = 'dark';
-
-// Cache for user profiles to avoid repeated Firestore reads
-const userProfileCache = {};
-
-/**
- * Checks if the current user is an admin.
- * @param {string} uid - The user ID.
- * @returns {Promise<boolean>}
- */
-async function checkAdminStatus(uid) {
-  await firebaseReadyPromise;
-  if (!db || !uid) return false;
-  const adminDocRef = doc(db, `artifacts/${appId}/public/data/whitelisted_admins`, uid);
-  try {
-    const docSnap = await getDoc(adminDocRef);
-    return docSnap.exists();
-  } catch (error) {
-    console.error("Error checking admin status:", error);
-    return false;
+// Function to replace emoji shortcodes with actual emojis
+function parseEmojis(text) {
+  let parsedText = text;
+  for (const shortcode in EMOJI_MAP) {
+    const emoji = EMOJI_MAP[shortcode];
+    parsedText = parsedText.split(shortcode).join(emoji);
   }
+  return parsedText;
 }
 
-/**
- * Shows the custom confirmation modal.
- * @param {string} title - The title of the modal.
- * @param {string} message - The message to display.
- * @param {Function} actionFunction - The function to call if confirmed.
- */
-function showConfirmationModal(title, message, actionFunction) {
-  modalTitle.textContent = title;
-  modalMessage.textContent = message;
-  pendingAction = actionFunction;
-  confirmationModal.style.display = 'flex'; // Use flex to center
-}
+// Function to parse mentions and make them clickable
+async function parseMentions(text) {
+  let parsedText = text;
+  const mentionRegex = /@([a-zA-Z0-9_.-]+)/g; // Matches @username, allowing for alphanumeric, underscore, dot, hyphen
+  let match;
+  const mentionsFound = [];
 
-// Handle modal confirmation
-confirmActionButton.addEventListener('click', async () => {
-  confirmationModal.style.display = 'none';
-  if (pendingAction) {
-    await pendingAction();
-  }
-  pendingAction = null;
-});
-
-// Handle modal cancellation
-cancelActionButton.addEventListener('click', () => {
-  confirmationModal.style.display = 'none';
-  pendingAction = null;
-});
-
-
-/**
- * Opens the edit modal for a thread or comment.
- * @param {'thread'|'comment'} type - The type of item being edited.
- * @param {string} threadId - The ID of the parent thread.
- * @param {string} docId - The ID of the thread or comment document.
- * @param {string} [initialTitle=''] - The initial title for threads.
- * @param {string} initialContent - The initial content.
- */
-function openEditModal(type, threadId, docId, initialTitle = '', initialContent) {
-  modalEditTitle.textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-  editModalTitleInput.style.display = 'none'; // Hide by default
-  editTitleLabel.style.display = 'none'; // Hide label by default
-
-  if (type === 'thread') {
-    editModalTitleInput.style.display = 'block'; // Show for threads
-    editTitleLabel.style.display = 'block'; // Show label for threads
-    editModalTitleInput.value = initialTitle;
-    currentEditingDocRef = doc(db, `artifacts/${appId}/public/data/discussion_threads`, docId);
-  } else if (type === 'comment') {
-    editModalTitleInput.style.display = 'none'; // No title for comments
-    editTitleLabel.style.display = 'none'; // No label for comments
-    currentEditingDocRef = doc(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments', docId);
-  }
-  editModalContentTextarea.value = initialContent;
-  editModal.style.display = 'flex';
-  currentEditingType = type;
-}
-
-/**
- * Saves the edited content of a thread or comment to Firestore.
- */
-async function saveEdit() {
-  if (!currentEditingDocRef || !currentUser) {
-    console.error("No document selected for editing or user not logged in.");
-    showFormMessage("Error: No item selected for editing or not logged in.", true);
-    return;
+  // Find all mentions first
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentionsFound.push(match[1]); // Store just the username part
   }
 
-  const newContent = editModalContentTextarea.value.trim();
-  if (!newContent) {
-    showFormMessage("Content cannot be empty.", true);
-    return;
-  }
+  // Replace them with resolved names or fallback
+  for (const mentionedUsername of mentionsFound) {
+    let resolvedName = `@${mentionedUsername}`; // Default if not found
+    let userUid = null;
 
-  let updateData = {
-    content: newContent,
-    editedAt: serverTimestamp() // Add edited timestamp
-  };
-
-  if (currentEditingType === 'thread') {
-    const newTitle = editModalTitleInput.value.trim();
-    if (!newTitle) {
-      showFormMessage("Thread title cannot be empty.", true);
-      return;
+    // Try to find the user in cache or Firestore
+    // This is a simplified lookup; for large apps, you'd want a more robust user search.
+    const cachedUid = Object.keys(userDisplayNameCache).find(uid => userDisplayNameCache[uid] === mentionedUsername);
+    if (cachedUid) {
+      userUid = cachedUid;
+    } else {
+      // Attempt to fetch user profile if not in cache (could be slow for many mentions)
+      // For a real app, consider a dedicated user search function or pre-loading common users.
+      const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+      const q = query(userProfilesRef); // Fetching all is inefficient, but direct UID lookup is better if we store UIDs
+      try {
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(docSnap => {
+          const profile = docSnap.data();
+          if (profile.displayName === mentionedUsername) {
+            userUid = docSnap.id;
+            userDisplayNameCache[docSnap.id] = mentionedUsername; // Add to cache
+            return; // Found, break loop
+          }
+        });
+      } catch (error) {
+        console.error("Error searching for mentioned user:", error);
+      }
     }
-    updateData.title = newTitle;
+
+    if (userUid) {
+      resolvedName = `<a href="settings.html?uid=${userUid}" class="text-blue-400 hover:underline">@${mentionedUsername}</a>`;
+    }
+
+    // Replace all occurrences of this specific mention
+    const escapedMention = `@${mentionedUsername}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+    const replaceRegex = new RegExp(escapedMention, 'g');
+    parsedText = parsedText.replace(replaceRegex, resolvedName);
   }
 
-  try {
-    await updateDoc(currentEditingDocRef, updateData);
-    showFormMessage(`${currentEditingType.charAt(0).toUpperCase() + currentEditingType.slice(1)} updated successfully!`, false);
-  } catch (error) {
-    console.error(`Error updating ${currentEditingType}:`, error);
-    showFormMessage(`Error updating ${currentEditingType}: ${error.message || 'Unknown error'}`, true);
-  } finally {
-    editModal.style.display = 'none';
-    currentEditingDocRef = null;
-    currentEditingType = null;
+  return parsedText;
+}
+
+// --- UTILITY FUNCTIONS ---
+
+/**
+ * Displays a custom message box for user feedback.
+ * @param {string} message - The message to display.
+ * @param {boolean} isError - True for error, false for success.
+ */
+window.showMessageBox = function(message, isError) {
+  if (!messageBox) {
+    console.error("MessageBox element not found. Message:", message);
+    return;
   }
-}
+  messageBox.textContent = message;
+  messageBox.className = 'message-box'; // Reset classes
+  if (isError) {
+    messageBox.classList.add('error');
+  } else {
+    messageBox.classList.add('success');
+  }
+  messageBox.style.display = 'block';
+  setTimeout(() => {
+    messageBox.style.display = 'none';
+  }, 5000);
+};
 
-// Handle edit modal save
-if (saveEditBtn) {
-  saveEditBtn.addEventListener('click', saveEdit);
-}
+/**
+ * Shows a custom confirmation modal.
+ * @param {string} message - The main confirmation message.
+ * @param {string} [subMessage=''] - An optional sub-message.
+ * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
+ */
+function showCustomConfirm(message, subMessage = '') {
+  return new Promise(resolve => {
+    confirmMessage.textContent = message;
+    confirmSubmessage.textContent = subMessage;
+    customConfirmModal.style.display = 'flex'; // Use flex to center
 
-// Handle edit modal cancel
-if (cancelEditBtn) {
-  cancelEditBtn.addEventListener('click', () => {
-    editModal.style.display = 'none';
-    currentEditingDocRef = null;
-    currentEditingType = null;
+    const onConfirm = () => {
+      customConfirmModal.style.display = 'none';
+      confirmYesBtn.removeEventListener('click', onConfirm);
+      confirmNoBtn.removeEventListener('click', onCancel);
+      resolve(true);
+    };
+
+    const onCancel = () => {
+      customConfirmModal.style.display = 'none';
+      confirmYesBtn.removeEventListener('click', onConfirm);
+      confirmNoBtn.removeEventListener('click', onCancel);
+      resolve(false);
+    };
+
+    confirmYesBtn.addEventListener('click', onConfirm);
+    confirmNoBtn.addEventListener('click', onCancel);
   });
 }
-
 
 /**
  * Fetches user profile data from Firestore.
  * @param {string} uid - The user's UID.
  * @returns {Promise<Object|null>} - User profile data or null if not found.
  */
-async function getUserProfile(uid) {
-  if (userProfileCache[uid]) {
-    return userProfileCache[uid];
-  }
-  await firebaseReadyPromise; // Ensure Firebase is initialized
+async function getUserProfileFromFirestore(uid) {
   if (!db) {
-    console.warn("Firestore not initialized, cannot fetch user profile.");
+    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
     return null;
   }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
-      userProfileCache[uid] = docSnap.data();
-      return userProfileCache[uid];
+      return docSnap.data();
     }
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    console.error("Error fetching user profile from Firestore:", error);
+    // showMessageBox(`Error fetching user profile: ${error.message}`, true); // Don't show modal for every profile fetch
   }
   return null;
 }
 
+// --- THREAD FUNCTIONS ---
+
 /**
- * Displays a message for the form (success/error).
- * @param {string} message - The message to display.
- * @param {boolean} isError - True if it's an error, false for success.
+ * Creates a new forum thread.
+ * @param {string} title - The title of the thread.
+ * @param {string} content - The content of the thread.
  */
-function showFormMessage(message, isError) {
-  formMessage.textContent = message;
-  formMessage.style.display = 'block';
-  formMessage.classList.remove('text-green-400', 'text-red-500');
-  if (isError) {
-    formMessage.classList.add('text-red-500');
-  } else {
-    formMessage.classList.add('text-green-400');
+async function createThread(title, content) {
+  if (!currentUser) {
+    showMessageBox("You must be logged in to create a thread.", true);
+    return;
   }
-  setTimeout(() => {
-    formMessage.style.display = 'none';
-  }, 5000);
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot create thread.", true);
+    return;
+  }
+
+  const threadsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`);
+  const threadData = {
+    title: title,
+    content: content,
+    authorId: currentUser.uid,
+    authorDisplayName: currentUser.displayName || currentUser.email.split('@')[0],
+    createdAt: serverTimestamp(),
+    reactions: {}, // Store reactions as a map: { emoji: { userId1: true, userId2: true } }
+    commentCount: 0
+  };
+
+  try {
+    await addDoc(threadsCol, threadData);
+    showMessageBox("Thread created successfully!", false);
+    createThreadForm.reset();
+  } catch (error) {
+    console.error("Error creating thread:", error);
+    showMessageBox(`Error creating thread: ${error.message}`, true);
+  }
 }
 
 /**
- * Renders content (thread or comment), embedding images and videos.
- * @param {string} rawContent - The raw content string.
- * @returns {string} - HTML string with embedded media.
- */
-function renderContentWithMedia(rawContent) {
-  // Regex for common image file extensions
-  const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))(?:\s|$)/gi;
-  // Regex for common video file extensions
-  const videoRegex = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))(?:\s|$)/gi;
-
-  let processedContent = rawContent;
-
-  // Replace video URLs with <video> tags
-  processedContent = processedContent.replace(videoRegex, (match, url) => {
-    return `<div class="media-container"><video controls class="w-full rounded-md" src="${url}"><source src="${url}" type="video/${url.split('.').pop()}">Your browser does not support the video tag.</video></div>`;
-  });
-
-  // Replace image URLs with <img> tags
-  processedContent = processedContent.replace(imageRegex, (match, url) => {
-    // Add onerror to display a placeholder if the image fails to load
-    return `<div class="media-container"><img class="w-full rounded-md" src="${url}" alt="Embedded Image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/cccccc/000000?text=Image+Load+Error';"></div>`;
-  });
-
-  // Convert remaining newlines to <br> for basic paragraph breaks
-  processedContent = processedContent.replace(/\n/g, '<br>');
-
-  // Basic link detection for any remaining URLs that weren't caught by media regex
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  processedContent = processedContent.replace(urlRegex, (match) => {
-    return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
-  });
-
-  return processedContent;
-}
-
-
-// Set up Firebase Authentication listener
-if (auth) {
-  onAuthStateChanged(auth, async (user) => {
-    loadingSpinner.style.display = 'none'; // Hide initial spinner
-
-    if (user) {
-      currentUser = user;
-      isAdminUser = await checkAdminStatus(user.uid); // Check admin status on login
-      loginRequiredMessage.style.display = 'none';
-      newThreadSection.style.display = 'block';
-      console.log("User is logged in:", user.uid, user.displayName || user.email, "Is Admin:", isAdminUser);
-
-      // Apply user's saved theme
-      const userProfile = await getUserProfile(user.uid);
-      const themePreference = userProfile?.themePreference || DEFAULT_THEME;
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
-      applyTheme(themeToApply.id, themeToApply);
-
-    } else {
-      currentUser = null;
-      isAdminUser = false; // Reset admin status
-      loginRequiredMessage.style.display = 'block';
-      newThreadSection.style.display = 'none';
-      console.log("User is logged out.");
-      const allThemes = await getAvailableThemes();
-      const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
-      applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme if no user
-    }
-  });
-}
-
-// Handle new thread creation
-if (createThreadForm && db) {
-  createThreadForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    if (!currentUser) {
-      showFormMessage("You must be logged in to create a thread.", true);
-      return;
-    }
-
-    const title = threadTitleInput.value.trim();
-    const content = threadContentTextarea.value.trim();
-
-    if (!title || !content) {
-      showFormMessage("Thread title and content cannot be empty.", true);
-      return;
-    }
-
-    // Fetch the latest profile data from Firestore for the current user
-    const userProfile = await getUserProfile(currentUser.uid);
-    const authorName = userProfile?.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
-    const authorPhotoURL = userProfile?.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC; // Prioritize Firestore profile
-
-    try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`), {
-        title: title,
-        content: content,
-        authorUid: currentUser.uid,
-        authorName: authorName,
-        authorPhotoURL: authorPhotoURL,
-        timestamp: serverTimestamp(),
-        upvoters: [], // Initialize empty array for upvoters
-        downvoters: [] // Initialize empty array for downvoters
-      });
-      showFormMessage("Thread created successfully!", false);
-      threadTitleInput.value = '';
-      threadContentTextarea.value = '';
-    } catch (error) {
-      console.error("Error adding thread:", error);
-      showFormMessage(`Error creating thread: ${error.message || 'Unknown error'}`, true);
-    }
-  });
-}
-
-/**
- * Deletes a thread from Firestore.
+ * Deletes a forum thread.
  * @param {string} threadId - The ID of the thread to delete.
  */
 async function deleteThread(threadId) {
   if (!currentUser) {
-    showFormMessage("You must be logged in to delete threads.", true);
+    showMessageBox("You must be logged in to delete a thread.", true);
     return;
   }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete thread.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm(
+    "Are you sure you want to delete this thread?",
+    "This will also delete all comments and reactions associated with it."
+  );
+  if (!confirmation) {
+    showMessageBox("Thread deletion cancelled.", false);
+    return;
+  }
+
+  const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   try {
-    // Security rules will prevent deletion if not author or admin
-    await deleteDoc(doc(db, `artifacts/${appId}/public/data/discussion_threads`, threadId));
-    console.log("Thread deleted successfully:", threadId);
-    showFormMessage("Thread deleted successfully!", false);
+    // Delete comments subcollection first (Firestore does not cascade delete subcollections automatically)
+    const commentsColRef = collection(threadDocRef, 'comments');
+    const commentsSnapshot = await getDocs(commentsColRef);
+    const deleteCommentPromises = [];
+    commentsSnapshot.forEach(commentDoc => {
+      deleteCommentPromises.push(deleteDoc(commentDoc.ref));
+    });
+    await Promise.all(deleteCommentPromises);
+
+    await deleteDoc(threadDocRef);
+    showMessageBox("Thread deleted successfully!", false);
   } catch (error) {
     console.error("Error deleting thread:", error);
-    showFormMessage(`Error deleting thread: ${error.message || 'Unknown error'}`, true);
+    showMessageBox(`Error deleting thread: ${error.message}`, true);
   }
 }
 
+// --- COMMENT FUNCTIONS ---
+
 /**
- * Adds a new comment to a specific thread.
- * @param {string} threadId - The ID of the thread to comment on.
- * @param {string} commentContent - The content of the comment.
+ * Adds a comment to a specific thread.
+ * @param {string} threadId - The ID of the thread.
+ * @param {string} content - The content of the comment.
  */
-async function addCommentToThread(threadId, commentContent) {
+async function addCommentToThread(threadId, content) {
   if (!currentUser) {
-    showFormMessage("You must be logged in to post a comment.", true);
+    showMessageBox("You must be logged in to comment.", true);
     return;
   }
-  if (!commentContent.trim()) {
-    showFormMessage("Comment cannot be empty.", true);
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot add comment.", true);
+    return;
+  }
+  if (content.trim() === '') {
+    showMessageBox("Comment cannot be empty.", true);
     return;
   }
 
-  // Fetch the latest profile data from Firestore for the current user
-  const userProfile = await getUserProfile(currentUser.uid);
-  const authorName = userProfile?.displayName || currentUser.displayName || currentUser.email || 'Anonymous User';
-  const authorPhotoURL = userProfile?.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC; // Prioritize Firestore profile
+  const commentsCol = collection(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`);
+  const commentData = {
+    content: content,
+    authorId: currentUser.uid,
+    authorDisplayName: currentUser.displayName || currentUser.email.split('@')[0],
+    createdAt: serverTimestamp(),
+    reactions: {}, // Initialize reactions for comments too
+    // mentions will be parsed before saving, but not explicitly stored for now unless needed for notifications
+  };
 
   try {
-    await addDoc(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), {
-      content: commentContent,
-      authorUid: currentUser.uid,
-      authorName: authorName,
-      authorPhotoURL: authorPhotoURL,
-      timestamp: serverTimestamp(),
-      upvoters: [], // Initialize empty array for upvoters
-      downvoters: [] // Initialize empty array for downvoters
+    await addDoc(commentsCol, commentData);
+    // Increment commentCount on the parent thread
+    const threadRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
+    await updateDoc(threadRef, {
+      commentCount: (await getDoc(threadRef)).data().commentCount + 1 || 1
     });
-    console.log("Comment added successfully to thread:", threadId);
+    showMessageBox("Comment added successfully!", false);
   } catch (error) {
     console.error("Error adding comment:", error);
-    showFormMessage(`Error posting comment: ${error.message || 'Unknown error'}`, true);
+    showMessageBox(`Error adding comment: ${error.message}`, true);
   }
 }
 
 /**
- * Deletes a comment from Firestore.
+ * Deletes a comment from a thread.
  * @param {string} threadId - The ID of the parent thread.
  * @param {string} commentId - The ID of the comment to delete.
  */
 async function deleteComment(threadId, commentId) {
   if (!currentUser) {
-    showFormMessage("You must be logged in to delete comments.", true);
+    showMessageBox("You must be logged in to delete a comment.", true);
     return;
   }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete comment.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+  if (!confirmation) {
+    showMessageBox("Comment deletion cancelled.", false);
+    return;
+  }
+
+  const commentDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`, commentId);
   try {
-    // Security rules will prevent deletion if not author or admin
-    await deleteDoc(doc(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments', commentId));
-    console.log("Comment deleted successfully:", commentId);
-    showFormMessage("Comment deleted successfully!", false);
+    await deleteDoc(commentDocRef);
+    // Decrement commentCount on the parent thread
+    const threadRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
+    await updateDoc(threadRef, {
+      commentCount: (await getDoc(threadRef)).data().commentCount - 1 || 0 // Ensure it doesn't go below 0
+    });
+    showMessageBox("Comment deleted successfully!", false);
   } catch (error) {
     console.error("Error deleting comment:", error);
-    showFormMessage(`Error deleting comment: ${error.message || 'Unknown error'}`, true);
+    showMessageBox(`Error deleting comment: ${error.message}`, true);
   }
 }
 
-/**
- * Deletes a user's profile from Firestore.
- * This does NOT delete the Firebase Authentication account.
- * @param {string} uidToDelete - The UID of the user whose profile to delete.
- * @param {string} displayName - The display name of the user being deleted.
- */
-async function deleteUserProfile(uidToDelete, displayName) {
-  if (!currentUser || !isAdminUser) {
-    showFormMessage("You must be an admin to delete user profiles.", true);
-    return;
-  }
-  if (currentUser.uid === uidToDelete) {
-    showFormMessage("You cannot delete your own profile through this interface.", true);
-    return;
-  }
-
-  try {
-    await deleteDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uidToDelete));
-    console.log(`User profile for ${displayName} (UID: ${uidToDelete}) deleted successfully.`);
-    showFormMessage(`User profile for ${displayName} deleted successfully!`, false);
-    // Invalidate cache for this user
-    delete userProfileCache[uidToDelete];
-  } catch (error) {
-    console.error(`Error deleting user profile for ${displayName} (UID: ${uidToDelete}):`, error);
-    showFormMessage(`Error deleting profile for ${displayName}: ${error.message || 'Unknown error'}`, true);
-  }
-}
-
+// --- REACTION FUNCTIONS ---
 
 /**
- * Handles upvoting or downvoting a thread or comment.
- * @param {string} parentType - 'thread' or 'comment'.
- * @param {string} parentId - ID of the thread.
- * @param {string|null} childId - ID of the comment (if parentType is 'comment').
- * @param {'up'|'down'} voteType - 'up' for upvote, 'down' for downvote.
+ * Handles adding/removing reactions to a thread or comment.
+ * @param {'thread'|'comment'} type - The type of item being reacted to.
+ * @param {string} itemId - The ID of the thread or comment.
+ * @param {string} [commentId=null] - The ID of the comment if type is 'comment'.
+ * @param {string} emoji - The emoji string to react with.
  */
-async function handleVote(parentType, parentId, childId, voteType) {
+async function handleReaction(type, itemId, commentId = null, emoji) {
   if (!currentUser) {
-    showFormMessage("You must be logged in to vote.", true);
+    showMessageBox("You must be logged in to react.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot add reaction.", true);
     return;
   }
 
-  let docRef;
-  if (parentType === 'thread') {
-    docRef = doc(db, `artifacts/${appId}/public/data/discussion_threads`, parentId);
-  } else if (parentType === 'comment') {
-    docRef = doc(db, `artifacts/${appId}/public/data/discussion_threads`, parentId, 'comments', childId);
+  let itemRef;
+  if (type === 'thread') {
+    itemRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, itemId);
+  } else if (type === 'comment') {
+    itemRef = doc(db, `artifacts/${appId}/public/data/forum_threads/${itemId}/comments`, commentId);
   } else {
-    console.error("Invalid parentType for voting:", parentType);
+    console.error("Invalid reaction type:", type);
     return;
   }
-
-  const userId = currentUser.uid;
 
   try {
-    // Fetch the current document state to prevent race conditions for array updates
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) {
-      console.error("Document not found for voting.");
-      showFormMessage("Item not found. Cannot vote.", true);
+    const itemSnap = await getDoc(itemRef);
+    if (!itemSnap.exists()) {
+      console.error("Item for reaction not found.");
+      showMessageBox("Item not found for reaction.", true);
       return;
     }
-    const data = docSnap.data();
-    let currentUpvoters = data.upvoters || [];
-    let currentDownvoters = data.downvoters || [];
 
-    let updateData = {};
+    const currentReactions = itemSnap.data().reactions || {};
+    const userUid = currentUser.uid;
 
-    if (voteType === 'up') {
-      if (currentUpvoters.includes(userId)) {
-        // User already upvoted, remove their upvote (toggle off)
-        updateData = { upvoters: arrayRemove(userId) };
-      } else {
-        // User upvoting, remove downvote if exists, then add upvote
-        updateData = {
-          upvoters: arrayUnion(userId),
-          downvoters: arrayRemove(userId)
-        };
-      }
-    } else if (voteType === 'down') {
-      if (currentDownvoters.includes(userId)) {
-        // User already downvoted, remove their downvote (toggle off)
-        updateData = { downvoters: arrayRemove(userId) };
-      } else {
-        // User downvoting, remove upvote if exists, then add downvote
-        updateData = {
-          downvoters: arrayUnion(userId),
-          upvoters: arrayRemove(userId)
-        };
-      }
+    const emojiUsers = currentReactions[emoji] || {};
+    let newEmojiUsers = { ...emojiUsers };
+
+    if (newEmojiUsers[userUid]) {
+      // User has already reacted with this emoji, so remove it
+      delete newEmojiUsers[userUid];
+      showMessageBox(`Removed ${emoji} reaction.`, false);
+    } else {
+      // User has not reacted with this emoji, so add it
+      newEmojiUsers[userUid] = true;
+      showMessageBox(`Added ${emoji} reaction!`, false);
     }
 
-    await updateDoc(docRef, updateData);
-    console.log(`Vote (${voteType}) cast successfully on ${parentType} ${parentId}`);
-    // The onSnapshot listener will handle UI update
+    await updateDoc(itemRef, {
+      [`reactions.${emoji}`]: newEmojiUsers
+    });
+
   } catch (error) {
-    console.error(`Error casting vote on ${parentType} ${parentId}:`, error);
-    showFormMessage(`Error voting: ${error.message || 'Unknown error'}`, true);
+    console.error("Error handling reaction:", error);
+    showMessageBox(`Error reacting: ${error.message}`, true);
+  }
+}
+
+/**
+ * Renders the emoji reaction buttons for a given item.
+ * @param {string} type - 'thread' or 'comment'.
+ * @param {string} itemId - ID of the thread or comment.
+ * @param {Object} reactions - The reactions object from Firestore.
+ * @param {HTMLElement} containerElement - The DOM element to append buttons to.
+ * @param {string} [commentId=null] - Optional: comment ID if type is 'comment'.
+ */
+function renderReactionButtons(type, itemId, reactions, containerElement, commentId = null) {
+  containerElement.innerHTML = ''; // Clear existing buttons
+
+  // Add the predefined common emojis
+  COMMON_EMOJIS.forEach(emoji => {
+    const count = reactions[emoji] ? Object.keys(reactions[emoji]).length : 0;
+    const hasUserReacted = currentUser && reactions[emoji] && reactions[emoji][currentUser.uid];
+    const buttonClass = hasUserReacted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700';
+
+    const button = document.createElement('button');
+    button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
+    button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
+    button.addEventListener('click', () => handleReaction(type, itemId, commentId, emoji));
+    containerElement.appendChild(button);
+  });
+
+  // Add any custom emojis already used in reactions that are not in COMMON_EMOJIS
+  for (const emoji in reactions) {
+    if (!COMMON_EMOJIS.includes(emoji)) {
+      const count = Object.keys(reactions[emoji]).length;
+      const hasUserReacted = currentUser && reactions[emoji] && reactions[emoji][currentUser.uid];
+      const buttonClass = hasUserReacted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700';
+
+      const button = document.createElement('button');
+      button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
+      button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
+      button.addEventListener('click', () => handleReaction(type, itemId, commentId, emoji));
+      containerElement.appendChild(button);
+    }
   }
 }
 
 
-// Listen for real-time updates to discussion threads
-if (db) {
-  const q = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`), orderBy("timestamp", "desc"));
+// --- REAL-TIME RENDERING (ONSNAPSHOT) ---
 
-  onSnapshot(q, async (snapshot) => { // Made callback async to await getUserProfile
-    threadsContainer.innerHTML = ''; // Clear existing threads
+/**
+ * Sets up real-time listeners for forum threads and comments.
+ */
+function setupRealtimeListeners() {
+  if (!db) {
+    console.error("Firestore DB not initialized. Cannot set up real-time listeners.");
+    return;
+  }
+
+  const threadsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`);
+  const q = query(threadsCol, orderBy("createdAt", "desc")); // Order by creation time
+
+  onSnapshot(q, async (snapshot) => {
+    threadsList.innerHTML = ''; // Clear list to re-render
     if (snapshot.empty) {
       noThreadsMessage.style.display = 'block';
       threadsLoadingError.style.display = 'none';
+      return;
     } else {
       noThreadsMessage.style.display = 'none';
       threadsLoadingError.style.display = 'none';
-      // Process threads in parallel to fetch user profiles
-      for (const threadDoc of snapshot.docs) {
-        const thread = threadDoc.data();
-        const threadId = threadDoc.id;
-        const threadTimestamp = thread.timestamp ? new Date(thread.timestamp.toDate()).toLocaleString() : 'Just now';
+    }
 
-        // Fetch author profile
-        const authorProfile = await getUserProfile(thread.authorUid);
-        const authorName = authorProfile?.displayName || thread.authorName || 'Anonymous User';
-        const authorPhotoURL = authorProfile?.photoURL || thread.authorPhotoURL || DEFAULT_PROFILE_PIC;
+    snapshot.forEach(async (threadDoc) => {
+      const thread = threadDoc.data();
+      const threadId = threadDoc.id;
+      const authorProfile = await getUserProfileFromFirestore(thread.authorId);
+      const authorDisplayName = authorProfile?.displayName || thread.authorDisplayName || 'Anonymous';
+      const authorPhotoURL = authorProfile?.photoURL || DEFAULT_PROFILE_PIC;
 
-        const upvotes = (thread.upvoters || []).length;
-        const downvotes = (thread.downvoters || []).length;
+      const threadElement = document.createElement('div');
+      threadElement.id = `thread-${threadId}`;
+      threadElement.className = 'bg-gray-700 p-6 rounded-lg shadow-md mb-8';
 
-        // Check if current user has upvoted/downvoted this thread
-        const userHasUpvotedThread = currentUser && (thread.upvoters || []).includes(currentUser.uid);
-        const userHasDownvotedThread = currentUser && (thread.downvoters || []).includes(currentUser.uid);
+      // Parse emojis and mentions in content before display
+      const parsedContent = await parseMentions(parseEmojis(thread.content));
 
-        const threadElement = document.createElement('div');
-        threadElement.classList.add('thread-card');
-        threadElement.innerHTML = `
-          <div class="flex justify-between items-center mb-2">
-              <div class="profile-info flex items-center">
-                  <img src="${authorPhotoURL}" alt="${authorName}'s profile picture" class="profile-pic w-8 h-8 rounded-full mr-2" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PIC}';">
-                  <p class="font-semibold text-gray-200">${authorName}</p>
-                  ${isAdminUser && currentUser.uid !== thread.authorUid ? `<button data-user-uid="${thread.authorUid}" data-display-name="${authorName}" class="delete-user-profile-btn text-red-400 hover:text-red-600 text-sm focus:outline-none ml-2"><i class="fas fa-user-minus"></i> Delete Profile</button>` : ''}
-              </div>
+      threadElement.innerHTML = `
+        <div class="flex items-center mb-4">
+          <img src="${authorPhotoURL}" alt="Profile" class="w-10 h-10 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-200">${authorDisplayName}</p>
+            <p class="text-sm text-gray-400">${thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-blue-300 mb-2">${thread.title}</h3>
+        <p class="text-gray-300 mb-4">${parsedContent}</p>
+        <div class="flex items-center text-gray-400 text-sm mb-4">
+          <span class="mr-4">Comments: ${thread.commentCount || 0}</span>
+          <div id="thread-reactions-${threadId}" class="flex flex-wrap items-center">
+            <!-- Reaction buttons will be rendered here -->
+          </div>
+        </div>
+        <div class="flex justify-end space-x-2 mb-4">
+          ${currentUser && currentUser.uid === thread.authorId ? `<button class="delete-thread-btn bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300" data-id="${threadId}">Delete Thread</button>` : ''}
+        </div>
+
+        <!-- Comments Section -->
+        <div class="mt-6 border-t border-gray-600 pt-6">
+          <h4 class="text-xl font-semibold text-gray-200 mb-4">Comments</h4>
+          <div id="comments-${threadId}" class="space-y-4">
+            <!-- Comments will be loaded here dynamically -->
+          </div>
+          ${currentUser ? `
+            <div class="mt-6 flex items-center">
+              <input type="text" id="comment-input-${threadId}" placeholder="Add a comment..." class="flex-grow bg-gray-600 text-gray-100 p-3 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <button class="post-comment-btn bg-blue-600 text-white p-3 rounded-r-md hover:bg-blue-700 transition duration-300" data-thread-id="${threadId}">Post</button>
+            </div>
+            <div class="mt-2 text-sm text-gray-400">
+                You can use emoji shortcodes (e.g., :smile:) and mention users (e.g., @username).
+                <div class="emoji-palette flex flex-wrap gap-2 mt-2">
+                  ${COMMON_EMOJIS.map(emoji => `<span class="emoji-item cursor-pointer text-xl" data-emoji="${emoji}">${emoji}</span>`).join('')}
+                </div>
+            </div>
+          ` : `<p class="text-gray-400 mt-4">Log in to post comments.</p>`}
+        </div>
+      `;
+      threadsList.appendChild(threadElement);
+
+      // Render initial reactions for the thread
+      const threadReactionsContainer = document.getElementById(`thread-reactions-${threadId}`);
+      renderReactionButtons('thread', threadId, thread.reactions || {}, threadReactionsContainer);
+
+      // Set up comments listener for this thread
+      const commentsColRef = collection(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`);
+      const commentsQuery = query(commentsColRef, orderBy("createdAt", "asc"));
+
+      onSnapshot(commentsQuery, async (commentSnapshot) => {
+        const commentsListDiv = document.getElementById(`comments-${threadId}`);
+        commentsListDiv.innerHTML = ''; // Clear comments to re-render
+        if (commentSnapshot.empty) {
+          commentsListDiv.innerHTML = '<p class="text-gray-400">No comments yet.</p>';
+        }
+
+        for (const commentDoc of commentSnapshot.docs) {
+          const comment = commentDoc.data();
+          const commentId = commentDoc.id;
+          const commentAuthorProfile = await getUserProfileFromFirestore(comment.authorId);
+          const commentAuthorDisplayName = commentAuthorProfile?.displayName || comment.authorDisplayName || 'Anonymous';
+          const commentAuthorPhotoURL = commentAuthorProfile?.photoURL || DEFAULT_PROFILE_PIC;
+
+          // Parse emojis and mentions in comment content before display
+          const parsedCommentContent = await parseMentions(parseEmojis(comment.content));
+
+          const commentElement = document.createElement('div');
+          commentElement.className = 'bg-gray-800 p-4 rounded-md shadow-sm';
+          commentElement.innerHTML = `
+            <div class="flex items-center mb-2">
+              <img src="${commentAuthorPhotoURL}" alt="Profile" class="w-8 h-8 rounded-full mr-2 object-cover">
               <div>
-                  ${(currentUser && currentUser.uid === thread.authorUid) || isAdminUser ? `<button data-thread-id="${threadId}" data-title="${thread.title}" data-content="${encodeURIComponent(thread.content)}" class="edit-thread-btn text-blue-400 hover:text-blue-600 focus:outline-none mr-2"><i class="fas fa-edit"></i> Edit</button>` : ''}
-                  ${(currentUser && currentUser.uid === thread.authorUid) || isAdminUser ? `<button data-thread-id="${threadId}" class="delete-thread-btn text-red-400 hover:text-red-600 focus:outline-none"><i class="fas fa-trash-alt"></i></button>` : ''}
+                <p class="font-semibold text-gray-200">${commentAuthorDisplayName}</p>
+                <p class="text-xs text-gray-500">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
               </div>
-          </div>
-          <h3 class="text-2xl font-bold text-red-300 mb-2">${thread.title}</h3>
-          <p class="text-gray-400 text-sm mb-4">Posted on ${threadTimestamp}
-              ${thread.editedAt ? `<span class="italic ml-2">(Edited on ${new Date(thread.editedAt.toDate()).toLocaleString()})</span>` : ''}
-          </p>
-          <div class="thread-content text-gray-200 mb-4">
-              ${renderContentWithMedia(thread.content)}
-          </div>
-          <div class="flex items-center space-x-4 mb-4">
-              <div class="vote-buttons flex items-center">
-                  <button class="upvote-thread-btn ${userHasUpvotedThread ? 'active' : ''} p-2 rounded-full"><i class="fas fa-arrow-up"></i></button>
-                  <span class="px-2">${upvotes}</span>
-                  <button class="downvote-thread-btn ${userHasDownvotedThread ? 'active' : ''} p-2 rounded-full"><i class="fas fa-arrow-down"></i></button>
-                  <span class="px-2">${downvotes}</span>
-              </div>
-          </div>
-          <div class="comment-section">
-              <h4 class="text-xl font-semibold text-gray-300 mb-3">Comments:</h4>
-              <div id="comments-${threadId}" class="comments-list">
-                  <!-- Comments will be loaded here -->
-                  <p class="text-gray-500">Loading comments...</p>
-              </div>
-              <!-- Comment form -->
-              <div class="mt-4">
-                  <textarea id="comment-input-${threadId}" rows="3" class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Add a comment..." ${currentUser ? '' : 'disabled'}></textarea>
-                  <button data-thread-id="${threadId}" class="post-comment-btn bg-green-600 text-white font-bold py-2 px-4 rounded-full mt-2 hover:bg-green-700 transition duration-300 ease-in-out" ${currentUser ? '' : 'disabled'}>Post Comment</button>
-              </div>
-          </div>
-        `;
-        threadsContainer.appendChild(threadElement);
+            </div>
+            <p class="text-gray-300 mb-2">${parsedCommentContent}</p>
+            <div class="flex items-center text-gray-400 text-xs">
+                <div id="comment-reactions-${commentId}" class="flex flex-wrap items-center">
+                    <!-- Comment reaction buttons will be rendered here -->
+                </div>
+                ${currentUser && (currentUser.uid === comment.authorId || currentUser.uid === thread.authorId) ? `
+                    <button class="delete-comment-btn text-red-400 hover:text-red-500 ml-auto transition duration-300" data-thread-id="${threadId}" data-comment-id="${commentId}">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                ` : ''}
+            </div>
+          `;
+          commentsListDiv.appendChild(commentElement);
 
-        // Add event listener for the delete thread button
-        const deleteThreadBtn = threadElement.querySelector(`.delete-thread-btn[data-thread-id="${threadId}"]`);
-        if (deleteThreadBtn) {
-          deleteThreadBtn.addEventListener('click', () => {
-            showConfirmationModal('Delete Thread', 'Are you sure you want to delete this thread? This action cannot be undone.', () => deleteThread(threadId));
-          });
+          // Render reactions for the comment
+          const commentReactionsContainer = document.getElementById(`comment-reactions-${commentId}`);
+          renderReactionButtons('comment', threadId, comment.reactions || {}, commentReactionsContainer, commentId);
         }
-
-        // Add event listener for the edit thread button
-        const editThreadBtn = threadElement.querySelector(`.edit-thread-btn[data-thread-id="${threadId}"]`);
-        if (editThreadBtn) {
-          editThreadBtn.addEventListener('click', () => {
-            const title = editThreadBtn.dataset.title;
-            const content = decodeURIComponent(editThreadBtn.dataset.content);
-            openEditModal('thread', threadId, threadId, title, content);
-          });
-        }
-
-        // Add event listener for delete user profile button
-        const deleteUserProfileBtn = threadElement.querySelector(`.delete-user-profile-btn[data-user-uid="${thread.authorUid}"]`);
-        if (deleteUserProfileBtn) {
-          deleteUserProfileBtn.addEventListener('click', () => {
-            const userUidToDelete = deleteUserProfileBtn.dataset.userUid;
-            const userDisplayName = deleteUserProfileBtn.dataset.displayName;
-            showConfirmationModal(
-              'Delete User Profile',
-              `Are you sure you want to delete the profile for "${userDisplayName}"? This will only remove their public profile data (display name, picture) but not their authentication account.`,
-              () => deleteUserProfile(userUidToDelete, userDisplayName)
-            );
-          });
-        }
-
-        // Add event listeners for thread voting buttons
-        const upvoteThreadBtn = threadElement.querySelector(`.upvote-thread-btn[data-thread-id="${threadId}"]`);
-        const downvoteThreadBtn = threadElement.querySelector(`.downvote-thread-btn[data-thread-id="${threadId}"]`);
-
-        if (upvoteThreadBtn) {
-          upvoteThreadBtn.addEventListener('click', () => handleVote('thread', threadId, null, 'up'));
-        }
-        if (downvoteThreadBtn) {
-          downvoteThreadBtn.addEventListener('click', () => handleVote('thread', threadId, null, 'down'));
-        }
-
-
-        // Listen for comments for this specific thread
-        const commentsQuery = query(collection(db, `artifacts/${appId}/public/data/discussion_threads`, threadId, 'comments'), orderBy("timestamp", "asc"));
-        onSnapshot(commentsQuery, async (commentSnapshot) => { // Made callback async
-          const commentsListDiv = document.getElementById(`comments-${threadId}`);
-          commentsListDiv.innerHTML = ''; // Clear existing comments
-
-          if (commentSnapshot.empty) {
-            commentsListDiv.innerHTML = '<p class="text-gray-500">No comments yet.</p>';
-          } else {
-            // Use for...of loop for comments too to ensure order and proper awaits
-            for (const commentDoc of commentSnapshot.docs) {
-              const comment = commentDoc.data();
-              const commentId = commentDoc.id; // Get comment ID
-              const commentTimestamp = comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now';
-
-              const commentAuthorProfile = await getUserProfile(comment.authorUid);
-              // Use the profile data from Firestore, fall back to what's in the comment doc, then default
-              const commentAuthorName = commentAuthorProfile?.displayName || comment.authorName || 'Anonymous User';
-              const commentAuthorPhoto = commentAuthorProfile?.photoURL || comment.authorPhotoURL || DEFAULT_PROFILE_PIC;
-
-              const commentUpvotes = (comment.upvoters || []).length;
-              const commentDownvotes = (comment.downvoters || []).length;
-
-              // Check if current user has upvoted/downvoted this comment
-              const userHasUpvotedComment = currentUser && (comment.upvoters || []).includes(currentUser.uid);
-              const userHasDownvotedComment = currentUser && (comment.downvoters || []).includes(currentUser.uid);
-
-              const commentElement = document.createElement('div');
-              commentElement.classList.add('comment-card');
-              commentElement.innerHTML = `
-                        <div class="flex justify-between items-start mb-1">
-                            <div class="profile-info flex items-center">
-                                <img src="${commentAuthorPhoto}" alt="${commentAuthorName}'s profile picture" class="profile-pic w-7 h-7 rounded-full mr-2" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PIC}';">
-                                <p class="text-gray-300 font-semibold mr-2">${commentAuthorName} <span class="text-gray-500 text-xs">on ${commentTimestamp}</span>
-                                  ${comment.editedAt ? `<span class="italic ml-2">(Edited on ${new Date(comment.editedAt.toDate()).toLocaleString()})</span>` : ''}
-                                </p>
-                                ${isAdminUser && currentUser.uid !== comment.authorUid ? `<button data-user-uid="${comment.authorUid}" data-display-name="${commentAuthorName}" class="delete-user-profile-btn text-red-400 hover:text-red-600 text-sm focus:outline-none ml-2"><i class="fas fa-user-minus"></i> Delete Profile</button>` : ''}
-                            </div>
-                            <div>
-                                ${(currentUser && currentUser.uid === comment.authorUid) || isAdminUser ? `<button data-thread-id="${threadId}" data-comment-id="${commentId}" data-content="${encodeURIComponent(comment.content)}" class="edit-comment-btn text-blue-400 hover:text-blue-600 focus:outline-none mr-2"><i class="fas fa-edit"></i> Edit</button>` : ''}
-                                ${(currentUser && currentUser.uid === comment.authorUid) || isAdminUser ? `<button data-thread-id="${threadId}" data-comment-id="${commentId}" class="delete-comment-btn text-red-400 hover:text-red-600 focus:outline-none"><i class="fas fa-trash-alt"></i></button>` : ''}
-                            </div>
-                        </div>
-                        <div class="comment-content text-gray-200 mt-1">
-                            ${renderContentWithMedia(comment.content)}
-                        </div>
-                        <div class="flex items-center space-x-4 mt-2">
-                            <div class="vote-buttons flex items-center">
-                                <button class="upvote-comment-btn ${userHasUpvotedComment ? 'active' : ''} p-2 rounded-full"><i class="fas fa-arrow-up"></i></button>
-                                <span class="px-2">${commentUpvotes}</span>
-                                <button class="downvote-comment-btn ${userHasDownvotedComment ? 'active' : ''} p-2 rounded-full"><i class="fas fa-arrow-down"></i></button>
-                                <span class="px-2">${commentDownvotes}</span>
-                            </div>
-                        </div>
-                    `;
-              commentsListDiv.appendChild(commentElement);
-
-              // Add event listener for the delete comment button
-              const deleteCommentBtn = commentElement.querySelector(`.delete-comment-btn[data-comment-id="${commentId}"]`);
-              if (deleteCommentBtn) {
-                deleteCommentBtn.addEventListener('click', () => {
-                  showConfirmationModal('Delete Comment', 'Are you sure you want to delete this comment? This action cannot be undone.', () => deleteComment(threadId, commentId));
-                });
-              }
-
-              // Add event listener for the edit comment button
-              const editCommentBtn = commentElement.querySelector(`.edit-comment-btn[data-comment-id="${commentId}"]`);
-              if (editCommentBtn) {
-                editCommentBtn.addEventListener('click', () => {
-                  const content = decodeURIComponent(editCommentBtn.dataset.content);
-                  openEditModal('comment', threadId, commentId, '', content); // No title for comments
-                });
-              }
-
-              // Add event listener for delete user profile button within comments
-              const deleteCommentUserProfileBtn = commentElement.querySelector(`.delete-user-profile-btn[data-user-uid="${comment.authorUid}"]`);
-              if (deleteCommentUserProfileBtn) {
-                deleteCommentUserProfileBtn.addEventListener('click', () => {
-                  const userUidToDelete = deleteCommentUserProfileBtn.dataset.userUid;
-                  const userDisplayName = deleteCommentUserProfileBtn.dataset.displayName;
-                  showConfirmationModal(
-                    'Delete User Profile',
-                    `Are you sure you want to delete the profile for "${userDisplayName}"? This will only remove their public profile data (display name, picture) but not their authentication account.`,
-                    () => deleteUserProfile(userUidToDelete, userDisplayName)
-                  );
-                });
-              }
-
-              // Add event listeners for comment voting buttons
-              const upvoteCommentBtn = commentElement.querySelector(`.upvote-comment-btn[data-comment-id="${commentId}"]`);
-              const downvoteCommentBtn = commentElement.querySelector(`.downvote-comment-btn[data-comment-id="${commentId}"]`);
-
-              if (upvoteCommentBtn) {
-                upvoteCommentBtn.addEventListener('click', () => handleVote('comment', threadId, commentId, 'up'));
-              }
-              if (downvoteCommentBtn) {
-                downvoteCommentBtn.addEventListener('click', () => handleVote('comment', threadId, commentId, 'down'));
-              }
-            }
-          }
-        }, (commentError) => {
-          console.error(`Error fetching comments for thread ${threadId}:`, commentError);
-          const commentsListDiv = document.getElementById(`comments-${threadId}`);
-          commentsListDiv.innerHTML = `<p class="text-red-500">Error loading comments.</p>`;
-        });
 
         // Add event listener for the comment button after it's been added to DOM
         const postCommentBtn = threadElement.querySelector(`.post-comment-btn[data-thread-id="${threadId}"]`);
         if (postCommentBtn) {
-          postCommentBtn.addEventListener('click', () => {
-            const commentInput = document.getElementById(`comment-input-${threadId}`);
-            const commentContent = commentInput.value;
-            addCommentToThread(threadId, commentContent);
-            commentInput.value = ''; // Clear input after posting
-          });
+          postCommentBtn.removeEventListener('click', handlePostComment); // Prevent duplicate listeners
+          postCommentBtn.addEventListener('click', handlePostComment);
         }
+        // Add event listener for emoji palette
+        const emojiPalette = threadElement.querySelector('.emoji-palette');
+        if (emojiPalette) {
+          emojiPalette.removeEventListener('click', handleEmojiPaletteClick); // Prevent duplicate listeners
+          emojiPalette.addEventListener('click', handleEmojiPaletteClick);
+        }
+      }, (commentError) => {
+        console.error(`Error fetching comments for thread ${threadId}:`, commentError);
+        const commentsListDiv = document.getElementById(`comments-${threadId}`);
+        commentsListDiv.innerHTML = `<p class="text-red-500">Error loading comments.</p>`;
+      });
+
+      // Add event listener for delete thread button (outside comments listener to ensure it's always attached once per thread)
+      const deleteThreadBtn = threadElement.querySelector(`.delete-thread-btn[data-id="${threadId}"]`);
+      if (deleteThreadBtn) {
+        deleteThreadBtn.removeEventListener('click', handleDeleteThread); // Prevent duplicate listeners
+        deleteThreadBtn.addEventListener('click', handleDeleteThread);
       }
-    }
+    });
+
+    // Delegate comment delete button handling to the commentsListDiv (more efficient for dynamic elements)
+    threadsList.removeEventListener('click', handleCommentAction); // Remove old listener
+    threadsList.addEventListener('click', handleCommentAction);
   }, (error) => {
     console.error("Error fetching real-time threads:", error);
     threadsLoadingError.textContent = `Failed to load threads: ${error.message || 'Unknown error'}`;
@@ -847,10 +634,161 @@ if (db) {
   });
 }
 
-// Get current year for footer
-document.getElementById('current-year-forms').textContent = new Date().getFullYear();
+// --- EVENT HANDLERS ---
 
+async function handlePostComment(event) {
+  const threadId = event.target.dataset.threadId;
+  const commentInput = document.getElementById(`comment-input-${threadId}`);
+  const commentContent = commentInput.value;
+  await addCommentToThread(threadId, commentContent);
+  commentInput.value = ''; // Clear input after posting
+}
+
+async function handleDeleteThread(event) {
+  const threadId = event.target.dataset.id;
+  await deleteThread(threadId);
+}
+
+function handleCommentAction(event) {
+  if (event.target.classList.contains('delete-comment-btn') || event.target.closest('.delete-comment-btn')) {
+    const button = event.target.closest('.delete-comment-btn');
+    const threadId = button.dataset.threadId;
+    const commentId = button.dataset.commentId;
+    deleteComment(threadId, commentId);
+  }
+}
+
+function handleEmojiPaletteClick(event) {
+  const emojiItem = event.target.closest('.emoji-item');
+  if (emojiItem) {
+    const emoji = emojiItem.dataset.emoji;
+    const threadElement = emojiItem.closest('.bg-gray-700');
+    const threadId = threadElement.id.replace('thread-', '');
+    const commentInput = document.getElementById(`comment-input-${threadId}`);
+    if (commentInput) {
+      const start = commentInput.selectionStart;
+      const end = commentInput.selectionEnd;
+      commentInput.value = commentInput.value.substring(0, start) + emoji + commentInput.value.substring(end);
+      commentInput.setSelectionRange(start + emoji.length, start + emoji.length);
+      commentInput.focus();
+    }
+  }
+}
+
+// --- INITIALIZATION ---
+
+firebaseReadyPromise = new Promise((resolve) => {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    isFirebaseInitialized = true;
+    console.log("Firebase initialized successfully.");
+
+    // Pass Firebase instances to themes.js
+    setupThemesFirebase(db, auth, appId);
+
+    // Ensure user authentication state is known before proceeding with Firestore operations
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
+      unsubscribe(); // Unsubscribe immediately after the first state change
+
+      if (typeof __initial_auth_token !== 'undefined' && !user) {
+        // If Canvas provides a token and no user is signed in, try custom token sign-in
+        signInWithCustomToken(auth, __initial_auth_token)
+          .then(async (userCredential) => {
+            currentUser = userCredential.user;
+            console.log("DEBUG: Signed in with custom token from Canvas (forms page).");
+            // Fetch user profile and update current user object with displayName
+            const profile = await getUserProfileFromFirestore(currentUser.uid);
+            if (profile) {
+              currentUser.displayName = profile.displayName;
+              currentUser.photoURL = profile.photoURL;
+            }
+            resolve();
+          })
+          .catch((error) => {
+            console.error("ERROR: Error signing in with custom token (forms page):", error);
+            signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
+              .then(async (userCredential) => {
+                currentUser = userCredential.user;
+                console.log("DEBUG: Signed in anonymously (forms page) after custom token failure.");
+                resolve();
+              })
+              .catch((anonError) => {
+                console.error("ERROR: Error signing in anonymously on forms page:", anonError);
+                resolve(); // Resolve even on error to prevent infinite loading
+              });
+          });
+      } else if (!user && typeof __initial_auth_token === 'undefined') {
+        // If no Canvas token and no user, sign in anonymously
+        signInAnonymously(auth)
+          .then(async (userCredential) => {
+            currentUser = userCredential.user;
+            console.log("DEBUG: Signed in anonymously (no custom token) on forms page.");
+            resolve();
+          })
+          .catch((anonError) => {
+            console.error("ERROR: Error signing in anonymously on forms page:", anonError);
+            resolve(); // Resolve even on error
+          });
+      } else {
+        // If user is already authenticated (e.g., from a previous page), set currentUser
+        currentUser = user;
+        // Fetch user profile and update current user object with displayName
+        if (currentUser) {
+          const profile = await getUserProfileFromFirestore(currentUser.uid);
+          if (profile) {
+            currentUser.displayName = profile.displayName;
+            currentUser.photoURL = profile.photoURL;
+          }
+        }
+        resolve();
+      }
+    });
+  } catch (e) {
+    console.error("Error initializing Firebase (initial block):", e);
+    showMessageBox("Error initializing Firebase. Cannot proceed.", true);
+    resolve(); // Resolve immediately on error to prevent infinite loading
+  }
+});
+
+// Main execution logic on window load
 window.onload = async function() {
-  await firebaseReadyPromise;
-  loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+  await firebaseReadyPromise; // Wait for Firebase init and auth state to be known
+
+  // Load navbar
+  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+  // After everything is loaded and Firebase is ready, apply the user's theme
+  let userThemePreference = null;
+  if (currentUser) {
+    const userProfile = await getUserProfileFromFirestore(currentUser.uid);
+    userThemePreference = userProfile?.themePreference;
+  }
+  const allThemes = await getAvailableThemes();
+  const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+  applyTheme(themeToApply.id, themeToApply);
+
+
+  // Attach form submit listener
+  if (createThreadForm) {
+    createThreadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = threadTitleInput.value.trim();
+      const content = threadContentInput.value.trim();
+
+      if (!title || !content) {
+        showMessageBox("Please enter both title and content for your thread.", true);
+        return;
+      }
+      await createThread(title, content);
+    });
+  }
+
+  // Get current year for footer
+  document.getElementById('current-year-forms').textContent = new Date().getFullYear();
+
+  // Setup real-time listeners for threads and comments after initialization
+  setupRealtimeListeners();
 };
