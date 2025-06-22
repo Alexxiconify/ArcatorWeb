@@ -53,6 +53,12 @@
           </div>
 
           <div class="input-field">
+            <label for="handle-input">Unique Handle (@username):</label>
+            <input type="text" id="handle-input" placeholder="e.g., myhandle123" pattern="^[a-zA-Z0-9_.-]+$" title="Only letters, numbers, underscores, periods, and hyphens allowed.">
+            <p id="handle-message" class="text-sm mt-1"></p>
+          </div>
+
+          <div class="input-field">
             <label for="profile-picture-url-input">Profile Picture URL:</label>
             <input type="url" id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg">
             <p id="url-preview-message" class="text-secondary text-sm mt-1" style="display: none;">Enter a direct link to an image (JPG, PNG, GIF).</p>
