@@ -123,11 +123,11 @@ const confirmNoBtn = document.getElementById('confirm-no');
 
 // --- EMOJI & MENTION CONFIGURATION ---
 /** @global {string[]} COMMON_EMOJIS - Array of commonly used emojis. */
-const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔']; // Corrected broken emoji
+const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
 /** @global {object} EMOJI_MAP - Mapping of shortcodes to emoji characters. */
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
-  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
+  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '�',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
   ':cry:': '😢', ':sleepy:': '😴'
 };
