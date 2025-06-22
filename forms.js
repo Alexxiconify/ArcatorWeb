@@ -10,7 +10,7 @@ console.log("forms.js - Script parsing initiated.");
 // --- Firebase Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Local Module Imports ---
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
@@ -46,94 +46,82 @@ let isFirebaseInitialized = false;
 // --- Admin UIDs for Announcements (Replace with your actual Admin UIDs) ---
 // IMPORTANT: Replace 'CEch8cXWemSDQnM3dHVKPt0RGpn2' and 'OoeTK1HmebQyOf3gEiCKAHVtD6l2' with the actual UIDs of your Firebase authenticated admin users.
 // You can find UIDs in the Firebase Authentication section of your Firebase console.
-// Ensure there are no newline characters if copied directly from console.
 const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2'];
 
 // --- Default Values ---
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 const DEFAULT_THEME_NAME = 'dark';
 
+// --- DM State Variables ---
+let selectedConversationId = null;
+let unsubscribeCurrentMessages = null; // Listener for messages in the currently selected conversation
+let allConversations = []; // Array to hold fetched conversations for sorting
+let currentSortOption = 'lastMessageAt_desc'; // Default sort for conversations list
+
 // --- DOM Elements ---
 // Forum Elements
-/** @global {HTMLElement} threadsList - The container for forum threads. */
 const threadsList = document.getElementById('threads-list');
-/** @global {HTMLFormElement} createThreadForm - The form for creating new threads. */
 const createThreadForm = document.getElementById('create-thread-form');
-/** @global {HTMLInputElement} threadTitleInput - Input field for thread title. */
 const threadTitleInput = document.getElementById('thread-title');
-/** @global {HTMLTextAreaElement} threadContentInput - Textarea for thread content. */
 const threadContentInput = document.getElementById('thread-content');
-/** @global {HTMLElement} threadsLoadingError - Element to display thread loading errors. */
 const threadsLoadingError = document.getElementById('threads-loading-error');
-/** @global {HTMLElement} noThreadsMessage - Element to display when no threads are found. */
 const noThreadsMessage = document.getElementById('no-threads-message');
 
-// DM Elements
-/** @global {HTMLFormElement} sendDmForm - Form for sending direct messages. */
-const sendDmForm = document.getElementById('send-dm-form');
-/** @global {HTMLInputElement} dmReceiverHandleInput - Input for DM recipient handle. */
-const dmReceiverHandleInput = document.getElementById('dm-receiver-handle');
-/** @global {HTMLTextAreaElement} dmContentInput - Textarea for DM content. */
-const dmContentInput = document.getElementById('dm-content');
-/** @global {HTMLElement} dmsList - Container for displaying direct messages. */
-const dmsList = document.getElementById('dms-list');
-/** @global {HTMLElement} noDMsMessage - Message displayed when no DMs are found. */
-const noDMsMessage = document.getElementById('no-dms-message');
+// DM Elements (Updated IDs for new structure)
+const createConversationForm = document.getElementById('create-conversation-form');
+const newChatTypeSelect = document.getElementById('new-chat-type');
+const privateChatFields = document.getElementById('private-chat-fields');
+const privateChatRecipientInput = document.getElementById('private-chat-recipient');
+const groupChatFields = document.getElementById('group-chat-fields');
+const groupChatNameInput = document.getElementById('group-chat-name');
+const groupChatParticipantsInput = document.getElementById('group-chat-participants');
+const sortConversationsBySelect = document.getElementById('sort-conversations-by');
+const conversationsList = document.getElementById('conversations-list');
+const noConversationsMessage = document.getElementById('no-conversations-message');
+const messagesPanel = document.getElementById('messages-panel'); // Right panel for messages
+const selectedConversationHeader = document.getElementById('selected-conversation-header');
+const conversationTitleHeader = document.getElementById('conversation-title');
+const deleteConversationBtn = document.getElementById('delete-conversation-btn');
+const conversationMessagesContainer = document.getElementById('conversation-messages-container');
+const noMessagesMessage = document.getElementById('no-messages-message');
+const messageInputArea = document.getElementById('message-input-area');
+const sendMessageForm = document.getElementById('send-message-form');
+const messageContentInput = document.getElementById('message-content-input');
+
 
 // Announcement Elements
-/** @global {HTMLElement} createAnnouncementSection - Admin-only section for creating announcements. */
 const createAnnouncementSection = document.getElementById('create-announcement-section');
-/** @global {HTMLFormElement} createAnnouncementForm - Form for creating announcements. */
 const createAnnouncementForm = document.getElementById('create-announcement-form');
-/** @global {HTMLTextAreaElement} announcementContentInput - Textarea for announcement content. */
 const announcementContentInput = document.getElementById('announcement-content');
-/** @global {HTMLElement} announcementsList - Container for displaying announcements. */
 const announcementsList = document.getElementById('announcements-list');
-/** @global {HTMLElement} noAnnouncementsMessage - Message displayed when no announcements are found. */
 const noAnnouncementsMessage = document.getElementById('no-announcements-message');
 
 // Tab Elements
-/** @global {HTMLButtonElement} tabForum - Button for the Forum tab. */
 const tabForum = document.getElementById('tab-forum');
-/** @global {HTMLButtonElement} tabDMs - Button for the Direct Messages tab. */
 const tabDMs = document.getElementById('tab-dms');
-/** @global {HTMLButtonElement} tabAnnouncements - Button for the Announcements tab. */
 const tabAnnouncements = document.getElementById('tab-announcements');
 
-/** @global {HTMLElement} contentForum - Content section for the Forum tab. */
 const contentForum = document.getElementById('content-forum');
-/** @global {HTMLElement} contentDMs - Content section for the Direct Messages tab. */
 const contentDMs = document.getElementById('content-dms');
-/** @global {HTMLElement} contentAnnouncements - Content section for the Announcements tab. */
 const contentAnnouncements = document.getElementById('content-announcements');
 
 // Message Box and Confirm Modal
-/** @global {HTMLElement} messageBox - Custom message display box. */
 const messageBox = document.getElementById('message-box');
-/** @global {HTMLElement} customConfirmModal - Custom confirmation modal. */
 const customConfirmModal = document.getElementById('custom-confirm-modal');
-/** @global {HTMLElement} confirmMessage - Element for the main confirmation message. */
 const confirmMessage = document.getElementById('confirm-message');
-/** @global {HTMLElement} confirmSubmessage - Element for the sub-message in confirmation modal. */
 const confirmSubmessage = document.getElementById('confirm-submessage');
-/** @global {HTMLButtonElement} confirmYesBtn - 'Yes' button in confirmation modal. */
 const confirmYesBtn = document.getElementById('confirm-yes');
-/** @global {HTMLButtonElement} confirmNoBtn - 'No' button in confirmation modal. */
 const confirmNoBtn = document.getElementById('confirm-no');
 
 // --- EMOJI & MENTION CONFIGURATION ---
-/** @global {string[]} COMMON_EMOJIS - Array of commonly used emojis. */
 const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
-/** @global {object} EMOJI_MAP - Mapping of shortcodes to emoji characters. */
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
   ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
   ':cry:': '😢', ':sleepy:': '😴'
 };
-/** @global {object} userHandleCache - Cache for UID -> handle mapping. */
 let userHandleCache = {};
-/** @global {object} handleUidCache - Cache for handle -> UID mapping. */
 let handleUidCache = {};
 
 /**
@@ -145,6 +133,49 @@ let handleUidCache = {};
 function sanitizeHandle(input) {
   return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
 }
+
+/**
+ * Resolves an array of user handles to their corresponding UIDs.
+ * Caches results for future use.
+ * @param {string[]} handles - An array of user handles (e.g., ['@user1', 'user2']).
+ * @returns {Promise<string[]>} A Promise that resolves to an array of user UIDs.
+ */
+async function resolveHandlesToUids(handles) {
+  const uids = [];
+  const handlesToFetch = [];
+
+  for (const handle of handles) {
+    const sanitizedHandle = sanitizeHandle(handle.startsWith('@') ? handle.substring(1) : handle);
+    if (handleUidCache[sanitizedHandle]) {
+      uids.push(handleUidCache[sanitizedHandle]);
+    } else {
+      handlesToFetch.push(sanitizedHandle);
+    }
+  }
+
+  if (handlesToFetch.length > 0) {
+    const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    // Firestore 'in' query supports up to 10 items
+    const q = query(userProfilesRef, where("handle", "in", handlesToFetch));
+    try {
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(docSnap => {
+        const profile = docSnap.data();
+        const uid = docSnap.id;
+        if (profile.handle) {
+          userHandleCache[uid] = profile.handle;
+          handleUidCache[profile.handle] = uid;
+          uids.push(uid);
+        }
+      });
+    } catch (error) {
+      console.error("Error resolving handles from Firestore:", error);
+      showMessageBox("Error resolving some user handles.", true);
+    }
+  }
+  return uids;
+}
+
 
 /**
  * Generates a unique handle for a given user UID and saves it to their profile in Firestore.
@@ -498,7 +529,7 @@ async function deleteComment(threadId, commentId) {
  * @param {'thread'|'comment'} type - The type of item (thread or comment) being reacted to.
  * @param {string} itemId - The ID of the thread (for thread reactions) or the parent thread (for comment reactions).
  * @param {string | null} commentId - The ID of the comment (if `type` is 'comment'), otherwise `null`.
- * @param {string} emoji - The emoji string (e.g., '�', '❤️') to apply/remove as a reaction.
+ * @param {string} emoji - The emoji string (e.g., '👍', '❤️') to apply/remove as a reaction.
  */
 async function handleReaction(type, itemId, commentId = null, emoji) {
   if (!currentUser) {
@@ -590,16 +621,413 @@ function renderReactionButtons(type, itemId, reactions, containerElement, commen
   }
 }
 
-// --- DIRECT MESSAGE FUNCTIONS ---
+// --- DIRECT MESSAGE (DM) FUNCTIONS (MAJOR REFACTOR) ---
 
 /**
- * Sends a direct message to a specific recipient handle.
- * @param {string} receiverHandle - The handle of the message recipient.
+ * Creates a new conversation (private or group chat) in Firestore.
+ * @param {string} type - 'private' or 'group'.
+ * @param {string[]} participantHandles - Handles of all participants (including current user for groups).
+ * @param {string} [groupName=''] - Optional name for group chats.
+ */
+async function createConversation(type, participantHandles, groupName = '') {
+  if (!currentUser || !currentUser.uid || !currentUser.handle) {
+    showMessageBox("You must be logged in and have a handle to start a chat.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot create chat.", true);
+    return;
+  }
+
+  // Add current user to participants for private chats as well
+  const allParticipantHandles = new Set(participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h)));
+  allParticipantHandles.add(currentUser.handle);
+
+  const participantUids = await resolveHandlesToUids(Array.from(allParticipantHandles));
+
+  if (participantUids.length < 1 || (type === 'private' && participantUids.length !== 2)) {
+    showMessageBox("Please provide valid participant handles for the chat. Private chats require exactly one other user.", true);
+    return;
+  }
+  if (participantUids.length === 1 && type === 'private') {
+    showMessageBox("You cannot start a private chat with yourself.", true);
+    return;
+  }
+  if (type === 'group' && participantUids.length < 2) {
+    showMessageBox("Group chats require at least two participants (including yourself).", true);
+    return;
+  }
+
+
+  const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
+
+  // For private chats, check if a conversation already exists between these two users
+  if (type === 'private') {
+    // Sort UIDs to create a consistent ID for 1-to-1 chats
+    const sortedUids = participantUids.sort();
+    const existingChatQuery = query(
+      conversationsCol,
+      where('type', '==', 'private'),
+      where('participants', 'array-contains-any', [sortedUids[0]]), // Check for first user
+      // No direct way to check for 'array-contains-all' two specific values without a composite index
+      // The Firestore rules should prevent creating duplicates if participants array is indexed.
+      // We'll rely on the client-side check here and database rules.
+    );
+    const existingChatsSnapshot = await getDocs(existingChatQuery);
+    let existingConversation = null;
+    existingChatsSnapshot.forEach(doc => {
+      const conv = doc.data();
+      // Manually check if both participants are present and no others
+      if (conv.participants.length === 2 && conv.participants.includes(sortedUids[0]) && conv.participants.includes(sortedUids[1])) {
+        existingConversation = doc;
+      }
+    });
+
+
+    if (existingConversation) {
+      showMessageBox("A private chat with this user already exists. Opening it now.", false);
+      selectConversation(existingConversation.id, existingConversation.data());
+      return;
+    }
+  }
+
+
+  const conversationData = {
+    type: type,
+    participants: participantUids, // Store UIDs
+    name: type === 'group' ? (groupName.trim() || 'Unnamed Group') : '',
+    createdAt: serverTimestamp(),
+    createdBy: currentUser.uid,
+    lastMessageAt: serverTimestamp(), // Initialize with creation time
+    lastMessageContent: type === 'private' ? 'Chat started' : `${currentUser.handle} started the group chat.`,
+    lastMessageSenderHandle: currentUser.handle,
+    lastMessageSenderId: currentUser.uid,
+  };
+
+  try {
+    const newConvRef = await addDoc(conversationsCol, conversationData);
+    showMessageBox(`New ${type} chat created successfully!`, false);
+    createConversationForm.reset();
+    privateChatFields.classList.remove('hidden'); // Reset UI
+    groupChatFields.classList.add('hidden');
+    privateChatRecipientInput.value = '';
+    groupChatNameInput.value = '';
+    groupChatParticipantsInput.value = '';
+
+    // Automatically select the new conversation
+    const newConvSnap = await getDoc(newConvRef);
+    if (newConvSnap.exists()) {
+      selectConversation(newConvRef.id, newConvSnap.data());
+    }
+
+  } catch (error) {
+    console.error("Error creating conversation:", error);
+    showMessageBox(`Error creating chat: ${error.message}`, true);
+  }
+}
+
+/**
+ * Renders the list of conversations for the current user.
+ * Subscribes to real-time updates.
+ */
+let unsubscribeConversations = null;
+function renderConversationsList() {
+  if (!db || !conversationsList || !currentUser) {
+    console.warn("DB, conversationsList, or currentUser not ready for conversations rendering.");
+    if (conversationsList) conversationsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view conversations.</p>';
+    if (noConversationsMessage) noConversationsMessage.style.display = 'none';
+    return;
+  }
+
+  // Unsubscribe from previous listener if active
+  if (unsubscribeConversations) {
+    unsubscribeConversations();
+    unsubscribeConversations = null;
+  }
+
+  const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
+  // Query for conversations where the current user is a participant.
+  // This query requires a composite index: 'participants' (array) + 'lastMessageAt' (desc)
+  const q = query(
+    conversationsCol,
+    where('participants', 'array-contains', currentUser.uid)
+    // orderBy is not used here to avoid additional composite indexes
+    // Sorting will be done client-side after fetching all conversations for the user
+  );
+
+  unsubscribeConversations = onSnapshot(q, async (snapshot) => {
+    allConversations = []; // Reset for each snapshot
+    if (snapshot.empty) {
+      noConversationsMessage.style.display = 'block';
+      conversationsList.innerHTML = '';
+      updateDmUiForNoConversationSelected(); // Clear right panel if no conversations
+      return;
+    } else {
+      noConversationsMessage.style.display = 'none';
+    }
+
+    const profilesToFetch = new Set();
+    snapshot.forEach(doc => {
+      const conv = doc.data();
+      conv.participants.forEach(uid => profilesToFetch.add(uid));
+      allConversations.push({ id: doc.id, ...conv });
+    });
+
+    // Fetch all necessary user profiles in one go
+    const fetchedProfiles = new Map();
+    for (const uid of profilesToFetch) {
+      const profile = await getUserProfileFromFirestore(uid);
+      if (profile) {
+        fetchedProfiles.set(uid, profile);
+        userHandleCache[uid] = profile.handle;
+        handleUidCache[profile.handle] = uid;
+      }
+    }
+
+    // Apply sorting based on currentSortOption
+    allConversations.sort((a, b) => {
+      const getDisplayNameForSorting = (conv, isA = true) => {
+        if (conv.type === 'group') return conv.name || 'Unnamed Group';
+        // For private chat, find the other participant's handle
+        const otherUid = conv.participants.find(uid => uid !== currentUser.uid);
+        const otherProfile = fetchedProfiles.get(otherUid);
+        return otherProfile?.handle || otherProfile?.displayName || 'Unknown User';
+      };
+
+      switch (currentSortOption) {
+        case 'lastMessageAt_desc':
+          return (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0);
+        case 'createdAt_desc':
+          return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
+        case 'createdAt_asc':
+          return (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0);
+        case 'otherUsername_asc':
+          const nameA_asc = getDisplayNameForSorting(a);
+          const nameB_asc = getDisplayNameForSorting(b);
+          return nameA_asc.localeCompare(nameB_asc);
+        case 'otherUsername_desc':
+          const nameA_desc = getDisplayNameForSorting(a);
+          const nameB_desc = getDisplayNameForSorting(b);
+          return nameB_desc.localeCompare(nameA_desc);
+        case 'groupName_asc':
+          const groupA_asc = a.type === 'group' ? a.name || 'Unnamed Group' : '';
+          const groupB_asc = b.type === 'group' ? b.name || 'Unnamed Group' : '';
+          return groupA_asc.localeCompare(groupB_asc);
+        case 'groupName_desc':
+          const groupA_desc = a.type === 'group' ? a.name || 'Unnamed Group' : '';
+          const groupB_desc = b.type === 'group' ? b.name || 'Unnamed Group' : '';
+          return groupB_desc.localeCompare(groupA_desc);
+        default:
+          return (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0);
+      }
+    });
+
+
+    conversationsList.innerHTML = '';
+    allConversations.forEach(conv => {
+      let chatName = conv.name;
+      let displayPhoto = DEFAULT_PROFILE_PIC;
+      let lastMessageSnippet = conv.lastMessageContent || 'No messages yet.';
+      if (lastMessageSnippet.length > 50) lastMessageSnippet = lastMessageSnippet.substring(0, 47) + '...';
+
+      if (conv.type === 'private') {
+        const otherParticipantUid = conv.participants.find(uid => uid !== currentUser.uid);
+        const otherProfile = fetchedProfiles.get(otherParticipantUid);
+        chatName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+        displayPhoto = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+      } else { // Group chat
+        chatName = conv.name || `Group Chat (${conv.participants.length} members)`;
+        // For group chats, a generic group icon or first participant's photo
+        displayPhoto = 'https://placehold.co/32x32/1F2937/E5E7EB?text=GC'; // Generic Group Chat icon
+      }
+
+      const conversationItem = document.createElement('div');
+      conversationItem.className = `conversation-item flex items-center p-3 rounded-lg cursor-pointer ${selectedConversationId === conv.id ? 'active' : ''}`;
+      conversationItem.dataset.conversationId = conv.id;
+      conversationItem.innerHTML = `
+                <img src="${displayPhoto}" alt="User" class="w-10 h-10 rounded-full mr-3 object-cover">
+                <div class="flex-grow">
+                    <p class="font-semibold text-gray-200">${chatName}</p>
+                    <p class="text-sm text-gray-400">${lastMessageSnippet}</p>
+                </div>
+            `;
+      conversationsList.appendChild(conversationItem);
+    });
+
+    // Re-attach click listeners for conversation items
+    conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const convId = item.dataset.conversationId;
+        const selectedConv = allConversations.find(conv => conv.id === convId);
+        if (selectedConv) {
+          selectConversation(convId, selectedConv);
+        }
+      });
+    });
+
+    // If a conversation was previously selected and is still in the list, re-select it
+    if (selectedConversationId && !allConversations.some(c => c.id === selectedConversationId)) {
+      // If selected conversation no longer exists, clear selection
+      updateDmUiForNoConversationSelected();
+    } else if (selectedConversationId) {
+      // If it exists, ensure it's visually active
+      const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${selectedConversationId}"]`);
+      if (activeItem) {
+        document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
+        activeItem.classList.add('active');
+      }
+    }
+  }, (error) => {
+    console.error("Error fetching conversations:", error);
+    showMessageBox(`Error loading conversations: ${error.message}`, true);
+    conversationsList.innerHTML = `<p class="text-red-500 text-center">Error loading conversations.</p>`;
+    noConversationsMessage.style.display = 'none';
+  });
+}
+
+/**
+ * Selects a conversation, loads its messages, and updates the right panel UI.
+ * @param {string} convId - The ID of the conversation to select.
+ * @param {object} conversationData - The conversation object data.
+ */
+async function selectConversation(convId, conversationData) {
+  selectedConversationId = convId;
+  if (unsubscribeCurrentMessages) {
+    unsubscribeCurrentMessages(); // Unsubscribe from previous messages listener
+  }
+
+  // Update UI for active conversation item
+  document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
+  const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${convId}"]`);
+  if (activeItem) {
+    activeItem.classList.add('active');
+  }
+
+  // Update header
+  let displayTitle = conversationData.name;
+  if (conversationData.type === 'private') {
+    const otherParticipantUid = conversationData.participants.find(uid => uid !== currentUser.uid);
+    const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
+    displayTitle = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+  } else {
+    displayTitle = conversationData.name || `Group Chat (${conversationData.participants.length} members)`;
+  }
+  conversationTitleHeader.textContent = displayTitle;
+  deleteConversationBtn.classList.remove('hidden');
+  deleteConversationBtn.dataset.conversationId = convId; // Set ID for deletion
+
+  messageInputArea.classList.remove('hidden');
+  noMessagesMessage.style.display = 'none';
+  conversationMessagesContainer.innerHTML = ''; // Clear previous messages
+
+  renderConversationMessages(convId);
+}
+
+/**
+ * Clears the right DM panel when no conversation is selected (or when the selected one is deleted).
+ */
+function updateDmUiForNoConversationSelected() {
+  selectedConversationId = null;
+  if (unsubscribeCurrentMessages) {
+    unsubscribeCurrentMessages();
+    unsubscribeCurrentMessages = null;
+  }
+  conversationTitleHeader.textContent = 'Select a Conversation';
+  deleteConversationBtn.classList.add('hidden');
+  messageInputArea.classList.add('hidden');
+  conversationMessagesContainer.innerHTML = '';
+  noMessagesMessage.style.display = 'block'; // Show "No messages..." message
+  document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active')); // Deactivate all list items
+}
+
+/**
+ * Renders messages for a specific conversation in real-time.
+ * @param {string} convId - The ID of the conversation whose messages to render.
+ */
+function renderConversationMessages(convId) {
+  if (!db || !conversationMessagesContainer || !convId) {
+    console.error("DB, conversationMessagesContainer, or convId not ready for messages rendering.");
+    return;
+  }
+
+  const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${convId}/messages`);
+  const q = query(messagesCol, orderBy("createdAt", "desc")); // Order by creation time (newest first)
+
+  unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
+    conversationMessagesContainer.innerHTML = ''; // Clear messages before re-rendering
+    if (snapshot.empty) {
+      noMessagesMessage.style.display = 'block';
+      return;
+    } else {
+      noMessagesMessage.style.display = 'none';
+    }
+
+    const profilesToFetch = new Set();
+    snapshot.forEach(msgDoc => {
+      profilesToFetch.add(msgDoc.data().senderId);
+    });
+
+    const fetchedProfiles = new Map();
+    for (const uid of profilesToFetch) {
+      const profile = await getUserProfileFromFirestore(uid);
+      if (profile) {
+        fetchedProfiles.set(uid, profile);
+        userHandleCache[uid] = profile.handle;
+        handleUidCache[profile.handle] = uid;
+      }
+    }
+
+    // Process and render messages in reverse order for "bottom-up" chat display
+    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse(); // Reverse for display
+
+    messages.forEach(async msg => {
+      const isSentByMe = msg.senderId === currentUser.uid;
+      const senderProfile = fetchedProfiles.get(msg.senderId) || {};
+      const senderDisplayName = senderProfile.displayName || msg.senderDisplayName || 'Unknown User';
+      const senderPhotoURL = senderProfile.photoURL || msg.senderPhotoURL || DEFAULT_PROFILE_PIC;
+
+      const messageElement = document.createElement('div');
+      messageElement.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
+      messageElement.dataset.messageId = msg.id; // Store message ID for deletion
+      messageElement.innerHTML = `
+                <div class="flex items-center ${isSentByMe ? 'justify-end' : 'justify-start'}">
+                    ${!isSentByMe ? `<img src="${senderPhotoURL}" alt="${senderDisplayName}" class="w-6 h-6 rounded-full mr-2 object-cover">` : ''}
+                    <span class="message-author">${isSentByMe ? 'You' : senderDisplayName}</span>
+                    ${isSentByMe ? `<img src="${senderPhotoURL}" alt="You" class="w-6 h-6 rounded-full ml-2 object-cover">` : ''}
+                </div>
+                <p class="text-gray-100 mt-1">${await parseMentions(parseEmojis(msg.content))}</p>
+                <div class="flex items-center mt-1 text-gray-300">
+                    <span class="message-timestamp flex-grow">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</span>
+                    ${currentUser && currentUser.uid === msg.senderId ? `
+                        <button class="delete-message-btn text-red-300 hover:text-red-400 ml-2 text-sm" data-message-id="${msg.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+      conversationMessagesContainer.appendChild(messageElement);
+    });
+    conversationMessagesContainer.scrollTop = conversationMessagesContainer.scrollHeight; // Scroll to bottom
+
+    // Re-attach delete message listeners
+    conversationMessagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
+      btn.removeEventListener('click', handleDeleteMessage);
+      btn.addEventListener('click', handleDeleteMessage);
+    });
+  }, (error) => {
+    console.error("Error fetching messages:", error);
+    conversationMessagesContainer.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
+  });
+}
+
+/**
+ * Sends a message within the currently selected conversation.
+ * Also updates the parent conversation's last message info.
  * @param {string} content - The message content.
  */
-async function sendDirectMessage(receiverHandle, content) {
-  if (!currentUser || !currentUser.uid || !currentUser.handle) {
-    showMessageBox("You must be logged in and have a handle to send a direct message.", true);
+async function sendMessage(content) {
+  if (!currentUser || !currentUser.uid || !currentUser.handle || !selectedConversationId) {
+    showMessageBox("Cannot send message. User not logged in or no conversation selected.", true);
     return;
   }
   if (!db) {
@@ -611,51 +1039,137 @@ async function sendDirectMessage(receiverHandle, content) {
     return;
   }
 
-  // Resolve receiver handle to UID
-  let receiverUid = handleUidCache[receiverHandle];
-  if (!receiverUid) {
-    const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-    const q = query(userProfilesRef, where("handle", "==", receiverHandle));
-    try {
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        querySnapshot.forEach(docSnap => {
-          receiverUid = docSnap.id;
-          handleUidCache[receiverHandle] = receiverUid; // Cache it
-        });
-      }
-    } catch (error) {
-      console.error("Error resolving receiver handle:", error);
-    }
-  }
+  const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`);
+  const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, selectedConversationId);
 
-  if (!receiverUid) {
-    showMessageBox(`User with handle @${receiverHandle} not found.`, true);
-    return;
-  }
-
-  const dmsCol = collection(db, `artifacts/${appId}/public/data/direct_messages`);
   const messageData = {
     senderId: currentUser.uid,
     senderHandle: currentUser.handle,
     senderDisplayName: currentUser.displayName,
     senderPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC,
-    receiverId: receiverUid,
-    receiverHandle: receiverHandle,
     content: content,
     createdAt: serverTimestamp(),
-    read: false
   };
 
   try {
-    await addDoc(dmsCol, messageData);
-    showMessageBox("Direct message sent successfully!", false);
-    sendDmForm.reset();
+    await addDoc(messagesCol, messageData);
+    // Update the parent conversation with last message info
+    await updateDoc(conversationDocRef, {
+      lastMessageAt: serverTimestamp(),
+      lastMessageContent: content,
+      lastMessageSenderHandle: currentUser.handle,
+      lastMessageSenderId: currentUser.uid,
+    });
+    messageContentInput.value = '';
+    showMessageBox("Message sent!", false);
   } catch (error) {
-    console.error("Error sending direct message:", error);
+    console.error("Error sending message:", error);
     showMessageBox(`Error sending message: ${error.message}`, true);
   }
 }
+
+/**
+ * Deletes a specific message from the current conversation.
+ * @param {string} messageId - The ID of the message to delete.
+ */
+async function deleteMessage(messageId) {
+  if (!currentUser || !currentUser.uid || !selectedConversationId) {
+    showMessageBox("Cannot delete message. User not logged in or no conversation selected.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete message.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm("Are you sure you want to delete this message?", "This message will be removed for everyone in this chat. This action cannot be undone.");
+  if (!confirmation) {
+    showMessageBox("Message deletion cancelled.", false);
+    return;
+  }
+
+  const messageDocRef = doc(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`, messageId);
+  try {
+    await deleteDoc(messageDocRef);
+    showMessageBox("Message deleted!", false);
+
+    // Optional: Re-evaluate last message in conversation if the deleted one was the last
+    const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`);
+    const q = query(messagesCol, orderBy("createdAt", "desc"), limit(1)); // Get the new last message
+    const snapshot = await getDocs(q);
+    const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, selectedConversationId);
+
+    if (!snapshot.empty) {
+      const lastMsg = snapshot.docs[0].data();
+      await updateDoc(conversationDocRef, {
+        lastMessageAt: lastMsg.createdAt,
+        lastMessageContent: lastMsg.content,
+        lastMessageSenderHandle: lastMsg.senderHandle,
+        lastMessageSenderId: lastMsg.senderId,
+      });
+    } else {
+      // No messages left, update conversation to reflect this
+      await updateDoc(conversationDocRef, {
+        lastMessageAt: serverTimestamp(), // Or null, depending on preference
+        lastMessageContent: 'No messages yet.',
+        lastMessageSenderHandle: '',
+        lastMessageSenderId: '',
+      });
+    }
+
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    showMessageBox(`Error deleting message: ${error.message}`, true);
+  }
+}
+
+
+/**
+ * Deletes an entire conversation and all its messages.
+ * @param {string} convId - The ID of the conversation to delete.
+ */
+async function deleteConversation(convId) {
+  if (!currentUser || !currentUser.uid) {
+    showMessageBox("You must be logged in to delete a conversation.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete conversation.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm(
+    "Are you sure you want to delete this entire chat?",
+    "This will delete the conversation and all its messages for everyone. This action cannot be undone."
+  );
+  if (!confirmation) {
+    showMessageBox("Conversation deletion cancelled.", false);
+    return;
+  }
+
+  const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, convId);
+  const messagesColRef = collection(conversationDocRef, 'messages');
+
+  try {
+    // Delete all messages in the subcollection (in batches if many)
+    const messagesSnapshot = await getDocs(messagesColRef);
+    const batch = writeBatch(db);
+    messagesSnapshot.docs.forEach((msgDoc) => {
+      batch.delete(msgDoc.ref);
+    });
+    await batch.commit();
+
+    // Delete the conversation document itself
+    await deleteDoc(conversationDocRef);
+
+    showMessageBox("Conversation deleted successfully!", false);
+    updateDmUiForNoConversationSelected(); // Clear the right panel
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
+    showMessageBox(`Error deleting conversation: ${error.message}`, true);
+  }
+}
+
 
 // --- ANNOUNCEMENT FUNCTIONS ---
 
@@ -730,7 +1244,7 @@ async function deleteAnnouncement(announcementId) {
 // --- REAL-TIME RENDERING (ONSNAPSHOT) ---
 
 let unsubscribeForum = null;
-let unsubscribeDMs = null;
+let unsubscribeConversationsList = null; // Renamed for clarity
 let unsubscribeAnnouncements = null;
 
 /**
@@ -738,13 +1252,17 @@ let unsubscribeAnnouncements = null;
  */
 function renderForumThreads() {
   // Unsubscribe from other listeners if active
-  if (unsubscribeDMs) {
-    unsubscribeDMs();
-    unsubscribeDMs = null; // Clear the reference
+  if (unsubscribeConversationsList) { // Use new name
+    unsubscribeConversationsList();
+    unsubscribeConversationsList = null;
+  }
+  if (unsubscribeCurrentMessages) { // Important for DM tab
+    unsubscribeCurrentMessages();
+    unsubscribeCurrentMessages = null;
   }
   if (unsubscribeAnnouncements) {
     unsubscribeAnnouncements();
-    unsubscribeAnnouncements = null; // Clear the reference
+    unsubscribeAnnouncements = null;
   }
 
   if (!db || !threadsList) {
@@ -858,7 +1376,7 @@ function renderForumThreads() {
         });
 
         const fetchedCommentAuthorProfiles = new Map();
-        for (const uid of profilesToFetch) { // Corrected to use profilesToFetch (for efficiency)
+        for (const uid of commentAuthorUidsToFetch) {
           const profile = await getUserProfileFromFirestore(uid);
           if (profile) {
             fetchedCommentAuthorProfiles.set(uid, profile);
@@ -942,10 +1460,7 @@ function renderForumThreads() {
 
 /**
  * Renders the direct messages in real-time.
- * WARNING: Removing orderBy from Firestore query means messages are not ordered by Firestore.
- * This can lead to increased client-side processing for sorting and may increase read costs
- * if the collection contains many messages not relevant to the current user (less efficient filtering).
- * For a scalable chat, composite indexes are the recommended approach.
+ * This function now manages the conversation list in the left panel.
  */
 function renderDirectMessages() {
   // Unsubscribe from other listeners if active
@@ -958,140 +1473,23 @@ function renderDirectMessages() {
     unsubscribeAnnouncements = null;
   }
 
-  if (!db || !dmsList || !currentUser) {
-    console.error("Firestore DB, dmsList element, or currentUser not ready for DM rendering.");
-    if (dmsList) {
-      if (!currentUser) {
-        dmsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view direct messages.</p>';
-        noDMsMessage.style.display = 'none';
-      } else {
-        dmsList.innerHTML = ''; // Clear existing messages if any
-        noDMsMessage.style.display = 'block'; // Show "no messages" initially
-      }
-    }
+  // Also unsubscribe from current messages listener if switching away from DMs
+  if (unsubscribeCurrentMessages) {
+    unsubscribeCurrentMessages();
+    unsubscribeCurrentMessages = null;
+  }
+
+  if (!db || !conversationsList || !currentUser) {
+    console.warn("Firestore DB, conversationsList, or currentUser not ready for DM rendering.");
+    if (conversationsList) conversationsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view direct messages.</p>';
+    if (noConversationsMessage) noConversationsMessage.style.display = 'none';
+    updateDmUiForNoConversationSelected(); // Clear right panel if no user or DB not ready
     return;
   }
 
-  // Ensure dmsList and noDMsMessage are visible/hidden correctly for an active user
-  if (dmsList) dmsList.innerHTML = ''; // Clear previous messages
-  if (noDMsMessage) noDMsMessage.style.display = 'block'; // Assume no messages until fetched
-
-  // Query for messages where current user is sender OR receiver
-  // NOTE: orderBy removed to avoid composite index requirement. Sorting is now purely client-side.
-  const messagesQuerySender = query(
-    collection(db, `artifacts/${appId}/public/data/direct_messages`),
-    where("senderId", "==", currentUser.uid)
-  );
-  const messagesQueryReceiver = query(
-    collection(db, `artifacts/${appId}/public/data/direct_messages`),
-    where("receiverId", "==", currentUser.uid)
-  );
-
-  let allMessagesMap = new Map(); // Use a Map to store messages by ID to handle duplicates
-
-  // Unsubscribe from any previous DM listeners before attaching new ones
-  if (unsubscribeDMs) unsubscribeDMs();
-
-  let senderListenerUnsubscribe;
-  let receiverListenerUnsubscribe;
-
-  // Combined unsubscribe function for both sender and receiver listeners
-  unsubscribeDMs = () => {
-    if (senderListenerUnsubscribe) senderListenerUnsubscribe();
-    if (receiverListenerUnsubscribe) receiverListenerUnsubscribe();
-  };
-
-  const updateDMsList = async () => {
-    // Convert map to array, sort by createdAt (client-side), and render
-    let messagesToRender = Array.from(allMessagesMap.values());
-    messagesToRender.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0)); // Client-side sort
-
-    dmsList.innerHTML = '';
-    if (messagesToRender.length === 0) {
-      noDMsMessage.style.display = 'block';
-    } else {
-      noDMsMessage.style.display = 'none';
-      for (const msg of messagesToRender) {
-        const isSentByMe = msg.senderId === currentUser.uid;
-        const participantId = isSentByMe ? msg.receiverId : msg.senderId;
-        const participantHandle = isSentByMe ? msg.receiverHandle : msg.senderHandle;
-
-        // Fetch participant's display name and photo from their profile
-        let participantDisplayName = participantHandle; // Default to handle
-        let participantPhotoURL = DEFAULT_PROFILE_PIC;
-
-        const participantProfile = await getUserProfileFromFirestore(participantId);
-        if (participantProfile) {
-          participantDisplayName = participantProfile.displayName || participantHandle;
-          participantPhotoURL = participantProfile.photoURL || DEFAULT_PROFILE_PIC;
-          userHandleCache[participantId] = participantProfile.handle;
-          handleUidCache[participantProfile.handle] = participantId;
-        }
-
-        const messageElement = document.createElement('div');
-        // Adjust width to fit content better and add consistent margin/padding
-        messageElement.className = `p-4 rounded-lg shadow-sm max-w-[80%] ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'}`;
-        messageElement.innerHTML = `
-            <div class="flex items-center mb-2 ${isSentByMe ? 'justify-end' : ''}">
-              ${!isSentByMe ? `<img src="${participantPhotoURL}" alt="Profile" class="w-7 h-7 rounded-full mr-2 object-cover">` : ''}
-              <p class="font-semibold text-gray-200">
-                ${isSentByMe ? `You to ${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>` : `${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>`}
-              </p>
-              ${isSentByMe ? `<img src="${currentUser.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" class="w-7 h-7 rounded-full ml-2 object-cover">` : ''}
-            </div>
-            <p class="text-gray-300 text-sm mb-1">${await parseMentions(parseEmojis(msg.content))}</p>
-            <p class="text-xs text-gray-400 ${isSentByMe ? 'text-right' : 'text-left'}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
-          `;
-        dmsList.appendChild(messageElement);
-      }
-      dmsList.scrollTop = dmsList.scrollHeight; // Scroll to bottom on new messages
-    }
-  };
-
-
-  senderListenerUnsubscribe = onSnapshot(messagesQuerySender, (snapshot) => {
-    // Only update UI if this is the active tab, and current user is authenticated
-    if (contentDMs.classList.contains('hidden') || !currentUser || !currentUser.uid) return;
-
-    snapshot.docChanges().forEach(change => {
-      const msg = { ...change.doc.data(), id: change.doc.id };
-      if (change.type === 'added' || change.type === 'modified') {
-        allMessagesMap.set(msg.id, msg);
-      } else if (change.type === 'removed') {
-        allMessagesMap.delete(msg.id);
-      }
-    });
-    updateDMsList();
-  }, (error) => {
-    console.error("Error fetching sender DMs:", error);
-    if (dmsList) dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
-    if (noDMsMessage) noDMsMessage.style.display = 'none';
-  });
-
-  receiverListenerUnsubscribe = onSnapshot(messagesQueryReceiver, (snapshot) => {
-    // Only update UI if this is the active tab, and current user is authenticated
-    if (contentDMs.classList.contains('hidden') || !currentUser || !currentUser.uid) return;
-
-    snapshot.docChanges().forEach(change => {
-      const msg = { ...change.doc.data(), id: change.doc.id };
-      if (change.type === 'added' || change.type === 'modified') {
-        allMessagesMap.set(msg.id, msg);
-      } else if (change.type === 'removed') {
-        allMessagesMap.delete(msg.id);
-      }
-    });
-    updateDMsList();
-  }, (error) => {
-    console.error("Error fetching receiver DMs:", error);
-    if (dmsList) dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
-    if (noDMsMessage) noDMsMessage.style.display = 'none';
-  });
-
-  // Attach event listener for sending DMs
-  if (sendDmForm) {
-    sendDmForm.removeEventListener('submit', handleSendDM);
-    sendDmForm.addEventListener('submit', handleSendDM);
-  }
+  // Initial state for DM UI
+  updateDmUiForNoConversationSelected(); // Ensures right panel is clear initially
+  renderConversationsList(); // Start listening for conversations
 }
 
 /**
@@ -1103,9 +1501,13 @@ function renderAnnouncements() {
     unsubscribeForum();
     unsubscribeForum = null;
   }
-  if (unsubscribeDMs) {
-    unsubscribeDMs();
-    unsubscribeDMs = null;
+  if (unsubscribeConversationsList) { // Use new name
+    unsubscribeConversationsList();
+    unsubscribeConversationsList = null;
+  }
+  if (unsubscribeCurrentMessages) { // Important for DM tab
+    unsubscribeCurrentMessages();
+    unsubscribeCurrentMessages = null;
   }
 
   if (!db || !announcementsList) {
@@ -1192,6 +1594,7 @@ function renderAnnouncements() {
 // --- EVENT HANDLERS ---
 
 async function handlePostComment(event) {
+  event.preventDefault(); // Prevent page reload
   const threadId = event.target.dataset.threadId;
   const commentInput = document.getElementById(`comment-input-${threadId}`);
   const commentContent = commentInput.value;
@@ -1200,6 +1603,7 @@ async function handlePostComment(event) {
 }
 
 async function handleDeleteThread(event) {
+  event.preventDefault(); // Prevent page reload
   const threadId = event.target.dataset.id;
   await deleteThread(threadId);
 }
@@ -1230,15 +1634,54 @@ function handleEmojiPaletteClick(event) {
   }
 }
 
-async function handleSendDM(event) {
+async function handleCreateConversation(event) {
   event.preventDefault();
-  const receiverHandle = dmReceiverHandleInput.value.trim();
-  const content = dmContentInput.value.trim();
-  if (!receiverHandle || !content) {
-    showMessageBox("Please enter both recipient handle and message content.", true);
+  const chatType = newChatTypeSelect.value;
+  let participantHandles = [];
+  let groupName = '';
+
+  if (chatType === 'private') {
+    const recipientHandle = privateChatRecipientInput.value.trim();
+    if (recipientHandle) {
+      participantHandles.push(recipientHandle);
+    }
+  } else { // 'group'
+    groupName = groupChatNameInput.value.trim();
+    const handlesText = groupChatParticipantsInput.value.trim();
+    if (handlesText) {
+      participantHandles = handlesText.split(',').map(h => h.trim());
+    }
+  }
+  await createConversation(chatType, participantHandles, groupName);
+}
+
+async function handleSendMessage(event) {
+  event.preventDefault();
+  const content = messageContentInput.value.trim();
+  if (!content) {
+    showMessageBox("Message cannot be empty.", true);
     return;
   }
-  await sendDirectMessage(receiverHandle, content);
+  await sendMessage(content);
+}
+
+async function handleDeleteMessage(event) {
+  event.preventDefault();
+  const messageId = event.target.dataset.messageId || event.target.closest('.delete-message-btn').dataset.messageId;
+  if (selectedConversationId && messageId) {
+    await deleteMessage(messageId);
+  } else {
+    console.error("No selected conversation or message ID for deletion.");
+    showMessageBox("Could not delete message. No active conversation or message selected.", true);
+  }
+}
+
+async function handleDeleteConversationClick(event) {
+  event.preventDefault();
+  const convId = event.target.dataset.conversationId;
+  if (convId) {
+    await deleteConversation(convId);
+  }
 }
 
 async function handlePostAnnouncement(event) {
@@ -1252,6 +1695,7 @@ async function handlePostAnnouncement(event) {
 }
 
 async function handleDeleteAnnouncement(event) {
+  event.preventDefault();
   const announcementId = event.target.dataset.id;
   await deleteAnnouncement(announcementId);
 }
@@ -1268,7 +1712,7 @@ function showTab(tabId) {
     button.classList.add('border-transparent', 'text-gray-300');
   });
   document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.add('hidden');
+    content.classList.add('hidden'); // This is Tailwind's display: none
   });
 
   // Activate the selected tab button and show its content section
@@ -1279,7 +1723,7 @@ function showTab(tabId) {
     selectedButton.classList.add('active-tab');
     selectedButton.classList.add('border-blue-500', 'text-blue-300');
     selectedButton.classList.remove('border-transparent', 'text-gray-300');
-    selectedContent.classList.remove('hidden');
+    selectedContent.classList.remove('hidden'); // This is where it should remove 'hidden'
     currentActiveTab = tabId; // Update active tab state
 
     // Render content for the newly active tab
@@ -1383,7 +1827,7 @@ async function setupFirebaseAndUser() {
                   userProfile.fontFamilyPreference = userProfile.fontFamilyPreference || 'Inter, sans-serif';
                   userProfile.backgroundPatternPreference = userProfile.backgroundPatternPreference || 'none';
                   userProfile.notificationPreferences = userProfile.notificationPreferences || { email: false, inApp: false };
-                  userProfile.accessibilitySettings = { highContrast: false, reducedMotion: false }; // Set full object if missing
+                  userProfile.accessibilitySettings = userProfile.accessibilitySettings || { highContrast: false, reducedMotion: false };
                   await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
                 }
                 // Ensure currentUser object is updated with profile info
@@ -1499,6 +1943,27 @@ window.onload = async function() {
   if (tabDMs) tabDMs.addEventListener('click', () => showTab('dms'));
   if (tabAnnouncements) tabAnnouncements.addEventListener('click', () => showTab('announcements'));
 
+  // Event listeners for DM creation form type change
+  if (newChatTypeSelect) {
+    newChatTypeSelect.addEventListener('change', (event) => {
+      if (event.target.value === 'private') {
+        privateChatFields.classList.remove('hidden');
+        groupChatFields.classList.add('hidden');
+      } else {
+        privateChatFields.classList.add('hidden');
+        groupChatFields.classList.remove('hidden');
+      }
+    });
+  }
+
+  // Event listener for conversation sorting select
+  if (sortConversationsBySelect) {
+    sortConversationsBySelect.addEventListener('change', (event) => {
+      currentSortOption = event.target.value;
+      renderConversationsList(); // Re-render with new sort order
+    });
+  }
+
   // Show the default tab on load
   showTab(currentActiveTab); // This will call renderForumThreads initially.
 
@@ -1517,10 +1982,17 @@ window.onload = async function() {
     });
   }
 
-  // --- Attach DM-specific Form Listener ---
-  if (sendDmForm) {
-    sendDmForm.addEventListener('submit', handleSendDM);
+  // --- Attach DM-specific Form Listeners ---
+  if (createConversationForm) {
+    createConversationForm.addEventListener('submit', handleCreateConversation);
   }
+  if (sendMessageForm) {
+    sendMessageForm.addEventListener('submit', handleSendMessage);
+  }
+  if (deleteConversationBtn) {
+    deleteConversationBtn.addEventListener('click', handleDeleteConversationClick);
+  }
+  // No need for separate handleDeleteMessage listener here, it's attached inside renderConversationMessages
 
   // --- Attach Announcement-specific Form Listener ---
   if (createAnnouncementForm) {
