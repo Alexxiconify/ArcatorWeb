@@ -14,12 +14,16 @@ import {
   doc,
   getDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  collection, // Added for querying handles
+  query,      // Added for querying handles
+  where,      // Added for querying handles
+  getDocs     // Added for querying handles
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import { setupCustomThemeManagement } from './custom_theme_modal.js'; // Unminified
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Unminified
-import { loadNavbar } from './navbar.js'; // Unminified
+import { loadNavbar } from './navbar.js'; // Unminified navbar.js
 
 // Firebase configuration object (replace with your actual config)
 const firebaseConfig = {
@@ -55,6 +59,8 @@ const profilePictureDisplay = document.getElementById('profile-picture-display')
 const displayNameText = document.getElementById('display-name-text');
 const emailText = document.getElementById('email-text');
 const displayNameInput = document.getElementById('display-name-input');
+const handleInput = document.getElementById('handle-input'); // New handle input
+const handleMessage = document.getElementById('handle-message'); // New handle message
 const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
 const urlPreviewMessage = document.getElementById('url-preview-message');
 const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -182,9 +188,35 @@ async function getUserProfileFromFirestore(uid) {
 }
 
 /**
+ * Checks if a handle is unique in Firestore (case-insensitive).
+ * @param {string} handle - The handle to check.
+ * @param {string} currentUid - The UID of the current user (to allow their own handle).
+ * @returns {Promise<boolean>} True if unique, false otherwise.
+ */
+async function isHandleUnique(handle, currentUid) {
+  if (!db) {
+    console.error("Firestore DB not initialized for isHandleUnique.");
+    return false;
+  }
+  if (!handle) return false; // Empty handle is not unique
+
+  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+  // Query for documents where the 'handle' field matches the provided handle
+  const q = query(userProfilesRef, where("handle", "==", handle));
+  try {
+    const querySnapshot = await getDocs(q);
+    // If no documents are found, or the only document found belongs to the current user, it's unique
+    return querySnapshot.empty || (querySnapshot.docs.length === 1 && querySnapshot.docs[0].id === currentUid);
+  } catch (error) {
+    console.error("Error checking handle uniqueness:", error);
+    return false; // Assume not unique on error
+  }
+}
+
+/**
  * Updates user profile data in Firestore.
  * @param {string} uid - The user's UID.
- * @param {Object} profileData - The data to update (themePreference, displayName, photoURL, fontSizePreference, fontFamilyPreference, backgroundPatternPreference, notificationPreferences, accessibilitySettings).
+ * @param {Object} profileData - The data to update (themePreference, displayName, photoURL, handle, etc.).
  */
 async function updateUserProfileInFirestore(uid, profileData) {
   await firebaseReadyPromise;
@@ -250,6 +282,10 @@ async function initializeUserSettings() {
   // Set profile info
   displayNameInput.value = userProfile?.displayName || user.displayName || user.email.split('@')[0];
   displayNameText.textContent = displayNameInput.value;
+  // Populate handle input
+  handleInput.value = userProfile?.handle || '';
+  // Initial display of handle (not in settings page's top display yet, but will be if saved)
+
   const photoURL = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
   profilePictureUrlInput.value = photoURL === DEFAULT_PROFILE_PIC ? '' : photoURL; // Clear input if it's the default placeholder
   profilePictureDisplay.src = photoURL;
@@ -278,7 +314,7 @@ async function initializeUserSettings() {
 
   // Set notification preferences
   emailNotificationsCheckbox.checked = userProfile?.notificationPreferences?.email || false;
-  inappNotificationsCheckbox.checked = userProfile?.notificationPreferences?.inApp || false; // Corrected line
+  inappNotificationsCheckbox.checked = userProfile?.notificationPreferences?.inApp || false;
 
   // Set accessibility settings
   highContrastCheckbox.checked = userProfile?.accessibilitySettings?.highContrast || false;
@@ -366,6 +402,43 @@ window.onload = async function() {
 
   // --- Event Listeners ---
 
+  // Handle input changes for handle uniqueness check
+  if (handleInput) {
+    handleInput.addEventListener('input', async () => {
+      const newHandle = handleInput.value.trim();
+      if (newHandle.length === 0) {
+        handleMessage.textContent = 'Handle cannot be empty.';
+        handleMessage.classList.remove('text-green-500');
+        handleMessage.classList.add('text-red-500');
+        return;
+      }
+      if (!/^[a-zA-Z0-9_.-]+$/.test(newHandle)) {
+        handleMessage.textContent = 'Handle can only contain letters, numbers, underscores, periods, and hyphens.';
+        handleMessage.classList.remove('text-green-500');
+        handleMessage.classList.add('text-red-500');
+        return;
+      }
+      if (newHandle.length < 3 || newHandle.length > 20) {
+        handleMessage.textContent = 'Handle must be between 3 and 20 characters.';
+        handleMessage.classList.remove('text-green-500');
+        handleMessage.classList.add('text-red-500');
+        return;
+      }
+
+      const unique = await isHandleUnique(newHandle, auth.currentUser.uid);
+      if (unique) {
+        handleMessage.textContent = 'Handle is available!';
+        handleMessage.classList.remove('text-red-500');
+        handleMessage.classList.add('text-green-500');
+      } else {
+        handleMessage.textContent = 'Handle is already taken.';
+        handleMessage.classList.remove('text-green-500');
+        handleMessage.classList.add('text-red-500');
+      }
+    });
+  }
+
+
   // Save Profile Changes
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener('click', async () => {
@@ -375,7 +448,28 @@ window.onload = async function() {
       }
 
       const newDisplayName = displayNameInput.value.trim();
+      const newHandle = handleInput.value.trim();
       let newPhotoURL = profilePictureUrlInput.value.trim();
+
+      if (!newHandle) {
+        window.showMessageBox("Handle is required.", true);
+        return;
+      }
+      if (!/^[a-zA-Z0-9_.-]+$/.test(newHandle)) {
+        window.showMessageBox("Handle can only contain letters, numbers, underscores, periods, and hyphens.", true);
+        return;
+      }
+      if (newHandle.length < 3 || newHandle.length > 20) {
+        window.showMessageBox("Handle must be between 3 and 20 characters.", true);
+        return;
+      }
+
+      const uniqueHandle = await isHandleUnique(newHandle, auth.currentUser.uid);
+      if (!uniqueHandle) {
+        window.showMessageBox("The chosen handle is already taken or invalid. Please choose another.", true);
+        return;
+      }
+
 
       if (newPhotoURL === '') {
         newPhotoURL = DEFAULT_PROFILE_PIC; // If empty, revert to default placeholder
@@ -383,7 +477,8 @@ window.onload = async function() {
 
       const success = await updateUserProfileInFirestore(auth.currentUser.uid, {
         displayName: newDisplayName,
-        photoURL: newPhotoURL
+        photoURL: newPhotoURL,
+        handle: newHandle // Save the new handle
       });
 
       if (success) {
@@ -393,6 +488,7 @@ window.onload = async function() {
         window.showMessageBox("Profile updated successfully!", false);
 
         // Also update Firebase Auth profile (important for navbar.js and other Firebase-aware parts)
+        // Note: Firebase Auth doesn't have a direct 'handle' field, so we just update displayName and photoURL
         await auth.currentUser.updateProfile({
           displayName: newDisplayName,
           photoURL: newPhotoURL
