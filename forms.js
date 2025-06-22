@@ -2,7 +2,7 @@ console.log("forms.js loaded successfully"); // Debug log to check if the script
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Unminified themes.js
 import { loadNavbar } from './navbar.js'; // Unminified navbar.js
 
@@ -17,6 +17,7 @@ const firebaseConfig = {
   measurementId: "G-DJXNT1L7CM"
 };
 
+let __app_id;
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
 const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
@@ -118,7 +119,7 @@ function parseEmojis(text) {
 
 // Function to parse mentions and make them clickable
 async function parseMentions(text) {
-  let parsedText = text;
+  let parsedText;
   // Regex to find @ followed by alphanumeric, underscore, dot, hyphen
   const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
   let match;
@@ -707,7 +708,7 @@ function setupRealtimeListeners() {
         deleteThreadBtn.removeEventListener('click', handleDeleteThread); // Prevent duplicate listeners
         deleteThreadBtn.addEventListener('click', handleDeleteThread);
       }
-    };
+    }
 
     // Delegate comment delete button handling to the threadsList (more efficient for dynamic elements)
     threadsList.removeEventListener('click', handleCommentAction); // Remove old listener
