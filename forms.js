@@ -145,7 +145,7 @@ async function parseMentions(text) {
         if (!querySnapshot.empty) {
           querySnapshot.forEach(docSnap => {
             resolvedUid = docSnap.id;
-            userHandleCache[resolvedUid] = mentionedHandle; // Update UID->handle cache
+            userHandleCache[docSnap.id] = mentionedHandle; // Update UID->handle cache
             handleUidCache[mentionedHandle] = resolvedUid; // Update handle->UID cache
           });
         }
