@@ -79,7 +79,7 @@ const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡',
 /** @global {object} EMOJI_MAP - Mapping of shortcodes to emoji characters. */
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
-  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '�',
+  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
   ':cry:': '😢', ':sleepy:': '😴'
 };
@@ -156,7 +156,7 @@ function parseEmojis(text) {
  * @returns {Promise<string>} A Promise that resolves with the text, with mentions converted to HTML links.
  */
 async function parseMentions(text) {
-  let processedText;
+  let processedText = text;
   const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
   let match;
   const mentionsToResolve = new Map();
