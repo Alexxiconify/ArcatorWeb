@@ -68,6 +68,10 @@ const threadsLoadingError = document.getElementById('threads-loading-error');
 const noThreadsMessage = document.getElementById('no-threads-message');
 
 // DM Elements (Updated IDs for new structure)
+const conversationsPanel = document.getElementById('conversations-panel'); // Reference to the left panel
+const messagesPanel = document.getElementById('messages-panel');       // Reference to the right panel
+const backToChatsBtn = document.getElementById('back-to-chats-btn'); // New Back button
+
 const createConversationForm = document.getElementById('create-conversation-form');
 const newChatTypeSelect = document.getElementById('new-chat-type');
 const privateChatFields = document.getElementById('private-chat-fields');
@@ -78,7 +82,7 @@ const groupChatParticipantsInput = document.getElementById('group-chat-participa
 const sortConversationsBySelect = document.getElementById('sort-conversations-by');
 const conversationsList = document.getElementById('conversations-list');
 const noConversationsMessage = document.getElementById('no-conversations-message');
-const messagesPanel = document.getElementById('messages-panel'); // Right panel for messages
+
 const selectedConversationHeader = document.getElementById('selected-conversation-header');
 const conversationTitleHeader = document.getElementById('conversation-title');
 const deleteConversationBtn = document.getElementById('delete-conversation-btn');
@@ -88,6 +92,7 @@ const messageInputArea = document.getElementById('message-input-area');
 const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content-input');
 const userHandlesDatalist = document.getElementById('user-handles-list'); // New datalist element
+
 
 // Announcement Elements
 const createAnnouncementSection = document.getElementById('create-announcement-section');
@@ -639,56 +644,49 @@ async function createConversation(type, participantHandles, groupName = '') {
     return;
   }
 
-  // Add current user to participants for private chats as well
-  const allParticipantHandles = new Set(participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h)));
-  allParticipantHandles.add(currentUser.handle);
+  // Sanitize and ensure current user is always included in participants for *all* chats
+  const uniqueParticipantHandles = new Set(
+    participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h))
+  );
+  uniqueParticipantHandles.add(currentUser.handle); // Add current user's handle
 
-  const participantUids = await resolveHandlesToUids(Array.from(allParticipantHandles));
+  const participantUids = await resolveHandlesToUids(Array.from(uniqueParticipantHandles));
 
-  if (participantUids.length < 1) { // Changed this validation
-    showMessageBox("Please provide valid participant handles for the chat.", true);
+  if (participantUids.length === 0) {
+    showMessageBox("Please provide at least one valid participant handle.", true);
     return;
   }
-  // Removed the restriction for self-DMing
-  if (type === 'private' && participantUids.length === 0) { // This case should be covered by participantUids.length < 1
-    showMessageBox("Private chats require at least one recipient (which can be yourself).", true);
-    return;
+
+  // Specific validation for private chat (can be self-DM or 1-to-1 with another user)
+  if (type === 'private') {
+    // If only one participant and it's the current user, it's a self-DM. Valid.
+    // If two participants, one is current user and another, it's a 1-to-1. Valid.
+    if (participantUids.length > 2) {
+      showMessageBox("Private chats can only have yourself and/or one other participant.", true);
+      return;
+    }
   }
-  if (type === 'group' && participantUids.length < 1) { // Changed from < 2 to < 1
-    showMessageBox("Group chats require at least one participant (including yourself).", true); // Changed message
+  // Group chat must have at least 2 distinct participants (including self)
+  else if (type === 'group' && participantUids.length < 2) {
+    showMessageBox("Group chats require at least two participants (including yourself).", true);
     return;
   }
 
 
   const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
 
-  // For private chats, check if a conversation already exists between these two users
+  // For private chats, check if a conversation already exists between these specific users
   if (type === 'private') {
-    // Sort UIDs to create a consistent ID for 1-to-1 chats
-    const sortedUids = participantUids.sort();
+    const sortedUids = participantUids.sort(); // Sort UIDs for consistent lookup
     const existingChatQuery = query(
       conversationsCol,
       where('type', '==', 'private'),
-      where('participants', 'array-contains-any', [sortedUids[0]]), // Check for first user
-      // No direct way to check for 'array-contains-all' two specific values without a composite index
-      // The Firestore rules should prevent creating duplicates if participants array is indexed.
-      // We'll rely on the client-side check here and database rules.
+      where('participants', '==', sortedUids) // Exact match for private chat participants array
     );
     const existingChatsSnapshot = await getDocs(existingChatQuery);
-    let existingConversation = null;
-    existingChatsSnapshot.forEach(doc => {
-      const conv = doc.data();
-      // Manually check if both participants are present and no others (or just the current user for self-DM)
-      const participantsMatch = conv.participants.length === sortedUids.length &&
-        sortedUids.every(uid => conv.participants.includes(uid));
-      if (participantsMatch) {
-        existingConversation = doc;
-      }
-    });
-
-
-    if (existingConversation) {
-      showMessageBox("A private chat with this user already exists. Opening it now.", false);
+    if (!existingChatsSnapshot.empty) {
+      const existingConversation = existingChatsSnapshot.docs[0];
+      showMessageBox("A private chat with this user(s) already exists. Opening it now.", false);
       selectConversation(existingConversation.id, existingConversation.data());
       return;
     }
@@ -697,7 +695,7 @@ async function createConversation(type, participantHandles, groupName = '') {
 
   const conversationData = {
     type: type,
-    participants: participantUids, // Store UIDs
+    participants: participantUids.sort(), // Store sorted UIDs for consistency, especially for private chat lookup
     name: type === 'group' ? (groupName.trim() || 'Unnamed Group') : '',
     createdAt: serverTimestamp(),
     createdBy: currentUser.uid,
@@ -906,6 +904,10 @@ async function selectConversation(convId, conversationData) {
     unsubscribeCurrentMessages(); // Unsubscribe from previous messages listener
   }
 
+  // --- UI Update: Show Messages Panel, Hide Conversations Panel ---
+  conversationsPanel.classList.add('hidden');
+  messagesPanel.classList.remove('hidden');
+
   // Update UI for active conversation item
   document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
   const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${convId}"]`);
@@ -939,6 +941,7 @@ async function selectConversation(convId, conversationData) {
 
 /**
  * Clears the right DM panel when no conversation is selected (or when the selected one is deleted).
+ * Also returns to the conversations list view.
  */
 function updateDmUiForNoConversationSelected() {
   selectedConversationId = null;
@@ -952,6 +955,10 @@ function updateDmUiForNoConversationSelected() {
   conversationMessagesContainer.innerHTML = '';
   noMessagesMessage.style.display = 'block'; // Show "No messages..." message
   document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active')); // Deactivate all list items
+
+  // --- UI Update: Show Conversations Panel, Hide Messages Panel ---
+  conversationsPanel.classList.remove('hidden');
+  messagesPanel.classList.add('hidden');
 }
 
 /**
@@ -1177,7 +1184,7 @@ async function deleteConversation(convId) {
     await deleteDoc(conversationDocRef);
 
     showMessageBox("Conversation deleted successfully!", false);
-    updateDmUiForNoConversationSelected(); // Clear the right panel
+    updateDmUiForNoConversationSelected(); // Clear the right panel and go back to list
   } catch (error) {
     console.error("Error deleting conversation:", error);
     showMessageBox(`Error deleting conversation: ${error.message}`, true);
@@ -1529,7 +1536,10 @@ function renderDirectMessages() {
     return;
   }
 
-  // Initial state for DM UI
+  // Initial state for DM UI: show conversations panel
+  conversationsPanel.classList.remove('hidden');
+  messagesPanel.classList.add('hidden'); // Ensure messages panel is hidden
+
   updateDmUiForNoConversationSelected(); // Ensures right panel is clear initially
   populateUserHandlesDatalist(); // Populate the datalist with user handles
   renderConversationsList(); // Start listening for conversations
@@ -2034,6 +2044,9 @@ window.onload = async function() {
   }
   if (deleteConversationBtn) {
     deleteConversationBtn.addEventListener('click', handleDeleteConversationClick);
+  }
+  if (backToChatsBtn) { // New back button listener
+    backToChatsBtn.addEventListener('click', updateDmUiForNoConversationSelected);
   }
   // No need for separate handleDeleteMessage listener here, it's attached inside renderConversationMessages
 

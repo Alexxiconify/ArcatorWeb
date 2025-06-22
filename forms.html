@@ -147,27 +147,22 @@
 
     /* Specific styles for the DM section layout */
     #content-dms {
-      /* display is controlled by .tab-content:not(.hidden) */
-      display: grid; /* Overridden by .tab-content:not(.hidden) when active */
-      grid-template-columns: 1fr; /* Default to single column on small screens */
+      display: flex; /* Changed from grid to flex for stacking */
+      flex-direction: column; /* Stack children vertically */
       gap: 1.5rem;
       height: calc(100vh - 400px); /* Adjust based on navbar/footer/hero height */
       min-height: 400px;
     }
 
-    @media (min-width: 768px) { /* Medium screens and up */
-      #content-dms {
-        grid-template-columns: 1fr 2fr; /* Conversations on left, messages on right */
-      }
-    }
-
     #conversations-panel, #messages-panel {
+      flex-grow: 1; /* Allow panels to grow */
       display: flex;
       flex-direction: column;
       background-color: var(--color-bg-card);
       border-radius: 0.5rem;
       padding: 1rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      /* Initially, messages-panel will be hidden via JS, conversations-panel will be shown */
     }
 
     #conversations-list-container {
@@ -356,79 +351,80 @@
       </div>
     </div>
 
-    <!-- Direct Messages Content (UPDATED STRUCTURE) -->
+    <!-- Direct Messages Content (UPDATED STRUCTURE FOR STACKED UI) -->
     <div id="content-dms" class="tab-content hidden">
       <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Direct Messages & Group Chats</h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Left Panel: Conversations List -->
-        <div id="conversations-panel" class="md:col-span-1 flex flex-col p-4">
-          <h3 class="text-2xl font-bold text-blue-300 mb-4">Conversations</h3>
+      <!-- Conversations List Panel -->
+      <div id="conversations-panel" class="flex flex-col p-4 mb-6">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Conversations</h3>
 
-          <!-- New Group DM Form -->
-          <div class="mb-6 p-4 bg-gray-800 rounded-lg shadow-sm">
-            <h4 class="text-xl font-semibold text-gray-200 mb-3">Start New Chat</h4>
-            <form id="create-conversation-form" class="space-y-3">
-              <div>
-                <label for="new-chat-type" class="block text-gray-300 text-sm font-bold mb-1">Chat Type:</label>
-                <select id="new-chat-type" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="private">Private Chat (1-to-1)</option>
-                  <option value="group">Group Chat</option>
-                </select>
-              </div>
-              <div id="private-chat-fields">
-                <label for="private-chat-recipient" class="block text-gray-300 text-sm font-bold mb-1">Recipient Handle:</label>
-                <input type="text" id="private-chat-recipient" placeholder="@username" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" list="user-handles-list">
-                <datalist id="user-handles-list"></datalist>
-              </div>
-              <div id="group-chat-fields" class="hidden">
-                <label for="group-chat-name" class="block text-gray-300 text-sm font-bold mb-1">Group Name (Optional):</label>
-                <input type="text" id="group-chat-name" placeholder="My Awesome Group" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <label for="group-chat-participants" class="block text-gray-300 text-sm font-bold mb-1">Participants (comma-separated handles, e.g., @user1, @user2):</label>
-                <textarea id="group-chat-participants" placeholder="@user1, @user2, @user3" rows="2" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-              </div>
-              <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Start Chat</button>
-            </form>
-          </div>
-
-          <!-- Sort Options -->
-          <div class="mb-4">
-            <label for="sort-conversations-by" class="block text-gray-300 text-sm font-bold mb-2">Sort by:</label>
-            <select id="sort-conversations-by" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="lastMessageAt_desc">Recent Activity (Newest First)</option>
-              <option value="createdAt_desc">Date Created (Newest First)</option>
-              <option value="createdAt_asc">Date Created (Oldest First)</option>
-              <option value="otherUsername_asc">Other Username (A-Z)</option>
-              <option value="otherUsername_desc">Other Username (Z-A)</option>
-              <option value="groupName_asc">Group Name (A-Z)</option>
-              <option value="groupName_desc">Group Name (Z-A)</option>
-            </select>
-          </div>
-
-          <div id="conversations-list-container" class="flex-grow overflow-y-auto">
-            <p id="no-conversations-message" class="text-gray-400 text-center mt-4 hidden">No conversations yet. Start a new chat!</p>
-            <div id="conversations-list" class="space-y-2">
-              <!-- Conversation items will be loaded here -->
+        <!-- New Group DM Form -->
+        <div class="mb-6 p-4 bg-gray-800 rounded-lg shadow-sm">
+          <h4 class="text-xl font-semibold text-gray-200 mb-3">Start New Chat</h4>
+          <form id="create-conversation-form" class="space-y-3">
+            <div>
+              <label for="new-chat-type" class="block text-gray-300 text-sm font-bold mb-1">Chat Type:</label>
+              <select id="new-chat-type" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="private">Private Chat (1-to-1)</option>
+                <option value="group">Group Chat</option>
+              </select>
             </div>
-          </div>
+            <div id="private-chat-fields">
+              <label for="private-chat-recipient" class="block text-gray-300 text-sm font-bold mb-1">Recipient Handle:</label>
+              <input type="text" id="private-chat-recipient" placeholder="@username" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" list="user-handles-list">
+              <datalist id="user-handles-list"></datalist>
+            </div>
+            <div id="group-chat-fields" class="hidden">
+              <label for="group-chat-name" class="block text-gray-300 text-sm font-bold mb-1">Group Name (Optional):</label>
+              <input type="text" id="group-chat-name" placeholder="My Awesome Group" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label for="group-chat-participants" class="block text-gray-300 text-sm font-bold mb-1">Participants (comma-separated handles, e.g., @user1, @user2):</label>
+              <textarea id="group-chat-participants" placeholder="@user1, @user2, @user3" rows="2" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Start Chat</button>
+          </form>
         </div>
 
-        <!-- Right Panel: Messages Display -->
-        <div id="messages-panel" class="md:col-span-2 flex flex-col p-4">
-          <div id="selected-conversation-header" class="bg-gray-800 p-3 rounded-t-lg mb-3 flex items-center justify-between shadow-md sticky top-0 z-10">
-            <h3 id="conversation-title" class="text-2xl font-bold text-blue-300">Select a Conversation</h3>
-            <button id="delete-conversation-btn" class="hidden bg-red-600 text-white font-bold py-1 px-4 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg text-sm">Delete Chat</button>
+        <!-- Sort Options -->
+        <div class="mb-4">
+          <label for="sort-conversations-by" class="block text-gray-300 text-sm font-bold mb-2">Sort by:</label>
+          <select id="sort-conversations-by" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="lastMessageAt_desc">Recent Activity (Newest First)</option>
+            <option value="createdAt_desc">Date Created (Newest First)</option>
+            <option value="createdAt_asc">Date Created (Oldest First)</option>
+            <option value="otherUsername_asc">Other Username (A-Z)</option>
+            <option value="otherUsername_desc">Other Username (Z-A)</option>
+            <option value="groupName_asc">Group Name (A-Z)</option>
+            <option value="groupName_desc">Group Name (Z-A)</option>
+          </select>
+        </div>
+
+        <div id="conversations-list-container" class="flex-grow overflow-y-auto">
+          <p id="no-conversations-message" class="text-gray-400 text-center mt-4 hidden">No conversations yet. Start a new chat!</p>
+          <div id="conversations-list" class="space-y-2">
+            <!-- Conversation items will be loaded here -->
           </div>
-          <div id="conversation-messages-container" class="flex-grow flex flex-col-reverse overflow-y-auto space-y-4 py-4">
-            <p id="no-messages-message" class="text-gray-400 text-center mt-4">No messages in this conversation yet.</p>
-            <!-- Messages will be loaded here -->
-          </div>
-          <div id="message-input-area" class="mt-4 hidden">
-            <form id="send-message-form" class="flex items-center space-x-2">
-              <input type="text" id="message-content-input" placeholder="Type your message..." class="flex-grow p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Send</button>
-            </form>
-          </div>
+        </div>
+      </div>
+
+      <!-- Messages Display Panel -->
+      <div id="messages-panel" class="flex flex-col p-4 hidden"> <!-- Initially hidden -->
+        <div id="selected-conversation-header" class="bg-gray-800 p-3 rounded-t-lg mb-3 flex items-center justify-between shadow-md sticky top-0 z-10">
+          <button id="back-to-chats-btn" class="bg-blue-600 text-white font-bold py-1 px-4 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg text-sm mr-2">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <h3 id="conversation-title" class="text-2xl font-bold text-blue-300 flex-grow text-center">Select a Conversation</h3>
+          <button id="delete-conversation-btn" class="hidden bg-red-600 text-white font-bold py-1 px-4 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg text-sm ml-2">Delete Chat</button>
+        </div>
+        <div id="conversation-messages-container" class="flex-grow flex flex-col-reverse overflow-y-auto space-y-4 py-4">
+          <p id="no-messages-message" class="text-gray-400 text-center mt-4">No messages in this conversation yet.</p>
+          <!-- Messages will be loaded here -->
+        </div>
+        <div id="message-input-area" class="mt-4 hidden">
+          <form id="send-message-form" class="flex items-center space-x-2">
+            <input type="text" id="message-content-input" placeholder="Type your message..." class="flex-grow p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Send</button>
+          </form>
         </div>
       </div>
     </div>
