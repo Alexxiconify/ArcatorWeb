@@ -46,7 +46,7 @@ const confirmNoBtn = document.getElementById('confirm-no');
 // --- EMOJI & MENTION CONFIGURATION ---
 const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
 const EMOJI_MAP = {
-  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
+  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '�',
   ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
   ':cry:': '😢', ': गुस्सा:': '😡', ':sleepy:': '😴'
@@ -623,7 +623,7 @@ function setupRealtimeListeners() {
       }
     });
 
-    // Delegate comment delete button handling to the commentsListDiv (more efficient for dynamic elements)
+    // Delegate comment delete button handling to the threadsList (more efficient for dynamic elements)
     threadsList.removeEventListener('click', handleCommentAction); // Remove old listener
     threadsList.addEventListener('click', handleCommentAction);
   }, (error) => {
@@ -755,6 +755,11 @@ firebaseReadyPromise = new Promise((resolve) => {
 
 // Main execution logic on window load
 window.onload = async function() {
+  // Explicitly hide the custom confirmation modal on page load
+  if (customConfirmModal) {
+    customConfirmModal.style.display = 'none';
+  }
+
   await firebaseReadyPromise; // Wait for Firebase init and auth state to be known
 
   // Load navbar
@@ -792,3 +797,4 @@ window.onload = async function() {
   // Setup real-time listeners for threads and comments after initialization
   setupRealtimeListeners();
 };
+�
