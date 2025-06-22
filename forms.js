@@ -707,7 +707,7 @@ function setupRealtimeListeners() {
         deleteThreadBtn.removeEventListener('click', handleDeleteThread); // Prevent duplicate listeners
         deleteThreadBtn.addEventListener('click', handleDeleteThread);
       }
-    });
+    };
 
     // Delegate comment delete button handling to the threadsList (more efficient for dynamic elements)
     threadsList.removeEventListener('click', handleCommentAction); // Remove old listener
