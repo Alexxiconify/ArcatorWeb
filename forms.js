@@ -37,7 +37,7 @@ let currentUser = null;
 let isFirebaseInitialized = false;
 
 // --- Admin UIDs for Announcements (Replace with your actual Admin UIDs) ---
-const ADMIN_UIDS = ['YOUR_ADMIN_UID_1', 'YOUR_ADMIN_UID_2']; // IMPORTANT: Replace with actual UIDs
+const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2\n']; // IMPORTANT: Replace with actual UIDs
 
 // --- Default Values ---
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
