@@ -156,7 +156,7 @@ function parseEmojis(text) {
  * @returns {Promise<string>} A Promise that resolves with the text, with mentions converted to HTML links.
  */
 async function parseMentions(text) {
-  let processedText = text;
+  let processedText;
   const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
   let match;
   const mentionsToResolve = new Map();
