@@ -42,66 +42,66 @@ body {
 }
 
 /* Specific overrides to use CSS variables */
-.bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
-.bg-gray-700 { background-color: var(--color-bg-card) !important; }
-.bg-gray-600 { background-color: var(--color-input-bg) !important; } /* For comment input */
-.bg-gray-900 { background-color: var(--color-bg-navbar) !important; } /* Footer background */
+.bg-gray-800 { background-color: var(--color-bg-content-section); }
+.bg-gray-700 { background-color: var(--color-bg-card); }
+.bg-gray-600 { background-color: var(--color-input-bg); } /* For comment input */
+.bg-gray-900 { background-color: var(--color-bg-navbar); } /* Footer background */
 
-.text-gray-100 { color: var(--color-text-primary) !important; }
-.text-gray-200 { color: var(--color-text-primary) !important; }
-.text-gray-300 { color: var(--color-text-secondary) !important; }
-.text-gray-400 { color: var(--color-text-secondary) !important; }
-.text-gray-500 { color: var(--color-text-secondary) !important; }
-.text-gray-700 { color: var(--color-input-text) !important; } /* For reaction buttons */
+.text-gray-100 { color: var(--color-text-primary); }
+.text-gray-200 { color: var(--color-text-primary); }
+.text-gray-300 { color: var(--color-text-secondary); }
+.text-gray-400 { color: var(--color-text-secondary); }
+.text-gray-500 { color: var(--color-text-secondary); }
+.text-gray-700 { color: var(--color-input-text); } /* For reaction buttons */
 
-.text-blue-300 { color: var(--color-heading-card) !important; }
-.text-blue-400 { color: var(--color-link) !important; } /* For clickable mentions */
-.text-red-400 { color: var(--color-heading-main) !important; }
-.text-red-500 { color: var(--color-message-box-bg-error) !important; }
+.text-blue-300 { color: var(--color-heading-card); }
+.text-blue-400 { color: var(--color-link); } /* For clickable mentions */
+.text-red-400 { color: var(--color-heading-main); }
+.text-red-500 { color: var(--color-message-box-bg-error); }
 
 /* Input Field Styles */
 input[type="text"], textarea, select {
-  background-color: var(--color-input-bg) !important;
-  color: var(--color-input-text) !important;
-  border: 1px solid var(--color-input-border) !important;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  border: 1px solid var(--color-input-border);
 }
 input[type="text"]::placeholder, textarea::placeholder {
-  color: var(--color-placeholder) !important;
+  color: var(--color-placeholder);
 }
 
 /* Button styles */
 .btn-primary,
 .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
-  color: var(--color-button-text) !important;
+  color: var(--color-button-text);
 }
-.bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
-.hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
-.bg-red-600 { background-color: var(--color-button-red-bg) !important; }
-.hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
-.bg-green-600 { background-color: var(--color-button-green-bg) !important; }
-.hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
-.bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
-.hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
-.bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
-.hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
-.bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
-.hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
-.bg-gray-500 { background-color: var(--color-text-secondary) !important; } /* For confirm-no button */
-.hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; } /* For confirm-no button hover */
+.bg-blue-600 { background-color: var(--color-button-blue-bg); }
+.hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover); }
+.bg-red-600 { background-color: var(--color-button-red-bg); }
+.hover\:bg-red-700:hover { background-color: var(--color-button-red-hover); }
+.bg-green-600 { background-color: var(--color-button-green-bg); }
+.hover\:bg-green-700:hover { background-color: var(--color-button-green-hover); }
+.bg-purple-600 { background-color: var(--color-button-purple-bg); }
+.hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover); }
+.bg-yellow-500 { background-color: var(--color-button-yellow-bg); }
+.hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover); }
+.bg-indigo-600 { background-color: var(--color-button-indigo-bg); }
+.hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover); }
+.bg-gray-500 { background-color: var(--color-text-secondary); } /* For confirm-no button */
+.hover\:bg-gray-600:hover { background-color: var(--color-text-primary); } /* For confirm-no button hover */
 
 /* Links */
 a {
   color: var(--color-link);
 }
 a.text-blue-400 { /* Specific link color used in this page */
-  color: var(--color-link) !important;
+  color: var(--color-link);
 }
 a:hover {
   color: var(--color-link);
   text-decoration: underline;
 }
 .hover\:text-white:hover {
-  color: var(--color-text-primary) !important; /* For footer links */
+  color: var(--color-text-primary); /* For footer links */
 }
 
 /* CRITICAL FIX: Ensure hidden class works for tabs */
@@ -169,7 +169,7 @@ a:hover {
 .conversation-item.active .text-gray-300,
 .conversation-item.active .text-gray-400,
 .conversation-item.active .text-sm {
-  color: var(--color-button-text) !important; /* Ensure text is readable on active */
+  color: var(--color-button-text); /* Ensure text is readable on active */
 }
 
 
@@ -300,12 +300,12 @@ a:hover {
   transform: translateY(-1px);
 }
 .reaction-btn.bg-blue-600 { /* Active/selected reaction */
-  background-color: var(--color-button-blue-bg) !important;
-  color: white !important;
+  background-color: var(--color-button-blue-bg);
+  color: white;
 }
 .reaction-btn.bg-gray-200 { /* Inactive reaction */
-  background-color: var(--color-input-bg) !important;
-  color: var(--color-text-primary) !important;
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
 }
 
 
