@@ -7,7 +7,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
@@ -268,13 +268,20 @@
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
       <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
   </div>
 </footer>
 
 <!-- Firebase SDKs and Main Script (will be forms.js) -->
 <!-- forms.js will be loaded as a module -->
+<script src="firebase-init.js" type="module"></script>
+<script src="utils.js" type="module"></script>
+<script src="themes-api.js" type="module"></script>
+<script src="forum.js" type="module"></script>
+<script src="dms.js" type="module"></script>
+<script src="announcements.js" type="module"></script>
 <script src="forms.js" type="module"></script>
 </body>
 </html>
