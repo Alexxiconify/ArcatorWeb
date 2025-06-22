@@ -2,7 +2,7 @@
 
 // forms.js: This script handles forum thread and comment functionality,
 // including real-time updates, reactions, emoji parsing, and user mentions.
-// It now also includes Direct Messages and Announcements features with tabbed navigation.
+n// It now also includes Direct Messages and Announcements features with tabbed navigation.
 
 // Debug log to check if the script starts executing.
 console.log("forms.js - Script parsing initiated.");

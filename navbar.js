@@ -1,7 +1,7 @@
 // navbar.js
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-// Import applyTheme and getAvailableThemes as named exports
+// Import applyTheme and getAvailableThemes directly as named exports from themes.js
 import { applyTheme, getAvailableThemes } from './themes.js';
 
 /**
@@ -10,7 +10,7 @@ import { applyTheme, getAvailableThemes } from './themes.js';
  * @param {string} defaultProfilePic - Default URL for profile pictures
  * @param {string} defaultThemeName - Default theme name
  */
-export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) { // Removed applyThemeFunc, getAvailableThemesFunc from params
+export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) {
   const { auth, db, appId } = firebaseInstances;
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
 
@@ -26,43 +26,38 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
       const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
       const navbarSigninLink = document.getElementById('navbar-signin-link');
+      const navbarSignInText = document.getElementById('navbar-signin-text');
 
-      // Listen for authentication state changes
+
+      // Ensure auth is provided before setting up auth state listener
       if (auth) {
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            // User is signed in
+            // User is signed in. Update UI for logged-in state.
+            if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
+            if (navbarSigninLink) navbarSigninLink.style.display = 'none';
+
+            // Fetch user profile from Firestore to get custom display name and photo
             const userProfile = await getUserProfileFromFirestore(db, appId, user.uid);
-            const displayName = userProfile?.displayName || user.displayName || 'Settings';
-            const photoURL = userProfile?.photoURL || user.photoURL || defaultProfilePic;
-            const themePreference = userProfile?.themePreference || defaultThemeName;
-
-            if (navbarUserIcon && navbarUserDisplayName && navbarUserSettingsLink) {
-              navbarUserIcon.src = photoURL;
-              navbarUserDisplayName.textContent = displayName;
-              navbarUserSettingsLink.style.display = 'flex'; // Show user profile link
+            if (navbarUserDisplayName) {
+              // Prefer display name from profile, then Firebase auth, then generic.
+              navbarUserDisplayName.textContent = userProfile?.displayName || user.displayName || 'Settings';
             }
-            if (navbarSigninLink) {
-              navbarSigninLink.style.display = 'none'; // Hide sign-in link
+            if (navbarUserIcon) {
+              // Prefer photo URL from profile, then Firebase auth, then default.
+              navbarUserIcon.src = userProfile?.photoURL || user.photoURL || defaultProfilePic;
             }
-
-            // Apply user's theme using the imported function
-            const allThemes = await getAvailableThemes(); // Directly call imported getAvailableThemes
-            const selectedTheme = allThemes.find(theme => theme.id === themePreference);
-            if (selectedTheme) {
-              applyTheme(selectedTheme.id, selectedTheme); // Directly call imported applyTheme
-            } else {
-              applyTheme(defaultThemeName); // Directly call imported applyTheme
-            }
+            // Apply user's theme preference
+            const userThemePreference = userProfile?.themePreference;
+            const allThemes = await getAvailableThemes(); // Directly call the imported function
+            const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === defaultThemeName);
+            applyTheme(themeToApply.id, themeToApply); // Directly call the imported function
 
           } else {
-            // User is signed out
-            if (navbarUserSettingsLink) {
-              navbarUserSettingsLink.style.display = 'none'; // Hide user profile link
-            }
-            if (navbarSigninLink) {
-              navbarSigninLink.style.display = 'flex'; // Show sign-in link
-            }
+            // User is signed out. Update UI for logged-out state.
+            if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
+            if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
+            if (navbarSignInText) navbarSignInText.textContent = 'Sign In'; // Ensure it says "Sign In" when logged out
             applyTheme(defaultThemeName); // Directly call imported applyTheme
           }
         });
