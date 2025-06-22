@@ -87,7 +87,7 @@ const noMessagesMessage = document.getElementById('no-messages-message');
 const messageInputArea = document.getElementById('message-input-area');
 const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content-input');
-
+const userHandlesDatalist = document.getElementById('user-handles-list'); // New datalist element
 
 // Announcement Elements
 const createAnnouncementSection = document.getElementById('create-announcement-section');
@@ -645,16 +645,17 @@ async function createConversation(type, participantHandles, groupName = '') {
 
   const participantUids = await resolveHandlesToUids(Array.from(allParticipantHandles));
 
-  if (participantUids.length < 1 || (type === 'private' && participantUids.length !== 2)) {
-    showMessageBox("Please provide valid participant handles for the chat. Private chats require exactly one other user.", true);
+  if (participantUids.length < 1) { // Changed this validation
+    showMessageBox("Please provide valid participant handles for the chat.", true);
     return;
   }
-  if (participantUids.length === 1 && type === 'private') {
-    showMessageBox("You cannot start a private chat with yourself.", true);
+  // Removed the restriction for self-DMing
+  if (type === 'private' && participantUids.length === 0) { // This case should be covered by participantUids.length < 1
+    showMessageBox("Private chats require at least one recipient (which can be yourself).", true);
     return;
   }
-  if (type === 'group' && participantUids.length < 2) {
-    showMessageBox("Group chats require at least two participants (including yourself).", true);
+  if (type === 'group' && participantUids.length < 1) { // Changed from < 2 to < 1
+    showMessageBox("Group chats require at least one participant (including yourself).", true); // Changed message
     return;
   }
 
@@ -677,8 +678,10 @@ async function createConversation(type, participantHandles, groupName = '') {
     let existingConversation = null;
     existingChatsSnapshot.forEach(doc => {
       const conv = doc.data();
-      // Manually check if both participants are present and no others
-      if (conv.participants.length === 2 && conv.participants.includes(sortedUids[0]) && conv.participants.includes(sortedUids[1])) {
+      // Manually check if both participants are present and no others (or just the current user for self-DM)
+      const participantsMatch = conv.participants.length === sortedUids.length &&
+        sortedUids.every(uid => conv.participants.includes(uid));
+      if (participantsMatch) {
         existingConversation = doc;
       }
     });
@@ -786,10 +789,12 @@ function renderConversationsList() {
 
     // Apply sorting based on currentSortOption
     allConversations.sort((a, b) => {
-      const getDisplayNameForSorting = (conv, isA = true) => {
+      const getDisplayNameForSorting = (conv) => {
         if (conv.type === 'group') return conv.name || 'Unnamed Group';
         // For private chat, find the other participant's handle
         const otherUid = conv.participants.find(uid => uid !== currentUser.uid);
+        // If otherUid is undefined (e.g., self-DM), use current user's handle
+        if (!otherUid) return "Self Chat";
         const otherProfile = fetchedProfiles.get(otherUid);
         return otherProfile?.handle || otherProfile?.displayName || 'Unknown User';
       };
@@ -832,9 +837,14 @@ function renderConversationsList() {
 
       if (conv.type === 'private') {
         const otherParticipantUid = conv.participants.find(uid => uid !== currentUser.uid);
-        const otherProfile = fetchedProfiles.get(otherParticipantUid);
-        chatName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
-        displayPhoto = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+        if (!otherParticipantUid) { // Self-DM case
+          chatName = "Self Chat";
+          displayPhoto = currentUser.photoURL || DEFAULT_PROFILE_PIC; // Use user's own photo
+        } else {
+          const otherProfile = fetchedProfiles.get(otherParticipantUid);
+          chatName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+          displayPhoto = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+        }
       } else { // Group chat
         chatName = conv.name || `Group Chat (${conv.participants.length} members)`;
         // For group chats, a generic group icon or first participant's photo
@@ -907,8 +917,12 @@ async function selectConversation(convId, conversationData) {
   let displayTitle = conversationData.name;
   if (conversationData.type === 'private') {
     const otherParticipantUid = conversationData.participants.find(uid => uid !== currentUser.uid);
-    const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
-    displayTitle = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+    if (!otherParticipantUid) { // Self-DM case
+      displayTitle = "Self Chat";
+    } else {
+      const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
+      displayTitle = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+    }
   } else {
     displayTitle = conversationData.name || `Group Chat (${conversationData.participants.length} members)`;
   }
@@ -1095,8 +1109,8 @@ async function deleteMessage(messageId) {
 
     // Optional: Re-evaluate last message in conversation if the deleted one was the last
     const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`);
-    const q = query(messagesCol, orderBy("createdAt", "desc"), limit(1)); // Get the new last message
-    const snapshot = await getDocs(q);
+    const q = query(messagesCol, orderBy("createdAt", "desc")); // Get the new last message (removed limit for better accuracy if there are few messages)
+    const snapshot = await getDocs(q); // Use getDocs instead of onSnapshot for a one-time fetch here
     const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, selectedConversationId);
 
     if (!snapshot.empty) {
@@ -1110,7 +1124,7 @@ async function deleteMessage(messageId) {
     } else {
       // No messages left, update conversation to reflect this
       await updateDoc(conversationDocRef, {
-        lastMessageAt: serverTimestamp(), // Or null, depending on preference
+        lastMessageAt: null, // Set to null if no messages
         lastMessageContent: 'No messages yet.',
         lastMessageSenderHandle: '',
         lastMessageSenderId: '',
@@ -1167,6 +1181,34 @@ async function deleteConversation(convId) {
   } catch (error) {
     console.error("Error deleting conversation:", error);
     showMessageBox(`Error deleting conversation: ${error.message}`, true);
+  }
+}
+
+
+/**
+ * Fetches all user handles from Firestore and populates the datalist for recipient suggestions.
+ */
+async function populateUserHandlesDatalist() {
+  if (!db || !userHandlesDatalist) {
+    console.warn("Firestore DB or userHandlesDatalist not ready for populating handles.");
+    return;
+  }
+  userHandlesDatalist.innerHTML = ''; // Clear existing options
+
+  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+  try {
+    const querySnapshot = await getDocs(userProfilesRef);
+    querySnapshot.forEach(docSnap => {
+      const profile = docSnap.data();
+      if (profile.handle) {
+        const option = document.createElement('option');
+        option.value = `@${profile.handle}`; // Add '@' prefix for display
+        userHandlesDatalist.appendChild(option);
+      }
+    });
+    console.log("User handles datalist populated.");
+  } catch (error) {
+    console.error("Error fetching user handles for datalist:", error);
   }
 }
 
@@ -1481,7 +1523,7 @@ function renderDirectMessages() {
 
   if (!db || !conversationsList || !currentUser) {
     console.warn("Firestore DB, conversationsList, or currentUser not ready for DM rendering.");
-    if (conversationsList) conversationsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view direct messages.</p>';
+    if (conversationsList) conversationsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view conversations.</p>';
     if (noConversationsMessage) noConversationsMessage.style.display = 'none';
     updateDmUiForNoConversationSelected(); // Clear right panel if no user or DB not ready
     return;
@@ -1489,6 +1531,7 @@ function renderDirectMessages() {
 
   // Initial state for DM UI
   updateDmUiForNoConversationSelected(); // Ensures right panel is clear initially
+  populateUserHandlesDatalist(); // Populate the datalist with user handles
   renderConversationsList(); // Start listening for conversations
 }
 

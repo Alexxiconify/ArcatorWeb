@@ -135,22 +135,6 @@
       color: var(--color-text-primary) !important; /* For footer links */
     }
 
-    /* Tab styling */
-    .tab-button {
-      border-bottom-width: 2px;
-      padding-bottom: 0.75rem;
-      font-weight: 600;
-      transition: color 0.3s ease, border-color 0.3s ease;
-    }
-    .tab-button.active-tab {
-      border-color: var(--color-button-blue-bg);
-      color: var(--color-heading-card);
-    }
-    .tab-button:not(.active-tab):hover {
-      border-color: var(--color-text-secondary);
-      color: var(--color-text-primary);
-    }
-
     /* CRITICAL FIX: Ensure hidden class works for tabs */
     .tab-content.hidden {
       display: none !important;
@@ -394,7 +378,8 @@
               </div>
               <div id="private-chat-fields">
                 <label for="private-chat-recipient" class="block text-gray-300 text-sm font-bold mb-1">Recipient Handle:</label>
-                <input type="text" id="private-chat-recipient" placeholder="@username" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="private-chat-recipient" placeholder="@username" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" list="user-handles-list">
+                <datalist id="user-handles-list"></datalist>
               </div>
               <div id="group-chat-fields" class="hidden">
                 <label for="group-chat-name" class="block text-gray-300 text-sm font-bold mb-1">Group Name (Optional):</label>
