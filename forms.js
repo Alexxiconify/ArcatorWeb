@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Unminified themes.js
 import { loadNavbar } from './navbar.js'; // Unminified navbar.js
 
@@ -23,7 +23,7 @@ let auth;
 let db;
 let firebaseReadyPromise;
 let isFirebaseInitialized = false;
-let currentUser = null; // Store current user object
+let currentUser = null; // Store current user object with updated profile info
 
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 const DEFAULT_THEME_NAME = 'dark';
@@ -46,12 +46,63 @@ const confirmNoBtn = document.getElementById('confirm-no');
 // --- EMOJI & MENTION CONFIGURATION ---
 const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
 const EMOJI_MAP = {
-  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '�',
+  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
   ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
-  ':cry:': '😢', ': गुस्सा:': '😡', ':sleepy:': '😴'
+  ':cry:': '😢', ':sleepy:': '😴'
 };
-let userDisplayNameCache = {}; // Cache for user display names (UID -> DisplayName)
+// userHandleCache will store UID -> handle mapping
+let userHandleCache = {};
+// handleUidCache will store handle -> UID mapping for quick lookups during mention parsing
+let handleUidCache = {};
+
+/**
+ * Sanitizes a string to be suitable for a handle.
+ * Removes non-alphanumeric characters (except underscore, dot, hyphen) and converts to lowercase.
+ * @param {string} input - The string to sanitize.
+ * @returns {string} The sanitized handle.
+ */
+function sanitizeHandle(input) {
+  return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+}
+
+/**
+ * Generates a unique handle for a user and saves it to their profile.
+ * This is crucial for both new authenticated and anonymous users.
+ * @param {string} uid - The user's UID.
+ * @param {string} initialSuggestion - A suggested handle (e.g., from displayName or email).
+ * @returns {Promise<string>} The generated unique handle.
+ */
+async function generateUniqueHandle(uid, initialSuggestion) {
+  let baseHandle = sanitizeHandle(initialSuggestion || 'anonuser');
+  if (baseHandle.length === 0) { // Fallback if initial suggestion becomes empty after sanitization
+    baseHandle = 'user';
+  }
+  let handle = baseHandle;
+  let counter = 0;
+  let isUnique = false;
+
+  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+
+  while (!isUnique) {
+    const q = query(userProfilesRef, where("handle", "==", handle));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      isUnique = true;
+    } else {
+      counter++;
+      handle = `${baseHandle}${counter}`;
+    }
+  }
+
+  // Save the generated handle to the user's profile
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  await setDoc(userDocRef, { handle: handle }, { merge: true });
+
+  console.log(`Generated and saved unique handle for ${uid}: ${handle}`);
+  return handle;
+}
+
 
 // Function to replace emoji shortcodes with actual emojis
 function parseEmojis(text) {
@@ -66,57 +117,57 @@ function parseEmojis(text) {
 // Function to parse mentions and make them clickable
 async function parseMentions(text) {
   let parsedText = text;
-  const mentionRegex = /@([a-zA-Z0-9_.-]+)/g; // Matches @username, allowing for alphanumeric, underscore, dot, hyphen
+  // Regex to find @ followed by alphanumeric, underscore, dot, hyphen
+  const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
   let match;
-  const mentionsFound = [];
+  const mentionsToResolve = new Map(); // Map to store handle -> UID, to avoid redundant lookups
 
-  // Find all mentions first
+  // First pass: Find all unique handles mentioned in the text
   while ((match = mentionRegex.exec(text)) !== null) {
-    mentionsFound.push(match[1]); // Store just the username part
+    const mentionedHandle = match[1];
+    if (!mentionsToResolve.has(mentionedHandle)) {
+      mentionsToResolve.set(mentionedHandle, null); // Placeholder for UID
+    }
   }
 
-  // Replace them with resolved names or fallback
-  for (const mentionedUsername of mentionsFound) {
-    let resolvedName = `@${mentionedUsername}`; // Default if not found
-    let userUid = null;
+  // Second pass: Resolve handles to UIDs using cache or Firestore
+  for (const [mentionedHandle, _] of mentionsToResolve) {
+    let resolvedUid = handleUidCache[mentionedHandle]; // Check local cache first
 
-    // Try to find the user in cache or Firestore
-    // This is a simplified lookup; for large apps, you'd want a more robust user search.
-    const cachedUid = Object.keys(userDisplayNameCache).find(uid => userDisplayNameCache[uid] === mentionedUsername);
-    if (cachedUid) {
-      userUid = cachedUid;
-    } else {
-      // Attempt to fetch user profile if not in cache (could be slow for many mentions)
-      // For a real app, consider a dedicated user search function or pre-loading common users.
+    if (!resolvedUid) {
+      // If not in cache, query Firestore for the handle
       const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-      const q = query(userProfilesRef); // Fetching all is inefficient, but direct UID lookup is better if we store UIDs
+      const q = query(userProfilesRef, where("handle", "==", mentionedHandle));
       try {
         const querySnapshot = await getDocs(q);
-        querySnapshot.forEach(docSnap => {
-          const profile = docSnap.data();
-          if (profile.displayName === mentionedUsername) {
-            userUid = docSnap.id;
-            userDisplayNameCache[docSnap.id] = mentionedUsername; // Add to cache
-            return; // Found, break loop
-          }
-        });
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach(docSnap => {
+            resolvedUid = docSnap.id;
+            userHandleCache[resolvedUid] = mentionedHandle; // Update UID->handle cache
+            handleUidCache[mentionedHandle] = resolvedUid; // Update handle->UID cache
+          });
+        }
       } catch (error) {
-        console.error("Error searching for mentioned user:", error);
+        console.error("Error resolving mentioned handle from Firestore:", error);
       }
     }
-
-    if (userUid) {
-      resolvedName = `<a href="settings.html?uid=${userUid}" class="text-blue-400 hover:underline">@${mentionedUsername}</a>`;
-    }
-
-    // Replace all occurrences of this specific mention
-    const escapedMention = `@${mentionedUsername}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
-    const replaceRegex = new RegExp(escapedMention, 'g');
-    parsedText = parsedText.replace(replaceRegex, resolvedName);
+    mentionsToResolve.set(mentionedHandle, resolvedUid); // Store the resolved UID
   }
+
+  // Third pass: Replace mentions in the text with clickable links
+  // Use a replacer function with string.replace to handle all matches
+  parsedText = text.replace(mentionRegex, (fullMatch, mentionedHandle) => {
+    const resolvedUid = mentionsToResolve.get(mentionedHandle);
+    if (resolvedUid) {
+      return `<a href="settings.html?uid=${resolvedUid}" class="text-blue-400 hover:underline">@${mentionedHandle}</a>`;
+    } else {
+      return fullMatch; // If handle not found, keep original text
+    }
+  });
 
   return parsedText;
 }
+
 
 // --- UTILITY FUNCTIONS ---
 
@@ -205,8 +256,8 @@ async function getUserProfileFromFirestore(uid) {
  * @param {string} content - The content of the thread.
  */
 async function createThread(title, content) {
-  if (!currentUser) {
-    showMessageBox("You must be logged in to create a thread.", true);
+  if (!currentUser || !currentUser.uid || !currentUser.handle) {
+    showMessageBox("You must be logged in and have a handle to create a thread.", true);
     return;
   }
   if (!db) {
@@ -219,7 +270,9 @@ async function createThread(title, content) {
     title: title,
     content: content,
     authorId: currentUser.uid,
-    authorDisplayName: currentUser.displayName || currentUser.email.split('@')[0],
+    authorHandle: currentUser.handle, // Use the unique handle here
+    authorDisplayName: currentUser.displayName || currentUser.handle, // Display name or fallback to handle
+    authorPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC,
     createdAt: serverTimestamp(),
     reactions: {}, // Store reactions as a map: { emoji: { userId1: true, userId2: true } }
     commentCount: 0
@@ -285,8 +338,8 @@ async function deleteThread(threadId) {
  * @param {string} content - The content of the comment.
  */
 async function addCommentToThread(threadId, content) {
-  if (!currentUser) {
-    showMessageBox("You must be logged in to comment.", true);
+  if (!currentUser || !currentUser.uid || !currentUser.handle) {
+    showMessageBox("You must be logged in and have a handle to comment.", true);
     return;
   }
   if (!db) {
@@ -302,10 +355,11 @@ async function addCommentToThread(threadId, content) {
   const commentData = {
     content: content,
     authorId: currentUser.uid,
-    authorDisplayName: currentUser.displayName || currentUser.email.split('@')[0],
+    authorHandle: currentUser.handle, // Use the unique handle here
+    authorDisplayName: currentUser.displayName || currentUser.handle, // Display name or fallback to handle
+    authorPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC,
     createdAt: serverTimestamp(),
     reactions: {}, // Initialize reactions for comments too
-    // mentions will be parsed before saving, but not explicitly stored for now unless needed for notifications
   };
 
   try {
@@ -487,25 +541,53 @@ function setupRealtimeListeners() {
       threadsLoadingError.style.display = 'none';
     }
 
-    snapshot.forEach(async (threadDoc) => {
+    // Prepare a map to store profile fetches for threads and comments
+    const profilesToFetch = new Set();
+    snapshot.forEach(threadDoc => {
+      const thread = threadDoc.data();
+      profilesToFetch.add(thread.authorId);
+      // Also collect comment author IDs for batch fetching
+      const commentsColRef = collection(db, `artifacts/${appId}/public/data/forum_threads/${threadDoc.id}/comments`);
+      getDocs(commentsColRef).then(commentSnapshot => {
+        commentSnapshot.forEach(commentDoc => {
+          profilesToFetch.add(commentDoc.data().authorId);
+        });
+      }).catch(e => console.error("Error fetching comments for profile collection:", e));
+    });
+
+    // Fetch all unique profiles needed for this snapshot
+    const fetchedProfiles = new Map(); // uid -> profileData
+    for (const uid of profilesToFetch) {
+      const profile = await getUserProfileFromFirestore(uid);
+      if (profile) {
+        fetchedProfiles.set(uid, profile);
+        userHandleCache[uid] = profile.handle; // Populate UID->handle cache
+        handleUidCache[profile.handle] = uid; // Populate handle->UID cache
+      }
+    }
+
+
+    for (const threadDoc of snapshot.docs) { // Use snapshot.docs for direct iteration
       const thread = threadDoc.data();
       const threadId = threadDoc.id;
-      const authorProfile = await getUserProfileFromFirestore(thread.authorId);
-      const authorDisplayName = authorProfile?.displayName || thread.authorDisplayName || 'Anonymous';
-      const authorPhotoURL = authorProfile?.photoURL || DEFAULT_PROFILE_PIC;
+      const authorProfile = fetchedProfiles.get(thread.authorId) || {};
+      // Use authorHandle if available, else authorDisplayName (from old data) or 'Anonymous'
+      const authorToDisplay = authorProfile.handle || thread.authorHandle || thread.authorDisplayName || 'Anonymous';
+      const authorPhotoURL = authorProfile.photoURL || thread.authorPhotoURL || DEFAULT_PROFILE_PIC;
 
       const threadElement = document.createElement('div');
       threadElement.id = `thread-${threadId}`;
       threadElement.className = 'bg-gray-700 p-6 rounded-lg shadow-md mb-8';
 
       // Parse emojis and mentions in content before display
+      // Ensure parseMentions is awaited as it now performs Firestore lookups
       const parsedContent = await parseMentions(parseEmojis(thread.content));
 
       threadElement.innerHTML = `
         <div class="flex items-center mb-4">
           <img src="${authorPhotoURL}" alt="Profile" class="w-10 h-10 rounded-full mr-3 object-cover">
           <div>
-            <p class="font-semibold text-gray-200">${authorDisplayName}</p>
+            <p class="font-semibold text-gray-200">@${authorToDisplay}</p>
             <p class="text-sm text-gray-400">${thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
           </div>
         </div>
@@ -561,9 +643,11 @@ function setupRealtimeListeners() {
         for (const commentDoc of commentSnapshot.docs) {
           const comment = commentDoc.data();
           const commentId = commentDoc.id;
-          const commentAuthorProfile = await getUserProfileFromFirestore(comment.authorId);
-          const commentAuthorDisplayName = commentAuthorProfile?.displayName || comment.authorDisplayName || 'Anonymous';
-          const commentAuthorPhotoURL = commentAuthorProfile?.photoURL || DEFAULT_PROFILE_PIC;
+          const commentAuthorProfile = fetchedProfiles.get(comment.authorId) || {};
+          // Use authorHandle if available, else authorDisplayName (from old data) or 'Anonymous'
+          const commentAuthorToDisplay = commentAuthorProfile.handle || comment.authorHandle || comment.authorDisplayName || 'Anonymous';
+          const commentAuthorPhotoURL = commentAuthorProfile.photoURL || comment.authorPhotoURL || DEFAULT_PROFILE_PIC;
+
 
           // Parse emojis and mentions in comment content before display
           const parsedCommentContent = await parseMentions(parseEmojis(comment.content));
@@ -574,7 +658,7 @@ function setupRealtimeListeners() {
             <div class="flex items-center mb-2">
               <img src="${commentAuthorPhotoURL}" alt="Profile" class="w-8 h-8 rounded-full mr-2 object-cover">
               <div>
-                <p class="font-semibold text-gray-200">${commentAuthorDisplayName}</p>
+                <p class="font-semibold text-gray-200">@${commentAuthorToDisplay}</p>
                 <p class="text-xs text-gray-500">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
               </div>
             </div>
@@ -693,57 +777,115 @@ firebaseReadyPromise = new Promise((resolve) => {
       console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
       unsubscribe(); // Unsubscribe immediately after the first state change
 
-      if (typeof __initial_auth_token !== 'undefined' && !user) {
-        // If Canvas provides a token and no user is signed in, try custom token sign-in
-        signInWithCustomToken(auth, __initial_auth_token)
-          .then(async (userCredential) => {
-            currentUser = userCredential.user;
-            console.log("DEBUG: Signed in with custom token from Canvas (forms page).");
-            // Fetch user profile and update current user object with displayName
-            const profile = await getUserProfileFromFirestore(currentUser.uid);
-            if (profile) {
-              currentUser.displayName = profile.displayName;
-              currentUser.photoURL = profile.photoURL;
-            }
-            resolve();
-          })
-          .catch((error) => {
-            console.error("ERROR: Error signing in with custom token (forms page):", error);
-            signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-              .then(async (userCredential) => {
-                currentUser = userCredential.user;
-                console.log("DEBUG: Signed in anonymously (forms page) after custom token failure.");
-                resolve();
-              })
-              .catch((anonError) => {
-                console.error("ERROR: Error signing in anonymously on forms page:", anonError);
-                resolve(); // Resolve even on error to prevent infinite loading
-              });
-          });
-      } else if (!user && typeof __initial_auth_token === 'undefined') {
-        // If no Canvas token and no user, sign in anonymously
-        signInAnonymously(auth)
-          .then(async (userCredential) => {
-            currentUser = userCredential.user;
-            console.log("DEBUG: Signed in anonymously (no custom token) on forms page.");
-            resolve();
-          })
-          .catch((anonError) => {
-            console.error("ERROR: Error signing in anonymously on forms page:", anonError);
-            resolve(); // Resolve even on error
-          });
-      } else {
-        // If user is already authenticated (e.g., from a previous page), set currentUser
+      if (user) {
         currentUser = user;
-        // Fetch user profile and update current user object with displayName
-        if (currentUser) {
-          const profile = await getUserProfileFromFirestore(currentUser.uid);
-          if (profile) {
-            currentUser.displayName = profile.displayName;
-            currentUser.photoURL = profile.photoURL;
-          }
+        // Fetch or create user profile, ensuring a handle exists
+        let userProfile = await getUserProfileFromFirestore(currentUser.uid);
+
+        if (!userProfile) {
+          // New user or profile doesn't exist, create one
+          const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
+          const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
+          userProfile = {
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+            handle: generatedHandle,
+            createdAt: serverTimestamp(),
+            // Add other default profile fields if necessary
+          };
+          await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
+          console.log("New user profile created with handle:", generatedHandle);
+        } else if (!userProfile.handle) {
+          // Existing profile but no handle, generate one
+          const initialHandle = userProfile.displayName || currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
+          const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
+          userProfile.handle = generatedHandle;
+          await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle }, { merge: true });
+          console.log("Handle generated and added to existing profile:", generatedHandle);
         }
+
+        // Update currentUser object with the handle and photoURL from profile
+        currentUser.displayName = userProfile.displayName || currentUser.displayName; // Keep display name for other parts of the app
+        currentUser.photoURL = userProfile.photoURL || currentUser.photoURL;
+        currentUser.handle = userProfile.handle;
+
+        // Populate caches
+        userHandleCache[currentUser.uid] = currentUser.handle;
+        handleUidCache[currentUser.handle] = currentUser.uid;
+
         resolve();
+
+      } else { // No authenticated user
+        if (typeof __initial_auth_token !== 'undefined') {
+          // If Canvas provides a token and no user is signed in, try custom token sign-in
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(async (userCredential) => {
+              currentUser = userCredential.user;
+              console.log("DEBUG: Signed in with custom token from Canvas (forms page).");
+              // Check/generate handle for this user
+              let userProfile = await getUserProfileFromFirestore(currentUser.uid);
+              if (!userProfile || !userProfile.handle) {
+                const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
+                const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
+                if (!userProfile) userProfile = {}; // Initialize if not fetched
+                userProfile.handle = generatedHandle;
+                userProfile.displayName = userProfile.displayName || currentUser.displayName;
+                userProfile.photoURL = userProfile.photoURL || currentUser.photoURL;
+                await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
+              }
+              currentUser.displayName = userProfile.displayName;
+              currentUser.photoURL = userProfile.photoURL;
+              currentUser.handle = userProfile.handle;
+
+              userHandleCache[currentUser.uid] = currentUser.handle;
+              handleUidCache[currentUser.handle] = currentUser.uid;
+
+              resolve();
+            })
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (forms page):", error);
+              signInAnonymously(auth) // Fallback to anonymous sign-in
+                .then(async (userCredential) => {
+                  currentUser = userCredential.user;
+                  console.log("DEBUG: Signed in anonymously (forms page) after custom token failure.");
+                  // Generate handle for anonymous user
+                  const generatedHandle = await generateUniqueHandle(currentUser.uid, `anon${currentUser.uid.substring(0, 5)}`);
+                  await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle, displayName: `Anon ${currentUser.uid.substring(0, 5)}`, photoURL: DEFAULT_PROFILE_PIC, createdAt: serverTimestamp() }, { merge: true });
+                  currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
+                  currentUser.photoURL = DEFAULT_PROFILE_PIC;
+                  currentUser.handle = generatedHandle;
+
+                  userHandleCache[currentUser.uid] = currentUser.handle;
+                  handleUidCache[currentUser.handle] = currentUser.uid;
+                  resolve();
+                })
+                .catch((anonError) => {
+                  console.error("ERROR: Error signing in anonymously on forms page:", anonError);
+                  resolve(); // Resolve even on error to prevent infinite loading
+                });
+            });
+        } else {
+          // No Canvas token and no user, sign in anonymously
+          signInAnonymously(auth)
+            .then(async (userCredential) => {
+              currentUser = userCredential.user;
+              console.log("DEBUG: Signed in anonymously (no custom token) on forms page.");
+              // Generate handle for anonymous user
+              const generatedHandle = await generateUniqueHandle(currentUser.uid, `anon${currentUser.uid.substring(0, 5)}`);
+              await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle, displayName: `Anon ${currentUser.uid.substring(0, 5)}`, photoURL: DEFAULT_PROFILE_PIC, createdAt: serverTimestamp() }, { merge: true });
+              currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
+              currentUser.photoURL = DEFAULT_PROFILE_PIC;
+              currentUser.handle = generatedHandle;
+
+              userHandleCache[currentUser.uid] = currentUser.handle;
+              handleUidCache[currentUser.handle] = currentUser.uid;
+              resolve();
+            })
+            .catch((anonError) => {
+              console.error("ERROR: Error signing in anonymously on forms page:", anonError);
+              resolve(); // Resolve even on error
+            });
+        }
       }
     });
   } catch (e) {
