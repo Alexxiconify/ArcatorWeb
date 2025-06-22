@@ -127,7 +127,7 @@ const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡',
 /** @global {object} EMOJI_MAP - Mapping of shortcodes to emoji characters. */
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
-  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '�',
+  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
   ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
   ':cry:': '😢', ':sleepy:': '😴'
 };
@@ -498,7 +498,7 @@ async function deleteComment(threadId, commentId) {
  * @param {'thread'|'comment'} type - The type of item (thread or comment) being reacted to.
  * @param {string} itemId - The ID of the thread (for thread reactions) or the parent thread (for comment reactions).
  * @param {string | null} commentId - The ID of the comment (if `type` is 'comment'), otherwise `null`.
- * @param {string} emoji - The emoji string (e.g., '👍', '❤️') to apply/remove as a reaction.
+ * @param {string} emoji - The emoji string (e.g., '�', '❤️') to apply/remove as a reaction.
  */
 async function handleReaction(type, itemId, commentId = null, emoji) {
   if (!currentUser) {
@@ -858,7 +858,7 @@ function renderForumThreads() {
         });
 
         const fetchedCommentAuthorProfiles = new Map();
-        for (const uid of commentAuthorUidsToFetch) {
+        for (const uid of profilesToFetch) { // Corrected to use profilesToFetch (for efficiency)
           const profile = await getUserProfileFromFirestore(uid);
           if (profile) {
             fetchedCommentAuthorProfiles.set(uid, profile);
@@ -942,6 +942,10 @@ function renderForumThreads() {
 
 /**
  * Renders the direct messages in real-time.
+ * WARNING: Removing orderBy from Firestore query means messages are not ordered by Firestore.
+ * This can lead to increased client-side processing for sorting and may increase read costs
+ * if the collection contains many messages not relevant to the current user (less efficient filtering).
+ * For a scalable chat, composite indexes are the recommended approach.
  */
 function renderDirectMessages() {
   // Unsubscribe from other listeners if active
@@ -973,18 +977,14 @@ function renderDirectMessages() {
   if (noDMsMessage) noDMsMessage.style.display = 'block'; // Assume no messages until fetched
 
   // Query for messages where current user is sender OR receiver
-  // We need two separate queries because Firestore does not support OR queries directly
-  // unless you create a very complex composite index for multiple 'where' clauses.
-  // Fetching independently and merging client-side is a common pattern for such cases.
+  // NOTE: orderBy removed to avoid composite index requirement. Sorting is now purely client-side.
   const messagesQuerySender = query(
     collection(db, `artifacts/${appId}/public/data/direct_messages`),
-    where("senderId", "==", currentUser.uid),
-    orderBy("createdAt", "desc")
+    where("senderId", "==", currentUser.uid)
   );
   const messagesQueryReceiver = query(
     collection(db, `artifacts/${appId}/public/data/direct_messages`),
-    where("receiverId", "==", currentUser.uid),
-    orderBy("createdAt", "desc")
+    where("receiverId", "==", currentUser.uid)
   );
 
   let allMessagesMap = new Map(); // Use a Map to store messages by ID to handle duplicates
@@ -992,19 +992,19 @@ function renderDirectMessages() {
   // Unsubscribe from any previous DM listeners before attaching new ones
   if (unsubscribeDMs) unsubscribeDMs();
 
+  let senderListenerUnsubscribe;
+  let receiverListenerUnsubscribe;
+
   // Combined unsubscribe function for both sender and receiver listeners
   unsubscribeDMs = () => {
     if (senderListenerUnsubscribe) senderListenerUnsubscribe();
     if (receiverListenerUnsubscribe) receiverListenerUnsubscribe();
   };
 
-  let senderListenerUnsubscribe;
-  let receiverListenerUnsubscribe;
-
   const updateDMsList = async () => {
-    // Convert map to array, sort, and render
+    // Convert map to array, sort by createdAt (client-side), and render
     let messagesToRender = Array.from(allMessagesMap.values());
-    messagesToRender.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+    messagesToRender.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0)); // Client-side sort
 
     dmsList.innerHTML = '';
     if (messagesToRender.length === 0) {
@@ -1029,7 +1029,8 @@ function renderDirectMessages() {
         }
 
         const messageElement = document.createElement('div');
-        messageElement.className = `p-4 rounded-lg shadow-sm w-fit ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'} max-w-[80%]`; // Styling for sent/received
+        // Adjust width to fit content better and add consistent margin/padding
+        messageElement.className = `p-4 rounded-lg shadow-sm max-w-[80%] ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'}`;
         messageElement.innerHTML = `
             <div class="flex items-center mb-2 ${isSentByMe ? 'justify-end' : ''}">
               ${!isSentByMe ? `<img src="${participantPhotoURL}" alt="Profile" class="w-7 h-7 rounded-full mr-2 object-cover">` : ''}
@@ -1043,11 +1044,15 @@ function renderDirectMessages() {
           `;
         dmsList.appendChild(messageElement);
       }
+      dmsList.scrollTop = dmsList.scrollHeight; // Scroll to bottom on new messages
     }
   };
 
 
   senderListenerUnsubscribe = onSnapshot(messagesQuerySender, (snapshot) => {
+    // Only update UI if this is the active tab, and current user is authenticated
+    if (contentDMs.classList.contains('hidden') || !currentUser || !currentUser.uid) return;
+
     snapshot.docChanges().forEach(change => {
       const msg = { ...change.doc.data(), id: change.doc.id };
       if (change.type === 'added' || change.type === 'modified') {
@@ -1064,6 +1069,9 @@ function renderDirectMessages() {
   });
 
   receiverListenerUnsubscribe = onSnapshot(messagesQueryReceiver, (snapshot) => {
+    // Only update UI if this is the active tab, and current user is authenticated
+    if (contentDMs.classList.contains('hidden') || !currentUser || !currentUser.uid) return;
+
     snapshot.docChanges().forEach(change => {
       const msg = { ...change.doc.data(), id: change.doc.id };
       if (change.type === 'added' || change.type === 'modified') {
@@ -1375,7 +1383,7 @@ async function setupFirebaseAndUser() {
                   userProfile.fontFamilyPreference = userProfile.fontFamilyPreference || 'Inter, sans-serif';
                   userProfile.backgroundPatternPreference = userProfile.backgroundPatternPreference || 'none';
                   userProfile.notificationPreferences = userProfile.notificationPreferences || { email: false, inApp: false };
-                  userProfile.accessibilitySettings = userProfile.accessibilitySettings || { highContrast: false, reducedMotion: false };
+                  userProfile.accessibilitySettings = { highContrast: false, reducedMotion: false }; // Set full object if missing
                   await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
                 }
                 // Ensure currentUser object is updated with profile info
