@@ -797,4 +797,3 @@ window.onload = async function() {
   // Setup real-time listeners for threads and comments after initialization
   setupRealtimeListeners();
 };
-�
