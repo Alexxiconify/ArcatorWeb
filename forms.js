@@ -2,7 +2,8 @@
 
 // forms.js: This script handles forum thread and comment functionality,
 // including real-time updates, reactions, emoji parsing, and user mentions.
-// It now also includes Direct Messages and Announcements features with tabbed navigation.
+// It now also includes Direct Messages and Announcements features with tabbed navigation,
+// and a new 'Theme' (subreddit-like) feature for grouping forum discussions.
 
 // Debug log to check if the script starts executing.
 console.log("forms.js - Script parsing initiated.");
@@ -44,8 +45,8 @@ let currentUser = null;
 let isFirebaseInitialized = false;
 
 // --- Admin UIDs for Announcements (Replace with your actual Admin UIDs) ---
-// IMPORTANT: Replace 'CEch8cXWemSDQnM3dHVKPt0RGpn2' and 'OoeTK1HmebQyOf3gEiCKAHVtD6l2' with the actual UIDs of your Firebase authenticated admin users.
-// You can find UIDs in the Firebase Authentication section of your Firebase console.
+// These UIDs will be treated as 'server_admins' who can manage all themes.
+// IMPORTANT: Replace with the actual UIDs of your Firebase authenticated admin users.
 const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2'];
 
 // --- Default Values ---
@@ -58,20 +59,30 @@ let unsubscribeCurrentMessages = null; // Listener for messages in the currently
 let allConversations = []; // Array to hold fetched conversations for sorting
 let currentSortOption = 'lastMessageAt_desc'; // Default sort for conversations list
 
+// --- Forum State Variables ---
+let currentSelectedThemeId = 'all'; // Default to show all threads
+let allThemesCache = []; // Cache for all themes
+
 // --- DOM Elements ---
 // Forum Elements
 const threadsList = document.getElementById('threads-list');
 const createThreadForm = document.getElementById('create-thread-form');
+const createThreadThemeSelect = document.getElementById('create-thread-theme'); // New theme select for creation
 const threadTitleInput = document.getElementById('thread-title');
 const threadContentInput = document.getElementById('thread-content');
 const threadsLoadingError = document.getElementById('threads-loading-error');
 const noThreadsMessage = document.getElementById('no-threads-message');
+const themeSelect = document.getElementById('theme-select'); // Theme filter select
+const manageThemesBtn = document.getElementById('manage-themes-btn'); // Manage themes button
+const currentThemeInfo = document.getElementById('current-theme-info');
+const currentThemeName = document.getElementById('current-theme-name');
+const currentThemeDescription = document.getElementById('current-theme-description');
+const themeRulesList = document.getElementById('theme-rules-list');
 
-// DM Elements (Updated IDs for new structure)
-const conversationsPanel = document.getElementById('conversations-panel'); // Reference to the left panel
-const messagesPanel = document.getElementById('messages-panel');       // Reference to the right panel
-const backToChatsBtn = document.getElementById('back-to-chats-btn'); // New Back button
-
+// DM Elements
+const conversationsPanel = document.getElementById('conversations-panel');
+const messagesPanel = document.getElementById('messages-panel');
+const backToChatsBtn = document.getElementById('back-to-chats-btn');
 const createConversationForm = document.getElementById('create-conversation-form');
 const newChatTypeSelect = document.getElementById('new-chat-type');
 const privateChatFields = document.getElementById('private-chat-fields');
@@ -82,7 +93,6 @@ const groupChatParticipantsInput = document.getElementById('group-chat-participa
 const sortConversationsBySelect = document.getElementById('sort-conversations-by');
 const conversationsList = document.getElementById('conversations-list');
 const noConversationsMessage = document.getElementById('no-conversations-message');
-
 const selectedConversationHeader = document.getElementById('selected-conversation-header');
 const conversationTitleHeader = document.getElementById('conversation-title');
 const deleteConversationBtn = document.getElementById('delete-conversation-btn');
@@ -91,8 +101,7 @@ const noMessagesMessage = document.getElementById('no-messages-message');
 const messageInputArea = document.getElementById('message-input-area');
 const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content-input');
-const userHandlesDatalist = document.getElementById('user-handles-list'); // New datalist element
-
+const userHandlesDatalist = document.getElementById('user-handles-list');
 
 // Announcement Elements
 const createAnnouncementSection = document.getElementById('create-announcement-section');
@@ -118,6 +127,17 @@ const confirmSubmessage = document.getElementById('confirm-submessage');
 const confirmYesBtn = document.getElementById('confirm-yes');
 const confirmNoBtn = document.getElementById('confirm-no');
 
+// Theme Management Modal Elements
+const themeManagementModal = document.getElementById('theme-management-modal');
+const themeModalCloseBtn = document.querySelector('.theme-modal-close');
+const createThemeForm = document.getElementById('create-theme-form');
+const newThemeNameInput = document.getElementById('new-theme-name');
+const newThemeDescriptionInput = document.getElementById('new-theme-description');
+const newThemeRulesInput = document.getElementById('new-theme-rules');
+const themesListContainer = document.getElementById('themes-list-container');
+const noThemesMessage = document.getElementById('no-themes-message');
+
+
 // --- EMOJI & MENTION CONFIGURATION ---
 const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
 const EMOJI_MAP = {
@@ -130,7 +150,7 @@ let userHandleCache = {};
 let handleUidCache = {};
 
 /**
- * Sanitizes a string to be suitable for a user handle.
+ * Sanitizes a string to be suitable for a user handle or theme name.
  * Converts to lowercase and removes any characters not allowed (alphanumeric, underscore, dot, hyphen).
  * @param {string} input - The raw string to sanitize.
  * @returns {string} The sanitized handle string.
@@ -364,14 +384,303 @@ async function getUserProfileFromFirestore(uid) {
   return null;
 }
 
+
+// --- THEME (SUBREDDIT) FUNCTIONS ---
+
+/**
+ * Opens the theme management modal.
+ */
+function openThemeManagementModal() {
+  if (!currentUser || (!currentUser.isAdmin && !currentUser.isThemeMod)) {
+    showMessageBox("You do not have permission to manage themes.", true);
+    return;
+  }
+  themeManagementModal.style.display = 'flex';
+  renderThemesListForManagement();
+}
+
+/**
+ * Closes the theme management modal.
+ */
+function closeThemeManagementModal() {
+  themeManagementModal.style.display = 'none';
+  // Clear form
+  createThemeForm.reset();
+}
+
+/**
+ * Creates a new theme.
+ * @param {string} name - The name of the theme.
+ * @param {string} description - The description of the theme.
+ * @param {string[]} rules - An array of rules for the theme.
+ */
+async function createTheme(name, description, rules) {
+  if (!currentUser || !currentUser.uid) {
+    showMessageBox("You must be logged in to create a theme.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot create theme.", true);
+    return;
+  }
+  if (!name.trim()) {
+    showMessageBox("Theme name cannot be empty.", true);
+    return;
+  }
+
+  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
+  const themeData = {
+    name: name.trim(),
+    description: description.trim(),
+    rules: rules.map(rule => rule.trim()).filter(rule => rule !== ''),
+    moderators: [currentUser.uid], // Creator is automatically a mod
+    createdAt: serverTimestamp(),
+    createdBy: currentUser.uid,
+  };
+
+  try {
+    await addDoc(themesCol, themeData);
+    showMessageBox("Theme created successfully!", false);
+    createThemeForm.reset();
+    renderThemesListForManagement(); // Refresh the list
+    populateThemeDropdowns(); // Refresh theme dropdowns
+  } catch (error) {
+    console.error("Error creating theme:", error);
+    showMessageBox(`Error creating theme: ${error.message}`, true);
+  }
+}
+
+/**
+ * Renders the list of themes within the management modal.
+ */
+let unsubscribeThemesForManagement = null;
+function renderThemesListForManagement() {
+  if (!db || !themesListContainer) {
+    console.warn("DB or themesListContainer not ready for theme management rendering.");
+    return;
+  }
+
+  if (unsubscribeThemesForManagement) {
+    unsubscribeThemesForManagement();
+  }
+
+  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
+  const q = query(themesCol, orderBy("name", "asc"));
+
+  unsubscribeThemesForManagement = onSnapshot(q, (snapshot) => {
+    themesListContainer.innerHTML = '';
+    allThemesCache = []; // Clear cache before populating
+    if (snapshot.empty) {
+      noThemesMessage.style.display = 'block';
+    } else {
+      noThemesMessage.style.display = 'none';
+    }
+
+    snapshot.forEach(docSnap => {
+      const theme = { id: docSnap.id, ...docSnap.data() };
+      allThemesCache.push(theme);
+
+      const isCurrentUserMod = currentUser && (currentUser.isAdmin || theme.moderators.includes(currentUser.uid));
+
+      const themeItem = document.createElement('div');
+      themeItem.className = 'p-4 bg-gray-700 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between';
+      themeItem.innerHTML = `
+                <div>
+                    <h5 class="text-xl font-semibold text-blue-300">${theme.name}</h5>
+                    <p class="text-gray-300 text-sm mb-2">${theme.description}</p>
+                    <div class="text-gray-400 text-xs">
+                        <strong>Rules:</strong> ${theme.rules && theme.rules.length > 0 ? theme.rules.join('; ') : 'No rules defined.'}
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 mt-3 sm:mt-0">
+                    ${isCurrentUserMod ? `<button class="edit-theme-btn bg-yellow-500 text-white py-1 px-3 rounded-full hover:bg-yellow-600 text-sm" data-id="${theme.id}">Edit</button>` : ''}
+                    ${currentUser && currentUser.isAdmin ? `<button class="delete-theme-btn bg-red-600 text-white py-1 px-3 rounded-full hover:bg-red-700 text-sm" data-id="${theme.id}">Delete</button>` : ''}
+                </div>
+            `;
+      themesListContainer.appendChild(themeItem);
+    });
+
+    themesListContainer.querySelectorAll('.edit-theme-btn').forEach(btn => {
+      btn.addEventListener('click', handleEditTheme);
+    });
+    themesListContainer.querySelectorAll('.delete-theme-btn').forEach(btn => {
+      btn.addEventListener('click', handleDeleteTheme);
+    });
+  }, (error) => {
+    console.error("Error fetching themes for management:", error);
+    showMessageBox(`Error loading themes: ${error.message}`, true);
+    themesListContainer.innerHTML = `<p class="text-red-500 text-center">Error loading themes.</p>`;
+  });
+}
+
+/**
+ * Populates the theme dropdowns (filter and create thread) with available themes.
+ */
+let unsubscribeThemeDropdowns = null;
+function populateThemeDropdowns() {
+  if (!db || !themeSelect || !createThreadThemeSelect) {
+    console.warn("DB or theme dropdowns not ready for populating.");
+    return;
+  }
+
+  if (unsubscribeThemeDropdowns) {
+    unsubscribeThemeDropdowns(); // Unsubscribe from previous listener
+  }
+
+  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
+  const q = query(themesCol, orderBy("name", "asc"));
+
+  unsubscribeThemeDropdowns = onSnapshot(q, (snapshot) => {
+    themeSelect.innerHTML = '<option value="all">All Threads</option>'; // Always have "All Threads" option
+    createThreadThemeSelect.innerHTML = '<option value="">-- Select a Theme --</option>';
+
+    allThemesCache = []; // Refresh cache here as well
+    snapshot.forEach(docSnap => {
+      const theme = { id: docSnap.id, ...docSnap.data() };
+      allThemesCache.push(theme);
+
+      const optionFilter = document.createElement('option');
+      optionFilter.value = theme.id;
+      optionFilter.textContent = theme.name;
+      themeSelect.appendChild(optionFilter);
+
+      const optionCreate = document.createElement('option');
+      optionCreate.value = theme.id;
+      optionCreate.textContent = theme.name;
+      createThreadThemeSelect.appendChild(optionCreate);
+    });
+
+    // Restore selected options
+    themeSelect.value = currentSelectedThemeId;
+  }, (error) => {
+    console.error("Error populating theme dropdowns:", error);
+    showMessageBox(`Error loading themes for dropdowns: ${error.message}`, true);
+  });
+}
+
+/**
+ * Displays the rules and info for the currently selected theme.
+ * @param {string} themeId - The ID of the selected theme, or 'all'.
+ */
+function displayCurrentThemeInfo(themeId) {
+  if (themeId === 'all') {
+    currentThemeInfo.classList.add('hidden');
+    currentThemeName.textContent = '';
+    currentThemeDescription.textContent = '';
+    themeRulesList.innerHTML = '';
+    return;
+  }
+
+  const theme = allThemesCache.find(t => t.id === themeId);
+  if (theme) {
+    currentThemeInfo.classList.remove('hidden');
+    currentThemeName.textContent = theme.name;
+    currentThemeDescription.textContent = theme.description;
+    themeRulesList.innerHTML = '';
+    if (theme.rules && theme.rules.length > 0) {
+      theme.rules.forEach(rule => {
+        const li = document.createElement('li');
+        li.textContent = rule;
+        themeRulesList.appendChild(li);
+      });
+    } else {
+      themeRulesList.innerHTML = '<li>No specific rules defined for this theme.</li>';
+    }
+  } else {
+    currentThemeInfo.classList.add('hidden');
+  }
+}
+
+/**
+ * Edits an existing theme's properties (name, description, rules).
+ * @param {string} themeId - The ID of the theme to edit.
+ * @param {string} newName - The new name for the theme.
+ * @param {string} newDescription - The new description for the theme.
+ * @param {string[]} newRules - The new rules for the theme.
+ */
+async function editTheme(themeId, newName, newDescription, newRules) {
+  if (!currentUser || !currentUser.uid) {
+    showMessageBox("You must be logged in to edit themes.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot edit theme.", true);
+    return;
+  }
+
+  const themeDocRef = doc(db, `artifacts/${appId}/public/data/themes`, themeId);
+  try {
+    const themeSnap = await getDoc(themeDocRef);
+    if (!themeSnap.exists()) {
+      showMessageBox("Theme not found.", true);
+      return;
+    }
+    const theme = themeSnap.data();
+    if (!currentUser.isAdmin && !theme.moderators.includes(currentUser.uid)) {
+      showMessageBox("You do not have permission to edit this theme.", true);
+      return;
+    }
+
+    await updateDoc(themeDocRef, {
+      name: newName.trim(),
+      description: newDescription.trim(),
+      rules: newRules.map(rule => rule.trim()).filter(rule => rule !== ''),
+    });
+    showMessageBox("Theme updated successfully!", false);
+    closeThemeManagementModal(); // Close after editing
+  } catch (error) {
+    console.error("Error updating theme:", error);
+    showMessageBox(`Error updating theme: ${error.message}`, true);
+  }
+}
+
+/**
+ * Deletes a theme. Only server admins can delete themes.
+ * @param {string} themeId - The ID of the theme to delete.
+ */
+async function deleteTheme(themeId) {
+  if (!currentUser || !currentUser.isAdmin) {
+    showMessageBox("You do not have permission to delete themes.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete theme.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm(
+    "Are you sure you want to delete this theme?",
+    "This will permanently remove the theme. Threads associated with this theme will no longer belong to it but will remain."
+  );
+  if (!confirmation) {
+    showMessageBox("Theme deletion cancelled.", false);
+    return;
+  }
+
+  const themeDocRef = doc(db, `artifacts/${appId}/public/data/themes`, themeId);
+  try {
+    await deleteDoc(themeDocRef);
+    showMessageBox("Theme deleted successfully!", false);
+    // No need to explicitly update threads, their themeId will become invalid but they remain.
+    // If we wanted to, say, set themeId to null for all associated threads, we'd query them here.
+    // For now, leaving them with potentially invalid themeId is acceptable.
+  } catch (error) {
+    console.error("Error deleting theme:", error);
+    showMessageBox(`Error deleting theme: ${error.message}`, true);
+  }
+}
+
+
 // --- FORUM THREAD FUNCTIONS ---
 
 /**
  * Creates a new forum thread in Firestore.
+ * @param {string} themeId - The ID of the theme this thread belongs to.
+ * @param {string} themeName - The name of the theme (denormalized for display).
  * @param {string} title - The title of the new thread.
  * @param {string} content - The main content/body of the thread.
  */
-async function createThread(title, content) {
+async function createThread(themeId, themeName, title, content) {
   if (!currentUser || !currentUser.uid || !currentUser.handle) {
     showMessageBox("You must be logged in and have a handle to create a thread.", true);
     return;
@@ -380,9 +689,19 @@ async function createThread(title, content) {
     showMessageBox("Database not initialized. Cannot create thread.", true);
     return;
   }
+  if (!themeId) {
+    showMessageBox("Please select a theme for your thread.", true);
+    return;
+  }
+  if (!title || !content) {
+    showMessageBox("Please enter both title and content for your thread.", true);
+    return;
+  }
 
   const threadsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`);
   const threadData = {
+    themeId: themeId,
+    themeName: themeName, // Store denormalized name
     title: title,
     content: content,
     authorId: currentUser.uid,
@@ -390,7 +709,7 @@ async function createThread(title, content) {
     authorDisplayName: currentUser.displayName,
     authorPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC,
     createdAt: serverTimestamp(),
-    reactions: {},
+    reactions: {}, // Will be used for 'points'
     commentCount: 0
   };
 
@@ -398,6 +717,7 @@ async function createThread(title, content) {
     await addDoc(threadsCol, threadData);
     showMessageBox("Thread created successfully!", false);
     createThreadForm.reset();
+    createThreadThemeSelect.value = ''; // Reset theme selection
   } catch (error) {
     console.error("Error creating thread:", error);
     showMessageBox(`Error creating thread: ${error.message}`, true);
@@ -418,6 +738,25 @@ async function deleteThread(threadId) {
     return;
   }
 
+  const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
+  const threadSnap = await getDoc(threadDocRef);
+  if (!threadSnap.exists()) {
+    showMessageBox("Thread not found.", true);
+    return;
+  }
+  const threadData = threadSnap.data();
+
+  // Check permissions: thread author, theme mod, or server admin
+  const isAuthor = currentUser.uid === threadData.authorId;
+  const isThemeMod = threadData.themeId ? (allThemesCache.find(t => t.id === threadData.themeId)?.moderators.includes(currentUser.uid)) : false;
+  const isServerAdmin = currentUser.isAdmin;
+
+  if (!(isAuthor || isThemeMod || isServerAdmin)) {
+    showMessageBox("You do not have permission to delete this thread.", true);
+    return;
+  }
+
+
   const confirmation = await showCustomConfirm(
     "Are you sure you want to delete this thread?",
     "This will also delete all comments and reactions associated with it. This action cannot be undone."
@@ -427,7 +766,6 @@ async function deleteThread(threadId) {
     return;
   }
 
-  const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   try {
     const commentsColRef = collection(threadDocRef, 'comments');
     const commentsSnapshot = await getDocs(commentsColRef);
@@ -450,7 +788,7 @@ async function deleteThread(threadId) {
 /**
  * Adds a new comment to a specific forum thread in Firestore.
  * @param {string} threadId - The ID of the parent thread for the comment.
- * @param {string} content - The content of the new comment.
+ * @param {string} content - The main content of the new comment.
  */
 async function addCommentToThread(threadId, content) {
   if (!currentUser || !currentUser.uid || !currentUser.handle) {
@@ -506,13 +844,36 @@ async function deleteComment(threadId, commentId) {
     return;
   }
 
+  const commentDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`, commentId);
+  const commentSnap = await getDoc(commentDocRef);
+  if (!commentSnap.exists()) {
+    showMessageBox("Comment not found.", true);
+    return;
+  }
+  const commentData = commentSnap.data();
+
+  const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
+  const threadSnap = await getDoc(threadDocRef);
+  const threadData = threadSnap.data(); // Get thread data to check theme mod permissions
+
+  // Check permissions: comment author, thread author, theme mod, or server admin
+  const isAuthor = currentUser.uid === commentData.authorId;
+  const isThreadAuthor = currentUser.uid === threadData.authorId;
+  const isThemeMod = threadData.themeId ? (allThemesCache.find(t => t.id === threadData.themeId)?.moderators.includes(currentUser.uid)) : false;
+  const isServerAdmin = currentUser.isAdmin;
+
+  if (!(isAuthor || isThreadAuthor || isThemeMod || isServerAdmin)) {
+    showMessageBox("You do not have permission to delete this comment.", true);
+    return;
+  }
+
+
   const confirmation = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
   if (!confirmation) {
     showMessageBox("Comment deletion cancelled.", false);
     return;
   }
 
-  const commentDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`, commentId);
   try {
     await deleteDoc(commentDocRef);
     const threadRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
@@ -626,7 +987,7 @@ function renderReactionButtons(type, itemId, reactions, containerElement, commen
   }
 }
 
-// --- DIRECT MESSAGE (DM) FUNCTIONS (MAJOR REFACTOR) ---
+// --- DIRECT MESSAGE (DM) FUNCTIONS ---
 
 /**
  * Creates a new conversation (private or group chat) in Firestore.
@@ -1284,7 +1645,8 @@ async function deleteAnnouncement(announcementId) {
   try {
     await deleteDoc(announcementDocRef);
     showMessageBox("Announcement deleted successfully!", false);
-  } catch (error) {
+  }
+  catch (error) {
     console.error("Error deleting announcement:", error);
     showMessageBox(`Error deleting announcement: ${error.message}`, true);
   }
@@ -1293,7 +1655,7 @@ async function deleteAnnouncement(announcementId) {
 // --- REAL-TIME RENDERING (ONSNAPSHOT) ---
 
 let unsubscribeForum = null;
-let unsubscribeConversationsList = null; // Renamed for clarity
+let unsubscribeConversationsList = null;
 let unsubscribeAnnouncements = null;
 
 /**
@@ -1301,11 +1663,11 @@ let unsubscribeAnnouncements = null;
  */
 function renderForumThreads() {
   // Unsubscribe from other listeners if active
-  if (unsubscribeConversationsList) { // Use new name
+  if (unsubscribeConversationsList) {
     unsubscribeConversationsList();
     unsubscribeConversationsList = null;
   }
-  if (unsubscribeCurrentMessages) { // Important for DM tab
+  if (unsubscribeCurrentMessages) {
     unsubscribeCurrentMessages();
     unsubscribeCurrentMessages = null;
   }
@@ -1313,14 +1675,35 @@ function renderForumThreads() {
     unsubscribeAnnouncements();
     unsubscribeAnnouncements = null;
   }
+  if (unsubscribeThemesForManagement) {
+    unsubscribeThemesForManagement();
+    unsubscribeThemesForManagement = null;
+  }
+  if (unsubscribeThemeDropdowns) {
+    unsubscribeThemeDropdowns();
+    unsubscribeThemeDropdowns = null;
+  }
+
 
   if (!db || !threadsList) {
     console.error("Firestore DB or threadsList element not ready for forum rendering.");
     return;
   }
 
+  populateThemeDropdowns(); // Ensure theme dropdowns are always populated
+
   const threadsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`);
-  const q = query(threadsCol, orderBy("createdAt", "desc"));
+  let q;
+  if (currentSelectedThemeId === 'all') {
+    q = query(threadsCol, orderBy("createdAt", "desc"));
+    noThreadsMessage.textContent = 'No threads found. Be the first to post!';
+  } else {
+    q = query(threadsCol, where("themeId", "==", currentSelectedThemeId), orderBy("createdAt", "desc"));
+    const selectedTheme = allThemesCache.find(t => t.id === currentSelectedThemeId);
+    noThreadsMessage.textContent = `No threads found in "${selectedTheme ? selectedTheme.name : 'this theme'}". Be the first to post!`;
+  }
+  displayCurrentThemeInfo(currentSelectedThemeId);
+
 
   // Attach new listener for forum threads
   unsubscribeForum = onSnapshot(q, async (snapshot) => {
@@ -1356,50 +1739,67 @@ function renderForumThreads() {
       const authorHandle = authorProfile.handle || thread.authorHandle || 'N/A';
       const authorPhotoURL = authorProfile.photoURL || thread.authorPhotoURL || DEFAULT_PROFILE_PIC;
 
+      const totalReactions = Object.values(thread.reactions || {}).reduce((sum, users) => sum + Object.keys(users).length, 0);
+
       const threadElement = document.createElement('div');
       threadElement.id = `thread-${threadId}`;
-      threadElement.className = 'bg-gray-700 p-6 rounded-lg shadow-md mb-8';
+      threadElement.className = 'thread-card';
 
-      const parsedContent = await parseMentions(parseEmojis(thread.content));
+      const parsedContentSnippet = (await parseMentions(parseEmojis(thread.content))).substring(0, 200) + (thread.content.length > 200 ? '...' : '');
+
 
       threadElement.innerHTML = `
-        <div class="flex items-center mb-4">
-          <img src="${authorPhotoURL}" alt="Profile" class="w-10 h-10 rounded-full mr-3 object-cover">
-          <div>
-            <p class="font-semibold text-gray-200">${authorDisplayName} <span class="text-gray-400 text-sm">(@${authorHandle})</span></p>
-            <p class="text-sm text-gray-400">${thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
+        <div class="thread-card-sidebar">
+          <i class="fas fa-arrow-up"></i>
+          <span class="score">${totalReactions}</span>
+          <i class="fas fa-arrow-down"></i>
+        </div>
+        <div class="thread-card-content">
+          <div class="thread-card-info">
+            <img src="${authorPhotoURL}" alt="Profile" class="w-6 h-6 rounded-full mr-2 object-cover">
+            <a href="#" class="theme-link hover:underline">t/${thread.themeName || 'general'}</a>
+            <span class="text-gray-400 mx-1">• Posted by</span>
+            <span class="author-handle">@${authorHandle}</span>
+            <span class="text-gray-400 mx-1">•</span>
+            <span class="timestamp">${thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A'}</span>
           </div>
-        </div>
-        <h3 class="text-2xl font-bold text-blue-300 mb-2">${thread.title}</h3>
-        <p class="text-gray-300 mb-4">${parsedContent}</p>
-        <div class="flex items-center text-gray-400 text-sm mb-4">
-          <span class="mr-4">Comments: ${thread.commentCount || 0}</span>
-          <div id="thread-reactions-${threadId}" class="flex flex-wrap items-center">
-            <!-- Reaction buttons will be rendered here -->
+          <h3 class="thread-card-title">${thread.title}</h3>
+          <div class="thread-card-body">
+            <p>${parsedContentSnippet}</p>
           </div>
-        </div>
-        <div class="flex justify-end space-x-2 mb-4">
-          ${currentUser && currentUser.uid === thread.authorId ? `<button class="delete-thread-btn bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300" data-id="${threadId}">Delete Thread</button>` : ''}
-        </div>
+          <div class="thread-actions">
+            <button class="action-btn comment-count-btn">
+              <i class="fas fa-comment-alt"></i> ${thread.commentCount || 0} Comments
+            </button>
+            <div id="thread-reactions-${threadId}" class="flex flex-wrap items-center">
+                <!-- Reaction buttons will be rendered here -->
+            </div>
+            ${currentUser && (currentUser.uid === thread.authorId || currentUser.isAdmin || (thread.themeId && allThemesCache.find(t => t.id === thread.themeId)?.moderators.includes(currentUser.uid))) ? `
+                <button class="delete-thread-btn action-btn bg-red-600 text-white hover:bg-red-700 transition duration-300" data-id="${threadId}">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
+            ` : ''}
+          </div>
 
-        <!-- Comments Section -->
-        <div class="mt-6 border-t border-gray-600 pt-6">
-          <h4 class="text-xl font-semibold text-gray-200 mb-4">Comments</h4>
-          <div id="comments-${threadId}" class="space-y-4">
-            <!-- Comments will be loaded here dynamically -->
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <h4 class="text-xl font-semibold text-gray-200 mb-4">Comments</h4>
+            <div id="comments-${threadId}" class="space-y-4">
+              <!-- Comments will be loaded here dynamically -->
+            </div>
+            ${currentUser ? `
+              <div class="mt-6 flex items-center">
+                <input type="text" id="comment-input-${threadId}" placeholder="Add a comment..." class="flex-grow bg-gray-600 text-gray-100 p-3 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button class="post-comment-btn bg-blue-600 text-white p-3 rounded-r-md hover:bg-blue-700 transition duration-300" data-thread-id="${threadId}">Post</button>
+              </div>
+              <div class="mt-2 text-sm text-gray-400">
+                  You can use emoji shortcodes (e.g., :smile:) and mention users (e.g., @username).
+                  <div class="emoji-palette flex flex-wrap gap-2 mt-2">
+                    ${COMMON_EMOJIS.map(emoji => `<span class="emoji-item cursor-pointer text-xl" data-emoji="${emoji}">${emoji}</span>`).join('')}
+                  </div>
+              </div>
+            ` : `<p class="text-gray-400 mt-4">Log in to post comments.</p>`}
           </div>
-          ${currentUser ? `
-            <div class="mt-6 flex items-center">
-              <input type="text" id="comment-input-${threadId}" placeholder="Add a comment..." class="flex-grow bg-gray-600 text-gray-100 p-3 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <button class="post-comment-btn bg-blue-600 text-white p-3 rounded-r-md hover:bg-blue-700 transition duration-300" data-thread-id="${threadId}">Post</button>
-            </div>
-            <div class="mt-2 text-sm text-gray-400">
-                You can use emoji shortcodes (e.g., :smile:) and mention users (e.g., @username).
-                <div class="emoji-palette flex flex-wrap gap-2 mt-2">
-                  ${COMMON_EMOJIS.map(emoji => `<span class="emoji-item cursor-pointer text-xl" data-emoji="${emoji}">${emoji}</span>`).join('')}
-                </div>
-            </div>
-          ` : `<p class="text-gray-400 mt-4">Log in to post comments.</p>`}
         </div>
       `;
       threadsList.appendChild(threadElement);
@@ -1445,22 +1845,22 @@ function renderForumThreads() {
           const parsedCommentContent = await parseMentions(parseEmojis(comment.content));
 
           const commentElement = document.createElement('div');
-          commentElement.className = 'bg-gray-800 p-4 rounded-md shadow-sm';
+          commentElement.className = 'comment-card';
           commentElement.innerHTML = `
-            <div class="flex items-center mb-2">
-              <img src="${commentAuthorPhotoURL}" alt="Profile" class="w-8 h-8 rounded-full mr-2 object-cover">
-              <div>
-                <p class="font-semibold text-gray-200">${commentAuthorDisplayName} <span class="text-gray-400 text-xs">(@${commentAuthorHandle})</span></p>
-                <p class="text-xs text-gray-500">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
-              </div>
+            <div class="comment-card-info">
+              <img src="${commentAuthorPhotoURL}" alt="Profile" class="w-6 h-6 rounded-full mr-2 object-cover">
+              <span class="author-handle">@${commentAuthorHandle}</span>
+              <span class="timestamp">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A'}</span>
             </div>
-            <p class="text-gray-300 mb-2">${parsedCommentContent}</p>
-            <div class="flex items-center text-gray-400 text-xs">
+            <div class="comment-card-content">
+              <p>${parsedCommentContent}</p>
+            </div>
+            <div class="comment-actions">
                 <div id="comment-reactions-${commentId}" class="flex flex-wrap items-center">
                     <!-- Comment reaction buttons will be rendered here -->
                 </div>
-                ${currentUser && (currentUser.uid === comment.authorId || currentUser.uid === thread.authorId) ? `
-                    <button class="delete-comment-btn text-red-400 hover:text-red-500 ml-auto transition duration-300" data-thread-id="${threadId}" data-comment-id="${commentId}">
+                ${currentUser && (currentUser.uid === comment.authorId || currentUser.uid === thread.authorId || currentUser.isAdmin || (thread.themeId && allThemesCache.find(t => t.id === thread.themeId)?.moderators.includes(currentUser.uid))) ? `
+                    <button class="delete-comment-btn text-red-400 hover:text-red-500 transition duration-300" data-thread-id="${threadId}" data-comment-id="${commentId}">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 ` : ''}
@@ -1509,7 +1909,6 @@ function renderForumThreads() {
 
 /**
  * Renders the direct messages in real-time.
- * This function now manages the conversation list in the left panel.
  */
 function renderDirectMessages() {
   // Unsubscribe from other listeners if active
@@ -1521,6 +1920,15 @@ function renderDirectMessages() {
     unsubscribeAnnouncements();
     unsubscribeAnnouncements = null;
   }
+  if (unsubscribeThemesForManagement) {
+    unsubscribeThemesForManagement();
+    unsubscribeThemesForManagement = null;
+  }
+  if (unsubscribeThemeDropdowns) {
+    unsubscribeThemeDropdowns();
+    unsubscribeThemeDropdowns = null;
+  }
+
 
   // Also unsubscribe from current messages listener if switching away from DMs
   if (unsubscribeCurrentMessages) {
@@ -1554,13 +1962,21 @@ function renderAnnouncements() {
     unsubscribeForum();
     unsubscribeForum = null;
   }
-  if (unsubscribeConversationsList) { // Use new name
+  if (unsubscribeConversationsList) {
     unsubscribeConversationsList();
     unsubscribeConversationsList = null;
   }
-  if (unsubscribeCurrentMessages) { // Important for DM tab
+  if (unsubscribeCurrentMessages) {
     unsubscribeCurrentMessages();
     unsubscribeCurrentMessages = null;
+  }
+  if (unsubscribeThemesForManagement) {
+    unsubscribeThemesForManagement();
+    unsubscribeThemesForManagement = null;
+  }
+  if (unsubscribeThemeDropdowns) {
+    unsubscribeThemeDropdowns();
+    unsubscribeThemeDropdowns = null;
   }
 
   if (!db || !announcementsList) {
@@ -1674,7 +2090,15 @@ function handleEmojiPaletteClick(event) {
   const emojiItem = event.target.closest('.emoji-item');
   if (emojiItem) {
     const emoji = emojiItem.dataset.emoji;
-    const threadElement = emojiItem.closest('.bg-gray-700');
+    const threadElement = emojiItem.closest('.thread-card'); // Changed to find thread-card
+    if (!threadElement) { // If it's not a thread-card, it must be a comment.
+      const commentElement = emojiItem.closest('.comment-card');
+      if (commentElement) {
+        // Logic to append emoji to a specific comment's input field if we supported replies
+        // For now, only main thread comment input is supported.
+        return;
+      }
+    }
     const threadId = threadElement.id.replace('thread-', '');
     const commentInput = document.getElementById(`comment-input-${threadId}`);
     if (commentInput) {
@@ -1751,6 +2175,50 @@ async function handleDeleteAnnouncement(event) {
   event.preventDefault();
   const announcementId = event.target.dataset.id;
   await deleteAnnouncement(announcementId);
+}
+
+// --- Theme Management Event Handlers ---
+function handleOpenThemeManagementModal() {
+  openThemeManagementModal();
+}
+
+function handleCloseThemeManagementModal() {
+  closeThemeManagementModal();
+}
+
+async function handleCreateTheme(event) {
+  event.preventDefault();
+  const name = newThemeNameInput.value;
+  const description = newThemeDescriptionInput.value;
+  const rules = newThemeRulesInput.value.split('\n').map(r => r.trim()).filter(r => r !== '');
+  await createTheme(name, description, rules);
+}
+
+async function handleEditTheme(event) {
+  const themeId = event.target.dataset.id;
+  const theme = allThemesCache.find(t => t.id === themeId);
+  if (!theme) {
+    showMessageBox("Theme not found for editing.", true);
+    return;
+  }
+
+  // Prompt for new values or open a dedicated edit modal (for simplicity, using prompts here)
+  const newName = prompt("Edit theme name:", theme.name);
+  if (newName === null) return; // User cancelled
+
+  const newDescription = prompt("Edit theme description:", theme.description);
+  if (newDescription === null) return; // User cancelled
+
+  const newRulesString = prompt("Edit theme rules (one per line):", theme.rules.join('\n'));
+  if (newRulesString === null) return; // User cancelled
+  const newRules = newRulesString.split('\n').map(r => r.trim()).filter(r => r !== '');
+
+  await editTheme(themeId, newName, newDescription, newRules);
+}
+
+async function handleDeleteTheme(event) {
+  const themeId = event.target.dataset.id;
+  await deleteTheme(themeId);
 }
 
 // --- TAB SWITCHING LOGIC ---
@@ -1855,7 +2323,10 @@ async function setupFirebaseAndUser() {
           currentUser.displayName = userProfile.displayName;
           currentUser.photoURL = userProfile.photoURL;
           currentUser.handle = userProfile.handle;
-          currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set admin status
+          currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set server admin status
+
+          // Determine if user is a theme mod (simplified check for initial setup, could be more robust)
+          currentUser.isThemeMod = allThemesCache.some(theme => theme.moderators.includes(currentUser.uid));
 
           userHandleCache[currentUser.uid] = currentUser.handle;
           handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1888,6 +2359,8 @@ async function setupFirebaseAndUser() {
                 currentUser.photoURL = userProfile.photoURL;
                 currentUser.handle = userProfile.handle;
                 currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
+                currentUser.isThemeMod = allThemesCache.some(theme => theme.moderators.includes(currentUser.uid));
+
 
                 userHandleCache[currentUser.uid] = currentUser.handle;
                 handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1917,6 +2390,8 @@ async function setupFirebaseAndUser() {
                     currentUser.photoURL = DEFAULT_PROFILE_PIC;
                     currentUser.handle = generatedHandle;
                     currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
+                    currentUser.isThemeMod = false; // Anonymous users cannot be theme mods initially
+
 
                     userHandleCache[currentUser.uid] = currentUser.handle;
                     handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1950,6 +2425,8 @@ async function setupFirebaseAndUser() {
                 currentUser.photoURL = DEFAULT_PROFILE_PIC;
                 currentUser.handle = generatedHandle;
                 currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
+                currentUser.isThemeMod = false; // Anonymous users cannot be theme mods initially
+
 
                 userHandleCache[currentUser.uid] = currentUser.handle;
                 handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1976,6 +2453,9 @@ async function setupFirebaseAndUser() {
 window.onload = async function() {
   if (customConfirmModal) {
     customConfirmModal.style.display = 'none';
+  }
+  if (themeManagementModal) {
+    themeManagementModal.style.display = 'none';
   }
 
   await setupFirebaseAndUser();
@@ -2017,6 +2497,32 @@ window.onload = async function() {
     });
   }
 
+  // Event listener for theme selection filter
+  if (themeSelect) {
+    themeSelect.addEventListener('change', (event) => {
+      currentSelectedThemeId = event.target.value;
+      renderForumThreads(); // Re-render forum threads based on new theme
+    });
+  }
+
+  // Event listener for manage themes button
+  if (manageThemesBtn) {
+    manageThemesBtn.addEventListener('click', handleOpenThemeManagementModal);
+  }
+
+  // Event listeners for theme management modal
+  if (themeModalCloseBtn) {
+    themeModalCloseBtn.addEventListener('click', handleCloseThemeManagementModal);
+    window.addEventListener('click', (event) => {
+      if (event.target === themeManagementModal) {
+        handleCloseThemeManagementModal();
+      }
+    });
+  }
+  if (createThemeForm) {
+    createThemeForm.addEventListener('submit', handleCreateTheme);
+  }
+
   // Show the default tab on load
   showTab(currentActiveTab); // This will call renderForumThreads initially.
 
@@ -2024,14 +2530,14 @@ window.onload = async function() {
   if (createThreadForm) {
     createThreadForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+      const selectedThemeOption = createThreadThemeSelect.options[createThreadThemeSelect.selectedIndex];
+      const themeId = selectedThemeOption.value;
+      const themeName = selectedThemeOption.textContent.replace('-- Select a Theme --', '').trim(); // Get actual theme name
+
       const title = threadTitleInput.value.trim();
       const content = threadContentInput.value.trim();
 
-      if (!title || !content) {
-        showMessageBox("Please enter both title and content for your thread.", true);
-        return;
-      }
-      await createThread(title, content);
+      await createThread(themeId, themeName, title, content);
     });
   }
 
