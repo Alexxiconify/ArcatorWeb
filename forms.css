@@ -106,7 +106,7 @@ a:hover {
 
 /* CRITICAL FIX: Ensure hidden class works for tabs */
 .tab-content.hidden {
-  display: none !important;
+  display: none;
 }
 /* Ensure content is block when not hidden */
 .tab-content:not(.hidden) {
