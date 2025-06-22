@@ -1,3 +1,10 @@
+/* global __app_id */ // Explicitly declare __app_id as a global for linters
+
+// forms.js: This script handles forum thread and comment functionality,
+// including real-time updates, reactions, emoji parsing, and user mentions.
+// It now also includes Direct Messages and Announcements features with tabbed navigation.
+
+// Debug log to check if the script starts executing.
 console.log("forms.js - Script parsing initiated.");
 
 // --- Firebase Imports ---
@@ -37,7 +44,10 @@ let currentUser = null;
 let isFirebaseInitialized = false;
 
 // --- Admin UIDs for Announcements (Replace with your actual Admin UIDs) ---
-const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2\n']; // IMPORTANT: Replace with actual UIDs
+// IMPORTANT: Replace 'CEch8cXWemSDQnM3dHVKPt0RGpn2' and 'OoeTK1HmebQyOf3gEiCKAHVtD6l2' with the actual UIDs of your Firebase authenticated admin users.
+// You can find UIDs in the Firebase Authentication section of your Firebase console.
+// Ensure there are no newline characters if copied directly from console.
+const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2'];
 
 // --- Default Values ---
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
@@ -82,7 +92,6 @@ const announcementsList = document.getElementById('announcements-list');
 /** @global {HTMLElement} noAnnouncementsMessage - Message displayed when no announcements are found. */
 const noAnnouncementsMessage = document.getElementById('no-announcements-message');
 
-
 // Tab Elements
 /** @global {HTMLButtonElement} tabForum - Button for the Forum tab. */
 const tabForum = document.getElementById('tab-forum');
@@ -97,7 +106,6 @@ const contentForum = document.getElementById('content-forum');
 const contentDMs = document.getElementById('content-dms');
 /** @global {HTMLElement} contentAnnouncements - Content section for the Announcements tab. */
 const contentAnnouncements = document.getElementById('content-announcements');
-
 
 // Message Box and Confirm Modal
 /** @global {HTMLElement} messageBox - Custom message display box. */
@@ -115,7 +123,7 @@ const confirmNoBtn = document.getElementById('confirm-no');
 
 // --- EMOJI & MENTION CONFIGURATION ---
 /** @global {string[]} COMMON_EMOJIS - Array of commonly used emojis. */
-const COMMON_EMOJIS = ['👍', '�', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
+const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔']; // Corrected broken emoji
 /** @global {object} EMOJI_MAP - Mapping of shortcodes to emoji characters. */
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
@@ -633,10 +641,10 @@ async function sendDirectMessage(receiverHandle, content) {
     senderDisplayName: currentUser.displayName,
     senderPhotoURL: currentUser.photoURL || DEFAULT_PROFILE_PIC,
     receiverId: receiverUid,
-    receiverHandle: receiverHandle, // Store handle for easier display
+    receiverHandle: receiverHandle,
     content: content,
     createdAt: serverTimestamp(),
-    read: false // Mark message as unread by default
+    read: false
   };
 
   try {
@@ -730,8 +738,14 @@ let unsubscribeAnnouncements = null;
  */
 function renderForumThreads() {
   // Unsubscribe from other listeners if active
-  if (unsubscribeDMs) unsubscribeDMs();
-  if (unsubscribeAnnouncements) unsubscribeAnnouncements();
+  if (unsubscribeDMs) {
+    unsubscribeDMs();
+    unsubscribeDMs = null; // Clear the reference
+  }
+  if (unsubscribeAnnouncements) {
+    unsubscribeAnnouncements();
+    unsubscribeAnnouncements = null; // Clear the reference
+  }
 
   if (!db || !threadsList) {
     console.error("Firestore DB or threadsList element not ready for forum rendering.");
@@ -826,14 +840,12 @@ function renderForumThreads() {
       const threadReactionsContainer = document.getElementById(`thread-reactions-${threadId}`);
       renderReactionButtons('thread', threadId, thread.reactions || {}, threadReactionsContainer);
 
-      // This nested onSnapshot handles comments for THIS specific thread.
       const commentsColRef = collection(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`);
       const commentsQuery = query(commentsColRef, orderBy("createdAt", "asc"));
 
       onSnapshot(commentsQuery, async (commentSnapshot) => {
-        // Ensure commentsListDiv exists before trying to modify its innerHTML
         const commentsListDiv = document.getElementById(`comments-${threadId}`);
-        if (!commentsListDiv) return; // Defensive check
+        if (!commentsListDiv) return;
 
         commentsListDiv.innerHTML = '';
         if (commentSnapshot.empty) {
@@ -933,19 +945,37 @@ function renderForumThreads() {
  */
 function renderDirectMessages() {
   // Unsubscribe from other listeners if active
-  if (unsubscribeForum) unsubscribeForum();
-  if (unsubscribeAnnouncements) unsubscribeAnnouncements();
+  if (unsubscribeForum) {
+    unsubscribeForum();
+    unsubscribeForum = null;
+  }
+  if (unsubscribeAnnouncements) {
+    unsubscribeAnnouncements();
+    unsubscribeAnnouncements = null;
+  }
 
   if (!db || !dmsList || !currentUser) {
     console.error("Firestore DB, dmsList element, or currentUser not ready for DM rendering.");
-    if (!currentUser) {
-      dmsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view direct messages.</p>';
-      noDMsMessage.style.display = 'none';
+    if (dmsList) {
+      if (!currentUser) {
+        dmsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view direct messages.</p>';
+        noDMsMessage.style.display = 'none';
+      } else {
+        dmsList.innerHTML = ''; // Clear existing messages if any
+        noDMsMessage.style.display = 'block'; // Show "no messages" initially
+      }
     }
     return;
   }
 
+  // Ensure dmsList and noDMsMessage are visible/hidden correctly for an active user
+  if (dmsList) dmsList.innerHTML = ''; // Clear previous messages
+  if (noDMsMessage) noDMsMessage.style.display = 'block'; // Assume no messages until fetched
+
   // Query for messages where current user is sender OR receiver
+  // We need two separate queries because Firestore does not support OR queries directly
+  // unless you create a very complex composite index for multiple 'where' clauses.
+  // Fetching independently and merging client-side is a common pattern for such cases.
   const messagesQuerySender = query(
     collection(db, `artifacts/${appId}/public/data/direct_messages`),
     where("senderId", "==", currentUser.uid),
@@ -957,142 +987,101 @@ function renderDirectMessages() {
     orderBy("createdAt", "desc")
   );
 
-  // Combine results from two queries
-  let allMessages = [];
-  let senderUnsubscribe;
-  let receiverUnsubscribe;
+  let allMessagesMap = new Map(); // Use a Map to store messages by ID to handle duplicates
 
   // Unsubscribe from any previous DM listeners before attaching new ones
   if (unsubscribeDMs) unsubscribeDMs();
 
-  // Store the combined unsubscribe function
+  // Combined unsubscribe function for both sender and receiver listeners
   unsubscribeDMs = () => {
-    if (senderUnsubscribe) senderUnsubscribe();
-    if (receiverUnsubscribe) receiverUnsubscribe();
+    if (senderListenerUnsubscribe) senderListenerUnsubscribe();
+    if (receiverListenerUnsubscribe) receiverListenerUnsubscribe();
+  };
+
+  let senderListenerUnsubscribe;
+  let receiverListenerUnsubscribe;
+
+  const updateDMsList = async () => {
+    // Convert map to array, sort, and render
+    let messagesToRender = Array.from(allMessagesMap.values());
+    messagesToRender.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+
+    dmsList.innerHTML = '';
+    if (messagesToRender.length === 0) {
+      noDMsMessage.style.display = 'block';
+    } else {
+      noDMsMessage.style.display = 'none';
+      for (const msg of messagesToRender) {
+        const isSentByMe = msg.senderId === currentUser.uid;
+        const participantId = isSentByMe ? msg.receiverId : msg.senderId;
+        const participantHandle = isSentByMe ? msg.receiverHandle : msg.senderHandle;
+
+        // Fetch participant's display name and photo from their profile
+        let participantDisplayName = participantHandle; // Default to handle
+        let participantPhotoURL = DEFAULT_PROFILE_PIC;
+
+        const participantProfile = await getUserProfileFromFirestore(participantId);
+        if (participantProfile) {
+          participantDisplayName = participantProfile.displayName || participantHandle;
+          participantPhotoURL = participantProfile.photoURL || DEFAULT_PROFILE_PIC;
+          userHandleCache[participantId] = participantProfile.handle;
+          handleUidCache[participantProfile.handle] = participantId;
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `p-4 rounded-lg shadow-sm w-fit ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'} max-w-[80%]`; // Styling for sent/received
+        messageElement.innerHTML = `
+            <div class="flex items-center mb-2 ${isSentByMe ? 'justify-end' : ''}">
+              ${!isSentByMe ? `<img src="${participantPhotoURL}" alt="Profile" class="w-7 h-7 rounded-full mr-2 object-cover">` : ''}
+              <p class="font-semibold text-gray-200">
+                ${isSentByMe ? `You to ${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>` : `${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>`}
+              </p>
+              ${isSentByMe ? `<img src="${currentUser.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" class="w-7 h-7 rounded-full ml-2 object-cover">` : ''}
+            </div>
+            <p class="text-gray-300 text-sm mb-1">${await parseMentions(parseEmojis(msg.content))}</p>
+            <p class="text-xs text-gray-400 ${isSentByMe ? 'text-right' : 'text-left'}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
+          `;
+        dmsList.appendChild(messageElement);
+      }
+    }
   };
 
 
-  senderUnsubscribe = onSnapshot(messagesQuerySender, async (senderSnapshot) => {
-    // Only update UI if this is the active tab
-    if (contentDMs.classList.contains('hidden')) return;
-
-    allMessages = [];
-    senderSnapshot.forEach(doc => allMessages.push({ ...doc.data(), id: doc.id }));
-
-    // Re-fetch receiver messages to get the complete current state
-    const receiverSnapshot = await getDocs(messagesQueryReceiver); // Use getDocs for the receiver side on each change
-    receiverSnapshot.forEach(doc => allMessages.push({ ...doc.data(), id: doc.id }));
-
-    // Filter for unique messages (in case a message appears in both sender/receiver queries)
-    const uniqueMessagesMap = new Map();
-    allMessages.forEach(msg => uniqueMessagesMap.set(msg.id, msg));
-    allMessages = Array.from(uniqueMessagesMap.values());
-
-    // Sort by createdAt to ensure correct chronological order
-    allMessages.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
-
-    dmsList.innerHTML = '';
-    if (allMessages.length === 0) {
-      noDMsMessage.style.display = 'block';
-    } else {
-      noDMsMessage.style.display = 'none';
-      for (const msg of allMessages) {
-        const isSentByMe = msg.senderId === currentUser.uid;
-        const participantId = isSentByMe ? msg.receiverId : msg.senderId;
-        const participantHandle = isSentByMe ? msg.receiverHandle : msg.senderHandle;
-        const participantDisplayName = isSentByMe ? (await getUserProfileFromFirestore(msg.receiverId))?.displayName || msg.receiverHandle : (await getUserProfileFromFirestore(msg.senderId))?.displayName || msg.senderHandle;
-        const participantPhotoURL = isSentByMe ? (await getUserProfileFromFirestore(msg.receiverId))?.photoURL || DEFAULT_PROFILE_PIC : (await getUserProfileFromFirestore(msg.senderId))?.photoURL || DEFAULT_PROFILE_PIC;
-
-        // Update handle caches
-        if (participantId && participantHandle) {
-          userHandleCache[participantId] = participantHandle;
-          handleUidCache[participantHandle] = participantId;
-        }
-
-        const messageElement = document.createElement('div');
-        messageElement.className = `p-4 rounded-lg shadow-sm ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'} max-w-[80%]`; // Styling for sent/received
-        messageElement.innerHTML = `
-          <div class="flex items-center mb-2 ${isSentByMe ? 'justify-end' : ''}">
-            ${!isSentByMe ? `<img src="${participantPhotoURL}" alt="Profile" class="w-7 h-7 rounded-full mr-2 object-cover">` : ''}
-            <p class="font-semibold text-gray-200">
-              ${isSentByMe ? `You to ${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>` : `${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>`}
-            </p>
-            ${isSentByMe ? `<img src="${currentUser.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" class="w-7 h-7 rounded-full ml-2 object-cover">` : ''}
-          </div>
-          <p class="text-gray-300 text-sm mb-1">${await parseMentions(parseEmojis(msg.content))}</p>
-          <p class="text-xs text-gray-400 text-right">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
-        `;
-        dmsList.appendChild(messageElement);
+  senderListenerUnsubscribe = onSnapshot(messagesQuerySender, (snapshot) => {
+    snapshot.docChanges().forEach(change => {
+      const msg = { ...change.doc.data(), id: change.doc.id };
+      if (change.type === 'added' || change.type === 'modified') {
+        allMessagesMap.set(msg.id, msg);
+      } else if (change.type === 'removed') {
+        allMessagesMap.delete(msg.id);
       }
-    }
+    });
+    updateDMsList();
   }, (error) => {
     console.error("Error fetching sender DMs:", error);
-    dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
-    noDMsMessage.style.display = 'none';
+    if (dmsList) dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
+    if (noDMsMessage) noDMsMessage.style.display = 'none';
   });
 
-  receiverUnsubscribe = onSnapshot(messagesQueryReceiver, async (receiverSnapshot) => {
-    // Only update UI if this is the active tab
-    if (contentDMs.classList.contains('hidden')) return;
-
-    allMessages = [];
-    receiverSnapshot.forEach(doc => allMessages.push({ ...doc.data(), id: doc.id }));
-
-    // Re-fetch sender messages to get the complete current state
-    const senderSnapshot = await getDocs(messagesQuerySender); // Use getDocs for the sender side on each change
-    senderSnapshot.forEach(doc => allMessages.push({ ...doc.data(), id: doc.id }));
-
-    // Filter for unique messages (in case a message appears in both sender/receiver queries)
-    const uniqueMessagesMap = new Map();
-    allMessages.forEach(msg => uniqueMessagesMap.set(msg.id, msg));
-    allMessages = Array.from(uniqueMessagesMap.values());
-
-    // Sort by createdAt to ensure correct chronological order
-    allMessages.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
-
-    dmsList.innerHTML = '';
-    if (allMessages.length === 0) {
-      noDMsMessage.style.display = 'block';
-    } else {
-      noDMsMessage.style.display = 'none';
-      for (const msg of allMessages) {
-        const isSentByMe = msg.senderId === currentUser.uid;
-        const participantId = isSentByMe ? msg.receiverId : msg.senderId;
-        const participantHandle = isSentByMe ? msg.receiverHandle : msg.senderHandle;
-        const participantDisplayName = isSentByMe ? (await getUserProfileFromFirestore(msg.receiverId))?.displayName || msg.receiverHandle : (await getUserProfileFromFirestore(msg.senderId))?.displayName || msg.senderHandle;
-        const participantPhotoURL = isSentByMe ? (await getUserProfileFromFirestore(msg.receiverId))?.photoURL || DEFAULT_PROFILE_PIC : (await getUserProfileFromFirestore(msg.senderId))?.photoURL || DEFAULT_PROFILE_PIC;
-
-        // Update handle caches
-        if (participantId && participantHandle) {
-          userHandleCache[participantId] = participantHandle;
-          handleUidCache[participantHandle] = participantId;
-        }
-
-        const messageElement = document.createElement('div');
-        messageElement.className = `p-4 rounded-lg shadow-sm ${isSentByMe ? 'bg-blue-800 ml-auto' : 'bg-gray-800 mr-auto'} max-w-[80%]`;
-        messageElement.innerHTML = `
-          <div class="flex items-center mb-2 ${isSentByMe ? 'justify-end' : ''}">
-            ${!isSentByMe ? `<img src="${participantPhotoURL}" alt="Profile" class="w-7 h-7 rounded-full mr-2 object-cover">` : ''}
-            <p class="font-semibold text-gray-200">
-              ${isSentByMe ? `You to ${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>` : `${participantDisplayName} <span class="text-gray-400 text-xs">(@${participantHandle})</span>`}
-            </p>
-            ${isSentByMe ? `<img src="${currentUser.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" class="w-7 h-7 rounded-full ml-2 object-cover">` : ''}
-          </div>
-          <p class="text-gray-300 text-sm mb-1">${await parseMentions(parseEmojis(msg.content))}</p>
-          <p class="text-xs text-gray-400 text-right">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
-        `;
-        dmsList.appendChild(messageElement);
+  receiverListenerUnsubscribe = onSnapshot(messagesQueryReceiver, (snapshot) => {
+    snapshot.docChanges().forEach(change => {
+      const msg = { ...change.doc.data(), id: change.doc.id };
+      if (change.type === 'added' || change.type === 'modified') {
+        allMessagesMap.set(msg.id, msg);
+      } else if (change.type === 'removed') {
+        allMessagesMap.delete(msg.id);
       }
-    }
+    });
+    updateDMsList();
   }, (error) => {
     console.error("Error fetching receiver DMs:", error);
-    dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
-    noDMsMessage.style.display = 'none';
+    if (dmsList) dmsList.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
+    if (noDMsMessage) noDMsMessage.style.display = 'none';
   });
 
   // Attach event listener for sending DMs
   if (sendDmForm) {
-    sendDmForm.removeEventListener('submit', handleSendDM); // Prevent duplicates
+    sendDmForm.removeEventListener('submit', handleSendDM);
     sendDmForm.addEventListener('submit', handleSendDM);
   }
 }
@@ -1102,8 +1091,14 @@ function renderDirectMessages() {
  */
 function renderAnnouncements() {
   // Unsubscribe from other listeners if active
-  if (unsubscribeForum) unsubscribeForum();
-  if (unsubscribeDMs) unsubscribeDMs();
+  if (unsubscribeForum) {
+    unsubscribeForum();
+    unsubscribeForum = null;
+  }
+  if (unsubscribeDMs) {
+    unsubscribeDMs();
+    unsubscribeDMs = null;
+  }
 
   if (!db || !announcementsList) {
     console.error("Firestore DB or announcementsList element not ready for announcement rendering.");
@@ -1175,8 +1170,8 @@ function renderAnnouncements() {
     });
   }, (error) => {
     console.error("Error fetching announcements:", error);
-    announcementsList.innerHTML = `<p class="text-red-500 text-center">Error loading announcements: ${error.message}</p>`;
-    noAnnouncementsMessage.style.display = 'none';
+    if (announcementsList) announcementsList.innerHTML = `<p class="text-red-500 text-center">Error loading announcements: ${error.message}</p>`;
+    if (noAnnouncementsMessage) noAnnouncementsMessage.style.display = 'none';
   });
 
   // Attach event listener for creating announcements (admin only)
@@ -1185,7 +1180,6 @@ function renderAnnouncements() {
     createAnnouncementForm.addEventListener('submit', handlePostAnnouncement);
   }
 }
-
 
 // --- EVENT HANDLERS ---
 
@@ -1298,6 +1292,7 @@ function showTab(tabId) {
 // --- INITIALIZATION Function ---
 /**
  * Initializes Firebase, sets up authentication, and retrieves/creates the user profile with a unique handle.
+ * This function consolidates the repetitive Firebase initialization logic.
  * @returns {Promise<void>} Resolves when Firebase is ready and currentUser is set.
  */
 async function setupFirebaseAndUser() {
@@ -1313,13 +1308,14 @@ async function setupFirebaseAndUser() {
 
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
-        unsubscribe();
+        unsubscribe(); // Unsubscribe after the first state change to avoid multiple calls on subsequent updates.
 
         if (user) {
           currentUser = user;
           let userProfile = await getUserProfileFromFirestore(currentUser.uid);
 
           if (!userProfile) {
+            // For new authenticated users without a profile
             const initialHandle = currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
             const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
             userProfile = {
@@ -1337,6 +1333,7 @@ async function setupFirebaseAndUser() {
             await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
             console.log("New user profile created with handle:", generatedHandle);
           } else if (!userProfile.handle) {
+            // For existing profiles missing a handle
             const initialHandle = userProfile.displayName || currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
             const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
             userProfile.handle = generatedHandle;
@@ -1344,10 +1341,12 @@ async function setupFirebaseAndUser() {
             await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle, displayName: userProfile.displayName }, { merge: true });
             console.log("Handle generated and added to existing profile:", generatedHandle);
           } else {
+            // If profile exists and has a handle, ensure displayName and photoURL are consistent
             userProfile.displayName = userProfile.displayName || currentUser.displayName || (userProfile.handle.startsWith('anon') ? `Anon ${currentUser.uid.substring(0,5)}` : userProfile.handle);
             userProfile.photoURL = userProfile.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC;
           }
 
+          // Always update currentUser object with the latest profile details (from fetched or newly created)
           currentUser.displayName = userProfile.displayName;
           currentUser.photoURL = userProfile.photoURL;
           currentUser.handle = userProfile.handle;
@@ -1358,6 +1357,7 @@ async function setupFirebaseAndUser() {
 
           resolve();
         } else {
+          // Anonymous sign-in path
           if (typeof __initial_auth_token !== 'undefined') {
             signInWithCustomToken(auth, __initial_auth_token)
               .then(async (userCredential) => {
@@ -1378,10 +1378,11 @@ async function setupFirebaseAndUser() {
                   userProfile.accessibilitySettings = userProfile.accessibilitySettings || { highContrast: false, reducedMotion: false };
                   await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
                 }
+                // Ensure currentUser object is updated with profile info
                 currentUser.displayName = userProfile.displayName;
                 currentUser.photoURL = userProfile.photoURL;
                 currentUser.handle = userProfile.handle;
-                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set admin status
+                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
 
                 userHandleCache[currentUser.uid] = currentUser.handle;
                 handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1410,7 +1411,7 @@ async function setupFirebaseAndUser() {
                     currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
                     currentUser.photoURL = DEFAULT_PROFILE_PIC;
                     currentUser.handle = generatedHandle;
-                    currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set admin status
+                    currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
 
                     userHandleCache[currentUser.uid] = currentUser.handle;
                     handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1443,7 +1444,7 @@ async function setupFirebaseAndUser() {
                 currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
                 currentUser.photoURL = DEFAULT_PROFILE_PIC;
                 currentUser.handle = generatedHandle;
-                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set admin status
+                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
 
                 userHandleCache[currentUser.uid] = currentUser.handle;
                 handleUidCache[currentUser.handle] = currentUser.uid;
@@ -1477,7 +1478,8 @@ window.onload = async function() {
   // Corrected loadNavbar call: it no longer expects applyThemeFunc or getAvailableThemesFunc
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-  // Apply the user's saved theme preference.
+  // Apply the user's saved theme preference. This block now assumes `currentUser` is fully populated.
+  // Re-fetch user profile to ensure the latest theme preference is used, as it might have been set during initial sign-up
   const userProfileForTheme = await getUserProfileFromFirestore(currentUser.uid);
   const userThemePreference = userProfileForTheme?.themePreference;
   const allThemes = await getAvailableThemes();
@@ -1485,9 +1487,9 @@ window.onload = async function() {
   applyTheme(themeToApply.id, themeToApply);
 
   // --- Initial Tab Setup and Event Listeners for Tabs ---
-  tabForum.addEventListener('click', () => showTab('forum'));
-  tabDMs.addEventListener('click', () => showTab('dms'));
-  tabAnnouncements.addEventListener('click', () => showTab('announcements'));
+  if (tabForum) tabForum.addEventListener('click', () => showTab('forum'));
+  if (tabDMs) tabDMs.addEventListener('click', () => showTab('dms'));
+  if (tabAnnouncements) tabAnnouncements.addEventListener('click', () => showTab('announcements'));
 
   // Show the default tab on load
   showTab(currentActiveTab); // This will call renderForumThreads initially.
@@ -1505,6 +1507,16 @@ window.onload = async function() {
       }
       await createThread(title, content);
     });
+  }
+
+  // --- Attach DM-specific Form Listener ---
+  if (sendDmForm) {
+    sendDmForm.addEventListener('submit', handleSendDM);
+  }
+
+  // --- Attach Announcement-specific Form Listener ---
+  if (createAnnouncementForm) {
+    createAnnouncementForm.addEventListener('submit', handlePostAnnouncement);
   }
 
   // Set the current year in the footer.
