@@ -5,7 +5,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswor
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import shared Firebase instances and utilities from firebase-init.js
-// Removed 'setupFirebaseAndUser' as it is not exported and runs automatically.
+// 'setupFirebaseAndUser' is not exported and runs automatically, so it's removed from the import list.
 import {
   auth,
   db,
@@ -17,7 +17,7 @@ import {
 } from './firebase-init.js';
 import { showMessageBox, sanitizeHandle } from './utils.js';
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Ensure themes setup is also imported
-
+import { loadNavbar } from './navbar.js'; // Import loadNavbar
 
 // --- DOM Elements ---
 const signInSection = document.getElementById('signin-section');
@@ -96,7 +96,7 @@ async function handleSignIn() {
         uid: user.uid,
         displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
         email: user.email,
-        photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+        photoURL: DEFAULT_PROFILE_PIC,
         createdAt: new Date(),
         lastLoginAt: new Date(),
         themePreference: DEFAULT_THEME_NAME,
@@ -225,6 +225,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await firebaseReadyPromise; // Ensure Firebase is ready before doing anything with auth state
   setupThemesFirebase(db, auth, appId); // Initialize themes module with Firebase instances
 
+  // Load the navbar after Firebase and themes are set up
+  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
   // Apply initial theme based on user preference or default immediately
   onAuthStateChanged(auth, async (user) => {
     let userThemePreference = null;
@@ -234,7 +237,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const allThemes = await getAvailableThemes();
     const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    await applyTheme(themeToApply.id, userThemePreference); // Pass userProfile.themePreference directly for applyTheme
+    // Modified this line for consistency with navbar.js's theme application
+    await applyTheme(themeToApply.id);
 
     hideLoading(); // Hide loading spinner once theme is applied and auth state is checked
   });
