@@ -91,12 +91,12 @@ async function setupFirebaseAndUser() {
     } else {
       console.log("DEBUG: __firebase_config not provided. Using fallback for local testing.");
       firebaseConfig = {
-        apiKey: "YOUR_API_KEY", // REPLACE WITH YOUR ACTUAL LOCAL FIREBASE CONFIG
-        authDomain: `${tempProjectId}.firebaseapp.com`,
-        projectId: tempProjectId,
-        storageBucket: `${tempProjectId}.appspot.com`,
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // REPLACE WITH YOUR ACTUAL LOCAL FIREBASE CONFIG
+        authDomain: "arcator-web.firebaseapp.com",
+        projectId: "arcator-web",
+        storageBucket: "arcator-web.firebasestorage.app",
+        messagingSenderId: "1033082068049",
+        appId: "1:1033082068049:web:dd154c8b188bde1930ec70"
       };
     }
 
@@ -318,7 +318,7 @@ const PREDEFINED_THEMES = {
   },
   'arcator-blue': {
     id: 'arcator-blue', name: 'Arcator Blue', isCustom: false, properties: {
-      bodyBg: '#1a202c', textPrimary: '#E2E8F0', textSecondary: '#CBD5E0', headingMain: '#FC8181', headingCard: '#63B3ED', bgNavbar: '#111827', bgContentSection: '#1a202c', bgCard: '#2b3b55', bgIpBox: '#1A253A', borderIpBox: '#3B82F6', inputBg: '#3b4d6b', inputText: '#E2E8F0', inputBorder: '#5a6e8f', placeholder: '#94A3B8', tableThBg: '#3b4d6b', tableThText: '#90CDF4', tableTdBorder: '#374151', tableRowEvenBg: '#2F3B4E', link: '#63B3ED', buttonText: 'white', buttonBlueBg: '#4299E1', buttonBlueHover: '#3182CE', buttonRedBg: '#FC8181', buttonRedHover: '#E53E3E', buttonGreenBg: '#48BB78', buttonGreenHover: '#38A169', buttonYellowBg: '#ECC94B', buttonYellowHover: '#D69E2E', buttonPurpleBg: '#9F7AEA', buttonPurpleHover: '#805AD5', buttonIndigoBg: '#667EEA', buttonIndigoHover: '#5A67D8', buttonTealBg: '#38B2AC', buttonTealHover: '#319795', messageBoxBgSuccess: '#4CAF50', messageBoxBgError: '#F44336', modalBg: '#2b3b55', modalText: '#E2E8F0', modalInputBg: '#3b4d6b', modalInputText: '#E2E8F0'
+      bodyBg: '#1a202c', textPrimary: '#E2E8F0', textSecondary: '#CBD5E0', headingMain: '#FC8181', headingCard: '#63B3ED', bgNavbar: '#111827', bgContentSection: '#1a202c', bgCard: '#2b3b55', bgIpBox: '#1A253A', borderIpBox: '#3B82F6', inputBg: '#3b4d6b', inputText: '#E2E8F0', inputBorder: '#5a6e8f', placeholder: '#94A3B8', tableThBg: '#3b4d6b', tableThText: '#90CDF4', tableTdBorder: '#374151', tableRowEvenBg: '#2F3B4E', link: '#63B3ED', buttonText: 'white', buttonBlueBg: '#4299E1', buttonBlueHover: '#3182CE', buttonRedBg: '#FC8181', buttonRedHover: '#E53E3E', buttonGreenBg: '#48BB78', buttonGreenHover: '#38A169', buttonYellowBg: '#ECC94B', buttonYellowHover: '#D69E2E', buttonPurpleBg: '#9F7AEA', buttonPurpleHover: '#805AD5', buttonIndigoBg: '#4F46E5', buttonIndigoHover: '#4338CA', buttonTealBg: '#38B2AC', buttonTealHover: '#319795', messageBoxBgSuccess: '#4CAF50', messageBoxBgError: '#F44336', modalBg: '#2b3b55', modalText: '#E2E8F0', modalInputBg: '#3b4d6b', modalInputText: '#E2E8F0'
     }
   }
 };
