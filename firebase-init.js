@@ -6,10 +6,11 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken }
 import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Firebase Configuration ---
-// IMPORTANT: Replace these placeholder values with your actual Firebase project configuration.
-// You can find these in your Firebase project console -> Project settings -> General.
+// IMPORTANT: YOU MUST REPLACE THESE PLACEHOLDER VALUES WITH YOUR ACTUAL FIREBASE PROJECT CONFIGURATION.
+// You can find these details in your Firebase project console: Project settings -> General.
+// If you do not replace these, Firebase functions will fail with "auth/api-key-not-valid".
 const defaultFirebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY", // <--- REPLACE THIS
+  apiKey: "YOUR_FIREBASE_API_KEY", // <--- 🚨 REPLACE THIS WITH YOUR ACTUAL API KEY 🚨
   authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // <--- REPLACE THIS
   projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS
   storageBucket: "YOUR_STORAGE_BUCKET.appspot.com", // <--- REPLACE THIS
