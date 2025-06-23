@@ -151,14 +151,14 @@ async function fetchForumThemes() {
 
   await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for fetching forum themes.");
+    console.error("Firestore DB not initialized for fetching forum themes. DB is:", db);
     toggleVisibility(categoriesLoadingMessage, false);
     toggleVisibility(categoriesErrorMessage, true);
     return [];
   }
 
   const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
-  console.log("DEBUG: Attempting to fetch themes from path:", `artifacts/${appId}/public/data/themes`);
+  console.log("DEBUG: Attempting to fetch themes from path:", themesCol.path);
   try {
     const querySnapshot = await getDocs(themesCol);
     availableForumThemes = [];
@@ -322,13 +322,14 @@ async function fetchThreads(themeId = 'all') {
 
   await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for fetching threads.");
+    console.error("Firestore DB not initialized for fetching threads. DB is:", db);
     toggleVisibility(threadsLoadingMessage, false);
     toggleVisibility(threadsErrorMessage, true);
     return;
   }
 
   let threadsQuery = collection(db, `artifacts/${appId}/public/data/forum_threads`);
+  console.log("DEBUG: Attempting to fetch threads from path:", threadsQuery.path);
 
   if (themeId && themeId !== 'all') {
     threadsQuery = query(threadsQuery, where("themeId", "==", themeId));
@@ -341,6 +342,8 @@ async function fetchThreads(themeId = 'all') {
     querySnapshot.forEach(doc => {
       threads.push({ id: doc.id, ...doc.data() });
     });
+    console.log("DEBUG: Threads fetched. Snapshot empty:", querySnapshot.empty, "Number of docs:", querySnapshot.docs.length);
+
 
     toggleVisibility(threadsLoadingMessage, false);
     if (threads.length === 0) {
@@ -776,7 +779,7 @@ async function fetchAnnouncements() {
 
   await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for fetching announcements.");
+    console.error("Firestore DB not initialized for fetching announcements. DB is:", db);
     toggleVisibility(announcementsLoadingMessage, false);
     toggleVisibility(announcementsErrorMessage, true);
     return;
@@ -784,6 +787,7 @@ async function fetchAnnouncements() {
 
   const announcementsCol = collection(db, `artifacts/${appId}/public/data/announcements`);
   const q = query(announcementsCol, orderBy("createdAt", "desc"), limit(5));
+  console.log("DEBUG: Attempting to fetch announcements from path:", announcementsCol.path);
 
   try {
     const querySnapshot = await getDocs(q);
@@ -791,6 +795,8 @@ async function fetchAnnouncements() {
     querySnapshot.forEach(doc => {
       announcements.push({ id: doc.id, ...doc.data() });
     });
+    console.log("DEBUG: Announcements fetched. Snapshot empty:", querySnapshot.empty, "Number of docs:", querySnapshot.docs.length);
+
 
     toggleVisibility(announcementsLoadingMessage, false);
     if (announcements.length === 0) {
@@ -848,6 +854,7 @@ async function fetchConversations() {
 
   await firebaseReadyPromise;
   const user = auth.currentUser;
+  console.log("DEBUG: fetchConversations: User is:", user ? user.uid : "null", "DB is:", db);
 
   if (!user) {
     toggleVisibility(dmsLoadingMessage, false);
@@ -856,7 +863,7 @@ async function fetchConversations() {
     return;
   }
   if (!db) {
-    console.error("Firestore DB not initialized for fetching DMs.");
+    console.error("Firestore DB not initialized for fetching DMs. DB is:", db);
     toggleVisibility(dmsLoadingMessage, false);
     toggleVisibility(dmsErrorMessage, true);
     return;
@@ -864,6 +871,7 @@ async function fetchConversations() {
 
   const dmsCol = collection(db, `artifacts/${appId}/public/data/direct_messages`);
   const q = query(dmsCol, where("participants", "array-contains", user.uid), orderBy("lastMessageAt", "desc"), limit(3));
+  console.log("DEBUG: Attempting to fetch conversations from path:", dmsCol.path, "for user:", user.uid);
 
   try {
     const querySnapshot = await getDocs(q);
@@ -904,6 +912,8 @@ async function fetchConversations() {
         lastMessageAt: lastMessageTimestamp ? new Date(lastMessageTimestamp).toLocaleString() : 'N/A'
       });
     }
+    console.log("DEBUG: Conversations fetched. Snapshot empty:", querySnapshot.empty, "Number of docs:", querySnapshot.docs.length);
+
 
     toggleVisibility(dmsLoadingMessage, false);
     if (conversations.length === 0) {
@@ -957,19 +967,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log("forms.js - DOMContentLoaded event fired.");
 
   // It's crucial to wait for Firebase initialization here
-  console.log("DEBUG: Waiting for firebaseReadyPromise...");
+  console.log("DEBUG: Waiting for firebaseReadyPromise in forms.js...");
   try {
     await firebaseReadyPromise;
-    console.log("DEBUG: firebaseReadyPromise resolved in forms.js. Firebase is ready.");
+    console.log("DEBUG: forms.js: firebaseReadyPromise resolved. db is:", db);
   } catch (error) {
-    console.error("CRITICAL ERROR: firebaseReadyPromise rejected:", error);
+    console.error("CRITICAL ERROR: forms.js: firebaseReadyPromise rejected:", error);
     showMessageBox("Failed to initialize Firebase. Please check your console for details.", true);
     return; // Stop execution if Firebase isn't ready
   }
 
   // Load Navbar (depends on Firebase auth/db)
   try {
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    // Pass the Firebase instances directly, as they are now guaranteed to be initialized
+    await loadNavbar({ auth: auth, db: db, appId: appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     console.log("DEBUG: Navbar loaded successfully.");
   } catch (error) {
     console.error("ERROR: Failed to load navbar:", error);

@@ -1,80 +1,15 @@
 // settings.js: Handles user settings, including profile, preferences,
 // password management, notifications, accessibility, and account deletion.
 
-// Import necessary Firebase SDK functions
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// Import necessary Firebase SDK functions (these imports are still needed for direct Firebase SDK calls like updatePassword, etc.)
+import { EmailAuthProvider, updatePassword, reauthenticateWithCredential, deleteUser, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import local module functions
+// Import local module functions, including the centralized Firebase instances
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
-import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js'; // Removed parseEmojis as not directly used here
-import { getUserProfileFromFirestore, updateUserProfileInFirestore, deleteUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
-
-
-// Firebase configuration (re-defined locally as per the working pattern)
-const firebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-  authDomain: "arcator-web.firebaseapp.com",
-  projectId: "arcator-web",
-  storageBucket: "arcator-web.firebasestorage.app",
-  messagingSenderId: "1033082068049",
-  appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-  measurementId: "G-DJXNT1L7CM"
-};
-
-const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-let app;
-let auth;
-let db;
-let firebaseReadyPromise; // This promise will manage local Firebase initialization
-
-const DEFAULT_THEME = 'dark'; // Use a constant for default theme
-// DEFAULT_PROFILE_PIC is imported from firebase-init.js if needed, otherwise defined here
-
-
-// Re-establish local Firebase initialization logic within a promise
-firebaseReadyPromise = new Promise((resolve) => {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully (settings.html local).");
-
-    // Pass local db, auth, appId to themes.js setup function
-    setupThemesFirebase(db, auth, appId);
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("onAuthStateChanged triggered during settings.html local initialization. User:", user ? user.uid : "none");
-      unsubscribe(); // Unsubscribe after the first call
-
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !user) {
-        signInWithCustomToken(auth, __initial_auth_token)
-          .then(() => console.log("DEBUG: Signed in with custom token from Canvas (settings page) during init."))
-          .catch((error) => {
-            console.error("ERROR: Error signing in with custom token (settings page) during init:", error);
-            signInAnonymously(auth)
-              .then(() => console.log("DEBUG: Signed in anonymously (settings page) after custom token failure during init."))
-              .catch((anonError) => console.error("ERROR: Error signing in anonymously on settings page during init:", anonError));
-          })
-          .finally(() => resolve());
-      } else if (!user) {
-        signInAnonymously(auth)
-          .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on settings page during init."))
-          .catch((anonError) => console.error("ERROR: Error signing in anonymously on settings page during init:", anonError))
-          .finally(() => resolve());
-      } else {
-        resolve();
-      }
-    });
-  } catch (e) {
-    console.error("Error initializing Firebase (settings.html local block):", e);
-    resolve();
-  }
-});
+import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js';
+import { getUserProfileFromFirestore, setUserProfileInFirestore, deleteUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, auth, db, appId, firebaseReadyPromise } from './firebase-init.js';
 
 
 // --- DOM Elements ---
@@ -87,7 +22,6 @@ const profilePictureDisplay = document.getElementById('profile-picture-display')
 const displayNameText = document.getElementById('display-name-text');
 const emailText = document.getElementById('email-text');
 const displayNameInput = document.getElementById('display-name-input');
-// const handleInput = document.getElementById('handle-input'); // Removed handle-input as per HTML
 const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
 const saveProfileBtn = document.getElementById('save-profile-btn');
 
@@ -130,6 +64,7 @@ const deleteAccountBtn = document.getElementById('delete-account-btn');
  * Shows the loading spinner and hides content.
  */
 function showLoading() {
+  console.log("DEBUG: showLoading called.");
   if (loadingSpinner) loadingSpinner.style.display = 'flex';
   if (settingsContent) settingsContent.style.display = 'none';
   if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
@@ -139,16 +74,18 @@ function showLoading() {
  * Hides the loading spinner and shows content.
  */
 function hideLoading() {
+  console.log("DEBUG: hideLoading called.");
   if (loadingSpinner) loadingSpinner.style.display = 'none';
-  if (settingsContent) settingsContent.style.display = 'block';
+  if (settingsContent) settingsContent.style.display = 'block'; // Make settings content visible
 }
 
 /**
  * Displays the login required message.
  */
 function showLoginRequired() {
+  console.log("DEBUG: showLoginRequired called.");
   if (loadingSpinner) loadingSpinner.style.display = 'none';
-  if (settingsContent) settingsContent.style.display = 'none';
+  if (settingsContent) settingsContent.style.display = 'none'; // Ensure settings content is hidden
   if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
 }
 
@@ -157,6 +94,7 @@ function showLoginRequired() {
  * Populates the theme dropdown with available themes.
  */
 async function populateThemeDropdown() {
+  console.log("DEBUG: populateThemeDropdown called.");
   const themes = await getAvailableThemes();
   if (themeSelect) {
     themeSelect.innerHTML = ''; // Clear existing options
@@ -166,6 +104,9 @@ async function populateThemeDropdown() {
       option.textContent = theme.name + (theme.isCustom ? ' (Custom)' : '');
       themeSelect.appendChild(option);
     });
+    console.log("DEBUG: Theme dropdown populated with", themes.length, "themes.");
+  } else {
+    console.warn("WARNING: themeSelect element not found.");
   }
 }
 
@@ -176,41 +117,49 @@ async function loadUserSettings() {
   showLoading();
   await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
+  console.log("DEBUG: loadUserSettings called. Current user:", user ? user.uid : "none");
 
   if (!user) {
     showLoginRequired();
     return;
   }
 
-  // Populate profile section
-  displayNameText.textContent = user.displayName || 'Set Display Name';
-  emailText.textContent = user.email || 'N/A';
-  profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
-  displayNameInput.value = user.displayName || '';
-  profilePictureUrlInput.value = user.photoURL || '';
+  // Populate profile section with initial Firebase Auth data
+  if (displayNameText) displayNameText.textContent = user.displayName || 'Set Display Name';
+  if (emailText) emailText.textContent = user.email || 'N/A';
+  if (profilePictureDisplay) profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
+  if (displayNameInput) displayNameInput.value = user.displayName || '';
+  if (profilePictureUrlInput) profilePictureUrlInput.value = user.photoURL || '';
+  console.log("DEBUG: Initial UI populated with FirebaseAuth data.");
+
 
   // Fetch user profile from Firestore
   const userProfile = await getUserProfileFromFirestore(user.uid);
+  console.log("DEBUG: User profile fetched from Firestore:", userProfile);
 
   if (userProfile) {
     // Update display name and picture if profile has more recent info
-    displayNameText.textContent = userProfile.displayName || displayNameText.textContent;
-    profilePictureDisplay.src = userProfile.photoURL || profilePictureDisplay.src;
-    displayNameInput.value = userProfile.displayName || '';
-    profilePictureUrlInput.value = userProfile.photoURL || '';
+    if (displayNameText) displayNameText.textContent = userProfile.displayName || displayNameText.textContent;
+    if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || profilePictureDisplay.src;
+    if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
+    if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
 
     // Set preferences
     if (themeSelect && userProfile.themePreference) {
       themeSelect.value = userProfile.themePreference;
+      console.log("DEBUG: Applied theme preference:", userProfile.themePreference);
     }
     if (fontSizeSelect && userProfile.fontSize) {
       fontSizeSelect.value = userProfile.fontSize;
+      console.log("DEBUG: Applied font size preference:", userProfile.fontSize);
     }
     if (fontFamilySelect && userProfile.fontFamily) {
       fontFamilySelect.value = userProfile.fontFamily;
+      console.log("DEBUG: Applied font family preference:", userProfile.fontFamily);
     }
     if (backgroundPatternSelect && userProfile.backgroundPattern) {
       backgroundPatternSelect.value = userProfile.backgroundPattern;
+      console.log("DEBUG: Applied background pattern preference:", userProfile.backgroundPattern);
     }
     if (emailNotificationsCheckbox) {
       emailNotificationsCheckbox.checked = userProfile.emailNotifications || false;
@@ -224,6 +173,8 @@ async function loadUserSettings() {
     if (reducedMotionCheckbox) {
       reducedMotionCheckbox.checked = userProfile.reducedMotion || false;
     }
+  } else {
+    console.warn("WARNING: No user profile found in Firestore for UID:", user.uid);
   }
 
   // Session Information
@@ -252,7 +203,6 @@ async function saveProfileChanges() {
 
   const newDisplayName = displayNameInput.value.trim();
   const newPhotoURL = profilePictureUrlInput.value.trim();
-  // const newHandle = sanitizeHandle(handleInput.value.trim()); // Removed handle
 
   // Update Firebase Auth profile
   try {
@@ -270,9 +220,8 @@ async function saveProfileChanges() {
   const profileData = {
     displayName: newDisplayName,
     photoURL: newPhotoURL || DEFAULT_PROFILE_PIC,
-    // handle: newHandle // Removed handle
   };
-  const success = await updateUserProfileInFirestore(user.uid, profileData);
+  const success = await setUserProfileInFirestore(user.uid, profileData);
   if (success) {
     showMessageBox("Profile updated successfully in Firestore!", false);
   } else {
@@ -303,7 +252,7 @@ async function savePreferences() {
   // Apply the theme immediately
   await applyTheme(preferences.themePreference);
 
-  const success = await updateUserProfileInFirestore(user.uid, preferences);
+  const success = await setUserProfileInFirestore(user.uid, preferences);
   if (success) {
     showMessageBox("Preferences saved successfully!", false);
   } else {
@@ -368,7 +317,7 @@ async function saveNotifications() {
     inAppNotifications: inappNotificationsCheckbox.checked
   };
 
-  const success = await updateUserProfileInFirestore(user.uid, notifications);
+  const success = await setUserProfileInFirestore(user.uid, notifications);
   if (success) {
     showMessageBox("Notification settings saved successfully!", false);
   } else {
@@ -392,7 +341,7 @@ async function saveAccessibility() {
     reducedMotion: reducedMotionCheckbox.checked
   };
 
-  const success = await updateUserProfileInFirestore(user.uid, accessibility);
+  const success = await setUserProfileInFirestore(user.uid, accessibility);
   if (success) {
     showMessageBox("Accessibility settings saved successfully!", false);
     // Immediately apply high contrast if enabled (logic needs to be in themes.js or directly here)
@@ -466,21 +415,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await firebaseReadyPromise; // Ensure Firebase is ready
 
+  // Pass setupThemesFirebase the imported db, auth, and appId
+  setupThemesFirebase(db, auth, appId);
+
   // Load navbar
-  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass explicit values
+  await loadNavbar({ auth: auth, db: db, appId: appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
   // Populate theme dropdown on load
   await populateThemeDropdown();
 
   // Check auth state and load settings or show login message
   onAuthStateChanged(auth, async (user) => {
+    console.log("DEBUG: settings.js onAuthStateChanged. User:", user ? user.uid : "null");
     if (user) {
       await loadUserSettings();
       // Apply initial theme based on user preference or default
       const userProfile = await getUserProfileFromFirestore(user.uid);
       const allThemes = await getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userProfile?.themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-      applyTheme(themeToApply.id, themeToApply);
+      applyTheme(themeToApply.id, userProfile?.themePreference); // Pass userProfile.themePreference directly for applyTheme
     } else {
       showLoginRequired();
     }

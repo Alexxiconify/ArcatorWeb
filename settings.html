@@ -34,7 +34,8 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <div id="settings-content" style="display: none;">
+    <!-- Removed style="display: none;" here to let JS fully control visibility -->
+    <div id="settings-content">
       <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile & Preferences</h2>
 
       <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
@@ -51,8 +52,6 @@
             <label for="display-name-input">Display Name:</label>
             <input type="text" id="display-name-input" placeholder="Your Display Name">
           </div>
-
-          <!-- Removed handle-input section -->
 
           <div class="input-field">
             <label for="profile-picture-url-input">Profile Picture URL:</label>

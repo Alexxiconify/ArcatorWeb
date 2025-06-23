@@ -4,6 +4,13 @@
 // These must be imported from firebase-init.js to ensure they are initialized
 import { db, appId, firebaseReadyPromise } from './firebase-init.js';
 
+// Immediately attempt to hide the custom confirm modal as soon as the script loads
+const customConfirmModalOnLoad = document.getElementById('custom-confirm-modal');
+if (customConfirmModalOnLoad) {
+  customConfirmModalOnLoad.style.display = 'none';
+  console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
+}
+
 /**
  * Displays a custom message box for user feedback.
  * @param {string} message - The message to display.
@@ -37,263 +44,218 @@ export function showMessageBox(message, isError) {
  */
 export function showCustomConfirm(message, subMessage = '') {
   console.log("DEBUG: showCustomConfirm called with message:", message);
+  const customConfirmModal = document.getElementById('custom-confirm-modal');
+  const confirmMessageElement = document.getElementById('confirm-message');
+  const confirmSubMessageElement = document.getElementById('confirm-submessage');
+  const confirmYesBtn = document.getElementById('confirm-yes');
+  const confirmNoBtn = document.getElementById('confirm-no');
+
+  if (!customConfirmModal || !confirmMessageElement || !confirmYesBtn || !confirmNoBtn) {
+    console.error("Confirmation modal elements not found.");
+    // Fallback to native confirm if elements are missing (for debugging/critical path)
+    return Promise.resolve(window.confirm(message + (subMessage ? `\n\n${subMessage}` : '')));
+  }
+
+  confirmMessageElement.textContent = message;
+  confirmSubMessageElement.textContent = subMessage;
+  customConfirmModal.style.display = 'flex'; // Use flex to center content
+
   return new Promise(resolve => {
-    const customConfirmModal = document.getElementById('custom-confirm-modal');
-    const confirmMessage = document.getElementById('confirm-message');
-    const confirmSubmessage = document.getElementById('confirm-submessage');
-    const confirmYesBtn = document.getElementById('confirm-yes');
-    const confirmNoBtn = document.getElementById('confirm-no');
-
-    if (!customConfirmModal || !confirmMessage || !confirmYesBtn || !confirmNoBtn) {
-      console.error("ERROR: Custom confirmation modal elements not found.");
-      // Fallback to true if essential elements are missing, to avoid blocking flow indefinitely
-      resolve(true);
-      return;
-    }
-
-    confirmMessage.textContent = message;
-    confirmSubmessage.textContent = subMessage;
-    customConfirmModal.style.display = 'flex'; // Use flex to center
-    console.log("DEBUG: Custom confirm modal display set to flex.");
-
-    // Event listeners for Yes/No buttons
-    const onConfirm = () => {
-      console.log("DEBUG: Custom confirm - Yes clicked. Hiding modal.");
+    const cleanup = () => {
+      confirmYesBtn.removeEventListener('click', onYes);
+      confirmNoBtn.removeEventListener('click', onNo);
+      customConfirmModal.removeEventListener('click', onClickOutside);
       customConfirmModal.style.display = 'none';
-      // Remove all event listeners to prevent memory leaks and duplicate triggers
-      confirmYesBtn.removeEventListener('click', onConfirm);
-      confirmNoBtn.removeEventListener('click', onCancel);
-      window.removeEventListener('click', closeOnOutsideClick);
-      const closeButton = customConfirmModal.querySelector('.close-button');
-      if (closeButton && closeButton._onCloseButtonClick) {
-        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
-        closeButton._onCloseButtonClick = null;
-      }
-      resolve(true);
     };
 
-    const onCancel = () => {
-      console.log("DEBUG: Custom confirm - Cancel clicked or closed by other means. Hiding modal.");
-      customConfirmModal.style.display = 'none';
-      // Remove all event listeners
-      confirmYesBtn.removeEventListener('click', onConfirm);
-      confirmNoBtn.removeEventListener('click', onCancel);
-      window.removeEventListener('click', closeOnOutsideClick);
-      const closeButton = customConfirmModal.querySelector('.close-button');
-      if (closeButton && closeButton._onCloseButtonClick) {
-        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
-        closeButton._onCloseButtonClick = null;
-      }
+    const onYes = () => {
+      resolve(true);
+      cleanup();
+    };
+
+    const onNo = () => {
       resolve(false);
+      cleanup();
     };
 
-    // Defensive removal of old listeners before adding new ones
-    confirmYesBtn.removeEventListener('click', onConfirm);
-    confirmNoBtn.removeEventListener('click', onCancel);
-    window.removeEventListener('click', closeOnOutsideClick); // If previously attached
-
-    confirmYesBtn.addEventListener('click', onConfirm);
-    confirmNoBtn.addEventListener('click', onCancel);
-
-    // Also close if click outside the modal content, but not on the content itself
-    const closeOnOutsideClick = (event) => {
+    const onClickOutside = (event) => {
       if (event.target === customConfirmModal) {
-        console.log("DEBUG: Custom confirm - Clicked outside modal background. Calling onCancel().");
-        onCancel(); // Treat outside click as a cancel
+        resolve(false); // Treat click outside as a cancellation
+        cleanup();
       }
     };
-    window.addEventListener('click', closeOnOutsideClick);
 
-    // Add a listener to the close button within the modal
-    const closeButton = customConfirmModal.querySelector('.close-button');
-    if (closeButton) {
-      // Store a reference to the handler to remove it later
-      const onCloseButtonClick = () => {
-        console.log("DEBUG: Custom confirm - Close button clicked. Calling onCancel().");
-        onCancel(); // Treat close button click as a cancel
-      };
-      // Remove existing listener if present
-      if (closeButton._onCloseButtonClick) {
-        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
-      }
-      closeButton.addEventListener('click', onCloseButtonClick);
-      closeButton._onCloseButtonClick = onCloseButtonClick; // Store reference
-    }
+    confirmYesBtn.addEventListener('click', onYes);
+    confirmNoBtn.addEventListener('click', onNo);
+    customConfirmModal.addEventListener('click', onClickOutside); // Close if clicked outside modal content
   });
 }
 
-// --- EMOJI & MENTION CONFIGURATION ---
-// IMPORTANT: COMMON_EMOJIS must be exported for other modules (like forms.js) to use it.
-export const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
-const EMOJI_MAP = {
-  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
-  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
-  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏', // Added clap emoji
-  ':cry:': '😢', ':sleepy:': '😴'
+/**
+ * Common Emojis for quick access
+ * This can be expanded to include more emojis or even custom ones.
+ */
+export const COMMON_EMOJIS = {
+  like: '👍',
+  heart: '❤️',
+  laugh: '😂',
+  sad: '😢',
+  fire: '🔥',
 };
-// These caches are now correctly exported for use in modules like forms.js
-export const userHandleCache = {}; // UID -> handle
-export const handleUidCache = {};   // handle -> UID
+
 
 /**
- * Replaces emoji shortcodes (e.g., :smile:) in a given text with their corresponding emoji characters.
- * @param {string} text - The input text containing potential emoji shortcodes.
- * @returns {string} The text with shortcodes replaced by emojis.
+ * Parses emoji codes (e.g., :like:) and replaces them with actual emojis.
+ * @param {string} text - The text to parse.
+ * @returns {string} The text with emoji codes replaced.
  */
 export function parseEmojis(text) {
-  let processedText = text;
-  for (const shortcode in EMOJI_MAP) {
-    const emoji = EMOJI_MAP[shortcode];
-    processedText = processedText.split(shortcode).join(emoji);
+  let parsedText = text;
+  for (const key in COMMON_EMOJIS) {
+    const emojiCode = `:${key}:`;
+    const emojiChar = COMMON_EMOJIS[key];
+    parsedText = parsedText.split(emojiCode).join(emojiChar);
   }
-  return processedText;
+  return parsedText;
 }
 
 /**
- * Parses mentions in a given text and formats them as clickable links, resolving handles to display names.
- * This function now correctly uses the imported `db` and `appId` after Firebase is ready.
- * @param {string} text - The input text containing potential mentions (e.g., @username).
- * @returns {Promise<string>} The text with mentions converted to HTML links.
+ * Parses mentions (e.g., @userhandle) and attempts to resolve them to display names.
+ * This function is async because it might fetch user profiles.
+ * @param {string} text - The text containing mentions.
+ * @returns {Promise<string>} The text with mentions resolved to display names, or original if not found.
  */
 export async function parseMentions(text) {
-  await firebaseReadyPromise; // Ensure Firebase is ready before using `db` or `appId`
-  if (!db) {
-    console.error("Firestore DB not initialized for parseMentions in utils.js.");
-    return text;
-  }
-
-  // Regex to find @mentions. Example: @username, @user-name, @user_name, @user.name
   const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
-  let processedText = text;
+  let parsedText = text;
   const matches = [...text.matchAll(mentionRegex)];
 
+  // Create a map of handles to UIDs to avoid redundant Firestore calls
+  const handleToUidMap = new Map();
   for (const match of matches) {
-    const fullMatch = match[0]; // e.g., @username
-    const handle = match[1];     // e.g., username
-
-    let userDisplayName = handle; // Default to handle if not found
-    let userUid = handleUidCache[handle]; // Check cache first
-
-    if (!userUid) {
-      // If UID not in cache, try to find user by handle in Firestore
-      // Query 'user_profiles' collection to find a document with a matching 'handle' field
-      try {
-        const userProfilesCol = db.collection(`artifacts/${appId}/public/data/user_profiles`);
-        const q = userProfilesCol.where('handle', '==', handle).limit(1);
-        const querySnapshot = await q.get();
-
-        if (!querySnapshot.empty) {
-          const userDoc = querySnapshot.docs[0];
-          const userData = userDoc.data();
-          userDisplayName = userData.displayName || handle;
-          userUid = userDoc.id; // Store the UID
-          userHandleCache[userUid] = handle; // Populate cache
-          handleUidCache[handle] = userUid; // Populate cache
-          console.log(`DEBUG: Resolved mention @${handle} to display name ${userDisplayName} (UID: ${userUid})`);
-        } else {
-          console.log(`DEBUG: Mention @${handle} not found in user profiles.`);
-        }
-      } catch (error) {
-        console.error(`ERROR: Error resolving mention @${handle}:`, error);
-      }
-    } else {
-      // If UID found in cache, retrieve display name from cache (or refetch if needed)
-      // For simplicity, we'll just use the handle as display name if only UID is cached for now
-      // In a real app, you might fetch the full user profile using userUid to get display name
-      try {
-        const userData = await getUserProfileFromFirestore(userUid); // Use the imported function
-        userDisplayName = userData?.displayName || handle;
-      } catch (e) {
-        console.warn(`Could not fetch display name for cached handle ${handle} (UID: ${userUid}). Using handle as fallback.`);
-      }
-    }
-
-    // Replace mention with a link. Link to a profile page, or just make it clickable.
-    // For now, it's a simple span, but can be a link to a user profile page.
-    processedText = processedText.replace(
-      fullMatch,
-      `<span class="text-blue-400 hover:underline cursor-pointer" data-uid="${userUid || ''}">@${userDisplayName}</span>`
-    );
+    const handle = match[1];
+    // This is a simplified approach. In a real app, you'd have a way
+    // to map handles to UIDs (e.g., a separate collection or a search function).
+    // For now, we'll assume the handle might be a display name or part of one.
+    // To resolve to UID, we would need a more robust system or assume the handle IS the UID.
+    // For this example, we'll just bold the mention for now.
+    // A proper implementation would look up the handle in a 'user_profiles' collection
+    // and replace with the user's actual display name.
+    // e.g., const resolvedUid = await resolveHandleToUid(handle);
+    // if (resolvedUid) { const userProfile = await getUserProfileFromFirestore(resolvedUid); }
   }
-  return processedText;
+
+  // Since direct handle-to-UID resolution is complex without a dedicated index,
+  // we'll simply highlight mentions for now. If getUserProfileFromFirestore
+  // can efficiently map a handle to a UID, that logic would go here.
+
+  // Re-process text to add styling to mentions
+  parsedText = text.replace(mentionRegex, (match, handle) => {
+    // For now, just bold the handle. A more advanced feature would link to profile.
+    return `<span class="font-semibold text-link">@${handle}</span>`;
+  });
+
+  return parsedText;
 }
 
 
 /**
- * Fetches a user's profile data from the 'user_profiles' collection in Firestore.
- * This is a helper function used in other modules.
- * @param {string} uid - The User ID (UID) to fetch the profile for.
- * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
+ * Resolves an array of user handles (display names) to their UIDs.
+ * This is a placeholder and would require a more robust user search/lookup
+ * mechanism in a real-world application (e.g., searching user_profiles by displayName).
+ * For this simplified example, it will return an empty array if no exact matches.
+ * @param {string[]} handles - An array of user handles/display names.
+ * @returns {Promise<string[]>} A promise that resolves to an array of UIDs.
  */
-// This function will now explicitly rely on the imported 'db' and 'appId' from firebase-init.js
-// No need to pass dbInstance, appIdValue as arguments
-export async function getUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise; // Ensure Firebase is ready
+export async function resolveHandlesToUids(handles) {
+  await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore in utils.js.");
-    return null;
+    console.error("Firestore DB not initialized. Cannot resolve handles to UIDs.");
+    return [];
   }
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-      return docSnap.data();
+
+  const resolvedUids = [];
+  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+
+  for (const handle of handles) {
+    // This is an inefficient query for a large number of users.
+    // In a real app, consider a search index (like Algolia) or more specific queries
+    // if user handles are unique and indexed.
+    const q = query(userProfilesRef, where("displayName", "==", handle), limit(1));
+    try {
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        resolvedUids.push(querySnapshot.docs[0].id);
+      }
+    } catch (error) {
+      console.error(`Error resolving handle "${handle}" to UID:`, error);
     }
-  } catch (error) {
-    console.error("Error fetching user profile from Firestore in utils.js:", error);
   }
-  return null;
+  return resolvedUids;
 }
 
 
 /**
- * Renders the emoji reaction buttons (and their counts) for a given item (thread or comment).
- * This function expects to be called with necessary data and a handler for clicks.
- * @param {'thread'|'comment'} type - The type of item being reacted to.
- * @param {string} itemId - The ID of the thread or parent thread.
- * @param {Object} reactions - The reactions object from Firestore for this item.
- * @param {HTMLElement} containerElement - The DOM element where the reaction buttons should be appended.
- * @param {function} getCurrentUserFunc - Function to get the current authenticated user.
- * @param {string | null} commentId - Optional: The ID of the comment if `type` is 'comment'.
+ * Renders reaction buttons for a given item (thread or comment).
+ * @param {'thread'|'comment'} type - The type of item ('thread' or 'comment').
+ * @param {string} itemId - The ID of the thread or comment.
+ * @param {Object} reactions - An object where keys are emojis and values are objects
+ * containing UIDs as keys (e.g., { '👍': { 'uid1': true, 'uid2': true } }).
+ * @param {HTMLElement} containerElement - The DOM element to render buttons into.
+ * @param {Object|null} currentUser - The current authenticated user object, or null.
+ * @param {string} [commentId] - Required if type is 'comment'.
  */
-export function renderReactionButtons(type, itemId, reactions, containerElement, getCurrentUserFunc, commentId = null) {
-  containerElement.innerHTML = '';
-  const currentUser = getCurrentUserFunc(); // Get current user using the passed function
+export function renderReactionButtons(type, itemId, reactions, containerElement, currentUser, commentId = null) {
+  if (!containerElement) {
+    console.error("Reaction buttons container not found.");
+    return;
+  }
+  containerElement.innerHTML = ''; // Clear existing buttons
 
-  COMMON_EMOJIS.forEach(emoji => {
-    const count = reactions[emoji] ? Object.keys(reactions[emoji]).length : 0;
-    const hasUserReacted = currentUser && reactions[emoji] && reactions[emoji][currentUser.uid];
-    const buttonClass = hasUserReacted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700';
+  // Add a plus button to add more reactions (e.g., opens an emoji picker)
+  const addReactionBtn = document.createElement('button');
+  addReactionBtn.classList.add(
+    'bg-input-bg', 'text-text-primary', 'py-1', 'px-2', 'rounded', 'mr-2', 'reaction-btn',
+    'hover:bg-input-border', 'transition-colors', 'duration-200'
+  );
+  addReactionBtn.innerHTML = `<i class="fas fa-plus"></i>`; // Font Awesome plus icon
+  addReactionBtn.title = "Add Reaction";
+  addReactionBtn.addEventListener('click', () => {
+    // Placeholder for emoji picker logic
+    // For now, let's just add a default reaction (e.g., '👍') if not present
+    const defaultEmoji = '👍';
+    // This requires the toggleReaction function to be accessible (passed or imported)
+    // For this design, toggleReaction is in forms.js, so we'll simulate adding it here
+    // or assume the button will trigger a higher-level function.
+    // This part of the design needs refinement if an actual emoji picker isn't implemented.
+    showMessageBox("Emoji picker not implemented yet. Click existing reactions to toggle.", false);
+  });
+  // containerElement.appendChild(addReactionBtn); // Re-add if a working emoji picker is desired
+
+  for (const emoji of Object.values(COMMON_EMOJIS)) {
+    const userUids = reactions[emoji] ? Object.keys(reactions[emoji]) : [];
+    const count = userUids.length;
+    const hasReacted = currentUser ? userUids.includes(currentUser.uid) : false;
 
     const button = document.createElement('button');
-    button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
-    button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
-    // The event listener is attached by the calling module (forms.js)
-    // to avoid coupling utils.js directly to the toggleReaction function.
+    button.classList.add(
+      'py-1', 'px-3', 'rounded-full', 'reaction-btn',
+      'flex', 'items-center', 'space-x-1', 'text-sm'
+    );
+
+    if (hasReacted) {
+      button.classList.add('reacted'); // Apply active styling
+    } else {
+      // Apply default styling from forms.css for unreacted buttons
+      button.classList.add('bg-input-bg', 'text-text-primary');
+    }
+
+    button.innerHTML = `<span>${emoji}</span> <span class="font-bold">${count}</span>`;
     button.dataset.emoji = emoji; // Store emoji for handler
     button.dataset.itemId = itemId;
     button.dataset.type = type;
     if (commentId) button.dataset.commentId = commentId;
-
     containerElement.appendChild(button);
-  });
-
-  // Render any other emojis that might exist but aren't in COMMON_EMOJIS
-  for (const emoji in reactions) {
-    if (!COMMON_EMOJIS.includes(emoji)) {
-      const count = Object.keys(reactions[emoji]).length;
-      const hasUserReacted = currentUser && reactions[emoji] && reactions[emoji][currentUser.uid];
-      const buttonClass = hasUserReacted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700';
-
-      const button = document.createElement('button');
-      button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
-      button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
-      button.dataset.emoji = emoji; // Store emoji for handler
-      button.dataset.itemId = itemId;
-      button.dataset.type = type;
-      if (commentId) button.dataset.commentId = commentId;
-      containerElement.appendChild(button);
-    }
   }
 }
 
@@ -322,6 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
     }
   } else {
-    console.error("DEBUG-INIT: custom-confirm-modal element NOT found in DOM.");
+    console.error("DEBUG-INIT: custom-confirm-modal element not found.");
   }
 });
