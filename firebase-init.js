@@ -9,12 +9,12 @@ import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, s
 // IMPORTANT: Replace these placeholder values with your actual Firebase project configuration.
 // You can find these in your Firebase project console -> Project settings -> General.
 const defaultFirebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // <--- REPLACE THIS
-  authDomain: "arcator-web.firebaseapp.com", // <--- REPLACE THIS
-  projectId: "arcator-web", // <--- REPLACE THIS
-  storageBucket: "arcator-web.firebasestorage.app", // <--- REPLACE THIS
-  messagingSenderId: "1033082068049", // <--- REPLACE THIS
-  appId: "1:1033082068049:web:dd154c8b188bde1930ec70", // <--- REPLACE THIS
+  apiKey: "YOUR_FIREBASE_API_KEY", // <--- REPLACE THIS
+  authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // <--- REPLACE THIS
+  projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS
+  storageBucket: "YOUR_STORAGE_BUCKET.appspot.com", // <--- REPLACE THIS
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- REPLACE THIS
+  appId: "YOUR_APP_ID", // <--- REPLACE THIS
   // measurementId: "YOUR_MEASUREMENT_ID" // Optional, if you use Google Analytics
 };
 
@@ -102,15 +102,14 @@ async function generateUniqueHandle(uid, initialSuggestion) {
 }
 
 /**
- * @private
  * Fetches user profile data from the 'user_profiles' collection in Firestore.
  * This is a core function for user data retrieval.
  * @param {string} uid - The User ID (UID) to fetch the profile for.
  * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
  */
-async function getUserProfileInternal(uid) {
+export async function getUserProfileFromFirestore(uid) {
   if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileInternal.");
+    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
     return null;
   }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
@@ -120,10 +119,41 @@ async function getUserProfileInternal(uid) {
       return docSnap.data();
     }
   } catch (error) {
-    console.error("Error fetching user profile from Firestore (internal):", error);
+    console.error("Error fetching user profile from Firestore:", error);
   }
   return null;
 }
+
+/**
+ * Updates user profile data in Firestore.
+ * @param {string} uid - The user's UID.
+ * @param {Object} profileData - The data to update (themePreference, displayName, photoURL, etc.).
+ * @returns {Promise<boolean>} - True if update was successful, false otherwise.
+ */
+export async function updateUserProfileInFirestore(uid, profileData) {
+  if (!db) {
+    console.error("Firestore DB not initialized. Cannot update user profile.");
+    return false;
+  }
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+    await setDoc(userDocRef, profileData, { merge: true });
+    console.log(`User profile for ${uid} updated successfully.`);
+    // Optionally update the in-memory currentUser object if it's the current user
+    if (currentUser && currentUser.uid === uid) {
+      currentUser = { ...currentUser, ...profileData };
+      // Re-evaluate isAdmin if relevant profile fields are changed
+      if (profileData.uid) { // If UID changes (unlikely for existing user)
+        currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile in Firestore:", error);
+    return false;
+  }
+}
+
 
 /**
  * Initializes Firebase, sets up authentication, and retrieves/creates the user profile with a unique handle.
@@ -145,7 +175,7 @@ export async function setupFirebaseAndUser() {
 
         if (user) {
           currentUser = user;
-          let userProfile = await getUserProfileInternal(currentUser.uid);
+          let userProfile = await getUserProfileFromFirestore(currentUser.uid);
 
           if (!userProfile) {
             const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
@@ -197,7 +227,7 @@ export async function setupFirebaseAndUser() {
                 currentUser = userCredential.user;
                 console.log("Signed in with custom token from Canvas.");
                 // Check for profile and generate handle for new sign-ins via token
-                let userProfile = await getUserProfileInternal(currentUser.uid);
+                let userProfile = await getUserProfileFromFirestore(currentUser.uid);
                 if (!userProfile || !userProfile.handle) {
                   const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
                   const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
