@@ -9,7 +9,18 @@ import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, quer
 
 
 // --- Global Firebase Configuration & Instances (from firebase-init.js) ---
-let firebaseConfig = {};
+// Define a default Firebase config (this will be used if __firebase_config is not provided)
+// This is the configuration provided by the user in the latest prompt.
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+  authDomain: "arcator-web.firebaseapp.com",
+  databaseURL: "https://arcator-web-default-rtdb.firebaseio.com",
+  projectId: "arcator-web",
+  storageBucket: "arcator-web.firebasestorage.app",
+  messagingSenderId: "1033082068049",
+  appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+  measurementId: "G-DJXNT1L7CM"
+};
 
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
 const tempProjectId = "arcator-web"; // Fallback for testing if __app_id is not set.
@@ -88,41 +99,42 @@ async function setupFirebaseAndUser() {
     return;
   }
 
-  // Define a robust default firebaseConfig
-  let currentFirebaseConfig = {
-    apiKey: "", // Changed to empty string to let Canvas environment inject the key
-    authDomain: `${tempProjectId}.firebaseapp.com`,
-    projectId: tempProjectId,
-    storageBucket: `${tempProjectId}.appspot.com`,
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Placeholder
-    appId: "YOUR_APP_ID" // Placeholder
-  };
+  let finalFirebaseConfig = DEFAULT_FIREBASE_CONFIG; // Start with the provided default config
 
+  // Check if Canvas environment provides its config
   if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
     if (typeof __firebase_config === 'string') {
       try {
-        currentFirebaseConfig = JSON.parse(__firebase_config);
+        finalFirebaseConfig = JSON.parse(__firebase_config);
         console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
       } catch (e) {
-        console.error("ERROR: Failed to parse __firebase_config string as JSON. Using default config.", e);
+        console.error("ERROR: Failed to parse __firebase_config string as JSON. Using provided DEFAULT_FIREBASE_CONFIG.", e);
+        // Fallback to DEFAULT_FIREBASE_CONFIG if parsing fails
       }
     } else if (typeof __firebase_config === 'object') {
-      currentFirebaseConfig = __firebase_config;
+      finalFirebaseConfig = __firebase_config;
       console.log("DEBUG: __firebase_config provided as object. Using directly.");
     } else {
-      console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Using default config.");
+      console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Using provided DEFAULT_FIREBASE_CONFIG.");
     }
   } else {
-    console.log("DEBUG: __firebase_config not provided. Using fallback for local testing.");
+    console.log("DEBUG: __firebase_config not provided. Using provided DEFAULT_FIREBASE_CONFIG.");
   }
 
-  firebaseConfig = currentFirebaseConfig; // Assign the determined config to the global firebaseConfig
+  firebaseConfig = finalFirebaseConfig; // Assign the determined config to the global firebaseConfig
 
   try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
-    auth = getAuth(app);
+    auth = getAuth(app); // Ensure auth is assigned right after getAuth(app)
     console.log("DEBUG: Firebase app, Firestore, and Auth initialized.");
+
+    // IMPORTANT: Ensure 'auth' is defined before trying to attach a listener
+    if (!auth) {
+      console.error("FATAL ERROR: Firebase Auth instance is undefined after initialization.");
+      firebaseReadyResolve(); // Resolve to unblock, but indicate error
+      return;
+    }
 
     // Set up Auth state observer FIRST, then attempt sign-in
     // This ensures `firebaseReadyPromise` resolves only after the initial auth state is processed.
@@ -287,7 +299,6 @@ async function parseMentions(text) {
 async function resolveHandlesToUids(handles) {
   await firebaseReadyPromise;
   if (!db) { console.error("Firestore DB not initialized."); return []; }
-  const resolvedUids = [];
   const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
   for (const handle of handles) {
     const q = query(userProfilesRef, where("displayName", "==", handle), limit(1));
@@ -853,13 +864,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load navbar (now uses inline HTML for debugging)
   // `auth` and `db` are guaranteed to be initialized after firebaseReadyPromise resolves
-  await loadNavbar(auth.currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass auth.currentUser directly
+  // Add a check for 'auth' and 'auth.currentUser' before passing them to loadNavbar
+  if (auth && auth.currentUser) {
+    await loadNavbar(auth.currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass auth.currentUser directly
+  } else {
+    // If no user is authenticated, still load the navbar but pass null for user
+    await loadNavbar(null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+  }
+
 
   // Populate theme dropdown with available themes
   await populateThemeDropdown();
 
   // Load user settings only AFTER firebaseReadyPromise has resolved and currentUser is set
-  if (auth.currentUser) {
+  if (auth && auth.currentUser) { // Added auth check here
     console.log("DEBUG: User authenticated after initial setup. Calling loadUserSettings().");
     try {
       await loadUserSettings();
