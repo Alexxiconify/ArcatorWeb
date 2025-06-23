@@ -1,21 +1,37 @@
-/* global __app_id, __initial_auth_token */
-
-// firebase-init.js: Centralized Firebase initialization and user authentication.
+// firebase-init.js: Centralized Firebase initialization and user state management.
+/* global __app_id, __firebase_config, __initial_auth_token */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Firebase Configuration ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-  authDomain: "arcator-web.firebaseapp.com",
-  projectId: "arcator-web",
-  storageBucket: "arcator-web.firebasestorage.app",
-  messagingSenderId: "1033082068049",
-  appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-  measurementId: "G-DJXNT1L7CM"
+// Default hardcoded config (should ideally be empty or minimal if Canvas always provides)
+const defaultFirebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY", // Placeholder
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID"
 };
+
+// Safely parse __firebase_config from Canvas environment, or use default/empty object
+let firebaseConfig = {};
+if (typeof __firebase_config === 'string' && __firebase_config.trim() !== '') {
+  try {
+    firebaseConfig = JSON.parse(__firebase_config);
+  } catch (e) {
+    console.error("ERROR: Failed to parse __firebase_config JSON. Using default config.", e);
+    firebaseConfig = defaultFirebaseConfig; // Fallback
+  }
+} else {
+  // If __firebase_config is not a string or empty, use the default config
+  console.warn("WARN: __firebase_config not provided as a string or is empty. Using default config.");
+  firebaseConfig = defaultFirebaseConfig;
+}
+
 
 /** @global {string} appId - The application ID derived from __app_id or firebaseConfig.projectId. */
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
@@ -25,22 +41,18 @@ export const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id'
 export let app;
 export let auth;
 export let db;
-export let currentUser = null; // Stores the current user object with custom profile data
 
-// --- Admin UIDs (for server-level admin permissions) ---
-// IMPORTANT: Replace with the actual UIDs of your Firebase authenticated admin users.
-export const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2'];
+/** @global {object|null} currentUser - Stores the current user object, including custom profile data like 'handle'. */
+let currentUser = null;
 
 // --- Default Values ---
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-const DEFAULT_THEME_NAME = 'dark';
+export const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+export const DEFAULT_THEME_NAME = 'dark';
+export const ADMIN_UIDS = ['YOUR_ADMIN_UID_1', 'YOUR_ADMIN_UID_2']; // Replace with actual admin UIDs
 
-// Utility function (duplicated for now, will move to utils.js later once circular dependency is handled)
-function sanitizeHandle(input) {
-  return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
-}
 
 /**
+ * @private
  * Generates a unique handle for a given user UID and saves it to their profile in Firestore.
  * This is called for both newly authenticated users and anonymous users to ensure they always have a handle.
  * It checks for uniqueness and appends a counter if the base handle is already taken.
@@ -49,9 +61,13 @@ function sanitizeHandle(input) {
  * @returns {Promise<string>} A Promise that resolves with the generated unique handle.
  */
 async function generateUniqueHandle(uid, initialSuggestion) {
-  let baseHandle = sanitizeHandle(initialSuggestion || 'anonuser');
+  if (!db) {
+    console.error("Firestore DB not initialized. Cannot generate handle.");
+    return `anon${uid.substring(0, 5)}`; // Fallback
+  }
+  let baseHandle = initialSuggestion.replace(/[^a-zA-Z0-9_.-]/g, '').toLowerCase();
   if (baseHandle.length === 0) {
-    baseHandle = 'user';
+    baseHandle = 'user'; // Fallback if initial suggestion becomes empty.
   }
   let handle = baseHandle;
   let counter = 0;
@@ -72,18 +88,21 @@ async function generateUniqueHandle(uid, initialSuggestion) {
 
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   await setDoc(userDocRef, { handle: handle }, { merge: true });
+
   console.log(`Generated and saved unique handle for ${uid}: ${handle}`);
   return handle;
 }
 
 /**
+ * @private
  * Fetches user profile data from the 'user_profiles' collection in Firestore.
+ * This is a core function for user data retrieval.
  * @param {string} uid - The User ID (UID) to fetch the profile for.
  * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
  */
-async function getUserProfileFromFirestore(uid) {
+async function getUserProfileInternal(uid) {
   if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+    console.error("Firestore DB not initialized for getUserProfileInternal.");
     return null;
   }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
@@ -93,38 +112,38 @@ async function getUserProfileFromFirestore(uid) {
       return docSnap.data();
     }
   } catch (error) {
-    console.error("Error fetching user profile from Firestore:", error);
+    console.error("Error fetching user profile from Firestore (internal):", error);
   }
   return null;
 }
 
-
 /**
  * Initializes Firebase, sets up authentication, and retrieves/creates the user profile with a unique handle.
+ * This function consolidates the repetitive Firebase initialization logic.
+ * It also sets the global `currentUser` object.
  * @returns {Promise<void>} Resolves when Firebase is ready and currentUser is set.
  */
 export async function setupFirebaseAndUser() {
-  return new Promise(async (resolve) => {
+  return new Promise((resolve) => {
     try {
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
       db = getFirestore(app);
       console.log("Firebase initialized successfully.");
 
+      // Use onAuthStateChanged to handle initial auth state and subsequent changes
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first state change to avoid multiple calls on subsequent updates.
+        unsubscribe(); // Unsubscribe immediately after the first state change to prevent multiple calls
 
         if (user) {
           currentUser = user;
-          let userProfile = await getUserProfileFromFirestore(currentUser.uid);
+          let userProfile = await getUserProfileInternal(currentUser.uid);
 
           if (!userProfile) {
-            // For new authenticated users without a profile
-            const initialHandle = currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
+            const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
             const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
             userProfile = {
-              displayName: currentUser.displayName || initialHandle,
+              displayName: currentUser.displayName,
               photoURL: currentUser.photoURL,
               handle: generatedHandle,
               themePreference: DEFAULT_THEME_NAME,
@@ -138,41 +157,45 @@ export async function setupFirebaseAndUser() {
             await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
             console.log("New user profile created with handle:", generatedHandle);
           } else if (!userProfile.handle) {
-            // For existing profiles missing a handle
             const initialHandle = userProfile.displayName || currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
             const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
             userProfile.handle = generatedHandle;
-            userProfile.displayName = userProfile.displayName || currentUser.displayName || initialHandle;
-            await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle, displayName: userProfile.displayName }, { merge: true });
+            await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), { handle: generatedHandle }, { merge: true });
             console.log("Handle generated and added to existing profile:", generatedHandle);
-          } else {
-            // If profile exists and has a handle, ensure displayName and photoURL are consistent
-            userProfile.displayName = userProfile.displayName || currentUser.displayName || (userProfile.handle.startsWith('anon') ? `Anon ${currentUser.uid.substring(0,5)}` : userProfile.handle);
-            userProfile.photoURL = userProfile.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC;
           }
-
-          // Always update currentUser object with the latest profile details (from fetched or newly created)
-          currentUser.displayName = userProfile.displayName;
-          currentUser.photoURL = userProfile.photoURL;
-          currentUser.handle = userProfile.handle;
-          currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid); // Set server admin status
-          // Note: isThemeMod is set dynamically in themes-api.js or based on theme data
-
+          // Enrich currentUser object with custom profile data
+          currentUser = {
+            ...currentUser,
+            displayName: userProfile.displayName || currentUser.displayName,
+            photoURL: userProfile.photoURL || currentUser.photoURL,
+            handle: userProfile.handle,
+            // Add other profile fields if desired
+            themePreference: userProfile.themePreference,
+            fontSizePreference: userProfile.fontSizePreference,
+            fontFamilyPreference: userProfile.fontFamilyPreference,
+            backgroundPatternPreference: userProfile.backgroundPatternPreference,
+            notificationPreferences: userProfile.notificationPreferences,
+            accessibilitySettings: userProfile.accessibilitySettings,
+          };
           resolve();
         } else {
-          // Anonymous sign-in path
-          if (typeof __initial_auth_token !== 'undefined') {
-            signInWithCustomToken(auth, __initial_auth_token)
+          // No user logged in, try custom token or anonymous sign-in
+          const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+          if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken)
               .then(async (userCredential) => {
                 currentUser = userCredential.user;
-                console.log("DEBUG: Signed in with custom token from Canvas.");
-                let userProfile = await getUserProfileFromFirestore(currentUser.uid);
+                console.log("Signed in with custom token from Canvas.");
+                // Check for profile and generate handle for new sign-ins via token
+                let userProfile = await getUserProfileInternal(currentUser.uid);
                 if (!userProfile || !userProfile.handle) {
-                  const generatedHandle = await generateUniqueHandle(currentUser.uid, `anon${currentUser.uid.substring(0, 5)}`);
+                  const initialHandle = currentUser.displayName || currentUser.email?.split('@')[0] || `user${currentUser.uid.substring(0, 5)}`;
+                  const generatedHandle = await generateUniqueHandle(currentUser.uid, initialHandle);
                   if (!userProfile) userProfile = {};
                   userProfile.handle = generatedHandle;
-                  userProfile.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
-                  userProfile.photoURL = DEFAULT_PROFILE_PIC;
+                  userProfile.displayName = userProfile.displayName || currentUser.displayName;
+                  userProfile.photoURL = userProfile.photoURL || currentUser.photoURL;
                   userProfile.themePreference = userProfile.themePreference || DEFAULT_THEME_NAME;
                   userProfile.fontSizePreference = userProfile.fontSizePreference || '16px';
                   userProfile.fontFamilyPreference = userProfile.fontFamilyPreference || 'Inter, sans-serif';
@@ -181,21 +204,21 @@ export async function setupFirebaseAndUser() {
                   userProfile.accessibilitySettings = userProfile.accessibilitySettings || { highContrast: false, reducedMotion: false };
                   await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), userProfile, { merge: true });
                 }
-                // Ensure currentUser object is updated with profile info
-                currentUser.displayName = userProfile.displayName;
-                currentUser.photoURL = userProfile.photoURL;
-                currentUser.handle = userProfile.handle;
-                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
-                // Note: isThemeMod is set dynamically
-
+                currentUser = {
+                  ...currentUser,
+                  displayName: userProfile.displayName,
+                  photoURL: userProfile.photoURL,
+                  handle: userProfile.handle
+                };
                 resolve();
               })
               .catch((error) => {
-                console.error("ERROR: Error signing in with custom token:", error);
+                console.error("Error signing in with custom token:", error);
+                // Fallback to anonymous sign-in if custom token fails
                 signInAnonymously(auth)
                   .then(async (userCredential) => {
                     currentUser = userCredential.user;
-                    console.log("DEBUG: Signed in anonymously after custom token failure.");
+                    console.log("Signed in anonymously after custom token failure.");
                     const generatedHandle = await generateUniqueHandle(currentUser.uid, `anon${currentUser.uid.substring(0, 5)}`);
                     await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), {
                       handle: generatedHandle,
@@ -209,17 +232,17 @@ export async function setupFirebaseAndUser() {
                       accessibilitySettings: { highContrast: false, reducedMotion: false },
                       createdAt: serverTimestamp()
                     }, { merge: true });
-                    currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
-                    currentUser.photoURL = DEFAULT_PROFILE_PIC;
-                    currentUser.handle = generatedHandle;
-                    currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
-                    // Note: isThemeMod is set dynamically
+                    currentUser = {
+                      ...currentUser,
+                      displayName: `Anon ${currentUser.uid.substring(0, 5)}`,
+                      photoURL: DEFAULT_PROFILE_PIC,
+                      handle: generatedHandle
+                    };
                     resolve();
                   })
                   .catch((anonError) => {
-                    console.error("ERROR: Error signing in anonymously:", anonError);
-                    // If even anonymous sign-in fails, we can't proceed with Firestore
-                    // showMessageBox("Error during anonymous sign-in.", true); // This will fail if DB not init
+                    console.error("Error signing in anonymously:", anonError);
+                    currentUser = null; // Ensure currentUser is null on full failure
                     resolve();
                   });
               });
@@ -227,7 +250,7 @@ export async function setupFirebaseAndUser() {
             signInAnonymously(auth)
               .then(async (userCredential) => {
                 currentUser = userCredential.user;
-                console.log("DEBUG: Signed in anonymously (no custom token).");
+                console.log("Signed in anonymously (no custom token).");
                 const generatedHandle = await generateUniqueHandle(currentUser.uid, `anon${currentUser.uid.substring(0, 5)}`);
                 await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), {
                   handle: generatedHandle,
@@ -241,16 +264,17 @@ export async function setupFirebaseAndUser() {
                   accessibilitySettings: { highContrast: false, reducedMotion: false },
                   createdAt: serverTimestamp()
                 }, { merge: true });
-                currentUser.displayName = `Anon ${currentUser.uid.substring(0, 5)}`;
-                currentUser.photoURL = DEFAULT_PROFILE_PIC;
-                currentUser.handle = generatedHandle;
-                currentUser.isAdmin = ADMIN_UIDS.includes(currentUser.uid);
-                // Note: isThemeMod is set dynamically
+                currentUser = {
+                  ...currentUser,
+                  displayName: `Anon ${currentUser.uid.substring(0, 5)}`,
+                  photoURL: DEFAULT_PROFILE_PIC,
+                  handle: generatedHandle
+                };
                 resolve();
               })
               .catch((anonError) => {
-                console.error("ERROR: Error signing in anonymously:", anonError);
-                // showMessageBox("Error during anonymous sign-in.", true); // This will fail if DB not init
+                console.error("Error signing in anonymously:", anonError);
+                currentUser = null;
                 resolve();
               });
           }
@@ -258,15 +282,15 @@ export async function setupFirebaseAndUser() {
       });
     } catch (e) {
       console.error("Error initializing Firebase:", e);
-      // showMessageBox("Error initializing Firebase. Cannot proceed.", true); // This will fail if DB not init
-      resolve();
+      resolve(); // Always resolve to prevent infinite loading state
     }
   });
 }
 
 /**
- * Returns the current user object.
- * @returns {object|null} The current user object with profile details.
+ * Returns the globally managed current user object.
+ * This object is enriched with custom profile data (like handle, displayName, photoURL).
+ * @returns {object|null} The current user object or null if not authenticated/initialized.
  */
 export function getCurrentUser() {
   return currentUser;
