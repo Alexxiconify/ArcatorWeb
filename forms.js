@@ -1,16 +1,16 @@
-// forms.js: This script handles forum thread and comment functionality,
-// including real-time updates, reactions, emoji parsing, and user mentions.
+// forms.js: This script handles forum thread, comment, reaction,
+// announcement, and direct message functionality for the community hub.
 
 /* global EasyMDE, marked */ // Explicitly declare EasyMDE and marked as global variables
 
-// Import necessary Firebase SDK functions and local modules
+// --- Firebase SDK Imports ---
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// --- Local Module Imports ---
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
 import { loadNavbar } from './navbar.js';
 import { showMessageBox, showCustomConfirm, COMMON_EMOJIS, parseEmojis, parseMentions, renderReactionButtons } from './utils.js';
-// Import auth, db, appId, firebaseReadyPromise directly from firebase-init.js
 import { getUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, auth, db, appId, firebaseReadyPromise, ADMIN_UIDS } from './firebase-init.js';
 
 
@@ -19,15 +19,29 @@ const createThreadForm = document.getElementById('create-thread-form');
 const threadTitleInput = document.getElementById('thread-title');
 const threadThemeSelect = document.getElementById('thread-theme-select');
 const threadContentInput = document.getElementById('thread-content');
+const createThreadSection = document.getElementById('create-thread-section'); // Section containing the form
+const forumLoginRequiredMessage = document.getElementById('forum-login-required-message');
 
-// Thread List elements
 const categoryFilterButtonsContainer = document.getElementById('category-filter-buttons');
 const categoriesLoadingMessage = document.getElementById('categories-loading-message');
 const noCategoriesMessage = document.getElementById('no-categories-message');
+const categoriesErrorMessage = document.getElementById('categories-error-message');
+
 const actualThreadsList = document.getElementById('actual-threads-list');
 const threadsLoadingMessage = document.getElementById('threads-loading-message');
-const threadsLoadingError = document.getElementById('threads-loading-error');
+const threadsErrorMessage = document.getElementById('threads-error-message');
 const noThreadsMessage = document.getElementById('no-threads-message');
+
+const actualAnnouncementsList = document.getElementById('actual-announcements-list');
+const announcementsLoadingMessage = document.getElementById('announcements-loading-message');
+const announcementsErrorMessage = document.getElementById('announcements-error-message');
+const noAnnouncementsMessage = document.getElementById('no-announcements-message');
+
+const actualRecentDMsList = document.getElementById('actual-recent-dms-list');
+const dmsLoadingMessage = document.getElementById('dms-loading-message');
+const dmsErrorMessage = document.getElementById('dms-error-message');
+const noDMsMessage = document.getElementById('no-dms-message');
+
 
 const threadDetailModal = document.getElementById('thread-detail-modal');
 const modalThreadTitle = document.getElementById('modal-thread-title');
@@ -37,37 +51,22 @@ const addCommentForm = document.getElementById('add-comment-form');
 const commentContentInput = document.getElementById('comment-content');
 const commentsList = document.getElementById('comments-list');
 const threadReactionsContainer = document.getElementById('thread-reactions-container');
-const logoutBtn = document.getElementById('logout-btn'); // Assuming this is defined for any page where forms.js is used
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-const loginRequiredMessage = document.getElementById('login-required-message');
 
 
-// New DOM elements for Announcements and DMs
-const actualAnnouncementsList = document.getElementById('actual-announcements-list');
-const announcementsLoadingMessage = document.getElementById('announcements-loading-message');
-const noAnnouncementsMessage = document.getElementById('no-announcements-message');
-const announcementsErrorMessage = document.getElementById('announcements-error-message');
-
-const actualRecentDMsList = document.getElementById('actual-recent-dms-list');
-const dmsLoadingMessage = document.getElementById('dms-loading-message');
-const noDMsMessage = document.getElementById('no-dms-message');
-const dmsErrorMessage = document.getElementById('dms-error-message');
-
-
+// --- State Variables ---
 let easyMDECreateThread;
-let easyMDEComment; // Not currently used as comment input is a textarea
-
 let currentThreadId = null;
-let unsubscribeComments = null;
-let unsubscribeReactions = null;
+let unsubscribeComments = null; // Firestore real-time listener unsubscriber for comments
+let unsubscribeReactions = null; // Firestore real-time listener unsubscriber for reactions
+let availableForumThemes = []; // Cached list of forum themes
 
-let availableForumThemes = [];
 
+// --- Utility Functions ---
 
 /**
- * Helper function to show/hide elements.
- * @param {HTMLElement} element - The DOM element to manage.
- * @param {boolean} show - True to show, false to hide.
+ * Toggles the 'hidden' class and display style for a given HTML element.
+ * @param {HTMLElement} element - The DOM element to manage visibility for.
+ * @param {boolean} show - If true, element is shown; otherwise, it's hidden.
  */
 function toggleVisibility(element, show) {
   if (element) {
@@ -81,45 +80,60 @@ function toggleVisibility(element, show) {
 }
 
 /**
+ * Parses user mentions in content and converts them to clickable links.
+ * Uses a dummy URL for now, assumes user profiles might exist elsewhere.
+ * @param {string} text - The text content to parse.
+ * @returns {Promise<string>} The parsed HTML string with mentions as links.
+ */
+// This function is already in utils.js, but re-defining it here for clarity if forms.js relies on it directly
+// In a modular setup, you would just import `parseMentions` and use it.
+// Assuming it's imported from utils.js, so this comment serves as a reminder.
+
+
+// --- Forum Thread Functions ---
+
+/**
  * Fetches all available forum themes from Firestore.
+ * Updates loading/error/empty messages accordingly.
  * @returns {Promise<Array>} A promise that resolves with an array of theme objects.
  */
 async function fetchForumThemes() {
+  toggleVisibility(categoriesLoadingMessage, true);
+  toggleVisibility(noCategoriesMessage, false);
+  toggleVisibility(categoriesErrorMessage, false);
+  if (categoryFilterButtonsContainer) categoryFilterButtonsContainer.innerHTML = ''; // Clear existing buttons
+
   await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for fetching forum themes. Cannot fetch themes.");
+    console.error("Firestore DB not initialized for fetching forum themes.");
     toggleVisibility(categoriesLoadingMessage, false);
-    toggleVisibility(noCategoriesMessage, false); // Hide, as error message will be shown via showMessageBox
-    showMessageBox("Error: Database not initialized for themes.", true);
+    toggleVisibility(categoriesErrorMessage, true);
     return [];
   }
 
-  toggleVisibility(categoriesLoadingMessage, true);
-  toggleVisibility(noCategoriesMessage, false); // Hide "No categories" while loading
+  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
   console.log("DEBUG: Attempting to fetch themes from path:", `artifacts/${appId}/public/data/themes`);
   try {
-    const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
     const querySnapshot = await getDocs(themesCol);
-    const themes = [];
+    availableForumThemes = []; // Clear previous themes
     querySnapshot.forEach(doc => {
-      themes.push({ id: doc.id, ...doc.data() });
+      availableForumThemes.push({ id: doc.id, ...doc.data() });
     });
-    availableForumThemes = themes;
-    console.log("DEBUG: Fetched forum themes. Count:", themes.length, "Themes:", themes);
+    console.log("DEBUG: Fetched forum themes. Count:", availableForumThemes.length, "Themes:", availableForumThemes);
 
-    toggleVisibility(categoriesLoadingMessage, false); // Hide loading message
-    if (themes.length === 0) {
+    toggleVisibility(categoriesLoadingMessage, false);
+    if (availableForumThemes.length === 0) {
       toggleVisibility(noCategoriesMessage, true);
     } else {
-      toggleVisibility(noCategoriesMessage, false);
+      populateThreadCategorySelect();
+      renderCategoryFilterButtons(availableForumThemes, 'all'); // Render filter buttons
     }
-
-    return themes;
+    return availableForumThemes;
   } catch (error) {
     console.error("Error fetching forum themes:", error);
     toggleVisibility(categoriesLoadingMessage, false);
-    toggleVisibility(noCategoriesMessage, true); // Show "No categories" or a more specific error
-    showMessageBox(`Error loading forum themes: ${error.message}`, true);
+    toggleVisibility(categoriesErrorMessage, true);
+    showMessageBox(`Error loading forum categories: ${error.message}`, true);
     return [];
   }
 }
@@ -127,7 +141,7 @@ async function fetchForumThemes() {
 /**
  * Populates the thread theme select dropdown with available themes.
  */
-async function populateThreadCategorySelect() {
+function populateThreadCategorySelect() {
   if (!threadThemeSelect) return;
 
   threadThemeSelect.innerHTML = '<option value="">Select a Theme</option>';
@@ -143,7 +157,7 @@ async function populateThreadCategorySelect() {
     option.textContent = theme.name;
     threadThemeSelect.appendChild(option);
   });
-  console.log("DEBUG: Thread category select populated with", availableForumThemes.length, "themes.");
+  console.log("DEBUG: Thread category select populated.");
 }
 
 /**
@@ -151,7 +165,7 @@ async function populateThreadCategorySelect() {
  * @param {Array} themes - Array of theme objects.
  * @param {string} activeThemeId - The ID of the currently active theme filter, or 'all'.
  */
-async function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
+function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
   if (!categoryFilterButtonsContainer) return;
 
   categoryFilterButtonsContainer.innerHTML = ''; // Clear existing buttons
@@ -204,7 +218,7 @@ function updateActiveFilterButton(activeId) {
 }
 
 /**
- * Filters and renders threads based on the selected theme.
+ * Filters and re-fetches threads based on the selected theme.
  * @param {string} themeId - The ID of the theme to filter by, or 'all'.
  */
 async function filterThreadsByCategory(themeId) {
@@ -212,9 +226,8 @@ async function filterThreadsByCategory(themeId) {
   await fetchThreads(themeId);
 }
 
-
 /**
- * Creates a new forum thread.
+ * Creates a new forum thread in Firestore.
  * @param {string} title - The title of the thread.
  * @param {string} content - The content of the thread (Markdown).
  * @param {string} themeId - The ID of the selected theme.
@@ -253,7 +266,7 @@ async function createThread(title, content, themeId) {
     if (createThreadForm) createThreadForm.reset();
     if (easyMDECreateThread) easyMDECreateThread.value('');
     if (threadThemeSelect) threadThemeSelect.value = '';
-    await fetchThreads('all');
+    await fetchThreads('all'); // Refresh the list after creating a new thread
     console.log("DEBUG: Thread created:", docRef.id);
   } catch (error) {
     console.error("Error creating thread:", error);
@@ -263,23 +276,22 @@ async function createThread(title, content, themeId) {
 
 /**
  * Fetches forum threads from Firestore, optionally filtered by theme.
+ * Manages loading, error, and empty state messages.
  * @param {string|null} themeId - The ID of the theme to filter by, or 'all'/'null' for all threads.
  */
 async function fetchThreads(themeId = 'all') {
-  await firebaseReadyPromise;
-  if (!db) {
-    toggleVisibility(threadsLoadingMessage, false);
-    toggleVisibility(threadsLoadingError, true);
-    toggleVisibility(noThreadsMessage, false);
-    if (actualThreadsList) actualThreadsList.innerHTML = '';
-    console.error("Firestore DB not initialized for fetching threads. Cannot fetch threads.");
-    return;
-  }
-
   toggleVisibility(threadsLoadingMessage, true);
-  toggleVisibility(threadsLoadingError, false);
+  toggleVisibility(threadsErrorMessage, false);
   toggleVisibility(noThreadsMessage, false);
   if (actualThreadsList) actualThreadsList.innerHTML = ''; // Clear previous threads
+
+  await firebaseReadyPromise;
+  if (!db) {
+    console.error("Firestore DB not initialized for fetching threads.");
+    toggleVisibility(threadsLoadingMessage, false);
+    toggleVisibility(threadsErrorMessage, true);
+    return;
+  }
 
   let threadsQuery = collection(db, `artifacts/${appId}/public/data/forum_threads`);
 
@@ -304,38 +316,33 @@ async function fetchThreads(themeId = 'all') {
     if (threads.length === 0) {
       toggleVisibility(noThreadsMessage, true);
     } else {
-      toggleVisibility(noThreadsMessage, false);
-      await renderThreads(threads);
+      renderThreads(threads);
     }
   } catch (error) {
     console.error("Error fetching threads:", error);
     toggleVisibility(threadsLoadingMessage, false);
-    toggleVisibility(threadsLoadingError, true);
-    toggleVisibility(noThreadsMessage, false); // Hide no threads message in case of error
-    if (actualThreadsList) actualThreadsList.innerHTML = '';
+    toggleVisibility(threadsErrorMessage, true);
     showMessageBox(`Error loading threads: ${error.message}`, true);
   }
 }
 
-
 /**
- * Renders the list of forum threads.
+ * Renders the list of forum threads into the DOM.
  * @param {Array} threads - An array of thread objects.
  */
 async function renderThreads(threads) {
   if (!actualThreadsList) return;
 
-  actualThreadsList.innerHTML = ''; // Clear previous content, replaced by messages above
+  actualThreadsList.innerHTML = ''; // Clear existing threads before rendering new ones
 
-  if (threads.length === 0) {
+  if (threads.length === 0) { // This check might be redundant if fetchThreads already handled it, but good for safety
     toggleVisibility(noThreadsMessage, true);
-    console.log("DEBUG: No threads to render.");
     return;
   }
 
   for (const thread of threads) {
     const threadElement = document.createElement('div');
-    threadElement.classList.add('bg-gray-800', 'p-6', 'rounded-lg', 'shadow-md', 'mb-6'); // Apply styling here
+    threadElement.classList.add('thread-item', 'mb-6'); // Use the .thread-item class from forms.css
 
     let authorDisplayName = thread.authorDisplayName || "Anonymous";
     let authorProfilePic = thread.authorProfilePic || DEFAULT_PROFILE_PIC;
@@ -360,22 +367,22 @@ async function renderThreads(threads) {
       }
     }
 
-    const fullContentHtml = thread.content ? marked.parse(thread.content) : '';
-    const contentPreview = fullContentHtml.length > 200 ? fullContentHtml.substring(0, 200) + '...' : fullContentHtml;
-
+    // Sanitize content for display, especially if it contains user-generated HTML
+    const sanitizedContent = DOMPurify.sanitize(marked.parse(thread.content || ''));
+    const contentPreview = sanitizedContent.length > 200 ? sanitizedContent.substring(0, 200) + '...' : sanitizedContent;
 
     threadElement.innerHTML = `
       <div class="flex items-center mb-4">
         <img src="${authorProfilePic}" alt="${authorDisplayName}'s profile picture" class="profile-pic-small mr-3">
         <div>
-          <p class="text-gray-200 font-semibold">${authorDisplayName}</p>
-          <p class="text-gray-400 text-xs">${formattedDate}</p>
+          <p class="text-text-primary font-semibold">${authorDisplayName}</p>
+          <p class="text-text-secondary text-xs">${formattedDate}</p>
         </div>
       </div>
-      <h3 class="thread-title mb-2 cursor-pointer text-xl font-bold text-blue-300">${parseEmojis(thread.title)}</h3>
-      <p class="thread-meta text-sm text-gray-400 mb-2">Comments: ${commentsCount} | Theme: <span class="thread-category-tag font-semibold text-blue-200">/t/${themeName}</span></p>
-      <div class="thread-content-preview prose text-gray-100 mb-4 max-w-none">${parseEmojis(await parseMentions(contentPreview))}</div>
-      <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 view-thread-btn" data-id="${thread.id}">View Thread</button>
+      <h3 class="thread-title mb-2 cursor-pointer text-xl font-bold">${parseEmojis(thread.title)}</h3>
+      <p class="thread-meta text-sm">${commentsCount} comments | Theme: <span class="thread-category-tag">${themeName}</span></p>
+      <div class="thread-content-preview prose text-text-primary mt-2 max-w-none">${parseEmojis(await parseMentions(contentPreview))}</div>
+      <button class="bg-button-blue-bg text-button-text px-4 py-2 rounded-md hover:bg-button-blue-hover transition duration-300 view-thread-btn mt-4" data-id="${thread.id}">View Thread</button>
     `;
     actualThreadsList.appendChild(threadElement);
   }
@@ -400,10 +407,10 @@ async function openThreadDetailModal(threadId) {
   if (modalThreadTitle) modalThreadTitle.textContent = 'Loading...';
   if (modalThreadMeta) modalThreadMeta.textContent = '';
   if (modalThreadContent) modalThreadContent.innerHTML = '<p>Loading thread content...</p>';
-  if (commentsList) commentsList.innerHTML = '<p class="text-gray-300 text-center">Loading comments...</p>';
+  if (commentsList) commentsList.innerHTML = '<p class="text-text-secondary text-center">Loading comments...</p>';
   if (threadReactionsContainer) threadReactionsContainer.innerHTML = '';
 
-  if (threadDetailModal) threadDetailModal.style.display = 'flex';
+  toggleVisibility(threadDetailModal, true);
   console.log("DEBUG: Opening thread detail modal for thread ID:", threadId);
 
   const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
@@ -428,19 +435,25 @@ async function openThreadDetailModal(threadId) {
       const formattedDate = threadData.createdAt?.toDate ? new Date(threadData.createdAt.toDate()).toLocaleString() : 'N/A';
       const themeName = availableForumThemes.find(t => t.id === threadData.themeId)?.name || 'Uncategorized';
 
-
       if (modalThreadTitle) modalThreadTitle.textContent = parseEmojis(threadData.title);
       if (modalThreadMeta) modalThreadMeta.innerHTML = `By ${authorDisplayName} on ${formattedDate} | Comments: ${threadData.commentsCount || 0} | Theme: /t/${themeName}`;
-      if (modalThreadContent) modalThreadContent.innerHTML = parseEmojis(await parseMentions(marked.parse(threadData.content || '')));
-
+      if (modalThreadContent) modalThreadContent.innerHTML = parseEmojis(await parseMentions(DOMPurify.sanitize(marked.parse(threadData.content || ''))));
 
       setupCommentsListener(threadId);
       setupReactionsListener(threadId);
+
+      // Show comment form if user is logged in
+      if (auth.currentUser) {
+        toggleVisibility(addCommentForm, true);
+      } else {
+        toggleVisibility(addCommentForm, false);
+      }
 
     } else {
       if (modalThreadContent) modalThreadContent.innerHTML = '<p class="text-red-500">Thread not found.</p>';
       if (commentsList) commentsList.innerHTML = '';
       if (threadReactionsContainer) threadReactionsContainer.innerHTML = '';
+      toggleVisibility(addCommentForm, false); // Hide comment form if thread not found
       console.warn("DEBUG: Thread document does not exist for ID:", threadId);
     }
   } catch (error) {
@@ -448,6 +461,7 @@ async function openThreadDetailModal(threadId) {
     if (modalThreadContent) modalThreadContent.innerHTML = `<p class="text-red-500">Error loading thread: ${error.message}</p>`;
     if (commentsList) commentsList.innerHTML = '';
     if (threadReactionsContainer) threadReactionsContainer.innerHTML = '';
+    toggleVisibility(addCommentForm, false); // Hide comment form on error
   }
 }
 
@@ -468,7 +482,7 @@ function setupCommentsListener(threadId) {
   unsubscribeComments = onSnapshot(q, async (snapshot) => {
     if (commentsList) commentsList.innerHTML = '';
     if (snapshot.empty) {
-      if (commentsList) commentsList.innerHTML = '<p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>';
+      if (commentsList) commentsList.innerHTML = '<p class="text-text-secondary text-center">No comments yet. Be the first to reply!</p>';
       await updateThreadCommentsCount(threadId, 0);
       console.log("DEBUG: No comments found for thread ID:", threadId);
       return;
@@ -479,7 +493,7 @@ function setupCommentsListener(threadId) {
       count++;
       const comment = commentDoc.data();
       const commentElement = document.createElement('div');
-      commentElement.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-sm', 'relative');
+      commentElement.classList.add('comment-card'); // Use the .comment-card class from forms.css
 
       let authorDisplayName = comment.authorDisplayName || "Anonymous";
       let authorProfilePic = comment.authorProfilePic || DEFAULT_PROFILE_PIC;
@@ -494,17 +508,17 @@ function setupCommentsListener(threadId) {
       }
 
       const formattedDate = comment.createdAt?.toDate ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const parsedContent = parseEmojis(await parseMentions(marked.parse(comment.content || '')));
+      const parsedContent = parseEmojis(await parseMentions(DOMPurify.sanitize(marked.parse(comment.content || ''))));
 
       commentElement.innerHTML = `
         <div class="flex items-center mb-2">
           <img src="${authorProfilePic}" alt="${authorDisplayName}'s profile picture" class="profile-pic-small mr-2">
           <div>
-            <p class="text-gray-200 font-semibold">${authorDisplayName}</p>
-            <p class="text-gray-400 text-xs">${formattedDate}</p>
+            <p class="author-handle font-semibold">${authorDisplayName}</p>
+            <p class="timestamp text-xs">${formattedDate}</p>
           </div>
         </div>
-        <div class="prose text-gray-100 mb-2">${parsedContent}</div>
+        <div class="prose mb-2">${parsedContent}</div>
         ${auth.currentUser && (auth.currentUser.uid === comment.authorUid || ADMIN_UIDS.includes(auth.currentUser.uid)) ? `<button class="text-red-500 hover:text-red-700 text-sm delete-comment-btn absolute top-2 right-2" data-comment-id="${commentDoc.id}">Delete</button>` : ''}
       `;
       if (commentsList) commentsList.appendChild(commentElement);
@@ -557,7 +571,7 @@ function setupReactionsListener(threadId) {
       console.log("DEBUG: Reactions rendered for thread:", threadId);
 
       document.querySelectorAll('#thread-reactions-container .reaction-btn').forEach(button => {
-        const emoji = button.textContent.split(' ')[0];
+        const emoji = button.textContent.split(' ')[0]; // Get the emoji part
         button.addEventListener('click', () => toggleReaction(threadId, emoji));
       });
 
@@ -570,7 +584,6 @@ function setupReactionsListener(threadId) {
     if (threadReactionsContainer) threadReactionsContainer.innerHTML = `<p class="text-red-500">Error loading reactions: ${error.message}</p>`;
   });
 }
-
 
 /**
  * Toggles a user's reaction to a thread.
@@ -601,16 +614,17 @@ async function toggleReaction(threadId, emoji) {
     const currentReactions = threadSnap.data().reactions || {};
     const emojiReactions = currentReactions[emoji] || {};
 
+    // Toggle logic: If user has reacted, remove their reaction; otherwise, add it.
     if (emojiReactions[user.uid]) {
       delete emojiReactions[user.uid];
       showMessageBox(`Removed ${emoji} reaction.`, false);
     } else {
-      emojiReactions[user.uid] = user.uid;
+      emojiReactions[user.uid] = user.uid; // Store user ID to mark their reaction
       showMessageBox(`Added ${emoji} reaction!`, false);
     }
 
     await updateDoc(threadRef, {
-      [`reactions.${emoji}`]: emojiReactions
+      [`reactions.${emoji}`]: emojiReactions // Update the specific emoji's reactions map
     });
 
     console.log(`DEBUG: Toggled reaction '${emoji}' for user ${user.uid} on thread ${threadId}.`);
@@ -619,7 +633,6 @@ async function toggleReaction(threadId, emoji) {
     showMessageBox(`Failed to add reaction: ${error.message}`, true);
   }
 }
-
 
 /**
  * Adds a new comment to the current thread.
@@ -727,18 +740,19 @@ async function updateThreadCommentsCount(threadId, count) {
     });
     console.log(`DEBUG: Thread ${threadId} comments count updated to: ${count}`);
     const activeCategoryId = document.querySelector('#category-filter-buttons button.active-category-filter')?.dataset.categoryId || 'all';
+    // Re-fetch threads to reflect updated comment count on the main list
     await fetchThreads(activeCategoryId);
   } catch (error) {
     console.error("Error updating thread comments count:", error);
   }
 }
 
-
 /**
  * Handles the click of the modal close button.
  */
 function closeModal() {
-  if (threadDetailModal) threadDetailModal.style.display = 'none';
+  toggleVisibility(threadDetailModal, false);
+  // Unsubscribe from real-time listeners when modal is closed
   if (unsubscribeComments) {
     unsubscribeComments();
     unsubscribeComments = null;
@@ -752,23 +766,26 @@ function closeModal() {
   currentThreadId = null;
 }
 
+
+// --- Announcement Functions ---
+
 /**
  * Fetches recent announcements from Firestore.
+ * Manages loading, error, and empty state messages.
  */
 async function fetchAnnouncements() {
-  await firebaseReadyPromise;
-  if (!db) {
-    toggleVisibility(announcementsLoadingMessage, false);
-    toggleVisibility(announcementsErrorMessage, true);
-    if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
-    console.error("Firestore DB not initialized for fetching announcements.");
-    return;
-  }
-
   toggleVisibility(announcementsLoadingMessage, true);
   toggleVisibility(noAnnouncementsMessage, false);
   toggleVisibility(announcementsErrorMessage, false);
   if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
+
+  await firebaseReadyPromise;
+  if (!db) {
+    console.error("Firestore DB not initialized for fetching announcements.");
+    toggleVisibility(announcementsLoadingMessage, false);
+    toggleVisibility(announcementsErrorMessage, true);
+    return;
+  }
 
   const announcementsCol = collection(db, `artifacts/${appId}/public/data/announcements`);
   const q = query(announcementsCol, orderBy("createdAt", "desc"), limit(5)); // Fetch up to 5 most recent
@@ -786,15 +803,12 @@ async function fetchAnnouncements() {
     if (announcements.length === 0) {
       toggleVisibility(noAnnouncementsMessage, true);
     } else {
-      toggleVisibility(noAnnouncementsMessage, false);
       renderAnnouncements(announcements);
     }
   } catch (error) {
     console.error("Error fetching announcements:", error);
     toggleVisibility(announcementsLoadingMessage, false);
     toggleVisibility(announcementsErrorMessage, true);
-    toggleVisibility(noAnnouncementsMessage, false);
-    if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
   }
 }
 
@@ -805,20 +819,22 @@ async function fetchAnnouncements() {
 function renderAnnouncements(announcements) {
   if (!actualAnnouncementsList) return;
 
-  if (announcements.length === 0) {
+  actualAnnouncementsList.innerHTML = ''; // Clear previous content
+
+  if (announcements.length === 0) { // This check might be redundant if fetchAnnouncements already handled it
     toggleVisibility(noAnnouncementsMessage, true);
     return;
   }
 
-  actualAnnouncementsList.innerHTML = '';
   announcements.forEach(announcement => {
     const announcementElement = document.createElement('div');
-    announcementElement.classList.add('bg-gray-800', 'p-3', 'rounded-md', 'shadow-sm', 'mb-2');
+    announcementElement.classList.add('announcement-item', 'mb-2'); // Use .announcement-item from forms.css
     const formattedDate = announcement.createdAt?.toDate ? new Date(announcement.createdAt.toDate()).toLocaleDateString() : 'N/A';
+    const sanitizedContent = DOMPurify.sanitize(marked.parse(announcement.content || ''));
     announcementElement.innerHTML = `
-      <h4 class="font-semibold text-blue-200 text-lg mb-1">${parseEmojis(announcement.title || 'No Title')}</h4>
-      <p class="text-gray-400 text-sm mb-2">${formattedDate}</p>
-      <div class="prose text-gray-200 text-sm max-w-none">${parseEmojis(marked.parse(announcement.content || ''))}</div>
+      <h4 class="font-semibold text-lg mb-1">${parseEmojis(announcement.title || 'No Title')}</h4>
+      <p class="text-text-secondary text-sm mb-2">${formattedDate}</p>
+      <div class="prose text-text-primary text-sm max-w-none">${parseEmojis(sanitizedContent)}</div>
     `;
     actualAnnouncementsList.appendChild(announcementElement);
   });
@@ -826,60 +842,53 @@ function renderAnnouncements(announcements) {
 }
 
 
+// --- Direct Message Functions (Recent Conversations Summary) ---
+
 /**
  * Fetches recent direct messages (conversations) for the current user.
  * Displays a summary of the latest message in each conversation.
+ * Manages loading, error, and empty state messages.
  */
 async function fetchRecentDMs() {
-  await firebaseReadyPromise;
-  const user = auth.currentUser;
-  if (!user) {
-    toggleVisibility(dmsLoadingMessage, false);
-    toggleVisibility(dmsErrorMessage, false);
-    toggleVisibility(noDMsMessage, true); // Show 'Sign in to view DMs'
-    if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
-    return;
-  }
-  if (!db) {
-    toggleVisibility(dmsLoadingMessage, false);
-    toggleVisibility(dmsErrorMessage, true);
-    toggleVisibility(noDMsMessage, false);
-    if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
-    console.error("Firestore DB not initialized for fetching DMs.");
-    return;
-  }
-
   toggleVisibility(dmsLoadingMessage, true);
   toggleVisibility(noDMsMessage, false);
   toggleVisibility(dmsErrorMessage, false);
   if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
 
+  await firebaseReadyPromise;
+  const user = auth.currentUser;
+
+  if (!user) {
+    toggleVisibility(dmsLoadingMessage, false);
+    toggleVisibility(noDMsMessage, true);
+    if (noDMsMessage) noDMsMessage.textContent = 'Sign in to view recent conversations.';
+    return;
+  }
+  if (!db) {
+    console.error("Firestore DB not initialized for fetching DMs.");
+    toggleVisibility(dmsLoadingMessage, false);
+    toggleVisibility(dmsErrorMessage, true);
+    return;
+  }
+
   const dmsCol = collection(db, `artifacts/${appId}/public/data/direct_messages`);
 
-  const q1 = query(dmsCol, where("participants", "array-contains", user.uid), orderBy("lastMessageAt", "desc"), limit(5));
+  // Query for DMs where the current user is a participant
+  // lastMessageAt is a timestamp field expected in the DM document itself
+  const q = query(dmsCol, where("participants", "array-contains", user.uid), orderBy("lastMessageAt", "desc"), limit(3)); // Fetch top 3 recent conversations
   console.log("DEBUG: Attempting to fetch recent DMs for user:", user.uid);
 
   try {
-    const querySnapshot = await getDocs(q1);
+    const querySnapshot = await getDocs(q);
     const conversations = [];
     for (const dmDoc of querySnapshot.docs) {
       const dmData = dmDoc.data();
-      const messagesCol = collection(db, `artifacts/${appId}/public/data/direct_messages`, dmDoc.id, 'messages');
-      const latestMessageQuery = query(messagesCol, orderBy("createdAt", "desc"), limit(1));
-      const messageSnap = await getDocs(latestMessageQuery);
 
-      let lastMessageContent = "No messages yet.";
-      let lastMessageTimestamp = null;
+      // Determine the other participant's info
+      const otherParticipantUid = dmData.participants.find(uid => uid !== user.uid);
       let otherParticipantName = "Unknown User";
       let otherParticipantPic = DEFAULT_PROFILE_PIC;
 
-      if (!messageSnap.empty) {
-        const lastMessage = messageSnap.docs[0].data();
-        lastMessageContent = lastMessage.content || lastMessageContent;
-        lastMessageTimestamp = lastMessage.createdAt?.toDate();
-      }
-
-      const otherParticipantUid = dmData.participants.find(uid => uid !== user.uid);
       if (otherParticipantUid) {
         const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
         if (otherProfile) {
@@ -887,6 +896,22 @@ async function fetchRecentDMs() {
           otherParticipantPic = otherProfile.photoURL || otherParticipantPic;
         }
       }
+
+      // Get the last message directly from the DM document if available, or fetch from subcollection
+      let lastMessageContent = dmData.lastMessageContent || "No messages yet."; // Assuming a 'lastMessageContent' field
+      let lastMessageTimestamp = dmData.lastMessageAt?.toDate() || null;
+
+      // Fallback: If lastMessageContent not directly in DM doc, try to fetch from subcollection
+      if (lastMessageContent === "No messages yet." && dmDoc.ref) {
+        const messagesColRef = collection(dmDoc.ref, 'messages');
+        const latestMessageSnap = await getDocs(query(messagesColRef, orderBy('createdAt', 'desc'), limit(1)));
+        if (!latestMessageSnap.empty) {
+          const latestMsg = latestMessageSnap.docs[0].data();
+          lastMessageContent = latestMsg.content || lastMessageContent;
+          lastMessageTimestamp = latestMsg.createdAt?.toDate() || lastMessageTimestamp;
+        }
+      }
+
 
       conversations.push({
         id: dmDoc.id,
@@ -903,22 +928,16 @@ async function fetchRecentDMs() {
       toggleVisibility(noDMsMessage, true);
       if (user) { // If user is logged in but no DMs
         if (noDMsMessage) noDMsMessage.textContent = 'No recent conversations.';
-      } else { // If user not logged in
-        if (noDMsMessage) noDMsMessage.textContent = 'Sign in to view DMs.';
       }
     } else {
-      toggleVisibility(noDMsMessage, false);
       renderRecentDMs(conversations);
     }
   } catch (error) {
     console.error("Error fetching recent DMs:", error);
     toggleVisibility(dmsLoadingMessage, false);
     toggleVisibility(dmsErrorMessage, true);
-    toggleVisibility(noDMsMessage, false);
-    if (actualRecentDMsList) actualRecentDmsList.innerHTML = '';
   }
 }
-
 
 /**
  * Renders the fetched recent direct messages into the DOM.
@@ -927,22 +946,23 @@ async function fetchRecentDMs() {
 function renderRecentDMs(conversations) {
   if (!actualRecentDMsList) return;
 
-  if (conversations.length === 0) {
+  actualRecentDMsList.innerHTML = ''; // Clear previous content
+
+  if (conversations.length === 0) { // Redundant but safe check
     toggleVisibility(noDMsMessage, true);
     return;
   }
 
-  actualRecentDMsList.innerHTML = '';
   conversations.forEach(conv => {
     const dmElement = document.createElement('div');
-    dmElement.classList.add('bg-gray-800', 'p-3', 'rounded-md', 'shadow-sm', 'mb-2');
+    dmElement.classList.add('dm-conversation-item', 'mb-2'); // Use .dm-conversation-item from forms.css
     dmElement.innerHTML = `
       <div class="flex items-center mb-1">
         <img src="${conv.otherParticipantPic}" alt="${conv.otherParticipantName}'s profile picture" class="profile-pic-small mr-2">
-        <h4 class="font-semibold text-blue-200 text-lg">${conv.otherParticipantName}</h4>
+        <h4 class="font-semibold text-lg">${conv.otherParticipantName}</h4>
       </div>
-      <p class="text-gray-400 text-sm mb-1 truncate">${conv.lastMessage}</p>
-      <p class="text-gray-500 text-xs text-right">${conv.lastMessageAt}</p>
+      <p class="text-text-secondary text-sm mb-1 truncate">${parseEmojis(conv.lastMessage)}</p>
+      <p class="text-text-secondary text-xs text-right">${conv.lastMessageAt}</p>
     `;
     actualRecentDMsList.appendChild(dmElement);
   });
@@ -954,12 +974,15 @@ function renderRecentDMs(conversations) {
 document.addEventListener('DOMContentLoaded', async () => {
   console.log("forms.js - DOMContentLoaded event fired.");
 
+  // It's crucial to wait for Firebase initialization here
   await firebaseReadyPromise;
   console.log("DEBUG: firebaseReadyPromise resolved in forms.js");
 
+  // Load navbar after Firebase is ready, as it depends on auth and db
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-  console.log("DEBUG: Navbar loaded in forms.js");
+  console.log("DEBUG: Navbar loaded in forms.js.");
 
+  // Initialize EasyMDE for new thread creation
   if (threadContentInput) {
     easyMDECreateThread = new EasyMDE({
       element: threadContentInput,
@@ -969,34 +992,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
     });
     console.log("DEBUG: EasyMDE initialized for thread creation.");
+  } else {
+    console.warn("WARNING: threadContentInput element not found. EasyMDE not initialized.");
   }
 
+  // Set up auth state listener for UI visibility
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      if (createThreadForm) createThreadForm.classList.remove('hidden');
-      if (addCommentForm) addCommentForm.classList.remove('hidden');
-      if (loginRequiredMessage) loginRequiredMessage.classList.add('hidden');
-      console.log("DEBUG: User is authenticated. Forms visible.");
+      toggleVisibility(createThreadSection, true);
+      toggleVisibility(forumLoginRequiredMessage, false);
+      toggleVisibility(addCommentForm, true); // Show comment form in modal when user is logged in
+      console.log("DEBUG: User authenticated. Create thread and comment forms visible.");
     } else {
-      if (createThreadForm) createThreadForm.classList.add('hidden');
-      if (addCommentForm) addCommentForm.classList.add('hidden');
-      if (loginRequiredMessage) loginRequiredMessage.classList.remove('hidden');
-      console.log("DEBUG: User is not authenticated. Forms hidden, login message shown.");
+      toggleVisibility(createThreadSection, false);
+      toggleVisibility(forumLoginRequiredMessage, true);
+      toggleVisibility(addCommentForm, false); // Hide comment form in modal when user is logged out
+      console.log("DEBUG: User not authenticated. Create thread and comment forms hidden.");
     }
+    // Re-fetch DMs as their visibility/content depends on auth state
+    await fetchRecentDMs();
   });
 
-  // Initial fetch and render for categories and threads
-  await fetchForumThemes();
-  await populateThreadCategorySelect();
-  await renderCategoryFilterButtons(availableForumThemes, 'all'); // Pass the themes to render buttons
+  // Initial data fetches (order matters for dependencies, e.g., threads need themes)
+  await fetchForumThemes(); // Populates `availableForumThemes`
+  // populateThreadCategorySelect and renderCategoryFilterButtons are called inside fetchForumThemes
   await fetchThreads('all');
-  console.log("DEBUG: Initial thread fetch completed.");
-
-  // Fetch and render announcements and DMs
   await fetchAnnouncements();
-  await fetchRecentDMs();
+  // fetchRecentDMs is called inside onAuthStateChanged to handle login state
+  console.log("DEBUG: Initial data fetches completed for forms.js.");
 
-
+  // --- Event Listeners ---
   if (createThreadForm) {
     createThreadForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1008,16 +1033,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         showMessageBox("Please enter both title and content for your thread.", true);
         return;
       }
+      if (!themeId) {
+        showMessageBox("Please select a category/theme for your thread.", true);
+        return;
+      }
       await createThread(title, content, themeId);
     });
+  } else {
+    console.warn("WARNING: createThreadForm not found.");
   }
+
 
   if (addCommentForm) {
     addCommentForm.addEventListener('submit', addComment);
+  } else {
+    console.warn("WARNING: addCommentForm not found.");
   }
+
 
   if (threadDetailModal && threadDetailModal.querySelector('.close-button')) {
     threadDetailModal.querySelector('.close-button').addEventListener('click', closeModal);
+  } else {
+    console.warn("WARNING: Thread detail modal or its close button not found.");
   }
 
   window.addEventListener('click', (event) => {
@@ -1026,8 +1063,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Set current year for footer
   const currentYearElement = document.getElementById('current-year-forms');
   if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear().toString();
+  } else {
+    console.warn("WARNING: current-year-forms element not found.");
   }
 });
