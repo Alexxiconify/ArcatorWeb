@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebase
 
 // Import local module functions, including the centralized Firebase instances
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } => './navbar.js';
+import { loadNavbar } from './navbar.js'; // Corrected syntax: from instead of =>
 import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js';
 import { getUserProfileFromFirestore, setUserProfileInFirestore, deleteUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, auth, db, appId, firebaseReadyPromise } from './firebase-init.js';
 
