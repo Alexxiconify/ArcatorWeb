@@ -35,7 +35,13 @@ export const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCK
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 const DEFAULT_THEME_NAME = 'dark';
 
-// Utility function (duplicated for now, will move to utils.js later once circular dependency is handled)
+/**
+ * Sanitizes a string to be suitable for a user handle.
+ * Converts to lowercase and removes any characters not allowed (alphanumeric, underscore, dot, hyphen).
+ * This is an internal utility for firebase-init to avoid circular dependency with utils.js.
+ * @param {string} input - The raw string to sanitize.
+ * @returns {string} The sanitized handle string.
+ */
 function sanitizeHandle(input) {
   return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
 }
@@ -48,7 +54,7 @@ function sanitizeHandle(input) {
  * @param {string} initialSuggestion - A suggested handle (e.g., derived from display name or email).
  * @returns {Promise<string>} A Promise that resolves with the generated unique handle.
  */
-async function generateUniqueHandle(uid, initialSuggestion) {
+export async function generateUniqueHandle(uid, initialSuggestion) {
   let baseHandle = sanitizeHandle(initialSuggestion || 'anonuser');
   if (baseHandle.length === 0) {
     baseHandle = 'user';
@@ -81,7 +87,7 @@ async function generateUniqueHandle(uid, initialSuggestion) {
  * @param {string} uid - The User ID (UID) to fetch the profile for.
  * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
  */
-async function getUserProfileFromFirestore(uid) {
+export async function getUserProfileFromFirestore(uid) {
   if (!db) {
     console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
     return null;
