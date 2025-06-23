@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebase
 
 // Import local module functions, including the centralized Firebase instances
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } from './navbar.js'; // Corrected syntax: from instead of =>
+import { loadNavbar } from './navbar.js'; // Corrected syntax
 import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js';
 import { getUserProfileFromFirestore, setUserProfileInFirestore, deleteUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, auth, db, appId, firebaseReadyPromise } from './firebase-init.js';
 
@@ -481,8 +481,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   onAuthStateChanged(auth, async (user) => {
     console.log("DEBUG: settings.js onAuthStateChanged. User:", user ? user.uid : "null");
     if (user) {
-      console.log("DEBUG: User authenticated. Calling loadUserSettings().");
-      await loadUserSettings();
+      console.log("DEBUG: User authenticated. Attempting to call loadUserSettings().");
+      try {
+        await loadUserSettings();
+      } catch (e) {
+        console.error("ERROR: settings.js - Error calling loadUserSettings:", e);
+        showMessageBox("Error loading user settings. Please try again.", true);
+        hideLoading(); // Ensure spinner is hidden on error
+      }
       // Apply initial theme based on user preference or default
       const userProfile = await getUserProfileFromFirestore(user.uid);
       const allThemes = await getAvailableThemes();
@@ -507,4 +513,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear().toString();
   }
+  console.log("DEBUG: settings.js - DOMContentLoaded event listener finished.");
 });
