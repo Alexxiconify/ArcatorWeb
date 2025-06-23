@@ -5,7 +5,7 @@
 
 // Import necessary Firebase SDK functions and local modules
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -19,7 +19,16 @@ const createThreadForm = document.getElementById('create-thread-form');
 const threadTitleInput = document.getElementById('thread-title');
 const threadThemeSelect = document.getElementById('thread-theme-select');
 const threadContentInput = document.getElementById('thread-content');
-const threadsList = document.getElementById('threads-list');
+
+// Thread List elements
+const categoryFilterButtonsContainer = document.getElementById('category-filter-buttons');
+const categoriesLoadingMessage = document.getElementById('categories-loading-message');
+const noCategoriesMessage = document.getElementById('no-categories-message');
+const actualThreadsList = document.getElementById('actual-threads-list');
+const threadsLoadingMessage = document.getElementById('threads-loading-message');
+const threadsLoadingError = document.getElementById('threads-loading-error');
+const noThreadsMessage = document.getElementById('no-threads-message');
+
 const threadDetailModal = document.getElementById('thread-detail-modal');
 const modalThreadTitle = document.getElementById('modal-thread-title');
 const modalThreadMeta = document.getElementById('modal-thread-meta');
@@ -32,8 +41,17 @@ const logoutBtn = document.getElementById('logout-btn'); // Assuming this is def
 const customConfirmModal = document.getElementById('custom-confirm-modal');
 const loginRequiredMessage = document.getElementById('login-required-message');
 
-const threadCategoryList = document.getElementById('thread-category-list');
-const categoriesLoadingMessage = document.getElementById('categories-loading-message');
+
+// New DOM elements for Announcements and DMs
+const actualAnnouncementsList = document.getElementById('actual-announcements-list');
+const announcementsLoadingMessage = document.getElementById('announcements-loading-message');
+const noAnnouncementsMessage = document.getElementById('no-announcements-message');
+const announcementsErrorMessage = document.getElementById('announcements-error-message');
+
+const actualRecentDMsList = document.getElementById('actual-recent-dms-list');
+const dmsLoadingMessage = document.getElementById('dms-loading-message');
+const noDMsMessage = document.getElementById('no-dms-message');
+const dmsErrorMessage = document.getElementById('dms-error-message');
 
 
 let easyMDECreateThread;
@@ -47,6 +65,22 @@ let availableForumThemes = [];
 
 
 /**
+ * Helper function to show/hide elements.
+ * @param {HTMLElement} element - The DOM element to manage.
+ * @param {boolean} show - True to show, false to hide.
+ */
+function toggleVisibility(element, show) {
+  if (element) {
+    if (show) {
+      element.classList.remove('hidden');
+      element.style.display = ''; // Clear inline style that might set display: none
+    } else {
+      element.classList.add('hidden');
+    }
+  }
+}
+
+/**
  * Fetches all available forum themes from Firestore.
  * @returns {Promise<Array>} A promise that resolves with an array of theme objects.
  */
@@ -54,12 +88,17 @@ async function fetchForumThemes() {
   await firebaseReadyPromise;
   if (!db) {
     console.error("Firestore DB not initialized for fetching forum themes. Cannot fetch themes.");
+    toggleVisibility(categoriesLoadingMessage, false);
+    toggleVisibility(noCategoriesMessage, false); // Hide, as error message will be shown via showMessageBox
     showMessageBox("Error: Database not initialized for themes.", true);
     return [];
   }
-  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
+
+  toggleVisibility(categoriesLoadingMessage, true);
+  toggleVisibility(noCategoriesMessage, false); // Hide "No categories" while loading
   console.log("DEBUG: Attempting to fetch themes from path:", `artifacts/${appId}/public/data/themes`);
   try {
+    const themesCol = collection(db, `artifacts/${appId}/public/data/themes`);
     const querySnapshot = await getDocs(themesCol);
     const themes = [];
     querySnapshot.forEach(doc => {
@@ -67,9 +106,19 @@ async function fetchForumThemes() {
     });
     availableForumThemes = themes;
     console.log("DEBUG: Fetched forum themes. Count:", themes.length, "Themes:", themes);
+
+    toggleVisibility(categoriesLoadingMessage, false); // Hide loading message
+    if (themes.length === 0) {
+      toggleVisibility(noCategoriesMessage, true);
+    } else {
+      toggleVisibility(noCategoriesMessage, false);
+    }
+
     return themes;
   } catch (error) {
     console.error("Error fetching forum themes:", error);
+    toggleVisibility(categoriesLoadingMessage, false);
+    toggleVisibility(noCategoriesMessage, true); // Show "No categories" or a more specific error
     showMessageBox(`Error loading forum themes: ${error.message}`, true);
     return [];
   }
@@ -103,10 +152,9 @@ async function populateThreadCategorySelect() {
  * @param {string} activeThemeId - The ID of the currently active theme filter, or 'all'.
  */
 async function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
-  if (!threadCategoryList) return;
+  if (!categoryFilterButtonsContainer) return;
 
-  threadCategoryList.innerHTML = '';
-  if (categoriesLoadingMessage) categoriesLoadingMessage.style.display = 'none'; // Hide loading message here
+  categoryFilterButtonsContainer.innerHTML = ''; // Clear existing buttons
 
   // Add "All Threads" button
   const allThreadsButton = document.createElement('button');
@@ -120,7 +168,7 @@ async function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
     filterThreadsByCategory('all');
     updateActiveFilterButton('all');
   });
-  threadCategoryList.appendChild(allThreadsButton);
+  categoryFilterButtonsContainer.appendChild(allThreadsButton);
 
   // Add buttons for each theme
   themes.forEach(theme => {
@@ -135,7 +183,7 @@ async function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
       filterThreadsByCategory(theme.id);
       updateActiveFilterButton(theme.id);
     });
-    threadCategoryList.appendChild(button);
+    categoryFilterButtonsContainer.appendChild(button);
   });
   console.log("DEBUG: Category filter buttons rendered.");
 }
@@ -145,7 +193,7 @@ async function renderCategoryFilterButtons(themes, activeThemeId = 'all') {
  * @param {string} activeId - The ID of the currently active theme.
  */
 function updateActiveFilterButton(activeId) {
-  document.querySelectorAll('#thread-category-list button').forEach(button => {
+  document.querySelectorAll('#category-filter-buttons button').forEach(button => {
     if (button.dataset.categoryId === activeId) {
       button.classList.add('active-category-filter');
     } else {
@@ -187,7 +235,6 @@ async function createThread(title, content, themeId) {
     return;
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const threadsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`);
   try {
     const docRef = await addDoc(threadsCol, {
@@ -203,7 +250,7 @@ async function createThread(title, content, themeId) {
       reactions: {}
     });
     showMessageBox("Thread created successfully!", false);
-    if (createThreadForm) createThreadForm.reset(); // Safely reset form
+    if (createThreadForm) createThreadForm.reset();
     if (easyMDECreateThread) easyMDECreateThread.value('');
     if (threadThemeSelect) threadThemeSelect.value = '';
     await fetchThreads('all');
@@ -221,16 +268,19 @@ async function createThread(title, content, themeId) {
 async function fetchThreads(themeId = 'all') {
   await firebaseReadyPromise;
   if (!db) {
-    if (threadsList) threadsList.innerHTML = '<p class="text-red-500 text-center text-lg">Database not initialized. Cannot load threads.</p>';
+    toggleVisibility(threadsLoadingMessage, false);
+    toggleVisibility(threadsLoadingError, true);
+    toggleVisibility(noThreadsMessage, false);
+    if (actualThreadsList) actualThreadsList.innerHTML = '';
     console.error("Firestore DB not initialized for fetching threads. Cannot fetch threads.");
     return;
   }
 
-  if (threadsList) threadsList.innerHTML = '<p class="text-gray-400 text-center text-lg">Loading threads...</p>';
-  if (document.getElementById('threads-loading-error')) document.getElementById('threads-loading-error').classList.add('hidden');
-  if (document.getElementById('no-threads-message')) document.getElementById('no-threads-message').classList.add('hidden');
+  toggleVisibility(threadsLoadingMessage, true);
+  toggleVisibility(threadsLoadingError, false);
+  toggleVisibility(noThreadsMessage, false);
+  if (actualThreadsList) actualThreadsList.innerHTML = ''; // Clear previous threads
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   let threadsQuery = collection(db, `artifacts/${appId}/public/data/forum_threads`);
 
   if (themeId && themeId !== 'all') {
@@ -245,21 +295,24 @@ async function fetchThreads(themeId = 'all') {
   try {
     const querySnapshot = await getDocs(threadsQuery);
     const threads = [];
-    if (querySnapshot.empty) {
-      if (document.getElementById('no-threads-message')) document.getElementById('no-threads-message').classList.remove('hidden');
-      if (threadsList) threadsList.innerHTML = '';
-      console.log("DEBUG: No threads found in collection or for the selected theme.");
-      return;
-    }
     querySnapshot.forEach(doc => {
       threads.push({ id: doc.id, ...doc.data() });
     });
     console.log("DEBUG: Successfully fetched threads. Count:", threads.length, "Threads data:", threads);
-    await renderThreads(threads);
+
+    toggleVisibility(threadsLoadingMessage, false); // Hide loading message
+    if (threads.length === 0) {
+      toggleVisibility(noThreadsMessage, true);
+    } else {
+      toggleVisibility(noThreadsMessage, false);
+      await renderThreads(threads);
+    }
   } catch (error) {
     console.error("Error fetching threads:", error);
-    if (document.getElementById('threads-loading-error')) document.getElementById('threads-loading-error').classList.remove('hidden');
-    if (threadsList) threadsList.innerHTML = '';
+    toggleVisibility(threadsLoadingMessage, false);
+    toggleVisibility(threadsLoadingError, true);
+    toggleVisibility(noThreadsMessage, false); // Hide no threads message in case of error
+    if (actualThreadsList) actualThreadsList.innerHTML = '';
     showMessageBox(`Error loading threads: ${error.message}`, true);
   }
 }
@@ -270,17 +323,19 @@ async function fetchThreads(themeId = 'all') {
  * @param {Array} threads - An array of thread objects.
  */
 async function renderThreads(threads) {
-  if (threadsList) threadsList.innerHTML = '';
+  if (!actualThreadsList) return;
+
+  actualThreadsList.innerHTML = ''; // Clear previous content, replaced by messages above
 
   if (threads.length === 0) {
-    if (document.getElementById('no-threads-message')) document.getElementById('no-threads-message').classList.remove('hidden');
+    toggleVisibility(noThreadsMessage, true);
     console.log("DEBUG: No threads to render.");
     return;
   }
 
   for (const thread of threads) {
     const threadElement = document.createElement('div');
-    threadElement.classList.add('thread-item', 'mb-6');
+    threadElement.classList.add('bg-gray-800', 'p-6', 'rounded-lg', 'shadow-md', 'mb-6'); // Apply styling here
 
     let authorDisplayName = thread.authorDisplayName || "Anonymous";
     let authorProfilePic = thread.authorProfilePic || DEFAULT_PROFILE_PIC;
@@ -317,12 +372,12 @@ async function renderThreads(threads) {
           <p class="text-gray-400 text-xs">${formattedDate}</p>
         </div>
       </div>
-      <h3 class="thread-title mb-2 cursor-pointer">${parseEmojis(thread.title)}</h3>
-      <p class="thread-meta">Comments: ${commentsCount} | Theme: <span class="thread-category-tag">/t/${themeName}</span></p>
-      <div class="thread-content-preview prose max-w-none">${parseEmojis(await parseMentions(contentPreview))}</div>
+      <h3 class="thread-title mb-2 cursor-pointer text-xl font-bold text-blue-300">${parseEmojis(thread.title)}</h3>
+      <p class="thread-meta text-sm text-gray-400 mb-2">Comments: ${commentsCount} | Theme: <span class="thread-category-tag font-semibold text-blue-200">/t/${themeName}</span></p>
+      <div class="thread-content-preview prose text-gray-100 mb-4 max-w-none">${parseEmojis(await parseMentions(contentPreview))}</div>
       <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 view-thread-btn" data-id="${thread.id}">View Thread</button>
     `;
-    if (threadsList) threadsList.appendChild(threadElement);
+    actualThreadsList.appendChild(threadElement);
   }
 
   document.querySelectorAll('.view-thread-btn').forEach(button => {
@@ -351,7 +406,6 @@ async function openThreadDetailModal(threadId) {
   if (threadDetailModal) threadDetailModal.style.display = 'flex';
   console.log("DEBUG: Opening thread detail modal for thread ID:", threadId);
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   try {
     const threadSnap = await getDoc(threadDocRef);
@@ -407,7 +461,6 @@ function setupCommentsListener(threadId) {
     console.log("DEBUG: Unsubscribed from previous comments listener.");
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const commentsColRef = collection(db, `artifacts/${appId}/public/data/forum_threads`, threadId, 'comments');
   const q = query(commentsColRef, orderBy('createdAt', 'asc'));
   console.log("DEBUG: Setting up comments listener for thread ID:", threadId);
@@ -487,7 +540,6 @@ function setupReactionsListener(threadId) {
     console.log("DEBUG: Unsubscribed from previous reactions listener.");
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   console.log("DEBUG: Setting up reactions listener for thread ID:", threadId);
   unsubscribeReactions = onSnapshot(threadDocRef, (docSnap) => {
@@ -537,7 +589,6 @@ async function toggleReaction(threadId, emoji) {
     return;
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const threadRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   try {
     const threadSnap = await getDoc(threadRef);
@@ -597,7 +648,6 @@ async function addComment(event) {
     return;
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const commentsCol = collection(db, `artifacts/${appId}/public/data/forum_threads`, currentThreadId, 'comments');
   try {
     await addDoc(commentsCol, {
@@ -633,7 +683,6 @@ async function deleteComment(threadId, commentId) {
     return;
   }
 
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const commentDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId, 'comments', commentId);
   try {
     const commentSnap = await getDoc(commentDocRef);
@@ -670,7 +719,6 @@ async function updateThreadCommentsCount(threadId, count) {
     console.error("DB not initialized for updating comments count.");
     return;
   }
-  // Changed collection name from 'threads' to 'forum_threads' as per user's query
   const threadRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
   try {
     await updateDoc(threadRef, {
@@ -678,7 +726,7 @@ async function updateThreadCommentsCount(threadId, count) {
       updatedAt: serverTimestamp()
     });
     console.log(`DEBUG: Thread ${threadId} comments count updated to: ${count}`);
-    const activeCategoryId = document.querySelector('#thread-category-list button.active-category-filter')?.dataset.categoryId || 'all';
+    const activeCategoryId = document.querySelector('#category-filter-buttons button.active-category-filter')?.dataset.categoryId || 'all';
     await fetchThreads(activeCategoryId);
   } catch (error) {
     console.error("Error updating thread comments count:", error);
@@ -704,21 +752,214 @@ function closeModal() {
   currentThreadId = null;
 }
 
+/**
+ * Fetches recent announcements from Firestore.
+ */
+async function fetchAnnouncements() {
+  await firebaseReadyPromise;
+  if (!db) {
+    toggleVisibility(announcementsLoadingMessage, false);
+    toggleVisibility(announcementsErrorMessage, true);
+    if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
+    console.error("Firestore DB not initialized for fetching announcements.");
+    return;
+  }
+
+  toggleVisibility(announcementsLoadingMessage, true);
+  toggleVisibility(noAnnouncementsMessage, false);
+  toggleVisibility(announcementsErrorMessage, false);
+  if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
+
+  const announcementsCol = collection(db, `artifacts/${appId}/public/data/announcements`);
+  const q = query(announcementsCol, orderBy("createdAt", "desc"), limit(5)); // Fetch up to 5 most recent
+  console.log("DEBUG: Attempting to fetch announcements from path:", `artifacts/${appId}/public/data/announcements`);
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const announcements = [];
+    querySnapshot.forEach(doc => {
+      announcements.push({ id: doc.id, ...doc.data() });
+    });
+    console.log("DEBUG: Fetched announcements. Count:", announcements.length);
+
+    toggleVisibility(announcementsLoadingMessage, false);
+    if (announcements.length === 0) {
+      toggleVisibility(noAnnouncementsMessage, true);
+    } else {
+      toggleVisibility(noAnnouncementsMessage, false);
+      renderAnnouncements(announcements);
+    }
+  } catch (error) {
+    console.error("Error fetching announcements:", error);
+    toggleVisibility(announcementsLoadingMessage, false);
+    toggleVisibility(announcementsErrorMessage, true);
+    toggleVisibility(noAnnouncementsMessage, false);
+    if (actualAnnouncementsList) actualAnnouncementsList.innerHTML = '';
+  }
+}
+
+/**
+ * Renders the fetched announcements into the DOM.
+ * @param {Array} announcements - Array of announcement objects.
+ */
+function renderAnnouncements(announcements) {
+  if (!actualAnnouncementsList) return;
+
+  if (announcements.length === 0) {
+    toggleVisibility(noAnnouncementsMessage, true);
+    return;
+  }
+
+  actualAnnouncementsList.innerHTML = '';
+  announcements.forEach(announcement => {
+    const announcementElement = document.createElement('div');
+    announcementElement.classList.add('bg-gray-800', 'p-3', 'rounded-md', 'shadow-sm', 'mb-2');
+    const formattedDate = announcement.createdAt?.toDate ? new Date(announcement.createdAt.toDate()).toLocaleDateString() : 'N/A';
+    announcementElement.innerHTML = `
+      <h4 class="font-semibold text-blue-200 text-lg mb-1">${parseEmojis(announcement.title || 'No Title')}</h4>
+      <p class="text-gray-400 text-sm mb-2">${formattedDate}</p>
+      <div class="prose text-gray-200 text-sm max-w-none">${parseEmojis(marked.parse(announcement.content || ''))}</div>
+    `;
+    actualAnnouncementsList.appendChild(announcementElement);
+  });
+  console.log("DEBUG: Announcements rendered.");
+}
+
+
+/**
+ * Fetches recent direct messages (conversations) for the current user.
+ * Displays a summary of the latest message in each conversation.
+ */
+async function fetchRecentDMs() {
+  await firebaseReadyPromise;
+  const user = auth.currentUser;
+  if (!user) {
+    toggleVisibility(dmsLoadingMessage, false);
+    toggleVisibility(dmsErrorMessage, false);
+    toggleVisibility(noDMsMessage, true); // Show 'Sign in to view DMs'
+    if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
+    return;
+  }
+  if (!db) {
+    toggleVisibility(dmsLoadingMessage, false);
+    toggleVisibility(dmsErrorMessage, true);
+    toggleVisibility(noDMsMessage, false);
+    if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
+    console.error("Firestore DB not initialized for fetching DMs.");
+    return;
+  }
+
+  toggleVisibility(dmsLoadingMessage, true);
+  toggleVisibility(noDMsMessage, false);
+  toggleVisibility(dmsErrorMessage, false);
+  if (actualRecentDMsList) actualRecentDMsList.innerHTML = '';
+
+  const dmsCol = collection(db, `artifacts/${appId}/public/data/direct_messages`);
+
+  const q1 = query(dmsCol, where("participants", "array-contains", user.uid), orderBy("lastMessageAt", "desc"), limit(5));
+  console.log("DEBUG: Attempting to fetch recent DMs for user:", user.uid);
+
+  try {
+    const querySnapshot = await getDocs(q1);
+    const conversations = [];
+    for (const dmDoc of querySnapshot.docs) {
+      const dmData = dmDoc.data();
+      const messagesCol = collection(db, `artifacts/${appId}/public/data/direct_messages`, dmDoc.id, 'messages');
+      const latestMessageQuery = query(messagesCol, orderBy("createdAt", "desc"), limit(1));
+      const messageSnap = await getDocs(latestMessageQuery);
+
+      let lastMessageContent = "No messages yet.";
+      let lastMessageTimestamp = null;
+      let otherParticipantName = "Unknown User";
+      let otherParticipantPic = DEFAULT_PROFILE_PIC;
+
+      if (!messageSnap.empty) {
+        const lastMessage = messageSnap.docs[0].data();
+        lastMessageContent = lastMessage.content || lastMessageContent;
+        lastMessageTimestamp = lastMessage.createdAt?.toDate();
+      }
+
+      const otherParticipantUid = dmData.participants.find(uid => uid !== user.uid);
+      if (otherParticipantUid) {
+        const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
+        if (otherProfile) {
+          otherParticipantName = otherProfile.displayName || otherParticipantName;
+          otherParticipantPic = otherProfile.photoURL || otherParticipantPic;
+        }
+      }
+
+      conversations.push({
+        id: dmDoc.id,
+        otherParticipantName: otherParticipantName,
+        otherParticipantPic: otherParticipantPic,
+        lastMessage: lastMessageContent,
+        lastMessageAt: lastMessageTimestamp ? new Date(lastMessageTimestamp).toLocaleString() : 'N/A'
+      });
+    }
+    console.log("DEBUG: Fetched recent DMs. Count:", conversations.length);
+
+    toggleVisibility(dmsLoadingMessage, false);
+    if (conversations.length === 0) {
+      toggleVisibility(noDMsMessage, true);
+      if (user) { // If user is logged in but no DMs
+        if (noDMsMessage) noDMsMessage.textContent = 'No recent conversations.';
+      } else { // If user not logged in
+        if (noDMsMessage) noDMsMessage.textContent = 'Sign in to view DMs.';
+      }
+    } else {
+      toggleVisibility(noDMsMessage, false);
+      renderRecentDMs(conversations);
+    }
+  } catch (error) {
+    console.error("Error fetching recent DMs:", error);
+    toggleVisibility(dmsLoadingMessage, false);
+    toggleVisibility(dmsErrorMessage, true);
+    toggleVisibility(noDMsMessage, false);
+    if (actualRecentDMsList) actualRecentDmsList.innerHTML = '';
+  }
+}
+
+
+/**
+ * Renders the fetched recent direct messages into the DOM.
+ * @param {Array} conversations - Array of conversation objects.
+ */
+function renderRecentDMs(conversations) {
+  if (!actualRecentDMsList) return;
+
+  if (conversations.length === 0) {
+    toggleVisibility(noDMsMessage, true);
+    return;
+  }
+
+  actualRecentDMsList.innerHTML = '';
+  conversations.forEach(conv => {
+    const dmElement = document.createElement('div');
+    dmElement.classList.add('bg-gray-800', 'p-3', 'rounded-md', 'shadow-sm', 'mb-2');
+    dmElement.innerHTML = `
+      <div class="flex items-center mb-1">
+        <img src="${conv.otherParticipantPic}" alt="${conv.otherParticipantName}'s profile picture" class="profile-pic-small mr-2">
+        <h4 class="font-semibold text-blue-200 text-lg">${conv.otherParticipantName}</h4>
+      </div>
+      <p class="text-gray-400 text-sm mb-1 truncate">${conv.lastMessage}</p>
+      <p class="text-gray-500 text-xs text-right">${conv.lastMessageAt}</p>
+    `;
+    actualRecentDMsList.appendChild(dmElement);
+  });
+  console.log("DEBUG: Recent DMs rendered.");
+}
+
+
 // --- DOMContentLoaded and Initial Setup ---
 document.addEventListener('DOMContentLoaded', async () => {
   console.log("forms.js - DOMContentLoaded event fired.");
 
-  // IMPORTANT: Wait for Firebase to be fully initialized and authenticated
   await firebaseReadyPromise;
   console.log("DEBUG: firebaseReadyPromise resolved in forms.js");
 
-  // Now that Firebase is ready, load the navbar and other page-specific settings
-  // The loadNavbar function will now use the globally available 'auth', 'db', 'appId'
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
   console.log("DEBUG: Navbar loaded in forms.js");
 
-
-  // Initialize EasyMDE for new thread creation
   if (threadContentInput) {
     easyMDECreateThread = new EasyMDE({
       element: threadContentInput,
@@ -729,7 +970,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     console.log("DEBUG: EasyMDE initialized for thread creation.");
   }
-
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -745,21 +985,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  if (categoriesLoadingMessage) {
-    categoriesLoadingMessage.style.display = 'block';
-    console.log("DEBUG: Categories loading message displayed.");
-  }
+  // Initial fetch and render for categories and threads
   await fetchForumThemes();
   await populateThreadCategorySelect();
-  await renderCategoryFilterButtons(availableForumThemes, 'all');
-  if (categoriesLoadingMessage) {
-    categoriesLoadingMessage.style.display = 'none';
-    console.log("DEBUG: Categories loading message hidden.");
-  }
-
-
+  await renderCategoryFilterButtons(availableForumThemes, 'all'); // Pass the themes to render buttons
   await fetchThreads('all');
   console.log("DEBUG: Initial thread fetch completed.");
+
+  // Fetch and render announcements and DMs
+  await fetchAnnouncements();
+  await fetchRecentDMs();
+
 
   if (createThreadForm) {
     createThreadForm.addEventListener('submit', async (event) => {

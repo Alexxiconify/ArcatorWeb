@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="theme_variables.css?v=1.1">
   <!-- Link to navbar.css for navbar specific styling -->
   <link rel="stylesheet" href="navbar.css?v=1.1">
-  <!-- Link to forms.css for page-specific styling (now external) -->
+  <!-- Link to forms.css for page-specific styling -->
   <link rel="stylesheet" href="forms.css?v=1.1">
 </head>
 <body class="antialiased">
@@ -55,7 +55,6 @@
           </div>
           <div>
             <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
-            <!-- Removed 'required' attribute here to fix warning with EasyMDE -->
             <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
           <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300">Create Thread</button>
@@ -66,18 +65,22 @@
       <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-8">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Browse Threads by Category</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Click a category below to filter threads.</p>
-        <div id="thread-category-list" class="flex flex-wrap gap-2 mb-4">
-          <button id="show-all-threads-btn" class="active-category-filter" data-category-id="all">All Threads</button>
-          <!-- Theme/Category buttons will be dynamically loaded here by forms.js -->
-          <p class="text-gray-300 text-center" id="categories-loading-message">Loading categories...</p>
+        <div id="category-filter-buttons" class="flex flex-wrap gap-2 mb-4">
+          <!-- Category buttons will be dynamically loaded here by forms.js -->
         </div>
+        <p id="categories-loading-message" class="text-gray-300 text-center" style="display: none;">Loading categories...</p>
+        <p id="no-categories-message" class="text-gray-400 text-center text-lg hidden">No categories available.</p>
       </div>
 
       <!-- Threads List -->
-      <div id="threads-list" class="space-y-8 mb-8">
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-bold text-red-400 text-center mb-8">All Threads</h3>
+        <p id="threads-loading-message" class="text-gray-400 text-center text-lg" style="display: none;">Loading threads...</p>
         <p id="threads-loading-error" class="text-red-500 text-center text-lg hidden">Failed to load threads. Please try again later.</p>
         <p id="no-threads-message" class="text-gray-400 text-center text-lg hidden">No threads found. Be the first to create one!</p>
-        <!-- Threads will be dynamically loaded here by JavaScript -->
+        <div id="actual-threads-list" class="space-y-8 mb-8">
+          <!-- Threads will be dynamically loaded here by JavaScript -->
+        </div>
       </div>
 
     </div>
@@ -98,16 +101,22 @@
       <!-- Announcements Section (Content embedded directly) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Recent Announcements</h3>
-        <div id="announcements-list" class="space-y-4">
-          <p class="text-gray-300 text-center">Loading announcements...</p>
+        <p id="announcements-loading-message" class="text-gray-300 text-center" style="display: none;">Loading announcements...</p>
+        <p id="no-announcements-message" class="text-gray-400 text-center text-lg hidden">No announcements available.</p>
+        <p id="announcements-error-message" class="text-red-500 text-center text-lg hidden">Failed to load announcements.</p>
+        <div id="actual-announcements-list" class="space-y-4">
+          <!-- Announcements will be dynamically loaded here -->
         </div>
       </div>
 
       <!-- Direct Messages Section (Content embedded directly) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Recent Conversations</h3>
-        <div id="recent-dms-list" class="space-y-4">
-          <p class="text-gray-300 text-center">Loading recent DMs...</p>
+        <p id="dms-loading-message" class="text-gray-300 text-center" style="display: none;">Loading recent DMs...</p>
+        <p id="no-dms-message" class="text-gray-400 text-center text-lg hidden">No recent conversations.</p>
+        <p id="dms-error-message" class="text-red-500 text-center text-lg hidden">Failed to load DMs.</p>
+        <div id="actual-recent-dms-list" class="space-y-4">
+          <!-- Recent DMs will be dynamically loaded here -->
         </div>
       </div>
 
