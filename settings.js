@@ -224,6 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   saveProfileBtn = document.getElementById('save-profile-btn');
   handleStatus = document.getElementById('handle-status');
 
+  themeSettingsSection = document.getElementById('theme-settings-section'); // Correctly assign here
   themeSelect = document.getElementById('theme-select');
   fontSizeSelect = document.getElementById('font-size-select');
   fontFamilySelect = document.getElementById('font-family-select');
@@ -422,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Manage Custom Themes (delegated to custom_theme_modal.js via setupCustomThemeManagement)
   manageThemesBtn?.addEventListener('click', () => {
     if (auth.currentUser) {
-      setupCustomThemeManagement(db, auth, appId, showMessageBox, showCustomConfirm, getAvailableThemes, applyTheme, themeSelect, DEFAULT_THEME_NAME, auth.currentUser);
+      setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, themeSelect, DEFAULT_THEME_NAME, auth.currentUser);
     } else {
       showMessageBox("You must be logged in to manage themes.", true);
     }
