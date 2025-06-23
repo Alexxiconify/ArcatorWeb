@@ -205,27 +205,68 @@
 
 <!-- Main Content Area -->
 <main class="container mx-auto px-4 py-8">
-  <div class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
-    <h2 class="text-3xl font-bold mb-6 text-blue-300">Create New Thread</h2>
-    <form id="create-thread-form" class="space-y-4">
-      <div>
-        <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
-        <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter thread title" required>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Forum Content (Left/Center) -->
+    <div class="lg:col-span-2">
+      <div class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
+        <h2 class="text-3xl font-bold mb-6 text-blue-300">Create New Thread</h2>
+        <form id="create-thread-form" class="space-y-4">
+          <div>
+            <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
+            <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter thread title" required>
+          </div>
+          <div>
+            <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content:</label>
+            <textarea id="thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your thread content here..."></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Create Thread</button>
+        </form>
       </div>
-      <div>
-        <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content:</label>
-        <textarea id="thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your thread content here..."></textarea>
-      </div>
-      <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Create Thread</button>
-    </form>
-  </div>
 
-  <div class="bg-gray-800 p-8 rounded-lg shadow-md">
-    <h2 class="text-3xl font-bold mb-6 text-blue-300">All Threads</h2>
-    <div id="threads-list" class="space-y-4">
-      <p class="text-gray-300 text-center">Loading threads...</p>
+      <div class="bg-gray-800 p-8 rounded-lg shadow-md">
+        <h2 class="text-3xl font-bold mb-6 text-blue-300">All Threads</h2>
+        <div id="threads-list" class="space-y-4">
+          <p class="text-gray-300 text-center">Loading threads...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar / Additional Content (Right) -->
+    <div class="lg:col-span-1 space-y-8">
+      <!-- Temporary Pages Section -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Temporary Pages</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Quick links to temporary informational pages and announcements.</p>
+        <ul id="temporary-pages-list" class="list-disc list-inside text-gray-300 space-y-2">
+          <!-- Temporary pages will be loaded here by forms.js -->
+          <li>Loading temporary pages...</li>
+        </ul>
+        <a href="admin_and_dev.html#temporary-pages-section" class="inline-block bg-purple-600 text-white font-bold py-2 px-4 rounded-full mt-4 hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg text-sm">Manage Temporary Pages</a>
+      </div>
+
+      <!-- Direct Messages Section (Placeholder) -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Direct Messages</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Communicate privately with other community members.</p>
+        <a href="dms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg text-sm">Go to Direct Messages</a>
+      </div>
+
+      <!-- Announcements Section (Placeholder) -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Announcements</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Stay up-to-date with the latest news and updates from Arcator.</p>
+        <a href="announcements.html" class="inline-block bg-yellow-600 text-white font-bold py-2 px-4 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out shadow-lg text-sm">View All Announcements</a>
+      </div>
+
+      <!-- Themes Link (Placeholder) -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Themes & Personalization</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Customize your Arcator experience with different themes and display settings.</p>
+        <a href="settings.html#theme-settings-section" class="inline-block bg-indigo-600 text-white font-bold py-2 px-4 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg text-sm">Customize Theme</a>
+      </div>
     </div>
   </div>
+
 
   <!-- Thread Detail Modal -->
   <div id="thread-detail-modal" class="modal">
@@ -260,7 +301,7 @@
 <div id="message-box" class="message-box"></div>
 
 <!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="modal custom-confirm-modal">
+<div id="custom-confirm-modal" class="custom-confirm-modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
@@ -285,7 +326,7 @@
   </div>
 </footer>
 
-<!-- EasyMDE (Markdown Editor) JS -->
+<!-- EasyMDE (Markdown Editor) JS - Load BEFORE forms.js -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <!-- Main Application Script (forms.js) -->
 <script type="module" src="forms.js"></script>
