@@ -25,6 +25,7 @@ const DEFAULT_THEME_NAME = 'dark';
 const ADMIN_UIDS = ['uOaZ8v76y2Q0X7PzJtU7Y3A2C1B4'];
 
 let firebaseReadyResolve;
+// `firebaseReadyPromise` is now resolved inside onAuthStateChanged to ensure `auth.currentUser` is set.
 const firebaseReadyPromise = new Promise(resolve => {
   firebaseReadyResolve = resolve;
 });
@@ -33,9 +34,9 @@ const firebaseReadyPromise = new Promise(resolve => {
  * Retrieves a user's profile from the 'user_profiles' collection in Firestore.
  */
 async function getUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise;
-  if (!db) { console.error("Firestore DB not initialized."); return null; }
-  if (currentUser && currentUser.uid === uid) { return currentUser; }
+  await firebaseReadyPromise; // Ensure Firebase is fully initialized and auth state is determined
+  if (!db) { console.error("Firestore DB not initialized for getUserProfileFromFirestore."); return null; }
+  if (currentUser && currentUser.uid === uid) { return currentUser; } // Return cached if current user
 
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
@@ -49,8 +50,8 @@ async function getUserProfileFromFirestore(uid) {
  * Sets or updates a user's profile in the 'user_profiles' collection in Firestore.
  */
 async function setUserProfileInFirestore(uid, profileData) {
-  await firebaseReadyPromise;
-  if (!db) { console.error("Firestore DB not initialized."); return false; }
+  await firebaseReadyPromise; // Ensure Firebase is fully initialized and auth state is determined
+  if (!db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     await setDoc(userDocRef, profileData, { merge: true });
@@ -64,8 +65,8 @@ async function setUserProfileInFirestore(uid, profileData) {
  * Deletes a user's profile from the 'user_profiles' collection in Firestore.
  */
 async function deleteUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise;
-  if (!db) { console.error("Firestore DB not initialized."); return false; }
+  await firebaseReadyPromise; // Ensure Firebase is fully initialized and auth state is determined
+  if (!db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     await deleteDoc(userDocRef);
@@ -80,74 +81,96 @@ async function deleteUserProfileFromFirestore(uid) {
 async function setupFirebaseAndUser() {
   console.log("DEBUG: setupFirebaseAndUser called.");
 
-  if (!app) { // Ensure Firebase app is initialized only once
-    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-      if (typeof __firebase_config === 'string') {
-        try { firebaseConfig = JSON.parse(__firebase_config); }
-        catch (e) { console.error("ERROR: Failed to parse __firebase_config string as JSON.", e); firebaseConfig = {}; }
-      } else if (typeof __firebase_config === 'object' && __firebase_config !== null) {
-        firebaseConfig = __firebase_config;
-      } else { console.warn("DEBUG: __firebase_config provided but not string/object. Type:", typeof __firebase_config); firebaseConfig = {}; }
-    } else {
-      console.log("DEBUG: __firebase_config not provided. Using fallback for local testing.");
-      firebaseConfig = {
-        apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // REPLACE WITH YOUR ACTUAL LOCAL FIREBASE CONFIG
-        authDomain: "arcator-web.firebaseapp.com",
-        projectId: "arcator-web",
-        storageBucket: "arcator-web.firebasestorage.app",
-        messagingSenderId: "1033082068049",
-        appId: "1:1033082068049:web:dd154c8b188bde1930ec70"
-      };
-    }
+  // Only initialize app if it hasn't been already
+  if (app) { // If app is already initialized, just ensure promise resolves and return.
+    console.log("DEBUG: Firebase app already initialized. Skipping initialization.");
+    firebaseReadyResolve();
+    return;
+  }
 
-    try {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      auth = getAuth(app);
-      console.log("DEBUG: Firebase app, Firestore, and Auth initialized.");
+  // Define a robust default firebaseConfig
+  let currentFirebaseConfig = {
+    apiKey: "", // Changed to empty string to let Canvas environment inject the key
+    authDomain: `${tempProjectId}.firebaseapp.com`,
+    projectId: tempProjectId,
+    storageBucket: `${tempProjectId}.appspot.com`,
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Placeholder
+    appId: "YOUR_APP_ID" // Placeholder
+  };
 
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        console.log("DEBUG: Attempting to sign in with custom token.");
-        await signInWithCustomToken(auth, __initial_auth_token);
-        console.log("DEBUG: Signed in with custom token.");
-      } else {
-        console.log("DEBUG: __initial_auth_token not defined or empty. Signing in anonymously.");
-        await signInAnonymously(auth);
-        console.log("DEBUG: Signed in anonymously.");
+  if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
+    if (typeof __firebase_config === 'string') {
+      try {
+        currentFirebaseConfig = JSON.parse(__firebase_config);
+        console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
+      } catch (e) {
+        console.error("ERROR: Failed to parse __firebase_config string as JSON. Using default config.", e);
       }
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          console.log("Auth State Changed: User logged in:", user.uid);
-          let userProfile = await getUserProfileFromFirestore(user.uid);
-          if (!userProfile) {
-            console.log("No profile found. Creating default.");
-            userProfile = {
-              uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-              email: user.email || null, photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
-              createdAt: new Date(), lastLoginAt: new Date(), selectedTheme: DEFAULT_THEME_NAME,
-              isAdmin: ADMIN_UIDS.includes(user.uid)
-            };
-            await setUserProfileInFirestore(user.uid, userProfile);
-          } else {
-            await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
-            userProfile.isAdmin = ADMIN_UIDS.includes(user.uid);
-          }
-          currentUser = userProfile;
-          console.log("DEBUG: currentUser set:", currentUser);
-        } else {
-          console.log("Auth State Changed: User logged out.");
-          currentUser = null;
-        }
-        firebaseReadyResolve();
-      });
-
-    } catch (error) {
-      console.error("FATAL ERROR: Failed to initialize Firebase or sign in:", error);
-      firebaseReadyResolve();
+    } else if (typeof __firebase_config === 'object') {
+      currentFirebaseConfig = __firebase_config;
+      console.log("DEBUG: __firebase_config provided as object. Using directly.");
+    } else {
+      console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Using default config.");
     }
   } else {
-    console.log("DEBUG: Firebase app already initialized. Skipping initialization.");
+    console.log("DEBUG: __firebase_config not provided. Using fallback for local testing.");
+  }
+
+  firebaseConfig = currentFirebaseConfig; // Assign the determined config to the global firebaseConfig
+
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    console.log("DEBUG: Firebase app, Firestore, and Auth initialized.");
+
+    // Set up Auth state observer FIRST, then attempt sign-in
+    // This ensures `firebaseReadyPromise` resolves only after the initial auth state is processed.
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth State Changed: User logged in:", user ? user.uid : "null");
+      if (user) {
+        let userProfile = await getUserProfileFromFirestore(user.uid); // Fetch profile for current user
+        if (!userProfile) {
+          console.log("No profile found. Creating default.");
+          userProfile = {
+            uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+            email: user.email || null, photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+            createdAt: new Date(), lastLoginAt: new Date(), selectedTheme: DEFAULT_THEME_NAME,
+            isAdmin: ADMIN_UIDS.includes(user.uid)
+          };
+          await setUserProfileInFirestore(user.uid, userProfile);
+        } else {
+          await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
+          userProfile.isAdmin = ADMIN_UIDS.includes(user.uid);
+        }
+        currentUser = userProfile;
+        console.log("DEBUG: currentUser set:", currentUser);
+      } else {
+        console.log("Auth State Changed: User logged out.");
+        currentUser = null;
+      }
+      console.log("DEBUG: firebaseReadyPromise resolving.");
+      firebaseReadyResolve(); // Resolve the promise AFTER currentUser is set or confirmed null
+      unsubscribe(); // Unsubscribe after the first state change to prevent multiple resolves
+    });
+
+    // Attempt sign-in with custom token or anonymously.
+    // The onAuthStateChanged listener above will handle the result and resolve the promise.
+    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+      console.log("DEBUG: Attempting to sign in with custom token.");
+      await signInWithCustomToken(auth, __initial_auth_token).catch(e => {
+        console.error("ERROR: Custom token sign-in failed:", e);
+        // Fallback to anonymous sign-in if custom token fails, but don't re-init onAuthStateChanged
+        signInAnonymously(auth).catch(anonError => console.error("ERROR: Anonymous sign-in failed:", anonError));
+      });
+    } else {
+      console.log("DEBUG: __initial_auth_token not defined or empty. Signing in anonymously.");
+      await signInAnonymously(auth).catch(e => console.error("ERROR: Anonymous sign-in failed:", e));
+    }
+
+  } catch (error) {
+    console.error("FATAL ERROR: Failed to initialize Firebase or sign in:", error);
+    // Resolve immediately on fatal error to unblock page load, even if auth state isn't perfect.
     firebaseReadyResolve();
   }
 }
@@ -385,7 +408,14 @@ function setupThemesFirebase() {
 }
 
 // --- Navigation Bar Logic (from navbar.js) ---
-async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) {
+/**
+ * Loads the navigation bar HTML into the 'navbar-placeholder' element
+ * and updates its dynamic behavior based on the provided user object.
+ * @param {object|null} user - The current Firebase User object, or null if logged out.
+ * @param {string} defaultProfilePic - Default profile picture URL.
+ * @param {string} defaultThemeName - Default theme ID.
+ */
+async function loadNavbar(user, defaultProfilePic, defaultThemeName) {
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
   console.log("DEBUG: loadNavbar function called.");
 
@@ -433,37 +463,32 @@ async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName
       const navbarSigninLink = document.getElementById('navbar-signin-link');
       const navbarUserIdDisplay = document.getElementById('navbar-user-id-display');
 
-      await firebaseReadyPromise;
+      if (user) {
+        if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
+        if (navbarSigninLink) navbarSigninLink.style.display = 'none';
 
-      onAuthStateChanged(firebaseInstances.auth, async (user) => {
-        console.log("DEBUG: onAuthStateChanged triggered in loadNavbar. User:", user ? user.uid : "null");
-        if (user) {
-          if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
-          if (navbarSigninLink) navbarSigninLink.style.display = 'none';
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        const displayName = userProfile?.displayName || user.displayName || 'Settings';
+        const photoURL = userProfile?.photoURL || user.photoURL || defaultProfilePic;
+        const userId = user.uid;
 
-          const userProfile = await getUserProfileFromFirestore(user.uid);
-          const displayName = userProfile?.displayName || user.displayName || 'Settings';
-          const photoURL = userProfile?.photoURL || user.photoURL || defaultProfilePic;
-          const userId = user.uid;
+        if (navbarUserDisplayName) navbarUserDisplayName.textContent = displayName;
+        if (navbarUserIcon) navbarUserIcon.src = photoURL;
+        if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = `UID: ${userId}`;
+        console.log("DEBUG: Navbar UI updated for logged-in user.");
 
-          if (navbarUserDisplayName) navbarUserDisplayName.textContent = displayName;
-          if (navbarUserIcon) navbarUserIcon.src = photoURL;
-          if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = `UID: ${userId}`;
-          console.log("DEBUG: Navbar UI updated for logged-in user.");
+        let userThemePreference = userProfile?.themePreference || defaultThemeName;
+        await applyTheme(userThemePreference);
 
-          let userThemePreference = userProfile?.themePreference || defaultThemeName;
-          await applyTheme(userThemePreference);
-
-        } else {
-          if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
-          if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
-          if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
-          if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
-          if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
-          console.log("DEBUG: Navbar UI updated for logged-out user.");
-          await applyTheme(defaultThemeName);
-        }
-      });
+      } else {
+        if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
+        if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
+        if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
+        if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
+        if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
+        console.log("DEBUG: Navbar UI updated for logged-out user.");
+        await applyTheme(defaultThemeName);
+      }
     } catch (error) {
       console.error("ERROR: Failed to load navigation bar:", error);
       const manualNavbar = `
@@ -590,7 +615,7 @@ async function populateThemeDropdown() {
 async function loadUserSettings() {
   console.log("DEBUG: >>> Entering loadUserSettings function <<<");
   showLoading();
-  await firebaseReadyPromise;
+  await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
   console.log("DEBUG: loadUserSettings: Current user object from Auth:", user);
   console.log("DEBUG: loadUserSettings: Current user UID:", user ? user.uid : "none");
@@ -824,16 +849,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize Firebase and ensure readiness
   // This will also set up the primary onAuthStateChanged listener
   await setupFirebaseAndUser();
-  await firebaseReadyPromise;
+  await firebaseReadyPromise; // Ensure Firebase is fully ready including currentUser
 
   // Load navbar (now uses inline HTML for debugging)
-  await loadNavbar({ auth: auth, db: db, appId: appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+  // `auth` and `db` are guaranteed to be initialized after firebaseReadyPromise resolves
+  await loadNavbar(auth.currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass auth.currentUser directly
 
   // Populate theme dropdown with available themes
   await populateThemeDropdown();
 
-  // The main onAuthStateChanged listener (from firebase-init.js) already handles initial user state.
-  // We can just call loadUserSettings based on the current auth state after everything is ready.
+  // Load user settings only AFTER firebaseReadyPromise has resolved and currentUser is set
   if (auth.currentUser) {
     console.log("DEBUG: User authenticated after initial setup. Calling loadUserSettings().");
     try {
@@ -844,6 +869,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       hideLoading();
     }
     // Apply initial theme based on user preference or default
+    // getAvailableThemes is called again here to ensure it uses the latest data after possible user profile creation/update
     const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     const themeToApply = (await getAvailableThemes()).find(t => t.id === userProfile?.themePreference) || (await getAvailableThemes()).find(t => t.id === DEFAULT_THEME_NAME);
     await applyTheme(themeToApply.id);
