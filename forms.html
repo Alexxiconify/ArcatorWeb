@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Forums - Arcator.co.uk</title>
+  <title>Community Forms - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
@@ -12,11 +12,11 @@
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Link to the CSS variables (assuming theme_variables.css defines your CSS custom properties) -->
+  <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for navbar specific styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to forms.css for forms specific styling -->
+  <!-- Link to forms.css for page-specific styling (if you create one) -->
   <link rel="stylesheet" href="forms.css">
   <style>
     /* Base styles, will be overridden by CSS variables from themes.js */
@@ -29,206 +29,291 @@
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Apply styles for theme variables */
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white; /* Hero content text is hardcoded white for readability over image */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Specific overrides to use CSS variables */
     .bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
-    .bg-gray-700 { background-color: var(--color-bg-card) !important; }
-    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; }
+    .bg-gray-700 { background-color: var(--color-bg-card) !important; } /* For comment input */
+    .bg-gray-600 { background-color: var(--color-input-bg) !important; } /* For comment input */
+    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; } /* Footer background */
+
+    .text-gray-100 { color: var(--color-text-primary) !important; }
+    .text-gray-200 { color: var(--color-text-primary) !important; }
     .text-gray-300 { color: var(--color-text-secondary) !important; }
     .text-gray-400 { color: var(--color-text-secondary) !important; }
-    .text-gray-200 { color: var(--color-text-primary) !important; }
-    .text-blue-500 { color: var(--color-link) !important; }
-    h1, h2, h3, h4, h5, h6 { color: var(--color-heading-main) !important; }
+    .text-gray-500 { color: var(--color-text-secondary) !important; }
+    .text-gray-700 { color: var(--color-input-text) !important; } /* For reaction buttons */
+
     .text-blue-300 { color: var(--color-heading-card) !important; }
+    .text-blue-400 { color: var(--color-link) !important; } /* For clickable mentions */
+    .text-red-400 { color: var(--color-heading-main) !important; }
+    .text-red-500 { color: var(--color-message-box-bg-error) !important; }
 
-    input, select, textarea {
-      background-color: var(--color-input-bg) !important;
-      color: var(--color-input-text) !important;
-      border-color: var(--color-input-border) !important;
+    /* Input Field Styles */
+    input[type="text"], textarea, select { /* Added select */
+      background-color: var(--color-input-bg);
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
     }
-    input::placeholder, textarea::placeholder {
-      color: var(--color-placeholder) !important;
+    input[type="text"]::placeholder, textarea::placeholder {
+      color: var(--color-placeholder);
     }
 
-    .btn-primary, .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
-      color: var(--color-button-text) !important;
-    }
+    /* Button styles */
     .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
     .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
     .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
     .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
-    .bg-green-600 { background-color: var(--color-button-green-bg) !important; }
-    .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
-    .bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
-    .hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
-    .bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
-    .hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
-    .bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
-    .hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
-    .bg-gray-500 { background-color: var(--color-text-secondary) !important; }
-    .hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; }
 
-    a { color: var(--color-link); }
-    a:hover { text-decoration: underline; }
-    .hover\:text-white:hover { color: var(--color-text-primary) !important; }
-
-    table {
-      width: 100%; border-collapse: collapse; background-color: var(--color-bg-card);
-      color: var(--color-text-primary); border-radius: 0.5rem; overflow: hidden;
-    }
-    table th {
-      background-color: var(--color-table-th-bg); color: var(--color-table-th-text);
-      padding: 0.75rem 1rem; text-align: left; font-weight: 700;
-      border-bottom: 1px solid var(--color-table-td-border);
-    }
-    table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-table-td-border); }
-    table tbody tr:nth-child(even) { background-color: var(--color-table-row-even-bg); }
-
-    .modal {
-      display: none; position: fixed; z-index: 1001; left: 0; top: 0;
-      width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7);
-      justify-content: center; align-items: center; color: var(--color-modal-text);
-    }
-    .modal-content {
-      background-color: var(--color-modal-bg); color: var(--color-modal-text);
-      padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      width: 90%; max-width: 600px; position: relative;
-    }
-    .modal-content h3 { color: var(--color-heading-card); }
-    .modal-content label { color: var(--color-text-secondary); }
-    .modal-content input, .modal-content select, .modal-content textarea {
-      background-color: var(--color-modal-input-bg) !important;
-      color: var(--color-modal-input-text) !important;
-      border-color: var(--color-input-border) !important;
-    }
-
+    /* Message box styling */
     .message-box {
-      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-      padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000; display: none; font-size: 1rem; text-align: center;
-      background-color: var(--color-modal-bg); color: var(--color-modal-text);
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+      background-color: var(--color-modal-bg); /* Use modal background for consistency */
+      color: var(--color-modal-text); /* Use modal text for consistency */
     }
-    .message-box.success { background-color: var(--color-message-box-bg-success); }
-    .message-box.error { background-color: var(--color-message-box-bg-error); }
-
-    .editor-toolbar {
-      background-color: var(--color-input-bg) !important;
-      border-bottom: 1px solid var(--color-input-border) !important;
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success); /* Green for success */
     }
-    .editor-toolbar button { color: var(--color-input-text) !important; }
-    .editor-toolbar button.active, .editor-toolbar button:hover {
-      background-color: var(--color-input-border) !important;
-    }
-    .CodeMirror, .CodeMirror-scroll {
-      background-color: var(--color-body-bg) !important;
-      color: var(--color-text-primary) !important;
-    }
-    .CodeMirror-cursor { border-left: 1px solid var(--color-text-primary) !important; }
-    .CodeMirror-selected { background-color: var(--color-table-th-bg) !important; }
-    .CodeMirror-placeholder { color: var(--color-placeholder) !important; }
-
-    /* Custom styles for reactions and comments */
-    .reaction-btn {
-      transition: transform 0.1s ease-in-out;
-    }
-    .reaction-btn:hover {
-      transform: scale(1.2);
-    }
-    .reaction-btn.reacted {
-      color: var(--color-link); /* Highlight color for reacted state */
+    .message-box.error {
+      background-color: var(--color-message-box-bg-error); /* Red for error */
     }
 
-    /* Styles for the thread list */
-    .thread-item {
-      background-color: var(--color-bg-card);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Custom Confirm Modal */
+    .custom-confirm-modal {
+      display: none; /* Crucial: Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1001; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.7); /* Dark overlay */
+      display: flex; /* Will be set to 'flex' by JS when needed */
+      justify-content: center;
+      align-items: center;
+    }
+    .custom-confirm-modal .modal-content {
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      text-align: center;
+    }
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: var(--color-text-secondary);
+      font-size: 28px;
+      font-weight: bold;
       cursor: pointer;
     }
-    .thread-item:hover {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .thread-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--color-heading-card);
-    }
-    .thread-meta {
-      font-size: 0.875rem;
-      color: var(--color-text-secondary);
-    }
-    .thread-content {
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
       color: var(--color-text-primary);
-      margin-top: 0.5rem;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .custom-confirm-modal .modal-content button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    .custom-confirm-modal .modal-content .bg-red-600 {
+      background-color: var(--color-button-red-bg);
+    }
+    .custom-confirm-modal .modal-content .hover\:bg-red-700:hover {
+      background-color: var(--color-button-red-hover);
+    }
+    .custom-confirm-modal .modal-content .bg-gray-500 {
+      background-color: var(--color-text-secondary); /* Use text-secondary for cancel button */
+    }
+    .custom-confirm-modal .modal-content .hover\:bg-gray-600:hover {
+      background-color: var(--color-text-primary); /* Use text-primary for hover */
     }
 
-    /* Styles for individual comments */
-    .comment-item {
-      background-color: var(--color-input-bg); /* Lighter background for comments */
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      margin-top: 0.75rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid var(--color-input-border);
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .comment-meta {
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-      margin-bottom: 0.5rem;
-    }
-    .comment-content {
-      color: var(--color-text-primary);
-      font-size: 0.95rem;
-    }
+    /* Profile picture size for comments/threads */
     .profile-pic-small {
       width: 32px;
       height: 32px;
       border-radius: 9999px; /* rounded-full */
       object-fit: cover;
     }
+
+    /* Emoji palette styling */
+    .emoji-palette {
+      border: 1px solid var(--color-input-border);
+      background-color: var(--color-bg-card);
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+    }
+    .emoji-item {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      background-color: var(--color-input-bg);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .emoji-item:hover {
+      background-color: var(--color-input-border);
+    }
+
+    /* Reaction button styling */
+    .reaction-btn {
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      font-weight: 600;
+    }
+    .reaction-btn:hover {
+      transform: translateY(-1px);
+    }
+    .reaction-btn.bg-blue-600 { /* Active/selected reaction */
+      background-color: var(--color-button-blue-bg) !important;
+      color: white !important;
+    }
+    .reaction-btn.bg-gray-200 { /* Inactive reaction */
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-text-primary) !important;
+    }
+
+    /* Theme list as buttons */
+    #themes-list button {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background-color: var(--color-input-bg);
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    #themes-list button:hover {
+      background-color: var(--color-input-border);
+      border-color: var(--color-link);
+    }
+
+    /* Style for temporary page buttons */
+    #temporary-pages-list button {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background-color: var(--color-button-blue-bg); /* Use a button style for these */
+      color: var(--color-button-text);
+      border: 1px solid var(--color-button-blue-bg);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    #temporary-pages-list button:hover {
+      background-color: var(--color-button-blue-hover);
+      border-color: var(--color-button-blue-hover);
+    }
   </style>
 </head>
 <body class="antialiased">
-
-<!-- Navigation Bar Placeholder -->
+<!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Forums</h1>
-    <p class="text-xl md:text-2xl mb-8">Discuss anything related to Arcator, get support, and share ideas!</p>
+    <p class="text-xl md:text-2xl mb-8">Connect, discuss, and share with the Arcator community.</p>
   </div>
 </section>
 
-<!-- Main Content Area -->
+<!-- Main Content Section -->
 <main class="container mx-auto px-4 py-8">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Main Forum Content (Left/Center) -->
     <div class="lg:col-span-2">
-      <div class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
-        <h2 class="text-3xl font-bold mb-6 text-blue-300">Create New Thread</h2>
+      <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Forum Threads</h2>
+
+      <!-- Create New Thread Form -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-4">Create New Thread</h3>
         <form id="create-thread-form" class="space-y-4">
           <div>
             <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
-            <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter thread title" required>
+            <input type="text" id="thread-title" placeholder="Enter thread title" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
-            <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content:</label>
-            <textarea id="thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your thread content here..."></textarea>
+            <label for="thread-theme-select" class="block text-gray-300 text-sm font-bold mb-2">Select Thread Category/Theme:</label>
+            <select id="thread-theme-select" class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <!-- Options will be populated by forms.js -->
+            </select>
           </div>
-          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Create Thread</button>
+          <div>
+            <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
+            <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300">Create Thread</button>
         </form>
       </div>
 
-      <div class="bg-gray-800 p-8 rounded-lg shadow-md">
-        <h2 class="text-3xl font-bold mb-6 text-blue-300">All Threads</h2>
-        <div id="threads-list" class="space-y-4">
-          <p class="text-gray-300 text-center">Loading threads...</p>
+      <!-- Thread Filtering by Theme -->
+      <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Browse Threads by Category</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Click a category below to filter threads. Your selected theme will also be applied to the site's visuals.</p>
+        <div id="thread-category-list" class="flex flex-wrap gap-2 mb-4">
+          <button id="show-all-threads-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full transition duration-300 ease-in-out shadow-lg text-sm">All Threads</button>
+          <!-- Theme buttons will be dynamically loaded here by forms.js -->
+          <p class="text-gray-300 text-center">Loading categories...</p>
         </div>
       </div>
+
+      <!-- Threads List -->
+      <div id="threads-list" class="space-y-8 mb-8">
+        <p id="threads-loading-error" class="text-red-500 text-center text-lg hidden">Failed to load threads. Please try again later.</p>
+        <p id="no-threads-message" class="text-gray-400 text-center text-lg hidden">No threads found. Be the first to create one!</p>
+        <!-- Threads will be dynamically loaded here by JavaScript -->
+      </div>
+
     </div>
 
     <!-- Sidebar / Additional Content (Right) -->
@@ -237,65 +322,64 @@
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Temporary Pages</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Quick links to temporary informational pages and announcements.</p>
-        <ul id="temporary-pages-list" class="list-disc list-inside text-gray-300 space-y-2">
-          <!-- Temporary pages will be loaded here by forms.js -->
-          <li>Loading temporary pages...</li>
-        </ul>
+        <div id="temporary-pages-list" class="flex flex-col space-y-2">
+          <!-- Temporary pages will be loaded here as buttons by forms.js -->
+          <p class="text-gray-300 text-center">Loading temporary pages...</p>
+        </div>
         <a href="admin_and_dev.html#temporary-pages-section" class="inline-block bg-purple-600 text-white font-bold py-2 px-4 rounded-full mt-4 hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg text-sm">Manage Temporary Pages</a>
       </div>
 
-      <!-- Direct Messages Section (Placeholder) -->
+      <!-- Direct Messages Section -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Direct Messages</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Communicate privately with other community members.</p>
         <a href="dms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg text-sm">Go to Direct Messages</a>
       </div>
 
-      <!-- Announcements Section (Placeholder) -->
+      <!-- Announcements Section -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Announcements</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Stay up-to-date with the latest news and updates from Arcator.</p>
         <a href="announcements.html" class="inline-block bg-yellow-600 text-white font-bold py-2 px-4 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out shadow-lg text-sm">View All Announcements</a>
       </div>
 
-      <!-- Themes Link (Placeholder) -->
+      <!-- Quick Link to Theme Settings -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold mb-4 text-blue-300">Themes & Personalization</h3>
-        <p class="text-gray-300 leading-relaxed mb-4">Customize your Arcator experience with different themes and display settings.</p>
-        <a href="settings.html#theme-settings-section" class="inline-block bg-indigo-600 text-white font-bold py-2 px-4 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg text-sm">Customize Theme</a>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Thread Detail Modal -->
-  <div id="thread-detail-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-blue-300"></h3>
-      <p id="modal-thread-meta" class="text-sm text-gray-400 mb-4"></p>
-      <div id="modal-thread-content" class="prose text-gray-200 mb-6 max-h-64 overflow-y-auto"></div>
-
-      <!-- Reactions Section -->
-      <div class="flex items-center space-x-4 mb-6" id="thread-reactions-container">
-        <!-- Reactions will be dynamically loaded here -->
-      </div>
-
-      <h4 class="text-xl font-bold mb-4 text-blue-300">Comments</h4>
-      <div id="comments-list" class="space-y-4 max-h-72 overflow-y-auto">
-        <p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>
-      </div>
-
-      <div class="mt-6">
-        <h5 class="text-lg font-bold mb-2 text-blue-300">Add a Comment</h5>
-        <form id="add-comment-form" class="space-y-3">
-          <textarea id="comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Write your comment..."></textarea>
-          <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Post Comment</button>
-        </form>
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Theme Settings</h3>
+        <p class="text-gray-300 leading-relaxed mb-4">Manage custom themes and other display settings.</p>
+        <a href="settings.html#theme-settings-section" class="inline-block bg-indigo-600 text-white font-bold py-2 px-4 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg text-sm">Go to Theme Settings</a>
       </div>
     </div>
   </div>
 </main>
+
+<!-- Thread Detail Modal -->
+<div id="thread-detail-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-blue-300"></h3>
+    <p id="modal-thread-meta" class="text-sm text-gray-400 mb-4"></p>
+    <div id="modal-thread-content" class="prose text-gray-200 mb-6 max-h-64 overflow-y-auto"></div>
+
+    <!-- Reactions Section -->
+    <div class="flex items-center space-x-4 mb-6" id="thread-reactions-container">
+      <!-- Reactions will be dynamically loaded here -->
+    </div>
+
+    <h4 class="text-xl font-bold mb-4 text-blue-300">Comments</h4>
+    <div id="comments-list" class="space-y-4 max-h-72 overflow-y-auto">
+      <p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>
+    </div>
+
+    <div class="mt-6">
+      <h5 class="text-lg font-bold mb-2 text-blue-300">Add a Comment</h5>
+      <form id="add-comment-form" class="space-y-3">
+        <textarea id="comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Write your comment..."></textarea>
+        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Post Comment</button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
@@ -326,9 +410,15 @@
   </div>
 </footer>
 
+<!-- Firebase SDKs and Main Script -->
+<!-- IMPORTANT: firebase-init.js must be loaded first to ensure Firebase is initialized before other modules -->
+<script src="firebase-init.js" type="module"></script>
 <!-- EasyMDE (Markdown Editor) JS - Load BEFORE forms.js -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-<!-- Main Application Script (forms.js) -->
-<script type="module" src="forms.js"></script>
+<!-- Marked.js (Markdown Parser) JS - Load BEFORE forms.js -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="themes.js" type="module"></script>
+<script src="navbar.js" type="module"></script>
+<script src="forms.js" type="module"></script>
 </body>
 </html>
