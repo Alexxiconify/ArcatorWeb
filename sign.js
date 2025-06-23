@@ -145,12 +145,12 @@ async function setupFirebaseAndUser() {
     console.log("DEBUG: __firebase_config not provided. Using fallback for local testing.");
     // Fallback for local testing if __firebase_config is not defined
     firebaseConfig = {
-      apiKey: "YOUR_API_KEY", // REPLACE WITH YOUR ACTUAL LOCAL FIREBASE CONFIG
-      authDomain: `${tempProjectId}.firebaseapp.com`,
-      projectId: tempProjectId,
-      storageBucket: `${tempProjectId}.appspot.com`,
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // REPLACE WITH YOUR ACTUAL LOCAL FIREBASE CONFIG
+      authDomain: "arcator-web.firebaseapp.com",
+      projectId: "arcator-web",
+      storageBucket: "arcator-web.firebasestorage.app",
+      messagingSenderId: "1033082068049",
+      appId: "1:1033082068049:web:dd154c8b188bde1930ec70"
     };
   }
 
