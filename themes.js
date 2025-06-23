@@ -1,12 +1,17 @@
-// themes.js - Handles theme application and management (fetching default and custom themes)
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-// Import auth, db, appId, and firebaseReadyPromise from firebase-init.js
-import { auth, db, appId, firebaseReadyPromise } from './firebase-init.js';
+// themes.js: Handles theme management, including default themes and custom user themes stored in Firestore.
 
-// Internal variables for module state (no longer directly initialized here)
-let themeCache = null; // Cache for themes to avoid re-fetching constantly
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Default themes (hardcoded for immediate availability and fallback)
+let dbInstance;
+let authInstance;
+let appIdValue;
+let firebaseInitialized = false;
+
+// Cache for themes to avoid repeated Firestore reads
+let themeCache = null;
+
+// Define default themes with their CSS variables
 const DEFAULT_THEMES = [
   {
     id: 'dark',
@@ -51,9 +56,9 @@ const DEFAULT_THEMES = [
       '--color-modal-input-text': '#E5E7EB',
       '--color-message-box-bg-success': '#4CAF50',
       '--color-message-box-bg-error': '#F44336',
-      '--font-family-body': 'Inter, sans-serif',
+      '--font-family-body': 'Inter, sans-serif' // Default font family
     },
-    isCustom: false,
+    isCustom: false
   },
   {
     id: 'light',
@@ -98,9 +103,9 @@ const DEFAULT_THEMES = [
       '--color-modal-input-text': '#1F2937',
       '--color-message-box-bg-success': '#4CAF50',
       '--color-message-box-bg-error': '#F44336',
-      '--font-family-body': 'Inter, sans-serif',
+      '--font-family-body': 'Inter, sans-serif'
     },
-    isCustom: false,
+    isCustom: false
   },
   {
     id: 'arcator-green',
@@ -145,9 +150,9 @@ const DEFAULT_THEMES = [
       '--color-modal-input-text': '#EBFBEB',
       '--color-message-box-bg-success': '#34D399',
       '--color-message-box-bg-error': '#F87171',
-      '--font-family-body': 'Inter, sans-serif',
+      '--font-family-body': 'Inter', sans-serif'
     },
-    isCustom: false,
+    isCustom: false
   },
   {
     id: 'ocean-blue',
@@ -194,7 +199,7 @@ const DEFAULT_THEMES = [
       '--color-message-box-bg-error': '#EF5350',
       '--font-family-body': 'Inter, sans-serif' /* Default to Inter */
     },
-    isCustom: false,
+    isCustom: false
   },
   {
     id: 'high-contrast',
@@ -239,56 +244,69 @@ const DEFAULT_THEMES = [
       '--color-modal-input-text': '#FFFFFF',
       '--color-message-box-bg-success': '#00FF00',
       '--color-message-box-bg-error': '#FF0000',
-      '--font-family-body': 'Inter', sans-serif; /* Default to Inter */
+      '--font-family-body': 'Inter, sans-serif' /* Default to Inter */
     },
-    isCustom: false,
-  },
+    isCustom: false
+  }
 ];
 
 const CUSTOM_THEMES_COLLECTION = 'custom_themes';
 
 /**
+ * Initializes the Firebase instances for themes.js.
+ * Must be called once Firebase is initialized in your main script.
+ * @param {Firestore} db - The Firestore instance.
+ * @param {Auth} auth - The Firebase Auth instance.
+ * @param {string} appId - The application ID.
+ */
+export function setupThemesFirebase(db, auth, appId) {
+  dbInstance = db;
+  authInstance = auth;
+  appIdValue = appId;
+  firebaseInitialized = true;
+  console.log("DEBUG: Themes Firebase setup complete.");
+}
+
+/**
  * Fetches all available themes, including default and user-defined custom themes.
- * Caches results to prevent unnecessary Firestore reads.
- * @returns {Promise<Array<Object>>} A promise that resolves to an array of theme objects.
+ * Results are cached for performance.
+ * @returns {Promise<Array>} A promise that resolves with an array of theme objects.
  */
 export async function getAvailableThemes() {
-  // Ensure Firebase is ready before attempting Firestore operations
-  await firebaseReadyPromise;
-
   if (themeCache) {
-    // console.log("DEBUG: Returning themes from cache.");
+    console.log("DEBUG: Returning themes from cache.");
     return themeCache;
   }
 
   let customThemes = [];
-  // Only attempt to fetch custom themes if Firestore db is initialized
-  if (db) {
+  if (firebaseInitialized && dbInstance && authInstance) {
     try {
-      const userId = auth.currentUser?.uid; // auth should be available after firebaseReadyPromise resolves
+      // Only fetch custom themes if a user is logged in
+      const userId = authInstance.currentUser?.uid;
       if (userId) {
-        const customThemesRef = collection(db, `artifacts/${appId}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`);
+        const customThemesRef = collection(dbInstance, `artifacts/${appIdValue}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`);
         const querySnapshot = await getDocs(customThemesRef);
         querySnapshot.forEach(doc => {
           customThemes.push({ id: doc.id, ...doc.data(), isCustom: true });
         });
+        console.log("DEBUG: Fetched custom themes:", customThemes.length);
       }
-      // console.log("DEBUG: Fetched custom themes:", customThemes.length);
     } catch (error) {
       console.error("Error fetching custom themes:", error);
-      // In case of error, proceed with only default themes
+      // Do not block if custom themes fail, proceed with default themes
     }
+  } else {
+    console.warn("Themes module: Firebase not fully initialized or user not logged in. Cannot fetch custom themes.");
   }
 
-  // Combine default themes with fetched custom themes
   themeCache = [...DEFAULT_THEMES, ...customThemes];
   return themeCache;
 }
 
 /**
- * Applies a given theme by setting CSS custom properties.
+ * Applies the specified theme to the document's root element by setting CSS variables.
  * @param {string} themeId - The ID of the theme to apply.
- * @param {Object} [themeObject=null] - Optional. The theme object itself. If not provided, it will be fetched.
+ * @param {object} [themeObject=null] - Optional. The full theme object if already available.
  */
 export async function applyTheme(themeId, themeObject = null) {
   const root = document.documentElement;
@@ -297,14 +315,16 @@ export async function applyTheme(themeId, themeObject = null) {
   if (themeObject) {
     themeToApply = themeObject;
   } else {
-    // If themeObject not provided, fetch all themes and find it
     const allThemes = await getAvailableThemes();
     themeToApply = allThemes.find(theme => theme.id === themeId);
 
-    // Fallback to default dark theme if the requested theme is not found
+    // Fallback to default theme if the requested theme is not found
     if (!themeToApply) {
-      themeToApply = allThemes.find(theme => theme.id === DEFAULT_THEMES[0].id) || DEFAULT_THEMES[0];
-      console.warn(`Theme '${themeId}' not found, applying default theme: ${themeToApply.name}.`);
+      // DEFAULT_THEME_NAME is likely imported from firebase-init.js in the main script
+      // which means it's not directly accessible here unless passed or imported.
+      // For robustness, find 'dark' theme as a hardcoded fallback if DEFAULT_THEME_NAME fails too.
+      themeToApply = allThemes.find(theme => theme.id === 'dark') || DEFAULT_THEMES[0];
+      console.warn(`Theme '${themeId}' not found, applying fallback default theme: ${themeToApply.name}.`);
     }
   }
 
@@ -319,8 +339,17 @@ export async function applyTheme(themeId, themeObject = null) {
     document.body.style.fontFamily = themeToApply.variables['--font-family-body'];
   }
 
-  // Remove existing theme classes and add the new one
-  document.body.className = ''; // Clear all existing classes
+
+  // Update body class for theme-specific CSS rules (e.g., background patterns, general styles)
+  // Remove all existing theme- and pattern- classes first
+  // Ensure we don't remove essential system classes
+  const bodyClasses = Array.from(document.body.classList);
+  bodyClasses.forEach(cls => {
+    if (cls.startsWith('theme-') || cls.startsWith('pattern-')) {
+      document.body.classList.remove(cls);
+    }
+  });
+  // Add the new theme class
   document.body.classList.add(`theme-${themeToApply.id}`);
 
   // Apply background pattern if specified
@@ -328,41 +357,36 @@ export async function applyTheme(themeId, themeObject = null) {
   if (backgroundPattern && backgroundPattern !== 'none') {
     document.body.classList.add(`pattern-${backgroundPattern}`);
   }
-
-  // console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
+  console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
 }
 
 /**
  * Saves a custom theme to Firestore for the current user.
- * @param {Object} themeData - The theme object to save. Must include `name`, `variables`, and `isCustom: true`.
- * If `id` is present, it updates an existing theme.
- * @returns {Promise<boolean>} True if successful, false otherwise.
+ * @param {object} themeData - The theme object to save. Must include name and variables.
+ * @returns {Promise<boolean>} True if saved successfully, false otherwise.
  */
 export async function saveCustomTheme(themeData) {
-  // Ensure Firebase is ready and user is logged in before saving
-  await firebaseReadyPromise;
-  if (!db || !auth.currentUser) {
-    console.error("Firebase not initialized or user not logged in. Cannot save custom theme.");
+  if (!firebaseInitialized || !dbInstance || !authInstance.currentUser) {
+    console.error("Firebase not initialized or user not logged in.");
     return false;
   }
-
-  const userId = auth.currentUser.uid;
-  const customThemesRef = collection(db, `artifacts/${appId}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`);
+  const userId = authInstance.currentUser.uid;
+  const customThemesRef = collection(dbInstance, `artifacts/${appIdValue}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`);
 
   try {
     if (themeData.id) {
       // Update existing theme
-      const docRef = doc(db, `artifacts/${appId}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`, themeData.id);
-      await setDoc(docRef, themeData, { merge: true });
-      // console.log("Updated custom theme:", themeData.id);
+      const docRef = doc(dbInstance, `artifacts/${appIdValue}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`, themeData.id);
+      await setDoc(docRef, themeData, { merge: true }); // Use merge to avoid overwriting other fields
+      console.log("Updated custom theme:", themeData.id);
     } else {
       // Add new theme
       const newDocRef = await addDoc(customThemesRef, themeData);
-      themeData.id = newDocRef.id; // Assign the newly generated ID
-      // console.log("Added new custom theme:", newDocRef.id);
+      themeData.id = newDocRef.id; // Assign the new ID back to the object
+      console.log("Added new custom theme:", newDocRef.id);
     }
-    themeCache = null; // Invalidate cache so getAvailableThemes fetches fresh data next time
-    await getAvailableThemes(); // Re-populate cache immediately after saving
+    themeCache = null; // Invalidate cache to force reload
+    await getAvailableThemes(); // Re-populate cache with new data
     return true;
   } catch (error) {
     console.error("Error saving custom theme:", error);
@@ -373,24 +397,21 @@ export async function saveCustomTheme(themeData) {
 /**
  * Deletes a custom theme from Firestore for the current user.
  * @param {string} themeId - The ID of the theme to delete.
- * @returns {Promise<boolean>} True if successful, false otherwise.
+ * @returns {Promise<boolean>} True if deleted successfully, false otherwise.
  */
 export async function deleteCustomTheme(themeId) {
-  // Ensure Firebase is ready and user is logged in before deleting
-  await firebaseReadyPromise;
-  if (!db || !auth.currentUser) {
-    console.error("Firebase not initialized or user not logged in. Cannot delete custom theme.");
+  if (!firebaseInitialized || !dbInstance || !authInstance.currentUser) {
+    console.error("Firebase not initialized or user not logged in.");
     return false;
   }
-
-  const userId = auth.currentUser.uid;
-  const docRef = doc(db, `artifacts/${appId}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`, themeId);
+  const userId = authInstance.currentUser.uid;
+  const docRef = doc(dbInstance, `artifacts/${appIdValue}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`, themeId);
 
   try {
     await deleteDoc(docRef);
-    // console.log("Deleted custom theme:", themeId);
+    console.log("Deleted custom theme:", themeId);
     themeCache = null; // Invalidate cache
-    await getAvailableThemes(); // Re-populate cache immediately after deletion
+    await getAvailableThemes(); // Re-populate cache
     return true;
   } catch (error) {
     console.error("Error deleting custom theme:", error);

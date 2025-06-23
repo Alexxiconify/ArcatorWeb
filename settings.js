@@ -3,17 +3,17 @@
 // Import Firebase instances and user functions from the centralized init file
 import {
   auth,
-  db,
-  appId,
+  db, // db instance is needed for local Firestore functions
+  appId, // appId is needed for Firestore paths
   getCurrentUser,
   setupFirebaseAndUser,
-  getUserProfileFromFirestore,
-  updateUserProfileInFirestore
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME
 } from './firebase-init.js';
 
 // Import theme management functions
 import { setupCustomThemeManagement } from './custom_theme_modal.js';
-import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
+import { applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
 import { showMessageBox, showCustomConfirm } from './utils.js'; // Import message and confirm utilities
 
@@ -25,12 +25,14 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-  doc,
-  collection,
+  doc, // Explicitly import doc for Firestore operations
+  getDoc, // Explicitly import getDoc for Firestore operations
+  setDoc, // Explicitly import setDoc for Firestore operations
+  deleteDoc, // Explicitly import deleteDoc for Firestore operations
+  collection, // Needed for potential future queries, keeping for now
   query,
   where,
-  getDocs,
-  deleteDoc
+  getDocs
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
@@ -38,11 +40,9 @@ import {
 // They will be assigned their actual DOM element references inside DOMContentLoaded.
 let profileSettingsSection = null;
 let displayNameInput = null;
-let handleInput = null;
 let profilePicInput = null;
 let profilePicPreview = null;
 let saveProfileBtn = null;
-let handleStatus = null;
 
 let themeSettingsSection = null;
 let themeSelect = null;
@@ -77,15 +77,16 @@ let accessibilityTabBtn = null;
 
 let logoutBtn = null;
 
-let profilePictureDisplay = null; // Added for HTML ID mapping
-let displayNameText = null;       // Added for HTML ID mapping
-let emailText = null;             // Added for HTML ID mapping
-let lastLoginTimeDisplay = null;  // Added for HTML ID mapping
-let accountCreationTimeDisplay = null; // Added for HTML ID mapping
-let deleteAccountPasswordInput = null; // Added for HTML ID mapping
+let profilePictureDisplay = null;
+let displayNameText = null;
+let emailText = null;
+let lastLoginTimeDisplay = null;
+let accountCreationTimeDisplay = null;
+let deleteAccountPasswordInput = null;
 
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-const DEFAULT_THEME_NAME = 'dark';
+let loadingSpinner = null;
+let settingsContent = null;
+let loginRequiredMessage = null;
 
 
 /**
@@ -108,82 +109,139 @@ async function populateThemeSelect(selectedThemeId) {
   if (selectedThemeId && availableThemes.some(t => t.id === selectedThemeId)) {
     themeSelect.value = selectedThemeId;
   } else {
-    themeSelect.value = DEFAULT_THEME_NAME;
+    themeSelect.value = DEFAULT_THEME_NAME; // Fallback to default if selected not found
+  }
+}
+
+/**
+ * Fetches a user's profile data from the 'user_profiles' collection in Firestore.
+ * This is a helper function used internally.
+ * @param {string} uid - The User ID (UID) of the profile to fetch.
+ * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data object,
+ * or `null` if the profile is not found or an error occurs.
+ */
+async function getUserProfileFromFirestore(uid) {
+  // Ensure Firebase is ready before attempting Firestore operations
+  await setupFirebaseAndUser(); // Ensure setupFirebaseAndUser has resolved
+  if (!db) {
+    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+    return null;
+  }
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+  } catch (error) {
+    console.error("Error fetching user profile from Firestore:", error);
+    showMessageBox(`Error fetching user profile: ${error.message}`, true);
+  }
+  return null;
+}
+
+/**
+ * Updates a user's profile data in Firestore.
+ * @param {string} uid - The User ID (UID) of the profile to update.
+ * @param {Object} profileData - An object containing the fields to update (e.g., { displayName: "New Name" }).
+ * @returns {Promise<boolean>} A Promise that resolves to true if the update was successful, false otherwise.
+ */
+async function updateUserProfileInFirestore(uid, profileData) {
+  // Ensure Firebase is ready before attempting Firestore operations
+  await setupFirebaseAndUser(); // Ensure setupFirebaseAndUser has resolved
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot save profile.", true);
+    return false;
+  }
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+    await setDoc(userDocRef, profileData, {
+      merge: true
+    }); // Use setDoc with merge for partial updates
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile in Firestore:", error);
+    showMessageBox(`Error saving profile: ${error.message}`, true);
+    return false;
   }
 }
 
 
 /**
+ * Populates the settings UI elements with user profile data.
+ * This function *only* populates, it does not control visibility.
+ * @param {object} user - The Firebase User object.
+ * @param {object|null} userProfile - The user's profile data from Firestore.
+ */
+async function populateSettingsUI(user, userProfile) {
+  if (displayNameInput) displayNameInput.value = userProfile?.displayName || user.displayName || '';
+  if (displayNameText) displayNameText.textContent = displayNameInput.value;
+  if (emailText) emailText.textContent = user.email || '';
+
+  if (profilePicInput) profilePicInput.value = userProfile?.photoURL || user.photoURL || '';
+  if (profilePicPreview) profilePicPreview.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+  if (profilePictureDisplay) profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
+
+  await populateThemeSelect(userProfile?.themePreference); // Populate dropdown and select current theme
+
+  if (fontSizeSelect) fontSizeSelect.value = userProfile?.fontSizePreference || '16px';
+  if (fontFamilySelect) fontFamilySelect.value = userProfile?.fontFamilyPreference || 'Inter, sans-serif';
+  if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile?.backgroundPatternPreference || 'none';
+
+  if (emailNotificationsCheckbox) emailNotificationsCheckbox.checked = userProfile?.notificationPreferences?.email || false;
+  if (inAppNotificationsCheckbox) inAppNotificationsCheckbox.checked = userProfile?.notificationPreferences?.inApp || false;
+
+  if (highContrastCheckbox) highContrastCheckbox.checked = userProfile?.accessibilitySettings?.highContrast || false;
+  if (reducedMotionCheckbox) reducedMotionCheckbox.checked = userProfile?.accessibilitySettings?.reducedMotion || false;
+  // Apply accessibility classes immediately for feedback
+  document.body.classList.toggle('high-contrast-mode', highContrastCheckbox?.checked || false);
+  document.body.classList.toggle('reduced-motion', reducedMotionCheckbox?.checked || false);
+
+  if (user.metadata && lastLoginTimeDisplay && accountCreationTimeDisplay) {
+    lastLoginTimeDisplay.textContent = `Last Login: ${new Date(user.metadata.lastSignInTime).toLocaleString()}`;
+    accountCreationTimeDisplay.textContent = `Account Created: ${new Date(user.metadata.creationTime).toLocaleString()}`;
+  }
+
+  // Apply the user's theme, font size, and font family immediately
+  const themeToApply = (await getAvailableThemes()).find(t => t.id === (themeSelect?.value || DEFAULT_THEME_NAME)) || (await getAvailableThemes()).find(t => t.id === DEFAULT_THEME_NAME);
+  applyTheme(themeToApply.id, themeToApply);
+  document.body.style.fontSize = fontSizeSelect?.value || '16px';
+  document.body.style.fontFamily = fontFamilySelect?.value || 'Inter, sans-serif';
+
+  document.body.classList.remove('pattern-dots', 'pattern-grid');
+  if (backgroundPatternSelect?.value !== 'none') {
+    document.body.classList.add(`pattern-${backgroundPatternSelect?.value}`);
+  }
+
+  // Initial tab selection
+  showSettingsTab('profile');
+}
+
+
+/**
  * Updates the UI sections based on authentication status and user profile data.
- * This function now expects the DOM elements to be properly initialized.
+ * This function now controls the visibility of main content sections.
  * @param {object|null} user - The Firebase User object or null if not logged in.
  */
 async function updateUI(user) {
-  const settingsContent = document.getElementById('settings-content');
-  const loginRequiredMessage = document.getElementById('login-required-message');
-
-  if (!settingsContent || !loginRequiredMessage) {
-    console.error("Critical settings UI elements not found.");
+  if (!settingsContent || !loginRequiredMessage || !loadingSpinner) {
+    console.error("Critical settings UI elements not found for updateUI.");
     return;
   }
 
+  // Always show spinner while loading user profile and preferences
+  loadingSpinner.style.display = 'flex';
+  settingsContent.style.display = 'none';
+  loginRequiredMessage.style.display = 'none';
+
   if (user) {
-    loginRequiredMessage.style.display = 'none';
-    settingsContent.style.display = 'block';
-
     const userProfile = await getUserProfileFromFirestore(user.uid);
-    const currentUser = getCurrentUser(); // Get the enriched user object
-
-    // Populate Profile Settings
-    if (displayNameInput) displayNameInput.value = userProfile?.displayName || user.displayName || '';
-    if (displayNameText) displayNameText.textContent = displayNameInput.value; // Update display text immediately
-    if (emailText) emailText.textContent = user.email || '';
-
-    if (handleInput) handleInput.value = userProfile?.handle || '';
-    if (profilePicInput) profilePicInput.value = userProfile?.photoURL || user.photoURL || '';
-    if (profilePicPreview) profilePicPreview.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-    if (profilePictureDisplay) profilePictureDisplay.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
-
-
-    // Populate Theme Settings
-    await populateThemeSelect(userProfile?.themePreference); // Use the new helper function
-
-    if (fontSizeSelect) fontSizeSelect.value = userProfile?.fontSizePreference || '16px';
-    if (fontFamilySelect) fontFamilySelect.value = userProfile?.fontFamilyPreference || 'Inter, sans-serif';
-    if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile?.backgroundPatternPreference || 'none';
-
-
-    // Populate Notification Settings
-    if (emailNotificationsCheckbox) emailNotificationsCheckbox.checked = userProfile?.notificationPreferences?.email || false;
-    if (inAppNotificationsCheckbox) inAppNotificationsCheckbox.checked = userProfile?.notificationPreferences?.inApp || false;
-
-    // Populate Accessibility Settings
-    if (highContrastCheckbox) highContrastCheckbox.checked = userProfile?.accessibilitySettings?.highContrast || false;
-    if (reducedMotionCheckbox) reducedMotionCheckbox.checked = userProfile?.accessibilitySettings?.reducedMotion || false;
-    // Apply immediately for visual feedback
-    document.body.classList.toggle('high-contrast-mode', highContrastCheckbox?.checked || false);
-    document.body.classList.toggle('reduced-motion', reducedMotionCheckbox?.checked || false);
-
-    // Populate Session Information
-    if (user.metadata && lastLoginTimeDisplay && accountCreationTimeDisplay) {
-      lastLoginTimeDisplay.textContent = `Last Login: ${new Date(user.metadata.lastSignInTime).toLocaleString()}`;
-      accountCreationTimeDisplay.textContent = `Account Created: ${new Date(user.metadata.creationTime).toLocaleString()}`;
-    }
-
-    // Apply the user's theme immediately on UI load
-    const themeToApply = (await getAvailableThemes()).find(t => t.id === (themeSelect?.value || DEFAULT_THEME_NAME)) || (await getAvailableThemes()).find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
-    document.body.style.fontSize = fontSizeSelect?.value || '16px'; // Apply font size
-    document.body.style.fontFamily = fontFamilySelect?.value || 'Inter, sans-serif'; // Apply font family
-    document.body.dataset.backgroundPattern = backgroundPatternSelect?.value || 'none'; // Apply background pattern
-
-
-    // Initial tab selection
-    showSettingsTab('profile');
-
+    await populateSettingsUI(user, userProfile); // Populate fields
+    loadingSpinner.style.display = 'none';
+    settingsContent.style.display = 'block'; // Show content for logged-in users
   } else {
-    settingsContent.style.display = 'none';
-    loginRequiredMessage.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+    loginRequiredMessage.style.display = 'block'; // Show login message for logged-out users
     // Apply default theme if not logged in
     const allThemes = await getAvailableThemes();
     const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
@@ -228,76 +286,53 @@ function showSettingsTab(tabId) {
   }
 }
 
-/**
- * Checks if a handle is unique in Firestore.
- * @param {string} handle - The handle to check.
- * @param {string} currentUid - The UID of the current user (to exclude their own handle from the check).
- * @returns {Promise<boolean>} True if unique, false otherwise.
- */
-async function isHandleUnique(handle, currentUid) {
-  if (!db) {
-    console.error("Firestore DB not initialized for handle uniqueness check.");
-    return false;
-  }
-  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-  const q = query(userProfilesRef, where("handle", "==", handle));
-  try {
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty || (querySnapshot.docs.length === 1 && querySnapshot.docs[0].id === currentUid);
-  } catch (error) {
-    console.error("Error checking handle uniqueness:", error);
-    showMessageBox("Error checking handle uniqueness.", true);
-    return false;
-  }
-}
-
 // --- EVENT LISTENERS ---
 // Use DOMContentLoaded to ensure all HTML elements are loaded before accessing them
 document.addEventListener('DOMContentLoaded', async () => {
   // Assign DOM elements after the document is ready
-  profileSettingsSection = document.getElementById('profile-settings-section');
-  displayNameInput = document.getElementById('display-name-input'); // Corrected ID
-  handleInput = document.getElementById('handle-input');           // Corrected ID
-  profilePicInput = document.getElementById('profile-picture-url-input'); // Corrected ID
-  profilePicPreview = document.getElementById('profile-picture-display'); // Corrected ID
-  saveProfileBtn = document.getElementById('save-profile-btn');
-  handleStatus = document.getElementById('handle-message');       // Corrected ID
+  loadingSpinner = document.getElementById('loading-spinner');
+  settingsContent = document.getElementById('settings-content');
+  loginRequiredMessage = document.getElementById('login-required-message');
 
-  profilePictureDisplay = document.getElementById('profile-picture-display'); // Assign
-  displayNameText = document.getElementById('display-name-text');             // Assign
-  emailText = document.getElementById('email-text');                         // Assign
-  lastLoginTimeDisplay = document.getElementById('last-login-time');        // Assign
-  accountCreationTimeDisplay = document.getElementById('account-creation-time'); // Assign
-  deleteAccountPasswordInput = document.getElementById('delete-account-password'); // Assign
+  profileSettingsSection = document.getElementById('profile-settings-section');
+  displayNameInput = document.getElementById('display-name-input');
+  profilePicInput = document.getElementById('profile-picture-url-input');
+  profilePicPreview = document.getElementById('profile-picture-display');
+  saveProfileBtn = document.getElementById('save-profile-btn');
+
+  profilePictureDisplay = document.getElementById('profile-picture-display');
+  displayNameText = document.getElementById('display-name-text');
+  emailText = document.getElementById('email-text');
+  lastLoginTimeDisplay = document.getElementById('last-login-time');
+  accountCreationTimeDisplay = document.getElementById('account-creation-time');
+  deleteAccountPasswordInput = document.getElementById('delete-account-password');
 
   themeSettingsSection = document.getElementById('theme-settings-section');
   themeSelect = document.getElementById('theme-select');
   fontSizeSelect = document.getElementById('font-size-select');
   fontFamilySelect = document.getElementById('font-family-select');
   backgroundPatternSelect = document.getElementById('background-pattern-select');
-  saveThemeBtn = document.getElementById('save-preferences-btn'); // Corrected ID
-  manageThemesBtn = document.getElementById('create-custom-theme-btn'); // Corrected ID
+  saveThemeBtn = document.getElementById('save-preferences-btn');
+  manageThemesBtn = document.getElementById('create-custom-theme-btn');
 
   accountSettingsSection = document.getElementById('account-settings-section');
-  currentPasswordInput = document.getElementById('current-password-input'); // Corrected ID
-  newPasswordInput = document.getElementById('new-password-input');         // Corrected ID
-  confirmNewPasswordInput = document.getElementById('confirm-new-password-input'); // Corrected ID
-  updatePasswordBtn = document.getElementById('change-password-btn');     // Corrected ID
+  currentPasswordInput = document.getElementById('current-password-input');
+  newPasswordInput = document.getElementById('new-password-input');
+  confirmNewPasswordInput = document.getElementById('confirm-new-password-input');
+  updatePasswordBtn = document.getElementById('change-password-btn');
   deleteAccountBtn = document.getElementById('delete-account-btn');
 
   notificationSettingsSection = document.getElementById('notification-settings-section');
-  emailNotificationsCheckbox = document.getElementById('email-notifications-checkbox'); // Corrected ID
-  inAppNotificationsCheckbox = document.getElementById('inapp-notifications-checkbox'); // Corrected ID
-  saveNotificationBtn = document.getElementById('save-notifications-btn'); // Corrected ID
+  emailNotificationsCheckbox = document.getElementById('email-notifications-checkbox');
+  inAppNotificationsCheckbox = document.getElementById('inapp-notifications-checkbox');
+  saveNotificationBtn = document.getElementById('save-notifications-btn');
 
   accessibilitySettingsSection = document.getElementById('accessibility-settings-section');
-  highContrastCheckbox = document.getElementById('high-contrast-checkbox'); // Corrected ID
-  reducedMotionCheckbox = document.getElementById('reduced-motion-checkbox'); // Corrected ID
-  saveAccessibilityBtn = document.getElementById('save-accessibility-btn'); // Corrected ID
+  highContrastCheckbox = document.getElementById('high-contrast-checkbox');
+  reducedMotionCheckbox = document.getElementById('reduced-motion-checkbox');
+  saveAccessibilityBtn = document.getElementById('save-accessibility-btn');
 
-  // Note: Tab buttons are implicitly handled by the showSettingsTab function,
-  // ensure their IDs are correctly set in HTML to match (e.g., profile-tab-btn).
-  // Assuming these are correctly defined in HTML.
+  // Tab buttons (assuming these are correctly defined in HTML based on your structure)
   profileTabBtn = document.getElementById('profile-tab-btn');
   themeTabBtn = document.getElementById('theme-tab-btn');
   accountTabBtn = document.getElementById('account-tab-btn');
@@ -307,18 +342,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   logoutBtn = document.getElementById('logout-btn');
 
 
-  // Setup Firebase and user authentication first
+  // Setup Firebase and user authentication first (this also sets up the onAuthStateChanged listener)
   await setupFirebaseAndUser();
-  // IMPORTANT: Initialize setupThemesFirebase AFTER setupFirebaseAndUser resolves
-  setupThemesFirebase(db, auth, appId);
 
   // Load navbar after Firebase is ready
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-  // Update UI based on initial authentication state
+  // Initial UI update based on current auth state. The onAuthStateChanged listener will handle subsequent changes.
   updateUI(auth.currentUser);
 
   // Listen for auth state changes to update UI dynamically (e.g., after login/logout)
+  // This listener is crucial and ensures the UI reacts to Firebase auth changes.
   auth.onAuthStateChanged(async (user) => {
     console.log("Auth state changed in settings.js:", user ? user.uid : "Signed out");
     updateUI(user);
@@ -338,59 +372,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Handle uniqueness check with debounce
-  let currentHandleTimeout;
-  handleInput?.addEventListener('input', () => {
-    clearTimeout(currentHandleTimeout);
-    if (handleStatus) {
-      handleStatus.textContent = 'Checking...';
-      handleStatus.className = 'text-yellow-500';
-    }
-
-    const handle = handleInput.value.trim();
-    if (handle.length === 0) {
-      if (handleStatus) {
-        handleStatus.textContent = 'Handle cannot be empty.';
-        handleStatus.className = 'text-red-500';
-      }
-      return;
-    }
-    if (handle.length < 3 || handle.length > 20) {
-      if (handleStatus) {
-        handleStatus.textContent = 'Handle must be 3-20 characters.';
-        handleStatus.className = 'text-red-500';
-      }
-      return;
-    }
-    if (!/^[a-zA-Z0-9_.-]+$/.test(handle)) {
-      if (handleStatus) {
-        handleStatus.textContent = 'Handle can only contain letters, numbers, _, ., -';
-        handleStatus.className = 'text-red-500';
-      }
-      return;
-    }
-
-    currentHandleTimeout = setTimeout(async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const unique = await isHandleUnique(handle, user.uid);
-        if (handleStatus) {
-          if (unique) {
-            handleStatus.textContent = 'Available!';
-            handleStatus.className = 'text-green-500';
-          } else {
-            handleStatus.textContent = 'Taken.';
-            handleStatus.className = 'text-red-500';
-          }
-        }
-      } else {
-        if (handleStatus) {
-          handleStatus.textContent = 'Login to check handle availability.';
-          handleStatus.className = 'text-gray-500';
-        }
-      }
-    }, 500); // Debounce for 500ms
-  });
 
   // Save Profile Settings
   saveProfileBtn?.addEventListener('click', async () => {
@@ -401,31 +382,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const displayName = displayNameInput.value.trim();
-    const handle = handleInput.value.trim();
     const photoURL = profilePicInput.value.trim();
-
-    if (!handle) {
-      showMessageBox("Handle cannot be empty.", true);
-      return;
-    }
-    if (handle.length < 3 || handle.length > 20 || !/^[a-zA-Z0-9_.-]+$/.test(handle)) {
-      showMessageBox("Handle must be 3-20 characters and contain only letters, numbers, _, ., -", true);
-      return;
-    }
-
-    const unique = await isHandleUnique(handle, user.uid);
-    if (!unique) {
-      showMessageBox("Handle is already taken or invalid. Please choose another.", true);
-      return;
-    }
 
     const success = await updateUserProfileInFirestore(user.uid, {
       displayName: displayName,
-      handle: handle,
       photoURL: photoURL
     });
     if (success) {
       showMessageBox("Profile updated successfully!", false);
+      // Update navbar profile pic and display name
       const navbarUserIcon = document.getElementById('navbar-user-profile-pic');
       if (navbarUserIcon) {
         navbarUserIcon.src = photoURL || DEFAULT_PROFILE_PIC;
@@ -466,7 +431,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       applyTheme(themeToApply.id, themeToApply);
       document.body.style.fontSize = fontSize;
       document.body.style.fontFamily = fontFamily;
-      document.body.dataset.backgroundPattern = backgroundPattern;
+      // Remove existing patterns first
+      document.body.classList.remove('pattern-dots', 'pattern-grid');
+      if (backgroundPattern !== 'none') {
+        document.body.classList.add(`pattern-${backgroundPattern}`);
+      }
 
       showMessageBox("Theme settings saved successfully!", false);
     }
@@ -475,7 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Manage Custom Themes (delegated to custom_theme_modal.js via setupCustomThemeManagement)
   manageThemesBtn?.addEventListener('click', () => {
     if (auth.currentUser) {
-      // Correctly pass populateThemeSelect to custom_theme_modal.js
+      // Pass correctly imported Firebase instances and utility functions
       setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, themeSelect, DEFAULT_THEME_NAME, auth.currentUser);
     } else {
       showMessageBox("You must be logged in to manage themes.", true);
@@ -558,8 +527,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const credential = EmailAuthProvider.credential(user.email, passwordToConfirm);
       await reauthenticateWithCredential(user, credential);
 
+      // Delete user from Firebase Auth
       await deleteUser(user);
+      // Correct Firestore data deletion syntax using doc and deleteDoc
       await deleteDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid));
+
       showMessageBox("Your account has been deleted.", false);
       signOut(auth);
       window.location.href = 'sign.html';
@@ -585,7 +557,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const email = emailNotificationsCheckbox.checked;
-    const inApp = inAppNotificationsCheckbox.checked;
+    const inApp = inappNotificationsCheckbox.checked;
 
     const success = await updateUserProfileInFirestore(user.uid, {
       notificationPreferences: {
@@ -621,22 +593,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Close Custom Confirm Modal when clicking its close button
-  document.querySelectorAll('.close-button').forEach(button => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.modal');
-      if (modal) {
+  // General close button logic for OTHER modals (e.g., custom_theme_modal)
+  document.querySelectorAll('.modal .close-button').forEach(button => {
+    const modal = button.closest('.modal');
+    // Ensure this doesn't interfere with the custom-confirm-modal which is handled by utils.js
+    if (modal && modal.id !== 'custom-confirm-modal') {
+      button.addEventListener('click', () => {
         modal.style.display = 'none';
-      }
-    });
+      });
+    }
   });
 
-  // Close Custom Confirm Modal when clicking outside
+  // General outside click logic for OTHER modals (not custom-confirm-modal)
   window.addEventListener('click', (event) => {
-    const customConfirmModalElement = document.getElementById('custom-confirm-modal');
-    if (event.target === customConfirmModalElement) {
-      customConfirmModalElement.style.display = 'none';
-    }
+    document.querySelectorAll('.modal').forEach(modal => {
+      // Exclude custom-confirm-modal, which has its own click-outside logic in utils.js
+      if (modal.id !== 'custom-confirm-modal') {
+        const modalContent = modal.querySelector('.modal-content');
+        // Only close if the click is directly on the modal overlay (not its content)
+        if (modal.style.display === 'flex' && modalContent && !modalContent.contains(event.target) && event.target === modal) {
+          modal.style.display = 'none';
+        }
+      }
+    });
   });
 
   // Set the current year for the footer
@@ -645,3 +624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentYearElement.textContent = new Date().getFullYear().toString();
   }
 });
+
+// window.onload is no longer needed here as DOMContentLoaded handles all necessary initialization.
+// Any code below this point will execute after DOMContentLoaded but before window.onload,
+// but the core setup is managed by the DOMContentLoaded listener.

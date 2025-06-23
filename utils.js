@@ -1,162 +1,127 @@
-// utils.js: Contains common utility functions.
-
-import { db, appId, getCurrentUser, ADMIN_UIDS } from './firebase-init.js';
-import { collection, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// --- DOM Elements (imported by forms.js, but referenced here for direct DOM manipulation) ---
-const messageBox = document.getElementById('message-box');
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-const confirmMessage = document.getElementById('confirm-message');
-const confirmSubmessage = document.getElementById('confirm-submessage');
-const confirmYesBtn = document.getElementById('confirm-yes');
-const confirmNoBtn = document.getElementById('confirm-no');
-
-// --- Caches for performance ---
-export const userHandleCache = {}; // UID -> handle
-export const handleUidCache = {};   // handle -> UID
-
-// --- EMOJI & MENTION CONFIGURATION ---
-export const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
-const EMOJI_MAP = {
-  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
-  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
-  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏',
-  ':cry:': '😢', ':sleepy:': '😴'
-};
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-
+// utils.js: Provides common utility functions like custom message boxes and confirmation modals.
 
 /**
- * Displays a custom message box for user feedback (success or error).
+ * Displays a custom message box for user feedback.
  * @param {string} message - The message to display.
- * @param {boolean} isError - True if it's an error message, false for success.
+ * @param {boolean} isError - True for error message (red background), false for success message (green background).
  */
 export function showMessageBox(message, isError) {
+  const messageBox = document.getElementById('message-box');
   if (!messageBox) {
     console.error("MessageBox element not found. Message:", message);
     return;
   }
   messageBox.textContent = message;
-  messageBox.className = 'message-box';
+  messageBox.className = 'message-box'; // Reset classes
   if (isError) {
     messageBox.classList.add('error');
   } else {
     messageBox.classList.add('success');
   }
   messageBox.style.display = 'block';
+  // Hide the message box after 5 seconds
   setTimeout(() => {
     messageBox.style.display = 'none';
   }, 5000);
 }
 
 /**
- * Shows a custom confirmation modal to the user.
- * @param {string} message - The main confirmation question or statement.
- * @param {string} [subMessage=''] - An optional secondary message for more detail.
- * @returns {Promise<boolean>} A Promise that resolves to `true` if the user confirms, `false` if cancelled.
+ * Shows a custom confirmation modal.
+ * @param {string} message - The main confirmation message.
+ * @param {string} [subMessage=''] - An optional sub-message for more details.
+ * @returns {Promise<boolean>} Resolves to true if confirmed (Yes), false if cancelled (No).
  */
 export function showCustomConfirm(message, subMessage = '') {
+  console.log("DEBUG: showCustomConfirm called with message:", message);
   return new Promise(resolve => {
+    const customConfirmModal = document.getElementById('custom-confirm-modal');
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmSubmessage = document.getElementById('confirm-submessage');
+    const confirmYesBtn = document.getElementById('confirm-yes');
+    const confirmNoBtn = document.getElementById('confirm-no');
+
+    if (!customConfirmModal || !confirmMessage || !confirmYesBtn || !confirmNoBtn) {
+      console.error("ERROR: Custom confirmation modal elements not found.");
+      // Fallback to true if essential elements are missing, to avoid blocking flow indefinitely
+      resolve(true);
+      return;
+    }
+
     confirmMessage.textContent = message;
     confirmSubmessage.textContent = subMessage;
-    customConfirmModal.style.display = 'flex';
+    customConfirmModal.style.display = 'flex'; // Use flex to center
+    console.log("DEBUG: Custom confirm modal display set to flex.");
 
+    // Event listeners for Yes/No buttons
     const onConfirm = () => {
+      console.log("DEBUG: Custom confirm - Yes clicked. Hiding modal.");
       customConfirmModal.style.display = 'none';
       confirmYesBtn.removeEventListener('click', onConfirm);
       confirmNoBtn.removeEventListener('click', onCancel);
+      window.removeEventListener('click', closeOnOutsideClick); // Ensure all listeners are removed
       resolve(true);
     };
 
     const onCancel = () => {
+      console.log("DEBUG: Custom confirm - Cancel clicked or closed by other means. Hiding modal.");
       customConfirmModal.style.display = 'none';
       confirmYesBtn.removeEventListener('click', onConfirm);
       confirmNoBtn.removeEventListener('click', onCancel);
+      window.removeEventListener('click', closeOnOutsideClick); // Ensure all listeners are removed
       resolve(false);
     };
 
+    // Remove any previous listeners to prevent duplicates
+    confirmYesBtn.removeEventListener('click', onConfirm); // Defensive removal
+    confirmNoBtn.removeEventListener('click', onCancel);   // Defensive removal
+    window.removeEventListener('click', closeOnOutsideClick); // Defensive removal
+
     confirmYesBtn.addEventListener('click', onConfirm);
     confirmNoBtn.addEventListener('click', onCancel);
+
+    // Also close if click outside the modal content, but not on the content itself
+    const closeOnOutsideClick = (event) => {
+      // Check if the click was on the modal background itself, not a child element
+      if (event.target === customConfirmModal) {
+        console.log("DEBUG: Custom confirm - Clicked outside modal background. Calling onCancel().");
+        onCancel(); // Treat outside click as a cancel
+      }
+    };
+    window.addEventListener('click', closeOnOutsideClick);
+
+    // Add a listener to the close button within the modal
+    const closeButton = customConfirmModal.querySelector('.close-button');
+    if (closeButton) {
+      // Defensive removal before adding to prevent duplicates
+      const existingOnCloseButtonClick = closeButton._onCloseButtonClick; // Store reference if exists
+      if (existingOnCloseButtonClick) {
+        closeButton.removeEventListener('click', existingOnCloseButtonClick);
+      }
+
+      const onCloseButtonClick = () => {
+        console.log("DEBUG: Custom confirm - Close button clicked. Calling onCancel().");
+        onCancel(); // Treat close button click as a cancel
+        closeButton.removeEventListener('click', onCloseButtonClick);
+        closeButton._onCloseButtonClick = null; // Clear reference
+      };
+      closeButton.addEventListener('click', onCloseButtonClick);
+      closeButton._onCloseButtonClick = onCloseButtonClick; // Store reference for removal
+    }
   });
 }
 
-/**
- * Sanitizes a string to be suitable for a user handle.
- * Converts to lowercase and removes any characters not allowed (alphanumeric, underscore, dot, hyphen).
- * @param {string} input - The raw string to sanitize.
- * @returns {string} The sanitized handle string.
- */
-export function sanitizeHandle(input) {
-  return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
-}
-
-/**
- * Resolves an array of user handles to their corresponding UIDs.
- * Caches results for future use.
- * @param {string[]} handles - An array of user handles (e.g., ['@user1', 'user2']).
- * @returns {Promise<string[]>} A Promise that resolves to an array of user UIDs.
- */
-export async function resolveHandlesToUids(handles) {
-  const uids = [];
-  const handlesToFetch = [];
-
-  for (const handle of handles) {
-    const sanitizedHandle = sanitizeHandle(handle.startsWith('@') ? handle.substring(1) : handle);
-    if (handleUidCache[sanitizedHandle]) {
-      uids.push(handleUidCache[sanitizedHandle]);
-    } else {
-      handlesToFetch.push(sanitizedHandle);
-    }
-  }
-
-  if (handlesToFetch.length > 0) {
-    const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-    // Firestore 'in' query supports up to 10 items
-    const q = query(userProfilesRef, where("handle", "in", handlesToFetch));
-    try {
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach(docSnap => {
-        const profile = docSnap.data();
-        const uid = docSnap.id;
-        if (profile.handle) {
-          userHandleCache[uid] = profile.handle;
-          handleUidCache[profile.handle] = uid;
-          uids.push(uid);
-        }
-      });
-    } catch (error) {
-      console.error("Error resolving handles from Firestore:", error);
-      showMessageBox("Error resolving some user handles.", true);
-    }
-  }
-  return uids;
-}
-
-/**
- * Fetches user profile data from the 'user_profiles' collection in Firestore.
- * Caches results for future use.
- * @param {string} uid - The User ID (UID) to fetch the profile for.
- * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
- */
-export async function getUserProfileFromFirestore(uid) {
-  if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-    return null;
-  }
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-      const profile = docSnap.data();
-      userHandleCache[uid] = profile.handle;
-      if (profile.handle) handleUidCache[profile.handle] = uid;
-      return profile;
-    }
-  } catch (error) {
-    console.error("Error fetching user profile from Firestore:", error);
-  }
-  return null;
-}
+// --- EMOJI & MENTION CONFIGURATION ---
+// IMPORTANT: COMMON_EMOJIS must be exported for other modules (like forms.js) to use it.
+export const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', '💡', '🤔'];
+const EMOJI_MAP = {
+  ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
+  ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
+  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '�',
+  ':cry:': '😢', ':sleepy:': '😴'
+};
+// These caches are now correctly exported for use in modules like forms.js
+export const userHandleCache = {}; // UID -> handle
+export const handleUidCache = {};   // handle -> UID
 
 /**
  * Replaces emoji shortcodes (e.g., :smile:) in a given text with their corresponding emoji characters.
@@ -172,70 +137,60 @@ export function parseEmojis(text) {
   return processedText;
 }
 
-/**
- * Parses a given text for user mentions (e.g., @username) and converts them into clickable links.
- * It looks up the mentioned handles in Firestore (or cache) to get their UIDs for the link.
- * @param {string} text - The input text containing potential user mentions.
- * @returns {Promise<string>} A Promise that resolves with the text, with mentions converted to HTML links.
- */
+// Placeholder for parseMentions, which typically relies on Firebase
+// and user data. This should be in forms.js or a dedicated data-fetching module.
+// Keeping a stub here for now to avoid breaking imports, but full implementation
+// relies on Firebase.
 export async function parseMentions(text) {
-  let processedText = text;
-  const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
-  let match;
-  const mentionsToResolve = new Map();
-
-  while ((match = mentionRegex.exec(text)) !== null) {
-    const mentionedHandle = match[1];
-    if (!mentionsToResolve.has(mentionedHandle)) {
-      mentionsToResolve.set(mentionedHandle, null);
-    }
-  }
-
-  for (const [mentionedHandle, _] of mentionsToResolve) {
-    let resolvedUid = handleUidCache[mentionedHandle];
-
-    if (!resolvedUid) {
-      const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-      const q = query(userProfilesRef, where("handle", "==", mentionedHandle));
-      try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          querySnapshot.forEach(docSnap => {
-            resolvedUid = docSnap.id;
-            userHandleCache[resolvedUid] = mentionedHandle;
-            handleUidCache[mentionedHandle] = resolvedUid;
-          });
-        }
-      } catch (error) {
-        console.error("Error resolving mentioned handle from Firestore:", error);
-      }
-    }
-    mentionsToResolve.set(mentionedHandle, resolvedUid);
-  }
-
-  processedText = text.replace(mentionRegex, (fullMatch, mentionedHandle) => {
-    const resolvedUid = mentionsToResolve.get(mentionedHandle);
-    if (resolvedUid) {
-      return `<a href="settings.html?uid=${resolvedUid}" class="text-blue-400 hover:underline">@${mentionedHandle}</a>`;
-    } else {
-      return fullMatch;
-    }
-  });
-
-  return processedText;
+  // This function typically needs access to `db` and `appId` to resolve handles.
+  // The full implementation is in forms.js, which imports this stub.
+  // So, this effectively becomes a pass-through if forms.js handles the actual parsing.
+  return text; // Return original text if not fully implemented here
 }
+
+
+/**
+ * Fetches user profile data from Firestore.
+ * This is a helper function used in other modules.
+ * @param {string} uid - The User ID (UID) to fetch the profile for.
+ * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
+ */
+// This function relies on `db` and `appId` which are passed via firebase-init.js or imported directly.
+// For `utils.js` to be truly independent of Firebase, `db` and `appId` would need to be passed as arguments
+// if `getUserProfileFromFirestore` were a top-level function here.
+// However, it's currently imported by modules that already have `db` and `appId` (like forms.js).
+// So, we will keep it simple here and assume `db` and `appId` are available in the calling context where this is used.
+export async function getUserProfileFromFirestore(dbInstance, appIdValue, uid) {
+  if (!dbInstance) {
+    console.error("Firestore DB not initialized for getUserProfileFromFirestore in utils.js.");
+    return null;
+  }
+  const userDocRef = dbInstance.collection(`artifacts/${appIdValue}/public/data/user_profiles`).doc(uid);
+  try {
+    const docSnap = await userDocRef.get();
+    if (docSnap.exists) {
+      return docSnap.data();
+    }
+  } catch (error) {
+    console.error("Error fetching user profile from Firestore in utils.js:", error);
+  }
+  return null;
+}
+
 
 /**
  * Renders the emoji reaction buttons (and their counts) for a given item (thread or comment).
+ * This function expects to be called with necessary data and a handler for clicks.
  * @param {'thread'|'comment'} type - The type of item being reacted to.
  * @param {string} itemId - The ID of the thread or parent thread.
  * @param {Object} reactions - The reactions object from Firestore for this item.
  * @param {HTMLElement} containerElement - The DOM element where the reaction buttons should be appended.
  * @param {string | null} commentId - Optional: The ID of the comment if `type` is 'comment'.
+ * @param {function} getCurrentUserFunc - Function to get the current authenticated user.
  */
-export function renderReactionButtons(type, itemId, reactions, containerElement, commentId = null) {
+export function renderReactionButtons(type, itemId, reactions, containerElement, getCurrentUserFunc, commentId = null) {
   containerElement.innerHTML = '';
-  const currentUser = getCurrentUser(); // Get current user from firebase-init
+  const currentUser = getCurrentUserFunc(); // Get current user using the passed function
 
   COMMON_EMOJIS.forEach(emoji => {
     const count = reactions[emoji] ? Object.keys(reactions[emoji]).length : 0;
@@ -245,19 +200,13 @@ export function renderReactionButtons(type, itemId, reactions, containerElement,
     const button = document.createElement('button');
     button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
     button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
-    button.addEventListener('click', () => {
-      // This relies on the calling module to provide the handleReaction function
-      // which will need to be passed down or accessed via a global event bus if strict modularity is enforced.
-      // For now, we'll assume the event listener will be attached directly by the calling module (e.g., forum.js)
-      // or that handleReaction is exposed globally if simpler.
-      // To avoid tight coupling, a better pattern might be:
-      // button.dataset.type = type; button.dataset.itemId = itemId; button.dataset.commentId = commentId; button.dataset.emoji = emoji;
-      // Then an outer event listener on the parent container (e.g., threadsList) handles clicks.
-      // For this refactor, let's keep event attachment here and assume `handleReaction` is provided by the calling module's scope.
-      // Or, better, pass it as a parameter:
-      // renderReactionButtons(..., handleReactionFunc)
-      console.warn("Reaction button click not directly handled in utils.js. Ensure calling module provides handler.");
-    });
+    // The event listener is attached by the calling module (forms.js)
+    // to avoid coupling utils.js directly to the toggleReaction function.
+    button.dataset.emoji = emoji; // Store emoji for handler
+    button.dataset.itemId = itemId;
+    button.dataset.type = type;
+    if (commentId) button.dataset.commentId = commentId;
+
     containerElement.appendChild(button);
   });
 
@@ -271,10 +220,40 @@ export function renderReactionButtons(type, itemId, reactions, containerElement,
       const button = document.createElement('button');
       button.className = `reaction-btn px-2 py-1 rounded-full text-sm mr-1 mb-1 transition-colors duration-200 ${buttonClass}`;
       button.innerHTML = `${emoji} <span class="font-bold">${count}</span>`;
-      button.addEventListener('click', () => {
-        console.warn("Reaction button click for non-common emoji not directly handled in utils.js. Ensure calling module provides handler.");
-      });
+      button.dataset.emoji = emoji; // Store emoji for handler
+      button.dataset.itemId = itemId;
+      button.dataset.type = type;
+      if (commentId) button.dataset.commentId = commentId;
       containerElement.appendChild(button);
     }
   }
 }
+
+/**
+ * Sanitizes a string to be suitable for a user handle.
+ * Converts to lowercase and removes any characters not allowed (alphanumeric, underscore, dot, hyphen).
+ * @param {string} input - The raw string to sanitize.
+ * @returns {string} The sanitized handle string.
+ */
+export function sanitizeHandle(input) {
+  return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+}
+
+
+// --- DEBUGGING INITIAL MODAL STATE ---
+document.addEventListener('DOMContentLoaded', () => {
+  const customConfirmModal = document.getElementById('custom-confirm-modal');
+  if (customConfirmModal) {
+    console.log("DEBUG-INIT: custom-confirm-modal element found.");
+    const currentDisplay = window.getComputedStyle(customConfirmModal).display;
+    if (currentDisplay !== 'none') {
+      console.log(`DEBUG-INIT: custom-confirm-modal is VISIBLE by default! Current display: ${currentDisplay}. Forcibly hiding it.`);
+      // Attempt to hide it forcefully if it's visible by default
+      customConfirmModal.style.display = 'none';
+    } else {
+      console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
+    }
+  } else {
+    console.error("DEBUG-INIT: custom-confirm-modal element NOT found in DOM.");
+  }
+});

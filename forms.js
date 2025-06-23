@@ -1,250 +1,213 @@
+/* global EasyMDE, marked */ // Explicitly declare EasyMDE and marked as global variables
+
 // forms.js: This script handles forum thread and comment functionality,
-// including real-time updates, reactions, emoji parsing, user mentions,
-// and dynamic display of temporary pages.
+// including real-time updates, reactions, emoji parsing, and user mentions.
 
 // Debug log to check if the script starts executing.
 console.log("forms.js - Script parsing initiated.");
 
-/* global EasyMDE, marked */ // Explicitly declare EasyMDE and marked as globals for linters
-
 // --- Firebase Imports ---
-import {
-  auth,
-  db,
-  appId,
-  getCurrentUser,
-  getUserProfileFromFirestore,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME,
-  firebaseReadyPromise
-} from './firebase-init.js';
-
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot, // Using onSnapshot for real-time updates
-  query,
-  getDocs,
-  serverTimestamp,
-  // arrayUnion, // Not currently used, removed for clarity
-  // arrayRemove // Not currently used, removed for clarity
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Local Module Imports ---
-import { applyTheme, getAvailableThemes } from './themes.js';
+import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
 import { loadNavbar } from './navbar.js';
-import { showMessageBox, showCustomConfirm } from './utils.js'; // Utility for messages and confirmations
-
-// --- DOM Elements (Declared as null, assigned in DOMContentLoaded) ---
-let createThreadForm = null;
-let threadTitleInput = null;
-let threadThemeSelect = null; // New: Thread theme/category select
-let threadContentTextarea = null;
-let threadsList = null;
-let threadDetailModal = null;
-let modalThreadTitle = null;
-let modalThreadMeta = null;
-let modalThreadContent = null;
-let threadReactionsContainer = null;
-let commentsList = null;
-let addCommentForm = null;
-let commentContentTextarea = null;
-let temporaryPagesList = null;
-let threadCategoryListDiv = null; // New: Container for thread category buttons
-let showAllThreadsBtn = null; // New: Button to show all threads
-
-// EasyMDE instance for thread content
-let easyMDEThreadContent;
-
-let currentThreadId = null; // To keep track of the currently viewed thread
-let unsubscribeComments = null; // To unsubscribe from comments snapshot listener
-let currentThreadFilterThemeId = null; // To keep track of the currently applied thread filter theme
+// Corrected import: only pull what forms.js directly uses
+import { showMessageBox, showCustomConfirm, COMMON_EMOJIS, parseEmojis, parseMentions, renderReactionButtons, getUserProfileFromFirestore, sanitizeHandle } from './utils.js';
+import { auth, db, appId, getCurrentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js'; // Import centralized Firebase instances and functions
 
 
-// --- Initialization ---
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("forms.js - DOMContentLoaded event fired.");
+// --- DOM Elements ---
+const createThreadForm = document.getElementById('create-thread-form');
+const threadTitleInput = document.getElementById('thread-title');
+const threadThemeSelect = document.getElementById('thread-theme-select'); // For selecting theme
+const threadContentInput = document.getElementById('thread-content');
+const threadsList = document.getElementById('threads-list');
+const threadDetailModal = document.getElementById('thread-detail-modal');
+const modalThreadTitle = document.getElementById('modal-thread-title');
+const modalThreadMeta = document.getElementById('modal-thread-meta');
+const modalThreadContent = document.getElementById('modal-thread-content');
+const addCommentForm = document.getElementById('add-comment-form');
+const commentContentInput = document.getElementById('comment-content');
+const commentsList = document.getElementById('comments-list');
+const threadReactionsContainer = document.getElementById('thread-reactions-container');
+const logoutBtn = document.getElementById('logout-btn'); // Assuming this exists in navbar or forms if needed
+const customConfirmModal = document.getElementById('custom-confirm-modal'); // Re-get it for this scope
+const loginRequiredMessage = document.getElementById('login-required-message');
 
-  // Assign DOM elements now that the document is ready
-  createThreadForm = document.getElementById('create-thread-form');
-  threadTitleInput = document.getElementById('thread-title');
-  threadThemeSelect = document.getElementById('thread-theme-select'); // Assign new element
-  threadContentTextarea = document.getElementById('thread-content');
-  threadsList = document.getElementById('threads-list');
-  threadDetailModal = document.getElementById('thread-detail-modal');
-  modalThreadTitle = document.getElementById('modal-thread-title');
-  modalThreadMeta = document.getElementById('modal-thread-meta');
-  modalThreadContent = document.getElementById('modal-thread-content');
-  threadReactionsContainer = document.getElementById('thread-reactions-container');
-  commentsList = document.getElementById('comments-list');
-  addCommentForm = document.getElementById('add-comment-form');
-  commentContentTextarea = document.getElementById('comment-content');
-  temporaryPagesList = document.getElementById('temporary-pages-list');
-  threadCategoryListDiv = document.getElementById('thread-category-list'); // Assign new element
-  showAllThreadsBtn = document.getElementById('show-all-threads-btn'); // Assign new element
+const threadCategoryList = document.getElementById('thread-category-list'); // For filter buttons
+const categoriesLoadingMessage = document.getElementById('categories-loading-message'); // Loading message for categories
 
-  // Await Firebase to be fully ready before proceeding with any Firebase-dependent operations
-  await firebaseReadyPromise;
+// EasyMDE instance for creating new threads
+let easyMDECreateThread;
+// EasyMDE instance for comments (if implemented as EasyMDE, currently textarea)
+let easyMDEComment;
 
-  // Load the navbar
-  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+let currentThreadId = null; // To keep track of the thread currently open in the modal
+let unsubscribeComments = null; // To unsubscribe from comments listener when modal closes
+let unsubscribeReactions = null; // To unsubscribe from reactions listener when modal closes
 
-  // Initialize EasyMDE for thread content after DOM is ready
-  if (threadContentTextarea) {
-    easyMDEThreadContent = new EasyMDE({
-      element: threadContentTextarea,
-      spellChecker: false,
-      forceSync: true,
-      minHeight: "150px",
-      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-    });
-    console.log("EasyMDE for thread content initialized.");
-  } else {
-    console.warn("Thread content textarea not found for EasyMDE initialization.");
-  }
+let availableForumThemes = []; // To store fetched forum themes (renamed from availableForumCategories)
 
-  // Set the current year for the footer
-  const currentYearElement = document.getElementById('current-year-forms');
-  if (currentYearElement) {
-    currentYearElement.textContent = new Date().getFullYear().toString();
-  }
-
-  // Populate theme dropdown for new threads
-  await populateThreadThemeSelect();
-
-  // Fetch and display content on load (initial render of all threads)
-  await renderThreads(null); // Render all threads initially
-  await renderTemporaryPages(); // Render temporary pages
-  await renderThreadCategories(); // Render theme/category buttons for filtering
-
-  // Attach event listeners
-  if (createThreadForm) {
-    createThreadForm.addEventListener('submit', handleCreateThread);
-  }
-
-  if (addCommentForm) {
-    addCommentForm.addEventListener('submit', handleAddComment);
-  }
-
-  // Event listener for "Show All Threads" button
-  if (showAllThreadsBtn) {
-    showAllThreadsBtn.addEventListener('click', () => {
-      currentThreadFilterThemeId = null; // Clear filter
-      renderThreads(null); // Re-render all threads
-      showMessageBox("Showing all threads.", false);
-    });
-  }
-
-  // Close modal when clicking on the close button or outside
-  threadDetailModal?.querySelector('.close-button')?.addEventListener('click', () => {
-    if (threadDetailModal) threadDetailModal.style.display = 'none';
-    if (unsubscribeComments) {
-      unsubscribeComments(); // Unsubscribe from comments when modal closes
-      unsubscribeComments = null;
-    }
-  });
-
-  window.addEventListener('click', (event) => {
-    if (event.target === threadDetailModal) {
-      if (threadDetailModal) threadDetailModal.style.display = 'none';
-      if (unsubscribeComments) {
-        unsubscribeComments();
-        unsubscribeComments = null;
-      }
-    }
-  });
-
-  // Apply initial theme based on user preference or default
-  const user = getCurrentUser();
-  let userProfile = null;
-  if (user && user.uid) {
-    userProfile = await getUserProfileFromFirestore(user.uid);
-  }
-  const userThemePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
-  const allThemes = await getAvailableThemes();
-  const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-  applyTheme(themeToApply.id, themeToApply);
-});
-
-
-// --- Thread Functions ---
+// --- Firebase Initialization (handled by firebase-init.js) ---
+// The `auth`, `db`, and `appId` variables are now imported from firebase-init.js.
+// `setupFirebaseAndUser()` is called in window.onload.
 
 /**
- * Populates the theme/category select dropdown for creating new threads.
+ * Fetches all available forum themes from Firestore.
+ * @returns {Promise<Array>} A promise that resolves with an array of theme objects.
  */
-async function populateThreadThemeSelect() {
+async function fetchForumThemes() { // Renamed from fetchForumCategories
+  if (!db) {
+    console.error("Firestore DB not initialized for fetching forum themes.");
+    return [];
+  }
+  const themesCol = collection(db, `artifacts/${appId}/public/data/themes`); // Points to themes collection
+  try {
+    const querySnapshot = await getDocs(themesCol);
+    const themes = []; // Renamed from categories
+    querySnapshot.forEach(doc => {
+      themes.push({ id: doc.id, ...doc.data() });
+    });
+    availableForumThemes = themes; // Store for later use (renamed from availableForumCategories)
+    console.log("DEBUG: Fetched forum themes:", themes.length, themes);
+    return themes;
+  } catch (error) {
+    console.error("Error fetching forum themes:", error);
+    showMessageBox("Error loading forum themes.", true);
+    return [];
+  }
+}
+
+/**
+ * Populates the thread theme select dropdown with available themes.
+ */
+async function populateThreadCategorySelect() { // Function name kept for now, but internally uses 'theme'
   if (!threadThemeSelect) return;
-  threadThemeSelect.innerHTML = '<option value="">Loading themes...</option>';
-  const allThemes = await getAvailableThemes();
-  threadThemeSelect.innerHTML = ''; // Clear loading message
 
-  // Add a default "No Category" option
-  const noCategoryOption = document.createElement('option');
-  noCategoryOption.value = '';
-  noCategoryOption.textContent = 'No Specific Category';
-  threadThemeSelect.appendChild(noCategoryOption);
+  threadThemeSelect.innerHTML = '<option value="">Select a Theme</option>'; // Default option (changed from Category)
+  if (availableForumThemes.length === 0) { // Renamed from availableForumCategories
+    threadThemeSelect.innerHTML += '<option value="" disabled>No themes available</option>'; // Changed from categories
+    return;
+  }
 
-  allThemes.forEach(theme => {
+  availableForumThemes.forEach(theme => { // Changed from category
     const option = document.createElement('option');
     option.value = theme.id;
     option.textContent = theme.name;
     threadThemeSelect.appendChild(option);
   });
-  console.log("Thread theme select populated.");
 }
 
 /**
- * Handles the creation of a new forum thread.
- * @param {Event} event - The form submission event.
+ * Renders the theme filter buttons dynamically.
+ * @param {Array} themes - Array of theme objects. (renamed from categories)
+ * @param {string} activeThemeId - The ID of the currently active theme filter, or 'all'. (renamed from activeCategoryId)
  */
-async function handleCreateThread(event) {
-  event.preventDefault();
+async function renderCategoryFilterButtons(themes, activeThemeId = 'all') { // Function name kept for now, but internally uses 'theme'
+  if (!threadCategoryList) return;
 
+  threadCategoryList.innerHTML = ''; // Clear existing buttons
+  categoriesLoadingMessage.style.display = 'none'; // Hide loading message
+
+  // Add "All Threads" button
+  const allThreadsButton = document.createElement('button');
+  allThreadsButton.textContent = 'All Threads'; // Kept as All Threads for general filter
+  allThreadsButton.dataset.categoryId = 'all'; // Kept dataset for consistency with filter logic
+  allThreadsButton.classList.add('px-4', 'py-2', 'rounded-full', 'transition', 'duration-300', 'ease-in-out', 'shadow-lg', 'text-sm');
+  if (activeThemeId === 'all') {
+    allThreadsButton.classList.add('active-category-filter');
+  }
+  allThreadsButton.addEventListener('click', () => {
+    filterThreadsByCategory('all');
+    updateActiveFilterButton('all');
+  });
+  threadCategoryList.appendChild(allThreadsButton);
+
+  // Add buttons for each theme
+  themes.forEach(theme => { // Changed from category
+    const button = document.createElement('button');
+    button.textContent = theme.name; // Display theme name on button
+    button.dataset.categoryId = theme.id; // Kept dataset for consistency with filter logic
+    button.classList.add('px-4', 'py-2', 'rounded-full', 'transition', 'duration-300', 'ease-in-out', 'shadow-lg', 'text-sm');
+    if (activeThemeId === theme.id) {
+      button.classList.add('active-category-filter');
+    }
+    button.addEventListener('click', () => {
+      filterThreadsByCategory(theme.id);
+      updateActiveFilterButton(theme.id);
+    });
+    threadCategoryList.appendChild(button);
+  });
+}
+
+/**
+ * Updates the visual active state of the theme filter buttons.
+ * @param {string} activeId - The ID of the currently active theme.
+ */
+function updateActiveFilterButton(activeId) {
+  document.querySelectorAll('#thread-category-list button').forEach(button => {
+    if (button.dataset.categoryId === activeId) {
+      button.classList.add('active-category-filter');
+    } else {
+      button.classList.remove('active-category-filter');
+    }
+  });
+}
+
+/**
+ * Filters and renders threads based on the selected theme.
+ * @param {string} themeId - The ID of the theme to filter by, or 'all'. (renamed from categoryId)
+ */
+async function filterThreadsByCategory(themeId) { // Function name kept for now, but internally uses 'themeId'
+  console.log("DEBUG: Filtering threads by theme:", themeId);
+  await fetchThreads(themeId);
+}
+
+
+/**
+ * Creates a new forum thread.
+ * @param {string} title - The title of the thread.
+ * @param {string} content - The content of the thread (Markdown).
+ * @param {string} themeId - The ID of the selected theme. (renamed from categoryId)
+ */
+async function createThread(title, content, themeId) { // Renamed from createThread(title, content, categoryId)
   const user = auth.currentUser;
   if (!user) {
     showMessageBox("You must be logged in to create a thread.", true);
     return;
   }
-
-  const title = threadTitleInput.value.trim();
-  const content = easyMDEThreadContent.value().trim(); // Get content from EasyMDE
-  const selectedThemeId = threadThemeSelect.value || null; // Get selected theme ID
-
-  if (!title || !content) {
-    showMessageBox("Please enter both a title and content for your thread.", true);
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot create thread.", true);
+    return;
+  }
+  if (!themeId) { // Changed from categoryId
+    showMessageBox("Please select a theme for your thread.", true); // Changed message
     return;
   }
 
+  const threadsCol = collection(db, `artifacts/${appId}/public/data/threads`);
   try {
-    const userProfile = await getUserProfileFromFirestore(user.uid);
-    const authorDisplayName = userProfile?.displayName || user.displayName || 'Anonymous';
-    const authorHandle = userProfile?.handle || `user${user.uid.substring(0, 5)}`;
-    const authorPhotoURL = userProfile?.photoURL || DEFAULT_PROFILE_PIC;
-
-    const threadsCollectionRef = collection(db, `artifacts/${appId}/public/data/forum_threads`);
-    await addDoc(threadsCollectionRef, {
+    const docRef = await addDoc(threadsCol, {
       title: title,
       content: content,
-      themeId: selectedThemeId, // Save the selected theme ID
-      authorId: user.uid,
-      authorDisplayName: authorDisplayName,
-      authorHandle: authorHandle,
-      authorPhotoURL: authorPhotoURL,
+      authorUid: user.uid,
+      authorDisplayName: user.displayName || user.email,
+      authorProfilePic: user.photoURL || DEFAULT_PROFILE_PIC,
+      themeId: themeId, // Store the selected theme ID (changed from categoryId)
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      lastCommentAt: serverTimestamp(),
       commentsCount: 0,
-      reactions: {}
+      reactions: {} // Initialize reactions object
     });
     showMessageBox("Thread created successfully!", false);
     threadTitleInput.value = '';
-    threadThemeSelect.value = ''; // Reset theme select
-    easyMDEThreadContent.value(''); // Clear EasyMDE content
-    await renderThreads(currentThreadFilterThemeId); // Re-render with current filter
+    easyMDECreateThread.value(''); // Clear EasyMDE editor
+    threadThemeSelect.value = ''; // Reset theme select (changed from category select)
+    await fetchThreads('all'); // Re-fetch all threads to show the new one
+    console.log("DEBUG: Thread created:", docRef.id);
   } catch (error) {
     console.error("Error creating thread:", error);
     showMessageBox(`Error creating thread: ${error.message}`, true);
@@ -253,294 +216,311 @@ async function handleCreateThread(event) {
 
 /**
  * Fetches forum threads from Firestore, optionally filtered by theme.
- * Performs client-side sorting.
- * @param {string|null} themeId - Optional. The ID of the theme to filter by. If null, fetches all.
- * @returns {Promise<Array<Object>>} An array of thread objects.
+ * @param {string|null} themeId - The ID of the theme to filter by, or 'all'/'null' for all threads. (renamed from categoryId)
  */
-async function fetchThreads(themeId = null) {
+async function fetchThreads(themeId = 'all') { // Renamed from fetchThreads(categoryId)
   if (!db) {
-    console.error("Firestore DB not initialized for fetching threads.");
-    return [];
+    threadsList.innerHTML = '<p class="text-red-500 text-center text-lg">Database not initialized. Cannot load threads.</p>';
+    return;
   }
-  const threadsCollectionRef = collection(db, `artifacts/${appId}/public/data/forum_threads`);
-  let q = threadsCollectionRef;
 
-  // No Firestore .where() or .orderBy() used to avoid index requirements
-  // All filtering and sorting will be client-side.
+  threadsList.innerHTML = '<p class="text-gray-400 text-center text-lg">Loading threads...</p>';
+  document.getElementById('threads-loading-error').classList.add('hidden');
+  document.getElementById('no-threads-message').classList.add('hidden');
+
+  let threadsQuery = collection(db, `artifacts/${appId}/public/data/threads`);
+
+  // Apply theme filter if not 'all'
+  if (themeId && themeId !== 'all') { // Changed from categoryId
+    threadsQuery = query(threadsQuery, where("themeId", "==", themeId)); // Filter by themeId (changed from categoryId)
+  }
+
+  // Sort by createdAt in descending order (newest first)
+  threadsQuery = query(threadsQuery, orderBy("createdAt", "desc"));
 
   try {
-    const querySnapshot = await getDocs(q);
-    let threads = [];
-    querySnapshot.forEach(doc => {
-      const data = doc.data();
-      threads.push({ id: doc.id, ...data });
-    });
-
-    // Client-side filtering by theme
-    if (themeId) {
-      threads = threads.filter(thread => thread.themeId === themeId);
+    const querySnapshot = await getDocs(threadsQuery);
+    const threads = [];
+    if (querySnapshot.empty) {
+      document.getElementById('no-threads-message').classList.remove('hidden');
+      threadsList.innerHTML = ''; // Clear loading message
+      return;
     }
-
-    // Client-side sorting by lastCommentAt (descending), then by createdAt (descending)
-    threads.sort((a, b) => {
-      const aLastCommentTime = a.lastCommentAt?.toDate() || a.createdAt?.toDate();
-      const bLastCommentTime = b.lastCommentAt?.toDate() || b.createdAt?.toDate();
-      const timeA = aLastCommentTime ? aLastCommentTime.getTime() : 0;
-      const timeB = bLastCommentTime ? bLastCommentTime.getTime() : 0;
-      return timeB - timeA; // Descending order
+    querySnapshot.forEach(doc => {
+      threads.push({ id: doc.id, ...doc.data() });
     });
-
-    console.log(`Threads fetched (${threads.length}) with filter: ${themeId || 'None'}`);
-    return threads;
+    renderThreads(threads);
+    console.log("DEBUG: Fetched threads:", threads.length, "for theme:", themeId); // Changed from category
   } catch (error) {
     console.error("Error fetching threads:", error);
+    document.getElementById('threads-loading-error').classList.remove('hidden');
+    threadsList.innerHTML = ''; // Clear loading message
     showMessageBox(`Error loading threads: ${error.message}`, true);
-    return [];
   }
 }
+
 
 /**
  * Renders the list of forum threads.
- * @param {string|null} filterThemeId - Optional theme ID to filter by.
+ * @param {Array} threads - An array of thread objects.
  */
-async function renderThreads(filterThemeId = null) {
-  currentThreadFilterThemeId = filterThemeId; // Update global filter state
-  if (!threadsList) return;
-
-  threadsList.innerHTML = '<p class="text-gray-300 text-center">Loading threads...</p>';
-  const threads = await fetchThreads(filterThemeId);
-  threadsList.innerHTML = ''; // Clear loading message
+async function renderThreads(threads) {
+  threadsList.innerHTML = ''; // Clear existing threads
 
   if (threads.length === 0) {
-    threadsList.innerHTML = '<p class="text-gray-300 text-center">No threads found for this category. Be the first to create one!</p>';
+    document.getElementById('no-threads-message').classList.remove('hidden');
     return;
   }
 
-  // Fetch all themes to display theme names
-  const allThemes = await getAvailableThemes();
-  const getThemeName = (id) => {
-    const theme = allThemes.find(t => t.id === id);
-    return theme ? theme.name : 'Uncategorized';
-  };
-
-  threads.forEach(thread => {
+  for (const thread of threads) {
     const threadElement = document.createElement('div');
-    threadElement.classList.add('thread-item', 'border', 'border-input-border', 'hover:border-link', 'p-4', 'rounded-lg', 'mb-4', 'cursor-pointer');
-    threadElement.dataset.threadId = thread.id;
+    threadElement.classList.add('thread-item', 'mb-6'); // Apply modern Reddit-like styling
 
-    const createdAt = thread.createdAt?.toDate ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-    const lastCommentAt = thread.lastCommentAt?.toDate ? new Date(thread.lastCommentAt.toDate()).toLocaleString() : 'N/A';
-    const threadThemeName = getThemeName(thread.themeId);
+    // Fetch author profile for display name and picture if not already present or updated
+    let authorDisplayName = thread.authorDisplayName || "Anonymous";
+    let authorProfilePic = thread.authorProfilePic || DEFAULT_PROFILE_PIC;
+    try {
+      // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
+      const authorProfile = await getUserProfileFromFirestore(db, appId, thread.authorUid);
+      if (authorProfile) {
+        authorDisplayName = authorProfile.displayName || authorDisplayName;
+        authorProfilePic = authorProfile.photoURL || authorProfilePic;
+      }
+    } catch (e) {
+      console.warn("Could not fetch author profile for thread:", thread.authorUid, e);
+    }
+
+    const formattedDate = thread.createdAt?.toDate ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+    const commentsCount = thread.commentsCount || 0;
+
+    let themeName = 'Uncategorized'; // Renamed from categoryName
+    if (thread.themeId) { // Changed from categoryId
+      const theme = availableForumThemes.find(t => t.id === thread.themeId); // Renamed from category, availableForumCategories
+      if (theme) {
+        themeName = theme.name; // Changed from categoryName = category.name
+      }
+    }
+
+    const contentPreview = thread.content ? marked.parse(thread.content).substring(0, 200) + '...' : 'No content preview available.';
 
     threadElement.innerHTML = `
-      <div class="flex items-center mb-2">
-        <img src="${thread.authorPhotoURL || DEFAULT_PROFILE_PIC}" alt="${thread.authorDisplayName}'s profile pic" class="profile-pic-small mr-2">
+      <div class="flex items-center mb-4">
+        <img src="${authorProfilePic}" alt="${authorDisplayName}'s profile picture" class="profile-pic-small mr-3">
         <div>
-          <p class="thread-title">${thread.title}</p>
-          <p class="thread-meta">
-            By <span class="font-semibold">${thread.authorHandle}</span> on ${createdAt}
-            ${thread.lastCommentAt ? ` | Last activity: ${lastCommentAt}` : ''}
-            | Comments: ${thread.commentsCount || 0}
-            | Category: <span class="font-semibold text-blue-400">${threadThemeName}</span>
-          </p>
+          <p class="text-gray-200 font-semibold">${authorDisplayName}</p>
+          <p class="text-gray-400 text-xs">${formattedDate}</p>
         </div>
       </div>
-      <div class="thread-content line-clamp-2">${marked.parse(thread.content || '')}</div>
+      <h3 class="thread-title mb-2 cursor-pointer">${parseEmojis(thread.title)}</h3>
+      <p class="thread-meta">Comments: ${commentsCount} | Theme: <span class="thread-category-tag">/t/${themeName}</span></p>
+      <div class="thread-content-preview prose max-w-none">${contentPreview}</div>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 view-thread-btn" data-id="${thread.id}">View Thread</button>
     `;
     threadsList.appendChild(threadElement);
+  }
 
-    threadElement.addEventListener('click', () => openThreadDetailModal(thread.id));
+  // Add event listeners to "View Thread" buttons
+  document.querySelectorAll('.view-thread-btn').forEach(button => {
+    button.addEventListener('click', (event) => {
+      const threadId = event.target.dataset.id;
+      openThreadDetailModal(threadId);
+    });
   });
 }
 
 /**
- * Opens the modal to display a specific thread and its comments.
+ * Opens the thread detail modal and populates it with thread and comment data.
  * @param {string} threadId - The ID of the thread to display.
  */
 async function openThreadDetailModal(threadId) {
-  currentThreadId = threadId;
-  if (unsubscribeComments) {
-    unsubscribeComments();
-  }
+  currentThreadId = threadId; // Set the current thread ID for comment/reaction functions
 
-  if (modalThreadTitle) modalThreadTitle.textContent = 'Loading...';
-  if (modalThreadMeta) modalThreadMeta.textContent = '';
-  if (modalThreadContent) modalThreadContent.innerHTML = '<p class="text-gray-300">Loading thread content...</p>';
-  if (commentsList) commentsList.innerHTML = '<p class="text-gray-300 text-center">Loading comments...</p>';
-  if (threadReactionsContainer) threadReactionsContainer.innerHTML = '';
+  // Clear previous data and show loading state
+  modalThreadTitle.textContent = 'Loading...';
+  modalThreadMeta.textContent = '';
+  modalThreadContent.innerHTML = '<p>Loading thread content...</p>';
+  commentsList.innerHTML = '<p class="text-gray-300 text-center">Loading comments...</p>';
+  threadReactionsContainer.innerHTML = ''; // Clear reactions too
 
-  if (threadDetailModal) threadDetailModal.style.display = 'flex';
+  threadDetailModal.style.display = 'flex'; // Show modal
 
+  // Fetch thread details
+  const threadDocRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId);
   try {
-    const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
     const threadSnap = await getDoc(threadDocRef);
-
     if (threadSnap.exists()) {
       const threadData = threadSnap.data();
-      if (modalThreadTitle) modalThreadTitle.textContent = threadData.title;
 
-      const createdAt = threadData.createdAt?.toDate ? new Date(threadData.createdAt.toDate()).toLocaleString() : 'N/A';
-      const lastCommentAt = threadData.lastCommentAt?.toDate ? new Date(threadData.lastCommentAt.toDate()).toLocaleString() : 'N/A';
-      const allThemes = await getAvailableThemes();
-      const threadThemeName = allThemes.find(t => t.id === threadData.themeId)?.name || 'Uncategorized';
+      // Fetch author profile for display name and picture
+      let authorDisplayName = threadData.authorDisplayName || "Anonymous";
+      let authorProfilePic = threadData.authorProfilePic || DEFAULT_PROFILE_PIC;
+      try {
+        // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
+        const authorProfile = await getUserProfileFromFirestore(db, appId, threadData.authorUid);
+        if (authorProfile) {
+          authorDisplayName = authorProfile.displayName || authorDisplayName;
+          authorProfilePic = authorProfile.photoURL || authorProfilePic;
+        }
+      } catch (e) {
+        console.warn("Could not fetch author profile for thread detail:", threadData.authorUid, e);
+      }
 
-      if (modalThreadMeta) modalThreadMeta.innerHTML = `By <span class="font-semibold">${threadData.authorHandle}</span> on ${createdAt} ${threadData.lastCommentAt ? `| Last activity: ${lastCommentAt}` : ''} | Comments: ${threadData.commentsCount || 0} | Category: <span class="font-semibold text-blue-400">${threadThemeName}</span>`;
+      const formattedDate = threadData.createdAt?.toDate ? new Date(threadData.createdAt.toDate()).toLocaleString() : 'N/A';
+      const themeName = availableForumThemes.find(t => t.id === threadData.themeId)?.name || 'Uncategorized'; // Renamed from categoryName, availableForumCategories, categoryId
 
-      if (modalThreadContent) modalThreadContent.innerHTML = marked.parse(threadData.content || '');
 
-      renderReactions(threadData.reactions || {});
+      modalThreadTitle.textContent = parseEmojis(threadData.title);
+      modalThreadMeta.innerHTML = `By ${authorDisplayName} on ${formattedDate} | Comments: ${threadData.commentsCount || 0} | Theme: /t/${themeName}`; // Changed from Category
+      // Parse Markdown content to HTML
+      // Ensure parseMentions also receives db and appId if it needs them from forms.js scope
+      modalThreadContent.innerHTML = parseEmojis(await parseMentions(marked.parse(threadData.content || '')));
 
-      const commentsCollectionRef = collection(db, `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`);
-      const q = query(commentsCollectionRef);
-      unsubscribeComments = onSnapshot(q, (snapshot) => {
-        const comments = [];
-        snapshot.forEach(commentDoc => {
-          comments.push({ id: commentDoc.id, ...commentDoc.data() });
-        });
-        comments.sort((a, b) => (a.createdAt?.toDate()?.getTime() || 0) - (b.createdAt?.toDate()?.getTime() || 0));
-        renderComments(comments);
-      }, (error) => {
-        console.error("Error listening to comments:", error);
-        if (commentsList) commentsList.innerHTML = `<p class="text-red-400 text-center">Error loading comments: ${error.message}</p>`;
+
+      // Setup real-time listeners for comments and reactions
+      setupCommentsListener(threadId);
+      setupReactionsListener(threadId);
+
+    } else {
+      modalThreadContent.innerHTML = '<p class="text-red-500">Thread not found.</p>';
+      commentsList.innerHTML = '';
+      threadReactionsContainer.innerHTML = '';
+    }
+  } catch (error) {
+    console.error("Error fetching thread details:", error);
+    modalThreadContent.innerHTML = `<p class="text-red-500">Error loading thread: ${error.message}</p>`;
+    commentsList.innerHTML = '';
+    threadReactionsContainer.innerHTML = '';
+  }
+}
+
+/**
+ * Sets up a real-time listener for comments on the current thread.
+ * @param {string} threadId - The ID of the thread.
+ */
+function setupCommentsListener(threadId) {
+  // Unsubscribe from previous listener if it exists
+  if (unsubscribeComments) {
+    unsubscribeComments();
+    console.log("DEBUG: Unsubscribed from previous comments listener.");
+  }
+
+  const commentsColRef = collection(db, `artifacts/${appId}/public/data/threads`, threadId, 'comments');
+  const q = query(commentsColRef, orderBy('createdAt', 'asc')); // Order comments by creation time
+
+  unsubscribeComments = onSnapshot(q, async (snapshot) => {
+    commentsList.innerHTML = ''; // Clear existing comments
+    if (snapshot.empty) {
+      commentsList.innerHTML = '<p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>';
+      // Update comments count on the main thread display as well
+      await updateThreadCommentsCount(threadId, 0);
+      return;
+    }
+
+    let count = 0;
+    for (const commentDoc of snapshot.docs) {
+      count++;
+      const comment = commentDoc.data();
+      const commentElement = document.createElement('div');
+      commentElement.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-sm', 'relative'); // Apply card-like styling
+
+      let authorDisplayName = comment.authorDisplayName || "Anonymous";
+      let authorProfilePic = comment.authorProfilePic || DEFAULT_PROFILE_PIC;
+      try {
+        // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
+        const authorProfile = await getUserProfileFromFirestore(db, appId, comment.authorUid);
+        if (authorProfile) {
+          authorDisplayName = authorProfile.displayName || authorDisplayName;
+          authorProfilePic = authorProfile.photoURL || authorProfilePic;
+        }
+      } catch (e) {
+        console.warn("Could not fetch author profile for comment:", comment.authorUid, e);
+      }
+
+      const formattedDate = comment.createdAt?.toDate ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+      // Ensure parseMentions also receives db and appId if it needs them from forms.js scope
+      const parsedContent = parseEmojis(await parseMentions(marked.parse(comment.content || '')));
+
+      commentElement.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${authorProfilePic}" alt="${authorDisplayName}'s profile picture" class="profile-pic-small mr-2">
+          <div>
+            <p class="text-gray-200 font-semibold">${authorDisplayName}</p>
+            <p class="text-gray-400 text-xs">${formattedDate}</p>
+          </div>
+        </div>
+        <div class="prose text-gray-100 mb-2">${parsedContent}</div>
+        ${getCurrentUser() && getCurrentUser().uid === comment.authorUid ? `<button class="text-red-500 hover:text-red-700 text-sm delete-comment-btn absolute top-2 right-2" data-comment-id="${commentDoc.id}">Delete</button>` : ''}
+      `;
+      commentsList.appendChild(commentElement);
+    }
+    // Update comments count on the main thread display (and in Firestore)
+    await updateThreadCommentsCount(threadId, count);
+
+    // Add event listeners for delete comment buttons
+    document.querySelectorAll('.delete-comment-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const commentId = event.target.dataset.commentId;
+        const confirmation = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+        if (confirmation) {
+          await deleteComment(threadId, commentId);
+        } else {
+          showMessageBox("Comment deletion cancelled.", false);
+        }
+      });
+    });
+
+    console.log("DEBUG: Comments rendered. Count:", count);
+  }, (error) => {
+    console.error("Error listening to comments:", error);
+    commentsList.innerHTML = `<p class="text-red-500 text-center">Error loading comments: ${error.message}</p>`;
+  });
+}
+
+/**
+ * Sets up a real-time listener for reactions on the current thread.
+ * @param {string} threadId - The ID of the thread.
+ */
+function setupReactionsListener(threadId) {
+  // Unsubscribe from previous listener if it exists
+  if (unsubscribeReactions) {
+    unsubscribeReactions();
+    console.log("DEBUG: Unsubscribed from previous reactions listener.");
+  }
+
+  const threadDocRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId);
+  unsubscribeReactions = onSnapshot(threadDocRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const reactions = docSnap.data().reactions || {};
+      renderReactionButtons(
+        'thread',
+        threadId,
+        reactions,
+        threadReactionsContainer,
+        getCurrentUser // Pass the getCurrentUser function
+      );
+      console.log("DEBUG: Reactions rendered for thread:", threadId);
+
+      // Re-attach event listeners for reaction buttons
+      document.querySelectorAll('#thread-reactions-container .reaction-btn').forEach(button => {
+        const emoji = button.textContent.split(' ')[0]; // Extract emoji from button text
+        button.addEventListener('click', () => toggleReaction(threadId, emoji));
       });
 
     } else {
-      if (modalThreadTitle) modalThreadTitle.textContent = 'Thread Not Found';
-      if (modalThreadMeta) modalThreadMeta.textContent = '';
-      if (modalThreadContent) modalThreadContent.innerHTML = '<p class="text-red-400">The requested thread does not exist.</p>';
-      if (commentsList) commentsList.innerHTML = '';
-      showMessageBox("Thread not found.", true);
+      console.log("DEBUG: Thread not found for reactions:", threadId);
+      threadReactionsContainer.innerHTML = '';
     }
-  } catch (error) {
-    console.error("Error opening thread modal:", error);
-    showMessageBox(`Error loading thread: ${error.message}`, true);
-  }
-}
-
-// --- Comment Functions (remain largely the same) ---
-
-/**
- * Handles adding a new comment to the current thread.
- * @param {Event} event - The form submission event.
- */
-async function handleAddComment(event) {
-  event.preventDefault();
-
-  const user = auth.currentUser;
-  if (!user) {
-    showMessageBox("You must be logged in to post a comment.", true);
-    return;
-  }
-  if (!currentThreadId) {
-    showMessageBox("No thread selected to comment on.", true);
-    return;
-  }
-
-  const content = commentContentTextarea.value.trim();
-  if (!content) {
-    showMessageBox("Comment cannot be empty.", true);
-    return;
-  }
-
-  try {
-    const userProfile = await getUserProfileFromFirestore(user.uid);
-    const authorDisplayName = userProfile?.displayName || user.displayName || 'Anonymous';
-    const authorHandle = userProfile?.handle || `user${user.uid.substring(0, 5)}`;
-    const authorPhotoURL = userProfile?.photoURL || DEFAULT_PROFILE_PIC;
-
-    const commentsCollectionRef = collection(db, `artifacts/${appId}/public/data/forum_threads/${currentThreadId}/comments`);
-    await addDoc(commentsCollectionRef, {
-      content: content,
-      authorId: user.uid,
-      authorDisplayName: authorDisplayName,
-      authorHandle: authorHandle,
-      authorPhotoURL: authorPhotoURL,
-      createdAt: serverTimestamp()
-    });
-
-    const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, currentThreadId);
-    const threadSnap = await getDoc(threadDocRef);
-    const currentCommentsCount = threadSnap.exists() ? threadSnap.data().commentsCount || 0 : 0;
-
-    await updateDoc(threadDocRef, {
-      commentsCount: currentCommentsCount + 1,
-      lastCommentAt: serverTimestamp()
-    });
-
-    commentContentTextarea.value = '';
-    showMessageBox("Comment posted successfully!", false);
-    await renderThreads(currentThreadFilterThemeId); // Re-render threads list to update comment count/last activity
-  } catch (error) {
-    console.error("Error adding comment:", error);
-    showMessageBox(`Error posting comment: ${error.message}`, true);
-  }
-}
-
-/**
- * Renders the list of comments for the current thread.
- * @param {Array<Object>} comments - An array of comment objects.
- */
-function renderComments(comments) {
-  if (!commentsList) return;
-  commentsList.innerHTML = '';
-
-  if (comments.length === 0) {
-    commentsList.innerHTML = '<p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>';
-    return;
-  }
-
-  comments.forEach(comment => {
-    const commentElement = document.createElement('div');
-    commentElement.classList.add('comment-item');
-    commentElement.innerHTML = `
-      <div class="flex items-center mb-2">
-        <img src="${comment.authorPhotoURL || DEFAULT_PROFILE_PIC}" alt="${comment.authorDisplayName}'s profile pic" class="profile-pic-small mr-2">
-        <p class="font-semibold text-text-primary">${comment.authorHandle}</p>
-        <p class="text-comment-meta ml-auto">${comment.createdAt?.toDate ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A'}</p>
-      </div>
-      <p class="comment-content">${marked.parse(comment.content || '')}</p>
-    `;
-    commentsList.appendChild(commentElement);
+  }, (error) => {
+    console.error("Error listening to reactions:", error);
+    threadReactionsContainer.innerHTML = `<p class="text-red-500">Error loading reactions: ${error.message}</p>`;
   });
 }
 
-// --- Reaction Functions (remain largely the same) ---
-
-const availableEmojis = ['👍', '👎', '❤️', '😂', '😢', '🔥', '🤔'];
-
-/**
- * Renders the reaction buttons and counts for a thread.
- * @param {Object} reactions - The reactions object from thread data.
- */
-function renderReactions(reactions) {
-  if (!threadReactionsContainer) return;
-  threadReactionsContainer.innerHTML = '';
-
-  const user = auth.currentUser;
-  const currentUserId = user ? user.uid : null;
-
-  availableEmojis.forEach(emoji => {
-    const count = Object.keys(reactions[emoji] || {}).length;
-    const hasReacted = currentUserId && reactions[emoji]?.[currentUserId];
-
-    const button = document.createElement('button');
-    button.classList.add('reaction-btn', 'px-3', 'py-1', 'rounded-full', 'border', 'border-input-border', 'bg-input-bg', 'text-text-primary', 'flex', 'items-center', 'space-x-1', 'hover:bg-input-border', 'transition');
-    if (hasReacted) {
-      button.classList.add('reacted');
-    }
-    button.innerHTML = `
-      <span>${emoji}</span>
-      <span class="text-sm">${count}</span>
-    `;
-    button.addEventListener('click', () => toggleReaction(currentThreadId, emoji));
-    threadReactionsContainer.appendChild(button);
-  });
-}
 
 /**
  * Toggles a user's reaction to a thread.
  * @param {string} threadId - The ID of the thread.
- * @param {string} emoji - The emoji character for the reaction.
+ * @param {string} emoji - The emoji character (e.g., '👍').
  */
 async function toggleReaction(threadId, emoji) {
   const user = auth.currentUser;
@@ -548,184 +528,234 @@ async function toggleReaction(threadId, emoji) {
     showMessageBox("You must be logged in to react.", true);
     return;
   }
-
-  try {
-    const threadDocRef = doc(db, `artifacts/${appId}/public/data/forum_threads`, threadId);
-    const threadSnap = await getDoc(threadDocRef);
-
-    if (threadSnap.exists()) {
-      const threadData = threadSnap.data();
-      const reactions = threadData.reactions || {};
-      const emojiReactions = reactions[emoji] || {};
-
-      let newReactions = { ...reactions };
-
-      if (emojiReactions[user.uid]) {
-        delete emojiReactions[user.uid];
-        if (Object.keys(emojiReactions).length === 0) {
-          delete newReactions[emoji];
-        } else {
-          newReactions[emoji] = emojiReactions;
-        }
-      } else {
-        newReactions[emoji] = { ...emojiReactions, [user.uid]: true };
-      }
-
-      await updateDoc(threadDocRef, { reactions: newReactions });
-      showMessageBox("Reaction updated!", false);
-    }
-  } catch (error) {
-    console.error("Error toggling reaction:", error);
-    showMessageBox(`Error updating reaction: ${error.message}`, true);
-  }
-}
-
-// --- Temporary Pages Functions ---
-
-/**
- * Fetches all temporary pages from Firestore.
- * @returns {Promise<Array<Object>>} An array of temporary page objects.
- */
-async function fetchTemporaryPages() {
   if (!db) {
-    console.error("Firestore DB not initialized for fetching temporary pages.");
-    return [];
-  }
-  const tempPagesCollectionRef = collection(db, `artifacts/${appId}/public/data/temp_pages`);
-  try {
-    const querySnapshot = await getDocs(tempPagesCollectionRef);
-    const pages = [];
-    querySnapshot.forEach(doc => {
-      pages.push({ id: doc.id, ...doc.data() });
-    });
-    pages.sort((a, b) => (b.createdAt?.toDate()?.getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
-    console.log("Temporary pages fetched and sorted:", pages.length);
-    return pages;
-  } catch (error) {
-    console.error("Error fetching temporary pages:", error);
-    showMessageBox(`Error loading temporary pages: ${error.message}`, true);
-    return [];
-  }
-}
-
-/**
- * Renders the list of temporary pages as clickable buttons.
- */
-async function renderTemporaryPages() {
-  if (!temporaryPagesList) return;
-  temporaryPagesList.innerHTML = '<p class="text-gray-300">Loading temporary pages...</p>';
-  const pages = await fetchTemporaryPages();
-  temporaryPagesList.innerHTML = '';
-
-  if (pages.length === 0) {
-    temporaryPagesList.innerHTML = '<p class="text-gray-300">No temporary pages available.</p>';
+    showMessageBox("Database not initialized. Cannot react.", true);
     return;
   }
 
-  pages.forEach(page => {
-    const li = document.createElement('li');
-    li.classList.add('flex', 'items-center', 'justify-between');
-
-    const button = document.createElement('button');
-    button.classList.add(
-      'bg-blue-600', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4',
-      'rounded-full', 'transition', 'duration-300', 'ease-in-out', 'shadow-lg', 'text-sm',
-      'w-full', 'text-left'
-    );
-    button.textContent = page.title;
-    button.addEventListener('click', () => {
-      // Link to temp-page-viewer.html with the page ID
-      window.open(`temp-page-viewer.html?id=${page.id}`, '_blank');
+  const threadRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId);
+  try {
+    // Atomically update the reactions map
+    await updateDoc(threadRef, {
+      [`reactions.${emoji}.${user.uid}`]: user.uid // Set user's UID under the emoji to mark reaction
     });
-
-    li.appendChild(button);
-    temporaryPagesList.appendChild(li);
-  });
+    console.log(`DEBUG: Toggled reaction '${emoji}' for user ${user.uid} on thread ${threadId}.`);
+    // The onSnapshot listener will automatically re-render the reactions.
+  } catch (error) {
+    console.error("Error toggling reaction:", error);
+    showMessageBox(`Failed to add reaction: ${error.message}`, true);
+  }
 }
 
-// --- Thread Categories / Themes for Filtering (New) ---
 
 /**
- * Renders buttons for available themes to filter threads.
+ * Adds a new comment to the current thread.
+ * @param {Event} event - The form submission event.
  */
-async function renderThreadCategories() {
-  if (!threadCategoryListDiv) return;
-  threadCategoryListDiv.innerHTML = '<p class="text-gray-300 text-center">Loading categories...</p>';
+async function addComment(event) {
+  event.preventDefault();
+  const user = auth.currentUser;
+  if (!user) {
+    showMessageBox("You must be logged in to post a comment.", true);
+    return;
+  }
+  if (!currentThreadId) {
+    showMessageBox("No thread selected to add a comment.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot add comment.", true);
+    return;
+  }
 
-  const allThemes = await getAvailableThemes(); // Get all themes (visual + custom)
-  threadCategoryListDiv.innerHTML = ''; // Clear loading message
+  const content = commentContentInput.value.trim();
+  if (!content) {
+    showMessageBox("Comment cannot be empty.", true);
+    return;
+  }
 
-  // Add the "Show All Threads" button back (if it was cleared)
-  const showAllBtn = document.createElement('button');
-  showAllBtn.id = "show-all-threads-btn"; // Ensure it has the ID
-  showAllBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'text-white', 'px-4', 'py-2', 'rounded-full', 'transition', 'duration-300', 'ease-in-out', 'shadow-lg', 'text-sm');
-  showAllBtn.textContent = 'All Threads';
-  showAllBtn.addEventListener('click', () => {
-    currentThreadFilterThemeId = null;
-    renderThreads(null);
-    showMessageBox("Showing all threads.", false);
-    // Highlight 'All Threads' button and un-highlight others
-    highlightCategoryButton(null);
-  });
-  threadCategoryListDiv.appendChild(showAllBtn);
-
-  // Render buttons for each theme
-  allThemes.forEach(theme => {
-    const button = document.createElement('button');
-    button.classList.add(
-      'bg-gray-500', 'hover:bg-gray-600', 'text-white', 'px-4', 'py-2',
-      'rounded-full', 'transition', 'duration-300', 'ease-in-out', 'shadow-lg', 'text-sm',
-      'category-filter-btn' // Add a common class for these buttons
-    );
-    button.textContent = theme.name;
-    button.dataset.themeId = theme.id;
-    button.addEventListener('click', () => {
-      currentThreadFilterThemeId = theme.id; // Set the filter
-      applyTheme(theme.id, theme); // Also apply the visual theme
-      renderThreads(theme.id); // Filter threads
-      showMessageBox(`Showing threads for category: ${theme.name}`, false);
-      // Highlight the clicked button
-      highlightCategoryButton(theme.id);
+  const commentsCol = collection(db, `artifacts/${appId}/public/data/threads`, currentThreadId, 'comments');
+  try {
+    await addDoc(commentsCol, {
+      content: content,
+      authorUid: user.uid,
+      authorDisplayName: user.displayName || user.email,
+      authorProfilePic: user.photoURL || DEFAULT_PROFILE_PIC,
+      createdAt: serverTimestamp()
     });
-    threadCategoryListDiv.appendChild(button);
-  });
-
-  // Apply initial highlight based on currentThreadFilterThemeId
-  highlightCategoryButton(currentThreadFilterThemeId);
+    showMessageBox("Comment posted successfully!", false);
+    commentContentInput.value = ''; // Clear textarea
+    // The onSnapshot listener for comments will automatically update the list.
+    console.log("DEBUG: Comment added to thread:", currentThreadId);
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    showMessageBox(`Error posting comment: ${error.message}`, true);
+  }
 }
 
 /**
- * Highlights the currently active category button and un-highlights others.
- * @param {string|null} activeThemeId - The ID of the theme to highlight, or null for "All Threads".
+ * Deletes a comment from a thread.
+ * @param {string} threadId - The ID of the thread the comment belongs to.
+ * @param {string} commentId - The ID of the comment to delete.
  */
-function highlightCategoryButton(activeThemeId) {
-  const buttons = threadCategoryListDiv.querySelectorAll('.category-filter-btn');
-  const allThreadsButton = document.getElementById('show-all-threads-btn');
-
-  // Reset all buttons to default style
-  buttons.forEach(btn => {
-    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-    btn.classList.add('bg-gray-500', 'hover:bg-gray-600');
-  });
-
-  if (allThreadsButton) {
-    allThreadsButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-    allThreadsButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+async function deleteComment(threadId, commentId) {
+  const user = auth.currentUser;
+  if (!user) {
+    showMessageBox("You must be logged in to delete comments.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete comment.", true);
+    return;
   }
 
+  const commentDocRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId, 'comments', commentId);
+  try {
+    const commentSnap = await getDoc(commentDocRef);
+    if (!commentSnap.exists()) {
+      showMessageBox("Comment not found.", true);
+      return;
+    }
 
-  if (activeThemeId === null) {
-    // Highlight "All Threads" button
-    if (allThreadsButton) {
-      allThreadsButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-      allThreadsButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    const commentData = commentSnap.data();
+    // Only allow the author or an admin to delete the comment
+    const currentUserData = getCurrentUser(); // Get enriched user data (including isAdmin)
+    if (commentData.authorUid !== user.uid && (!currentUserData || !currentUserData.isAdmin)) {
+      showMessageBox("You do not have permission to delete this comment.", true);
+      return;
     }
-  } else {
-    // Highlight the specific theme button
-    const activeBtn = threadCategoryListDiv.querySelector(`button[data-theme-id="${activeThemeId}"]`);
-    if (activeBtn) {
-      activeBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
-      activeBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-    }
+
+    await deleteDoc(commentDocRef);
+    showMessageBox("Comment deleted successfully!", false);
+    // The onSnapshot listener will automatically update the UI.
+    console.log(`DEBUG: Comment ${commentId} deleted from thread ${threadId}.`);
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    showMessageBox(`Error deleting comment: ${error.message}`, true);
   }
 }
+
+/**
+ * Updates the comments count in a thread's Firestore document.
+ * This is called by the comments listener to keep the main thread document updated.
+ * @param {string} threadId - The ID of the thread.
+ * @param {number} count - The new comments count.
+ */
+async function updateThreadCommentsCount(threadId, count) {
+  if (!db) {
+    console.error("DB not initialized for updating comments count.");
+    return;
+  }
+  const threadRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId);
+  try {
+    await updateDoc(threadRef, {
+      commentsCount: count,
+      updatedAt: serverTimestamp() // Also update the last modified timestamp
+    });
+    console.log(`DEBUG: Thread ${threadId} comments count updated to: ${count}`);
+    // Re-fetch all threads to reflect the updated count on the main page
+    await fetchThreads(document.querySelector('#thread-category-list button.active-category-filter')?.dataset.categoryId || 'all');
+  } catch (error) {
+    console.error("Error updating thread comments count:", error);
+  }
+}
+
+
+/**
+ * Handles the click of the modal close button.
+ */
+function closeModal() {
+  threadDetailModal.style.display = 'none';
+  // Unsubscribe from real-time listeners when modal closes
+  if (unsubscribeComments) {
+    unsubscribeComments();
+    unsubscribeComments = null;
+    console.log("DEBUG: Unsubscribed from comments listener on modal close.");
+  }
+  if (unsubscribeReactions) {
+    unsubscribeReactions();
+    unsubscribeReactions = null;
+    console.log("DEBUG: Unsubscribed from reactions listener on modal close.");
+  }
+  currentThreadId = null; // Clear the current thread ID
+}
+
+// --- DOMContentLoaded and Initial Setup ---
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log("forms.js - DOMContentLoaded event fired.");
+
+  // Initialize Firebase and set up user authentication
+  await setupFirebaseAndUser();
+  // Initialize themes Firebase integration (required for getAvailableThemes)
+  setupThemesFirebase(db, auth, appId);
+  // Load the navbar
+  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+  // Initialize EasyMDE for new thread creation
+  easyMDECreateThread = new EasyMDE({
+    element: threadContentInput,
+    spellChecker: false,
+    forceSync: true,
+    minHeight: "150px",
+    toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+  });
+  console.log("EasyMDE initialized for thread creation.");
+
+
+  // Initial UI update based on current auth state
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      createThreadForm?.classList.remove('hidden'); // Show create thread form
+      addCommentForm?.classList.remove('hidden'); // Show add comment form
+      loginRequiredMessage?.classList.add('hidden'); // Hide login message
+    } else {
+      createThreadForm?.classList.add('hidden'); // Hide create thread form
+      addCommentForm?.classList.add('hidden'); // Hide add comment form
+      loginRequiredMessage?.classList.remove('hidden'); // Show login message
+    }
+  });
+
+  // Fetch and render forum themes
+  categoriesLoadingMessage.style.display = 'block'; // Show loading message before fetching
+  await fetchForumThemes(); // Changed from fetchForumCategories
+  await populateThreadCategorySelect(); // Populate the dropdown (name kept for now)
+  await renderCategoryFilterButtons(availableForumThemes, 'all'); // Render filter buttons (changed from availableForumCategories)
+  categoriesLoadingMessage.style.display = 'none'; // Hide loading message after rendering
+
+  // Fetch and render all threads initially
+  await fetchThreads('all');
+
+
+  // Event listener for Create Thread Form submission
+  createThreadForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const title = threadTitleInput.value.trim();
+    const content = easyMDECreateThread.value().trim(); // Get content from EasyMDE
+    const themeId = threadThemeSelect.value; // Get selected theme ID (changed from categoryId)
+
+    if (!title || !content) {
+      showMessageBox("Please enter both title and content for your thread.", true);
+      return;
+    }
+    await createThread(title, content, themeId); // Changed from categoryId
+  });
+
+  // Event listener for Add Comment Form submission
+  addCommentForm?.addEventListener('submit', addComment);
+
+  // Event listener for modal close button
+  threadDetailModal.querySelector('.close-button')?.addEventListener('click', closeModal);
+
+  // Event listener for clicking outside the modal content
+  window.addEventListener('click', (event) => {
+    if (event.target === threadDetailModal) {
+      closeModal();
+    }
+  });
+
+  // Set the current year for the footer
+  const currentYearElement = document.getElementById('current-year-forms');
+  if (currentYearElement) {
+    currentYearElement.textContent = new Date().getFullYear().toString();
+  }
+});

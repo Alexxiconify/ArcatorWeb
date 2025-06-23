@@ -52,11 +52,7 @@
             <input type="text" id="display-name-input" placeholder="Your Display Name">
           </div>
 
-          <div class="input-field">
-            <label for="handle-input">Unique Handle (@username):</label>
-            <input type="text" id="handle-input" placeholder="e.g., myhandle123" pattern="^[a-zA-Z0-9_.-]+$" title="Only letters, numbers, underscores, periods, and hyphens allowed.">
-            <p id="handle-message" class="text-sm mt-1"></p>
-          </div>
+          <!-- Removed handle-input section -->
 
           <div class="input-field">
             <label for="profile-picture-url-input">Profile Picture URL:</label>
@@ -129,7 +125,7 @@
         <button id="change-password-btn" class="btn-primary btn-orange">Change Password</button>
       </div>
 
-      <!-- Notification Preferences Card (Placeholder) -->
+      <!-- Notification Preferences Card -->
       <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
         <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Notification Preferences</h3>
         <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
@@ -144,7 +140,7 @@
         <button id="save-notifications-btn" class="btn-primary btn-blue mt-4">Save Notification Settings</button>
       </div>
 
-      <!-- Accessibility Settings Card (Placeholder) -->
+      <!-- Accessibility Settings Card -->
       <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
         <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Accessibility Settings</h3>
         <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
@@ -159,41 +155,32 @@
         <button id="save-accessibility-btn" class="btn-primary btn-blue mt-4">Save Accessibility Settings</button>
       </div>
 
-      <!-- Session Management Card (Placeholder) -->
+      <!-- Session Information Card -->
       <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
         <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Session Information</h3>
-        <p id="last-login-time" class="text-gray-300 text-center text-lg mb-2">Last Login: N/A</p>
-        <p id="account-creation-time" class="text-gray-300 text-center text-sm">Account Created: N/A</p>
+        <p id="last-login-time" class="text-gray-300 text-center mb-2">Last Login: N/A</p>
+        <p id="account-creation-time" class="text-gray-300 text-center">Account Created: N/A</p>
       </div>
 
-      <!-- Account Deletion Card -->
-      <div class="settings-card bg-red-800 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-red-300 mb-6 text-center">Danger Zone: Account Deletion</h3>
-        <p class="text-red-200 text-center mb-4">
-          Deleting your account is permanent and cannot be undone. All your data, including profile information, custom themes, and associated content, will be irreversibly removed.
-        </p>
+      <!-- Delete Account Card -->
+      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
+        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Danger Zone</h3>
+        <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
         <div class="input-field">
-          <label for="delete-account-password">Confirm Password to Delete:</label>
+          <label for="delete-account-password">Confirm Password:</label>
           <input type="password" id="delete-account-password" placeholder="********">
         </div>
-        <button id="delete-account-btn" class="btn-primary btn-red">Delete My Account</button>
+        <button id="delete-account-btn" class="btn-primary btn-red">Delete Account</button>
       </div>
-
     </div>
 
-    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mt-12" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Login Required</h2>
-      <p class="text-lg text-gray-300 mb-8">
-        You must be logged in to manage your settings.
-      </p>
-      <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
+    <!-- Message for unauthenticated users -->
+    <div id="login-required-message" class="text-center text-gray-300 text-xl py-12" style="display: none;">
+      <p>Please <a href="sign.html" class="text-blue-500 hover:underline">sign in</a> to view and manage your settings.</p>
     </div>
 
   </div>
 </section>
-
-<!-- Modals Placeholder -->
-<div id="modals-placeholder"></div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
@@ -224,13 +211,15 @@
   </div>
 </footer>
 
-<!-- Import themes.js for centralized JavaScript functions -->
+<!-- IMPORTANT: Firebase-init must load first -->
+<script src="firebase-init.js" type="module"></script>
+<!-- Utility functions -->
+<script src="utils.js" type="module"></script>
+<!-- Other modules -->
 <script src="themes.js" type="module"></script>
-<!-- Import custom_theme_modal.js for custom theme management logic -->
 <script src="custom_theme_modal.js" type="module"></script>
-<!-- Import loadNavbar from navbar.js -->
 <script src="navbar.js" type="module"></script>
-<!-- Import settings.js for page-specific JavaScript -->
 <script src="settings.js" type="module"></script>
+
 </body>
 </html>

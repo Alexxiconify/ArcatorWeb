@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Forms - Arcator.co.uk</title>
+  <title>Community Forums - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
@@ -12,12 +12,12 @@
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
-  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to theme_variables.css for centralized CSS variables -->
+  <link rel="stylesheet" href="theme_variables.css?v=1.1">
   <!-- Link to navbar.css for navbar specific styling -->
-  <link rel="stylesheet" href="navbar.css">
-  <!-- Link to forms.css for page-specific styling (if you create one) -->
-  <link rel="stylesheet" href="forms.css">
+  <link rel="stylesheet" href="navbar.css?v=1.1">
+  <!-- Link to forms.css for page-specific styling -->
+  <link rel="stylesheet" href="forms.css?v=1.1">
   <style>
     /* Base styles, will be overridden by CSS variables from themes.js */
     body {
@@ -128,7 +128,7 @@
       height: 100%; /* Full height */
       overflow: auto; /* Enable scroll if needed */
       background-color: rgba(0,0,0,0.7); /* Dark overlay */
-      display: flex; /* Will be set to 'flex' by JS when needed */
+      /* `display: flex;` will be set by JS when needed, NOT by default CSS */
       justify-content: center;
       align-items: center;
     }
@@ -253,6 +253,75 @@
       background-color: var(--color-button-blue-hover);
       border-color: var(--color-button-blue-hover);
     }
+
+    /* Modern Reddit-like styling for thread items */
+    .thread-item {
+      background-color: var(--color-bg-card); /* Card background */
+      border-radius: 0.75rem; /* Rounded corners */
+      padding: 1.5rem; /* Ample padding */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Subtle shadow */
+      border: 1px solid var(--color-input-border); /* Light border */
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .thread-item:hover {
+      transform: translateY(-2px); /* Slight lift on hover */
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Enhanced shadow */
+    }
+
+    .thread-item .thread-title {
+      color: var(--color-heading-card); /* Card heading color for titles */
+      font-size: 1.5rem; /* Larger title */
+      font-weight: 700; /* Bold */
+      margin-bottom: 0.75rem;
+    }
+
+    .thread-item .thread-meta {
+      color: var(--color-text-secondary); /* Secondary text color for meta info */
+      font-size: 0.875rem; /* Smaller text for meta */
+      margin-bottom: 1rem;
+    }
+
+    .thread-item .thread-content-preview {
+      color: var(--color-text-primary); /* Primary text color for content */
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .thread-item .thread-category-tag {
+      display: inline-block;
+      background-color: var(--color-button-indigo-bg); /* Use an accent color for tags */
+      color: var(--color-button-text);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px; /* Pill shape */
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    /* Styling for category filter buttons */
+    #thread-category-list button {
+      background-color: var(--color-input-bg); /* Use input background for inactive */
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px; /* Pill shape */
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    #thread-category-list button:hover {
+      background-color: var(--color-input-border); /* Darker on hover */
+      border-color: var(--color-link); /* Link color border on hover */
+      color: var(--color-link); /* Link color text on hover */
+    }
+
+    #thread-category-list button.active-category-filter {
+      background-color: var(--color-button-blue-bg); /* Active filter button */
+      color: var(--color-button-text);
+      border-color: var(--color-button-blue-bg);
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -286,6 +355,7 @@
             <label for="thread-theme-select" class="block text-gray-300 text-sm font-bold mb-2">Select Thread Category/Theme:</label>
             <select id="thread-theme-select" class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <!-- Options will be populated by forms.js -->
+              <option value="">Loading categories...</option>
             </select>
           </div>
           <div>
@@ -296,14 +366,14 @@
         </form>
       </div>
 
-      <!-- Thread Filtering by Theme -->
+      <!-- Thread Filtering by Category/Theme -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-8">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Browse Threads by Category</h3>
-        <p class="text-gray-300 leading-relaxed mb-4">Click a category below to filter threads. Your selected theme will also be applied to the site's visuals.</p>
+        <p class="text-gray-300 leading-relaxed mb-4">Click a category below to filter threads.</p>
         <div id="thread-category-list" class="flex flex-wrap gap-2 mb-4">
-          <button id="show-all-threads-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full transition duration-300 ease-in-out shadow-lg text-sm">All Threads</button>
-          <!-- Theme buttons will be dynamically loaded here by forms.js -->
-          <p class="text-gray-300 text-center">Loading categories...</p>
+          <button id="show-all-threads-btn" class="active-category-filter" data-category-id="all">All Threads</button>
+          <!-- Theme/Category buttons will be dynamically loaded here by forms.js -->
+          <p class="text-gray-300 text-center" id="categories-loading-message">Loading categories...</p>
         </div>
       </div>
 
@@ -412,13 +482,15 @@
 
 <!-- Firebase SDKs and Main Script -->
 <!-- IMPORTANT: firebase-init.js must be loaded first to ensure Firebase is initialized before other modules -->
-<script src="firebase-init.js" type="module"></script>
+<script src="firebase-init.js?v=1.1" type="module"></script>
 <!-- EasyMDE (Markdown Editor) JS - Load BEFORE forms.js -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <!-- Marked.js (Markdown Parser) JS - Load BEFORE forms.js -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="themes.js" type="module"></script>
-<script src="navbar.js" type="module"></script>
-<script src="forms.js" type="module"></script>
+<!-- Using unminified versions for better debugging and to avoid syntax errors from minification -->
+<script src="themes.js?v=1.1" type="module"></script>
+<script src="navbar.js?v=1.1" type="module"></script>
+<script src="utils.js?v=1.1" type="module"></script>
+<script src="forms.js?v=1.1" type="module"></script>
 </body>
 </html>
