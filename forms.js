@@ -7,16 +7,47 @@
 console.log("forms.js - Script parsing initiated.");
 
 // --- Firebase Imports ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  auth,
+  db,
+  appId,
+  getCurrentUser,
+  firebaseReadyPromise, // Import firebaseReadyPromise
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME,
+  getUserProfileFromFirestore, // Import centralized function
+  setupFirebaseAndUser // Import setupFirebaseAndUser
+} from './firebase-init.js';
+
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  where,
+  getDocs,
+  serverTimestamp,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Local Module Imports ---
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
 import { loadNavbar } from './navbar.js';
-// Corrected import: only pull what forms.js directly uses
-import { showMessageBox, showCustomConfirm, COMMON_EMOJIS, parseEmojis, parseMentions, renderReactionButtons, getUserProfileFromFirestore, sanitizeHandle } from './utils.js';
-import { auth, db, appId, getCurrentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js'; // Import centralized Firebase instances and functions
+import {
+  showMessageBox,
+  showCustomConfirm,
+  COMMON_EMOJIS,
+  parseEmojis,
+  parseMentions,
+  renderReactionButtons,
+  // Removed getUserProfileFromFirestore here as it's now imported from firebase-init.js
+  sanitizeHandle
+} from './utils.js';
 
 
 // --- DOM Elements ---
@@ -40,6 +71,7 @@ const loginRequiredMessage = document.getElementById('login-required-message');
 const threadCategoryList = document.getElementById('thread-category-list'); // For filter buttons
 const categoriesLoadingMessage = document.getElementById('categories-loading-message'); // Loading message for categories
 
+
 // EasyMDE instance for creating new threads
 let easyMDECreateThread;
 // EasyMDE instance for comments (if implemented as EasyMDE, currently textarea)
@@ -53,13 +85,14 @@ let availableForumThemes = []; // To store fetched forum themes (renamed from av
 
 // --- Firebase Initialization (handled by firebase-init.js) ---
 // The `auth`, `db`, and `appId` variables are now imported from firebase-init.js.
-// `setupFirebaseAndUser()` is called in window.onload.
+// `setupFirebaseAndUser()` is called in firebase-init.js and `firebaseReadyPromise` is awaited.
 
 /**
  * Fetches all available forum themes from Firestore.
  * @returns {Promise<Array>} A promise that resolves with an array of theme objects.
  */
 async function fetchForumThemes() { // Renamed from fetchForumCategories
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) {
     console.error("Firestore DB not initialized for fetching forum themes.");
     return [];
@@ -174,6 +207,7 @@ async function filterThreadsByCategory(themeId) { // Function name kept for now,
  * @param {string} themeId - The ID of the selected theme. (renamed from categoryId)
  */
 async function createThread(title, content, themeId) { // Renamed from createThread(title, content, categoryId)
+  await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
   if (!user) {
     showMessageBox("You must be logged in to create a thread.", true);
@@ -219,6 +253,7 @@ async function createThread(title, content, themeId) { // Renamed from createThr
  * @param {string|null} themeId - The ID of the theme to filter by, or 'all'/'null' for all threads. (renamed from categoryId)
  */
 async function fetchThreads(themeId = 'all') { // Renamed from fetchThreads(categoryId)
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) {
     threadsList.innerHTML = '<p class="text-red-500 text-center text-lg">Database not initialized. Cannot load threads.</p>';
     return;
@@ -249,7 +284,7 @@ async function fetchThreads(themeId = 'all') { // Renamed from fetchThreads(cate
     querySnapshot.forEach(doc => {
       threads.push({ id: doc.id, ...doc.data() });
     });
-    renderThreads(threads);
+    await renderThreads(threads); // Await rendering threads, as it involves async calls
     console.log("DEBUG: Fetched threads:", threads.length, "for theme:", themeId); // Changed from category
   } catch (error) {
     console.error("Error fetching threads:", error);
@@ -280,8 +315,8 @@ async function renderThreads(threads) {
     let authorDisplayName = thread.authorDisplayName || "Anonymous";
     let authorProfilePic = thread.authorProfilePic || DEFAULT_PROFILE_PIC;
     try {
-      // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
-      const authorProfile = await getUserProfileFromFirestore(db, appId, thread.authorUid);
+      // Use the centralized getUserProfileFromFirestore which already handles `db` and `appId`
+      const authorProfile = await getUserProfileFromFirestore(thread.authorUid);
       if (authorProfile) {
         authorDisplayName = authorProfile.displayName || authorDisplayName;
         authorProfilePic = authorProfile.photoURL || authorProfilePic;
@@ -301,7 +336,10 @@ async function renderThreads(threads) {
       }
     }
 
-    const contentPreview = thread.content ? marked.parse(thread.content).substring(0, 200) + '...' : 'No content preview available.';
+    // Parse Markdown content to HTML and then truncate for preview
+    const fullContentHtml = thread.content ? marked.parse(thread.content) : '';
+    const contentPreview = fullContentHtml.length > 200 ? fullContentHtml.substring(0, 200) + '...' : fullContentHtml;
+
 
     threadElement.innerHTML = `
       <div class="flex items-center mb-4">
@@ -313,7 +351,7 @@ async function renderThreads(threads) {
       </div>
       <h3 class="thread-title mb-2 cursor-pointer">${parseEmojis(thread.title)}</h3>
       <p class="thread-meta">Comments: ${commentsCount} | Theme: <span class="thread-category-tag">/t/${themeName}</span></p>
-      <div class="thread-content-preview prose max-w-none">${contentPreview}</div>
+      <div class="thread-content-preview prose max-w-none">${parseEmojis(await parseMentions(contentPreview))}</div>
       <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 view-thread-btn" data-id="${thread.id}">View Thread</button>
     `;
     threadsList.appendChild(threadElement);
@@ -333,6 +371,7 @@ async function renderThreads(threads) {
  * @param {string} threadId - The ID of the thread to display.
  */
 async function openThreadDetailModal(threadId) {
+  await firebaseReadyPromise; // Ensure Firebase is ready
   currentThreadId = threadId; // Set the current thread ID for comment/reaction functions
 
   // Clear previous data and show loading state
@@ -355,8 +394,8 @@ async function openThreadDetailModal(threadId) {
       let authorDisplayName = threadData.authorDisplayName || "Anonymous";
       let authorProfilePic = threadData.authorProfilePic || DEFAULT_PROFILE_PIC;
       try {
-        // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
-        const authorProfile = await getUserProfileFromFirestore(db, appId, threadData.authorUid);
+        // Use the centralized getUserProfileFromFirestore
+        const authorProfile = await getUserProfileFromFirestore(threadData.authorUid);
         if (authorProfile) {
           authorDisplayName = authorProfile.displayName || authorDisplayName;
           authorProfilePic = authorProfile.photoURL || authorProfilePic;
@@ -372,7 +411,6 @@ async function openThreadDetailModal(threadId) {
       modalThreadTitle.textContent = parseEmojis(threadData.title);
       modalThreadMeta.innerHTML = `By ${authorDisplayName} on ${formattedDate} | Comments: ${threadData.commentsCount || 0} | Theme: /t/${themeName}`; // Changed from Category
       // Parse Markdown content to HTML
-      // Ensure parseMentions also receives db and appId if it needs them from forms.js scope
       modalThreadContent.innerHTML = parseEmojis(await parseMentions(marked.parse(threadData.content || '')));
 
 
@@ -426,8 +464,8 @@ function setupCommentsListener(threadId) {
       let authorDisplayName = comment.authorDisplayName || "Anonymous";
       let authorProfilePic = comment.authorProfilePic || DEFAULT_PROFILE_PIC;
       try {
-        // Pass db and appId explicitly to getUserProfileFromFirestore if it's imported from utils.js
-        const authorProfile = await getUserProfileFromFirestore(db, appId, comment.authorUid);
+        // Use the centralized getUserProfileFromFirestore
+        const authorProfile = await getUserProfileFromFirestore(comment.authorUid);
         if (authorProfile) {
           authorDisplayName = authorProfile.displayName || authorDisplayName;
           authorProfilePic = authorProfile.photoURL || authorProfilePic;
@@ -437,7 +475,6 @@ function setupCommentsListener(threadId) {
       }
 
       const formattedDate = comment.createdAt?.toDate ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      // Ensure parseMentions also receives db and appId if it needs them from forms.js scope
       const parsedContent = parseEmojis(await parseMentions(marked.parse(comment.content || '')));
 
       commentElement.innerHTML = `
@@ -523,6 +560,7 @@ function setupReactionsListener(threadId) {
  * @param {string} emoji - The emoji character (e.g., '👍').
  */
 async function toggleReaction(threadId, emoji) {
+  await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
   if (!user) {
     showMessageBox("You must be logged in to react.", true);
@@ -535,10 +573,31 @@ async function toggleReaction(threadId, emoji) {
 
   const threadRef = doc(db, `artifacts/${appId}/public/data/threads`, threadId);
   try {
-    // Atomically update the reactions map
+    const threadSnap = await getDoc(threadRef);
+    if (!threadSnap.exists()) {
+      console.error("Attempted to toggle reaction on non-existent thread:", threadId);
+      showMessageBox("Thread not found.", true);
+      return;
+    }
+
+    const currentReactions = threadSnap.data().reactions || {};
+    const emojiReactions = currentReactions[emoji] || {};
+
+    if (emojiReactions[user.uid]) {
+      // User has already reacted with this emoji, so remove it
+      delete emojiReactions[user.uid];
+      showMessageBox(`Removed ${emoji} reaction.`, false);
+    } else {
+      // User has not reacted with this emoji, so add it
+      emojiReactions[user.uid] = user.uid;
+      showMessageBox(`Added ${emoji} reaction!`, false);
+    }
+
+    // Update the document with the modified reactions object
     await updateDoc(threadRef, {
-      [`reactions.${emoji}.${user.uid}`]: user.uid // Set user's UID under the emoji to mark reaction
+      [`reactions.${emoji}`]: emojiReactions // Update the specific emoji's reactions map
     });
+
     console.log(`DEBUG: Toggled reaction '${emoji}' for user ${user.uid} on thread ${threadId}.`);
     // The onSnapshot listener will automatically re-render the reactions.
   } catch (error) {
@@ -554,6 +613,7 @@ async function toggleReaction(threadId, emoji) {
  */
 async function addComment(event) {
   event.preventDefault();
+  await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
   if (!user) {
     showMessageBox("You must be logged in to post a comment.", true);
@@ -599,6 +659,7 @@ async function addComment(event) {
  * @param {string} commentId - The ID of the comment to delete.
  */
 async function deleteComment(threadId, commentId) {
+  await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
   if (!user) {
     showMessageBox("You must be logged in to delete comments.", true);
@@ -642,6 +703,7 @@ async function deleteComment(threadId, commentId) {
  * @param {number} count - The new comments count.
  */
 async function updateThreadCommentsCount(threadId, count) {
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) {
     console.error("DB not initialized for updating comments count.");
     return;
@@ -685,21 +747,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log("forms.js - DOMContentLoaded event fired.");
 
   // Initialize Firebase and set up user authentication
-  await setupFirebaseAndUser();
+  await setupFirebaseAndUser(); // Call and await the exported function
+  await firebaseReadyPromise; // Wait for firebase-init.js to complete its setup
+
   // Initialize themes Firebase integration (required for getAvailableThemes)
   setupThemesFirebase(db, auth, appId);
   // Load the navbar
-  await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+  await loadNavbar();
 
   // Initialize EasyMDE for new thread creation
-  easyMDECreateThread = new EasyMDE({
-    element: threadContentInput,
-    spellChecker: false,
-    forceSync: true,
-    minHeight: "150px",
-    toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-  });
-  console.log("EasyMDE initialized for thread creation.");
+  if (threadContentInput) {
+    easyMDECreateThread = new EasyMDE({
+      element: threadContentInput,
+      spellChecker: false,
+      forceSync: true,
+      minHeight: "150px",
+      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+    });
+    console.log("EasyMDE initialized for thread creation.");
+  }
 
 
   // Initial UI update based on current auth state
@@ -716,11 +782,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Fetch and render forum themes
-  categoriesLoadingMessage.style.display = 'block'; // Show loading message before fetching
+  if (categoriesLoadingMessage) {
+    categoriesLoadingMessage.style.display = 'block'; // Show loading message before fetching
+  }
   await fetchForumThemes(); // Changed from fetchForumCategories
   await populateThreadCategorySelect(); // Populate the dropdown (name kept for now)
   await renderCategoryFilterButtons(availableForumThemes, 'all'); // Render filter buttons (changed from availableForumCategories)
-  categoriesLoadingMessage.style.display = 'none'; // Hide loading message after rendering
+  if (categoriesLoadingMessage) {
+    categoriesLoadingMessage.style.display = 'none'; // Hide loading message after rendering
+  }
+
 
   // Fetch and render all threads initially
   await fetchThreads('all');

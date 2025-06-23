@@ -150,7 +150,7 @@ const DEFAULT_THEMES = [
       '--color-modal-input-text': '#EBFBEB',
       '--color-message-box-bg-success': '#34D399',
       '--color-message-box-bg-error': '#F87171',
-      '--font-family-body': 'Inter', sans-serif'
+      '--font-family-body': 'Inter, sans-serif'
     },
     isCustom: false
   },
@@ -279,6 +279,8 @@ export async function getAvailableThemes() {
   }
 
   let customThemes = [];
+  // Ensure firebaseInitialized is true, and dbInstance/authInstance are set
+  // This check is crucial for modules that might call getAvailableThemes early
   if (firebaseInitialized && dbInstance && authInstance) {
     try {
       // Only fetch custom themes if a user is logged in
@@ -296,7 +298,7 @@ export async function getAvailableThemes() {
       // Do not block if custom themes fail, proceed with default themes
     }
   } else {
-    console.warn("Themes module: Firebase not fully initialized or user not logged in. Cannot fetch custom themes.");
+    console.warn("Themes module: Firebase instances not yet available for fetching custom themes. Returning only default themes.");
   }
 
   themeCache = [...DEFAULT_THEMES, ...customThemes];
@@ -320,8 +322,7 @@ export async function applyTheme(themeId, themeObject = null) {
 
     // Fallback to default theme if the requested theme is not found
     if (!themeToApply) {
-      // DEFAULT_THEME_NAME is likely imported from firebase-init.js in the main script
-      // which means it's not directly accessible here unless passed or imported.
+      // DEFAULT_THEME_NAME is ideally imported from firebase-init.js in the main script
       // For robustness, find 'dark' theme as a hardcoded fallback if DEFAULT_THEME_NAME fails too.
       themeToApply = allThemes.find(theme => theme.id === 'dark') || DEFAULT_THEMES[0];
       console.warn(`Theme '${themeId}' not found, applying fallback default theme: ${themeToApply.name}.`);
@@ -367,7 +368,7 @@ export async function applyTheme(themeId, themeObject = null) {
  */
 export async function saveCustomTheme(themeData) {
   if (!firebaseInitialized || !dbInstance || !authInstance.currentUser) {
-    console.error("Firebase not initialized or user not logged in.");
+    console.error("Firebase not initialized or user not logged in. Cannot save custom theme.");
     return false;
   }
   const userId = authInstance.currentUser.uid;
@@ -401,7 +402,7 @@ export async function saveCustomTheme(themeData) {
  */
 export async function deleteCustomTheme(themeId) {
   if (!firebaseInitialized || !dbInstance || !authInstance.currentUser) {
-    console.error("Firebase not initialized or user not logged in.");
+    console.error("Firebase not initialized or user not logged in. Cannot delete custom theme.");
     return false;
   }
   const userId = authInstance.currentUser.uid;

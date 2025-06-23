@@ -5,27 +5,23 @@
 // --- Firebase Imports ---
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-// --- Local Module Imports ---
+// --- Local Module Imports --
 // Import applyTheme and getAvailableThemes from themes.js
-import { applyTheme, getAvailableThemes } from './themes.js';
+import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js';
 // Import shared Firebase instances and utilities from firebase-init.js
-import { db, appId, auth, getCurrentUser, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+import { db, appId, auth, getCurrentUser, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, setupFirebaseAndUser } from './firebase-init.js'; // Import setupFirebaseAndUser
 
 /**
  * Loads the navigation bar HTML into the 'navbar-placeholder' element
  * and sets up its dynamic behavior based on user authentication status.
  * It also applies the user's theme preference.
- *
- * @param {object} firebaseInstances - An object containing initialized Firebase instances (auth, db, appId).
- * @param {string} defaultProfilePic - The default URL for a user's profile picture if none is set.
- * @param {string} defaultThemeName - The ID of the default theme to apply.
  */
-export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) {
+export async function loadNavbar() {
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
 
   if (navbarPlaceholder) {
     try {
-      const response = await fetch('navbar.html');
+      const response = await fetch('navbar.html'); // Assuming navbar.html exists at root
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const navbarHtml = await response.text();
       navbarPlaceholder.innerHTML = navbarHtml;
@@ -37,11 +33,15 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
       const navbarSignInText = document.getElementById('navbar-signin-text');
       const navbarUserIdDisplay = document.getElementById('navbar-user-id');
 
-      // Await Firebase to be ready before proceeding with auth state listener or themes
+      // Ensure Firebase is initialized and ready
+      await setupFirebaseAndUser(); // Call and await the exported function
       await firebaseReadyPromise;
 
       // Now auth, db, appId should be fully initialized and available
       if (auth && db && appId) {
+        // Initialize themes Firebase integration (required for getAvailableThemes within onAuthStateChanged)
+        setupThemesFirebase(db, auth, appId);
+
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             // User is signed in
@@ -57,7 +57,7 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
               navbarUserDisplayName.textContent = userProfile?.displayName || user.displayName || user.email?.split('@')[0] || 'Settings';
             }
             if (navbarUserIcon) {
-              navbarUserIcon.src = userProfile?.photoURL || user.photoURL || defaultProfilePic;
+              navbarUserIcon.src = userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC;
             }
             if (navbarUserIdDisplay) {
               navbarUserIdDisplay.textContent = `UID: ${user.uid}`;
@@ -68,7 +68,7 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
 
             const userThemePreference = userProfile?.themePreference;
             const allThemes = await getAvailableThemes(); // This call should now work correctly as firebaseReadyPromise is awaited
-            const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === defaultThemeName);
+            const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
             applyTheme(themeToApply.id, themeToApply);
             // console.log(`DEBUG: Navbar applied user theme: ${themeToApply.name}`);
 
@@ -77,14 +77,14 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
             if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
             if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
             if (navbarSignInText) navbarSignInText.textContent = 'Sign In';
-            if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
+            if (navbarUserIcon) navbarUserIcon.src = DEFAULT_PROFILE_PIC;
             if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Guest';
             if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = 'UID: Guest User';
 
             // Attempt to apply default theme
             try {
               const allThemes = await getAvailableThemes(); // This now happens *after* firebaseReadyPromise, so it's safer
-              const defaultThemeObj = allThemes.find(t => t.id === defaultThemeName);
+              const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
               applyTheme(defaultThemeObj.id, defaultThemeObj);
             } catch (themeError) {
               console.error("Error applying default theme after firebaseReadyPromise:", themeError);
@@ -99,7 +99,7 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
         // Fallback UI if Firebase instances are still not available
         if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
         if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
-        if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
+        if (navbarUserIcon) navbarUserIcon.src = DEFAULT_PROFILE_PIC;
         if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Guest';
         if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = 'UID: Not available';
         // Apply a very basic theme as a last resort

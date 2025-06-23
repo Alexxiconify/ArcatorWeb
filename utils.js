@@ -1,5 +1,9 @@
 // utils.js: Provides common utility functions like custom message boxes and confirmation modals.
 
+// Import necessary Firebase variables for getUserProfileFromFirestore
+// These must be imported from firebase-init.js to ensure they are initialized
+import { db, appId, firebaseReadyPromise } from './firebase-init.js';
+
 /**
  * Displays a custom message box for user feedback.
  * @param {string} message - The message to display.
@@ -56,32 +60,43 @@ export function showCustomConfirm(message, subMessage = '') {
     const onConfirm = () => {
       console.log("DEBUG: Custom confirm - Yes clicked. Hiding modal.");
       customConfirmModal.style.display = 'none';
+      // Remove all event listeners to prevent memory leaks and duplicate triggers
       confirmYesBtn.removeEventListener('click', onConfirm);
       confirmNoBtn.removeEventListener('click', onCancel);
-      window.removeEventListener('click', closeOnOutsideClick); // Ensure all listeners are removed
+      window.removeEventListener('click', closeOnOutsideClick);
+      const closeButton = customConfirmModal.querySelector('.close-button');
+      if (closeButton && closeButton._onCloseButtonClick) {
+        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
+        closeButton._onCloseButtonClick = null;
+      }
       resolve(true);
     };
 
     const onCancel = () => {
       console.log("DEBUG: Custom confirm - Cancel clicked or closed by other means. Hiding modal.");
       customConfirmModal.style.display = 'none';
+      // Remove all event listeners
       confirmYesBtn.removeEventListener('click', onConfirm);
       confirmNoBtn.removeEventListener('click', onCancel);
-      window.removeEventListener('click', closeOnOutsideClick); // Ensure all listeners are removed
+      window.removeEventListener('click', closeOnOutsideClick);
+      const closeButton = customConfirmModal.querySelector('.close-button');
+      if (closeButton && closeButton._onCloseButtonClick) {
+        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
+        closeButton._onCloseButtonClick = null;
+      }
       resolve(false);
     };
 
-    // Remove any previous listeners to prevent duplicates
-    confirmYesBtn.removeEventListener('click', onConfirm); // Defensive removal
-    confirmNoBtn.removeEventListener('click', onCancel);   // Defensive removal
-    window.removeEventListener('click', closeOnOutsideClick); // Defensive removal
+    // Defensive removal of old listeners before adding new ones
+    confirmYesBtn.removeEventListener('click', onConfirm);
+    confirmNoBtn.removeEventListener('click', onCancel);
+    window.removeEventListener('click', closeOnOutsideClick); // If previously attached
 
     confirmYesBtn.addEventListener('click', onConfirm);
     confirmNoBtn.addEventListener('click', onCancel);
 
     // Also close if click outside the modal content, but not on the content itself
     const closeOnOutsideClick = (event) => {
-      // Check if the click was on the modal background itself, not a child element
       if (event.target === customConfirmModal) {
         console.log("DEBUG: Custom confirm - Clicked outside modal background. Calling onCancel().");
         onCancel(); // Treat outside click as a cancel
@@ -92,20 +107,17 @@ export function showCustomConfirm(message, subMessage = '') {
     // Add a listener to the close button within the modal
     const closeButton = customConfirmModal.querySelector('.close-button');
     if (closeButton) {
-      // Defensive removal before adding to prevent duplicates
-      const existingOnCloseButtonClick = closeButton._onCloseButtonClick; // Store reference if exists
-      if (existingOnCloseButtonClick) {
-        closeButton.removeEventListener('click', existingOnCloseButtonClick);
-      }
-
+      // Store a reference to the handler to remove it later
       const onCloseButtonClick = () => {
         console.log("DEBUG: Custom confirm - Close button clicked. Calling onCancel().");
         onCancel(); // Treat close button click as a cancel
-        closeButton.removeEventListener('click', onCloseButtonClick);
-        closeButton._onCloseButtonClick = null; // Clear reference
       };
+      // Remove existing listener if present
+      if (closeButton._onCloseButtonClick) {
+        closeButton.removeEventListener('click', closeButton._onCloseButtonClick);
+      }
       closeButton.addEventListener('click', onCloseButtonClick);
-      closeButton._onCloseButtonClick = onCloseButtonClick; // Store reference for removal
+      closeButton._onCloseButtonClick = onCloseButtonClick; // Store reference
     }
   });
 }
@@ -116,7 +128,7 @@ export const COMMON_EMOJIS = ['👍', '👎', '😂', '❤️', '🔥', '🎉', 
 const EMOJI_MAP = {
   ':smile:': '😄', ':laugh:': '😆', ':love:': '❤️', ':thumbsup:': '👍',
   ':thumbsdown:': '👎', ':fire:': '🔥', ':party:': '🎉', ':bulb:': '💡',
-  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '�',
+  ':thinking:': '🤔', ':star:': '⭐', ':rocket:': '🚀', ':clap:': '👏', // Added clap emoji
   ':cry:': '😢', ':sleepy:': '😴'
 };
 // These caches are now correctly exported for use in modules like forms.js
@@ -137,38 +149,94 @@ export function parseEmojis(text) {
   return processedText;
 }
 
-// Placeholder for parseMentions, which typically relies on Firebase
-// and user data. This should be in forms.js or a dedicated data-fetching module.
-// Keeping a stub here for now to avoid breaking imports, but full implementation
-// relies on Firebase.
+/**
+ * Parses mentions in a given text and formats them as clickable links, resolving handles to display names.
+ * This function now correctly uses the imported `db` and `appId` after Firebase is ready.
+ * @param {string} text - The input text containing potential mentions (e.g., @username).
+ * @returns {Promise<string>} The text with mentions converted to HTML links.
+ */
 export async function parseMentions(text) {
-  // This function typically needs access to `db` and `appId` to resolve handles.
-  // The full implementation is in forms.js, which imports this stub.
-  // So, this effectively becomes a pass-through if forms.js handles the actual parsing.
-  return text; // Return original text if not fully implemented here
+  await firebaseReadyPromise; // Ensure Firebase is ready before using `db` or `appId`
+  if (!db) {
+    console.error("Firestore DB not initialized for parseMentions in utils.js.");
+    return text;
+  }
+
+  // Regex to find @mentions. Example: @username, @user-name, @user_name, @user.name
+  const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
+  let processedText = text;
+  const matches = [...text.matchAll(mentionRegex)];
+
+  for (const match of matches) {
+    const fullMatch = match[0]; // e.g., @username
+    const handle = match[1];     // e.g., username
+
+    let userDisplayName = handle; // Default to handle if not found
+    let userUid = handleUidCache[handle]; // Check cache first
+
+    if (!userUid) {
+      // If UID not in cache, try to find user by handle in Firestore
+      // Query 'user_profiles' collection to find a document with a matching 'handle' field
+      try {
+        const userProfilesCol = db.collection(`artifacts/${appId}/public/data/user_profiles`);
+        const q = userProfilesCol.where('handle', '==', handle).limit(1);
+        const querySnapshot = await q.get();
+
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0];
+          const userData = userDoc.data();
+          userDisplayName = userData.displayName || handle;
+          userUid = userDoc.id; // Store the UID
+          userHandleCache[userUid] = handle; // Populate cache
+          handleUidCache[handle] = userUid; // Populate cache
+          console.log(`DEBUG: Resolved mention @${handle} to display name ${userDisplayName} (UID: ${userUid})`);
+        } else {
+          console.log(`DEBUG: Mention @${handle} not found in user profiles.`);
+        }
+      } catch (error) {
+        console.error(`ERROR: Error resolving mention @${handle}:`, error);
+      }
+    } else {
+      // If UID found in cache, retrieve display name from cache (or refetch if needed)
+      // For simplicity, we'll just use the handle as display name if only UID is cached for now
+      // In a real app, you might fetch the full user profile using userUid to get display name
+      try {
+        const userData = await getUserProfileFromFirestore(userUid); // Use the imported function
+        userDisplayName = userData?.displayName || handle;
+      } catch (e) {
+        console.warn(`Could not fetch display name for cached handle ${handle} (UID: ${userUid}). Using handle as fallback.`);
+      }
+    }
+
+    // Replace mention with a link. Link to a profile page, or just make it clickable.
+    // For now, it's a simple span, but can be a link to a user profile page.
+    processedText = processedText.replace(
+      fullMatch,
+      `<span class="text-blue-400 hover:underline cursor-pointer" data-uid="${userUid || ''}">@${userDisplayName}</span>`
+    );
+  }
+  return processedText;
 }
 
 
 /**
- * Fetches user profile data from Firestore.
+ * Fetches a user's profile data from the 'user_profiles' collection in Firestore.
  * This is a helper function used in other modules.
  * @param {string} uid - The User ID (UID) to fetch the profile for.
  * @returns {Promise<Object|null>} A Promise that resolves with the user's profile data, or `null` if not found or an error occurs.
  */
-// This function relies on `db` and `appId` which are passed via firebase-init.js or imported directly.
-// For `utils.js` to be truly independent of Firebase, `db` and `appId` would need to be passed as arguments
-// if `getUserProfileFromFirestore` were a top-level function here.
-// However, it's currently imported by modules that already have `db` and `appId` (like forms.js).
-// So, we will keep it simple here and assume `db` and `appId` are available in the calling context where this is used.
-export async function getUserProfileFromFirestore(dbInstance, appIdValue, uid) {
-  if (!dbInstance) {
+// This function will now explicitly rely on the imported 'db' and 'appId' from firebase-init.js
+// No need to pass dbInstance, appIdValue as arguments
+export async function getUserProfileFromFirestore(uid) {
+  await firebaseReadyPromise; // Ensure Firebase is ready
+  if (!db) {
     console.error("Firestore DB not initialized for getUserProfileFromFirestore in utils.js.");
     return null;
   }
-  const userDocRef = dbInstance.collection(`artifacts/${appIdValue}/public/data/user_profiles`).doc(uid);
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
-    const docSnap = await userDocRef.get();
-    if (docSnap.exists) {
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
       return docSnap.data();
     }
   } catch (error) {
@@ -185,8 +253,8 @@ export async function getUserProfileFromFirestore(dbInstance, appIdValue, uid) {
  * @param {string} itemId - The ID of the thread or parent thread.
  * @param {Object} reactions - The reactions object from Firestore for this item.
  * @param {HTMLElement} containerElement - The DOM element where the reaction buttons should be appended.
- * @param {string | null} commentId - Optional: The ID of the comment if `type` is 'comment'.
  * @param {function} getCurrentUserFunc - Function to get the current authenticated user.
+ * @param {string | null} commentId - Optional: The ID of the comment if `type` is 'comment'.
  */
 export function renderReactionButtons(type, itemId, reactions, containerElement, getCurrentUserFunc, commentId = null) {
   containerElement.innerHTML = '';

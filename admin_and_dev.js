@@ -1,9 +1,20 @@
 // admin_and_dev.js: Handles Admin & Dev page functionality.
-// Imports from firebase-init.js for centralized Firebase management.
 /* global EasyMDE */ // Declare EasyMDE as a global variable
 
 // Import Firebase instances and user functions from the centralized init file
-import { auth, db, appId, getCurrentUser, setupFirebaseAndUser, ADMIN_UIDS } from './firebase-init.js';
+import {
+  auth,
+  db,
+  appId,
+  getCurrentUser,
+  firebaseReadyPromise, // Import firebaseReadyPromise
+  getUserProfileFromFirestore,
+  updateUserProfileInFirestore,
+  deleteUserProfileFromFirestore, // New: Import delete function
+  ADMIN_UIDS,
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME
+} from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
 import {
@@ -19,7 +30,7 @@ import {
   orderBy,
   serverTimestamp // Ensure serverTimestamp is imported for Firestore operations
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+import { showMessageBox, showCustomConfirm } from './utils.js'; // Import message box and confirm utility
 
 // DOM elements - Initialize immediately after declaration
 const loadingSpinner = document.getElementById('loading-spinner');
@@ -27,12 +38,6 @@ const loginRequiredMessage = document.getElementById('login-required-message');
 const adminContent = document.getElementById('admin-content');
 const logoutBtn = document.getElementById('logout-btn');
 const adminUserDisplay = document.getElementById('admin-user-display');
-const messageBox = document.getElementById('message-box');
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-const confirmMessage = document.getElementById('confirm-message');
-const confirmSubmessage = document.getElementById('confirm-submessage');
-const confirmYesBtn = document.getElementById('confirm-yes');
-const confirmNoBtn = document.getElementById('confirm-no');
 
 
 // User Management DOM elements
@@ -77,165 +82,18 @@ let currentEditingTodoId = null;
 let easyMDECreate;
 let easyMDEEdit;
 
-const DEFAULT_THEME = 'dark';
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-
-/**
- * Displays a custom message box for user feedback.
- * @param {string} message - The message to display.
- * @param {boolean} isError - True for error, false for success.
- */
-function showMessageBox(message, isError) {
-  if (!messageBox) {
-    console.error("MessageBox element not found. Message:", message);
-    return;
-  }
-  messageBox.textContent = message;
-  messageBox.className = 'message-box';
-  if (isError) {
-    messageBox.classList.add('error');
-  } else {
-    messageBox.classList.add('success');
-  }
-  messageBox.style.display = 'block';
-  setTimeout(() => {
-    messageBox.style.display = 'none';
-  }, 5000);
-}
-
-/**
- * Shows a custom confirmation modal.
- * @param {string} message - The main confirmation message.
- * @param {string} [subMessage=''] - An optional sub-message.
- * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.
- */
-function showCustomConfirm(message, subMessage = '') {
-  return new Promise(resolve => {
-    confirmMessage.textContent = message;
-    confirmSubmessage.textContent = subMessage;
-    customConfirmModal.style.display = 'flex';
-
-    const onConfirm = () => {
-      customConfirmModal.style.display = 'none';
-      confirmYesBtn.removeEventListener('click', onConfirm);
-      confirmNoBtn.removeEventListener('click', onCancel);
-      resolve(true);
-    };
-
-    const onCancel = () => {
-      customConfirmModal.style.display = 'none';
-      confirmYesBtn.removeEventListener('click', onConfirm);
-      confirmNoBtn.removeEventListener('click', onCancel);
-      resolve(false);
-    };
-
-    confirmYesBtn.addEventListener('click', onConfirm);
-    confirmNoBtn.addEventListener('click', onCancel);
-  });
-}
-
-/**
- * Fetches user profile data from Firestore.
- * @param {string} uid - The user's UID.
- * @returns {Promise<Object|null>} - User profile data or null if not found.
- */
-async function getUserProfileFromFirestore(uid) {
-  // db is now guaranteed to be initialized by setupFirebaseAndUser via firebase-init.js
-  if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-    return null;
-  }
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-      return docSnap.data();
-    }
-  } catch (error) {
-    console.error("ERROR: Error fetching user profile from Firestore:", error);
-    showMessageBox(`Error fetching user profile: ${error.message}`, true);
-  }
-  return null;
-}
-
-/**
- * Updates user profile data in Firestore.
- * @param {string} uid - The user's UID.
- * @param {Object} profileData - The data to update (themePreference, displayName, photoURL).
- */
-async function updateUserProfileInFirestore(uid, profileData) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot save profile.", true);
-    return false;
-  }
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    await setDoc(userDocRef, profileData, { merge: true });
-    showMessageBox("User profile updated successfully!", false);
-    return true;
-  } catch (error) {
-    console.error("ERROR: Error updating user profile in Firestore:", error);
-    showMessageBox(`Error saving profile: ${error.message}`, true);
-    return false;
-  }
-}
-
-/**
- * Deletes a user's profile from Firestore (does not delete Auth account).
- * @param {string} uid - The user's UID.
- */
-async function deleteUserProfileFromFirestore(uid) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot delete profile.", true);
-    return;
-  }
-  const confirmation = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
-  if (!confirmation) {
-    showMessageBox("Deletion cancelled.", false);
-    return;
-  }
-
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    await deleteDoc(userDocRef);
-    showMessageBox(`User profile ${uid} deleted successfully!`, false);
-    renderUserList();
-  } catch (error) {
-    console.error("ERROR: Error deleting user profile:", error);
-    showMessageBox(`Error deleting user profile: ${error.message}`, true);
-  }
-}
-
-/**
- * Fetches all user profiles from Firestore.
- * @returns {Promise<Array>} - Array of user profile objects with their UIDs.
- */
-async function fetchAllUserProfiles() {
-  if (!db) {
-    console.error("Firestore DB not initialized for fetchAllUserProfiles.");
-    return [];
-  }
-  const userProfilesCol = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-  try {
-    const querySnapshot = await getDocs(userProfilesCol);
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    return users;
-  } catch (error) {
-    console.error("ERROR: Error fetching all user profiles:", error);
-    showMessageBox(`Error loading users: ${error.message}`, true);
-    return [];
-  }
-}
 
 /**
  * Renders the list of users in the table.
  */
 async function renderUserList() {
+  if (!db) {
+    console.error("Firestore DB not initialized for renderUserList.");
+    userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-400">Database not ready.</td></tr>';
+    return;
+  }
   userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
-  const users = await fetchAllUserProfiles();
+  const users = await fetchAllUserProfiles(); // This function uses `db` internally after it's ready.
   userListTbody.innerHTML = '';
   if (users.length === 0) {
     userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
@@ -249,9 +107,9 @@ async function renderUserList() {
     row.innerHTML = `
       <td class="px-4 py-2 break-all border-b border-table-td-border">${user.id}</td>
       <td class="px-4 py-2 border-b border-table-td-border">${user.displayName || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME}</td>
+      <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME_NAME}</td>
       <td class="px-4 py-2 border-b border-table-td-border">
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME}">Edit</button>
+        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME_NAME}">Edit</button>
         <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
       </td>
     `;
@@ -269,10 +127,21 @@ async function renderUserList() {
   });
 
   document.querySelectorAll('.delete-user-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', async (event) => {
       console.log("DEBUG: Delete User button clicked.");
       const uid = event.target.dataset.uid;
-      deleteUserProfileFromFirestore(uid);
+      const confirmed = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
+      if (confirmed) {
+        const success = await deleteUserProfileFromFirestore(uid); // Use imported function
+        if (success) {
+          showMessageBox(`User profile ${uid} deleted successfully!`, false);
+          renderUserList();
+        } else {
+          showMessageBox(`Error deleting user profile ${uid}.`, true);
+        }
+      } else {
+        showMessageBox("Deletion cancelled.", false);
+      }
     });
   });
 }
@@ -320,11 +189,12 @@ if (saveUserChangesBtn) {
     const newDisplayName = editUserDisplayNameInput.value.trim();
     const newTheme = editUserThemeSelect.value;
     console.log(`DEBUG: Saving User Changes for UID: ${currentEditingUserUid}, Display Name: ${newDisplayName}, Theme: ${newTheme}`);
-    const success = await updateUserProfileInFirestore(currentEditingUserUid, {
+    const success = await updateUserProfileInFirestore(currentEditingUserUid, { // Use imported function
       displayName: newDisplayName,
       themePreference: newTheme
     });
     if (success) {
+      showMessageBox("User profile updated successfully!", false);
       editUserModal.style.display = 'none';
       renderUserList();
       // If the admin is editing their own profile, apply the theme immediately
@@ -334,17 +204,20 @@ if (saveUserChangesBtn) {
         applyTheme(selectedTheme.id, selectedTheme);
         console.log("DEBUG: Admin's own theme updated and applied.");
       }
+    } else {
+      showMessageBox("Error updating user profile.", true);
     }
   });
 }
 
+// Attach listeners to all close buttons for modals
 document.querySelectorAll('.close-button').forEach(button => {
   button.addEventListener('click', () => {
     console.log("DEBUG: Close button clicked on a modal.");
     editUserModal.style.display = 'none';
     editTempPageModal.style.display = 'none';
     editTodoModal.style.display = 'none';
-    customConfirmModal.style.display = 'none'; // Ensure custom confirm modal also closes
+    // showCustomConfirm is handled internally by utils.js, so no direct `display = 'none'` needed here for it
   });
 });
 
@@ -362,10 +235,7 @@ window.addEventListener('click', (event) => {
     editTodoModal.style.display = 'none';
     console.log("DEBUG: Todo Edit Modal closed by clicking outside.");
   }
-  if (event.target === customConfirmModal) {
-    customConfirmModal.style.display = 'none';
-    console.log("DEBUG: Custom Confirm Modal closed by clicking outside.");
-  }
+  // The custom confirm modal closing is managed by utils.js
 });
 
 
@@ -417,6 +287,7 @@ async function fetchAllTempPages() {
 }
 
 async function renderTempPages() {
+  if (!tempPageList) return;
   tempPageList.innerHTML = '<li>Loading temporary pages...</li>';
   const pages = await fetchAllTempPages();
   tempPageList.innerHTML = '';
@@ -447,6 +318,7 @@ async function renderTempPages() {
     link.addEventListener('click', (event) => {
       event.preventDefault();
       const pageId = event.target.dataset.id;
+      // Assuming temp-page-viewer.html exists for viewing.
       window.open(`temp-page-viewer.html?id=${pageId}`, '_blank');
     });
   });
@@ -461,10 +333,10 @@ async function renderTempPages() {
     });
   });
   document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', async (event) => {
       console.log("DEBUG: Delete Temporary Page button clicked.");
       const id = event.target.dataset.id;
-      deleteTempPage(id);
+      await deleteTempPage(id);
     });
   });
 }
@@ -559,10 +431,11 @@ async function updateAdminUI(user) {
     // Get the full currentUser object which includes isAdmin from firebase-init.js
     const currentUserData = getCurrentUser();
 
+    // Fetch user profile to get theme preference and then apply
     const userProfile = await getUserProfileFromFirestore(user.uid);
-    const themePreference = userProfile?.themePreference || DEFAULT_THEME;
+    const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
     const allThemes = await getAvailableThemes(); // Get all themes from themes.js
-    const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+    const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
     applyTheme(themeToApply.id, themeToApply); // Apply the theme using the imported function
 
     if (currentUserData && currentUserData.isAdmin) { // Use isAdmin from enriched currentUser
@@ -584,7 +457,7 @@ async function updateAdminUI(user) {
     loginRequiredMessage.style.display = 'block';
     adminContent.style.display = 'none';
     const allThemes = await getAvailableThemes(); // Get all themes from themes.js
-    const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME);
+    const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
     applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme using the imported function
   }
 }
@@ -642,6 +515,7 @@ async function fetchAllTodoItems() {
 }
 
 async function renderTodoList() {
+  if (!roadmapTodoListTbody) return;
   roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>';
   const todos = await fetchAllTodoItems();
   roadmapTodoListTbody.innerHTML = '';
@@ -681,10 +555,10 @@ async function renderTodoList() {
   });
 
   document.querySelectorAll('.delete-todo-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', async (event) => {
       console.log("DEBUG: Delete Todo button clicked.");
       const id = event.target.dataset.id;
-      deleteTodoItem(id);
+      await deleteTodoItem(id);
     });
   });
 }
@@ -749,32 +623,42 @@ async function deleteTodoItem(id) {
 }
 
 // Main execution logic on window load
-window.onload = async function() {
+document.addEventListener('DOMContentLoaded', async function() {
   // Setup Firebase and user authentication first
-  await setupFirebaseAndUser();
+  await firebaseReadyPromise; // Wait for Firebase to be ready
 
-  // Call the imported loadNavbar function with necessary parameters
-  loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+  // Initialize themes Firebase integration
+  setupThemesFirebase(db, auth, appId);
+
+  // Call the imported loadNavbar function
+  loadNavbar();
+
   document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
 
-  easyMDECreate = new EasyMDE({
-    element: document.getElementById('temp-page-content'),
-    spellChecker: false,
-    forceSync: true,
-    minHeight: "200px",
-    toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-  });
-  console.log("DEBUG: easyMDECreate initialized.");
+  // Initialize EasyMDE for new temp page creation form
+  if (tempPageContentInput) {
+    easyMDECreate = new EasyMDE({
+      element: tempPageContentInput,
+      spellChecker: false,
+      forceSync: true,
+      minHeight: "200px",
+      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+    });
+    console.log("DEBUG: easyMDECreate initialized.");
+  }
+
 
   // After Firebase is set up and page content loaded, update UI based on auth state
   // The onAuthStateChanged listener within setupFirebaseAndUser now handles initial UI update
   // We can call updateAdminUI directly here once the promise resolves.
-  updateAdminUI(auth.currentUser); // Pass the current user after setupFirebaseAndUser completes
-};
+  // Also, add an onAuthStateChanged listener specific to this page for dynamic updates
+  onAuthStateChanged(auth, (user) => {
+    updateAdminUI(user);
+  });
 
-// Event Listener for Logout Button
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', async () => {
+
+  // Event Listener for Logout Button
+  logoutBtn?.addEventListener('click', async () => {
     showMessageBox("", false);
     try {
       await auth.signOut(); // Use imported auth
@@ -785,14 +669,11 @@ if (logoutBtn) {
       showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
     }
   });
-}
 
-if (loadUsersBtn) {
-  loadUsersBtn.addEventListener('click', renderUserList);
-}
+  loadUsersBtn?.addEventListener('click', renderUserList);
 
-if (createTempPageForm) {
-  createTempPageForm.addEventListener('submit', async (event) => {
+
+  createTempPageForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = tempPageTitleInput.value.trim();
     const content = easyMDECreate.value().trim();
@@ -802,10 +683,9 @@ if (createTempPageForm) {
     }
     await createTempPage(title, content);
   });
-}
 
-if (addTodoForm) {
-  addTodoForm.addEventListener('submit', async (event) => {
+
+  addTodoForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const task = todoTaskInput.value.trim();
     const worker = todoWorkerInput.value.trim();
@@ -819,10 +699,9 @@ if (addTodoForm) {
     }
     await addTodoItem(task, worker, priority, eta, notes);
   });
-}
 
-if (saveTodoChangesBtn) {
-  saveTodoChangesBtn.addEventListener('click', async () => {
+
+  saveTodoChangesBtn?.addEventListener('click', async () => {
     if (!currentEditingTodoId) return;
     const task = editTodoTaskInput.value.trim();
     const worker = editTodoWorkerInput.value.trim();
@@ -836,4 +715,4 @@ if (saveTodoChangesBtn) {
     }
     await updateTodoItem(currentEditingTodoId, task, worker, priority, eta, notes);
   });
-}
+});

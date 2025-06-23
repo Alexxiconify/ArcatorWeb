@@ -69,7 +69,7 @@ export const DEFAULT_THEME_NAME = 'dark';
  * This function is called once at the start of the application.
  * It resolves the firebaseReadyPromise once authentication state is established.
  */
-export async function setupFirebaseAndUser() {
+export async function setupFirebaseAndUser() { // Export this function
   if (firebaseReadyPromise) {
     console.log("Firebase already initializing or initialized. Returning existing promise.");
     return firebaseReadyPromise;
