@@ -1,10 +1,10 @@
 // themes.js: Handles theme management, including default themes and custom user themes stored in Firestore.
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, getDocs, doc, setDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 let dbInstance;
 let authInstance;
+authInstance.currentUser = undefined;
 let appIdValue;
 let firebaseInitialized = false;
 

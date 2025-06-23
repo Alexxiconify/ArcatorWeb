@@ -1,4 +1,5 @@
 /* forms.css */
+/* Styles extracted from forms.html */
 
 /* Base styles, will be overridden by CSS variables from themes.js */
 body {
@@ -248,7 +249,7 @@ a:hover {
   top: 0;
   width: 100%; /* Full width */
   height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
+  overflow: auto;
   background-color: rgba(0,0,0,0.7); /* Dark overlay */
   justify-content: center;
   align-items: center;

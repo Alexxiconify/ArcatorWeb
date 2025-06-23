@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to settings.css for page-specific styling -->
+  <!-- Link to settings.css for page-specific styling (now external) -->
   <link rel="stylesheet" href="settings.css">
 </head>
 <body class="antialiased">
@@ -211,14 +211,8 @@
   </div>
 </footer>
 
-<!-- IMPORTANT: Firebase-init must load first -->
-<script src="firebase-init.js" type="module"></script>
-<!-- Utility functions -->
-<script src="utils.js" type="module"></script>
-<!-- Other modules -->
-<script src="themes.js" type="module"></script>
-<script src="custom_theme_modal.js" type="module"></script>
-<script src="navbar.js" type="module"></script>
+<!-- Main page script using module type -->
+<!-- The settings.js script now contains all page-specific JS logic -->
 <script src="settings.js" type="module"></script>
 
 </body>
