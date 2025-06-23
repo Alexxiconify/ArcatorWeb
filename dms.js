@@ -154,6 +154,11 @@ export function renderConversationsList() {
     unsubscribeConversationsList = null;
   }
 
+  // Explicitly set initial panel visibility when DM tab is opened
+  conversationsPanel.classList.remove('hidden');
+  messagesPanel.classList.add('hidden');
+
+
   const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
   // Query for conversations where the current user is a participant.
   // This query requires a composite index: 'participants' (array) + 'lastMessageAt' (desc)
