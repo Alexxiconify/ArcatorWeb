@@ -182,8 +182,9 @@
 </section>
 
 <main class="container mx-auto px-4 py-8 flex flex-col md:flex-row md:space-x-8 items-center md:items-start justify-center">
-  <!-- Sign In Card -->
-  <div class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md mb-8 md:mb-0">
+
+  <!-- Sign In Section -->
+  <div id="signin-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md mb-8 md:mb-0">
     <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Sign In</h2>
     <form id="signin-form" class="space-y-4">
       <div>
@@ -196,13 +197,16 @@
       </div>
       <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 font-semibold">Sign In</button>
       <div class="text-center mt-4">
-        <button type="button" id="forgot-password-btn" class="text-blue-400 hover:underline text-sm">Forgot Password?</button>
+        <button type="button" id="go-to-forgot-password" class="text-blue-400 hover:underline text-sm">Forgot Password?</button>
+      </div>
+      <div class="text-center mt-4">
+        <button type="button" id="go-to-signup" class="text-blue-400 hover:underline text-sm">Don't have an account? Sign Up</button>
       </div>
     </form>
   </div>
 
-  <!-- Sign Up Card -->
-  <div class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md">
+  <!-- Sign Up Section -->
+  <div id="signup-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md" style="display: none;">
     <h2 class="text-3xl font-bold text-green-600 mb-6 text-center">Sign Up</h2>
     <form id="signup-form" class="space-y-4">
       <div>
@@ -222,6 +226,24 @@
         <input type="text" id="signup-display-name" placeholder="Your Name" class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
       <button type="submit" class="w-full bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition duration-300 font-semibold">Sign Up</button>
+      <div class="text-center mt-4">
+        <button type="button" id="go-to-signin" class="text-blue-400 hover:underline text-sm">Already have an account? Sign In</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Forgot Password Section -->
+  <div id="forgot-password-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md" style="display: none;">
+    <h2 class="text-3xl font-bold text-red-400 mb-6 text-center">Forgot Password</h2>
+    <form id="forgot-password-form" class="space-y-4">
+      <div>
+        <label for="forgot-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
+        <input type="email" id="forgot-email" placeholder="you@example.com" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button type="submit" id="reset-password-btn" class="w-full bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition duration-300 font-semibold">Reset Password</button>
+      <div class="text-center mt-4">
+        <button type="button" id="go-to-signin-from-forgot" class="text-blue-400 hover:underline text-sm">Back to Sign In</button>
+      </div>
     </form>
   </div>
 </main>
