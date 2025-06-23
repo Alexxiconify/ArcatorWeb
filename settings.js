@@ -26,6 +26,10 @@ const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
 const tempProjectId = "arcator-web"; // Fallback for testing if __app_id is not set.
 const appId = canvasAppId || tempProjectId || 'default-app-id';
 
+// Initialize firebaseConfig with a default value immediately.
+// This resolves the "firebaseConfig is not defined" error by ensuring it always has a value.
+let firebaseConfig = DEFAULT_FIREBASE_CONFIG; // <--- MODIFIED LINE: Explicitly initialize at declaration
+
 let app;
 let auth;
 let db;
@@ -99,32 +103,27 @@ async function setupFirebaseAndUser() {
     return;
   }
 
-  // Determine the final Firebase configuration to use
-  let finalFirebaseConfig = DEFAULT_FIREBASE_CONFIG; // Start with the provided default config
-
+  // Update firebaseConfig if __firebase_config is provided by the environment
   if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
     if (typeof __firebase_config === 'string') {
       try {
-        finalFirebaseConfig = JSON.parse(__firebase_config);
+        firebaseConfig = JSON.parse(__firebase_config); // Update global firebaseConfig
         console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
       } catch (e) {
-        console.error("ERROR: Failed to parse __firebase_config string as JSON. Using provided DEFAULT_FIREBASE_CONFIG.", e);
+        console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining DEFAULT_FIREBASE_CONFIG.", e);
       }
     } else if (typeof __firebase_config === 'object') {
-      finalFirebaseConfig = __firebase_config;
+      firebaseConfig = __firebase_config; // Update global firebaseConfig
       console.log("DEBUG: __firebase_config provided as object. Using directly.");
     } else {
-      console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Using provided DEFAULT_FIREBASE_CONFIG.");
+      console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Retaining DEFAULT_FIREBASE_CONFIG.");
     }
   } else {
     console.log("DEBUG: __firebase_config not provided. Using provided DEFAULT_FIREBASE_CONFIG.");
   }
 
-  // Assign the determined config to the global firebaseConfig variable
-  firebaseConfig = finalFirebaseConfig;
-
   try {
-    app = initializeApp(firebaseConfig);
+    app = initializeApp(firebaseConfig); // firebaseConfig is now guaranteed to be defined
     db = getFirestore(app);
     auth = getAuth(app); // Ensure auth is assigned right after getAuth(app)
     console.log("DEBUG: Firebase app, Firestore, and Auth initialized.");
