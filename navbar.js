@@ -38,7 +38,9 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
       // Ensure Firebase is ready before setting up auth state listener and themes
       await firebaseReadyPromise;
 
-      // Pass the centralized Firebase instances to themes.js setup function
+      // Note: setupThemesFirebase is typically called once in a main entry point (e.g., settings.js).
+      // Redundant calls here are fine but not strictly necessary if already called globally.
+      // This ensures themes.js has access to Firebase instances.
       if (firebaseInstances.db && firebaseInstances.auth && firebaseInstances.appId) {
         setupThemesFirebase(firebaseInstances.db, firebaseInstances.auth, firebaseInstances.appId);
       } else {
@@ -62,18 +64,10 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
           if (navbarUserIcon) navbarUserIcon.src = photoURL;
           if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = `UID: ${userId}`;
 
-          // Apply user's theme preference
-          let userThemePreference = userProfile?.themePreference;
-          const allThemes = await getAvailableThemes(); // Correct function call
-          const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === defaultThemeName);
-          if (themeToApply) {
-            applyTheme(themeToApply.id, themeToApply);
-          } else {
-            console.warn(`Default theme '${defaultThemeName}' not found.`);
-            // Fallback for extreme cases where no themes are found
-            document.documentElement.style.setProperty('--color-body-bg', '#1F2937'); // Dark fallback
-            document.documentElement.style.setProperty('--color-text-primary', '#E5E7EB');
-          }
+          // Apply user's theme preference.
+          // applyTheme handles finding the theme and its own fallbacks.
+          let userThemePreference = userProfile?.themePreference || defaultThemeName;
+          await applyTheme(userThemePreference); // Rely on applyTheme's internal fallback logic
 
         } else {
           // User is signed out
@@ -83,24 +77,8 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
           if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
           if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = ''; // Clear UID for guests
 
-          // Apply default theme if no user is logged in or if user has no preference
-          try {
-            const allThemes = await getAvailableThemes(); // Correct function call
-            const defaultThemeObj = allThemes.find(t => t.id === defaultThemeName);
-            if (defaultThemeObj) {
-              applyTheme(defaultThemeObj.id, defaultThemeObj);
-            } else {
-              console.warn(`Default theme '${defaultThemeName}' not found for unauthenticated user.`);
-              // Fallback to hardcoded dark theme if default not found
-              document.documentElement.style.setProperty('--color-body-bg', '#1F2937');
-              document.documentElement.style.setProperty('--color-text-primary', '#E5E7EB');
-            }
-          } catch (themeError) {
-            console.error("Error applying default theme after firebaseReadyPromise:", themeError);
-            // Fallback for extreme cases where theme application fails
-            document.documentElement.style.setProperty('--color-body-bg', '#1F2937'); // Dark fallback
-            document.documentElement.style.setProperty('--color-text-primary', '#E5E7EB');
-          }
+          // Apply default theme if no user is logged in
+          await applyTheme(defaultThemeName); // Rely on applyTheme's internal fallback logic
         }
       });
     } catch (error) {
