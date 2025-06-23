@@ -8,19 +8,368 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter and others -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Link to the CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for consistent styling -->
-  <link rel="stylesheet" href="navbar.css">
-  <!-- Link to settings.css for page-specific styling (now external) -->
-  <link rel="stylesheet" href="settings.css">
+  <!-- Inline CSS for debugging: includes content from theme_variables.css, navbar.css, settings.css -->
+  <style>
+    /* Base styles for themes (from theme_variables.css and general body styles) */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+
+    /* Specific background-image for dark theme */
+    body.theme-dark {
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    /* Specific background-image for arcator-blue theme */
+    body.theme-arcator-blue {
+      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
+      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
+      background-size: cover;
+      background-attachment: fixed;
+    }
+    /* No specific background-image for light theme */
+    body.theme-light {
+      background-image: none;
+    }
+
+    /* Hero Banner styles */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      margin-top: 64px; /* Adjust for fixed navbar height */
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, .7);
+    }
+
+    /* Specific overrides to use CSS variables from themes */
+    .bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
+    .bg-gray-700 { background-color: var(--color-bg-card) !important; }
+    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; }
+
+    .text-gray-200 { color: var(--color-text-primary) !important; }
+    .text-gray-300 { color: var(--color-text-secondary) !important; }
+    .text-gray-400 { color: var(--color-text-secondary) !important; }
+    .text-red-400 { color: var(--color-heading-main) !important; }
+    .text-blue-300 { color: var(--color-heading-card) !important; }
+    .text-blue-500 { color: var(--color-link) !important; }
+
+    .profile-pic-large {
+      border: 4px solid var(--color-heading-card);
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .profile-pic-small { /* For navbar profile pic */
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px; /* Tailwind's rounded-full */
+      object-fit: cover;
+      border: 2px solid var(--color-heading-card);
+    }
+
+
+    /* Settings card styling */
+    .settings-card {
+      max-width: 450px;
+      width: 90%;
+      padding: 2.5rem;
+      border-radius: .75rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, .1);
+    }
+
+    .input-field {
+      margin-bottom: 1rem;
+    }
+
+    .input-field label {
+      display: block;
+      margin-bottom: .5rem;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .input-field input,
+    .input-field select {
+      width: 100%;
+      padding: .75rem 1rem;
+      border: 1px solid var(--color-input-border);
+      border-radius: .5rem;
+      font-size: 1rem;
+      background-color: var(--color-input-bg);
+      color: var(--color-input-text);
+    }
+
+    .input-field input::placeholder {
+      color: var(--color-placeholder);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: .75rem 1.5rem;
+      border-radius: .5rem;
+      font-weight: 700;
+      transition: background-color .2s, transform .2s;
+      color: var(--color-button-text);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary.btn-blue { background-color: var(--color-button-blue-bg); }
+    .btn-primary.btn-blue:hover { background-color: var(--color-button-blue-hover); }
+    .btn-primary.btn-green { background-color: var(--color-button-green-bg); }
+    .btn-primary.btn-green:hover { background-color: var(--color-button-green-hover); }
+    .btn-primary.btn-purple { background-color: var(--color-button-purple-bg); }
+    .btn-primary.btn-purple:hover { background-color: var(--color-button-purple-hover); }
+    .btn-primary.btn-orange { background-color: var(--color-button-yellow-bg); } /* Using yellow for orange */
+    .btn-primary.btn-orange:hover { background-color: var(--color-button-yellow-hover); }
+    .btn-primary.btn-red { background-color: var(--color-button-red-bg); }
+    .btn-primary.btn-red:hover { background-color: var(--color-button-red-hover); }
+
+    /* Message box styling */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .3);
+      z-index: 1000;
+      display: none;
+      font-size: 1rem;
+      text-align: center;
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+    }
+
+    .message-box.success { background-color: var(--color-message-box-bg-success); }
+    .message-box.error { background-color: var(--color-message-box-bg-error); }
+
+    /* Modal styling (for custom confirm) */
+    .custom-confirm-modal { /* renamed from .modal to avoid conflict with potential modal library */
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, .7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .custom-confirm-modal .modal-content {
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, .5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      text-align: center;
+    }
+
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: var(--color-text-secondary);
+      font-size: 28px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
+      color: var(--color-text-primary);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .custom-confirm-modal .modal-content h3 {
+      color: var(--color-heading-card);
+    }
+
+    .custom-confirm-modal .modal-content label {
+      color: var(--color-text-secondary);
+    }
+
+    .custom-confirm-modal .modal-content input,
+    .custom-confirm-modal .modal-content select,
+    .custom-confirm-modal .modal-content textarea {
+      background-color: var(--color-modal-input-bg) !important;
+      color: var(--color-modal-input-text) !important;
+      border-color: var(--color-input-border) !important;
+    }
+
+    /* Custom Theme Editor styles (if you decide to reintegrate) */
+    .color-input-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .color-input-group label {
+      display: block;
+      margin-bottom: .5rem;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .color-input-group div {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .color-input-group input[type="text"] {
+      flex-grow: 1;
+      padding: .5rem .75rem;
+      border: 1px solid var(--color-input-border);
+      border-radius: .25rem;
+      background-color: var(--color-input-bg);
+      color: var(--color-input-text);
+    }
+
+    .color-input-group input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+    }
+
+    .color-input-group input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .color-input-group input[type="color"]::-webkit-color-swatch {
+      border: 1px solid var(--color-input-border);
+      border-radius: .25rem;
+    }
+
+    #custom-theme-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    #custom-theme-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1rem;
+      background-color: var(--color-bg-card);
+      border-radius: .5rem;
+      margin-bottom: .5rem;
+      font-size: 1rem;
+      color: var(--color-text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    }
+
+    #custom-theme-list li button {
+      padding: .4rem .8rem;
+      font-size: .875rem;
+      border-radius: .25rem;
+      font-weight: 600;
+      transition: background-color .2s;
+      color: var(--color-button-text);
+    }
+
+    #custom-theme-list li button.delete-theme-btn { background-color: #EF4444; }
+    #custom-theme-list li button.delete-theme-btn:hover { background-color: #DC2626; }
+
+    .form-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      height: 1.25rem;
+      width: 1.25rem;
+      background-color: var(--color-input-bg);
+      border: 1px solid var(--color-input-border);
+      border-radius: .25rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .form-checkbox:checked {
+      background-color: var(--color-link);
+      border-color: var(--color-link);
+    }
+
+    .form-checkbox:focus {
+      outline: 2px solid var(--color-link);
+      outline-offset: 2px;
+    }
+
+    .form-checkbox:checked::after {
+      content: '\\2713';
+      font-size: 1rem;
+      color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      line-height: 1;
+      text-align: center;
+    }
+
+    .form-checkbox:hover {
+      background-color: var(--color-input-border);
+    }
+
+    /* Accessibility overrides */
+    body.high-contrast-mode { filter: contrast(200%) brightness(150%); }
+    .reduced-motion * { transition: none !important; animation: none !important; }
+
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
+<section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Settings</h1>
     <p class="text-xl md:text-2xl mb-8">Personalize your Arcator.co.uk experience.</p>
@@ -34,7 +383,6 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <!-- Removed style="display: none;" here to let JS fully control visibility -->
     <div id="settings-content">
       <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile & Preferences</h2>
 
@@ -211,7 +559,7 @@
 </footer>
 
 <!-- Main page script using module type -->
-<!-- The settings.js script now contains all page-specific JS logic -->
+<!-- The settings.js script now contains all page-specific JS logic and dependencies -->
 <script src="settings.js" type="module"></script>
 
 </body>
