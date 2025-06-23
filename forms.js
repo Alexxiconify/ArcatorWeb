@@ -3,7 +3,7 @@
 import { setupFirebaseAndUser, auth, db, appId, getCurrentUser, ADMIN_UIDS } from './firebase-init.js';
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Global themes, not forum themes
 import { loadNavbar } from './navbar.js';
-import { showMessageBox, showCustomConfirm } from './utils.js';
+import { showMessageBox, showCustomConfirm, getUserProfileFromFirestore } from './utils.js'; // Import getUserProfileFromFirestore
 
 // Import all forum related functions
 import {
@@ -135,7 +135,8 @@ function showTab(tabId) {
         break;
       case 'dms':
         populateUserHandlesDatalist();
-        renderConversationsList(); // This function in dms.js should handle initial panel visibility
+        updateDmUiForNoConversationSelected(); // Ensure messages panel is hidden and list is shown initially
+        renderConversationsList(); // Then render the list of conversations
         break;
       case 'announcements':
         renderAnnouncements();
@@ -163,8 +164,8 @@ window.onload = async function() {
   // Load navbar and apply user's theme preference
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
   const currentUser = getCurrentUser(); // Get updated currentUser after Firebase init
-  // Ensure userProfile is fetched to get theme preference
-  const userProfileForTheme = currentUser ? (await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(currentUser.uid).get()).data() : null;
+  // Ensure userProfile is fetched to get theme preference using the utility function
+  const userProfileForTheme = currentUser ? await getUserProfileFromFirestore(currentUser.uid) : null;
   const userThemePreference = userProfileForTheme?.themePreference;
   const allGlobalThemes = await getAvailableThemes(); // Global themes from themes.js
   const themeToApply = allGlobalThemes.find(t => t.id === userThemePreference) || allGlobalThemes.find(t => t.id === DEFAULT_THEME_NAME);
