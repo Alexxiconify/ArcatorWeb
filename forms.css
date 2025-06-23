@@ -41,7 +41,7 @@ body {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
-/* Specific overrides to use CSS variables for Tailwind classes */
+/* Specific overrides for Tailwind classes to use CSS variables */
 .bg-card { background-color: var(--color-bg-card) !important; }
 .bg-input-bg { background-color: var(--color-input-bg) !important; }
 .bg-content-section { background-color: var(--color-bg-content-section) !important; }
@@ -198,11 +198,47 @@ a:hover {
   border-color: var(--color-input-border) !important;
 }
 
-/* Specific elements for forms.html */
+/* --- Tabbed Interface Styles --- */
+.tabs {
+  border-bottom: 2px solid var(--color-input-border); /* Separator line for tabs */
+  margin-bottom: 2rem;
+  width: 100%; /* Ensure tabs take full width of container */
+}
+
+.tab-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* semi-bold */
+  color: var(--color-text-secondary);
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent; /* For active indicator */
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  flex-grow: 1; /* Distribute space evenly */
+  text-align: center;
+  white-space: nowrap; /* Prevent tab titles from wrapping */
+}
+
+.tab-button:hover {
+  color: var(--color-text-primary);
+}
+
+.tab-button.active {
+  color: var(--color-heading-main); /* Active tab text color */
+  border-color: var(--color-heading-card); /* Active tab indicator color */
+}
+
+.tab-panel {
+  /* This class will be managed by JavaScript to show/hide */
+}
+
+
+/* --- Content-specific Styles --- */
 
 /* Thread item styles */
 .thread-item {
-  background-color: var(--color-bg-content-section); /* Using a more specific background variable */
+  background-color: var(--color-bg-content-section);
   padding: 1.5rem;
   border-radius: 0.75rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -231,7 +267,7 @@ a:hover {
   border-radius: 0.375rem;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   margin-bottom: 0.75rem;
-  border-left: 3px solid var(--color-button-blue-bg);
+  border-left: 3px solid var(--color-button-blue-bg); /* A subtle indicator */
 }
 
 .comment-card .author-handle {

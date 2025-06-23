@@ -13,11 +13,11 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Link to theme_variables.css for centralized CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css?v=1.2">
+  <link rel="stylesheet" href="theme_variables.css?v=1.4">
   <!-- Link to navbar.css for navbar specific styling -->
-  <link rel="stylesheet" href="navbar.css?v=1.2">
+  <link rel="stylesheet" href="navbar.css?v=1.4">
   <!-- Link to forms.css for page-specific styling -->
-  <link rel="stylesheet" href="forms.css?v=1.2">
+  <link rel="stylesheet" href="forms.css?v=1.4">
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -33,93 +33,96 @@
 
 <!-- Main Content Section -->
 <main class="container mx-auto px-4 py-8">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Forum Threads Section (Left/Center Column) -->
-    <div class="lg:col-span-2 space-y-8">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Forum Threads</h2>
-
-      <!-- Create New Thread Form -->
-      <div id="create-thread-section" class="bg-card p-6 rounded-lg shadow-md hidden">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Create New Thread</h3>
-        <form id="create-thread-form" class="space-y-4">
-          <div>
-            <label for="thread-title" class="block text-text-secondary text-sm font-bold mb-2">Thread Title:</label>
-            <input type="text" id="thread-title" placeholder="Enter thread title" required class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
-          </div>
-          <div>
-            <label for="thread-theme-select" class="block text-text-secondary text-sm font-bold mb-2">Select Thread Category/Theme:</label>
-            <select id="thread-theme-select" class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
-              <!-- Options will be populated by forms.js -->
-              <option value="">Loading categories...</option>
-            </select>
-          </div>
-          <div>
-            <label for="thread-content" class="block text-text-secondary text-sm font-bold mb-2">Content:</label>
-            <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link"></textarea>
-          </div>
-          <button type="submit" class="bg-button-blue-bg text-button-text px-6 py-3 rounded-md hover:bg-button-blue-hover transition duration-300">Create Thread</button>
-        </form>
-      </div>
-      <p id="forum-login-required-message" class="text-text-primary text-center text-xl py-6 hidden">Please <a href="sign.html" class="text-link hover:underline">sign in</a> to create new threads and comments.</p>
-
-      <!-- Thread Filtering by Category/Theme -->
-      <div class="bg-card p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Browse Threads by Category</h3>
-        <p class="text-text-secondary leading-relaxed mb-4">Click a category below to filter threads.</p>
-        <div id="category-filter-buttons" class="flex flex-wrap gap-2 mb-4">
-          <!-- Category buttons will be dynamically loaded here by forms.js -->
-        </div>
-        <p id="categories-loading-message" class="text-text-secondary text-center">Loading categories...</p>
-        <p id="no-categories-message" class="text-text-secondary text-center hidden">No categories available.</p>
-        <p id="categories-error-message" class="text-red-500 text-center hidden">Failed to load categories.</p>
-      </div>
-
-      <!-- Threads List Display Area -->
-      <div class="bg-card p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold text-heading-card text-center mb-8">All Threads</h3>
-        <p id="threads-loading-message" class="text-text-secondary text-center">Loading threads...</p>
-        <p id="threads-error-message" class="text-red-500 text-center hidden">Failed to load threads. Please try again later.</p>
-        <p id="no-threads-message" class="text-text-secondary text-center hidden">No threads found. Be the first to create one!</p>
-        <div id="actual-threads-list" class="space-y-8">
-          <!-- Threads will be dynamically loaded here by JavaScript -->
-        </div>
-      </div>
+  <div class="main-content-area bg-card p-6 rounded-lg shadow-md">
+    <!-- Tab Navigation -->
+    <div role="tablist" class="tabs flex space-x-4 mb-8">
+      <button role="tab" id="threads-tab" class="tab-button active" data-tab="threads">Threads</button>
+      <button role="tab" id="announcements-tab" class="tab-button" data-tab="announcements">Announcements</button>
+      <button role="tab" id="conversations-tab" class="tab-button" data-tab="conversations">Conversations</button>
     </div>
 
-    <!-- Sidebar / Additional Content (Right Column) -->
-    <div class="lg:col-span-1 space-y-8">
-      <!-- Recent Announcements Section -->
-      <div class="bg-card p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Recent Announcements</h3>
-        <p id="announcements-loading-message" class="text-text-secondary text-center">Loading announcements...</p>
-        <p id="announcements-error-message" class="text-red-500 text-center hidden">Failed to load announcements.</p>
-        <p id="no-announcements-message" class="text-text-secondary text-center hidden">No announcements available.</p>
-        <div id="actual-announcements-list" class="space-y-4">
-          <!-- Announcements will be dynamically loaded here -->
+    <!-- Tab Panels -->
+    <div id="tab-content-container">
+
+      <!-- Threads Tab Panel -->
+      <div id="threads-panel" role="tabpanel" class="tab-panel active space-y-8">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Threads</h2>
+
+        <!-- Create New Thread Form -->
+        <div id="create-thread-section" class="bg-content-section p-6 rounded-lg shadow-md hidden">
+          <h3 class="text-2xl font-bold text-heading-card mb-4">Create New Thread</h3>
+          <form id="create-thread-form" class="space-y-4">
+            <div>
+              <label for="thread-title" class="block text-text-secondary text-sm font-bold mb-2">Thread Title:</label>
+              <input type="text" id="thread-title" placeholder="Enter thread title" required class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
+            </div>
+            <div>
+              <label for="thread-theme-select" class="block text-text-secondary text-sm font-bold mb-2">Select Thread Category/Theme:</label>
+              <select id="thread-theme-select" class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
+                <!-- Options will be populated by forms.js -->
+                <option value="">Loading categories...</option>
+              </select>
+            </div>
+            <div>
+              <label for="thread-content" class="block text-text-secondary text-sm font-bold mb-2">Content:</label>
+              <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link"></textarea>
+            </div>
+            <button type="submit" class="bg-button-blue-bg text-button-text px-6 py-3 rounded-md hover:bg-button-blue-hover transition duration-300">Create Thread</button>
+          </form>
+        </div>
+        <p id="forum-login-required-message" class="text-text-primary text-center text-xl py-6 hidden">Please <a href="sign.html" class="text-link hover:underline">sign in</a> to create new threads and comments.</p>
+
+        <!-- Thread Filtering by Category/Theme -->
+        <div class="bg-content-section p-6 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-heading-card mb-4">Browse Threads by Category</h3>
+          <p class="text-text-secondary leading-relaxed mb-4">Click a category below to filter threads.</p>
+          <div id="category-filter-buttons" class="flex flex-wrap gap-2 mb-4">
+            <!-- Category buttons will be dynamically loaded here by forms.js -->
+          </div>
+          <p id="categories-loading-message" class="text-text-secondary text-center">Loading categories...</p>
+          <p id="no-categories-message" class="text-text-secondary text-center hidden">No categories available.</p>
+          <p id="categories-error-message" class="text-red-500 text-center hidden">Failed to load categories.</p>
+        </div>
+
+        <!-- Threads List Display Area -->
+        <div class="bg-content-section p-6 rounded-lg shadow-md">
+          <p id="threads-loading-message" class="text-text-secondary text-center">Loading threads...</p>
+          <p id="threads-error-message" class="text-red-500 text-center hidden">Failed to load threads. Please try again later.</p>
+          <p id="no-threads-message" class="text-text-secondary text-center hidden">No threads found. Be the first to create one!</p>
+          <div id="actual-threads-list" class="space-y-8">
+            <!-- Threads will be dynamically loaded here by JavaScript -->
+          </div>
         </div>
       </div>
 
-      <!-- Recent Conversations (DMs) Section -->
-      <div class="bg-card p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Recent Conversations</h3>
-        <p id="dms-loading-message" class="text-text-secondary text-center">Loading recent DMs...</p>
-        <p id="dms-error-message" class="text-red-500 text-center hidden">Failed to load DMs.</p>
-        <p id="no-dms-message" class="text-text-secondary text-center hidden">No recent conversations.</p>
-        <div id="actual-recent-dms-list" class="space-y-4">
-          <!-- Recent DMs will be dynamically loaded here -->
+      <!-- Announcements Tab Panel -->
+      <div id="announcements-panel" role="tabpanel" class="tab-panel hidden space-y-8">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Announcements</h2>
+        <div class="bg-content-section p-6 rounded-lg shadow-md">
+          <p id="announcements-loading-message" class="text-text-secondary text-center">Loading announcements...</p>
+          <p id="announcements-error-message" class="text-red-500 text-center hidden">Failed to load announcements.</p>
+          <p id="no-announcements-message" class="text-text-secondary text-center hidden">No announcements available.</p>
+          <div id="actual-announcements-list" class="space-y-4">
+            <!-- Announcements will be dynamically loaded here -->
+          </div>
         </div>
       </div>
 
-      <!-- Quick Links Section (Combined existing temporary pages and theme settings) -->
-      <div class="bg-card p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Quick Links</h3>
-        <p class="text-text-secondary leading-relaxed mb-4">Explore other parts of Arcator.co.uk.</p>
-        <div class="flex flex-col space-y-2">
-          <a href="admin_and_dev.html#temporary-pages-section" class="inline-block bg-button-purple-bg text-button-text font-bold py-2 px-4 rounded-full hover:bg-button-purple-hover transition duration-300 ease-in-out shadow-lg text-sm text-center">Manage Temporary Pages</a>
-          <a href="settings.html#theme-settings-section" class="inline-block bg-button-indigo-bg text-button-text font-bold py-2 px-4 rounded-full hover:bg-button-indigo-hover transition duration-300 ease-in-out shadow-lg text-sm text-center">Theme Settings</a>
+      <!-- Conversations (DMs) Tab Panel -->
+      <div id="conversations-panel" role="tabpanel" class="tab-panel hidden space-y-8">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Conversations</h2>
+        <div class="bg-content-section p-6 rounded-lg shadow-md">
+          <p id="dms-loading-message" class="text-text-secondary text-center">Loading conversations...</p>
+          <p id="dms-error-message" class="text-red-500 text-center hidden">Failed to load conversations.</p>
+          <p id="no-dms-message" class="text-text-secondary text-center hidden">No conversations available. Start a new one!</p>
+          <div id="actual-recent-dms-list" class="space-y-4">
+            <!-- Conversations will be dynamically loaded here -->
+          </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- /#tab-content-container -->
+
   </div>
 </main>
 
@@ -127,22 +130,22 @@
 <div id="thread-detail-modal" class="modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
-    <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-blue-300"></h3>
-    <p id="modal-thread-meta" class="text-sm text-gray-400 mb-4"></p>
-    <div id="modal-thread-content" class="prose text-gray-200 mb-6 max-h-64 overflow-y-auto"></div>
+    <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-heading-card"></h3>
+    <p id="modal-thread-meta" class="text-sm text-text-secondary mb-4"></p>
+    <div id="modal-thread-content" class="prose text-text-primary mb-6 max-h-64 overflow-y-auto"></div>
 
     <!-- Reactions Section -->
     <div class="flex items-center space-x-4 mb-6" id="thread-reactions-container">
       <!-- Reactions will be dynamically loaded here -->
     </div>
 
-    <h4 class="text-xl font-bold mb-4 text-blue-300">Comments</h4>
+    <h4 class="text-xl font-bold mb-4 text-heading-card">Comments</h4>
     <div id="comments-list" class="space-y-4 max-h-72 overflow-y-auto">
-      <p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>
+      <p class="text-text-secondary text-center">No comments yet. Be the first to reply!</p>
     </div>
 
     <div class="mt-6">
-      <h5 class="text-lg font-bold mb-2 text-blue-300">Add a Comment</h5>
+      <h5 class="text-lg font-bold mb-2 text-heading-card">Add a Comment</h5>
       <form id="add-comment-form" class="space-y-3 hidden">
         <textarea id="comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24 bg-input-bg text-input-text border-input-border" placeholder="Write your comment..."></textarea>
         <button type="submit" class="bg-button-green-bg text-button-text font-bold py-2 px-6 rounded-full hover:bg-button-green-hover transition duration-300 ease-in-out shadow-lg">Post Comment</button>
@@ -159,7 +162,7 @@
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
     <button id="confirm-yes" class="bg-button-red-bg hover:bg-button-red-hover text-button-text font-bold py-2 px-4 rounded-full mr-4">Yes</button>
     <button id="confirm-no" class="bg-text-secondary hover:bg-text-primary text-button-text font-bold py-2 px-4 rounded-full">Cancel</button>
   </div>
@@ -181,11 +184,4 @@
 </footer>
 
 <!-- Dependencies for forms.js -->
-<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="utils.js?v=1.2" type="module"></script>
-
-<!-- The forms.js script now contains all page-specific JS logic -->
-<script src="forms.js?v=1.2" type="module"></script>
-</body>
-</html>
+<script src="https://unp
