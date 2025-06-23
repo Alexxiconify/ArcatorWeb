@@ -4,7 +4,8 @@ import { collection, getDocs, doc, setDoc, deleteDoc, addDoc } from "https://www
 
 let dbInstance;
 let authInstance;
-authInstance.currentUser = undefined;
+// Removed the problematic line: authInstance.currentUser = undefined;
+// authInstance will be assigned correctly when setupThemesFirebase is called.
 let appIdValue;
 let firebaseInitialized = false;
 
@@ -284,6 +285,7 @@ export async function getAvailableThemes() {
   if (firebaseInitialized && dbInstance && authInstance) {
     try {
       // Only fetch custom themes if a user is logged in
+      // Use optional chaining for authInstance.currentUser to prevent errors if authInstance is still null/undefined
       const userId = authInstance.currentUser?.uid;
       if (userId) {
         const customThemesRef = collection(dbInstance, `artifacts/${appIdValue}/users/${userId}/${CUSTOM_THEMES_COLLECTION}`);
@@ -292,6 +294,8 @@ export async function getAvailableThemes() {
           customThemes.push({ id: doc.id, ...doc.data(), isCustom: true });
         });
         console.log("DEBUG: Fetched custom themes:", customThemes.length);
+      } else {
+        console.log("DEBUG: User not logged in, skipping fetching custom themes.");
       }
     } catch (error) {
       console.error("Error fetching custom themes:", error);
