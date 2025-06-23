@@ -1,5 +1,6 @@
 // admin_and_dev.js: Handles Admin & Dev page functionality.
 // Imports from firebase-init.js for centralized Firebase management.
+/* global EasyMDE */ // Declare EasyMDE as a global variable
 
 // Import Firebase instances and user functions from the centralized init file
 import { auth, db, appId, getCurrentUser, setupFirebaseAndUser, ADMIN_UIDS } from './firebase-init.js';
@@ -18,7 +19,6 @@ import {
   orderBy,
   serverTimestamp // Ensure serverTimestamp is imported for Firestore operations
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import EasyMDE from "https://unpkg.com/easymde/dist/easymde.min.js"; // Import EasyMDE directly
 
 
 // DOM elements - Initialize immediately after declaration
