@@ -9,12 +9,12 @@ import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, s
 // IMPORTANT: Replace these placeholder values with your actual Firebase project configuration.
 // You can find these in your Firebase project console -> Project settings -> General.
 const defaultFirebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY", // <--- REPLACE THIS
-  authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // <--- REPLACE THIS
-  projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS
-  storageBucket: "YOUR_STORAGE_BUCKET.appspot.com", // <--- REPLACE THIS
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- REPLACE THIS
-  appId: "YOUR_APP_ID", // <--- REPLACE THIS
+  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4", // <--- REPLACE THIS
+  authDomain: "arcator-web.firebaseapp.com", // <--- REPLACE THIS
+  projectId: "arcator-web", // <--- REPLACE THIS
+  storageBucket: "arcator-web.firebasestorage.app", // <--- REPLACE THIS
+  messagingSenderId: "1033082068049", // <--- REPLACE THIS
+  appId: "1:1033082068049:web:dd154c8b188bde1930ec70", // <--- REPLACE THIS
   // measurementId: "YOUR_MEASUREMENT_ID" // Optional, if you use Google Analytics
 };
 
