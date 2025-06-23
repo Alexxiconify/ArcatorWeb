@@ -1,279 +1,541 @@
-// forms.js: Main orchestrator for tabbed navigation and overall page logic.
+// forms.js: Manages forum threads, comments, and reactions, including client-side sorting.
 
-import { setupFirebaseAndUser, auth, db, appId, getCurrentUser, ADMIN_UIDS } from './firebase-init.js';
-import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Global themes, not forum themes
+// Import Firebase instances and user functions from the centralized init file
+import {
+  auth,
+  db,
+  appId,
+  getCurrentUser,
+  setupFirebaseAndUser,
+  getUserProfileFromFirestore,
+  updateUserProfileInFirestore,
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME
+} from './firebase-init.js';
+
+// Import theme and navbar functions
+import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
-import { showMessageBox, showCustomConfirm, getUserProfileFromFirestore } from './utils.js'; // Import getUserProfileFromFirestore
-import { collection, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Import collection, doc for modular syntax
+import { showMessageBox, showCustomConfirm } from './utils.js';
 
-
-// Import all forum related functions
 import {
-  renderForumThreads,
-  unsubscribeForumThreadsListener,
-  currentSelectedThemeId,
-  handlePostComment,
-  handleDeleteThread,
-  handleDeleteComment,
-  handleEmojiPaletteClick,
-  createThread, // Exported for the form submission
-  handleReaction as handleForumReaction // Renaming to avoid conflict
-} from './forum.js';
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot, // For real-time updates
+  query,
+  getDocs,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import all DM related functions
-import {
-  renderConversationsList,
-  unsubscribeConversationsListListener,
-  unsubscribeCurrentMessagesListener,
-  updateDmUiForNoConversationSelected,
-  populateUserHandlesDatalist,
-  handleCreateConversation,
-  handleSendMessage,
-  handleDeleteMessage,
-  handleDeleteConversationClick,
-  attachDmEventListeners
-} from './dms.js';
-
-// Import all Announcement related functions
-import {
-  renderAnnouncements,
-  unsubscribeAnnouncementsListener,
-  handlePostAnnouncement,
-  handleDeleteAnnouncement,
-  attachAnnouncementEventListeners
-} from './announcements.js';
-
-// Import Theme API functions
-import {
-  allThemesCache,
-  populateThemeDropdowns,
-  displayCurrentThemeInfo,
-  openThemeManagementModal,
-  closeThemeManagementModal,
-  attachThemeModalEventListeners
-} from './themes-api.js';
-
-
-// --- DOM Elements (re-declared for local module access) ---
-// Note: messageBox and customConfirmModal are now managed by utils.js directly
-// but still good practice to have global refs if other modules might need them.
-const messageBox = document.getElementById('message-box');
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-
-// Tab Elements
-const tabForum = document.getElementById('tab-forum');
-const tabDMs = document.getElementById('tab-dms');
-const tabAnnouncements = document.getElementById('tab-announcements');
-
-const contentForum = document.getElementById('content-forum');
-const contentDMs = document.getElementById('content-dms');
-const contentAnnouncements = document.getElementById('content-announcements');
-
-// Forum specific elements
-const themeSelect = document.getElementById('theme-select');
-const manageThemesBtn = document.getElementById('manage-themes-btn');
+// DOM elements
 const createThreadForm = document.getElementById('create-thread-form');
-const createThreadThemeSelect = document.getElementById('create-thread-theme');
 const threadTitleInput = document.getElementById('thread-title');
 const threadContentInput = document.getElementById('thread-content');
+const threadsContainer = document.getElementById('threads-container');
+const loadingSpinner = document.getElementById('loading-spinner');
+const threadModal = document.getElementById('thread-modal');
+const modalThreadTitle = document.getElementById('modal-thread-title');
+const modalThreadAuthor = document.getElementById('modal-thread-author');
+const modalThreadContent = document.getElementById('modal-thread-content');
+const commentsContainer = document.getElementById('comments-container');
+const addCommentForm = document.getElementById('add-comment-form');
+const commentContentInput = document.getElementById('comment-content');
+const threadCloseButton = document.getElementById('thread-close-button');
+let currentOpenThreadId = null; // Store the ID of the thread currently open in the modal
 
-// --- Default Values (consistent with firebase-init.js) ---
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-const DEFAULT_THEME_NAME = 'dark'; // For overall site theme
+// EasyMDE instances
+let easyMDEThreadContent;
+let easyMDECommentContent;
 
+// --- Firebase Collection References ---
+const THREADS_COLLECTION = `artifacts/${appId}/public/data/forum_threads`;
+const COMMENTS_COLLECTION_PREFIX = (threadId) => `artifacts/${appId}/public/data/forum_threads/${threadId}/comments`;
 
-// --- TAB SWITCHING LOGIC ---
-let currentActiveTab = 'forum'; // Default active tab
+// --- Utility Functions --- (Re-importing from utils.js, but defining for clarity if not available globally)
+// The showMessageBox and showCustomConfirm functions are assumed to be imported from './utils.js'
+// If they are not found, fallback to console.error or simple alerts.
 
-function showTab(tabId) {
-  console.log(`Attempting to show tab: ${tabId}`);
+// --- Thread Functions ---
 
-  // Unsubscribe all active listeners from other tabs to prevent redundant updates
-  unsubscribeForumThreadsListener();
-  unsubscribeConversationsListListener();
-  unsubscribeCurrentMessagesListener(); // Important for DM tab detail view
-  unsubscribeAnnouncementsListener();
+/**
+ * Creates a new forum thread in Firestore.
+ * @param {string} title - The title of the thread.
+ * @param {string} content - The content of the thread (Markdown supported).
+ */
+async function createThread(title, content) {
+  if (!auth.currentUser) {
+    showMessageBox("You must be logged in to create a thread.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot create thread.", true);
+    return;
+  }
 
-  // Deactivate all tab buttons and hide all content sections
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.classList.remove('active-tab', 'border-blue-500', 'text-blue-300');
-    button.classList.add('border-transparent', 'text-gray-300');
-    console.log(`Deactivated button: ${button.id}`);
-  });
-
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.add('hidden');
-    // Explicitly set display none for robustness
-    if (content.style) content.style.display = 'none';
-    console.log(`Hid content: ${content.id}`);
-  });
-
-  // Activate the selected tab button and show its content section
-  const selectedButton = document.getElementById(`tab-${tabId}`);
-  const selectedContent = document.getElementById(`content-${tabId}`);
-
-  if (selectedButton && selectedContent) {
-    selectedButton.classList.add('active-tab', 'border-blue-500', 'text-blue-300');
-    selectedButton.classList.remove('border-transparent', 'text-gray-300');
-    console.log(`Activated button: ${selectedButton.id}`);
-
-    selectedContent.classList.remove('hidden');
-    // Explicitly set display block or flex for robustness
-    if (tabId === 'dms') { // DM tab uses flex for its inner layout
-      selectedContent.style.display = 'flex';
-    } else {
-      selectedContent.style.display = 'block';
-    }
-    console.log(`Showed content: ${selectedContent.id} with display: ${selectedContent.style.display}`);
-
-    currentActiveTab = tabId; // Update global state for the active tab
-
-    // Render content for the newly active tab
-    switch (tabId) {
-      case 'forum':
-        const storedThemeId = localStorage.getItem('currentSelectedThemeId') || 'all';
-        if (themeSelect) themeSelect.value = storedThemeId;
-        renderForumThreads(storedThemeId);
-        break;
-      case 'dms':
-        populateUserHandlesDatalist();
-        updateDmUiForNoConversationSelected(); // Ensure messages panel is hidden and list is shown initially
-        renderConversationsList(); // Then render the list of conversations
-        break;
-      case 'announcements':
-        renderAnnouncements();
-        break;
-      default:
-        console.warn(`Attempted to show unknown tab: ${tabId}`);
-    }
-  } else {
-    console.error(`Could not find button or content for tab: ${tabId}`);
+  try {
+    const user = getCurrentUser();
+    const threadData = {
+      title: title,
+      content: content,
+      authorUid: user.uid,
+      authorDisplayName: user.displayName || user.email || 'Anonymous',
+      authorHandle: user.handle || 'N/A',
+      authorPhotoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      commentCount: 0,
+      reactions: {} // { emoji: count, emoji2: count }
+    };
+    await addDoc(collection(db, THREADS_COLLECTION), threadData);
+    showMessageBox("Thread created successfully!", false);
+    threadTitleInput.value = '';
+    easyMDEThreadContent.value(''); // Clear EasyMDE editor
+  } catch (error) {
+    console.error("Error creating thread:", error);
+    showMessageBox(`Failed to create thread: ${error.message}`, true);
   }
 }
 
-// --- INITIALIZATION ---
-window.onload = async function() {
-  if (customConfirmModal) {
-    customConfirmModal.style.display = 'none';
+/**
+ * Fetches all forum threads from Firestore and sorts them by creation date (newest first).
+ * This avoids requiring a composite index on Firestore by sorting client-side.
+ * @returns {Promise<Array<Object>>} An array of thread objects.
+ */
+async function fetchAndSortThreads() {
+  if (!db) {
+    console.error("Firestore DB not initialized for fetching threads.");
+    return [];
   }
-  const themeManagementModal = document.getElementById('theme-management-modal');
-  if (themeManagementModal) {
-    themeManagementModal.style.display = 'none';
+  try {
+    const q = collection(db, THREADS_COLLECTION);
+    const querySnapshot = await getDocs(q);
+    let threads = [];
+    querySnapshot.forEach((doc) => {
+      threads.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Client-side sorting by creation date (newest first)
+    threads.sort((a, b) => {
+      // Handle cases where createdAt might be a Firestore Timestamp object or null
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || new Date(0));
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || new Date(0));
+      return dateB - dateA; // Descending order
+    });
+
+    return threads;
+  } catch (error) {
+    console.error("Failed to load threads:", error);
+    showMessageBox(`Failed to load threads: ${error.message}`, true);
+    return [];
+  }
+}
+
+/**
+ * Renders all forum threads to the UI.
+ */
+async function renderThreads() {
+  if (loadingSpinner) loadingSpinner.style.display = 'block';
+  if (threadsContainer) threadsContainer.innerHTML = ''; // Clear previous threads
+
+  const threads = await fetchAndSortThreads();
+
+  if (loadingSpinner) loadingSpinner.style.display = 'none';
+
+  if (threads.length === 0) {
+    if (threadsContainer) threadsContainer.innerHTML = '<p class="text-center text-gray-400 py-8">No threads found. Be the first to create one!</p>';
+    return;
   }
 
-  await setupFirebaseAndUser(); // Ensure Firebase and current user are ready
+  threads.forEach(thread => {
+    const threadElement = document.createElement('div');
+    threadElement.classList.add('bg-gray-700', 'p-6', 'rounded-lg', 'shadow-md', 'mb-4', 'cursor-pointer', 'hover:bg-gray-600', 'transition', 'duration-200');
+    threadElement.innerHTML = `
+      <h3 class="text-xl font-bold text-blue-300 mb-2">${thread.title}</h3>
+      <p class="text-sm text-gray-400 mb-3">By ${thread.authorDisplayName || thread.authorHandle || 'Anonymous'} - ${thread.createdAt ? new Date(thread.createdAt.seconds * 1000).toLocaleString() : 'N/A'}</p>
+      <div class="prose prose-invert max-w-none text-gray-300 mb-4 line-clamp-3">${marked.parse(thread.content || '')}</div>
+      <div class="flex items-center text-gray-400 text-sm">
+        <span class="mr-4">${thread.commentCount || 0} Comments</span>
+        <span class="flex items-center">
+          ${Object.entries(thread.reactions || {}).map(([emoji, count]) => `
+            <span class="flex items-center mr-2 bg-gray-800 rounded-full px-2 py-1 text-xs">
+              ${emoji} ${count}
+            </span>
+          `).join('')}
+        </span>
+      </div>
+    `;
+    threadElement.addEventListener('click', () => openThreadModal(thread.id));
+    threadsContainer?.appendChild(threadElement);
+  });
+}
 
-  // Load navbar and apply user's theme preference
+/**
+ * Opens the thread modal and loads thread details and comments.
+ * @param {string} threadId - The ID of the thread to open.
+ */
+async function openThreadModal(threadId) {
+  currentOpenThreadId = threadId;
+  if (!db) {
+    showMessageBox("Database not initialized.", true);
+    return;
+  }
+
+  // Show loading state
+  modalThreadTitle.textContent = 'Loading...';
+  modalThreadAuthor.textContent = '';
+  modalThreadContent.innerHTML = '';
+  commentsContainer.innerHTML = '<p class="text-center py-4">Loading comments...</p>';
+  threadModal.style.display = 'flex';
+
+  try {
+    const threadDocRef = doc(db, THREADS_COLLECTION, threadId);
+    const threadSnap = await getDoc(threadDocRef);
+
+    if (threadSnap.exists()) {
+      const thread = threadSnap.data();
+      modalThreadTitle.textContent = thread.title;
+      modalThreadAuthor.textContent = `By ${thread.authorDisplayName || thread.authorHandle || 'Anonymous'} on ${thread.createdAt ? new Date(thread.createdAt.seconds * 1000).toLocaleString() : 'N/A'}`;
+      modalThreadContent.innerHTML = marked.parse(thread.content || '');
+
+      // Initialize EasyMDE for comments if not already done
+      if (!easyMDECommentContent) {
+        easyMDECommentContent = new EasyMDE({
+          element: commentContentInput,
+          spellChecker: false,
+          forceSync: true,
+          minHeight: "100px",
+          toolbar: ["bold", "italic", "|", "link", "guide"]
+        });
+      }
+      easyMDECommentContent.value(''); // Clear comment editor
+
+      // Set up real-time listener for comments
+      setupCommentsListener(threadId);
+
+    } else {
+      showMessageBox("Thread not found.", true);
+      threadModal.style.display = 'none';
+    }
+  } catch (error) {
+    console.error("Error opening thread modal:", error);
+    showMessageBox(`Failed to open thread: ${error.message}`, true);
+    threadModal.style.display = 'none';
+  }
+}
+
+/**
+ * Sets up a real-time listener for comments on a specific thread.
+ * Comments are sorted client-side.
+ * @param {string} threadId - The ID of the thread whose comments to listen to.
+ */
+function setupCommentsListener(threadId) {
+  if (!db) {
+    console.error("Firestore DB not initialized for comments listener.");
+    return;
+  }
+
+  const commentsRef = collection(db, COMMENTS_COLLECTION_PREFIX(threadId));
+
+  // Listen for real-time updates
+  onSnapshot(commentsRef, (snapshot) => {
+    let comments = [];
+    snapshot.forEach(doc => {
+      comments.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Client-side sorting by createdAt (oldest first)
+    comments.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || new Date(0));
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || new Date(0));
+      return dateA - dateB; // Ascending order
+    });
+
+    renderComments(comments);
+    // Update comment count on the thread document itself
+    updateThreadCommentCount(threadId, comments.length);
+  }, (error) => {
+    console.error("Error listening to comments:", error);
+    showMessageBox(`Error loading comments: ${error.message}`, true);
+    commentsContainer.innerHTML = '<p class="text-center text-red-400 py-4">Failed to load comments.</p>';
+  });
+}
+
+/**
+ * Renders comments to the UI.
+ * @param {Array<Object>} comments - An array of comment objects.
+ */
+function renderComments(comments) {
+  if (commentsContainer) commentsContainer.innerHTML = '';
+  if (comments.length === 0) {
+    if (commentsContainer) commentsContainer.innerHTML = '<p class="text-center text-gray-400 py-4">No comments yet. Be the first to add one!</p>';
+    return;
+  }
+
+  comments.forEach(comment => {
+    const commentElement = document.createElement('div');
+    commentElement.classList.add('bg-gray-800', 'p-4', 'rounded-lg', 'shadow-sm', 'mb-3');
+    commentElement.innerHTML = `
+      <div class="flex items-center mb-2">
+        <img src="${comment.authorPhotoURL || DEFAULT_PROFILE_PIC}" alt="Avatar" class="w-8 h-8 rounded-full mr-2 profile-pic-small">
+        <span class="font-semibold text-white">${comment.authorDisplayName || comment.authorHandle || 'Anonymous'}</span>
+        <span class="text-gray-400 text-xs ml-2">${comment.createdAt ? new Date(comment.createdAt.seconds * 1000).toLocaleString() : 'N/A'}</span>
+      </div>
+      <div class="prose prose-invert max-w-none text-gray-300">
+        ${marked.parse(comment.content || '')}
+      </div>
+      <div class="flex items-center mt-3">
+        ${Object.entries(comment.reactions || {}).map(([emoji, count]) => `
+            <span class="flex items-center mr-2 bg-gray-700 rounded-full px-2 py-1 text-xs">
+              ${emoji} ${count}
+            </span>
+          `).join('')}
+        <button class="reaction-btn text-gray-400 hover:text-blue-400 transition-colors duration-200 ml-auto" data-comment-id="${comment.id}" data-thread-id="${currentOpenThreadId}">Add Reaction</button>
+      </div>
+    `;
+    commentsContainer?.appendChild(commentElement);
+  });
+
+  // Add event listeners for reaction buttons
+  document.querySelectorAll('.reaction-btn').forEach(button => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation(); // Prevent modal from closing if this is inside a modal
+      const commentId = event.target.dataset.commentId;
+      const threadId = event.target.dataset.threadId;
+      showEmojiPalette(event.target, threadId, commentId, 'comment');
+    });
+  });
+}
+
+
+/**
+ * Adds a new comment to a thread.
+ * @param {string} threadId - The ID of the thread to comment on.
+ * @param {string} content - The content of the comment.
+ */
+async function addComment(threadId, content) {
+  if (!auth.currentUser) {
+    showMessageBox("You must be logged in to comment.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot add comment.", true);
+    return;
+  }
+
+  try {
+    const user = getCurrentUser();
+    const commentData = {
+      content: content,
+      authorUid: user.uid,
+      authorDisplayName: user.displayName || user.email || 'Anonymous',
+      authorHandle: user.handle || 'N/A',
+      authorPhotoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+      createdAt: serverTimestamp(),
+      reactions: {}
+    };
+    await addDoc(collection(db, COMMENTS_COLLECTION_PREFIX(threadId)), commentData);
+    showMessageBox("Comment added successfully!", false);
+    easyMDECommentContent.value(''); // Clear EasyMDE editor
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    showMessageBox(`Failed to add comment: ${error.message}`, true);
+  }
+}
+
+/**
+ * Updates the comment count on the main thread document.
+ * @param {string} threadId - The ID of the thread.
+ * @param {number} count - The new comment count.
+ */
+async function updateThreadCommentCount(threadId, count) {
+  if (!db) return;
+  const threadDocRef = doc(db, THREADS_COLLECTION, threadId);
+  try {
+    await updateDoc(threadDocRef, {
+      commentCount: count,
+      updatedAt: serverTimestamp() // Update timestamp when comments change
+    });
+    // No message box here, as this is a background update
+  } catch (error) {
+    console.error("Error updating thread comment count:", error);
+  }
+}
+
+/**
+ * Adds or updates a reaction to a thread or comment.
+ * @param {string} type - 'thread' or 'comment'.
+ * @param {string} targetId - The ID of the thread or comment.
+ * @param {string} emoji - The emoji character (e.g., '👍').
+ */
+async function addReaction(type, targetId, emoji) {
+  if (!auth.currentUser) {
+    showMessageBox("You must be logged in to react.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized.", true);
+    return;
+  }
+
+  let docRef;
+  if (type === 'thread') {
+    docRef = doc(db, THREADS_COLLECTION, targetId);
+  } else if (type === 'comment') {
+    docRef = doc(db, COMMENTS_COLLECTION_PREFIX(currentOpenThreadId), targetId);
+  } else {
+    console.error("Invalid reaction type:", type);
+    return;
+  }
+
+  try {
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const currentReactions = data.reactions || {};
+      const newCount = (currentReactions[emoji] || 0) + 1;
+      const updatedReactions = { ...currentReactions, [emoji]: newCount };
+
+      await updateDoc(docRef, {
+        reactions: updatedReactions,
+        updatedAt: serverTimestamp()
+      });
+      // No message, real-time listener will update UI
+    }
+  } catch (error) {
+    console.error("Error adding reaction:", error);
+    showMessageBox(`Failed to add reaction: ${error.message}`, true);
+  }
+}
+
+/**
+ * Displays an emoji palette next to the clicked element.
+ * @param {HTMLElement} targetElement - The button that was clicked.
+ * @param {string} threadId - The ID of the thread.
+ * @param {string} [commentId] - The ID of the comment (if type is 'comment').
+ * @param {string} type - 'thread' or 'comment'.
+ */
+function showEmojiPalette(targetElement, threadId, commentId = null, type = 'thread') {
+  const emojis = ['👍', '❤️', '😂', '🔥', '🤔', '🥳', '🎉']; // Common emojis
+  let palette = document.getElementById('emoji-palette');
+
+  if (!palette) {
+    palette = document.createElement('div');
+    palette.id = 'emoji-palette';
+    palette.classList.add('emoji-palette', 'absolute', 'z-10', 'flex', 'flex-wrap', 'gap-2');
+    document.body.appendChild(palette);
+  } else {
+    palette.innerHTML = ''; // Clear existing emojis
+  }
+
+  emojis.forEach(emoji => {
+    const emojiSpan = document.createElement('span');
+    emojiSpan.textContent = emoji;
+    emojiSpan.classList.add('emoji-item');
+    emojiSpan.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent closing palette immediately
+      addReaction(type, commentId || threadId, emoji);
+      palette.style.display = 'none';
+    });
+    palette.appendChild(emojiSpan);
+  });
+
+  // Position the palette
+  const rect = targetElement.getBoundingClientRect();
+  palette.style.left = `${rect.left + window.scrollX}px`;
+  palette.style.top = `${rect.bottom + window.scrollY + 10}px`; // 10px below the button
+  palette.style.display = 'flex';
+
+  // Hide palette when clicking anywhere else
+  const hidePalette = (e) => {
+    if (!palette.contains(e.target) && e.target !== targetElement) {
+      palette.style.display = 'none';
+      document.removeEventListener('click', hidePalette);
+    }
+  };
+  document.addEventListener('click', hidePalette);
+}
+
+
+// --- Event Listeners and Initial Load ---
+document.addEventListener('DOMContentLoaded', async () => {
+  // Ensure Firebase is initialized and user authentication state is settled.
+  await setupFirebaseAndUser();
+  // IMPORTANT: Initialize setupThemesFirebase AFTER setupFirebaseAndUser resolves
+  setupThemesFirebase(db, auth, appId);
+
+  // Load navbar dynamically
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-  const currentUser = getCurrentUser(); // Get updated currentUser after Firebase init
 
-  // Use getUserProfileFromFirestore from utils.js to fetch user profile
-  const userProfileForTheme = currentUser ? await getUserProfileFromFirestore(currentUser.uid) : null;
-  const userThemePreference = userProfileForTheme?.themePreference;
-
-  const allGlobalThemes = await getAvailableThemes(); // Global themes from themes.js
-  const themeToApply = allGlobalThemes.find(t => t.id === userThemePreference) || allGlobalThemes.find(t => t.id === DEFAULT_THEME_NAME);
-  applyTheme(themeToApply.id, themeToApply);
-  setupThemesFirebase(db, auth, appId); // Ensure themes.js also has Firebase instances
-
-  // Attach tab switching listeners
-  if (tabForum) tabForum.addEventListener('click', () => showTab('forum'));
-  if (tabDMs) tabDMs.addEventListener('click', () => showTab('dms'));
-  if (tabAnnouncements) tabAnnouncements.addEventListener('click', () => showTab('announcements'));
-
-  // Attach Forum specific event listeners
-  if (themeSelect) {
-    themeSelect.addEventListener('change', (event) => {
-      renderForumThreads(event.target.value);
-    });
+  // Set current year for footer
+  const currentYearElement = document.getElementById('current-year-forms');
+  if (currentYearElement) {
+    currentYearElement.textContent = new Date().getFullYear().toString();
   }
-  // Allow any authenticated user to open the theme management modal as per security rules for custom_themes
-  if (manageThemesBtn) {
-    manageThemesBtn.addEventListener('click', () => {
-      if (auth.currentUser) {
-        openThemeManagementModal();
-      } else {
-        showMessageBox("You must be logged in to manage themes.", true);
-      }
-    });
-  }
-  if (createThreadForm) {
-    createThreadForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const selectedThemeOption = createThreadThemeSelect.options[createThreadThemeSelect.selectedIndex];
-      const themeId = selectedThemeOption.value;
-      // Ensure theme name is not empty if "Select a Theme" is still there
-      const themeName = selectedThemeOption.textContent === '-- Select a Theme --' ? '' : selectedThemeOption.textContent.trim();
 
-      const title = threadTitleInput.value.trim();
-      const content = threadContentInput.value.trim();
-
-      await createThread(themeId, themeName, title, content);
+  // Initialize EasyMDE for thread creation form
+  if (threadContentInput) {
+    easyMDEThreadContent = new EasyMDE({
+      element: threadContentInput,
+      spellChecker: false,
+      forceSync: true,
+      minHeight: "150px",
+      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
     });
   }
 
-  // Attach listeners for dynamic forum elements (delegation)
-  document.getElementById('threads-list-container')?.addEventListener('click', async (event) => {
-    const target = event.target;
+  // Event listener for Create Thread Form submission
+  createThreadForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const title = threadTitleInput.value.trim();
+    const content = easyMDEThreadContent ? easyMDEThreadContent.value().trim() : threadContentInput.value.trim();
 
-    // Handle delete thread button
-    if (target.classList.contains('delete-thread-btn') || target.closest('.delete-thread-btn')) {
-      event.preventDefault();
-      const button = target.closest('.delete-thread-btn');
-      const threadId = button.dataset.id;
-      await handleDeleteThread(threadId);
+    if (!title || !content) {
+      showMessageBox("Please enter both title and content for your thread.", true);
+      return;
     }
-    // Handle delete comment button
-    else if (target.classList.contains('delete-comment-btn') || target.closest('.delete-comment-btn')) {
-      event.preventDefault();
-      const button = target.closest('.delete-comment-btn');
-      const threadId = button.dataset.threadId;
-      const commentId = button.dataset.commentId;
-      await handleDeleteComment(threadId, commentId);
+    await createThread(title, content);
+  });
+
+  // Event listener for Add Comment Form submission
+  addCommentForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const commentContent = easyMDECommentContent ? easyMDECommentContent.value().trim() : commentContentInput.value.trim();
+
+    if (!commentContent) {
+      showMessageBox("Please enter content for your comment.", true);
+      return;
     }
-    // Handle post comment button
-    else if (target.classList.contains('post-comment-btn') || target.closest('.post-comment-btn')) {
-      event.preventDefault();
-      const button = target.closest('.post-comment-btn');
-      const threadId = button.dataset.threadId;
-      const commentInput = document.getElementById(`comment-input-${threadId}`);
-      const commentContent = commentInput.value.trim();
-      if (commentContent) {
-        await handlePostComment(event);
-      } else {
-        showMessageBox("Comment cannot be empty.", true);
-      }
+    if (currentOpenThreadId) {
+      await addComment(currentOpenThreadId, commentContent);
+    } else {
+      showMessageBox("No thread selected to add comment.", true);
     }
-    // Handle emoji palette clicks
-    else if (target.classList.contains('emoji-item') || target.closest('.emoji-item')) {
-      handleEmojiPaletteClick(event);
-    }
-    // Handle thread reactions (upvote/downvote)
-    else if (target.classList.contains('fa-arrow-up') || target.classList.contains('fa-arrow-down')) {
-      event.preventDefault();
-      const btn = target;
-      const type = btn.dataset.type || 'thread';
-      const itemId = btn.dataset.itemId;
-      const emoji = btn.dataset.emoji;
-      if (type && itemId && emoji) {
-        await handleForumReaction(type, itemId, null, emoji);
-      }
+  });
+
+  // Event listener for Thread Modal Close Button
+  threadCloseButton?.addEventListener('click', () => {
+    threadModal.style.display = 'none';
+    currentOpenThreadId = null; // Clear the current thread ID
+  });
+
+  // Close modal when clicking outside of it
+  window.addEventListener('click', (event) => {
+    if (event.target === threadModal) {
+      threadModal.style.display = 'none';
+      currentOpenThreadId = null;
     }
   });
 
 
-  // Attach DM specific event listeners (from dms.js)
-  attachDmEventListeners();
+  // Initial render of threads
+  renderThreads();
 
-  // Attach Announcement specific event listeners (from announcements.js)
-  attachAnnouncementEventListeners();
-
-  // Attach Theme Modal event listeners (from themes-api.js)
-  attachThemeModalEventListeners();
-
-  // Set the current year in the footer.
-  document.getElementById('current-year-forms').textContent = new Date().getFullYear();
-
-  // Show the default tab on load
-  showTab(currentActiveTab);
-};
+  // Optionally, set up a real-time listener for all threads to update the main page
+  // This could be heavy for very large collections. Consider a simpler periodic refresh or just rely on manual refresh.
+  // For this example, we will re-render all threads after a new thread is added or a comment count changes.
+  // A dedicated onSnapshot for the main threads collection could be added here if truly real-time main page updates are desired.
+});

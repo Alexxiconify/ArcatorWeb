@@ -57,7 +57,7 @@ let currentUser = null;
 export const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 export const DEFAULT_THEME_NAME = 'dark';
 // IMPORTANT: Replace with the actual UIDs of your Firebase authenticated admin users.
-export const ADMIN_UIDS = ['YOUR_ADMIN_UID_1', 'YOUR_ADMIN_UID_2']; // <--- REPLACE THIS
+export const ADMIN_UIDS = ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2']; // <--- REPLACE THIS
 
 
 /**
