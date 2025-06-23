@@ -4,12 +4,10 @@
 
 // --- Firebase Imports ---
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-// No direct Firestore imports needed here, as getUserProfileFromFirestore is now in utils.js
 
 // --- Local Module Imports ---
-import { applyTheme, getAvailableThemes } from './themes.js';
-import { db, appId, auth, getCurrentUser } from './firebase-init.js'; // Import shared Firebase instances
-import { getUserProfileFromFirestore } from './utils.js'; // Import utility function
+import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Import setupThemesFirebase
+import { db, appId, auth, getCurrentUser, getUserProfileFromFirestore } from './firebase-init.js'; // Import shared Firebase instances and utility
 
 /**
  * Loads the navigation bar HTML into the 'navbar-placeholder' element
@@ -21,10 +19,6 @@ import { getUserProfileFromFirestore } from './utils.js'; // Import utility func
  * @param {string} defaultThemeName - The ID of the default theme to apply.
  */
 export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultThemeName) {
-  // Destructure Firebase instances for easier access.
-  // Note: We are now using the globally exported `auth`, `db`, `appId` from `firebase-init.js`
-  // so `firebaseInstances` parameter is largely for consistency or if this function is called before global exports are ready.
-  // We'll primarily rely on the imported globals here.
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
 
   if (navbarPlaceholder) {
@@ -39,17 +33,19 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
       const navbarSigninLink = document.getElementById('navbar-signin-link');
       const navbarSignInText = document.getElementById('navbar-signin-text');
-      const navbarUserIdDisplay = document.getElementById('navbar-user-id'); // Assuming this exists now for userId display
+      const navbarUserIdDisplay = document.getElementById('navbar-user-id');
 
-      if (auth) {
+      if (auth && db && appId) { // Ensure Firebase instances are available
+        // IMPORTANT: Initialize themes.js with Firebase instances here
+        setupThemesFirebase(db, auth, appId);
+
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
             if (navbarSigninLink) navbarSigninLink.style.display = 'none';
 
-            // Get the user profile from the shared utility function
             const userProfile = await getUserProfileFromFirestore(user.uid);
-            const currentUser = getCurrentUser(); // Get the enriched user object
+            const currentUser = getCurrentUser();
 
             if (navbarUserDisplayName) {
               navbarUserDisplayName.textContent = currentUser?.displayName || userProfile?.displayName || user.displayName || 'Settings';
@@ -58,34 +54,35 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
               navbarUserIcon.src = currentUser?.photoURL || userProfile?.photoURL || user.photoURL || defaultProfilePic;
             }
             if (navbarUserIdDisplay) {
-              // Show the full UID for authenticated users, or 'Guest' for anonymous
               navbarUserIdDisplay.textContent = `UID: ${currentUser?.uid || user.uid}`;
               if (currentUser?.handle) {
                 navbarUserIdDisplay.textContent += ` (@${currentUser.handle})`;
               }
             }
 
-
             const userThemePreference = userProfile?.themePreference;
             const allThemes = await getAvailableThemes();
             const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === defaultThemeName);
-            applyTheme(themeToApply.id, themeToApply); // Corrected from applyThemeFunc
+            applyTheme(themeToApply.id, themeToApply);
+            console.log(`DEBUG: Navbar applied user theme: ${themeToApply.name}`);
 
           } else {
             if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
             if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
             if (navbarSignInText) navbarSignInText.textContent = 'Sign In';
-            if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic; // Reset to default
-            if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Guest'; // Display 'Guest' for anonymous
-            if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = 'UID: Guest User'; // Display for anonymous
+            if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
+            if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Guest';
+            if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = 'UID: Guest User';
+
             applyTheme(defaultThemeName);
+            console.log(`DEBUG: Navbar applied default theme: ${defaultThemeName}`);
           }
         });
       } else {
-        console.warn("Firebase Auth not available. Dynamic navbar features disabled.");
+        console.warn("Firebase Auth or DB not available. Dynamic navbar features disabled.");
         if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
         if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
-        if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic; // Fallback
+        if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
         if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Guest';
         if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = 'UID: Not available';
         applyTheme(defaultThemeName);
