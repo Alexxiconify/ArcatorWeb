@@ -53,6 +53,8 @@ import {
 
 
 // --- DOM Elements (re-declared for local module access) ---
+// Note: messageBox and customConfirmModal are now managed by utils.js directly
+// but still good practice to have global refs if other modules might need them.
 const messageBox = document.getElementById('message-box');
 const customConfirmModal = document.getElementById('custom-confirm-modal');
 
@@ -82,20 +84,26 @@ const DEFAULT_THEME_NAME = 'dark'; // For overall site theme
 let currentActiveTab = 'forum'; // Default active tab
 
 function showTab(tabId) {
-  // Unsubscribe all active listeners from other tabs
+  console.log(`Attempting to show tab: ${tabId}`);
+
+  // Unsubscribe all active listeners from other tabs to prevent redundant updates
   unsubscribeForumThreadsListener();
   unsubscribeConversationsListListener();
   unsubscribeCurrentMessagesListener(); // Important for DM tab detail view
   unsubscribeAnnouncementsListener();
-  // No explicit unsubscribe needed for theme dropdowns or management as they're handled by themes-api.js's own lifecycle
 
   // Deactivate all tab buttons and hide all content sections
   document.querySelectorAll('.tab-button').forEach(button => {
     button.classList.remove('active-tab', 'border-blue-500', 'text-blue-300');
     button.classList.add('border-transparent', 'text-gray-300');
+    console.log(`Deactivated button: ${button.id}`);
   });
+
   document.querySelectorAll('.tab-content').forEach(content => {
     content.classList.add('hidden');
+    // Explicitly set display none for robustness
+    if (content.style) content.style.display = 'none';
+    console.log(`Hid content: ${content.id}`);
   });
 
   // Activate the selected tab button and show its content section
@@ -105,20 +113,29 @@ function showTab(tabId) {
   if (selectedButton && selectedContent) {
     selectedButton.classList.add('active-tab', 'border-blue-500', 'text-blue-300');
     selectedButton.classList.remove('border-transparent', 'text-gray-300');
+    console.log(`Activated button: ${selectedButton.id}`);
+
     selectedContent.classList.remove('hidden');
-    currentActiveTab = tabId;
+    // Explicitly set display block for robustness
+    if (tabId === 'dms') { // DM tab uses flex for its inner layout
+      selectedContent.style.display = 'flex';
+    } else {
+      selectedContent.style.display = 'block';
+    }
+    console.log(`Showed content: ${selectedContent.id} with display: ${selectedContent.style.display}`);
+
+    currentActiveTab = tabId; // Update global state for the active tab
 
     // Render content for the newly active tab
     switch (tabId) {
       case 'forum':
-        // Restore previous theme selection or default to 'all'
         const storedThemeId = localStorage.getItem('currentSelectedThemeId') || 'all';
-        themeSelect.value = storedThemeId; // Update the dropdown
+        if (themeSelect) themeSelect.value = storedThemeId;
         renderForumThreads(storedThemeId);
         break;
       case 'dms':
         populateUserHandlesDatalist();
-        renderConversationsList();
+        renderConversationsList(); // This function in dms.js should handle initial panel visibility
         break;
       case 'announcements':
         renderAnnouncements();
@@ -126,6 +143,8 @@ function showTab(tabId) {
       default:
         console.warn(`Attempted to show unknown tab: ${tabId}`);
     }
+  } else {
+    console.error(`Could not find button or content for tab: ${tabId}`);
   }
 }
 
@@ -134,18 +153,19 @@ window.onload = async function() {
   if (customConfirmModal) {
     customConfirmModal.style.display = 'none';
   }
-  const themeManagementModal = document.getElementById('theme-management-modal'); // Get it here as themes-api might be loaded
+  const themeManagementModal = document.getElementById('theme-management-modal');
   if (themeManagementModal) {
     themeManagementModal.style.display = 'none';
   }
 
-  await setupFirebaseAndUser();
+  await setupFirebaseAndUser(); // Ensure Firebase and current user are ready
 
   // Load navbar and apply user's theme preference
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
   const currentUser = getCurrentUser(); // Get updated currentUser after Firebase init
-  const userProfileForTheme = await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(currentUser.uid).get();
-  const userThemePreference = userProfileForTheme.data()?.themePreference;
+  // Ensure userProfile is fetched to get theme preference
+  const userProfileForTheme = currentUser ? (await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(currentUser.uid).get()).data() : null;
+  const userThemePreference = userProfileForTheme?.themePreference;
   const allGlobalThemes = await getAvailableThemes(); // Global themes from themes.js
   const themeToApply = allGlobalThemes.find(t => t.id === userThemePreference) || allGlobalThemes.find(t => t.id === DEFAULT_THEME_NAME);
   applyTheme(themeToApply.id, themeToApply);
@@ -170,7 +190,8 @@ window.onload = async function() {
       event.preventDefault();
       const selectedThemeOption = createThreadThemeSelect.options[createThreadThemeSelect.selectedIndex];
       const themeId = selectedThemeOption.value;
-      const themeName = selectedThemeOption.textContent.replace('-- Select a Theme --', '').trim();
+      // Ensure theme name is not empty if "Select a Theme" is still there
+      const themeName = selectedThemeOption.textContent === '-- Select a Theme --' ? '' : selectedThemeOption.textContent.trim();
 
       const title = threadTitleInput.value.trim();
       const content = threadContentInput.value.trim();
@@ -180,7 +201,7 @@ window.onload = async function() {
   }
 
   // Attach listeners for dynamic forum elements (delegation)
-  document.getElementById('threads-list-container').addEventListener('click', async (event) => {
+  document.getElementById('threads-list-container')?.addEventListener('click', async (event) => {
     const target = event.target;
 
     // Handle delete thread button
@@ -206,7 +227,7 @@ window.onload = async function() {
       const commentInput = document.getElementById(`comment-input-${threadId}`);
       const commentContent = commentInput.value.trim();
       if (commentContent) {
-        await handlePostComment(event); // Call the forum.js handler
+        await handlePostComment(event);
       } else {
         showMessageBox("Comment cannot be empty.", true);
       }
@@ -219,7 +240,7 @@ window.onload = async function() {
     else if (target.classList.contains('fa-arrow-up') || target.classList.contains('fa-arrow-down')) {
       event.preventDefault();
       const btn = target;
-      const type = btn.dataset.type || 'thread'; // Should be 'thread' for these specific buttons
+      const type = btn.dataset.type || 'thread';
       const itemId = btn.dataset.itemId;
       const emoji = btn.dataset.emoji;
       if (type && itemId && emoji) {
