@@ -84,7 +84,7 @@
 
     <!-- Sidebar / Additional Content (Right) -->
     <div class="lg:col-span-1 space-y-8">
-      <!-- Temporary Pages Section -->
+      <!-- Temporary Pages Section (Existing) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Temporary Pages</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Quick links to temporary informational pages and announcements.</p>
@@ -95,21 +95,23 @@
         <a href="admin_and_dev.html#temporary-pages-section" class="inline-block bg-purple-600 text-white font-bold py-2 px-4 rounded-full mt-4 hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg text-sm">Manage Temporary Pages</a>
       </div>
 
-      <!-- Direct Messages Section -->
+      <!-- Announcements Section (Content embedded directly) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold mb-4 text-blue-300">Direct Messages</h3>
-        <p class="text-gray-300 leading-relaxed mb-4">Communicate privately with other community members.</p>
-        <a href="dms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg text-sm">Go to Direct Messages</a>
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Recent Announcements</h3>
+        <div id="announcements-list" class="space-y-4">
+          <p class="text-gray-300 text-center">Loading announcements...</p>
+        </div>
       </div>
 
-      <!-- Announcements Section -->
+      <!-- Direct Messages Section (Content embedded directly) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
-        <h3 class="text-2xl font-bold mb-4 text-blue-300">Announcements</h3>
-        <p class="text-gray-300 leading-relaxed mb-4">Stay up-to-date with the latest news and updates from Arcator.</p>
-        <a href="announcements.html" class="inline-block bg-yellow-600 text-white font-bold py-2 px-4 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out shadow-lg text-sm">View All Announcements</a>
+        <h3 class="text-2xl font-bold mb-4 text-blue-300">Recent Conversations</h3>
+        <div id="recent-dms-list" class="space-y-4">
+          <p class="text-gray-300 text-center">Loading recent DMs...</p>
+        </div>
       </div>
 
-      <!-- Quick Link to Theme Settings -->
+      <!-- Quick Link to Theme Settings (Existing) -->
       <div class="bg-gray-700 p-6 rounded-lg shadow-md">
         <h3 class="text-2xl font-bold mb-4 text-blue-300">Theme Settings</h3>
         <p class="text-gray-300 leading-relaxed mb-4">Manage custom themes and other display settings.</p>
