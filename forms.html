@@ -3,207 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Forms - Arcator.co.uk</title>
+  <title>Community Forums - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
-  <link href="https://fonts.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- EasyMDE (Markdown Editor) CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Link to theme_variables.css for centralized CSS variables if it exists -->
+  <!-- Link to the CSS variables (assuming theme_variables.css defines your CSS custom properties) -->
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for navbar specific styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to forms.css for forms-specific styling -->
+  <!-- Link to forms.css for forms specific styling -->
   <link rel="stylesheet" href="forms.css">
+  <style>
+    /* Base styles, will be overridden by CSS variables from themes.js */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+    /* Apply styles for theme variables */
+    .bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
+    .bg-gray-700 { background-color: var(--color-bg-card) !important; }
+    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; }
+    .text-gray-300 { color: var(--color-text-secondary) !important; }
+    .text-gray-400 { color: var(--color-text-secondary) !important; }
+    .text-gray-200 { color: var(--color-text-primary) !important; }
+    .text-blue-500 { color: var(--color-link) !important; }
+    h1, h2, h3, h4, h5, h6 { color: var(--color-heading-main) !important; }
+    .text-blue-300 { color: var(--color-heading-card) !important; }
+
+    input, select, textarea {
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-input-text) !important;
+      border-color: var(--color-input-border) !important;
+    }
+    input::placeholder, textarea::placeholder {
+      color: var(--color-placeholder) !important;
+    }
+
+    .btn-primary, .bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
+      color: var(--color-button-text) !important;
+    }
+    .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
+    .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+    .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
+    .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+    .bg-green-600 { background-color: var(--color-button-green-bg) !important; }
+    .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
+    .bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
+    .hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
+    .bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
+    .hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
+    .bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
+    .hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+    .bg-gray-500 { background-color: var(--color-text-secondary) !important; }
+    .hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; }
+
+    a { color: var(--color-link); }
+    a:hover { text-decoration: underline; }
+    .hover\:text-white:hover { color: var(--color-text-primary) !important; }
+
+    table {
+      width: 100%; border-collapse: collapse; background-color: var(--color-bg-card);
+      color: var(--color-text-primary); border-radius: 0.5rem; overflow: hidden;
+    }
+    table th {
+      background-color: var(--color-table-th-bg); color: var(--color-table-th-text);
+      padding: 0.75rem 1rem; text-align: left; font-weight: 700;
+      border-bottom: 1px solid var(--color-table-td-border);
+    }
+    table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-table-td-border); }
+    table tbody tr:nth-child(even) { background-color: var(--color-table-row-even-bg); }
+
+    .modal {
+      display: none; position: fixed; z-index: 1001; left: 0; top: 0;
+      width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7);
+      justify-content: center; align-items: center; color: var(--color-modal-text);
+    }
+    .modal-content {
+      background-color: var(--color-modal-bg); color: var(--color-modal-text);
+      padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      width: 90%; max-width: 600px; position: relative;
+    }
+    .modal-content h3 { color: var(--color-heading-card); }
+    .modal-content label { color: var(--color-text-secondary); }
+    .modal-content input, .modal-content select, .modal-content textarea {
+      background-color: var(--color-modal-input-bg) !important;
+      color: var(--color-modal-input-text) !important;
+      border-color: var(--color-input-border) !important;
+    }
+
+    .message-box {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000; display: none; font-size: 1rem; text-align: center;
+      background-color: var(--color-modal-bg); color: var(--color-modal-text);
+    }
+    .message-box.success { background-color: var(--color-message-box-bg-success); }
+    .message-box.error { background-color: var(--color-message-box-bg-error); }
+
+    .editor-toolbar {
+      background-color: var(--color-input-bg) !important;
+      border-bottom: 1px solid var(--color-input-border) !important;
+    }
+    .editor-toolbar button { color: var(--color-input-text) !important; }
+    .editor-toolbar button.active, .editor-toolbar button:hover {
+      background-color: var(--color-input-border) !important;
+    }
+    .CodeMirror, .CodeMirror-scroll {
+      background-color: var(--color-body-bg) !important;
+      color: var(--color-text-primary) !important;
+    }
+    .CodeMirror-cursor { border-left: 1px solid var(--color-text-primary) !important; }
+    .CodeMirror-selected { background-color: var(--color-table-th-bg) !important; }
+    .CodeMirror-placeholder { color: var(--color-placeholder) !important; }
+
+    /* Custom styles for reactions and comments */
+    .reaction-btn {
+      transition: transform 0.1s ease-in-out;
+    }
+    .reaction-btn:hover {
+      transform: scale(1.2);
+    }
+    .reaction-btn.reacted {
+      color: var(--color-link); /* Highlight color for reacted state */
+    }
+
+    /* Styles for the thread list */
+    .thread-item {
+      background-color: var(--color-bg-card);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+    .thread-item:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .thread-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-heading-card);
+    }
+    .thread-meta {
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+    }
+    .thread-content {
+      color: var(--color-text-primary);
+      margin-top: 0.5rem;
+    }
+
+    /* Styles for individual comments */
+    .comment-item {
+      background-color: var(--color-input-bg); /* Lighter background for comments */
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--color-input-border);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .comment-meta {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    .comment-content {
+      color: var(--color-text-primary);
+      font-size: 0.95rem;
+    }
+    .profile-pic-small {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px; /* rounded-full */
+      object-fit: cover;
+    }
+  </style>
 </head>
 <body class="antialiased">
-<!-- Navbar Placeholder -->
+
+<!-- Navigation Bar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section with Background Image -->
+<!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Hub</h1>
-    <p class="text-xl md:text-2xl mb-8">Connect, discuss, and stay informed.</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Forums</h1>
+    <p class="text-xl md:text-2xl mb-8">Discuss anything related to Arcator, get support, and share ideas!</p>
   </div>
 </section>
 
-<!-- Main Content Section: Forum, DMs, Announcements -->
-<main class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <div class="flex border-b border-gray-600 mb-8 justify-center">
-      <button id="tab-forum" class="tab-button px-6 py-3 text-lg text-gray-300 border-transparent active-tab border-blue-500 text-blue-300">Forum</button>
-      <button id="tab-dms" class="tab-button px-6 py-3 text-lg text-gray-300 border-transparent">Direct Messages</button>
-      <button id="tab-announcements" class="tab-button px-6 py-3 text-lg text-gray-300 border-transparent">Announcements</button>
+<!-- Main Content Area -->
+<main class="container mx-auto px-4 py-8">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-md mb-8">
+    <h2 class="text-3xl font-bold mb-6 text-blue-300">Create New Thread</h2>
+    <form id="create-thread-form" class="space-y-4">
+      <div>
+        <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Thread Title:</label>
+        <input type="text" id="thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter thread title" required>
+      </div>
+      <div>
+        <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Thread Content:</label>
+        <textarea id="thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your thread content here..."></textarea>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Create Thread</button>
+    </form>
+  </div>
+
+  <div class="bg-gray-800 p-8 rounded-lg shadow-md">
+    <h2 class="text-3xl font-bold mb-6 text-blue-300">All Threads</h2>
+    <div id="threads-list" class="space-y-4">
+      <p class="text-gray-300 text-center">Loading threads...</p>
     </div>
+  </div>
 
-    <!-- Forum Content (UPDATED) -->
-    <div id="content-forum" class="tab-content">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Community Forum</h2>
+  <!-- Thread Detail Modal -->
+  <div id="thread-detail-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-blue-300"></h3>
+      <p id="modal-thread-meta" class="text-sm text-gray-400 mb-4"></p>
+      <div id="modal-thread-content" class="prose text-gray-200 mb-6 max-h-64 overflow-y-auto"></div>
 
-      <!-- Theme Selection & Management -->
-      <div class="p-6 bg-gray-700 rounded-lg shadow-md mb-8 flex flex-col md:flex-row md:items-center justify-between">
-        <div class="flex items-center mb-4 md:mb-0">
-          <label for="theme-select" class="block text-gray-300 text-lg font-bold mr-3">Browse Theme:</label>
-          <select id="theme-select" class="w-full md:w-auto p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="all">All Threads</option>
-            <!-- Themes will be loaded here dynamically by JavaScript -->
-          </select>
-        </div>
-        <button id="manage-themes-btn" class="bg-purple-600 text-white font-bold py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg flex items-center justify-center">
-          <i class="fas fa-cog mr-2"></i> Manage Themes
-        </button>
+      <!-- Reactions Section -->
+      <div class="flex items-center space-x-4 mb-6" id="thread-reactions-container">
+        <!-- Reactions will be dynamically loaded here -->
       </div>
 
-      <!-- Current Theme Info and Rules (Dynamic) -->
-      <div id="current-theme-info" class="p-6 bg-gray-700 rounded-lg shadow-md mb-8 hidden">
-        <h3 id="current-theme-name" class="text-2xl font-bold text-blue-300 mb-2"></h3>
-        <p id="current-theme-description" class="text-gray-300 mb-4"></p>
-        <div id="current-theme-rules" class="theme-rules-display">
-          <h4 class="text-xl font-semibold text-gray-200 mb-2">Theme Rules:</h4>
-          <ul id="theme-rules-list">
-            <!-- Rules will be displayed here -->
-          </ul>
-        </div>
+      <h4 class="text-xl font-bold mb-4 text-blue-300">Comments</h4>
+      <div id="comments-list" class="space-y-4 max-h-72 overflow-y-auto">
+        <p class="text-gray-300 text-center">No comments yet. Be the first to reply!</p>
       </div>
 
-
-      <!-- Create Thread Form -->
-      <div class="p-6 bg-gray-700 rounded-lg shadow-md mb-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Create New Thread</h3>
-        <form id="create-thread-form" class="space-y-4">
-          <div>
-            <label for="create-thread-theme" class="block text-gray-300 text-sm font-bold mb-2">Choose Theme:</label>
-            <select id="create-thread-theme" class="w-full p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <!-- Themes will be loaded here dynamically by JavaScript -->
-              <option value="">-- Select a Theme --</option>
-            </select>
-          </div>
-          <div>
-            <label for="thread-title" class="block text-gray-300 text-sm font-bold mb-2">Title:</label>
-            <input type="text" id="thread-title" placeholder="Enter thread title" class="w-full p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="thread-content" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
-            <textarea id="thread-content" placeholder="Write your thread content here..." rows="5" class="w-full p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-          </div>
-          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Post Thread</button>
+      <div class="mt-6">
+        <h5 class="text-lg font-bold mb-2 text-blue-300">Add a Comment</h5>
+        <form id="add-comment-form" class="space-y-3">
+          <textarea id="comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Write your comment..."></textarea>
+          <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Post Comment</button>
         </form>
-      </div>
-
-      <!-- Threads List -->
-      <div id="threads-list-container" class="mt-8">
-        <h3 class="text-3xl font-bold text-red-400 mb-6">Recent Threads</h3>
-        <p id="threads-loading-error" class="text-red-500 text-center hidden mb-4"></p>
-        <p id="no-threads-message" class="text-gray-400 text-center hidden mb-4">No threads found in this theme. Be the first to post!</p>
-        <div id="threads-list" class="space-y-8">
-          <!-- Forum threads will be loaded here dynamically by JavaScript -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Direct Messages Content (UPDATED STRUCTURE FOR STACKED UI) -->
-    <div id="content-dms" class="tab-content hidden">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Direct Messages & Group Chats</h2>
-
-      <!-- Conversations List Panel -->
-      <div id="conversations-panel" class="flex flex-col p-4 mb-6">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Conversations</h3>
-
-        <!-- New Group DM Form -->
-        <div class="mb-6 p-4 bg-gray-800 rounded-lg shadow-sm">
-          <h4 class="text-xl font-semibold text-gray-200 mb-3">Start New Chat</h4>
-          <form id="create-conversation-form" class="space-y-3">
-            <div>
-              <label for="new-chat-type" class="block text-gray-300 text-sm font-bold mb-1">Chat Type:</label>
-              <select id="new-chat-type" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="private">Private Chat (1-to-1)</option>
-                <option value="group">Group Chat</option>
-              </select>
-            </div>
-            <div id="private-chat-fields">
-              <label for="private-chat-recipient" class="block text-gray-300 text-sm font-bold mb-1">Recipient Handle:</label>
-              <input type="text" id="private-chat-recipient" placeholder="@username" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" list="user-handles-list">
-              <datalist id="user-handles-list"></datalist>
-            </div>
-            <div id="group-chat-fields" class="hidden">
-              <label for="group-chat-name" class="block text-gray-300 text-sm font-bold mb-1">Group Name (Optional):</label>
-              <input type="text" id="group-chat-name" placeholder="My Awesome Group" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <label for="group-chat-participants" class="block text-gray-300 text-sm font-bold mb-1">Participants (comma-separated handles, e.g., @user1, @user2):</label>
-              <textarea id="group-chat-participants" placeholder="@user1, @user2, @user3" rows="2" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-            </div>
-            <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Start Chat</button>
-          </form>
-        </div>
-
-        <!-- Sort Options -->
-        <div class="mb-4">
-          <label for="sort-conversations-by" class="block text-gray-300 text-sm font-bold mb-2">Sort by:</label>
-          <select id="sort-conversations-by" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="lastMessageAt_desc">Recent Activity (Newest First)</option>
-            <option value="createdAt_desc">Date Created (Newest First)</option>
-            <option value="createdAt_asc">Date Created (Oldest First)</option>
-            <option value="otherUsername_asc">Other Username (A-Z)</option>
-            <option value="otherUsername_desc">Other Username (Z-A)</option>
-            <option value="groupName_asc">Group Name (A-Z)</option>
-            <option value="groupName_desc">Group Name (Z-A)</option>
-          </select>
-        </div>
-
-        <div id="conversations-list-container" class="flex-grow overflow-y-auto">
-          <p id="no-conversations-message" class="text-gray-400 text-center mt-4 hidden">No conversations yet. Start a new chat!</p>
-          <div id="conversations-list" class="space-y-2">
-            <!-- Conversation items will be loaded here -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Messages Display Panel -->
-      <div id="messages-panel" class="flex flex-col p-4 hidden"> <!-- Initially hidden -->
-        <div id="selected-conversation-header" class="bg-gray-800 p-3 rounded-t-lg mb-3 flex items-center justify-between shadow-md sticky top-0 z-10">
-          <button id="back-to-chats-btn" class="bg-blue-600 text-white font-bold py-1 px-4 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg text-sm mr-2">
-            <i class="fas fa-arrow-left"></i> Back
-          </button>
-          <h3 id="conversation-title" class="text-2xl font-bold text-blue-300 flex-grow text-center">Select a Conversation</h3>
-          <button id="delete-conversation-btn" class="hidden bg-red-600 text-white font-bold py-1 px-4 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg text-sm ml-2">Delete Chat</button>
-        </div>
-        <div id="conversation-messages-container" class="flex-grow flex flex-col-reverse overflow-y-auto space-y-4 py-4">
-          <p id="no-messages-message" class="text-gray-400 text-center mt-4">No messages in this conversation yet.</p>
-          <!-- Messages will be loaded here -->
-        </div>
-        <div id="message-input-area" class="mt-4 hidden">
-          <form id="send-message-form" class="flex items-center space-x-2">
-            <input type="text" id="message-content-input" placeholder="Type your message..." class="flex-grow p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Send</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Announcements Content -->
-    <div id="content-announcements" class="tab-content hidden">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-8">Announcements</h2>
-
-      <!-- Create Announcement Section (Admin Only) -->
-      <div id="create-announcement-section" class="p-6 bg-gray-700 rounded-lg shadow-md mb-8 hidden">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Post New Announcement</h3>
-        <form id="create-announcement-form" class="space-y-4">
-          <div>
-            <label for="announcement-content" class="block text-gray-300 text-sm font-bold mb-2">Content:</label>
-            <textarea id="announcement-content" placeholder="Write your announcement here..." rows="5" class="w-full p-3 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-          </div>
-          <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Post Announcement</button>
-        </form>
-      </div>
-
-      <!-- Announcements List -->
-      <div id="announcements-list-container" class="mt-8">
-        <h3 class="text-3xl font-bold text-red-400 mb-6">Latest Announcements</h3>
-        <p id="no-announcements-message" class="text-gray-400 text-center hidden mb-4">No announcements available at the moment.</p>
-        <div id="announcements-list" class="space-y-8">
-          <!-- Announcements will be loaded here dynamically by JavaScript -->
-        </div>
       </div>
     </div>
   </div>
@@ -213,7 +260,7 @@
 <div id="message-box" class="message-box"></div>
 
 <!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
+<div id="custom-confirm-modal" class="modal custom-confirm-modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
@@ -222,42 +269,6 @@
     <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
   </div>
 </div>
-
-<!-- Theme Management Modal -->
-<div id="theme-management-modal" class="theme-modal">
-  <div class="theme-modal-content">
-    <span class="theme-modal-close">&times;</span>
-    <h3 class="text-2xl font-bold text-blue-300 mb-4">Manage Themes</h3>
-
-    <div id="theme-creation-section" class="mb-6 p-4 bg-gray-800 rounded-lg shadow-sm">
-      <h4 class="text-xl font-semibold text-gray-200 mb-3">Create New Theme</h4>
-      <form id="create-theme-form" class="space-y-3">
-        <div>
-          <label for="new-theme-name" class="block text-gray-300 text-sm font-bold mb-1">Theme Name:</label>
-          <input type="text" id="new-theme-name" placeholder="e.g., SSMP, Creative, General" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label for="new-theme-description" class="block text-gray-300 text-sm font-bold mb-1">Description:</label>
-          <textarea id="new-theme-description" placeholder="A brief description of this theme's purpose." rows="2" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        </div>
-        <div>
-          <label for="new-theme-rules" class="block text-gray-300 text-sm font-bold mb-1">Rules (one per line):</label>
-          <textarea id="new-theme-rules" placeholder="Rule 1\nRule 2\n..." rows="3" class="w-full p-2 bg-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        </div>
-        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out shadow-lg">Create Theme</button>
-      </form>
-    </div>
-
-    <div id="existing-themes-list" class="mt-6">
-      <h4 class="text-xl font-semibold text-gray-200 mb-3">Existing Themes</h4>
-      <div id="themes-list-container" class="space-y-4">
-        <!-- Existing themes will be loaded here with edit/delete options -->
-        <p id="no-themes-message" class="text-gray-400 text-center hidden">No themes found. Create one above!</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 <!-- Footer Section -->
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
@@ -274,14 +285,9 @@
   </div>
 </footer>
 
-<!-- Firebase SDKs and Main Script (will be forms.js) -->
-<!-- forms.js will be loaded as a module -->
-<script src="firebase-init.js" type="module"></script>
-<script src="utils.js" type="module"></script>
-<script src="themes-api.js" type="module"></script>
-<script src="forum.js" type="module"></script>
-<script src="dms.js" type="module"></script>
-<script src="announcements.js" type="module"></script>
-<script src="forms.js" type="module"></script>
+<!-- EasyMDE (Markdown Editor) JS -->
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<!-- Main Application Script (forms.js) -->
+<script type="module" src="forms.js"></script>
 </body>
 </html>
