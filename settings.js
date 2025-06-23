@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebase
 
 // Import local module functions, including the centralized Firebase instances
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } from './navbar.js';
+import { loadNavbar } => './navbar.js';
 import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js';
 import { getUserProfileFromFirestore, setUserProfileInFirestore, deleteUserProfileFromFirestore, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, auth, db, appId, firebaseReadyPromise } from './firebase-init.js';
 
@@ -115,113 +115,131 @@ async function populateThemeDropdown() {
  * Loads user profile and preferences from Firestore and populates the form fields.
  */
 async function loadUserSettings() {
+  // New log at the very beginning of the function
+  console.log("DEBUG: >>> Entering loadUserSettings function <<<");
   showLoading();
   await firebaseReadyPromise; // Ensure Firebase is ready
   const user = auth.currentUser;
-  console.log("DEBUG: loadUserSettings called. Current user:", user ? user.uid : "none", "Auth object:", auth);
+  console.log("DEBUG: loadUserSettings: Current user object from Auth:", user);
+  console.log("DEBUG: loadUserSettings: Current user UID:", user ? user.uid : "none");
+
 
   if (!user) {
-    console.log("DEBUG: User not authenticated (loadUserSettings), showing login required message.");
+    console.log("DEBUG: loadUserSettings: User not authenticated, showing login required message.");
     showLoginRequired();
+    hideLoading(); // Ensure spinner is hidden
     return;
   }
 
-  console.log("DEBUG: User is authenticated. Populating initial UI from FirebaseAuth user object.");
+  console.log("DEBUG: loadUserSettings: User is authenticated. Populating initial UI from FirebaseAuth user object.");
   // Populate profile section with initial Firebase Auth data
   if (displayNameText) {
     displayNameText.textContent = user.displayName || 'Set Display Name';
-    console.log("DEBUG: Set displayNameText:", displayNameText.textContent);
+    console.log("DEBUG: loadUserSettings: Set displayNameText from Auth:", displayNameText.textContent);
   }
   if (emailText) {
     emailText.textContent = user.email || 'N/A';
-    console.log("DEBUG: Set emailText:", emailText.textContent);
+    console.log("DEBUG: loadUserSettings: Set emailText from Auth:", emailText.textContent);
   }
   if (profilePictureDisplay) {
     profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
-    console.log("DEBUG: Set profilePictureDisplay.src:", profilePictureDisplay.src);
+    console.log("DEBUG: loadUserSettings: Set profilePictureDisplay.src from Auth:", profilePictureDisplay.src);
   }
   if (displayNameInput) {
     displayNameInput.value = user.displayName || '';
-    console.log("DEBUG: Set displayNameInput.value:", displayNameInput.value);
+    console.log("DEBUG: loadUserSettings: Set displayNameInput.value from Auth:", displayNameInput.value);
   }
   if (profilePictureUrlInput) {
     profilePictureUrlInput.value = user.photoURL || '';
-    console.log("DEBUG: Set profilePictureUrlInput.value:", profilePictureUrlInput.value);
+    console.log("DEBUG: loadUserSettings: Set profilePictureUrlInput.value from Auth:", profilePictureUrlInput.value);
   }
 
 
   // Fetch user profile from Firestore
-  console.log("DEBUG: Attempting to fetch user profile from Firestore for UID:", user.uid);
+  console.log("DEBUG: loadUserSettings: Attempting to fetch user profile from Firestore for UID:", user.uid);
   const userProfile = await getUserProfileFromFirestore(user.uid);
-  console.log("DEBUG: User profile fetched from Firestore:", userProfile);
+  console.log("DEBUG: loadUserSettings: User profile fetched from Firestore:", userProfile);
 
   if (userProfile) {
-    console.log("DEBUG: User profile exists. Populating UI with Firestore data.");
-    // Update display name and picture if profile has more recent info
+    console.log("DEBUG: loadUserSettings: User profile exists. Populating UI with Firestore data.");
+    console.log("DEBUG: loadUserSettings: userProfile.displayName:", userProfile.displayName);
+    console.log("DEBUG: loadUserSettings: userProfile.photoURL:", userProfile.photoURL);
+    console.log("DEBUG: loadUserSettings: userProfile.themePreference:", userProfile.themePreference);
+    console.log("DEBUG: loadUserSettings: userProfile.fontSize:", userProfile.fontSize);
+    console.log("DEBUG: loadUserSettings: userProfile.fontFamily:", userProfile.fontFamily);
+    console.log("DEBUG: loadUserSettings: userProfile.backgroundPattern:", userProfile.backgroundPattern);
+
+
+    // Update display name and picture if profile has more recent info from Firestore
     if (displayNameText) displayNameText.textContent = userProfile.displayName || displayNameText.textContent;
     if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || profilePictureDisplay.src;
     if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
     if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
 
-    // Set preferences
+    // Set preferences from Firestore
     if (themeSelect && userProfile.themePreference) {
       themeSelect.value = userProfile.themePreference;
-      console.log("DEBUG: Applied theme preference:", userProfile.themePreference);
+      console.log("DEBUG: loadUserSettings: Applied theme preference from Firestore:", userProfile.themePreference);
     } else if (themeSelect) {
-      console.log("DEBUG: No themePreference in userProfile, or themeSelect not found.");
+      console.log("DEBUG: loadUserSettings: No themePreference in userProfile, or themeSelect not found. Current themeSelect.value:", themeSelect.value);
     }
     if (fontSizeSelect && userProfile.fontSize) {
       fontSizeSelect.value = userProfile.fontSize;
-      console.log("DEBUG: Applied font size preference:", userProfile.fontSize);
+      console.log("DEBUG: loadUserSettings: Applied font size preference from Firestore:", userProfile.fontSize);
     } else if (fontSizeSelect) {
-      console.log("DEBUG: No fontSize in userProfile, or fontSizeSelect not found.");
+      console.log("DEBUG: loadUserSettings: No fontSize in userProfile, or fontSizeSelect not found. Current fontSizeSelect.value:", fontSizeSelect.value);
     }
     if (fontFamilySelect && userProfile.fontFamily) {
       fontFamilySelect.value = userProfile.fontFamily;
-      console.log("DEBUG: Applied font family preference:", userProfile.fontFamily);
+      console.log("DEBUG: loadUserSettings: Applied font family preference from Firestore:", userProfile.fontFamily);
     } else if (fontFamilySelect) {
-      console.log("DEBUG: No fontFamily in userProfile, or fontFamilySelect not found.");
+      console.log("DEBUG: loadUserSettings: No fontFamily in userProfile, or fontFamilySelect not found. Current fontFamilySelect.value:", fontFamilySelect.value);
     }
     if (backgroundPatternSelect && userProfile.backgroundPattern) {
       backgroundPatternSelect.value = userProfile.backgroundPattern;
-      console.log("DEBUG: Applied background pattern preference:", userProfile.backgroundPattern);
+      console.log("DEBUG: loadUserSettings: Applied background pattern preference from Firestore:", userProfile.backgroundPattern);
     } else if (backgroundPatternSelect) {
-      console.log("DEBUG: No backgroundPattern in userProfile, or backgroundPatternSelect not found.");
+      console.log("DEBUG: loadUserSettings: No backgroundPattern in userProfile, or backgroundPatternSelect not found. Current backgroundPatternSelect.value:", backgroundPatternSelect.value);
     }
     if (emailNotificationsCheckbox) {
       emailNotificationsCheckbox.checked = userProfile.emailNotifications || false;
-      console.log("DEBUG: Email notifications checked:", emailNotificationsCheckbox.checked);
+      console.log("DEBUG: loadUserSettings: Email notifications checked:", emailNotificationsCheckbox.checked);
     }
     if (inappNotificationsCheckbox) {
       inappNotificationsCheckbox.checked = userProfile.inAppNotifications || false;
-      console.log("DEBUG: In-app notifications checked:", inappNotificationsCheckbox.checked);
+      console.log("DEBUG: loadUserSettings: In-app notifications checked:", inappNotificationsCheckbox.checked);
     }
     if (highContrastCheckbox) {
       highContrastCheckbox.checked = userProfile.highContrastMode || false;
-      console.log("DEBUG: High contrast checked:", highContrastCheckbox.checked);
+      console.log("DEBUG: loadUserSettings: High contrast checked:", highContrastCheckbox.checked);
     }
     if (reducedMotionCheckbox) {
       reducedMotionCheckbox.checked = userProfile.reducedMotion || false;
-      console.log("DEBUG: Reduced motion checked:", reducedMotionCheckbox.checked);
+      console.log("DEBUG: loadUserSettings: Reduced motion checked:", reducedMotionCheckbox.checked);
     }
   } else {
-    console.warn("WARNING: No user profile found in Firestore for UID:", user.uid, ". Default profile creation is handled in firebase-init.js.");
+    console.warn("WARNING: loadUserSettings: No user profile found in Firestore for UID:", user.uid, ". Default profile creation is handled in firebase-init.js if it's a new user.");
   }
 
   // Session Information
   if (user.metadata) {
     if (lastLoginTimeElement && user.metadata.lastSignInTime) {
       lastLoginTimeElement.textContent = `Last Login: ${new Date(user.metadata.lastSignInTime).toLocaleString()}`;
-      console.log("DEBUG: Set Last Login Time:", lastLoginTimeElement.textContent);
+      console.log("DEBUG: loadUserSettings: Set Last Login Time:", lastLoginTimeElement.textContent);
+    } else if (lastLoginTimeElement) {
+      console.warn("WARNING: loadUserSettings: lastLoginTimeElement found but user.metadata.lastSignInTime is missing.");
     }
     if (accountCreationTimeElement && user.metadata.creationTime) {
       accountCreationTimeElement.textContent = `Account Created: ${new Date(user.metadata.creationTime).toLocaleString()}`;
-      console.log("DEBUG: Set Account Creation Time:", accountCreationTimeElement.textContent);
+      console.log("DEBUG: loadUserSettings: Set Account Creation Time:", accountCreationTimeElement.textContent);
+    } else if (accountCreationTimeElement) {
+      console.warn("WARNING: loadUserSettings: accountCreationTimeElement found but user.metadata.creationTime is missing.");
     }
   } else {
-    console.warn("WARNING: User metadata not available.");
+    console.warn("WARNING: loadUserSettings: User metadata not available.");
   }
 
+  console.log("DEBUG: --- Finished loadUserSettings ---");
   hideLoading(); // Hide spinner and show content after data population attempt
 }
 
