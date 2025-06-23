@@ -99,9 +99,9 @@ async function setupFirebaseAndUser() {
     return;
   }
 
+  // Determine the final Firebase configuration to use
   let finalFirebaseConfig = DEFAULT_FIREBASE_CONFIG; // Start with the provided default config
 
-  // Check if Canvas environment provides its config
   if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
     if (typeof __firebase_config === 'string') {
       try {
@@ -109,7 +109,6 @@ async function setupFirebaseAndUser() {
         console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
       } catch (e) {
         console.error("ERROR: Failed to parse __firebase_config string as JSON. Using provided DEFAULT_FIREBASE_CONFIG.", e);
-        // Fallback to DEFAULT_FIREBASE_CONFIG if parsing fails
       }
     } else if (typeof __firebase_config === 'object') {
       finalFirebaseConfig = __firebase_config;
@@ -121,7 +120,8 @@ async function setupFirebaseAndUser() {
     console.log("DEBUG: __firebase_config not provided. Using provided DEFAULT_FIREBASE_CONFIG.");
   }
 
-  firebaseConfig = finalFirebaseConfig; // Assign the determined config to the global firebaseConfig
+  // Assign the determined config to the global firebaseConfig variable
+  firebaseConfig = finalFirebaseConfig;
 
   try {
     app = initializeApp(firebaseConfig);
