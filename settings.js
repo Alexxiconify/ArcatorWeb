@@ -120,6 +120,7 @@ async function loadUserSettings() {
   console.log("DEBUG: loadUserSettings called. Current user:", user ? user.uid : "none");
 
   if (!user) {
+    console.log("DEBUG: User not authenticated, showing login required message.");
     showLoginRequired();
     return;
   }
@@ -130,7 +131,7 @@ async function loadUserSettings() {
   if (profilePictureDisplay) profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
   if (displayNameInput) displayNameInput.value = user.displayName || '';
   if (profilePictureUrlInput) profilePictureUrlInput.value = user.photoURL || '';
-  console.log("DEBUG: Initial UI populated with FirebaseAuth data.");
+  console.log("DEBUG: Initial UI populated with FirebaseAuth data for user:", user.uid);
 
 
   // Fetch user profile from Firestore
@@ -174,16 +175,19 @@ async function loadUserSettings() {
       reducedMotionCheckbox.checked = userProfile.reducedMotion || false;
     }
   } else {
-    console.warn("WARNING: No user profile found in Firestore for UID:", user.uid);
+    console.warn("WARNING: No user profile found in Firestore for UID:", user.uid, ". Creating a default profile if it doesn't exist already handled in firebase-init.js.");
+    // No specific action needed here as firebase-init.js handles default profile creation
   }
 
   // Session Information
   if (user.metadata) {
     if (lastLoginTimeElement && user.metadata.lastSignInTime) {
       lastLoginTimeElement.textContent = `Last Login: ${new Date(user.metadata.lastSignInTime).toLocaleString()}`;
+      console.log("DEBUG: Last login time:", user.metadata.lastSignInTime);
     }
     if (accountCreationTimeElement && user.metadata.creationTime) {
       accountCreationTimeElement.textContent = `Account Created: ${new Date(user.metadata.creationTime).toLocaleString()}`;
+      console.log("DEBUG: Account creation time:", user.metadata.creationTime);
     }
   }
 
