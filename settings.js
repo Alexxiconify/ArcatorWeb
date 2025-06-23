@@ -34,46 +34,48 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-// Declare DOM element variables; they will be assigned inside DOMContentLoaded
-let profileSettingsSection;
-let displayNameInput;
-let handleInput;
-let profilePicInput;
-let profilePicPreview;
-let saveProfileBtn;
-let handleStatus;
+// Declare DOM element variables and initialize them to null.
+// They will be assigned their actual DOM element references inside DOMContentLoaded.
+let profileSettingsSection = null;
+let displayNameInput = null;
+let handleInput = null;
+let profilePicInput = null;
+let profilePicPreview = null;
+let saveProfileBtn = null;
+let handleStatus = null;
 
-let themeSelect;
-let fontSizeSelect;
-let fontFamilySelect;
-let backgroundPatternSelect;
-let saveThemeBtn;
-let manageThemesBtn;
+let themeSettingsSection = null;
+let themeSelect = null;
+let fontSizeSelect = null;
+let fontFamilySelect = null;
+let backgroundPatternSelect = null;
+let saveThemeBtn = null;
+let manageThemesBtn = null;
 
-let accountSettingsSection;
-let currentPasswordInput;
-let newPasswordInput;
-let confirmNewPasswordInput;
-let updatePasswordBtn;
-let deleteAccountBtn;
+let accountSettingsSection = null;
+let currentPasswordInput = null;
+let newPasswordInput = null;
+let confirmNewPasswordInput = null;
+let updatePasswordBtn = null;
+let deleteAccountBtn = null;
 
-let notificationSettingsSection;
-let emailNotificationsCheckbox;
-let inAppNotificationsCheckbox;
-let saveNotificationBtn;
+let notificationSettingsSection = null;
+let emailNotificationsCheckbox = null;
+let inAppNotificationsCheckbox = null;
+let saveNotificationBtn = null;
 
-let accessibilitySettingsSection;
-let highContrastCheckbox;
-let reducedMotionCheckbox;
-let saveAccessibilityBtn;
+let accessibilitySettingsSection = null;
+let highContrastCheckbox = null;
+let reducedMotionCheckbox = null;
+let saveAccessibilityBtn = null;
 
-let profileTabBtn;
-let themeTabBtn;
-let accountTabBtn;
-let notificationTabBtn;
-let accessibilityTabBtn;
+let profileTabBtn = null;
+let themeTabBtn = null;
+let accountTabBtn = null;
+let notificationTabBtn = null;
+let accessibilityTabBtn = null;
 
-let logoutBtn;
+let logoutBtn = null;
 
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 const DEFAULT_THEME_NAME = 'dark';
@@ -224,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   saveProfileBtn = document.getElementById('save-profile-btn');
   handleStatus = document.getElementById('handle-status');
 
-  themeSettingsSection = document.getElementById('theme-settings-section'); // Correctly assign here
+  themeSettingsSection = document.getElementById('theme-settings-section');
   themeSelect = document.getElementById('theme-select');
   fontSizeSelect = document.getElementById('font-size-select');
   fontFamilySelect = document.getElementById('font-family-select');
@@ -423,7 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Manage Custom Themes (delegated to custom_theme_modal.js via setupCustomThemeManagement)
   manageThemesBtn?.addEventListener('click', () => {
     if (auth.currentUser) {
-      setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, themeSelect, DEFAULT_THEME_NAME, auth.currentUser);
+      setupCustomThemeManagement(db, auth, appId, showMessageBox, showCustomConfirm, getAvailableThemes, applyTheme, themeSelect, DEFAULT_THEME_NAME, auth.currentUser);
     } else {
       showMessageBox("You must be logged in to manage themes.", true);
     }
@@ -495,15 +497,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // A proper re-authentication flow is needed here, as showCustomConfirm does not get password.
-    // For a real application, you would implement a dedicated modal with an input field
-    // for the user to enter their password before calling reauthenticateWithCredential.
-    // For now, this will likely fail if the user's last sign-in was too long ago.
     try {
-      // Placeholder for actual password input and reauthentication
-      // const passwordEntered = prompt("Please enter your password to confirm:");
-      // const credential = EmailAuthProvider.credential(user.email, passwordEntered);
-      // await reauthenticateWithCredential(user, credential);
+      // A proper re-authentication flow is needed here.
+      // The `showCustomConfirm` is not designed to take password input.
+      // For a real application, implement a dedicated modal to get the user's password.
 
       await deleteUser(user);
       await deleteDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid));
