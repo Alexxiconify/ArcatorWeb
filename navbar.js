@@ -3,7 +3,7 @@
 // and theme application based on user preferences.
 
 // --- Firebase Imports ---
-import { onAuthStateChanged } => "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 // --- Local Module Imports --
 // Import applyTheme and getAvailableThemes from themes.js

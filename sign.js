@@ -1,256 +1,248 @@
-// sign.js: Handles user sign-in, sign-up, and logout.
+// sign.js: Handles user sign-up, sign-in, and password reset functionalities.
 
-// Import Firebase instances and user functions from the centralized init file
-import {
-  auth,
-  db,
-  appId,
-  getCurrentUser,
-  firebaseReadyPromise, // Import firebaseReadyPromise
-  getUserProfileFromFirestore,
-  updateUserProfileInFirestore,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME
-} from './firebase-init.js';
+// Import necessary Firebase SDK functions
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import specific Auth methods (these come directly from the Firebase SDK)
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-  updateProfile // For updating display name, photo URL directly on Auth user
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+// Import shared Firebase instances and utilities from firebase-init.js
+// Removed 'setupFirebaseAndUser' as it is not exported and runs automatically.
+import { auth, db, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+import { showMessageBox, sanitizeHandle } from './utils.js';
+import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Ensure themes setup is also imported
 
-// Import theme and navbar functions
-import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } from './navbar.js';
-import { showMessageBox, showCustomConfirm } from './utils.js'; // Import message box utility
 
 // --- DOM Elements ---
-const userSettingsSection = document.getElementById('user-settings-section'); // For logged-in user display
-const userDisplayEmail = document.getElementById('user-display-email');
-const userProfilePicture = document.getElementById('user-profile-picture');
-const userDisplayName = document.getElementById('user-display-name');
-const goToSettingsBtn = document.getElementById('go-to-settings-btn');
-const logoutBtn = document.getElementById('logout-btn');
+const signInSection = document.getElementById('signin-section');
+const signUpSection = document.getElementById('signup-section');
+const forgotPasswordSection = document.getElementById('forgot-password-section');
 
-const loginSection = document.getElementById('login-section'); // For login form display
-const loginEmailInput = document.getElementById('login-email');
-const loginPasswordInput = document.getElementById('login-password');
-const loginBtn = document.getElementById('login-btn');
-const showSignupBtn = document.getElementById('show-signup-btn');
-const forgotPasswordBtn = document.getElementById('forgot-password-btn'); // New element for forgot password
+// Sign In elements
+const signInEmailInput = document.getElementById('signin-email');
+const signInPasswordInput = document.getElementById('signin-password');
+const signInButton = document.getElementById('signin-btn');
+const goToSignUpLink = document.getElementById('go-to-signup');
+const goToForgotPasswordLink = document.getElementById('go-to-forgot-password');
 
-const signupSection = document.getElementById('signup-section'); // For signup form display
-const signupEmailInput = document.getElementById('signup-email');
-const signupPasswordInput = document.getElementById('signup-password');
-const signupConfirmPasswordInput = document.getElementById('signup-confirm-password');
-const signupDisplayNameInput = document.getElementById('signup-display-name'); // New element for signup display name
-const signupBtn = document.getElementById('signup-btn');
-const showLoginBtn = document.getElementById('show-login-btn');
+// Sign Up elements
+const signUpEmailInput = document.getElementById('signup-email');
+const signUpPasswordInput = document.getElementById('signup-password');
+const signUpConfirmPasswordInput = document.getElementById('signup-confirm-password');
+const signUpDisplayNameInput = document.getElementById('signup-display-name');
+const signUpButton = document.getElementById('signup-btn');
+const goToSignInLink = document.getElementById('go-to-signin');
 
+// Forgot Password elements
+const forgotEmailInput = document.getElementById('forgot-email');
+const resetPasswordButton = document.getElementById('reset-password-btn');
+const goToSignInFromForgotLink = document.getElementById('go-to-signin-from-forgot');
 
-// --- Functions ---
+const loadingSpinner = document.getElementById('loading-spinner');
 
 /**
- * Updates the UI based on the current authentication state.
- * @param {object|null} user - The Firebase User object or null.
+ * Shows the loading spinner.
  */
-async function updateUI(user) {
-  if (user) {
-    // User is signed in
-    loginSection?.classList.add('hidden');
-    signupSection?.classList.add('hidden');
-    userSettingsSection?.classList.remove('hidden');
+function showLoading() {
+  if (loadingSpinner) loadingSpinner.style.display = 'flex';
+}
 
-    if (userDisplayEmail) userDisplayEmail.textContent = user.email || 'N/A';
-    if (userProfilePicture) userProfilePicture.src = user.photoURL || DEFAULT_PROFILE_PIC;
+/**
+ * Hides the loading spinner.
+ */
+function hideLoading() {
+  if (loadingSpinner) loadingSpinner.style.display = 'none';
+}
 
-    const userProfile = await getUserProfileFromFirestore(user.uid);
-    if (userDisplayName) userDisplayName.textContent = userProfile?.displayName || user.displayName || 'Guest';
+/**
+ * Displays a specific section and hides others.
+ * @param {HTMLElement} sectionToShow - The section to display.
+ */
+function showSection(sectionToShow) {
+  if (signInSection) signInSection.style.display = 'none';
+  if (signUpSection) signUpSection.style.display = 'none';
+  if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
 
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
+  if (sectionToShow) sectionToShow.style.display = 'block';
+}
 
-  } else {
-    // No user signed in
-    userSettingsSection?.classList.add('hidden');
-    loginSection?.classList.remove('hidden');
-    signupSection?.classList.add('hidden'); // Default to showing login form
-    applyTheme(DEFAULT_THEME_NAME); // Apply default theme if no user
+/**
+ * Handles user sign-in.
+ */
+async function handleSignIn() {
+  showLoading();
+  await firebaseReadyPromise; // Ensure Firebase is ready
+  const email = signInEmailInput.value;
+  const password = signInPasswordInput.value;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    console.log("User signed in:", user.uid);
+
+    // After successful sign-in, ensure a user profile exists or update it
+    const userProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+    const docSnap = await getDoc(userProfileRef);
+
+    if (!docSnap.exists()) {
+      // Create a default user profile if it doesn't exist
+      await setDoc(userProfileRef, {
+        uid: user.uid,
+        displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+        email: user.email,
+        photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        themePreference: DEFAULT_THEME_NAME,
+        // Add other default settings
+        fontSize: '16px',
+        fontFamily: 'Inter, sans-serif',
+        backgroundPattern: 'none',
+        emailNotifications: true,
+        inAppNotifications: true,
+        highContrastMode: false,
+        reducedMotion: false,
+      });
+      console.log("Default user profile created for new sign-in.");
+    } else {
+      // Update last login time for existing users
+      await setDoc(userProfileRef, { lastLoginAt: new Date() }, { merge: true });
+      console.log("User profile updated with last login time.");
+    }
+
+    showMessageBox("Signed in successfully!", false);
+    window.location.href = 'settings.html'; // Redirect to settings page or dashboard
+  } catch (error) {
+    console.error("Sign-in error:", error);
+    showMessageBox(`Sign-in failed: ${error.message}`, true);
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * Handles user sign-up.
+ */
+async function handleSignUp() {
+  showLoading();
+  await firebaseReadyPromise; // Ensure Firebase is ready
+  const email = signUpEmailInput.value;
+  const password = signUpPasswordInput.value;
+  const confirmPassword = signUpConfirmPasswordInput.value;
+  const displayName = sanitizeHandle(signUpDisplayNameInput.value.trim()); // Sanitize display name
+
+  if (password !== confirmPassword) {
+    showMessageBox("Passwords do not match.", true);
+    hideLoading();
+    return;
+  }
+  if (password.length < 6) {
+    showMessageBox("Password must be at least 6 characters long.", true);
+    hideLoading();
+    return;
+  }
+  if (!displayName) {
+    showMessageBox("Display Name is required.", true);
+    hideLoading();
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Update Firebase Auth profile with display name and default photo
+    await updateProfile(user, {
+      displayName: displayName,
+      photoURL: DEFAULT_PROFILE_PIC
+    });
+
+    // Create user profile in Firestore
+    const userProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+    await setDoc(userProfileRef, {
+      uid: user.uid,
+      displayName: displayName,
+      email: email,
+      photoURL: DEFAULT_PROFILE_PIC,
+      createdAt: new Date(),
+      lastLoginAt: new Date(),
+      themePreference: DEFAULT_THEME_NAME, // Set default theme
+      fontSize: '16px',
+      fontFamily: 'Inter, sans-serif',
+      backgroundPattern: 'none',
+      emailNotifications: true,
+      inAppNotifications: true,
+      highContrastMode: false,
+      reducedMotion: false,
+    });
+
+    console.log("User signed up and profile created:", user.uid);
+    showMessageBox("Account created successfully! Redirecting to settings...", false);
+    window.location.href = 'settings.html'; // Redirect to settings page
+  } catch (error) {
+    console.error("Sign-up error:", error);
+    showMessageBox(`Sign-up failed: ${error.message}`, true);
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * Handles password reset.
+ */
+async function handlePasswordReset() {
+  showLoading();
+  await firebaseReadyPromise; // Ensure Firebase is ready
+  const email = forgotEmailInput.value;
+
+  if (!email) {
+    showMessageBox("Please enter your email address.", true);
+    hideLoading();
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMessageBox("Password reset email sent. Check your inbox!", false);
+    showSection(signInSection); // Go back to sign-in after sending
+  } catch (error) {
+    console.error("Password reset error:", error);
+    showMessageBox(`Password reset failed: ${error.message}`, true);
+  } finally {
+    hideLoading();
   }
 }
 
 // --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', async () => {
-  // Ensure Firebase is set up before proceeding.
-  // This will also trigger the initial onAuthStateChanged.
-  await firebaseReadyPromise;
+  showLoading(); // Show loading spinner initially
+  await firebaseReadyPromise; // Ensure Firebase is ready before doing anything with auth state
+  setupThemesFirebase(db, auth, appId); // Initialize themes module with Firebase instances
 
-  // Setup themes Firebase integration (needed for applyTheme and getAvailableThemes)
-  setupThemesFirebase(db, auth, appId);
-
-  // Load navbar after Firebase is ready
-  await loadNavbar(); // loadNavbar now retrieves its own Firebase instances
-
-  // Listen for auth state changes to update UI dynamically
-  // This listener is already set up in firebase-init.js, but adding one here
-  // ensures this specific page's UI updates correctly after any auth changes.
+  // Apply initial theme based on user preference or default immediately
   onAuthStateChanged(auth, async (user) => {
-    console.log("Auth state changed in sign.js:", user ? user.uid : "Signed out");
-    updateUI(user);
-  });
-
-  // Toggle between login and signup forms
-  showSignupBtn?.addEventListener('click', (event) => {
-    event.preventDefault();
-    loginSection?.classList.add('hidden');
-    signupSection?.classList.remove('hidden');
-    showMessageBox("", false); // Clear any messages
-  });
-
-  showLoginBtn?.addEventListener('click', (event) => {
-    event.preventDefault();
-    signupSection?.classList.add('hidden');
-    loginSection?.classList.remove('hidden');
-    showMessageBox("", false); // Clear any messages
-  });
-
-  // Handle Login
-  loginBtn?.addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent default form submission for login form
-    const email = loginEmailInput.value;
-    const password = loginPasswordInput.value;
-
-    if (!email || !password) {
-      showMessageBox("Please enter both email and password.", true);
-      return;
+    let userThemePreference = null;
+    if (user) {
+      const userProfile = await getUserProfileFromFirestore(user.uid);
+      userThemePreference = userProfile?.themePreference;
     }
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, userThemePreference); // Pass userProfile.themePreference directly for applyTheme
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      showMessageBox("Signed in successfully!", false);
-      // onAuthStateChanged will handle UI update
-    } catch (error) {
-      console.error("Login failed:", error);
-      let errorMessage = "Login failed.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = "Invalid email or password.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Invalid email format.";
-      }
-      showMessageBox(errorMessage, true);
-    }
-  });
-
-  // Handle Signup
-  signupBtn?.addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent default form submission for signup form
-    const email = signupEmailInput.value;
-    const password = signupPasswordInput.value;
-    const confirmPassword = signupConfirmPasswordInput.value;
-    const displayName = signupDisplayNameInput.value.trim(); // Get display name
-
-    if (!email || !password || !confirmPassword) {
-      showMessageBox("Please fill in all required fields.", true);
-      return;
-    }
-    if (password !== confirmPassword) {
-      showMessageBox("Passwords do not match.", true);
-      return;
-    }
-    if (password.length < 6) {
-      showMessageBox("Password must be at least 6 characters long.", true);
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Set initial display name (prefer provided, else part of email)
-      const finalDisplayName = displayName || email.split('@')[0];
-      await updateProfile(user, {
-        displayName: finalDisplayName,
-        photoURL: DEFAULT_PROFILE_PIC // Set a default profile picture
-      });
-
-      // Create user profile in Firestore
-      await updateUserProfileInFirestore(user.uid, {
-        displayName: finalDisplayName,
-        photoURL: DEFAULT_PROFILE_PIC,
-        themePreference: DEFAULT_THEME_NAME,
-        fontSizePreference: '16px', // Default font size
-        fontFamilyPreference: 'Inter, sans-serif',
-        backgroundPatternPreference: 'none',
-        notificationPreferences: { email: false, inApp: false },
-        accessibilitySettings: { highContrast: false, reducedMotion: false },
-        createdAt: new Date().toISOString() // Timestamp
-      });
-
-      showMessageBox("Account created successfully!", false);
-      // onAuthStateChanged will handle UI update
-    } catch (error) {
-      console.error("Signup failed:", error);
-      let errorMessage = "Signup failed.";
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "Email already in use.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Invalid email format.";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password is too weak.";
-      }
-      showMessageBox(errorMessage, true);
-    }
-  });
-
-  // Handle Forgot Password (basic implementation for now)
-  forgotPasswordBtn?.addEventListener('click', async () => {
-    const email = loginEmailInput.value.trim();
-    if (!email) {
-      showMessageBox("Please enter your email in the sign-in form to reset your password.", true);
-      return;
-    }
-
-    const confirmed = await showCustomConfirm(`Send password reset email to ${email}?`, "If the email exists, a reset link will be sent.");
-    if (confirmed) {
-      try {
-        // Implement Firebase's sendPasswordResetEmail here if needed
-        // await sendPasswordResetEmail(auth, email);
-        showMessageBox("Password reset functionality is not yet fully implemented. Please contact support.", false);
-      } catch (error) {
-        console.error("Password reset failed:", error);
-        showMessageBox(`Password reset failed: ${error.message}`, true);
-      }
-    }
+    hideLoading(); // Hide loading spinner once theme is applied and auth state is checked
   });
 
 
-  // Handle Logout
-  logoutBtn?.addEventListener('click', async () => {
-    showMessageBox("", false); // Clear message box
-    try {
-      await signOut(auth);
-      showMessageBox("You have been signed out.", false);
-      // UI will update via onAuthStateChanged
-    } catch (error) {
-      console.error("Logout failed:", error);
-      showMessageBox("Logout failed: " + error.message, true);
-    }
-  });
+  // Default to showing the sign-in section
+  showSection(signInSection);
 
-  // Go to Settings Button
-  goToSettingsBtn?.addEventListener('click', () => {
-    window.location.href = 'settings.html';
-  });
+  // Link event listeners
+  if (goToSignUpLink) goToSignUpLink.addEventListener('click', () => showSection(signUpSection));
+  if (goToSignInLink) goToSignInLink.addEventListener('click', () => showSection(signInSection));
+  if (goToForgotPasswordLink) goToForgotPasswordLink.addEventListener('click', () => showSection(forgotPasswordSection));
+  if (goToSignInFromForgotLink) goToSignInFromForgotLink.addEventListener('click', () => showSection(signInSection));
 
-  // Set the current year for the footer
-  const currentYearElement = document.getElementById('current-year-sign');
-  if (currentYearElement) {
-    currentYearElement.textContent = new Date().getFullYear().toString();
-  }
+  // Button event listeners
+  if (signInButton) signInButton.addEventListener('click', handleSignIn);
+  if (signUpButton) signUpButton.addEventListener('click', handleSignUp);
+  if (resetPasswordButton) resetPasswordButton.addEventListener('click', handlePasswordReset);
 });
