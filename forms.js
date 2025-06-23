@@ -187,8 +187,15 @@ window.onload = async function() {
       renderForumThreads(event.target.value);
     });
   }
+  // Allow any authenticated user to open the theme management modal as per security rules for custom_themes
   if (manageThemesBtn) {
-    manageThemesBtn.addEventListener('click', openThemeManagementModal);
+    manageThemesBtn.addEventListener('click', () => {
+      if (auth.currentUser) {
+        openThemeManagementModal();
+      } else {
+        showMessageBox("You must be logged in to manage themes.", true);
+      }
+    });
   }
   if (createThreadForm) {
     createThreadForm.addEventListener('submit', async (event) => {

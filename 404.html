@@ -27,13 +27,47 @@
   <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
 </div>
 
-<!-- Import themes.js for centralized JavaScript functions -->
-<script src="themes.js" type="module"></script>
-<!-- Import custom_theme_modal.js for custom theme management logic -->
-<script src="custom_theme_modal.js" type="module"></script>
-<!-- Import loadNavbar from navbar.js -->
-<script src="navbar.js" type="module"></script>
-<!-- Import 404.js for page-specific JavaScript -->
-<script src="404.js" type="module"></script>
+<!-- External JavaScript modules -->
+<script type="module" src="themes.js"></script>
+<script type="module" src="custom_theme_modal.js"></script>
+<script type="module" src="navbar.js"></script>
+<script type="module" src="firebase-init.js"></script> <!-- Ensure firebase-init.js is loaded first -->
+<script type="module">
+  // Specific JavaScript for this page
+  import { auth, db, appId, getCurrentUser } from './firebase-init.js'; // Import centralized Firebase instances
+  import { applyTheme, getAvailableThemes } from './themes.js'; // Import for theme application
+
+  const DEFAULT_THEME_NAME = 'dark'; // Consistent with firebase-init.js
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Consistent with firebase-init.js
+
+  // Main execution logic on window load
+  window.onload = async function() {
+    // Firebase is now initialized by firebase-init.js which is loaded first.
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        let userThemePreference = null;
+        if (user) {
+          // Use the getUserProfileFromFirestore from firebase-init for consistency
+          const getUserProfileFromFirestore = async (uid) => {
+            if (!db) { console.error("Firestore DB not initialized."); return null; }
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+            try {
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) return docSnap.data();
+            } catch (error) { console.error("Error fetching user profile:", error); }
+            return null;
+          };
+          const userProfile = await getUserProfileFromFirestore(user.uid);
+          userThemePreference = userProfile?.themePreference;
+        }
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        applyTheme(themeToApply.id, themeToApply);
+      });
+    }
+  };
+</script>
 </body>
 </html>

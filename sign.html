@@ -67,11 +67,10 @@
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Import themes.js for applyTheme function -->
-<script src="themes.js" type="module"></script>
-<!-- Import loadNavbar from navbar.js -->
-<script src="navbar.js" type="module"></script>
-<!-- Import sign.js for page-specific JavaScript -->
-<script src="sign.js" type="module"></script>
+<!-- External JavaScript modules -->
+<script type="module" src="themes.js"></script>
+<script type="module" src="navbar.js"></script>
+<script type="module" src="firebase-init.js"></script> <!-- Ensure firebase-init.js is loaded first -->
+<script type="module" src="sign.js"></script>
 </body>
 </html>
