@@ -69,7 +69,7 @@ export async function loadNavbar(firebaseInstances, defaultProfilePic, defaultTh
             const userThemePreference = userProfile?.themePreference;
             const allThemes = await getAvailableThemes();
             const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === defaultThemeName);
-            applyTheme(themeToApply.id, themeToApply);
+            applyTheme(themeToApply.id, themeToApply); // Corrected from applyThemeFunc
 
           } else {
             if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';

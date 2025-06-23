@@ -6,29 +6,36 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken }
 import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Firebase Configuration ---
-// Default hardcoded config (should ideally be empty or minimal if Canvas always provides)
+// IMPORTANT: Replace these placeholder values with your actual Firebase project configuration.
+// You can find these in your Firebase project console -> Project settings -> General.
 const defaultFirebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY", // Placeholder
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "YOUR_FIREBASE_API_KEY", // <--- REPLACE THIS
+  authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // <--- REPLACE THIS
+  projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS
+  storageBucket: "YOUR_STORAGE_BUCKET.appspot.com", // <--- REPLACE THIS
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- REPLACE THIS
+  appId: "YOUR_APP_ID", // <--- REPLACE THIS
+  // measurementId: "YOUR_MEASUREMENT_ID" // Optional, if you use Google Analytics
 };
 
-// Safely parse __firebase_config from Canvas environment, or use default/empty object
+// Safely determine Firebase config from Canvas environment or default.
 let firebaseConfig = {};
-if (typeof __firebase_config === 'string' && __firebase_config.trim() !== '') {
+if (typeof __firebase_config === 'object' && __firebase_config !== null) {
+  // If __firebase_config is already an object, use it directly
+  firebaseConfig = __firebase_config;
+  console.log("DEBUG: Using __firebase_config provided as an object.");
+} else if (typeof __firebase_config === 'string' && __firebase_config.trim() !== '') {
+  // If it's a non-empty string, try parsing it as JSON
   try {
     firebaseConfig = JSON.parse(__firebase_config);
+    console.log("DEBUG: Parsed __firebase_config from string.");
   } catch (e) {
     console.error("ERROR: Failed to parse __firebase_config JSON. Using default config.", e);
     firebaseConfig = defaultFirebaseConfig; // Fallback
   }
 } else {
-  // If __firebase_config is not a string or empty, use the default config
-  console.warn("WARN: __firebase_config not provided as a string or is empty. Using default config.");
+  // If __firebase_config is not provided or empty, use the hardcoded default
+  console.warn("WARN: __firebase_config not provided or is empty. Using default config. Please ensure your Canvas environment provides a valid Firebase config.");
   firebaseConfig = defaultFirebaseConfig;
 }
 
@@ -48,7 +55,8 @@ let currentUser = null;
 // --- Default Values ---
 export const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 export const DEFAULT_THEME_NAME = 'dark';
-export const ADMIN_UIDS = ['YOUR_ADMIN_UID_1', 'YOUR_ADMIN_UID_2']; // Replace with actual admin UIDs
+// IMPORTANT: Replace with the actual UIDs of your Firebase authenticated admin users.
+export const ADMIN_UIDS = ['YOUR_ADMIN_UID_1', 'YOUR_ADMIN_UID_2']; // <--- REPLACE THIS
 
 
 /**
@@ -176,6 +184,7 @@ export async function setupFirebaseAndUser() {
             backgroundPatternPreference: userProfile.backgroundPatternPreference,
             notificationPreferences: userProfile.notificationPreferences,
             accessibilitySettings: userProfile.accessibilitySettings,
+            isAdmin: ADMIN_UIDS.includes(user.uid), // Set isAdmin based on UIDs
           };
           resolve();
         } else {
@@ -208,7 +217,8 @@ export async function setupFirebaseAndUser() {
                   ...currentUser,
                   displayName: userProfile.displayName,
                   photoURL: userProfile.photoURL,
-                  handle: userProfile.handle
+                  handle: userProfile.handle,
+                  isAdmin: ADMIN_UIDS.includes(currentUser.uid),
                 };
                 resolve();
               })
@@ -236,7 +246,8 @@ export async function setupFirebaseAndUser() {
                       ...currentUser,
                       displayName: `Anon ${currentUser.uid.substring(0, 5)}`,
                       photoURL: DEFAULT_PROFILE_PIC,
-                      handle: generatedHandle
+                      handle: generatedHandle,
+                      isAdmin: ADMIN_UIDS.includes(currentUser.uid),
                     };
                     resolve();
                   })
@@ -268,7 +279,8 @@ export async function setupFirebaseAndUser() {
                   ...currentUser,
                   displayName: `Anon ${currentUser.uid.substring(0, 5)}`,
                   photoURL: DEFAULT_PROFILE_PIC,
-                  handle: generatedHandle
+                  handle: generatedHandle,
+                  isAdmin: ADMIN_UIDS.includes(currentUser.uid),
                 };
                 resolve();
               })
@@ -279,6 +291,10 @@ export async function setupFirebaseAndUser() {
               });
           }
         }
+      }, (error) => {
+        console.error("Error in onAuthStateChanged listener:", error);
+        currentUser = null;
+        resolve(); // Resolve even on listener error to allow page to load
       });
     } catch (e) {
       console.error("Error initializing Firebase:", e);

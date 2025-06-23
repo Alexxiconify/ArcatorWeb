@@ -4,6 +4,8 @@ import { setupFirebaseAndUser, auth, db, appId, getCurrentUser, ADMIN_UIDS } fro
 import { applyTheme, getAvailableThemes, setupThemesFirebase } from './themes.js'; // Global themes, not forum themes
 import { loadNavbar } from './navbar.js';
 import { showMessageBox, showCustomConfirm, getUserProfileFromFirestore } from './utils.js'; // Import getUserProfileFromFirestore
+import { collection, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Import collection, doc for modular syntax
+
 
 // Import all forum related functions
 import {
@@ -75,7 +77,7 @@ const createThreadThemeSelect = document.getElementById('create-thread-theme');
 const threadTitleInput = document.getElementById('thread-title');
 const threadContentInput = document.getElementById('thread-content');
 
-// --- Default Values (can be moved to firebase-init if truly global constants) ---
+// --- Default Values (consistent with firebase-init.js) ---
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 const DEFAULT_THEME_NAME = 'dark'; // For overall site theme
 
@@ -116,7 +118,7 @@ function showTab(tabId) {
     console.log(`Activated button: ${selectedButton.id}`);
 
     selectedContent.classList.remove('hidden');
-    // Explicitly set display block for robustness
+    // Explicitly set display block or flex for robustness
     if (tabId === 'dms') { // DM tab uses flex for its inner layout
       selectedContent.style.display = 'flex';
     } else {
@@ -164,9 +166,11 @@ window.onload = async function() {
   // Load navbar and apply user's theme preference
   await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
   const currentUser = getCurrentUser(); // Get updated currentUser after Firebase init
-  // Ensure userProfile is fetched to get theme preference using the utility function
+
+  // Use getUserProfileFromFirestore from utils.js to fetch user profile
   const userProfileForTheme = currentUser ? await getUserProfileFromFirestore(currentUser.uid) : null;
   const userThemePreference = userProfileForTheme?.themePreference;
+
   const allGlobalThemes = await getAvailableThemes(); // Global themes from themes.js
   const themeToApply = allGlobalThemes.find(t => t.id === userThemePreference) || allGlobalThemes.find(t => t.id === DEFAULT_THEME_NAME);
   applyTheme(themeToApply.id, themeToApply);
