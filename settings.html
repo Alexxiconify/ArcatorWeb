@@ -34,7 +34,7 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <div id="settings-content">
+    <div id="settings-content" style="display: none;">
       <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile & Preferences</h2>
 
       <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
@@ -247,67 +247,70 @@
   const loadingSpinner = document.getElementById('loading-spinner');
 
   /**
-   * Shows the loading spinner and hides content.
+   * Shows the loading spinner and hides all content sections.
    */
   function showLoading() {
     if (loadingSpinner) loadingSpinner.style.display = 'flex';
     if (settingsContent) settingsContent.style.display = 'none';
     if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+    console.log("DEBUG: showLoading - Spinner visible, content hidden.");
   }
 
   /**
-   * Hides the loading spinner and shows settings content if applicable.
+   * Hides the loading spinner. Visibility of content sections is handled by onAuthStateChanged.
    */
   function hideLoading() {
     if (loadingSpinner) loadingSpinner.style.display = 'none';
-    // The display of settingsContent/loginRequiredMessage is handled by onAuthStateChanged
+    console.log("DEBUG: hideLoading - Spinner hidden.");
   }
 
 
   // Main execution logic on window load
   window.onload = async function() {
     console.log("settings.html: window.onload fired.");
-    showLoading(); // Show loading spinner immediately
+    showLoading(); // Show loading spinner immediately upon page load
 
-    // Wait for Firebase to be fully initialized and authenticated
+    // Wait for Firebase to be fully initialized and authenticated.
+    // This promise resolves from firebase-init.js after its onAuthStateChanged has run once.
     await firebaseReadyPromise;
-    console.log("settings.html: Firebase is ready.");
+    console.log("settings.html: Firebase is ready. Proceeding with auth state check.");
 
-    // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set
-    // This needs to be called after db, auth are imported and ready.
+    // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set.
+    // This is crucial for theme functions to work correctly.
     setupThemesFirebase(db, auth, appId);
 
-    // Set up a listener for authentication state changes
+    // Set up a listener for authentication state changes. This is the most reliable way
+    // to get the current user and react to login/logout events.
     onAuthStateChanged(auth, async (user) => {
-      console.log("settings.html: onAuthStateChanged triggered. User:", user ? user.uid : "none");
+      console.log("settings.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
 
-      // Load navbar dynamically with the current user object
-      await loadNavbar(user, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass DEFAULT_THEME_NAME to navbar
+      // Load navbar dynamically with the current user object.
+      // This ensures the navbar reflects the correct login state and user info.
+      await loadNavbar(user, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
       let userThemePreference = null;
 
       if (user) {
-        // User is signed in, fetch and display profile data
+        // User is signed in. Now fetch and display their profile data.
         const userProfile = await getUserProfileFromFirestore(user.uid);
         console.log("settings.html: User Profile fetched:", userProfile);
 
         if (userProfile) {
+          // If a user profile exists in Firestore, use its data.
           userThemePreference = userProfile.themePreference;
 
-          // Update profile display elements
+          // Update profile display elements with fetched data
           if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
           if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
           if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
 
-          // Show settings content, hide login message
+          // Show the settings content and hide the login message
           if (settingsContent) settingsContent.style.display = 'block';
           if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
 
-          // TODO: Populate other settings fields here (e.g., notification checkboxes, accessibility)
-          // For example:
-          // if (document.getElementById('display-name-input')) document.getElementById('display-name-input').value = userProfile.displayName || '';
-          // if (document.getElementById('profile-picture-url-input')) document.getElementById('profile-picture-url-input').value = userProfile.photoURL || '';
-          // ... and so on for other settings fields.
+          // Populate input fields if they exist
+          if (document.getElementById('display-name-input')) document.getElementById('display-name-input').value = userProfile.displayName || '';
+          if (document.getElementById('profile-picture-url-input')) document.getElementById('profile-picture-url-input').value = userProfile.photoURL || '';
 
           // Populate session information
           if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
@@ -317,20 +320,21 @@
             document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
           }
 
-
         } else {
-          console.warn("settings.html: User profile not found in Firestore for UID:", user.uid, ". Displaying generic info.");
-          // Fallback if user is authenticated but no profile document exists
+          // User is authenticated but no profile document found in Firestore.
+          // This case should ideally be rare if firebase-init.js correctly creates it.
+          console.warn("settings.html: User profile not found in Firestore for UID:", user.uid, ". Displaying generic info for authenticated user.");
           if (profilePictureDisplay) profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = user.displayName || 'Guest User';
-          if (emailText) emailText.textContent = user.email || 'Sign in to view profile';
+          if (displayNameText) displayNameText.textContent = user.displayName || 'Guest User (No Profile)';
+          if (emailText) emailText.textContent = user.email || 'N/A';
 
+          // Show the login required message as a fallback, as settings cannot be managed without a profile.
           if (settingsContent) settingsContent.style.display = 'none';
           if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
         }
       } else {
-        // User is signed out, hide settings content and show login message
-        console.log("settings.html: User logged out.");
+        // User is signed out. Hide settings content and show the login message.
+        console.log("settings.html: User logged out. Showing login required message.");
         if (profilePictureDisplay) profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
         if (displayNameText) displayNameText.textContent = 'Guest User';
         if (emailText) emailText.textContent = 'Sign in to view profile';
@@ -338,12 +342,14 @@
         if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
       }
 
-      // Apply the theme: user's preference, or DEFAULT_THEME_NAME
+      // Apply the theme: user's preference, or the default theme.
       const allThemes = await getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
 
-      hideLoading(); // Hide loading spinner after all data is loaded and rendered
+      hideLoading(); // Hide the loading spinner after all UI updates are complete.
+      console.log("DEBUG: Current settingsContent display:", settingsContent.style.display);
+      console.log("DEBUG: Current loginRequiredMessage display:", loginRequiredMessage.style.display);
     });
 
     // Set current year for footer
