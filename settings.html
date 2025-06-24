@@ -210,12 +210,12 @@
 </footer>
 
 <!-- Main page script dependencies -->
-<script type="module" src="./firebase-init.js"></script>
-<script type="module" src="./utils.js"></script>
-<script type="module" src="./themes.js"></script>
-<script type="module" src="./navbar.js"></script>
+<script type="module" src="/firebase-init.js"></script>
+<script type="module" src="/utils.js"></script>
+<script type="module" src="/themes.js"></script>
+<script type="module" src="/navbar.js"></script>
 <!-- The settings.js script is for sign-in/sign-up page, not for settings.html profile display -->
-<!-- <script src="./settings.js" type="module"></script> -->
+<!-- <script src="/settings.js" type="module"></script> -->
 
 <script type="module">
   // Import Firebase instances and utilities from the centralized init file
@@ -228,12 +228,12 @@
     getUserProfileFromFirestore, // Use the centralized function
     DEFAULT_PROFILE_PIC,
     DEFAULT_THEME_NAME // Default theme name
-  } from './firebase-init.js';
+  } from '/firebase-init.js'; // Changed to absolute path
 
   // Import theme management functions
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from '/themes.js'; // Changed to absolute path
   // Import navbar loading function
-  import { loadNavbar } from './navbar.js';
+  import { loadNavbar } from '/navbar.js'; // Changed to absolute path
   // Import onAuthStateChanged for real-time auth state updates
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
