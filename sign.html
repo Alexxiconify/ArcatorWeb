@@ -25,65 +25,82 @@
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-
-    /* Hero Banner styles - common for all themes, retains background image */
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+    /* Form card styling */
+    .form-card {
+      max-width: 450px;
+      width: 90%;
+      padding: 2.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      background-color: var(--color-bg-card); /* Use CSS variable */
+      color: var(--color-text-primary); /* Use CSS variable */
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 5rem; /* Adjust as needed for navbar */
     }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-      z-index: 1;
+    .input-field {
+      margin-bottom: 1rem;
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white; /* Hero content text is hardcoded white for readability over image */
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    .input-field label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem; /* text-sm */
+      font-weight: 600; /* font-semibold */
+      color: var(--color-text-secondary); /* Use CSS variable */
     }
-
-    /* Specific overrides to use CSS variables */
-    .bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
-    .bg-gray-700 { background-color: var(--color-bg-card) !important; }
-    .bg-gray-900 { background-color: var(--color-bg-navbar) !important; }
-
-    .text-gray-100 { color: var(--color-text-primary) !important; }
-    .text-gray-300 { color: var(--color-text-secondary) !important; }
-    .text-gray-400 { color: var(--color-text-secondary) !important; }
-    .text-red-400 { color: var(--color-heading-main) !important; }
-    .text-blue-300 { color: var(--color-heading-card) !important; }
-
-    /* Input Field Styles */
-    input[type="email"], input[type="password"], input[type="text"] {
-      background-color: var(--color-input-bg);
-      color: var(--color-input-text);
-      border: 1px solid var(--color-input-border);
+    .input-element {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--color-input-border); /* Use CSS variable */
+      background-color: var(--color-input-bg); /* Use CSS variable */
+      color: var(--color-input-text); /* Use CSS variable */
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input[type="email"]::placeholder, input[type="password"]::placeholder, input[type="text"]::placeholder {
-      color: var(--color-placeholder);
+    .input-element:focus {
+      outline: none;
+      border-color: var(--color-link); /* Use CSS variable */
+      box-shadow: 0 0 0 3px rgba(var(--color-link-rgb), 0.3); /* Adjusted for RGB variable */
     }
-
-    /* Button styles */
-    .bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
-    .hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
-    .bg-green-600 { background-color: var(--color-button-green-bg) !important; }
-    .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
-    .bg-red-600 { background-color: var(--color-button-red-bg) !important; }
-    .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+    .input-element::placeholder {
+      color: var(--color-placeholder); /* Use CSS variable */
+    }
+    .btn-primary {
+      display: block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700; /* font-bold */
+      transition: background-color 0.2s, transform 0.2s;
+      color: var(--color-button-text); /* Use CSS variable */
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary.btn-blue {
+      background-color: var(--color-button-blue-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-blue:hover {
+      background-color: var(--color-button-blue-hover); /* Use CSS variable */
+    }
+    .btn-primary.btn-red {
+      background-color: var(--color-button-red-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-red:hover {
+      background-color: var(--color-button-red-hover); /* Use CSS variable */
+    }
+    .btn-primary.btn-green {
+      background-color: var(--color-button-green-bg); /* Use CSS variable */
+    }
+    .btn-primary.btn-green:hover {
+      background-color: var(--color-button-green-hover); /* Use CSS variable */
+    }
+    a {
+      color: var(--color-link); /* Use CSS variable */
+    }
+    h2 {
+      color: var(--color-heading-main); /* Use CSS variable */
+    }
 
     /* Message box styling */
     .message-box {
@@ -91,81 +108,106 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 15px 30px;
+      background-color: var(--color-message-box-bg-success, #4CAF50);
+      color: var(--color-button-text, white);
+      padding: 12px 20px;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
+      display: none;
       text-align: center;
-      background-color: var(--color-modal-bg); /* Use modal background for consistency */
-      color: var(--color-modal-text); /* Use modal text for consistency */
-    }
-    .message-box.success {
-      background-color: var(--color-message-box-bg-success); /* Green for success */
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
     }
     .message-box.error {
-      background-color: var(--color-message-box-bg-error); /* Red for error */
+      background-color: var(--color-message-box-bg-error, #F44336);
+    }
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success, #4CAF50);
     }
 
-    /* Custom Confirm Modal - Important for consistent styling */
-    .custom-confirm-modal {
-      display: none; /* Crucial: Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1001; /* Sit on top */
-      left: 0;
+    /* Custom confirmation modal styling */
+    #custom-confirm-modal {
+      position: fixed;
       top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      background-color: rgba(0,0,0,0.7); /* Dark overlay */
-      display: flex; /* Will be set to 'flex' by JS when needed */
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 1000;
+      display: none; /* Hidden by default */
     }
-    .custom-confirm-modal .modal-content {
+    #custom-confirm-modal .modal-content {
       background-color: var(--color-modal-bg);
-      color: var(--color-modal-text);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      width: 90%;
-      max-width: 600px;
-      position: relative;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
+      color: var(--color-modal-text);
+      max-width: 400px;
+      width: 90%;
+      position: relative;
     }
-    .custom-confirm-modal .close-button {
+    #custom-confirm-modal .close-button {
       position: absolute;
       top: 10px;
-      right: 20px;
+      right: 15px;
+      font-size: 1.5rem;
       color: var(--color-text-secondary);
-      font-size: 28px;
-      font-weight: bold;
       cursor: pointer;
     }
-    .custom-confirm-modal .close-button:hover,
-    .custom-confirm-modal .close-button:focus {
-      color: var(--color-text-primary);
-      text-decoration: none;
-      cursor: pointer;
+    #custom-confirm-modal .modal-buttons {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
     }
-    .custom-confirm-modal .modal-content button {
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-      font-weight: 600;
-      transition: background-color 0.2s;
+    #custom-confirm-modal .modal-buttons button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px; /* rounded-full */
+      font-weight: 700;
+      transition: transform 0.2s;
     }
-    .custom-confirm-modal .modal-content .bg-red-600 {
+    #custom-confirm-modal .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+    #custom-confirm-modal .modal-buttons button#confirm-yes {
       background-color: var(--color-button-red-bg);
+      color: var(--color-button-text);
     }
-    .custom-confirm-modal .modal-content .hover\:bg-red-700:hover {
+    #custom-confirm-modal .modal-buttons button#confirm-yes:hover {
       background-color: var(--color-button-red-hover);
     }
-    .custom-confirm-modal .modal-content .bg-gray-500 {
-      background-color: var(--color-text-secondary); /* Use text-secondary for cancel button */
+    #custom-confirm-modal .modal-buttons button#confirm-no {
+      background-color: var(--color-button-blue-bg);
+      color: var(--color-button-text);
     }
-    .custom-confirm-modal .modal-content .hover\:bg-gray-600:hover {
-      background-color: var(--color-text-primary); /* Use text-primary for hover */
+    #custom-confirm-modal .modal-buttons button#confirm-no:hover {
+      background-color: var(--color-button-blue-hover);
+    }
+
+    /* Loading spinner styles */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      font-size: 1.5rem;
+      color: var(--color-text-primary);
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--color-link);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -173,98 +215,91 @@
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Join Our Community!</h1>
-    <p class="text-xl md:text-2xl mb-8">Sign in or create an account to get started.</p>
+<main class="min-h-screen flex items-center justify-center p-4" style="margin-top: 64px;">
+  <!-- Loading Spinner -->
+  <div id="loading-spinner" class="loading-spinner" style="display: none;">
+    <div class="spinner"></div>
+    <p class="ml-3">Loading...</p>
   </div>
-</section>
-
-<main class="container mx-auto px-4 py-8 flex flex-col md:flex-row md:space-x-8 items-center md:items-start justify-center">
 
   <!-- Sign In Section -->
-  <div id="signin-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md mb-8 md:mb-0">
-    <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Sign In</h2>
-    <form id="signin-form" class="space-y-4">
-      <div>
-        <label for="signin-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-        <input type="email" id="signin-email" placeholder="you@example.com" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <div id="signin-section" class="form-card" style="display: none;">
+    <h2 class="text-3xl font-bold text-center mb-6">Sign In</h2>
+    <form class="space-y-4">
+      <div class="input-field">
+        <label for="signin-email">Email:</label>
+        <input type="email" id="signin-email" class="input-element" placeholder="your@email.com" required>
       </div>
-      <div>
-        <label for="signin-password" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-        <input type="password" id="signin-password" placeholder="********" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="input-field">
+        <label for="signin-password">Password:</label>
+        <input type="password" id="signin-password" class="input-element" placeholder="********" required>
       </div>
-      <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 font-semibold">Sign In</button>
-      <div class="text-center mt-4">
-        <button type="button" id="go-to-forgot-password" class="text-blue-400 hover:underline text-sm">Forgot Password?</button>
-      </div>
-      <div class="text-center mt-4">
-        <button type="button" id="go-to-signup" class="text-blue-400 hover:underline text-sm">Don't have an account? Sign Up</button>
-      </div>
+      <button type="submit" id="signin-btn" class="btn-primary btn-blue w-full">Sign In</button>
     </form>
+    <div class="text-center mt-4 text-sm">
+      <a href="#" id="go-to-signup" class="text-link hover:underline">Don't have an account? Sign Up</a>
+    </div>
+    <div class="text-center mt-2 text-sm">
+      <a href="#" id="go-to-forgot-password" class="text-link hover:underline">Forgot Password?</a>
+    </div>
   </div>
 
   <!-- Sign Up Section -->
-  <div id="signup-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md" style="display: none;">
-    <h2 class="text-3xl font-bold text-green-600 mb-6 text-center">Sign Up</h2>
-    <form id="signup-form" class="space-y-4">
-      <div>
-        <label for="signup-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-        <input type="email" id="signup-email" placeholder="you@example.com" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <div id="signup-section" class="form-card" style="display: none;">
+    <h2 class="text-3xl font-bold text-center mb-6">Sign Up</h2>
+    <form class="space-y-4">
+      <div class="input-field">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" class="input-element" placeholder="your@email.com" required>
       </div>
-      <div>
-        <label for="signup-password" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-        <input type="password" id="signup-password" placeholder="********" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="input-field">
+        <label for="signup-display-name">Display Name:</label>
+        <input type="text" id="signup-display-name" class="input-element" placeholder="YourGamertag" required>
       </div>
-      <div>
-        <label for="signup-confirm-password" class="block text-gray-300 text-sm font-bold mb-2">Confirm Password:</label>
-        <input type="password" id="signup-confirm-password" placeholder="********" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="input-field">
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" class="input-element" placeholder="********" required>
       </div>
-      <div>
-        <label for="signup-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name (Optional):</label>
-        <input type="text" id="signup-display-name" placeholder="Your Name" class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="input-field">
+        <label for="signup-confirm-password">Confirm Password:</label>
+        <input type="password" id="signup-confirm-password" class="input-element" placeholder="********" required>
       </div>
-      <button type="submit" class="w-full bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition duration-300 font-semibold">Sign Up</button>
-      <div class="text-center mt-4">
-        <button type="button" id="go-to-signin" class="text-blue-400 hover:underline text-sm">Already have an account? Sign In</button>
-      </div>
+      <button type="submit" id="signup-btn" class="btn-primary btn-green w-full">Sign Up</button>
     </form>
+    <div class="text-center mt-4 text-sm">
+      <a href="#" id="go-to-signin" class="text-link hover:underline">Already have an account? Sign In</a>
+    </div>
   </div>
 
   <!-- Forgot Password Section -->
-  <div id="forgot-password-section" class="bg-gray-700 p-8 rounded-lg shadow-xl w-full max-w-md" style="display: none;">
-    <h2 class="text-3xl font-bold text-red-400 mb-6 text-center">Forgot Password</h2>
-    <form id="forgot-password-form" class="space-y-4">
-      <div>
-        <label for="forgot-email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-        <input type="email" id="forgot-email" placeholder="you@example.com" required class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <div id="forgot-password-section" class="form-card" style="display: none;">
+    <h2 class="text-3xl font-bold text-center mb-6">Reset Password</h2>
+    <form class="space-y-4">
+      <div class="input-field">
+        <label for="forgot-password-email">Email:</label>
+        <input type="email" id="forgot-password-email" class="input-element" placeholder="your@email.com" required>
       </div>
-      <button type="submit" id="reset-password-btn" class="w-full bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition duration-300 font-semibold">Reset Password</button>
-      <div class="text-center mt-4">
-        <button type="button" id="go-to-signin-from-forgot" class="text-blue-400 hover:underline text-sm">Back to Sign In</button>
-      </div>
+      <button type="submit" id="reset-password-btn" class="btn-primary btn-orange w-full">Send Reset Email</button>
     </form>
+    <div class="text-center mt-4 text-sm">
+      <a href="#" id="go-to-signin-from-forgot" class="text-link hover:underline">Back to Sign In</a>
+    </div>
   </div>
 </main>
-
-<!-- Logout / Go to Settings (Visible if logged in) -->
-<div id="auth-actions" class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 hidden">
-  <button id="logout-btn" class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition duration-300 font-semibold">Logout</button>
-  <button id="go-to-settings-btn" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 font-semibold">Go to Settings</button>
-</div>
 
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Custom Confirmation Modal (for any confirmation needed) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
+<!-- Custom Confirmation Modal -->
+<div id="custom-confirm-modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
     <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
-    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+    <div class="modal-buttons">
+      <button id="confirm-yes">Yes</button>
+      <button id="confirm-no">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -283,129 +318,13 @@
   </div>
 </footer>
 
-<!-- IMPORTANT: Only sign.js is loaded now, as it contains all combined logic -->
-<script src="sign.js?v=1.2" type="module"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // Import setupThemesFirebase from themes.js
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  // Import loadNavbar from navbar.js
-  import { loadNavbar } from './navbar.js';
+<!-- Firebase SDKs and Main Script -->
+<!-- IMPORTANT: firebase-init.js must be loaded first to ensure Firebase is initialized before other modules -->
+<script type="module" src="./firebase-init.js"></script>
+<script type="module" src="./utils.js"></script>
+<script type="module" src="./themes.js"></script>
+<script type="module" src="./navbar.js"></script>
+<script type="module" src="./sign.js"></script>
 
-
-  // Firebase configuration object
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-
-  let app;
-  let auth;
-  let db;
-  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
-
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  async function getUserProfileFromFirestore(uid) {
-    await firebaseReadyPromise; // Ensure Firebase is initialized
-    if (!db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-    }
-    return null;
-  }
-
-  // Initialize Firebase and setup firebaseReadyPromise
-  firebaseReadyPromise = new Promise((resolve) => {
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log("Firebase initialized successfully.");
-      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
-
-// Critical: Ensure auth state is settled before resolving
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first call
-
-// Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
-            .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
-              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
-            })
-            .finally(() => resolve()); // Resolve promise after token attempt
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
-            .finally(() => resolve());
-        }
-        else {
-          resolve(); // Resolve immediately if user is already authenticated or no token to use
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing Firebase (initial block):", e);
-      resolve(); // Resolve immediately on error to prevent infinite loading
-    }
-  });
-
-
-  // Main execution logic on window load
-  window.onload = async function() {
-// Wait for Firebase to be ready before proceeding
-    await firebaseReadyPromise;
-
-// Pass the necessary Firebase instances and theme-related functions
-// loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-    document.getElementById('current-year-infra').textContent = new Date().getFullYear();
-
-// After everything is loaded and Firebase is ready, apply the user's theme
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        userThemePreference = userProfile?.themePreference;
-      }
-// Apply the theme: user's preference, or 'dark' default
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-      applyTheme(themeToApply.id, themeToApply);
-    });
-  };
-</script>
 </body>
 </html>
