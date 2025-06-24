@@ -209,46 +209,36 @@
   </div>
 </footer>
 
-<!-- Main page script using module type -->
-<!-- The settings.js script now contains all page-specific JS logic and dependencies -->
+<!-- Main page script dependencies -->
 <script type="module" src="./firebase-init.js"></script>
 <script type="module" src="./utils.js"></script>
 <script type="module" src="./themes.js"></script>
 <script type="module" src="./navbar.js"></script>
-<script src="./settings.js" type="module"></script>
+<!-- The settings.js script is for sign-in/sign-up page, not for settings.html profile display -->
+<!-- <script src="./settings.js" type="module"></script> -->
+
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // Import setupThemesFirebase from themes.js
+  // Import Firebase instances and utilities from the centralized init file
+  // These are already initialized and ready to use after firebaseReadyPromise resolves.
+  import {
+    auth,
+    db,
+    appId, // appId is also exported from firebase-init.js
+    firebaseReadyPromise, // This promise resolves when Firebase is fully initialized and authenticated
+    getUserProfileFromFirestore, // Use the centralized function
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME // Default theme name
+  } from './firebase-init.js';
+
+  // Import theme management functions
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  // Import loadNavbar from navbar.js
+  // Import navbar loading function
   import { loadNavbar } from './navbar.js';
-  // Import getUserProfileFromFirestore and DEFAULT_PROFILE_PIC from firebase-init.js
-  import { getUserProfileFromFirestore, DEFAULT_PROFILE_PIC } from './firebase-init.js';
+  // Import onAuthStateChanged for real-time auth state updates
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 
-  // Firebase configuration object (this should ideally be pulled from __firebase_config if available)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-
-  let app;
-  let auth;
-  let db;
-  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
-
-  // DOM elements for profile display
+  // DOM elements for profile display and section management
   const profilePictureDisplay = document.getElementById('profile-picture-display');
   const displayNameText = document.getElementById('display-name-text');
   const emailText = document.getElementById('email-text');
@@ -266,85 +256,45 @@
   }
 
   /**
-   * Hides the loading spinner.
+   * Hides the loading spinner and shows settings content if applicable.
    */
   function hideLoading() {
     if (loadingSpinner) loadingSpinner.style.display = 'none';
+    // The display of settingsContent/loginRequiredMessage is handled by onAuthStateChanged
   }
-
-
-  // Initialize Firebase and setup firebaseReadyPromise
-  firebaseReadyPromise = new Promise((resolve) => {
-    try {
-      // Check if Firebase app is already initialized to prevent "duplicate-app" error
-      if (getApps().length === 0) {
-        app = initializeApp(firebaseConfig);
-      } else {
-        app = getApp(); // Get the existing app instance
-      }
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log("Firebase initialized successfully in settings.html inline script.");
-      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
-
-      // Critical: Ensure auth state is settled before resolving
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered in settings.html inline script. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first call
-
-        // Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (settings page) during init."))
-            .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (settings page) during init:", error);
-              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (settings page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on settings page during init:", anonError));
-            })
-            .finally(() => resolve()); // Resolve promise after token attempt
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on settings page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on settings page during init:", anonError))
-            .finally(() => resolve());
-        }
-        else {
-          resolve(); // Resolve immediately if user is already authenticated or no token to use
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing Firebase (initial block) in settings.html:", e);
-      resolve(); // Resolve immediately on error to prevent infinite loading
-    }
-  });
 
 
   // Main execution logic on window load
   window.onload = async function() {
+    console.log("settings.html: window.onload fired.");
     showLoading(); // Show loading spinner immediately
 
-    // Wait for Firebase to be ready before proceeding
+    // Wait for Firebase to be fully initialized and authenticated
     await firebaseReadyPromise;
+    console.log("settings.html: Firebase is ready.");
 
-    // Get current user after Firebase is ready
-    const user = auth.currentUser;
+    // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set
+    // This needs to be called after db, auth are imported and ready.
+    setupThemesFirebase(db, auth, appId);
 
-    // Load navbar dynamically
-    await loadNavbar(user, DEFAULT_PROFILE_PIC); // Pass user and default pic for navbar updates
-
-    // After everything is loaded and Firebase is ready, apply the user's theme
-    // This onAuthStateChanged listener is still useful here to react to *any* auth state change
-    // after the initial load (e.g., user logs in/out from another tab).
+    // Set up a listener for authentication state changes
     onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        console.log("onAuthStateChanged triggered for settings page profile update. User:", user.uid);
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        userThemePreference = userProfile?.themePreference;
+      console.log("settings.html: onAuthStateChanged triggered. User:", user ? user.uid : "none");
 
-        // Update profile display elements
+      // Load navbar dynamically with the current user object
+      await loadNavbar(user, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass DEFAULT_THEME_NAME to navbar
+
+      let userThemePreference = null;
+
+      if (user) {
+        // User is signed in, fetch and display profile data
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        console.log("settings.html: User Profile fetched:", userProfile);
+
         if (userProfile) {
+          userThemePreference = userProfile.themePreference;
+
+          // Update profile display elements
           if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
           if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
           if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
@@ -354,22 +304,33 @@
           if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
 
           // TODO: Populate other settings fields here (e.g., notification checkboxes, accessibility)
-          // For now, we're focusing on the profile display.
-          // Example:
-          // document.getElementById('email-notifications-checkbox').checked = userProfile.emailNotifications || false;
-        } else {
-          console.warn("User profile not found for UID:", user.uid, ". Displaying generic info.");
-          if (profilePictureDisplay) profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = 'Guest User';
-          if (emailText) emailText.textContent = 'Sign in to view profile';
+          // For example:
+          // if (document.getElementById('display-name-input')) document.getElementById('display-name-input').value = userProfile.displayName || '';
+          // if (document.getElementById('profile-picture-url-input')) document.getElementById('profile-picture-url-input').value = userProfile.photoURL || '';
+          // ... and so on for other settings fields.
 
-          // Show login required message, hide settings content
+          // Populate session information
+          if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
+            document.getElementById('last-login-time').textContent = `Last Login: ${new Date(userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : userProfile.lastLoginAt).toLocaleString()}`;
+          }
+          if (document.getElementById('account-creation-time') && userProfile.createdAt) {
+            document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
+          }
+
+
+        } else {
+          console.warn("settings.html: User profile not found in Firestore for UID:", user.uid, ". Displaying generic info.");
+          // Fallback if user is authenticated but no profile document exists
+          if (profilePictureDisplay) profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+          if (displayNameText) displayNameText.textContent = user.displayName || 'Guest User';
+          if (emailText) emailText.textContent = user.email || 'Sign in to view profile';
+
           if (settingsContent) settingsContent.style.display = 'none';
           if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
         }
       } else {
-        console.log("onAuthStateChanged triggered: User logged out on settings page.");
-        // If user is logged out, show login message and hide settings content
+        // User is signed out, hide settings content and show login message
+        console.log("settings.html: User logged out.");
         if (profilePictureDisplay) profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
         if (displayNameText) displayNameText.textContent = 'Guest User';
         if (emailText) emailText.textContent = 'Sign in to view profile';
@@ -377,15 +338,16 @@
         if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
       }
 
-      // Apply the theme: user's preference, or 'dark' default
+      // Apply the theme: user's preference, or DEFAULT_THEME_NAME
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === 'dark'); // Using 'dark' explicitly as default
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
 
       hideLoading(); // Hide loading spinner after all data is loaded and rendered
     });
 
-    document.getElementById('current-year-settings').textContent = new Date().getFullYear();
+    // Set current year for footer
+    document.getElementById('current-year-settings').textContent = new Date().getFullYear().toString();
   };
 </script>
 </body>
