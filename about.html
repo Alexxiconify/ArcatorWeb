@@ -27,7 +27,8 @@
 
     /* Hero Banner styles - common for all themes, retains background image */
     .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      /* Replaced with a reliable placeholder URL */
+      background-image: url('https://placehold.co/1200x250/2b3b55/ffffff?text=About+Arcator.co.uk');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -183,15 +184,23 @@
   </div>
 </footer>
 
-<!-- Firebase SDKs and Main Script -->
+<!-- Main page scripts -->
+<!-- IMPORTANT: firebase-init.js must be loaded first to ensure Firebase is initialized -->
+<script type="module" src="./firebase-init.js"></script>
+<script type="module" src="./themes.js"></script>
+<script type="module" src="./navbar.js"></script>
+<script type="module" src="./about.js"></script>
 <script type="module">
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js'; // Import loadNavbar
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  // Import setupThemesFirebase from themes.js
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  // Import loadNavbar from navbar.js
+  import { loadNavbar } from './navbar.js';
 
-  // Firebase configuration
+
+  // Firebase configuration object
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -205,13 +214,14 @@
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
   const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
+
   let app;
   let auth;
   let db;
   let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
 
-  const DEFAULT_THEME = 'dark';
   const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
 
   /**
    * Fetches user profile data from Firestore.
@@ -245,26 +255,26 @@
       console.log("Firebase initialized successfully.");
       setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
 
-      // Critical: Ensure auth state is settled before resolving
+// Critical: Ensure auth state is settled before resolving
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
         unsubscribe(); // Unsubscribe after the first call
 
-        // Perform initial sign-in if in Canvas and no user is already authenticated
+// Perform initial sign-in if in Canvas and no user is already authenticated
         if (typeof __initial_auth_token !== 'undefined' && !user) {
           signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (about page) during init."))
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
             .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (about page) during init:", error);
+              console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
               signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (about page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on about page during init:", anonError));
+                .then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
             })
             .finally(() => resolve()); // Resolve promise after token attempt
         } else if (!user && typeof __initial_auth_token === 'undefined') {
           signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on about page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on about page during init:", anonError))
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
             .finally(() => resolve());
         }
         else {
@@ -277,27 +287,27 @@
     }
   });
 
+
   // Main execution logic on window load
   window.onload = async function() {
-    // Wait for Firebase to be ready before proceeding
+// Wait for Firebase to be ready before proceeding
     await firebaseReadyPromise;
 
-    // Load navbar dynamically
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+// Pass the necessary Firebase instances and theme-related functions
+// loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    document.getElementById('current-year-infra').textContent = new Date().getFullYear();
 
-    // Set current year for footer
-    document.getElementById('current-year-about').textContent = new Date().getFullYear();
-
-    // After everything is loaded and Firebase is ready, apply the user's theme
+// After everything is loaded and Firebase is ready, apply the user's theme
     onAuthStateChanged(auth, async (user) => {
       let userThemePreference = null;
       if (user) {
         const userProfile = await getUserProfileFromFirestore(user.uid);
         userThemePreference = userProfile?.themePreference;
       }
-      // Apply the theme: user's preference, or 'dark' default
+// Apply the theme: user's preference, or 'dark' default
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
   };

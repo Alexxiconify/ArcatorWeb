@@ -8,21 +8,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Link to theme_variables.css for centralized CSS variables -->
+  <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for navbar specific styling -->
   <link rel="stylesheet" href="navbar.css">
 
   <style>
-    /* Base styles, will be overridden by CSS variables from themes.js */
+    /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
+      background-color: var(--color-body-bg); /* Ensure body uses the variable for its own background */
+      color: var(--color-text-primary); /* Ensure body uses the variable for its default text color */
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -45,43 +42,37 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
     .hero-content {
       position: relative;
       z-index: 2;
-      color: white;
+      color: white; /* Hero content text is hardcoded white for readability over image */
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
 
-    /* Dynamic theme application for various elements */
-    .bg-gray-800 {
-      background-color: var(--color-bg-content-section) !important;
-    }
-    .bg-gray-900 {
-      background-color: var(--color-bg-navbar) !important; /* For footer */
-    }
-    .text-gray-100 {
-      color: var(--color-text-primary) !important;
-    }
-    .text-gray-300 {
-      color: var(--color-text-secondary) !important;
-    }
-    .text-gray-400 {
-      color: var(--color-text-secondary) !important;
-    }
-    .text-gray-50 {
-      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
-    }
-    .text-blue-400 {
-      color: var(--color-heading-main) !important; /* Using main heading color for consistent blue */
-    }
-    .text-blue-300 {
-      color: var(--color-heading-card) !important; /* Using card heading color for consistent blue */
-    }
-    .hover\:text-white:hover { /* For footer links */
-      color: var(--color-text-primary) !important;
+    /* Custom classes using CSS variables */
+    .bg-content-section { background-color: var(--color-bg-content-section); }
+    .text-heading-main { color: var(--color-heading-main); }
+    .text-text-primary { color: var(--color-text-primary); }
+    .text-text-secondary { color: var(--color-text-secondary); }
+    .bg-card { background-color: var(--color-bg-card); }
+    .bg-navbar-footer { background-color: var(--color-bg-navbar); } /* For footer */
+    .text-link { color: var(--color-link); }
+    .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links, can be same as text-secondary or a different link variable */
+    .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
+    .text-heading-card-active { color: var(--color-heading-card); } /* for active link indication */
+
+    /* Table specific theming */
+    .bg-table-th-bg { background-color: var(--color-table-th-bg); }
+    .text-table-th-text { color: var(--color-table-th-text); }
+    .border-table-td-border { border-color: var(--color-table-td-border); }
+    .bg-table-row-even-bg { background-color: var(--color-table-row-even-bg); }
+
+    /* Ensure text colors for table cells correctly inherit or are set */
+    table td {
+      color: var(--color-text-primary);
     }
   </style>
 </head>
@@ -143,38 +134,126 @@
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
-  // Import shared Firebase instances and utilities from firebase-init.js
-  // Re-added './' prefix to module import paths to correctly resolve them.
-  import { auth, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore } from './firebase-init.js';
-  import { applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// Import setupThemesFirebase from themes.js
+import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+// Import loadNavbar from navbar.js
+import { loadNavbar } from './navbar.js';
 
-  // Main execution logic on window load
-  window.onload = async function() {
-    // Wait for Firebase to be ready before proceeding
-    await firebaseReadyPromise;
 
-    // Load navbar dynamically. auth.currentUser will be properly set after firebaseReadyPromise resolves.
-    // The loadNavbar function will now handle fetching user profile for display.
-    await loadNavbar(auth.currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+// Firebase configuration object
+const firebaseConfig = {
+apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+authDomain: "arcator-web.firebaseapp.com",
+projectId: "arcator-web",
+storageBucket: "arcator-web.firebasestorage.app",
+messagingSenderId: "1033082068049",
+appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+measurementId: "G-DJXNT1L7CM"
+};
 
-    // Set current year for footer
-    document.getElementById('current-year-privacy').textContent = new Date().getFullYear();
+const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-    // After everything is loaded and Firebase is ready, apply the user's theme
-    // This theme application relies on the single onAuthStateChanged listener in firebase-init.js
-    // which handles fetching user profile and applying the theme.
-    // We explicitly call applyTheme here based on current user preference after firebaseReadyPromise
-    // to ensure the initial theme is set as soon as possible for privacy.html
-    let userThemePreference = null;
-    if (auth.currentUser) {
-      const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-      userThemePreference = userProfile?.themePreference;
-    }
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    await applyTheme(themeToApply.id, userThemePreference);
-  };
+
+let app;
+let auth;
+let db;
+let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+
+const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+const DEFAULT_THEME_NAME = 'dark'; // Default theme name
+
+/**
+* Fetches user profile data from Firestore.
+* @param {string} uid - The user's UID.
+* @returns {Promise<Object|null>} - User profile data or null if not found.
+*/
+async function getUserProfileFromFirestore(uid) {
+await firebaseReadyPromise; // Ensure Firebase is initialized
+if (!db) {
+console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+return null;
+}
+const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+try {
+const docSnap = await getDoc(userDocRef);
+if (docSnap.exists()) {
+return docSnap.data();
+}
+} catch (error) {
+console.error("Error fetching user profile from Firestore:", error);
+}
+return null;
+}
+
+// Initialize Firebase and setup firebaseReadyPromise
+firebaseReadyPromise = new Promise((resolve) => {
+try {
+app = initializeApp(firebaseConfig);
+auth = getAuth(app);
+db = getFirestore(app);
+console.log("Firebase initialized successfully.");
+setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
+
+// Critical: Ensure auth state is settled before resolving
+const unsubscribe = onAuthStateChanged(auth, (user) => {
+console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+unsubscribe(); // Unsubscribe after the first call
+
+// Perform initial sign-in if in Canvas and no user is already authenticated
+if (typeof __initial_auth_token !== 'undefined' && !user) {
+signInWithCustomToken(auth, __initial_auth_token)
+.then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
+.catch((error) => {
+console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
+signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
+.then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
+.catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
+})
+.finally(() => resolve()); // Resolve promise after token attempt
+} else if (!user && typeof __initial_auth_token === 'undefined') {
+signInAnonymously(auth)
+.then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
+.catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
+.finally(() => resolve());
+}
+else {
+resolve(); // Resolve immediately if user is already authenticated or no token to use
+}
+});
+} catch (e) {
+console.error("Error initializing Firebase (initial block):", e);
+resolve(); // Resolve immediately on error to prevent infinite loading
+}
+});
+
+
+// Main execution logic on window load
+window.onload = async function() {
+// Wait for Firebase to be ready before proceeding
+await firebaseReadyPromise;
+
+// Pass the necessary Firebase instances and theme-related functions
+// loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
+await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+document.getElementById('current-year-infra').textContent = new Date().getFullYear();
+
+// After everything is loaded and Firebase is ready, apply the user's theme
+onAuthStateChanged(auth, async (user) => {
+let userThemePreference = null;
+if (user) {
+const userProfile = await getUserProfileFromFirestore(user.uid);
+userThemePreference = userProfile?.themePreference;
+}
+// Apply the theme: user's preference, or 'dark' default
+const allThemes = await getAvailableThemes();
+const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+applyTheme(themeToApply.id, themeToApply);
+});
+};
 </script>
 </body>
 </html>
