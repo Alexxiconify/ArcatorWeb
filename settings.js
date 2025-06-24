@@ -2,26 +2,22 @@
 // password management, notifications, accessibility, and account deletion.
 
 // --- Firebase SDK Imports (External) ---
-// These are needed for direct Firebase SDK calls like updatePassword, deleteUser etc.
-import { EmailAuthProvider, updatePassword, reauthenticateWithCredential, deleteUser, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { EmailAuthProvider, updatePassword, reauthenticateWithCredential, deleteUser, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Local Module Imports ---
-// IMPORT all necessary Firebase instances and functions from firebase-init.js
-// This ensures Firebase is initialized only once and shared across the app.
 import {
-  auth, // Firebase Auth instance
-  db,   // Firestore DB instance
-  appId, // Firebase App ID
-  firebaseReadyPromise, // Promise indicating Firebase initialization completion
-  DEFAULT_PROFILE_PIC, // Default profile picture URL
-  DEFAULT_THEME_NAME, // Default theme ID
-  getUserProfileFromFirestore, // Function to get user profile from Firestore
-  setUserProfileInFirestore, // Function to set/update user profile in Firestore
-  deleteUserProfileFromFirestore // Function to delete user profile from Firestore
+  auth,
+  db,
+  appId,
+  firebaseReadyPromise,
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME,
+  getUserProfileFromFirestore,
+  setUserProfileInFirestore,
+  deleteUserProfileFromFirestore
 } from './firebase-init.js';
 
-// Import other local module functions
 import { applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
 import { showMessageBox, showCustomConfirm, sanitizeHandle } from './utils.js';
@@ -146,7 +142,16 @@ async function loadUserSettings() {
     return;
   }
 
-  console.log("DEBUG: loadUserSettings: User is authenticated. Populating initial UI from FirebaseAuth user object.");
+  // If user is anonymous, show login required and return
+  if (user.isAnonymous) {
+    console.log("DEBUG: loadUserSettings: Anonymous user logged in. Showing login required message for full settings.");
+    showLoginRequired();
+    hideLoading();
+    return;
+  }
+
+
+  console.log("DEBUG: loadUserSettings: User is authenticated (non-anonymous). Populating initial UI from FirebaseAuth user object.");
   if (displayNameText) {
     displayNameText.textContent = user.displayName || 'Set Display Name';
   }
@@ -220,7 +225,7 @@ async function loadUserSettings() {
 async function saveProfileChanges() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to save profile changes.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to save profile changes.", true); return; }
 
   const newDisplayName = displayNameInput.value.trim();
   const newPhotoURL = profilePictureUrlInput.value.trim();
@@ -247,7 +252,7 @@ async function saveProfileChanges() {
 async function savePreferences() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to save preferences.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to save preferences.", true); return; }
 
   const preferences = {
     themePreference: themeSelect.value, fontSize: fontSizeSelect.value,
@@ -267,7 +272,7 @@ async function savePreferences() {
 async function changePassword() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to change password.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to change password.", true); return; }
   const currentPassword = currentPasswordInput.value;
   const newPassword = newPasswordInput.value;
   const confirmNewPassword = confirmNewPasswordInput.value;
@@ -294,7 +299,7 @@ async function changePassword() {
 async function saveNotifications() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to save notification settings.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to save notification settings.", true); return; }
 
   const notifications = { emailNotifications: emailNotificationsCheckbox.checked, inAppNotifications: inappNotificationsCheckbox.checked };
 
@@ -309,7 +314,7 @@ async function saveNotifications() {
 async function saveAccessibility() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to save accessibility settings.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to save accessibility settings.", true); return; }
 
   const accessibility = { highContrastMode: highContrastCheckbox.checked, reducedMotion: reducedMotionCheckbox.checked };
 
@@ -331,7 +336,7 @@ async function saveAccessibility() {
 async function deleteAccount() {
   await firebaseReadyPromise;
   const user = auth.currentUser;
-  if (!user) { showMessageBox("You must be logged in to delete your account.", true); return; }
+  if (!user || user.isAnonymous) { showMessageBox("You must be logged in with a non-anonymous account to delete your account.", true); return; }
   const password = deleteAccountPasswordInput.value;
 
   if (!password) { showMessageBox("Please enter your password to confirm account deletion.", true); return; }
@@ -382,7 +387,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load user settings only AFTER firebaseReadyPromise has resolved and auth.currentUser is set
   if (auth && auth.currentUser) {
-    console.log("DEBUG: User authenticated after initial setup. Calling loadUserSettings().");
+    // Check if the user is anonymous. If so, show the login required message.
+    if (auth.currentUser.isAnonymous) {
+      console.log("DEBUG: Anonymous user on settings page. Showing login required.");
+      showLoginRequired();
+      hideLoading();
+      await applyTheme(DEFAULT_THEME_NAME); // Apply default theme for anonymous users
+      return; // Stop further settings loading for anonymous users
+    }
+
+    console.log("DEBUG: User authenticated (non-anonymous) after initial setup. Calling loadUserSettings().");
     try {
       await loadUserSettings();
     } catch (e) {
@@ -435,3 +449,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error("DEBUG-INIT: custom-confirm-modal element not found.");
   }
 });
+ad
