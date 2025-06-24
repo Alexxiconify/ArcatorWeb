@@ -144,10 +144,10 @@
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
   // Import shared Firebase instances and utilities from firebase-init.js
-  // Ensure these are correctly exported from firebase-init.js
-  import { auth, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore } from './firebase-init.js'; // Removed db and appId as they are not directly used in this block and are available globally through firebase-init imports
-  import { applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js'; // Import loadNavbar
+  // Changed import paths to remove leading './' to potentially resolve module specifier errors
+  import { auth, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore } from 'firebase-init.js';
+  import { applyTheme, getAvailableThemes } from 'themes.js';
+  import { loadNavbar } from 'navbar.js';
 
   // Main execution logic on window load
   window.onload = async function() {
