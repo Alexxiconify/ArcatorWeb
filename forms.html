@@ -3,185 +3,312 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Hub - Arcator.co.uk</title>
+  <title>Forms - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- EasyMDE (Markdown Editor) CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Link to theme_variables.css for centralized CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css?v=1.4">
-  <!-- Link to navbar.css for navbar specific styling -->
-  <link rel="stylesheet" href="navbar.css?v=1.4">
+  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to navbar.css for consistent styling -->
+  <link rel="stylesheet" href="navbar.css">
   <!-- Link to forms.css for page-specific styling -->
-  <link rel="stylesheet" href="forms.css?v=1.4">
+  <link rel="stylesheet" href="forms.css">
+  <style>
+    /* Base styles, will be overridden by CSS variables from themes.js */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+      padding-top: 64px; /* Space for fixed navbar */
+    }
+    .hero-banner {
+      /* Replaced community.png with a placeholder image */
+      background-image: url('https://placehold.co/1200x250/3498db/ffffff?text=Community+Forms');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    /* Spinner styles - ensure they are consistent */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      font-size: 1.5rem;
+      color: var(--color-text-primary);
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--color-link);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Message box styling (from utils.js logic) */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--color-message-box-bg-success, #4CAF50);
+      color: var(--color-button-text, white);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      display: none;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .message-box.error {
+      background-color: var(--color-message-box-bg-error, #F44336);
+    }
+    .message-box.success {
+      background-color: var(--color-message-box-bg-success, #4CAF50);
+    }
+    /* Custom confirmation modal styling */
+    #custom-confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      display: none; /* Hidden by default */
+    }
+    #custom-confirm-modal .modal-content {
+      background-color: var(--color-modal-bg);
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      color: var(--color-modal-text);
+      max-width: 400px;
+      width: 90%;
+      position: relative;
+    }
+    #custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+    }
+    #custom-confirm-modal .modal-buttons {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    #custom-confirm-modal .modal-buttons button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px; /* rounded-full */
+      font-weight: 700;
+      transition: transform 0.2s;
+    }
+    #custom-confirm-modal .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+    #custom-confirm-modal .modal-buttons button#confirm-yes {
+      background-color: var(--color-button-red-bg);
+      color: var(--color-button-text);
+    }
+    #custom-confirm-modal .modal-buttons button#confirm-yes:hover {
+      background-color: var(--color-button-red-hover);
+    }
+    #custom-confirm-modal .modal-buttons button#confirm-no {
+      background-color: var(--color-button-blue-bg);
+      color: var(--color-button-text);
+    }
+    #custom-confirm-modal .modal-buttons button#confirm-no:hover {
+      background-color: var(--color-button-blue-hover);
+    }
+  </style>
 </head>
 <body class="antialiased">
+
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Hub</h1>
-    <p class="text-xl md:text-2xl mb-8">Connect, discuss, and stay updated with the Arcator community.</p>
+    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Community Forms</h1>
+    <p class="text-xl md:text-2xl text-gray-200">Submit your feedback, reports, and requests.</p>
   </div>
 </section>
 
-<!-- Main Content Section -->
 <main class="container mx-auto px-4 py-8">
-  <div class="main-content-area bg-card p-6 rounded-lg shadow-md">
-    <!-- Tab Navigation -->
-    <div role="tablist" class="tabs flex space-x-4 mb-8">
-      <button role="tab" id="threads-tab" class="tab-button active" data-tab="threads">Threads</button>
-      <button role="tab" id="announcements-tab" class="tab-button" data-tab="announcements">Announcements</button>
-      <button role="tab" id="conversations-tab" class="tab-button" data-tab="conversations">Conversations</button>
-    </div>
+  <!-- Loading Spinner -->
+  <div id="loading-spinner" class="loading-spinner" style="display: none;">
+    <div class="spinner"></div>
+    <p class="ml-3">Loading forms...</p>
+  </div>
 
-    <!-- Tab Panels -->
-    <div id="tab-content-container">
+  <!-- Forms Content -->
+  <div id="forms-content" class="space-y-8" style="display: none;">
 
-      <!-- Threads Tab Panel -->
-      <div id="threads-panel" role="tabpanel" class="tab-panel active space-y-8">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Threads</h2>
-
-        <!-- Create New Thread Form -->
-        <div id="create-thread-section" class="bg-content-section p-6 rounded-lg shadow-md hidden">
-          <h3 class="text-2xl font-bold text-heading-card mb-4">Create New Thread</h3>
-          <form id="create-thread-form" class="space-y-4">
-            <div>
-              <label for="thread-title" class="block text-text-secondary text-sm font-bold mb-2">Thread Title:</label>
-              <input type="text" id="thread-title" placeholder="Enter thread title" required class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
-            </div>
-            <div>
-              <label for="thread-theme-select" class="block text-text-secondary text-sm font-bold mb-2">Select Thread Category/Theme:</label>
-              <select id="thread-theme-select" class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link">
-                <!-- Options will be populated by forms.js -->
-                <option value="">Loading categories...</option>
-              </select>
-            </div>
-            <div>
-              <label for="thread-content" class="block text-text-secondary text-sm font-bold mb-2">Content:</label>
-              <textarea id="thread-content" rows="5" placeholder="Write your thread content here..." class="w-full p-3 rounded-md bg-input-bg text-input-text border border-input-border focus:outline-none focus:ring-2 focus:ring-link"></textarea>
-            </div>
-            <button type="submit" class="bg-button-blue-bg text-button-text px-6 py-3 rounded-md hover:bg-button-blue-hover transition duration-300">Create Thread</button>
-          </form>
+    <!-- Contact Us Form -->
+    <section id="contact-form-section" class="form-card mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-6 text-heading-card">Contact Us</h2>
+      <p class="text-center text-text-secondary mb-8">Have a question or need support? Send us a message!</p>
+      <form id="contact-form" class="space-y-4">
+        <div class="input-field">
+          <label for="contact-name" class="text-sm font-semibold">Your Name</label>
+          <input type="text" id="contact-name" class="input-element" placeholder="John Doe" required>
         </div>
-        <p id="forum-login-required-message" class="text-text-primary text-center text-xl py-6 hidden">Please <a href="sign.html" class="text-link hover:underline">sign in</a> to create new threads and comments.</p>
-
-        <!-- Thread Filtering by Category/Theme -->
-        <div class="bg-content-section p-6 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-heading-card mb-4">Browse Threads by Category</h3>
-          <p class="text-text-secondary leading-relaxed mb-4">Click a category below to filter threads.</p>
-          <div id="category-filter-buttons" class="flex flex-wrap gap-2 mb-4">
-            <!-- Category buttons will be dynamically loaded here by forms.js -->
-          </div>
-          <p id="categories-loading-message" class="text-text-secondary text-center">Loading categories...</p>
-          <p id="no-categories-message" class="text-text-secondary text-center hidden">No categories available.</p>
-          <p id="categories-error-message" class="text-red-500 text-center hidden">Failed to load categories.</p>
+        <div class="input-field">
+          <label for="contact-email" class="text-sm font-semibold">Your Email</label>
+          <input type="email" id="contact-email" class="input-element" placeholder="you@example.com" required>
         </div>
-
-        <!-- Threads List Display Area -->
-        <div class="bg-content-section p-6 rounded-lg shadow-md">
-          <p id="threads-loading-message" class="text-text-secondary text-center">Loading threads...</p>
-          <p id="threads-error-message" class="text-red-500 text-center hidden">Failed to load threads. Please try again later.</p>
-          <p id="no-threads-message" class="text-text-secondary text-center hidden">No threads found. Be the first to create one!</p>
-          <div id="actual-threads-list" class="space-y-8">
-            <!-- Threads will be dynamically loaded here by JavaScript -->
-          </div>
+        <div class="input-field">
+          <label for="contact-subject" class="text-sm font-semibold">Subject</label>
+          <input type="text" id="contact-subject" class="input-element" placeholder="Inquiry about server access" required>
         </div>
-      </div>
-
-      <!-- Announcements Tab Panel -->
-      <div id="announcements-panel" role="tabpanel" class="tab-panel hidden space-y-8">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Announcements</h2>
-        <div class="bg-content-section p-6 rounded-lg shadow-md">
-          <p id="announcements-loading-message" class="text-text-secondary text-center">Loading announcements...</p>
-          <p id="announcements-error-message" class="text-red-500 text-center hidden">Failed to load announcements.</p>
-          <p id="no-announcements-message" class="text-text-secondary text-center hidden">No announcements available.</p>
-          <div id="actual-announcements-list" class="space-y-4">
-            <!-- Announcements will be dynamically loaded here -->
-          </div>
+        <div class="input-field">
+          <label for="contact-message" class="text-sm font-semibold">Message</label>
+          <textarea id="contact-message" class="input-element h-32 resize-y" placeholder="Your message here..." required></textarea>
         </div>
-      </div>
+        <button type="submit" class="btn-primary btn-blue w-full">Send Message</button>
+      </form>
+    </section>
 
-      <!-- Conversations (DMs) Tab Panel -->
-      <div id="conversations-panel" role="tabpanel" class="tab-panel hidden space-y-8">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Conversations</h2>
-        <div class="bg-content-section p-6 rounded-lg shadow-md">
-          <p id="dms-loading-message" class="text-text-secondary text-center">Loading conversations...</p>
-          <p id="dms-error-message" class="text-red-500 text-center hidden">Failed to load conversations.</p>
-          <p id="no-dms-message" class="text-text-secondary text-center hidden">No conversations available. Start a new one!</p>
-          <div id="actual-recent-dms-list" class="space-y-4">
-            <!-- Conversations will be dynamically loaded here -->
-          </div>
+    <!-- Bug Report Form -->
+    <section id="bug-report-form-section" class="form-card mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-6 text-heading-card">Bug Report</h2>
+      <p class="text-center text-text-secondary mb-8">Found a bug? Help us fix it by reporting it here!</p>
+      <form id="bug-report-form" class="space-y-4">
+        <div class="input-field">
+          <label for="bug-title" class="text-sm font-semibold">Bug Title</label>
+          <input type="text" id="bug-title" class="input-element" placeholder="Game crashes when opening inventory" required>
         </div>
-      </div>
+        <div class="input-field">
+          <label for="bug-description" class="text-sm font-semibold">Description</label>
+          <textarea id="bug-description" class="input-element h-32 resize-y" placeholder="Detailed steps to reproduce the bug, what you expected, and what happened instead." required></textarea>
+        </div>
+        <div class="input-field">
+          <label for="bug-severity" class="text-sm font-semibold">Severity</label>
+          <select id="bug-severity" class="input-element">
+            <option value="low">Low - Minor cosmetic issue</option>
+            <option value="medium">Medium - Annoying, but playable</option>
+            <option value="high">High - Breaks core functionality</option>
+            <option value="critical">Critical - Prevents playing entirely</option>
+          </select>
+        </div>
+        <div class="input-field">
+          <label for="bug-attachments" class="text-sm font-semibold">Attachments (Screenshots/Videos)</label>
+          <input type="file" id="bug-attachments" class="input-element" accept="image/*,video/*" multiple>
+          <p class="text-xs text-text-secondary mt-1">Max 5 files, 10MB each.</p>
+        </div>
+        <button type="submit" class="btn-primary btn-red w-full">Submit Bug Report</button>
+      </form>
+    </section>
 
-    </div><!-- /#tab-content-container -->
+    <!-- Feature Request Form -->
+    <section id="feature-request-form-section" class="form-card mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-6 text-heading-card">Feature Request</h2>
+      <p class="text-center text-text-secondary mb-8">Have an idea to improve our community or games? Let us know!</p>
+      <form id="feature-request-form" class="space-y-4">
+        <div class="input-field">
+          <label for="feature-title" class="text-sm font-semibold">Feature Title</label>
+          <input type="text" id="feature-title" class="input-element" placeholder="Add a new game mode: Survival Islands" required>
+        </div>
+        <div class="input-field">
+          <label for="feature-description" class="text-sm font-semibold">Description</label>
+          <textarea id="feature-description" class="input-element h-32 resize-y" placeholder="Explain your idea in detail, including benefits and how it would work." required></textarea>
+        </div>
+        <div class="input-field">
+          <label for="feature-category" class="text-sm font-semibold">Category</label>
+          <select id="feature-category" class="input-element">
+            <option value="gameplay">Gameplay</option>
+            <option value="website">Website</option>
+            <option value="community">Community Feature</option>
+            <option value="moderation">Moderation Tool</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary btn-green w-full">Submit Feature Request</button>
+      </form>
+    </section>
 
   </div>
 </main>
 
-<!-- Thread Detail Modal -->
-<div id="thread-detail-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h3 id="modal-thread-title" class="text-2xl font-bold mb-2 text-heading-card"></h3>
-    <p id="modal-thread-meta" class="text-sm text-text-secondary mb-4"></p>
-    <div id="modal-thread-content" class="prose text-text-primary mb-6 max-h-64 overflow-y-auto"></div>
-
-    <!-- Reactions Section -->
-    <div class="flex items-center space-x-4 mb-6" id="thread-reactions-container">
-      <!-- Reactions will be dynamically loaded here -->
-    </div>
-
-    <h4 class="text-xl font-bold mb-4 text-heading-card">Comments</h4>
-    <div id="comments-list" class="space-y-4 max-h-72 overflow-y-auto">
-      <p class="text-text-secondary text-center">No comments yet. Be the first to reply!</p>
-    </div>
-
-    <div class="mt-6">
-      <h5 class="text-lg font-bold mb-2 text-heading-card">Add a Comment</h5>
-      <form id="add-comment-form" class="space-y-3 hidden">
-        <textarea id="comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24 bg-input-bg text-input-text border-input-border" placeholder="Write your comment..."></textarea>
-        <button type="submit" class="bg-button-green-bg text-button-text font-bold py-2 px-6 rounded-full hover:bg-button-green-hover transition duration-300 ease-in-out shadow-lg">Post Comment</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Message Box Element -->
+<!-- Message Box for system messages -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
+<!-- Custom Confirmation Modal -->
+<div id="custom-confirm-modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
-    <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
-    <button id="confirm-yes" class="bg-button-red-bg hover:bg-button-red-hover text-button-text font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-    <button id="confirm-no" class="bg-text-secondary hover:bg-text-primary text-button-text font-bold py-2 px-4 rounded-full">Cancel</button>
+    <h3 id="confirm-message" class="text-xl font-bold mb-2"></h3>
+    <p id="confirm-submessage" class="text-text-secondary mb-6"></p>
+    <div class="modal-buttons">
+      <button id="confirm-yes">Yes</button>
+      <button id="confirm-no">Cancel</button>
+    </div>
   </div>
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-navbar py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-forms"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-text-primary transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-text-primary transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-text-primary transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-text-primary transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-text-primary transition duration-300 ease-in-out">Admin & Dev</a>
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
     </div>
   </div>
 </footer>
 
-<!-- Dependencies for forms.js -->
-<script src="https://unp
+<!-- Firebase SDKs and Main Script -->
+<!-- IMPORTANT: firebase-init.js must be loaded first to ensure Firebase is initialized before other modules -->
+<script type="module" src="firebase-init.js"></script>
+<script type="module" src="utils.js"></script>
+<script type="module" src="themes.js"></script>
+<script type="module" src="navbar.js"></script>
+<script type="module" src="forms.js"></script>
+
+</body>
+</html>
