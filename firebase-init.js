@@ -100,7 +100,6 @@ async function setupFirebaseAndUser() {
 
   // Check if Firebase app is already initialized to prevent "duplicate-app" error
   if (getApps().length === 0) {
-    // Determine the final Firebase configuration to use
     let finalFirebaseConfig = firebaseConfig; // Start with the hardcoded config
 
     if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
@@ -155,23 +154,21 @@ async function setupFirebaseAndUser() {
         unsubscribe(); // Unsubscribe after the first state change to prevent multiple resolutions
       });
 
-      // Perform initial sign-in if in Canvas and no user is already authenticated
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !auth.currentUser) { // Check auth.currentUser for initial state
-        signInWithCustomToken(auth, __initial_auth_token)
+      // Attempt initial sign-in: either with custom token.
+      // DO NOT explicitly call signInAnonymously here. The Canvas environment
+      // will automatically sign in an anonymous user if no custom token is provided
+      // and no user is logged in. This avoids redundant anonymous sign-ins.
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        console.log("DEBUG: Attempting to sign in with custom token.");
+        await signInWithCustomToken(auth, __initial_auth_token)
             .then(() => console.log("DEBUG: Signed in with custom token."))
             .catch((error) => {
               console.error("ERROR: Custom token sign-in failed:", error);
-              signInAnonymously(auth)
-                  .then(() => console.log("DEBUG: Signed in anonymously after custom token failure."))
-                  .catch((anonError) => console.error("ERROR: Anonymous sign-in failed:", anonError));
+              // No explicit anonymous fallback here. Rely on platform's default.
             });
-      } else if (!auth.currentUser && typeof __initial_auth_token === 'undefined') { // No token, sign in anonymously
-        signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token)."))
-            .catch((anonError) => console.error("ERROR: Anonymous sign-in failed:", anonError));
-      } else if (auth.currentUser) {
-        // If already authenticated, directly resolve the promise.
-        firebaseReadyResolve();
+      } else {
+        console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
+        // The onAuthStateChanged listener above will handle the actual user state.
       }
 
     } catch (e) {
