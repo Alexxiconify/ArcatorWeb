@@ -601,10 +601,16 @@ function renderThemaBoxes(themasArr) {
       <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
       <p class="thema-description mb-4">${thema.description || ''}</p>
       <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
-      <form class="create-thread-form mt-4" id="create-thread-form-${thema.id}">
-        <input type="text" class="thread-title-input input mb-2" placeholder="Thread Title" required />
-        <textarea class="thread-content-input input mb-2" placeholder="Thread content (Markdown supported)" required></textarea>
-        <button type="submit" class="btn-primary btn-blue">Create Thread</button>
+      <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
+        <div class="mb-2">
+          <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
+          <input type="text" id="thread-title-input-${thema.id}" class="thread-title-input input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" maxlength="120" placeholder="Title (e.g. What's on your mind?)" required />
+        </div>
+        <div class="mb-2">
+          <label class="block text-sm font-semibold mb-1" for="thread-content-input-${thema.id}">Body</label>
+          <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
       </form>
     `;
     container.appendChild(box);
