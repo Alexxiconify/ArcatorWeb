@@ -1724,3 +1724,59 @@ function enableEditThemaInline(thema, box) {
     box.innerHTML = origHtml;
   };
 }
+
+// --- Modal for editing threads/comments/themes ---
+let editModal = null;
+let editModalTitle = null;
+let editModalTextarea = null;
+let saveEditBtn = null;
+let currentEditContext = null;
+
+function setupEditModal() {
+  if (editModal) return;
+  editModal = document.createElement('div');
+  editModal.className = 'modal';
+  editModal.style.display = 'none';
+  editModal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h3 class="text-xl font-bold mb-4 text-blue-300" id="edit-modal-title"></h3>
+      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4"></textarea>
+      <button id="save-edit-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
+    </div>
+  `;
+  document.body.appendChild(editModal);
+  editModalTitle = editModal.querySelector('#edit-modal-title');
+  editModalTextarea = editModal.querySelector('#edit-modal-textarea');
+  saveEditBtn = editModal.querySelector('#save-edit-btn');
+  editModal.querySelector('.close-button').onclick = () => { editModal.style.display = 'none'; };
+  window.addEventListener('click', (event) => {
+    if (event.target === editModal) editModal.style.display = 'none';
+  });
+}
+
+function openEditModal(type, context, oldContent) {
+  setupEditModal();
+  currentEditContext = { type, ...context };
+  editModalTitle.textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+  editModalTextarea.value = oldContent;
+  editModal.style.display = 'flex';
+}
+
+saveEditBtn && saveEditBtn.addEventListener('click', async () => {
+  if (!currentEditContext) return;
+  const newContent = editModalTextarea.value.trim();
+  if (!newContent) return;
+  let ref;
+  if (currentEditContext.type === 'thread') {
+    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
+    await updateDoc(ref, { initialComment: newContent });
+  } else if (currentEditContext.type === 'comment') {
+    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
+    await updateDoc(ref, { content: newContent });
+  } else if (currentEditContext.type === 'thema') {
+    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
+    await updateDoc(ref, { description: newContent });
+  }
+  editModal.style.display = 'none';
+});
