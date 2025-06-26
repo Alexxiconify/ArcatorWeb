@@ -283,7 +283,7 @@
 <!-- Tabs for Thémata (all), Global Threads -->
 <div class="tabs flex space-x-4 mb-8">
   <button id="tab-themata-all" class="tab-btn btn-primary btn-blue">Thémata</button>
-  <button id="tab-global" class="tab-btn btn-primary btn-purple">Global Threads</button>
+  <button id="tab-dms" class="tab-btn btn-primary btn-purple">DMs</button>
 </div>
 
 <!-- Thémata Boxes Section (tabbed, collapsible/accordion style) -->
@@ -315,107 +315,28 @@
   </details>
 </div>
 
-<!-- Global Threads Section (tabbed) -->
-<div id="global-tab-content">
-  <details id="global-threads-section" class="form-container mb-12" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Global Threads <span id="global-threads-count" class="ml-2 text-base font-normal text-gray-400"></span></summary>
-    <!-- Create Global Thread Form -->
-    <form id="create-global-thread-form" class="space-y-4 mb-8">
-      <div>
-        <label for="global-thread-title" class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
-        <input type="text" id="global-thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., General Discussion" required>
-      </div>
-      <div>
-        <label for="global-thread-content" class="block text-text-primary text-sm font-bold mb-2">Content:</label>
-        <textarea id="global-thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Start the discussion..." required></textarea>
-      </div>
-      <button type="submit" class="btn-primary btn-purple w-full">Create Global Thread</button>
-    </form>
-    <ul id="global-thread-list" class="space-y-4">
-      <!-- Global threads will be loaded here by JavaScript -->
-      <li class="card p-4 text-center">Loading global threads...</li>
-    </ul>
+<!-- DM Section (tabbed) -->
+<div id="dm-tab-content" style="display: none;">
+  <details id="dm-section" class="form-container mb-12" open>
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Direct Messages</summary>
+    <div id="dm-list" class="flex flex-col gap-4 w-full">
+      <!-- DM boxes will be loaded here by JavaScript -->
+      <div class="card p-4 text-center">Loading DMs...</div>
+    </div>
+    <button id="start-conversation-btn" class="btn-primary btn-blue mt-4">Start New DM</button>
+  </details>
+  <details id="conversation-messages-section" class="form-container mb-12" style="display:none;">
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Conversation</summary>
+    <ul id="conversation-messages" class="space-y-4 mb-4"></ul>
+    <div class="flex gap-2">
+      <input id="conversation-input" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type a message..." />
+      <button id="conversation-send-btn" class="btn-primary btn-blue">Send</button>
+    </div>
   </details>
 </div>
 
 <!-- Dynamic Théma Thread Sections (tabbed) -->
 <div id="thema-tab-contents"></div>
-
-<!-- Main Content Section: Thémata List -->
-<section id="main-content" class="py-16 content-section rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
-
-    <div id="forms-content" style="display: none;">
-      <!-- Comment Thread Section (Initially hidden) -->
-      <div id="comments-section" class="mt-12 p-6 card" style="display: none;">
-        <button id="back-to-threads-btn" class="btn-primary btn-red mb-6">← Back to Threads</button>
-        <h2 id="current-thread-title" class="text-3xl font-bold mb-6 text-center"></h2>
-        <p id="current-thread-initial-comment" class="text-text-secondary text-center mb-8"></p>
-
-        <!-- Add New Comment Form -->
-        <div id="add-comment-section" class="form-container" style="display: none;"> <!-- Controlled by JS -->
-          <h3 class="text-2xl font-bold text-heading-card mb-4">Add a Comment</h3>
-          <form id="add-comment-form" class="space-y-4">
-            <div>
-              <label for="new-comment-content" class="block text-text-primary text-sm font-bold mb-2">Your Comment:</label>
-              <textarea id="new-comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Type your comment here... Use @username to mention users" required></textarea>
-            </div>
-            <button type="submit" id="add-comment-btn" class="btn-primary btn-green w-full">Post Comment</button>
-          </form>
-        </div>
-
-        <!-- Existing Comments List -->
-        <h3 class="text-2xl font-bold text-heading-card mt-8 mb-4">Comments</h3>
-        <ul id="comment-list" class="space-y-4">
-          <!-- Comments will be loaded here by JavaScript -->
-          <li class="card p-4 text-center">No comments yet. Be the first to comment!</li>
-        </ul>
-      </div>
-
-      <!-- Théma Rules Section (Initially hidden) -->
-      <div id="thema-rules-section" class="mt-12 p-6 card" style="display: none;">
-        <button id="thema-rules-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
-        <h2 class="text-3xl font-bold mb-6 text-center">Théma Rules</h2>
-
-        <!-- Add Rule Form -->
-        <div class="form-container mb-8">
-          <h3 class="text-2xl font-bold text-heading-card mb-4">Add Rule</h3>
-          <form id="rule-form" class="space-y-4">
-            <div>
-              <label for="rule-title" class="block text-text-primary text-sm font-bold mb-2">Rule Title:</label>
-              <input type="text" id="rule-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter rule title" required>
-            </div>
-            <div>
-              <label for="rule-content" class="block text-text-primary text-sm font-bold mb-2">Rule Content:</label>
-              <textarea id="rule-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Enter rule content" required></textarea>
-            </div>
-            <button type="submit" class="btn-primary btn-blue w-full">Add Rule</button>
-          </form>
-        </div>
-
-        <!-- Rules List -->
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Current Rules</h3>
-        <ul id="thema-rules-list" class="space-y-4">
-          <!-- Rules will be loaded here -->
-        </ul>
-      </div>
-
-      <!-- Login Required Message -->
-      <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
-        <h2 class="text-4xl font-bold text-heading-main mb-6">Login Required</h2>
-        <p class="text-lg text-text-secondary mb-8">
-          You must be logged in to create thémata, threads, or comments.
-        </p>
-        <a href="sign.html" class="inline-block btn-blue text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
-      </div>
-
-    </div>
-  </div>
-</section>
-
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
@@ -444,51 +365,31 @@
     </div>
   </div>
 </footer>
-
-<!-- Link to external forms.js -->
-<script type="module" src="forms.js" defer></script>
-
 <!-- Enhanced Features UI Elements -->
-
-<!-- Reaction Palette -->
-<div id="reaction-palette" class="fixed bg-white border rounded-lg shadow-lg p-2 z-50" style="display: none;">
-  <!-- Reaction options will be populated by JavaScript -->
-</div>
-
-<!-- Edit Form Modal -->
-<div id="edit-form" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-  <div class="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
-    <h3 class="text-xl font-bold mb-4">Edit Post</h3>
-    <textarea id="edit-input" class="w-full h-32 border rounded p-2 mb-4" placeholder="Edit your post content..."></textarea>
-    <div class="flex justify-end space-x-2">
-      <button id="edit-cancel-btn" class="btn-primary btn-red">Cancel</button>
-      <button id="edit-save-btn" class="btn-primary btn-blue">Save</button>
-    </div>
-  </div>
-</div>
 
 <script>
 // Add tab switching logic for Thémata (all) and Global Threads
 const tabThemataAll = document.getElementById('tab-themata-all');
-const tabGlobal = document.getElementById('tab-global');
+const tabDms = document.getElementById('tab-dms');
 const themaAllTabContent = document.getElementById('thema-all-tab-content');
-const globalTabContent = document.getElementById('global-tab-content');
+const dmTabContent = document.getElementById('dm-tab-content');
 
 function showTab(tab) {
-  themaAllTabContent.style.display = 'none';
-  globalTabContent.style.display = 'none';
-  tabThemataAll.classList.remove('btn-blue');
-  tabGlobal.classList.remove('btn-purple');
+  if (themaAllTabContent) themaAllTabContent.style.display = 'none';
+  if (dmTabContent) dmTabContent.style.display = 'none';
+  if (tabThemataAll) tabThemataAll.classList.remove('btn-blue');
+  if (tabDms) tabDms.classList.remove('btn-purple');
   if (tab === 'thema-all') {
-    themaAllTabContent.style.display = 'block';
-    tabThemataAll.classList.add('btn-blue');
-  } else if (tab === 'global') {
-    globalTabContent.style.display = 'block';
-    tabGlobal.classList.add('btn-purple');
+    if (themaAllTabContent) themaAllTabContent.style.display = 'block';
+    if (tabThemataAll) tabThemataAll.classList.add('btn-blue');
+  } else if (tab === 'dms') {
+    if (dmTabContent) dmTabContent.style.display = 'block';
+    if (tabDms) tabDms.classList.add('btn-purple');
   }
 }
-tabThemataAll.addEventListener('click', () => showTab('thema-all'));
-tabGlobal.addEventListener('click', () => showTab('global'));
+
+const someElement = document.getElementById('some-id');
+if (someElement) someElement.addEventListener('click', () => showTab('thema-all'));
 
 // Render all thémata as boxes in the Thémata tab
 function renderThemaBoxes(themas) {

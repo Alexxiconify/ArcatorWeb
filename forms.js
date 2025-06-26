@@ -1697,564 +1697,527 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function showDmTab() {
-    if (formsContentSection) formsContentSection.style.display = 'none';
-    if (dmSection) dmSection.style.display = 'block';
-    if (conversationsSection) conversationsSection.style.display = 'none';
-    if (threadsSection) threadsSection.style.display = 'none';
-    if (commentsSection) commentsSection.style.display = 'none';
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (tabDms) tabDms.classList.add('active');
-    renderDMList();
+    document.getElementById('thema-all-tab-content').style.display = 'none';
+    conversationsSection.style.display = 'block';
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('btn-blue', 'btn-purple'));
+    document.getElementById('tab-dms').classList.add('btn-purple');
+    renderConversations();
   }
 
   if (tabThema) tabThema.addEventListener('click', showThemaTab);
-  if (tabDms) tabDms.addEventListener('click', showDmTab);
+  if (document.getElementById('tab-dms')) document.getElementById('tab-dms').onclick = showDmTab;
+  if (document.getElementById('tab-themata-all')) document.getElementById('tab-themata-all').onclick = showThemaTab;
 
-  // Optionally, show Thémata tab by default on load
-  showThemaTab();
-
-  populateThreadThemaSelect();
-
-  // --- Thémata Reddit-style Thread Listing ---
-  // When a Théma is clicked, show its threads below and show the thread creation form above the list.
-  // Remove old navigation/section toggling logic for threads-section.
-  // Patch event listeners for thema-list items:
-  themaList.addEventListener('click', function(e) {
-    const btn = e.target.closest('.thema-item');
-    if (!btn) return;
-    const themaId = btn.dataset.themaId;
-    const themaName = btn.dataset.themaName;
-    // Show thread creation form and set selected thema
-    document.getElementById('create-thread-section').style.display = 'block';
-    document.getElementById('selected-thema-name').textContent = themaName;
-    // Show threads list title
-    document.getElementById('threads-list-title').style.display = 'block';
-    // Load threads for this thema
-    currentThemaId = themaId;
-    renderThreads();
-  });
-
-  // At the end of DOMContentLoaded, after all initialization:
-  await window.firebaseReadyPromise;
-  renderGlobalThreads();
-});
-
-let unsubscribeThemaComments = null;
-let unsubscribeThreads = null;
-let unsubscribeThematas = null;
-let unsubscribeDmList = null;
-
-// --- CONVERSATIONS (DMs) ---
-let conversationsSection = null;
-let startConversationBtn = null;
-let conversationsList = null;
-let conversationMessagesSection = null;
-let conversationMessages = null;
-let conversationInput = null;
-let conversationSendBtn = null;
-let currentConversationId = null;
-let unsubscribeConversations = null;
-let unsubscribeConversationMessages = null;
-
-function initializeConversationElements() {
-  conversationsSection = document.getElementById('conversations-section');
-  startConversationBtn = document.getElementById('start-conversation-btn');
-  conversationsList = document.getElementById('conversations-list');
-  conversationMessagesSection = document.getElementById('conversation-messages-section');
-  conversationMessages = document.getElementById('conversation-messages');
-  conversationInput = document.getElementById('conversation-input');
-  conversationSendBtn = document.getElementById('conversation-send-btn');
-}
-
-function showConversationsSection() {
-  if (conversationsSection) conversationsSection.style.display = 'block';
-  if (formsContentSection) formsContentSection.style.display = 'none';
-  if (dmSection) dmSection.style.display = 'none';
-  if (themaRulesSection) themaRulesSection.style.display = 'none';
-  renderConversations();
-}
-
-function renderConversations() {
-  if (!window.db || !window.auth.currentUser) return;
-  if (!conversationsList) return;
-  if (unsubscribeConversations) unsubscribeConversations();
-  const userId = window.auth.currentUser.uid;
-  const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
-  const q = query(convCol, where('participants', 'array-contains', userId), orderBy('lastMessageAt', 'desc'));
-  unsubscribeConversations = onSnapshot(q, (snapshot) => {
-    conversationsList.innerHTML = '';
-    if (snapshot.empty) {
-      conversationsList.innerHTML = '<li class="card p-4 text-center">No conversations yet.</li>';
-      return;
-    }
-    snapshot.forEach(doc => {
-      const conv = doc.data();
-      const li = document.createElement('li');
-      li.className = 'card cursor-pointer';
-      li.innerHTML = `
-        <div class="flex flex-col">
-          <span class="font-bold text-lg">${conv.name || 'Conversation'}</span>
-          <span class="text-sm text-gray-400">Last: ${conv.lastMessageContent || ''}</span>
-          <span class="text-xs text-gray-500">${conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleString() : ''}</span>
-        </div>
-      `;
-      li.onclick = () => selectConversation(doc.id, conv);
-      conversationsList.appendChild(li);
-    });
-  });
-}
-
-function selectConversation(convId, convData) {
-  currentConversationId = convId;
-  if (conversationMessagesSection) conversationMessagesSection.style.display = 'block';
-  renderConversationMessages(convId);
-}
-
-function renderConversationMessages(convId) {
-  if (!window.db || !window.auth.currentUser) return;
-  if (!conversationMessages) return;
-  if (unsubscribeConversationMessages) unsubscribeConversationMessages();
-  const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${convId}/messages`);
-  const q = query(messagesCol, orderBy('createdAt', 'asc'));
-  unsubscribeConversationMessages = onSnapshot(q, (snapshot) => {
-    conversationMessages.innerHTML = '';
-    if (snapshot.empty) {
-      conversationMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet.</li>';
-      return;
-    }
-    snapshot.forEach(doc => {
-      const msg = doc.data();
-      const li = document.createElement('li');
-      li.className = `message-item ${msg.createdBy === window.auth.currentUser.uid ? 'own-message' : 'other-message'}`;
-      li.innerHTML = `
-        <div class="message-content">
-          <p>${convertMentionsToHTML(msg.content)}</p>
-          <small class="text-gray-500">${msg.lastMessageSenderHandle || msg.createdBy} - ${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</small>
-        </div>
-      `;
-      conversationMessages.appendChild(li);
-    });
-    conversationMessages.scrollTop = conversationMessages.scrollHeight;
-  });
-}
-
-async function sendConversationMessage() {
-  if (!window.db || !window.auth.currentUser || !currentConversationId) return;
-  const content = conversationInput.value.trim();
-  if (!content) return;
-  const user = window.currentUser;
-  const msgData = {
-    content: content,
-    createdAt: serverTimestamp(),
-    createdBy: window.auth.currentUser.uid,
-    lastMessageSenderHandle: user?.handle || user?.displayName || 'You',
-    lastMessageSenderId: window.auth.currentUser.uid
-  };
-  const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${currentConversationId}/messages`);
-  await addDoc(messagesCol, msgData);
-  // Update conversation last message
-  const convRef = doc(window.db, `artifacts/${window.appId}/public/data/conversations`, currentConversationId);
-  await updateDoc(convRef, {
-    lastMessageAt: serverTimestamp(),
-    lastMessageContent: content,
-    lastMessageSenderHandle: msgData.lastMessageSenderHandle,
-    lastMessageSenderId: msgData.lastMessageSenderId
-  });
-  conversationInput.value = '';
-}
-
-async function startNewConversation() {
-  if (!window.db || !window.auth.currentUser) return;
-  const userId = window.auth.currentUser.uid;
-  let participantId = prompt('Enter the user ID to DM (leave blank to DM yourself):', userId);
-  if (!participantId) participantId = userId;
-  const participants = [userId, participantId];
-  const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
-  const convDoc = await addDoc(convCol, {
-    participants: participants,
-    type: participantId === userId ? 'private' : 'private',
-    createdBy: userId,
-    createdAt: serverTimestamp(),
-    lastMessageAt: null,
-    lastMessageContent: '',
-    lastMessageSenderHandle: '',
-    lastMessageSenderId: '',
-    name: participantId === userId ? 'Self DM' : ''
-  });
-  selectConversation(convDoc.id, {});
-  showMessageBox('Conversation started!', false);
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  initializeConversationElements();
-  if (startConversationBtn) {
-    startConversationBtn.addEventListener('click', startNewConversation);
-  }
-  if (conversationSendBtn) {
-    conversationSendBtn.addEventListener('click', sendConversationMessage);
-  }
-  // Add tab for conversations
-  const tabConversations = document.getElementById('tab-dms');
-  if (tabConversations) {
-    tabConversations.addEventListener('click', showConversationsSection);
-  }
-});
-// In renderThreads and renderGlobalThreads, update delete button event listeners:
-function attachThreadDeleteListeners() {
-  document.querySelectorAll('.delete-thread-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      const threadId = event.target.dataset.threadId;
-      const isGlobal = event.target.dataset.global === 'true';
-      const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
-      if (confirmed) {
-        if (isGlobal) {
-          // Delete global thread
-          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
-          await deleteDoc(threadRef);
-        } else {
-          // Delete thema thread
-          await deleteThreadAndSubcollection(currentThemaId, threadId);
-        }
-        showMessageBox("Thread deleted successfully!", false);
-      } else {
-        showMessageBox("Thread deletion cancelled.", false);
+  function renderConversations() {
+    if (!window.db || !window.auth.currentUser) return;
+    if (!conversationsList) return;
+    if (unsubscribeConversations) unsubscribeConversations();
+    const userId = window.auth.currentUser.uid;
+    const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
+    const q = query(convCol, where('participants', 'array-contains', userId), orderBy('lastMessageAt', 'desc'));
+    unsubscribeConversations = onSnapshot(q, (snapshot) => {
+      conversationsList.innerHTML = '';
+      if (snapshot.empty) {
+        conversationsList.innerHTML = '<li class="card p-4 text-center">No conversations yet.</li>';
+        return;
       }
-    });
-  });
-}
-// Call attachThreadDeleteListeners after rendering threads/global threads
-async function moveThread(threadId, fromThemaId, toThemaId) {
-  if (!window.db) return;
-  let threadData = null;
-  let threadRef = null;
-  if (fromThemaId === 'global') {
-    threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
-  } else {
-    threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${fromThemaId}/threads`, threadId);
-  }
-  const threadSnap = await getDoc(threadRef);
-  if (!threadSnap.exists()) return;
-  threadData = threadSnap.data();
-  // Remove from old location
-  await deleteDoc(threadRef);
-  // Add to new location
-  let newRef;
-  if (toThemaId === 'global') {
-    newRef = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
-  } else {
-    newRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${toThemaId}/threads`);
-  }
-  await addDoc(newRef, threadData);
-  showMessageBox('Thread moved successfully!', false);
-}
-// After rendering, attach event listeners:
-function attachMoveThreadListeners() {
-  document.querySelectorAll('.move-thread-select').forEach(select => {
-    select.addEventListener('change', async (event) => {
-      const toThemaId = event.target.value;
-      const threadId = event.target.dataset.threadId;
-      const fromThemaId = event.target.dataset.fromThema;
-      if (toThemaId && threadId) {
-        await moveThread(threadId, fromThemaId, toThemaId);
-      }
-    });
-  });
-}
-// After rendering threads/global threads, call attachThreadDeleteListeners() and attachMoveThreadListeners()
-const mainLoadingSpinner = document.getElementById('loading-spinner');
-const formsContentSection = document.getElementById('forms-content');
-const mainLoginRequiredMessage = document.getElementById('login-required-message');
-const createThemaForm = document.getElementById('create-thema-form');
-const newThemaNameInput = document.getElementById('new-thema-name');
-const newThemaDescriptionInput = document.getElementById('new-thema-description');
-const themaList = document.getElementById('thema-list');
-const threadsSection = document.getElementById('threads-section');
-const backToThematasBtn = document.getElementById('back-to-thematas-btn');
-const currentThemaTitle = document.getElementById('current-thema-title');
-const currentThemaDescription = document.getElementById('current-thema-description');
-const createThreadForm = document.getElementById('create-thread-form');
-const newThreadTitleInput = document.getElementById('new-thread-title');
-const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
-const threadList = document.getElementById('thread-list');
-const commentsSection = document.getElementById('comments-section');
-const backToThreadsBtn = document.getElementById('back-to-threads-btn');
-const currentThreadTitle = document.getElementById('current-thread-title');
-const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
-const addCommentForm = document.getElementById('add-comment-form');
-const newCommentContentInput = document.getElementById('new-comment-content');
-const commentList = document.getElementById('comment-list');
-const dmSection = document.getElementById('dm-section');
-const editSaveBtn = document.getElementById('edit-save-btn');
-const editCancelBtn = document.getElementById('edit-cancel-btn');
-const editInput = document.getElementById('edit-input');
-const dmSendBtn = document.getElementById('dm-send-btn');
-const dmInput = document.getElementById('dm-input');
-const dmBackBtn = document.getElementById('dm-back-btn'); // Add this line
-
-// Add DOM variables for global threads
-const globalThreadList = document.getElementById('global-thread-list');
-const createGlobalThreadForm = document.getElementById('create-global-thread-form');
-const globalThreadTitleInput = document.getElementById('global-thread-title');
-const globalThreadContentInput = document.getElementById('global-thread-content');
-const globalThreadsCount = document.getElementById('global-threads-count');
-
-// Add function to create a global thread
-async function addGlobalThread(title, content) {
-  if (!window.auth.currentUser) {
-    showMessageBox('You must be logged in to create a global thread.', true);
-    return;
-  }
-  if (!window.db) {
-    showMessageBox('Database not initialized.', true);
-    return;
-  }
-  try {
-    const user = window.currentUser;
-    const mentions = parseMentions(content);
-    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
-    await addDoc(threadsCol, {
-      title: title,
-      initialComment: content,
-      mentions: mentions,
-      reactions: {},
-      createdAt: serverTimestamp(),
-      authorId: window.auth.currentUser.uid,
-      authorDisplayName: user?.displayName || 'Anonymous',
-      authorHandle: user?.handle || '',
-      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
-      commentCount: 0,
-      lastActivity: serverTimestamp(),
-      editedAt: null,
-      editedBy: null
-    });
-    showMessageBox('Global thread created successfully!', false);
-    if (globalThreadTitleInput) globalThreadTitleInput.value = '';
-    if (globalThreadContentInput) globalThreadContentInput.value = '';
-    renderGlobalThreads();
-  } catch (error) {
-    console.error('Error creating global thread:', error);
-    showMessageBox(`Error creating global thread: ${error.message}`, true);
-  }
-}
-
-// --- PATCH renderGlobalThreads: Use same logic as themata threads, but for global threads ---
-function renderGlobalThreads() {
-  if (!window.db || !globalThreadList) return;
-  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
-  const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  if (window.unsubscribeGlobalThreads) window.unsubscribeGlobalThreads();
-  window.unsubscribeGlobalThreads = onSnapshot(q, async (snapshot) => {
-    globalThreadList.innerHTML = '';
-    if (globalThreadsCount) globalThreadsCount.textContent = `(${snapshot.size})`;
-    if (snapshot.empty) {
-      globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads yet. Be the first to start one!</li>';
-      return;
-    }
-    const authorUids = new Set();
-    const threadsArr = [];
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      if (thread.authorId) authorUids.add(thread.authorId);
-      threadsArr.push({ ...thread, id: doc.id });
-    });
-    // Fetch user profiles for all unique authorIds
-    const userProfiles = {};
-    if (authorUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const userQuery = query(usersRef, where('uid', 'in', Array.from(authorUids)));
-      await getDocs(userQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          userProfiles[userDoc.id] = userDoc.data();
-        });
-      }).catch(error => console.error("Error fetching user profiles for global threads:", error));
-    }
-    threadsArr.forEach(thread => {
-      const userProfile = userProfiles[thread.authorId] || {};
-      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
-      const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
-      const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
-      const commentCount = thread.commentCount || 0;
-      const li = document.createElement('li');
-      li.className = 'thread-item card flex flex-col mb-4 p-4';
-      li.innerHTML = `
-        <div class="flex items-center mb-2">
-          <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="font-bold">${displayName}</span>
-          <span class="text-gray-400 ml-2">${handle}</span>
-          <span class="meta-info ml-4">${createdAt}</span>
-        </div>
-        <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
-        <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
-        <div class="flex items-center mb-2">
-          <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
-          <div class="thread-actions ml-auto">
-            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${thread.id}" data-global="true" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+      snapshot.forEach(doc => {
+        const conv = doc.data();
+        const li = document.createElement('li');
+        li.className = 'card cursor-pointer';
+        li.innerHTML = `
+          <div class="flex flex-col">
+            <span class="font-bold text-lg">${conv.name || 'Conversation'}</span>
+            <span class="text-sm text-gray-400">Last: ${conv.lastMessageContent || ''}</span>
+            <span class="text-xs text-gray-500">${conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleString() : ''}</span>
           </div>
-        </div>
-        <div class="add-comment-section mt-2">${getAddCommentFormHtml(thread.id, true)}</div>
-        <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${thread.id}"></ul>
-      `;
-      globalThreadList.appendChild(li);
-      renderGlobalCommentsForThread(thread.id);
+        `;
+        li.onclick = () => selectConversation(doc.id, conv);
+        conversationsList.appendChild(li);
+      });
     });
-    // Attach delete button listeners
-    globalThreadList.querySelectorAll('.delete-thread-btn').forEach(button => {
+  }
+
+  function selectConversation(convId, convData) {
+    currentConversationId = convId;
+    if (conversationMessagesSection) conversationMessagesSection.style.display = 'block';
+    renderConversationMessages(convId);
+  }
+
+  function renderConversationMessages(convId) {
+    if (!window.db || !window.auth.currentUser) return;
+    if (!conversationMessages) return;
+    if (unsubscribeConversationMessages) unsubscribeConversationMessages();
+    const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${convId}/messages`);
+    const q = query(messagesCol, orderBy('createdAt', 'asc'));
+    unsubscribeConversationMessages = onSnapshot(q, (snapshot) => {
+      conversationMessages.innerHTML = '';
+      if (snapshot.empty) {
+        conversationMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet.</li>';
+        return;
+      }
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        const li = document.createElement('li');
+        li.className = `message-item ${msg.createdBy === window.auth.currentUser.uid ? 'own-message' : 'other-message'}`;
+        li.innerHTML = `
+          <div class="message-content">
+            <p>${convertMentionsToHTML(msg.content)}</p>
+            <small class="text-gray-500">${msg.lastMessageSenderHandle || msg.createdBy} - ${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</small>
+          </div>
+        `;
+        conversationMessages.appendChild(li);
+      });
+      conversationMessages.scrollTop = conversationMessages.scrollHeight;
+    });
+  }
+
+  async function sendConversationMessage() {
+    if (!window.db || !window.auth.currentUser || !currentConversationId) return;
+    const content = conversationInput.value.trim();
+    if (!content) return;
+    const user = window.currentUser;
+    const msgData = {
+      content: content,
+      createdAt: serverTimestamp(),
+      createdBy: window.auth.currentUser.uid,
+      lastMessageSenderHandle: user?.handle || user?.displayName || 'You',
+      lastMessageSenderId: window.auth.currentUser.uid
+    };
+    const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${currentConversationId}/messages`);
+    await addDoc(messagesCol, msgData);
+    // Update conversation last message
+    const convRef = doc(window.db, `artifacts/${window.appId}/public/data/conversations`, currentConversationId);
+    await updateDoc(convRef, {
+      lastMessageAt: serverTimestamp(),
+      lastMessageContent: content,
+      lastMessageSenderHandle: msgData.lastMessageSenderHandle,
+      lastMessageSenderId: msgData.lastMessageSenderId
+    });
+    conversationInput.value = '';
+  }
+
+  async function startNewConversation() {
+    if (!window.db || !window.auth.currentUser) return;
+    const userId = window.auth.currentUser.uid;
+    let participantId = prompt('Enter the user ID to DM (leave blank to DM yourself):', userId);
+    if (!participantId) participantId = userId;
+    const participants = [userId, participantId];
+    const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
+    const convDoc = await addDoc(convCol, {
+      participants: participants,
+      type: participantId === userId ? 'private' : 'private',
+      createdBy: userId,
+      createdAt: serverTimestamp(),
+      lastMessageAt: null,
+      lastMessageContent: '',
+      lastMessageSenderHandle: '',
+      lastMessageSenderId: '',
+      name: participantId === userId ? 'Self DM' : ''
+    });
+    selectConversation(convDoc.id, {});
+    showMessageBox('Conversation started!', false);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeConversationElements();
+    if (startConversationBtn) {
+      startConversationBtn.addEventListener('click', startNewConversation);
+    }
+    if (conversationSendBtn) {
+      conversationSendBtn.addEventListener('click', sendConversationMessage);
+    }
+    // Add tab for conversations
+    const tabConversations = document.getElementById('tab-dms');
+    if (tabConversations) {
+      tabConversations.addEventListener('click', showConversationsSection);
+    }
+  });
+  // In renderThreads and renderGlobalThreads, update delete button event listeners:
+  function attachThreadDeleteListeners() {
+    document.querySelectorAll('.delete-thread-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const threadId = event.target.dataset.threadId;
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this global thread?", "All comments within it will also be deleted.");
+        const isGlobal = event.target.dataset.global === 'true';
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
         if (confirmed) {
-          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
-          await deleteDoc(threadRef);
-          showMessageBox("Global thread deleted successfully!", false);
+          if (isGlobal) {
+            // Delete global thread
+            const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+            await deleteDoc(threadRef);
+          } else {
+            // Delete thema thread
+            await deleteThreadAndSubcollection(currentThemaId, threadId);
+          }
+          showMessageBox("Thread deleted successfully!", false);
+        } else {
+          showMessageBox("Thread deletion cancelled.", false);
         }
       });
     });
-  });
-}
-
-// Patch loadThreadsForThema for same comment/edit/delete/collapsible logic and nested comments
-function loadThreadsForThema(themaId) {
-  const list = document.getElementById(`thread-list-${themaId}`);
-  if (!list) return;
-  list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
-  if (!window.db) {
-    list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
-    return;
   }
-  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-  const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  onSnapshot(q, snapshot => {
-    list.innerHTML = '';
-    if (snapshot.empty) {
-      list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to create one!</li>";
-      return;
-    }
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      const li = document.createElement('li');
-      li.className = 'thread-item card p-3 flex items-center justify-between';
-      li.innerHTML = `
-        <div class='flex items-center gap-3'>
-          <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
-          <div>
-            <div class='font-bold'>${thread.title}</div>
-            <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
-            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
-          </div>
-        </div>
-        <div class='flex gap-2'>
-          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
-          <button class='btn-primary btn-green btn-sm'>Edit</button>
-        </div>
-      `;
-      list.appendChild(li);
-    });
-  });
-}
-// ... existing code ...
-
-function renderThemaBoxes(themas) {
-  const container = document.getElementById('thema-boxes');
-  if (!container) return;
-  if (!themas.length) {
-    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
-    return;
-  }
-  container.innerHTML = '';
-  themas.forEach(thema => {
-    const details = document.createElement('details');
-    details.className = 'thema-accordion w-full card mb-2';
-    details.open = true;
-    details.innerHTML = `
-      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
-        <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
-      </summary>
-      <div class="p-4">
-        <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
-          <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
-          <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
-          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
-        </form>
-        <ul class="thread-list space-y-2" id="thread-list-${thema.id}"></ul>
-      </div>
-    `;
-    container.appendChild(details);
-    if (thema.id === 'global') {
-      loadGlobalThreadsForThema('global');
+  // Call attachThreadDeleteListeners after rendering threads/global threads
+  async function moveThread(threadId, fromThemaId, toThemaId) {
+    if (!window.db) return;
+    let threadData = null;
+    let threadRef = null;
+    if (fromThemaId === 'global') {
+      threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
     } else {
-      loadThreadsForThema(thema.id);
+      threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${fromThemaId}/threads`, threadId);
     }
-  });
-  // Accordion: only one open at a time
-  container.querySelectorAll('details').forEach(d => {
-    d.addEventListener('toggle', function() {
-      if (d.open) {
-        container.querySelectorAll('details').forEach(other => {
-          if (other !== d) other.open = false;
-        });
-      }
-    });
-  });
-  // Attach create thread form listeners
-  container.querySelectorAll('.create-thread-form').forEach(form => {
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const themaId = form.dataset.themaId;
-      const title = form.querySelector('.new-thread-title').value.trim();
-      const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
-      if (title && initialComment) {
-        if (themaId === 'global') {
-          await addGlobalThread(title, initialComment);
-        } else {
-          await addCommentThread(themaId, title, initialComment);
-        }
-        form.querySelector('.new-thread-title').value = '';
-        form.querySelector('.new-thread-initial-comment').value = '';
-      }
-    });
-  });
-}
-// Add loadGlobalThreadsForThema to load threads from global threads collection
-function loadGlobalThreadsForThema(themaId) {
-  const list = document.getElementById(`thread-list-${themaId}`);
-  if (!list) return;
-  list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
-  if (!window.db) {
-    list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
-    return;
+    const threadSnap = await getDoc(threadRef);
+    if (!threadSnap.exists()) return;
+    threadData = threadSnap.data();
+    // Remove from old location
+    await deleteDoc(threadRef);
+    // Add to new location
+    let newRef;
+    if (toThemaId === 'global') {
+      newRef = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+    } else {
+      newRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${toThemaId}/threads`);
+    }
+    await addDoc(newRef, threadData);
+    showMessageBox('Thread moved successfully!', false);
   }
-  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
-  const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  onSnapshot(q, snapshot => {
-    list.innerHTML = '';
-    if (snapshot.empty) {
-      list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to start one!</li>";
+  // After rendering, attach event listeners:
+  function attachMoveThreadListeners() {
+    document.querySelectorAll('.move-thread-select').forEach(select => {
+      select.addEventListener('change', async (event) => {
+        const toThemaId = event.target.value;
+        const threadId = event.target.dataset.threadId;
+        const fromThemaId = event.target.dataset.fromThema;
+        if (toThemaId && threadId) {
+          await moveThread(threadId, fromThemaId, toThemaId);
+        }
+      });
+    });
+  }
+  // After rendering threads/global threads, call attachThreadDeleteListeners() and attachMoveThreadListeners()
+  const mainLoadingSpinner = document.getElementById('loading-spinner');
+  const formsContentSection = document.getElementById('forms-content');
+  const mainLoginRequiredMessage = document.getElementById('login-required-message');
+  const createThemaForm = document.getElementById('create-thema-form');
+  const newThemaNameInput = document.getElementById('new-thema-name');
+  const newThemaDescriptionInput = document.getElementById('new-thema-description');
+  const themaList = document.getElementById('thema-list');
+  const threadsSection = document.getElementById('threads-section');
+  const backToThematasBtn = document.getElementById('back-to-thematas-btn');
+  const currentThemaTitle = document.getElementById('current-thema-title');
+  const currentThemaDescription = document.getElementById('current-thema-description');
+  const createThreadForm = document.getElementById('create-thread-form');
+  const newThreadTitleInput = document.getElementById('new-thread-title');
+  const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+  const threadList = document.getElementById('thread-list');
+  const commentsSection = document.getElementById('comments-section');
+  const backToThreadsBtn = document.getElementById('back-to-threads-btn');
+  const currentThreadTitle = document.getElementById('current-thread-title');
+  const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+  const addCommentForm = document.getElementById('add-comment-form');
+  const newCommentContentInput = document.getElementById('new-comment-content');
+  const commentList = document.getElementById('comment-list');
+  const dmSection = document.getElementById('dm-section');
+  const editSaveBtn = document.getElementById('edit-save-btn');
+  const editCancelBtn = document.getElementById('edit-cancel-btn');
+  const editInput = document.getElementById('edit-input');
+  const dmSendBtn = document.getElementById('dm-send-btn');
+  const dmInput = document.getElementById('dm-input');
+  const dmBackBtn = document.getElementById('dm-back-btn'); // Add this line
+
+  // Add DOM variables for global threads
+  const globalThreadList = document.getElementById('global-thread-list');
+  const createGlobalThreadForm = document.getElementById('create-global-thread-form');
+  const globalThreadTitleInput = document.getElementById('global-thread-title');
+  const globalThreadContentInput = document.getElementById('global-thread-content');
+  const globalThreadsCount = document.getElementById('global-threads-count');
+
+  // Add function to create a global thread
+  async function addGlobalThread(title, content) {
+    if (!window.auth.currentUser) {
+      showMessageBox('You must be logged in to create a global thread.', true);
       return;
     }
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      const li = document.createElement('li');
-      li.className = 'thread-item card p-3 flex items-center justify-between';
-      li.innerHTML = `
-        <div class='flex items-center gap-3'>
-          <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
-          <div>
-            <div class='font-bold'>${thread.title}</div>
-            <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
-            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+    if (!window.db) {
+      showMessageBox('Database not initialized.', true);
+      return;
+    }
+    try {
+      const user = window.currentUser;
+      const mentions = parseMentions(content);
+      const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+      await addDoc(threadsCol, {
+        title: title,
+        initialComment: content,
+        mentions: mentions,
+        reactions: {},
+        createdAt: serverTimestamp(),
+        authorId: window.auth.currentUser.uid,
+        authorDisplayName: user?.displayName || 'Anonymous',
+        authorHandle: user?.handle || '',
+        authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+        commentCount: 0,
+        lastActivity: serverTimestamp(),
+        editedAt: null,
+        editedBy: null
+      });
+      showMessageBox('Global thread created successfully!', false);
+      if (globalThreadTitleInput) globalThreadTitleInput.value = '';
+      if (globalThreadContentInput) globalThreadContentInput.value = '';
+      renderGlobalThreads();
+    } catch (error) {
+      console.error('Error creating global thread:', error);
+      showMessageBox(`Error creating global thread: ${error.message}`, true);
+    }
+  }
+
+  // --- PATCH renderGlobalThreads: Use same logic as themata threads, but for global threads ---
+  function renderGlobalThreads() {
+    if (!window.db || !globalThreadList) return;
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+    const q = query(threadsCol, orderBy('createdAt', 'desc'));
+    if (window.unsubscribeGlobalThreads) window.unsubscribeGlobalThreads();
+    window.unsubscribeGlobalThreads = onSnapshot(q, async (snapshot) => {
+      globalThreadList.innerHTML = '';
+      if (globalThreadsCount) globalThreadsCount.textContent = `(${snapshot.size})`;
+      if (snapshot.empty) {
+        globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads yet. Be the first to start one!</li>';
+        return;
+      }
+      const authorUids = new Set();
+      const threadsArr = [];
+      snapshot.forEach(doc => {
+        const thread = doc.data();
+        if (thread.authorId) authorUids.add(thread.authorId);
+        threadsArr.push({ ...thread, id: doc.id });
+      });
+      // Fetch user profiles for all unique authorIds
+      const userProfiles = {};
+      if (authorUids.size > 0) {
+        const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+        const userQuery = query(usersRef, where('uid', 'in', Array.from(authorUids)));
+        await getDocs(userQuery).then(userSnapshot => {
+          userSnapshot.forEach(userDoc => {
+            userProfiles[userDoc.id] = userDoc.data();
+          });
+        }).catch(error => console.error("Error fetching user profiles for global threads:", error));
+      }
+      threadsArr.forEach(thread => {
+        const userProfile = userProfiles[thread.authorId] || {};
+        const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+        const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
+        const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
+        const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+        const commentCount = thread.commentCount || 0;
+        const li = document.createElement('li');
+        li.className = 'thread-item card flex flex-col mb-4 p-4';
+        li.innerHTML = `
+          <div class="flex items-center mb-2">
+            <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+            <span class="font-bold">${displayName}</span>
+            <span class="text-gray-400 ml-2">${handle}</span>
+            <span class="meta-info ml-4">${createdAt}</span>
           </div>
-        </div>
-        <div class='flex gap-2'>
-          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
-          <button class='btn-primary btn-green btn-sm'>Edit</button>
+          <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
+          <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
+          <div class="flex items-center mb-2">
+            <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
+            <div class="thread-actions ml-auto">
+              ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${thread.id}" data-global="true" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+            </div>
+          </div>
+          <div class="add-comment-section mt-2">${getAddCommentFormHtml(thread.id, true)}</div>
+          <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${thread.id}"></ul>
+        `;
+        globalThreadList.appendChild(li);
+        renderGlobalCommentsForThread(thread.id);
+      });
+      // Attach delete button listeners
+      globalThreadList.querySelectorAll('.delete-thread-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const threadId = event.target.dataset.threadId;
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this global thread?", "All comments within it will also be deleted.");
+          if (confirmed) {
+            const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+            await deleteDoc(threadRef);
+            showMessageBox("Global thread deleted successfully!", false);
+          }
+        });
+      });
+    });
+  }
+
+  // Patch loadThreadsForThema for same comment/edit/delete/collapsible logic and nested comments
+  function loadThreadsForThema(themaId) {
+    const list = document.getElementById(`thread-list-${themaId}`);
+    if (!list) return;
+    list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
+    if (!window.db) {
+      list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
+      return;
+    }
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const q = query(threadsCol, orderBy('createdAt', 'desc'));
+    onSnapshot(q, snapshot => {
+      list.innerHTML = '';
+      if (snapshot.empty) {
+        list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to create one!</li>";
+        return;
+      }
+      snapshot.forEach(doc => {
+        const thread = doc.data();
+        const li = document.createElement('li');
+        li.className = 'thread-item card p-3 flex items-center justify-between';
+        li.innerHTML = `
+          <div class='flex items-center gap-3'>
+            <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+            <div>
+              <div class='font-bold'>${thread.title}</div>
+              <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
+              <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+            </div>
+          </div>
+          <div class='flex gap-2'>
+            <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
+            <button class='btn-primary btn-green btn-sm'>Edit</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    });
+  }
+  // ... existing code ...
+
+  function renderThemaBoxes(themas) {
+    const container = document.getElementById('thema-boxes');
+    if (!container) return;
+    if (!themas.length) {
+      container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
+      return;
+    }
+    container.innerHTML = '';
+    themas.forEach(thema => {
+      const details = document.createElement('details');
+      details.className = 'thema-accordion w-full card mb-2';
+      details.open = true;
+      details.innerHTML = `
+        <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
+          <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
+        </summary>
+        <div class="p-4">
+          <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
+            <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
+            <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
+            <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
+          </form>
+          <ul class="thread-list space-y-2" id="thread-list-${thema.id}"></ul>
         </div>
       `;
-      list.appendChild(li);
+      container.appendChild(details);
+      if (thema.id === 'global') {
+        loadGlobalThreadsForThema('global');
+      } else {
+        loadThreadsForThema(thema.id);
+      }
     });
-  });
-}
-// ... existing code ...
+    // Accordion: only one open at a time
+    container.querySelectorAll('details').forEach(d => {
+      d.addEventListener('toggle', function() {
+        if (d.open) {
+          container.querySelectorAll('details').forEach(other => {
+            if (other !== d) other.open = false;
+          });
+        }
+      });
+    });
+    // Attach create thread form listeners
+    container.querySelectorAll('.create-thread-form').forEach(form => {
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const themaId = form.dataset.themaId;
+        const title = form.querySelector('.new-thread-title').value.trim();
+        const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
+        if (title && initialComment) {
+          if (themaId === 'global') {
+            await addGlobalThread(title, initialComment);
+          } else {
+            await addCommentThread(themaId, title, initialComment);
+          }
+          form.querySelector('.new-thread-title').value = '';
+          form.querySelector('.new-thread-initial-comment').value = '';
+        }
+      });
+    });
+  }
+  // Add loadGlobalThreadsForThema to load threads from global threads collection
+  function loadGlobalThreadsForThema(themaId) {
+    const list = document.getElementById(`thread-list-${themaId}`);
+    if (!list) return;
+    list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
+    if (!window.db) {
+      list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
+      return;
+    }
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+    const q = query(threadsCol, orderBy('createdAt', 'desc'));
+    onSnapshot(q, snapshot => {
+      list.innerHTML = '';
+      if (snapshot.empty) {
+        list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to start one!</li>";
+        return;
+      }
+      snapshot.forEach(doc => {
+        const thread = doc.data();
+        const li = document.createElement('li');
+        li.className = 'thread-item card p-3 flex items-center justify-between';
+        li.innerHTML = `
+          <div class='flex items-center gap-3'>
+            <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+            <div>
+              <div class='font-bold'>${thread.title}</div>
+              <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
+              <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+            </div>
+          </div>
+          <div class='flex gap-2'>
+            <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
+            <button class='btn-primary btn-green btn-sm'>Edit</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    });
+  }
+  // ... existing code ...
 
-// Ensure reactionPalette is defined for all usages
-const reactionPalette = document.getElementById('reaction-palette');
+  // Ensure reactionPalette is defined for all usages
+  const reactionPalette = document.getElementById('reaction-palette');
+});
+
+// --- DOM Elements for DMs and Conversations ---
+document.addEventListener('DOMContentLoaded', function() {
+  window.dmList = document.getElementById('dm-list');
+  window.conversationsSection = document.getElementById('dm-tab-content');
+  window.conversationsList = document.getElementById('dm-list');
+  window.conversationMessagesSection = document.getElementById('conversation-messages-section');
+  window.conversationMessages = document.getElementById('conversation-messages');
+  window.conversationInput = document.getElementById('conversation-input');
+  window.conversationSendBtn = document.getElementById('conversation-send-btn');
+  window.startConversationBtn = document.getElementById('start-conversation-btn');
+});
+
+// Patch showDmTab and showThemaTab for null checks and correct section toggling
+function showThemaTab() {
+  if (window.conversationsSection) window.conversationsSection.style.display = 'none';
+  if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
+  if (window.formsContentSection) window.formsContentSection.style.display = 'block';
+  if (window.themaAllTabContent) window.themaAllTabContent.style.display = 'block';
+  renderThematas();
+}
+function showDmTab() {
+  if (window.formsContentSection) window.formsContentSection.style.display = 'none';
+  if (window.themaAllTabContent) window.themaAllTabContent.style.display = 'none';
+  if (window.conversationsSection) window.conversationsSection.style.display = 'block';
+  if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
+  renderDMList();
+}
