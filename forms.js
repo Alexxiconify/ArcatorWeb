@@ -70,10 +70,10 @@ window.firebaseReadyPromise = new Promise((resolve) => {
 // Add a timeout to prevent hanging
 setTimeout(() => {
   if (firebaseReadyResolve) {
-    console.warn("Firebase ready promise timed out after 10 seconds. Continuing anyway.");
+    console.warn("Firebase ready promise timed out after 60 seconds. Continuing anyway.");
     firebaseReadyResolve();
   }
-}, 10000);
+}, 60000); // 60 seconds
 
 /**
  * Retrieves user profile from Firestore.
@@ -1880,9 +1880,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  if (dmSendBtn && dmInput) {
+  if (dmSendBtn) {
     dmSendBtn.addEventListener('click', async () => {
-      if (currentDmId && dmInput.value.trim()) {
+      const dmInput = document.getElementById('dm-input');
+      if (currentDmId && dmInput && dmInput.value.trim()) {
         await sendDMMessage(currentDmId, dmInput.value.trim());
         dmInput.value = '';
       }
@@ -2265,3 +2266,102 @@ const dmSendBtn = document.getElementById('dm-send-btn');
 const dmInput = document.getElementById('dm-input');
 const dmBackBtn = document.getElementById('dm-back-btn'); // Add this line
 const tempPagesSection = document.getElementById('temp-pages-section'); // Add this line
+
+// Add DOM variables for global threads
+const globalThreadList = document.getElementById('global-thread-list');
+const createGlobalThreadForm = document.getElementById('create-global-thread-form');
+const globalThreadTitleInput = document.getElementById('global-thread-title');
+const globalThreadContentInput = document.getElementById('global-thread-content');
+const globalThreadsCount = document.getElementById('global-threads-count');
+
+// Add function to create a global thread
+async function addGlobalThread(title, content) {
+  if (!window.auth.currentUser) {
+    showMessageBox('You must be logged in to create a global thread.', true);
+    return;
+  }
+  if (!window.db) {
+    showMessageBox('Database not initialized.', true);
+    return;
+  }
+  try {
+    const user = window.currentUser;
+    const mentions = parseMentions(content);
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+    await addDoc(threadsCol, {
+      title: title,
+      initialComment: content,
+      mentions: mentions,
+      reactions: {},
+      createdAt: serverTimestamp(),
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+      commentCount: 0,
+      lastActivity: serverTimestamp(),
+      editedAt: null,
+      editedBy: null
+    });
+    showMessageBox('Global thread created successfully!', false);
+    if (globalThreadTitleInput) globalThreadTitleInput.value = '';
+    if (globalThreadContentInput) globalThreadContentInput.value = '';
+    renderGlobalThreads();
+  } catch (error) {
+    console.error('Error creating global thread:', error);
+    showMessageBox(`Error creating global thread: ${error.message}`, true);
+  }
+}
+
+// Add function to render global threads
+function renderGlobalThreads() {
+  if (!window.db || !globalThreadList) return;
+  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+  const q = query(threadsCol, orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snapshot) => {
+    globalThreadList.innerHTML = '';
+    if (globalThreadsCount) globalThreadsCount.textContent = `(${snapshot.size})`;
+    if (snapshot.empty) {
+      globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads yet. Be the first to start one!</li>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+      const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const li = document.createElement('li');
+      li.className = 'thread-item card';
+      li.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+        </div>
+        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
+        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
+        <div class="thread-actions mt-4">
+          <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
+          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" data-global="true" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+        </div>
+      `;
+      globalThreadList.appendChild(li);
+    });
+    // Attach delete listeners
+    document.querySelectorAll('.delete-thread-btn[data-global="true"]').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const threadId = event.target.dataset.threadId;
+        const confirmed = await showCustomConfirm('Are you sure you want to delete this global thread?', 'All comments within it will also be deleted.');
+        if (confirmed) {
+          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+          await deleteDoc(threadRef);
+          showMessageBox('Global thread deleted successfully!', false);
+        } else {
+          showMessageBox('Thread deletion cancelled.', false);
+        }
+      });
+    });
+  });
+}
+
+// Call renderGlobalThreads on page load
+renderGlobalThreads();
