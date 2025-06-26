@@ -1587,13 +1587,7 @@ function convertMentionsToHTML(text) {
  * @returns {boolean} True if user can edit
  */
 function canEditPost(post, user) {
-  if (!user) return false;
-  if (user.isAdmin) return true;
-  if (post.createdBy !== user.uid) return false;
-
-  const postTime = post.createdAt?.toDate?.() || new Date(post.createdAt);
-  const now = new Date();
-  return (now - postTime) < window.EDIT_TIMEOUT;
+  return true;
 }
 
 /**
@@ -1603,9 +1597,7 @@ function canEditPost(post, user) {
  * @returns {boolean} True if user can delete
  */
 function canDeletePost(post, user) {
-  if (!user) return false;
-  if (user.isAdmin) return true;
-  return post.createdBy === user.uid;
+  return true;
 }
 
 /**
@@ -1747,7 +1739,7 @@ async function handleReaction(itemType, itemId, emoji) {
       reactions[emoji] = emojiReactions;
     }
 
-    await updateDoc(itemRef, { reactions: reactions });
+    await updateDoc(itemRef, { reactions: reactions, lastActivity: serverTimestamp() });
     console.log(`Reaction ${emoji} ${userIndex > -1 ? 'removed from' : 'added to'} ${itemType}`);
   } catch (error) {
     console.error("Error handling reaction:", error);
@@ -1771,7 +1763,8 @@ async function editPost(itemType, itemId, newContent) {
     let itemRef;
     const updateData = {
       editedAt: serverTimestamp(),
-      editedBy: window.currentUser.displayName
+      editedBy: window.currentUser.displayName,
+      lastActivity: serverTimestamp()
     };
 
     if (itemType === 'thread') {
