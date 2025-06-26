@@ -1305,31 +1305,43 @@ async function sendDMMessage(dmId, content) {
  */
 function renderDMList() {
   if (!window.auth.currentUser || !window.db) return;
+  if (!dmList) {
+    console.warn('DM list element not found');
+    return;
+  }
+  
   const currentUserId = window.auth.currentUser.uid;
   const dmCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`);
   const q = query(dmCol, orderBy("lastActivity", "desc"));
+  
   if (unsubscribeDmList) {
     unsubscribeDmList();
   }
+  
   unsubscribeDmList = onSnapshot(q, async (snapshot) => {
     if (!dmList) return;
+    
     dmList.innerHTML = '';
     if (snapshot.empty) {
-      dmList.innerHTML = '<li class="card p-4 text-center">No conversations yet. Start a new DM!</li>';
+      dmList.innerHTML = '<div class="card p-4 text-center">No conversations yet. Start a new DM!</div>';
       return;
     }
+    
     for (const doc of snapshot.docs) {
       const dmData = doc.data();
-      const li = document.createElement('li');
-      li.className = 'dm-item card cursor-pointer';
-      li.onclick = () => selectDM(doc.id, dmData);
-      const displayName = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : dmData.participants.find(p => p !== currentUserId) || 'Unknown';
-      li.innerHTML = `
+      const div = document.createElement('div');
+      div.className = 'dm-item card cursor-pointer p-4 mb-2';
+      div.onclick = () => selectDM(doc.id, dmData);
+      
+      const displayName = dmData.type === window.DM_TYPES?.GROUP ? dmData.groupName : 
+                         dmData.participants?.find(p => p !== currentUserId) || 'Unknown';
+      
+      div.innerHTML = `
         <h3 class="text-lg font-bold">${displayName}</h3>
-        <p class="text-sm text-gray-500">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} message</p>
+        <p class="text-sm text-gray-500">${dmData.type === window.DM_TYPES?.GROUP ? 'Group' : 'Direct'} message</p>
         <p class="text-xs text-gray-400">Last activity: ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</p>
       `;
-      dmList.appendChild(li);
+      dmList.appendChild(div);
     }
   });
 }
@@ -1342,14 +1354,14 @@ function renderDMList() {
 function selectDM(dmId, dmData) {
   currentDmId = dmId;
   if (dmTitle) {
-    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : 'Direct Message';
+    dmTitle.textContent = dmData.type === window.DM_TYPES?.GROUP ? dmData.groupName : 'Direct Message';
   }
   if (dmParticipants) {
-    const participantNames = dmData.participants.filter(p => p !== window.auth.currentUser.uid).map(p => getUserDisplayName(p, {})).join(', ');
+    const participantNames = dmData.participants?.filter(p => p !== window.auth.currentUser.uid)
+      .map(p => getUserDisplayName(p, {})).join(', ') || '';
     dmParticipants.textContent = `Participants: ${participantNames}`;
   }
   if (dmSection) dmSection.style.display = 'block';
-  if (formsContentSection) formsContentSection.style.display = 'none';
   renderDMMessages();
 }
 
@@ -1358,6 +1370,10 @@ function selectDM(dmId, dmData) {
  */
 function renderDMMessages() {
   if (!window.auth.currentUser || !window.db || !currentDmId) return;
+  if (!dmMessages) {
+    console.warn('DM messages element not found');
+    return;
+  }
 
   const currentUserId = window.auth.currentUser.uid;
   const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${currentDmId}/messages`);
@@ -1372,22 +1388,22 @@ function renderDMMessages() {
 
     dmMessages.innerHTML = '';
     if (snapshot.empty) {
-      dmMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet. Start the conversation!</li>';
+      dmMessages.innerHTML = '<div class="text-center text-gray-500">No messages yet. Start the conversation!</div>';
       return;
     }
 
     snapshot.forEach(doc => {
       const message = doc.data();
-      const li = document.createElement('li');
-      li.className = `message-item ${message.createdBy === currentUserId ? 'own-message' : 'other-message'}`;
+      const div = document.createElement('div');
+      div.className = `message-item ${message.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2`;
 
-      li.innerHTML = `
+      div.innerHTML = `
         <div class="message-content">
           <p>${convertMentionsToHTML(message.content)}</p>
           <small class="text-gray-500">${message.creatorDisplayName} - ${message.createdAt ? new Date(message.createdAt.toDate()).toLocaleString() : 'N/A'}</small>
         </div>
       `;
-      dmMessages.appendChild(li);
+      dmMessages.appendChild(div);
     });
 
     // Scroll to bottom
@@ -1408,6 +1424,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.newThemaDescriptionInput = document.getElementById('new-thema-description');
     console.log('[DEBUG] DOMContentLoaded fired.');
     initializeUtilityElements();
+    initializeDMElements(); // Initialize DM elements
     showMainLoading();
     // Attach create-thema-form handler
     const createThemaForm = document.getElementById('create-thema-form');
@@ -1427,254 +1444,47 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
-// Patch showDmTab and showThemaTab for null checks and correct section toggling
-function showThemaTab() {
-  if (window.conversationsSection) window.conversationsSection.style.display = 'none';
-  if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
-  if (window.formsContentSection) window.formsContentSection.style.display = 'block';
-  if (window.themaAllTabContent) window.themaAllTabContent.style.display = 'block';
-  renderThematas();
-}
-function showDmTab() {
-  if (window.themaAllTabContent) window.themaAllTabContent.style.display = 'none';
-  if (window.dmTabContent) window.dmTabContent.style.display = 'block';
-  if (window.conversationsSection) window.conversationsSection.style.display = 'block';
-  if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
-  renderDMList();
-}
-
-let unsubscribeThematas = null;
-let unsubscribeDmList = null;
-
-// Render reactions bar
-function renderReactions(reactions, type, id, threadId, themaId) {
-  const emojis = ['👍','❤️','😂','😮','😢','👎'];
-  const uid = window.auth.currentUser?.uid;
-  return emojis.map(emoji => {
-    const users = reactions[emoji] || {};
-    const count = Object.keys(users).length;
-    const reacted = uid && users[uid];
-    return `<button class="reaction-btn${reacted ? ' reacted' : ''}" data-type="${type}" data-id="${id}" data-emoji="${emoji}" data-thread-id="${threadId||''}" data-thema-id="${themaId||''}">${emoji} <span class="reaction-count">${count}</span></button>`;
-  }).join('');
-}
-
-// Reaction event delegation
-if (document.body) {
-  document.body.addEventListener('click', async function(e) {
-    const btn = e.target.closest('.reaction-btn');
-    if (!btn) return;
-    const { type, id, emoji, threadId, themaId } = btn.dataset;
-    const uid = window.auth.currentUser?.uid;
-    if (!uid) return;
-    let ref;
-    if (type === 'thread') {
-      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, id);
-    } else if (type === 'comment') {
-      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, id) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, id);
-    }
-    if (!ref) return;
-    const snap = await getDoc(ref);
-    const data = snap.data();
-    const reactions = data.reactions || {};
-    const users = reactions[emoji] || {};
-    if (users[uid]) {
-      // Unreact
-      delete users[uid];
-    } else {
-      users[uid] = true;
-    }
-    reactions[emoji] = users;
-    await updateDoc(ref, { reactions });
-  });
-}
-
-// --- Markdown Rendering ---
-function renderMarkdown(text) {
-  if (window.marked && window.DOMPurify) {
-    return DOMPurify.sanitize(window.marked.parse(text));
-  }
-  if (window.marked) return window.marked.parse(text);
-  // Minimal fallback
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
-}
-
-// --- Edit post/comment inline ---
-function enableEditInline(type, themaId, threadId, commentId, oldContent, container) {
-  const editForm = document.createElement('form');
-  editForm.className = 'edit-inline-form flex flex-col gap-2 mb-2';
-  editForm.innerHTML = `
-    <textarea class="edit-content input">${oldContent}</textarea>
-    <div class="flex gap-2">
-      <button type="submit" class="btn-primary btn-green">Save</button>
-      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
-    </div>
-  `;
-  const origHtml = container.innerHTML;
-  container.innerHTML = '';
-  container.appendChild(editForm);
-  editForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const newContent = editForm.querySelector('.edit-content').value.trim();
-    if (!newContent) return;
-    let ref;
-    if (type === 'thread') {
-      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
-      await updateDoc(ref, { initialComment: newContent });
-    } else if (type === 'comment') {
-      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, commentId) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
-      await updateDoc(ref, { content: newContent });
-    }
-    container.innerHTML = origHtml;
-  };
-  editForm.querySelector('.cancel-edit').onclick = () => {
-    container.innerHTML = origHtml;
-  };
-}
-
-// --- Modal for editing threads/comments/themes ---
-let currentEditContext = null;
-
-function setupEditModal() {
-  // No longer needed - we'll create inline forms instead
-}
-
-function openEditModal(type, context, oldContent, oldName = null, oldTitle = null) {
-  currentEditContext = { type, ...context };
-  let container, titleEl, descEl, originalTitle, originalDesc;
-  if (type === 'thema') {
-    // Only replace the title and description area
-    const themaBoxes = document.querySelectorAll('.thema-item');
-    container = Array.from(themaBoxes).find(box => {
-      const editBtn = box.querySelector('.edit-thema-btn');
-      return editBtn && editBtn.dataset.themaId === context.themaId;
-    });
-    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
-    titleEl = container.querySelector('h3');
-    descEl = container.querySelector('.thema-description');
-    if (!titleEl || !descEl) { console.error('Could not find thema title/description for edit modal'); return; }
-    originalTitle = titleEl.innerHTML;
-    originalDesc = descEl.innerHTML;
-    titleEl.innerHTML = `<input type="text" id="edit-thema-name" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldName || ''}" placeholder="Théma Name" required />`;
-    descEl.innerHTML = `<textarea id="edit-thema-description" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Description">${oldContent || ''}</textarea>
-      <div class="flex gap-2 mt-2">
-        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      </div>`;
-    const saveBtn = descEl.querySelector('.save-edit-btn');
-    const cancelBtn = descEl.querySelector('.cancel-edit-btn');
-    saveBtn.addEventListener('click', async () => {
-      try {
-        const newName = container.querySelector('#edit-thema-name').value.trim();
-        const newDesc = container.querySelector('#edit-thema-description').value.trim();
-        if (!newName) return;
-        const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, context.themaId);
-        await updateDoc(ref, { name: newName, description: newDesc });
-        titleEl.innerHTML = originalTitle;
-        descEl.innerHTML = originalDesc;
-        currentEditContext = null;
-      } catch (error) {
-        console.error('Error saving edit:', error);
-        showMessageBox('Error saving changes.', true);
-      }
-    });
-    cancelBtn.addEventListener('click', () => {
-      titleEl.innerHTML = originalTitle;
-      descEl.innerHTML = originalDesc;
-      currentEditContext = null;
-    });
-    return;
-  }
-  if (type === 'thread') {
-    // Only replace the title and content area
-    const threadDivs = document.querySelectorAll('.thread-item');
-    container = Array.from(threadDivs).find(div => {
-      const editBtn = div.querySelector('.edit-thread-btn');
-      return editBtn && editBtn.dataset.threadId === context.threadId;
-    });
-    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
-    const titleEl = container.querySelector('.thread-title');
-    const contentEl = container.querySelector('.thread-initial-comment');
-    if (!titleEl || !contentEl) { console.error('Could not find thread title/content for edit modal'); return; }
-    const origTitle = titleEl.innerHTML;
-    const origContent = contentEl.innerHTML;
-    titleEl.innerHTML = `<input type="text" id="edit-thread-title" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldTitle || ''}" placeholder="Thread Title" required />`;
-    contentEl.innerHTML = `<textarea id="edit-thread-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Thread Content">${oldContent || ''}</textarea>
-      <div class="flex gap-2 mt-2">
-        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      </div>`;
-    const saveBtn = contentEl.querySelector('.save-edit-btn');
-    const cancelBtn = contentEl.querySelector('.cancel-edit-btn');
-    saveBtn.addEventListener('click', async () => {
-      try {
-        const newTitle = container.querySelector('#edit-thread-title').value.trim();
-        const newContent = container.querySelector('#edit-thread-content').value.trim();
-        if (!newTitle || !newContent) return;
-        const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${context.themaId}/threads`, context.threadId);
-        await updateDoc(ref, { title: newTitle, initialComment: newContent });
-        titleEl.innerHTML = origTitle;
-        contentEl.innerHTML = origContent;
-        currentEditContext = null;
-      } catch (error) {
-        console.error('Error saving edit:', error);
-        showMessageBox('Error saving changes.', true);
-      }
-    });
-    cancelBtn.addEventListener('click', () => {
-      titleEl.innerHTML = origTitle;
-      contentEl.innerHTML = origContent;
-      currentEditContext = null;
-    });
-    return;
-  }
-  if (type === 'comment') {
-    // Only replace the comment content area
-    const commentDivs = document.querySelectorAll('.comment-item');
-    container = Array.from(commentDivs).find(div => {
-      const editBtn = div.querySelector('.edit-comment-btn');
-      return editBtn && editBtn.dataset.commentId === context.commentId;
-    });
-    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
-    const contentEl = container.querySelector('.comment-content');
-    if (!contentEl) { console.error('Could not find comment content for edit modal'); return; }
-    const origContent = contentEl.innerHTML;
-    contentEl.innerHTML = `<textarea id="edit-comment-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Comment Content">${oldContent || ''}</textarea>
-      <div class="flex gap-2 mt-2">
-        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      </div>`;
-    const saveBtn = contentEl.querySelector('.save-edit-btn');
-    const cancelBtn = contentEl.querySelector('.cancel-edit-btn');
-    saveBtn.addEventListener('click', async () => {
-      try {
-        const newContent = container.querySelector('#edit-comment-content').value.trim();
-        if (!newContent) return;
-        const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${context.themaId}/threads/${context.threadId}/comments`, context.commentId);
-        await updateDoc(ref, { content: newContent });
-        contentEl.innerHTML = origContent;
-        currentEditContext = null;
-      } catch (error) {
-        console.error('Error saving edit:', error);
-        showMessageBox('Error saving changes.', true);
-      }
-    });
-    cancelBtn.addEventListener('click', () => {
-      contentEl.innerHTML = origContent;
-      currentEditContext = null;
-    });
-    return;
-  }
-}
-
-// At the end of function definitions, before DOMContentLoaded:
-window.onUserReady = updateUIBasedOnAuthAndData; // UI updates only when user/profile is ready
+// Set up tab event listeners
+document.getElementById('tab-themata-all').onclick = showThemaTab;
+document.getElementById('tab-dms').onclick = showDmTab;
 
 // --- DM Tab Logic ---
 let currentDmId = null;
+let dmList = null;
+let dmMessages = null;
+let dmTitle = null;
+let dmParticipants = null;
+let dmSection = null;
+let conversationsSection = null;
+let conversationMessagesSection = null;
+let themaAllTabContent = null;
+let dmTabContent = null;
 
-document.getElementById('tab-themata-all').onclick = showThemaTab;
-document.getElementById('tab-dms').onclick = showDmTab;
+// Initialize DM DOM elements
+function initializeDMElements() {
+  dmList = document.getElementById('dm-list');
+  dmMessages = document.getElementById('conversation-messages');
+  dmTitle = document.getElementById('dm-title');
+  dmParticipants = document.getElementById('dm-participants');
+  dmSection = document.getElementById('dm-section');
+  conversationsSection = document.getElementById('conversations-section');
+  conversationMessagesSection = document.getElementById('conversation-messages-section');
+  themaAllTabContent = document.getElementById('thema-all-tab-content');
+  dmTabContent = document.getElementById('dm-tab-content');
+}
+
+// Update showDmTab and showThemaTab with proper null checks
+function showDmTab() {
+  if (themaAllTabContent) themaAllTabContent.style.display = 'none';
+  if (dmTabContent) dmTabContent.style.display = 'block';
+  if (conversationsSection) conversationsSection.style.display = 'block';
+  if (conversationMessagesSection) conversationMessagesSection.style.display = 'none';
+  renderDMList();
+}
+
+function showThemaTab() {
+  if (conversationsSection) conversationsSection.style.display = 'none';
+  if (conversationMessagesSection) conversationMessagesSection.style.display = 'none';
+  if (themaAllTabContent) themaAllTabContent.style.display = 'block';
+  renderThematas();
+}
