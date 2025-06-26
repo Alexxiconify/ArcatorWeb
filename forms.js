@@ -46,6 +46,10 @@ import {
 window.currentThemaId = null;
 window.currentThreadId = null;
 
+// Add at the top of the file (after global vars)
+let editingThemaId = null;
+let editingThreadId = null;
+
 // --- Utility Functions ---
 let messageBox;
 let messageBoxTimeout;
@@ -458,7 +462,6 @@ function renderThematas() {
 
 function renderThemaBoxes(themasArr) {
   try {
-    console.log('[DEBUG] renderThemaBoxes called. themasArr:', themasArr, 'currentUser:', window.currentUser);
     const container = document.getElementById('thema-boxes');
     if (!container) { console.warn('[DEBUG] thema-boxes container not found.'); return; }
     container.innerHTML = '';
@@ -467,6 +470,12 @@ function renderThemaBoxes(themasArr) {
       return;
     }
     themasArr.forEach(thema => {
+      // If editing this thema, skip re-rendering it
+      if (editingThemaId === thema.id) {
+        const existing = document.querySelector(`[data-thema-id='${thema.id}']`);
+        if (existing) container.appendChild(existing);
+        return;
+      }
       const box = document.createElement('div');
       box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
       let formHtml = '';
@@ -511,22 +520,32 @@ function renderThemaBoxes(themasArr) {
       // Thread creation handler
       if (window.currentUser) {
         const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
-        threadForm.onsubmit = async (e) => {
-          e.preventDefault();
-          const title = threadForm.querySelector('.thread-title-input').value.trim();
-          const content = threadForm.querySelector('.thread-content-input').value.trim();
-          if (!title || !content) return;
-          if (!window.auth.currentUser || !window.db) return;
-          const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
-          await addDoc(threadsCol, {
-            title,
-            initialComment: content,
-            createdAt: serverTimestamp(),
-            createdBy: window.auth.currentUser.uid,
-            creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
-          });
-          threadForm.reset();
-        };
+        if (threadForm) {
+          threadForm.onsubmit = async (e) => {
+            e.preventDefault();
+            // Check if form is still connected to DOM
+            if (!document.contains(threadForm)) {
+              console.warn('Form not connected to DOM, skipping submission');
+              return;
+            }
+            const title = threadForm.querySelector('.thread-title-input').value.trim();
+            const content = threadForm.querySelector('.thread-content-input').value.trim();
+            if (!title || !content) return;
+            if (!window.auth.currentUser || !window.db) return;
+            const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+            await addDoc(threadsCol, {
+              title,
+              initialComment: content,
+              createdAt: serverTimestamp(),
+              createdBy: window.auth.currentUser.uid,
+              creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+            });
+            // Reset form only if still connected
+            if (document.contains(threadForm)) {
+              threadForm.reset();
+            }
+          };
+        }
       }
       
       // Admin controls for thémata
@@ -596,6 +615,11 @@ function loadThreadsForThema(themaId) {
       }
       snapshot.forEach(threadDoc => {
         const thread = threadDoc.data();
+        if (editingThreadId === threadDoc.id) {
+          const existing = document.querySelector(`[data-thread-id='${threadDoc.id}']`);
+          if (existing) threadListDiv.appendChild(existing);
+          return;
+        }
         const threadDiv = document.createElement('div');
         threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
         const user = userProfiles[thread.createdBy] || {};
@@ -623,31 +647,27 @@ function loadThreadsForThema(themaId) {
         threadListDiv.appendChild(threadDiv);
         loadCommentsForThread(themaId, threadDoc.id);
         const commentForm = threadDiv.querySelector(`#add-comment-form-${threadDoc.id}`);
-        commentForm.onsubmit = async (e) => {
-          e.preventDefault();
-          const content = commentForm.querySelector('.comment-content-input').value.trim();
-          if (!content) return;
-          if (!window.auth.currentUser || !window.db) return;
-          const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadDoc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
-          await addDoc(commentsCol, {
-            content,
-            createdAt: serverTimestamp(),
-            createdBy: window.auth.currentUser.uid,
-            creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
-          });
-          commentForm.reset();
-        };
-        // Edit/Delete thread handlers
-        if (canEdit) {
-          threadDiv.querySelector('.edit-thread-btn').dataset.threadId = threadDoc.id;
-          threadDiv.querySelector('.edit-thread-btn').onclick = () => {
-            openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
-          };
-          threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
-            if (confirm('Delete this thread?')) {
-              const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-              await deleteDoc(doc(threadsCol, threadDoc.id));
-              threadDiv.remove();
+        if (commentForm) {
+          commentForm.onsubmit = async (e) => {
+            e.preventDefault();
+            // Check if form is still connected to DOM
+            if (!document.contains(commentForm)) {
+              console.warn('Comment form not connected to DOM, skipping submission');
+              return;
+            }
+            const content = commentForm.querySelector('.comment-content-input').value.trim();
+            if (!content) return;
+            if (!window.auth.currentUser || !window.db) return;
+            const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadDoc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
+            await addDoc(commentsCol, {
+              content,
+              createdAt: serverTimestamp(),
+              createdBy: window.auth.currentUser.uid,
+              creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+            });
+            // Reset form only if still connected
+            if (document.contains(commentForm)) {
+              commentForm.reset();
             }
           };
         }
@@ -725,6 +745,7 @@ function loadCommentsForThread(themaId, threadId) {
 
 // Edit thread
 function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
+  editingThreadId = threadId;
   const editForm = document.createElement('form');
   editForm.className = 'edit-thread-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
@@ -748,11 +769,14 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
       title: newTitle,
       initialComment: newContent
     });
-    threadDiv.innerHTML = origHtml;
+    editingThreadId = null;
+    loadThreadsForThema(themaId);
   };
   editForm.querySelector('.cancel-edit').onclick = () => {
-    threadDiv.innerHTML = origHtml;
+    editingThreadId = null;
+    loadThreadsForThema(themaId);
   };
+  editForm.onclick = (e) => e.stopPropagation();
 }
 
 // Edit comment
@@ -1464,6 +1488,7 @@ window.openEditModal = openEditModal;
 
 // Minimal inline edit for thema
 function editThema(themaId, oldDescription, oldName, themaBox) {
+  editingThemaId = themaId;
   const editForm = document.createElement('form');
   editForm.className = 'edit-thema-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
@@ -1487,11 +1512,14 @@ function editThema(themaId, oldDescription, oldName, themaBox) {
       name: newName,
       description: newDescription
     });
-    themaBox.innerHTML = origHtml;
+    editingThemaId = null;
+    renderThematas();
   };
   editForm.querySelector('.cancel-edit').onclick = () => {
-    themaBox.innerHTML = origHtml;
+    editingThemaId = null;
+    renderThematas();
   };
+  editForm.onclick = (e) => e.stopPropagation();
 }
 
 // Minimal Markdown rendering using marked.js and DOMPurify
