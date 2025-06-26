@@ -773,7 +773,7 @@ async function addCommentThread(themaId, title, initialComment) {
 
 // --- PATCH renderThreads: Show user icon, edit/delete for all users/admins, emoji reactions ---
 function renderThreads() {
-  renderThreadsFromCache(currentThemaId); // Show cached immediately
+  renderThreadsFromCache(currentThemaId);
   console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
   if (unsubscribeThreads) {
     unsubscribeThreads();
@@ -794,12 +794,31 @@ function renderThreads() {
       return;
     }
     const threadsArr = [];
+    const authorUids = new Set();
     snapshot.forEach((doc) => {
       const thread = doc.data();
+      if (thread.authorId) authorUids.add(thread.authorId);
       threadsArr.push({ ...thread, id: doc.id });
+    });
+    // Fetch user profiles for all unique authorIds
+    const userProfiles = {};
+    if (authorUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(authorUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          userProfiles[userDoc.id] = userDoc.data();
+        });
+      }).catch(error => console.error("Error fetching user profiles for threads:", error));
+    }
+    snapshot.forEach((doc) => {
+      const thread = doc.data();
+      const userProfile = userProfiles[thread.authorId] || {};
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
-      const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const editedInfo = thread.editedAt ? ` (edited${thread.editedBy ? ' by ' + thread.editedBy : ''} ${thread.editedAt.toDate ? new Date(thread.editedAt.toDate()).toLocaleString() : ''})` : '';
+      const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
+      const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
+      const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const details = document.createElement('details');
       details.className = 'thread-collapsible';
       const summary = document.createElement('summary');
@@ -808,8 +827,8 @@ function renderThreads() {
       const inner = document.createElement('div');
       inner.innerHTML = `
         <div class="flex items-center mb-2">
-          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+          <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">${displayName} <span class="text-gray-400 ml-1">${handle}</span> <span class="ml-2">on ${createdAt}${editedInfo}</span></span>
         </div>
         <div class="reactions-container mt-2">
           ${(thread.reactions ? Object.entries(thread.reactions).map(([emoji, data]) => {
@@ -887,16 +906,10 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
 function displayCommentsForThread(threadId, threadTitle, threadInitialComment, threadThemaId) {
   currentThreadId = threadId;
   currentThemaId = threadThemaId || currentThemaId;
-  currentThreadTitle.textContent = `Thread: ${threadTitle || ''}`;
-  currentThreadInitialComment.textContent = threadInitialComment || '';
-  // Only show comments section
-  if (threadsSection) threadsSection.style.display = 'none';
-  if (themaList) themaList.style.display = 'none';
-  if (formsContentSection) formsContentSection.style.display = 'none';
-  if (dmSection) dmSection.style.display = 'none';
-  if (tempPagesSection) tempPagesSection.style.display = 'none';
-  if (conversationsSection) conversationsSection.style.display = 'none';
-  if (commentsSection) commentsSection.style.display = 'block';
+  currentThreadTitle.textContent = `Thread: ${threadTitle}`;
+  currentThreadInitialComment.textContent = threadInitialComment;
+  threadsSection.style.display = 'none';
+  commentsSection.style.display = 'block';
   renderComments();
 }
 
@@ -1479,7 +1492,6 @@ function selectDM(dmId, dmData) {
   // Show DM section, hide others
   if (dmSection) dmSection.style.display = 'block';
   if (formsContentSection) formsContentSection.style.display = 'none';
-  if (tempPagesSection) tempPagesSection.style.display = 'none';
 
   renderDMMessages();
 }
@@ -1907,19 +1919,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  if (tempPageForm && tempPageTitleInput && tempPageContentInput) {
-    tempPageForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const title = tempPageTitleInput.value.trim();
-      const content = tempPageContentInput.value.trim();
-      if (title && content) {
-        await createTempPage(title, content);
-      } else {
-        showMessageBox("Please fill in both title and content.", true);
-      }
-    });
-  }
-
   // Initialize enhanced features
   if (window.auth.currentUser) {
     renderDMList();
@@ -1950,14 +1949,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Navigation tab logic
   const tabThema = document.getElementById('tab-thematas');
   const tabDms = document.getElementById('tab-dms');
-  const tabTempPages = document.getElementById('tab-temp-pages');
 
   function showThemaTab() {
     // Hide all other sections
     if (threadsSection) threadsSection.style.display = 'none';
     if (commentsSection) commentsSection.style.display = 'none';
     if (dmSection) dmSection.style.display = 'none';
-    if (tempPagesSection) tempPagesSection.style.display = 'none';
     if (conversationsSection) conversationsSection.style.display = 'none';
     // Show main forms content and thémata list
     if (formsContentSection) formsContentSection.style.display = 'block';
@@ -1965,17 +1962,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
     if (document.querySelector('#main-content > h2')) document.querySelector('#main-content > h2').style.display = 'block';
     if (document.querySelector('#main-content > h3')) document.querySelector('#main-content > h3').style.display = 'block';
-    // Remove active from all tabs, set active on this
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     if (tabThema) tabThema.classList.add('active');
-    // Always re-render thémata
     renderThematas();
   }
 
   function showDmTab() {
     if (formsContentSection) formsContentSection.style.display = 'none';
     if (dmSection) dmSection.style.display = 'block';
-    if (tempPagesSection) tempPagesSection.style.display = 'none';
     if (conversationsSection) conversationsSection.style.display = 'none';
     if (threadsSection) threadsSection.style.display = 'none';
     if (commentsSection) commentsSection.style.display = 'none';
@@ -1984,21 +1978,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     renderDMList();
   }
 
-  function showTempPagesTab() {
-    if (formsContentSection) formsContentSection.style.display = 'none';
-    if (dmSection) dmSection.style.display = 'none';
-    if (tempPagesSection) tempPagesSection.style.display = 'block';
-    if (conversationsSection) conversationsSection.style.display = 'none';
-    if (threadsSection) threadsSection.style.display = 'none';
-    if (commentsSection) commentsSection.style.display = 'none';
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (tabTempPages) tabTempPages.classList.add('active');
-    renderTempPages();
-  }
-
   if (tabThema) tabThema.addEventListener('click', showThemaTab);
   if (tabDms) tabDms.addEventListener('click', showDmTab);
-  if (tabTempPages) tabTempPages.addEventListener('click', showTempPagesTab);
 
   // Optionally, show Thémata tab by default on load
   showThemaTab();
@@ -2037,7 +2018,6 @@ function showConversationsSection() {
   if (conversationsSection) conversationsSection.style.display = 'block';
   if (formsContentSection) formsContentSection.style.display = 'none';
   if (dmSection) dmSection.style.display = 'none';
-  if (tempPagesSection) tempPagesSection.style.display = 'none';
   if (themaRulesSection) themaRulesSection.style.display = 'none';
   renderConversations();
 }
@@ -2270,7 +2250,6 @@ const editInput = document.getElementById('edit-input');
 const dmSendBtn = document.getElementById('dm-send-btn');
 const dmInput = document.getElementById('dm-input');
 const dmBackBtn = document.getElementById('dm-back-btn'); // Add this line
-const tempPagesSection = document.getElementById('temp-pages-section'); // Add this line
 
 // Add DOM variables for global threads
 const globalThreadList = document.getElementById('global-thread-list');
@@ -2371,3 +2350,5 @@ function renderGlobalThreads() {
 
 // Call renderGlobalThreads on page load
 renderGlobalThreads();
+
+const reactionPalette = document.getElementById('reaction-palette');
