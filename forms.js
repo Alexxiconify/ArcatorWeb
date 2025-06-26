@@ -94,23 +94,22 @@ async function setupFirebaseAndUser() {
 
     if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
       if (typeof __firebase_config === 'string') {
-        if (__firebase_config.trim() === '[object Object]') {
-          console.warn("WARN: __firebase_config literal string '[object Object]'. Skipping parse.");
-          finalFirebaseConfig = firebaseConfig;
-        } else {
-          try {
-            finalFirebaseConfig = JSON.parse(__firebase_config);
-            console.log("Parsed __firebase_config.");
-          } catch (e) {
-            console.error("Error parsing __firebase_config. Using hardcoded config.", e);
-            finalFirebaseConfig = firebaseConfig;
+        try {
+          finalFirebaseConfig = JSON.parse(__firebase_config);
+          console.log("Parsed __firebase_config.");
+        } catch (e) {
+          if (e instanceof SyntaxError && __firebase_config.trim() === '[object Object]') {
+            console.warn("WARN: __firebase_config is the literal string '[object Object]' and caused a parse error. Using hardcoded config.");
+          } else {
+            console.error("Error parsing __firebase_config as JSON. Using hardcoded config.", e);
           }
+          finalFirebaseConfig = firebaseConfig;
         }
       } else if (typeof __firebase_config === 'object') {
         finalFirebaseConfig = __firebase_config;
         console.log("Using __firebase_config object directly.");
       } else {
-        console.warn("__firebase_config not string or object. Using hardcoded config. Type:", typeof __firebase_config);
+        console.warn("__firebase_config provided but not string or object. Using hardcoded config. Type:", typeof __firebase_config);
       }
     } else {
       console.log("__firebase_config not provided. Using hardcoded config.");
