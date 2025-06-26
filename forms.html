@@ -280,20 +280,20 @@
   </div>
 </section>
 
-<!-- Tabs for Thémata, Global Threads, and All Thémata Threads -->
+<!-- Tabs for Thémata (all), Global Threads -->
 <div class="tabs flex space-x-4 mb-8">
   <button id="tab-themata-all" class="tab-btn btn-primary btn-blue">Thémata</button>
   <button id="tab-global" class="tab-btn btn-primary btn-purple">Global Threads</button>
-  <div id="thema-tabs" class="flex space-x-2"></div>
 </div>
 
-<!-- All Thémata Threads Section (tabbed) -->
+<!-- Thémata Boxes Section (tabbed) -->
 <div id="thema-all-tab-content" style="display: none;">
   <details class="form-container mb-12" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">All Thémata Threads</summary>
-    <ul id="thema-all-thread-list" class="space-y-4">
-      <li class="card p-4 text-center">Loading all threads...</li>
-    </ul>
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">All Thémata</summary>
+    <div id="thema-boxes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Thémata boxes will be loaded here by JavaScript -->
+      <div class="card p-4 text-center">Loading thémata...</div>
+    </div>
   </details>
 </div>
 
@@ -468,87 +468,48 @@
 </div>
 
 <script>
-// Add tab switching logic for Thémata (all), Global Threads, and individual thémata
+// Add tab switching logic for Thémata (all) and Global Threads
 const tabThemataAll = document.getElementById('tab-themata-all');
 const tabGlobal = document.getElementById('tab-global');
 const themaAllTabContent = document.getElementById('thema-all-tab-content');
 const globalTabContent = document.getElementById('global-tab-content');
-const themaTabs = document.getElementById('thema-tabs');
-const themaTabContents = document.getElementById('thema-tab-contents');
 
 function showTab(tab) {
-  // Hide all
   themaAllTabContent.style.display = 'none';
   globalTabContent.style.display = 'none';
-  themaTabContents.style.display = 'none';
   tabThemataAll.classList.remove('btn-blue');
   tabGlobal.classList.remove('btn-purple');
-  Array.from(themaTabs.children).forEach(btn => btn.classList.remove('btn-blue'));
-  // Show selected
   if (tab === 'thema-all') {
     themaAllTabContent.style.display = 'block';
     tabThemataAll.classList.add('btn-blue');
   } else if (tab === 'global') {
     globalTabContent.style.display = 'block';
     tabGlobal.classList.add('btn-purple');
-  } else {
-    themaTabContents.style.display = 'block';
-    const btn = themaTabs.querySelector(`[data-thema-id='${tab}']`);
-    if (btn) btn.classList.add('btn-blue');
-    Array.from(themaTabContents.children).forEach(div => div.style.display = 'none');
-    const content = document.getElementById(`thema-content-${tab}`);
-    if (content) content.style.display = 'block';
   }
 }
 tabThemataAll.addEventListener('click', () => showTab('thema-all'));
 tabGlobal.addEventListener('click', () => showTab('global'));
 
-// Dynamically create a tab for each Théma and show its threads in a Reddit-style card layout
-function renderThemaTabs(themas) {
-  themaTabs.innerHTML = '';
-  themaTabContents.innerHTML = '';
+// Render all thémata as boxes in the Thémata tab
+function renderThemaBoxes(themas) {
+  const container = document.getElementById('thema-boxes');
+  if (!container) return;
+  if (!themas.length) {
+    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
+    return;
+  }
+  container.innerHTML = '';
   themas.forEach(thema => {
-    const btn = document.createElement('button');
-    btn.className = 'tab-btn btn-primary btn-blue';
-    btn.textContent = thema.name;
-    btn.dataset.themaId = thema.id;
-    btn.addEventListener('click', () => selectThemaTab(thema));
-    themaTabs.appendChild(btn);
-    // Create content section for this thema
-    const content = document.createElement('div');
-    content.id = `thema-content-${thema.id}`;
-    content.style.display = 'none';
-    content.innerHTML = `
-      <details class="form-container mb-12" open>
-        <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">${thema.name} <span class="ml-2 text-base font-normal text-gray-400">${thema.description || ''}</span></summary>
-        <form class="create-thread-form space-y-4 mb-8" data-thema-id="${thema.id}">
-          <div>
-            <label class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
-            <input type="text" class="new-thread-title shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Suggestions for New Features" required>
-          </div>
-          <div>
-            <label class="block text-text-primary text-sm font-bold mb-2">Initial Comment:</label>
-            <textarea class="new-thread-initial-comment shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Share your thoughts or start the discussion." required></textarea>
-          </div>
-          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
-        </form>
-        <ul class="thread-list space-y-4" id="thread-list-${thema.id}">
-          <li class="card p-4 text-center">Loading threads...</li>
-        </ul>
-      </details>
+    const box = document.createElement('div');
+    box.className = 'thema-item card p-6 flex flex-col justify-between';
+    box.innerHTML = `
+      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+      <p class="thema-description mb-4">${thema.description || ''}</p>
+      <button class="view-thema-threads-btn btn-primary btn-blue mt-auto" data-thema-id="${thema.id}">View Threads</button>
     `;
-    themaTabContents.appendChild(content);
+    container.appendChild(box);
   });
 }
-function selectThemaTab(thema) {
-  // Hide all
-  Array.from(themaTabContents.children).forEach(div => div.style.display = 'none');
-  Array.from(themaTabs.children).forEach(btn => btn.classList.remove('btn-blue'));
-  // Show selected
-  document.getElementById(`thema-content-${thema.id}`).style.display = 'block';
-  themaTabs.querySelector(`[data-thema-id='${thema.id}']`).classList.add('btn-blue');
-}
-// TODO: In your JS, after loading themas, call renderThemaTabs(themalist) and selectThemaTab(themalist[0])
 </script>
 </body>
 </html>
