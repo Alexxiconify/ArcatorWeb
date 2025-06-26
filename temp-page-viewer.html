@@ -269,7 +269,7 @@
 
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen theme-dark">
+<body class="antialiased flex flex-col min-h-screen"> <!-- Removed theme-dark class -->
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
@@ -316,7 +316,7 @@
   // These imports assume firebase-init.js, themes.js, and navbar.js are in the same directory.
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js'; // Corrected import statement
+  import { loadNavbar } from './navbar.js';
   import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Explicitly import Firestore methods
 
   const pageDisplayTitle = document.getElementById('page-display-title');
