@@ -921,7 +921,7 @@ function displayCommentsForThread(threadId, threadTitle, threadInitialComment, t
  * @param {string} threadId - The ID of the parent thread.
  * @param {string} content - The content of the new comment.
  */
-async function addComment(themaId, threadId, content) {
+async function addComment(themaId, threadId, content, parentCommentId = null) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to add a comment.", true);
     return;
@@ -944,7 +944,8 @@ async function addComment(themaId, threadId, content) {
       authorHandle: user?.handle || '',
       authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
       editedAt: null,
-      editedBy: null
+      editedBy: null,
+      parentCommentId // <-- for nesting
     });
     // Update thread comment count
     const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
@@ -959,7 +960,7 @@ async function addComment(themaId, threadId, content) {
       lastActivity: serverTimestamp()
     });
     showMessageBox("Comment posted successfully!", false);
-    newCommentContentInput.value = '';
+    if (typeof newCommentContentInput !== 'undefined') newCommentContentInput.value = '';
     console.log("New comment added.");
   } catch (error) {
     console.error("Error posting comment:", error);
@@ -2414,7 +2415,7 @@ globalThreadList.addEventListener('submit', async (event) => {
 });
 
 // Add function to add a comment to a global thread
-async function addGlobalComment(threadId, content) {
+async function addGlobalComment(threadId, content, parentCommentId = null) {
   if (!window.auth.currentUser) {
     showMessageBox('You must be logged in to add a comment.', true);
     return;
@@ -2437,11 +2438,39 @@ async function addGlobalComment(threadId, content) {
       authorHandle: user?.handle || '',
       authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
       editedAt: null,
-      editedBy: null
+      editedBy: null,
+      parentCommentId // <-- for nesting
     });
     showMessageBox('Comment posted successfully!', false);
   } catch (error) {
     console.error('Error posting comment:', error);
     showMessageBox(`Error posting comment: ${error.message}`, true);
   }
+}
+
+// Recursive render for nested comments
+function renderCommentTree(comments, parentId = null, isGlobal = false, threadId = null) {
+  return comments.filter(c => c.parentCommentId === parentId).map(comment => {
+    const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+    const displayName = comment.authorDisplayName || 'Unknown';
+    const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+    const commentId = comment.id;
+    return `
+      <li class="comment-item card">
+        <div class="flex items-center mb-2">
+          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">By ${displayName} on ${createdAt}</span>
+        </div>
+        <div class="comment-content"><p>${convertMentionsToHTML(comment.content)}</p></div>
+        <button class="reply-btn text-xs text-blue-500 mt-1" data-comment-id="${commentId}" data-thread-id="${threadId}" data-global="${isGlobal}">Reply</button>
+        <form class="reply-form mt-2 hidden" data-parent-id="${commentId}" data-thread-id="${threadId}" data-global="${isGlobal}">
+          <textarea class="reply-input border rounded w-full py-1 px-2 text-xs" placeholder="Reply..." required></textarea>
+          <button type="submit" class="btn-primary btn-green btn-xs mt-1">Add Reply</button>
+        </form>
+        <ul class="nested-comments ml-6 mt-2">
+          ${renderCommentTree(comments, commentId, isGlobal, threadId).join('')}
+        </ul>
+      </li>
+    `;
+  }).join('');
 }
