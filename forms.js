@@ -596,19 +596,38 @@ function renderThemaBoxes(themasArr) {
   }
   themasArr.forEach(thema => {
     const box = document.createElement('div');
-    box.className = 'thema-item card p-6 flex flex-col justify-between';
+    box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
     box.innerHTML = `
       <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
       <p class="thema-description mb-4">${thema.description || ''}</p>
-      <button class="view-thema-threads-btn btn-primary btn-blue mt-auto" data-thema-id="${thema.id}">View Threads</button>
+      <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
     `;
     container.appendChild(box);
+    // Load threads for this thema and render inline
+    loadThreadsForThema(thema.id);
   });
-  container.querySelectorAll('.view-thema-threads-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = btn.getAttribute('data-thema-id');
-      const thema = themasArr.find(t => t.id === id);
-      if (thema) displayThreadsForThema(thema.id, thema.name, thema.description);
+}
+
+function loadThreadsForThema(themaId) {
+  const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
+  if (!window.db || !threadListDiv) return;
+  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+  const q = query(threadsCol, orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snapshot) => {
+    threadListDiv.innerHTML = '';
+    if (snapshot.empty) {
+      threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      const threadDiv = document.createElement('div');
+      threadDiv.className = 'thread-item card p-3 mb-2';
+      threadDiv.innerHTML = `
+        <div class="font-semibold">${thread.title}</div>
+        <div class="text-sm text-gray-400">${thread.initialComment || ''}</div>
+      `;
+      threadListDiv.appendChild(threadDiv);
     });
   });
 }
