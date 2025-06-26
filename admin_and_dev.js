@@ -74,7 +74,20 @@ const editTodoNotesInput = document.getElementById('edit-todo-notes');
 const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
 let currentEditingTodoId = null;
 
-// NEW: Collapsible section elements
+// Collapsible section parent elements (used for showing/hiding entire sections based on login/admin status)
+const infrastructureSection = document.getElementById('infrastructure-section');
+const devToolsSection = document.getElementById('dev-tools-section');
+const userManagementSection = document.getElementById('user-management-section');
+const formManagementSection = document.getElementById('form-management-section');
+const tempPagesSection = document.getElementById('temp-pages-section');
+const importantLinksSection = document.getElementById('important-links-section');
+const roadmapSection = document.getElementById('roadmap-section');
+const darrionApiSection = document.getElementById('darrion-api-section');
+const griefDetectionSection = document.getElementById('grief-detection-section');
+const onfimNotificationsSection = document.getElementById('onfim-notifications-section');
+
+
+// Collapsible section header and content elements (used for toggling content visibility)
 const infrastructureHeader = document.getElementById('infrastructure-header');
 const infrastructureContent = document.getElementById('infrastructure-content');
 const devToolsHeader = document.getElementById('dev-tools-header');
@@ -111,10 +124,12 @@ function toggleSection(headerElement, contentElement) {
   const isHidden = contentElement.classList.contains('hidden');
   if (isHidden) {
     contentElement.classList.remove('hidden');
-    headerElement.querySelector('svg').classList.remove('rotate-90'); // Adjust arrow
+    // Rotate the arrow icon if it exists
+    headerElement.querySelector('svg')?.classList.remove('rotate-90');
   } else {
     contentElement.classList.add('hidden');
-    headerElement.querySelector('svg').classList.add('rotate-90'); // Adjust arrow
+    // Rotate the arrow icon if it exists
+    headerElement.querySelector('svg')?.classList.add('rotate-90');
   }
 }
 
@@ -466,7 +481,7 @@ async function deleteTempPage(id) {
  * This function now explicitly waits for firebaseCurrentUser to be populated with isAdmin.
  * @param {Object|null} user - The Firebase User object or null.
  */
-async function updateAdminUI(user) {
+const updateAdminUI = async (user) => { // Changed to const arrow function
   loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
 
   if (user) {
@@ -505,269 +520,48 @@ async function updateAdminUI(user) {
     const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
     applyTheme(themeToApply.id, themeToApply);
 
-    if (userProfile.isAdmin) { // Use isAdmin from the now confirmed userProfile
-      console.log("DEBUG: User is confirmed as ADMIN via userProfile.isAdmin.");
-      loginRequiredMessage.style.display = 'none';
-      adminContent.style.display = 'block';
-      adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
-      renderUserList();
-      renderTempPages();
-      renderTodoList();
-    } else {
-      console.log("DEBUG: User is NOT an admin.");
-      loginRequiredMessage.style.display = 'block';
-      adminContent.style.display = 'none';
-      showMessageBox("You are logged in, but do not have admin privileges.", true);
-    }
-  } else {
-    console.log("DEBUG: No user is currently authenticated.");
-    loginRequiredMessage.style.display = 'block';
-    adminContent.style.display = 'none';
-    const allThemes = await getAvailableThemes();
-    const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(defaultThemeObj.id, defaultThemeObj);
-  }
-}
-
-// Todo List Functions
-async function addTodoItem(task, worker, priority, eta, notes) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot add task.", true);
-    return;
-  }
-  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
-  try {
-    const docRef = await addDoc(todosCol, {
-      task: task,
-      worker: worker,
-      priority: priority,
-      eta: eta,
-      notes: notes,
-      createdAt: serverTimestamp() // Use serverTimestamp
-    });
-    showMessageBox("Task added successfully!", false);
-    todoTaskInput.value = '';
-    todoWorkerInput.value = '';
-    todoPrioritySelect.value = 'Low';
-    todoEtaInput.value = '';
-    todoNotesInput.value = '';
-    renderTodoList();
-    console.log("DEBUG: Todo item added:", docRef.id);
-  } catch (error) {
-    console.error("Error adding todo item:", error);
-    showMessageBox(`Error adding task: ${error.message}`, true);
-  }
-}
-
-async function fetchAllTodoItems() {
-  if (!db) {
-    console.error("Firestore DB not initialized for fetchAllTodoItems.");
-    return [];
-  }
-  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
-  const q = query(todosCol, orderBy("createdAt", "asc"));
-  try {
-    const querySnapshot = await getDocs(q);
-    const todos = [];
-    querySnapshot.forEach((doc) => {
-      todos.push({ id: doc.id, ...doc.data() });
-    });
-    console.log("DEBUG: Fetched todo items:", todos.length);
-    return todos;
-  }
-  catch (error) {
-    console.error("ERROR: Error fetching todo items:", error);
-    showMessageBox(`Error loading tasks: ${error.message}`, true);
-    return [];
-  }
-}
-
-async function renderTodoList() {
-  if (!roadmapTodoListTbody) return;
-  roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>';
-  const todos = await fetchAllTodoItems();
-  roadmapTodoListTbody.innerHTML = '';
-  if (todos.length === 0) {
-    roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No roadmap tasks found. Add a new task above.</td></tr>';
-    return;
-  }
-
-  todos.forEach(todo => {
-    const row = roadmapTodoListTbody.insertRow();
-    // Apply theme-aware classes to the table rows/cells for consistency
-    row.classList.add('text-text-primary'); // Apply primary text color
-    if (roadmapTodoListTbody.rows.length % 2 === 0) { // Check if it's an even row
-      row.style.backgroundColor = 'var(--color-table-row-even-bg)';
-    }
-    row.innerHTML = `
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
-      <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
-                data-id="${todo.id}" data-task="${encodeURIComponent(todo.task || '')}" data-worker="${encodeURIComponent(todo.worker || '')}"
-                data-priority="${encodeURIComponent(todo.priority || '')}" data-eta="${encodeURIComponent(todo.eta || '')}" data-notes="${encodeURIComponent(todo.notes || '')}">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-todo-btn" data-id="${todo.id}">Delete</button>
-      </td>
-    `;
-  });
-
-  document.querySelectorAll('.edit-todo-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
-      console.log("DEBUG: Edit Todo button clicked.");
-      const { id, task, worker, priority, eta, notes } = event.target.dataset;
-      openEditTodoModal(id, decodeURIComponent(task), decodeURIComponent(worker), decodeURIComponent(priority), decodeURIComponent(eta), decodeURIComponent(notes));
-    });
-  });
-
-  document.querySelectorAll('.delete-todo-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      console.log("DEBUG: Delete Todo button clicked.");
-      const id = event.target.dataset.id;
-      await deleteTodoItem(id);
-    });
-  });
-}
-
-function openEditTodoModal(id, task, worker, priority, eta, notes) {
-  currentEditingTodoId = id;
-  editTodoTaskInput.value = task;
-  editTodoWorkerInput.value = worker;
-  editTodoPrioritySelect.value = priority;
-  editTodoEtaInput.value = eta;
-  editTodoNotesInput.value = notes;
-  editTodoModal.style.display = 'flex';
-  console.log("DEBUG: Todo Edit Modal opened.");
-}
-
-async function updateTodoItem(id, task, worker, priority, eta, notes) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot save changes.", true);
-    return;
-  }
-  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
-  try {
-    await updateDoc(todoDocRef, {
-      task: task,
-      worker: worker,
-      priority: priority,
-      eta: eta,
-      notes: notes,
-      updatedAt: serverTimestamp() // Use serverTimestamp
-    });
-    showMessageBox("Task updated successfully!", false);
-    editTodoModal.style.display = 'none';
-    renderTodoList();
-    console.log("DEBUG: Todo item updated successfully in Firestore.");
-  } catch (error) {
-    console.error("ERROR: Error updating todo item:", error);
-    showMessageBox(`Error updating task: ${error.message}`, true);
-  }
-}
-
-async function deleteTodoItem(id) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot delete task.", true);
-    return;
-  }
-  const confirmation = await showCustomConfirm("Are you sure you want to delete this roadmap task?", "This action cannot be undone.");
-  if (!confirmation) {
-    showMessageBox("Deletion cancelled.", false);
-    return;
-  }
-
-  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
-  try {
-    await deleteDoc(todoDocRef);
-    showMessageBox("Task deleted successfully!", false);
-    renderTodoList();
-    console.log("DEBUG: Todo item deleted:", id);
-  } catch (error) {
-    console.error("ERROR: Error deleting todo item:", error);
-    showMessageBox(`Error deleting task: ${error.message}`, true);
-  }
-}
-
-/**
- * Updates the UI based on the user's authentication and admin status.
- * This function now explicitly waits for firebaseCurrentUser to be populated with isAdmin.
- * @param {Object|null} user - The Firebase User object or null.
- */
-async function updateAdminUI(user) {
-  loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
-
-  if (user) {
-    console.log("DEBUG: Authenticated User UID:", user.uid);
-    console.log("DEBUG: Authenticated User Email:", user.email);
-
-    let profileLoaded = false;
-    // Wait for firebaseCurrentUser to be populated and isAdmin to be set.
-    // Give it a short delay to allow firebase-init.js's onAuthStateChanged to run.
-    for (let i = 0; i < 10; i++) { // Try up to 10 times with 100ms delay each
-      // Ensure firebaseCurrentUser is not null, its UID matches the authenticated user,
-      // and isAdmin property is defined (meaning the profile from Firestore has been merged).
-      if (firebaseCurrentUser && firebaseCurrentUser.uid === user.uid && typeof firebaseCurrentUser.isAdmin !== 'undefined') {
-        profileLoaded = true;
-        break;
-      }
-      console.log("DEBUG: Waiting for firebaseCurrentUser to be fully populated...");
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
-    }
-
-    if (!profileLoaded) {
-      console.error("ERROR: firebaseCurrentUser did not get fully populated within expected time. Displaying access denied.");
-      loginRequiredMessage.style.display = 'block';
-      adminContent.style.display = 'none';
-      showMessageBox("Could not retrieve admin status. Access denied.", true);
-      return;
-    }
-
-    console.log("DEBUG: firebaseCurrentUser object (after wait):", firebaseCurrentUser);
-    console.log("DEBUG: firebaseCurrentUser.isAdmin (after wait):", firebaseCurrentUser.isAdmin);
-
-
-    const userProfile = firebaseCurrentUser; // Now firebaseCurrentUser should be the fully loaded profile
-    const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
+    // Show main admin content div
+    adminContent.style.display = 'block';
 
     if (userProfile.isAdmin) { // Use isAdmin from the now confirmed userProfile
       console.log("DEBUG: User is confirmed as ADMIN via userProfile.isAdmin.");
       loginRequiredMessage.style.display = 'none';
-      adminContent.style.display = 'block';
       adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
+
+      // Show admin-specific sections
+      if (infrastructureSection) infrastructureSection.style.display = 'block';
+      if (devToolsSection) devToolsSection.style.display = 'block';
+      if (userManagementSection) userManagementSection.style.display = 'block';
+      if (formManagementSection) formManagementSection.style.display = 'block';
+      if (tempPagesSection) tempPagesSection.style.display = 'block';
+      if (importantLinksSection) importantLinksSection.style.display = 'block';
+      if (roadmapSection) roadmapSection.style.display = 'block';
+
+      // Render data for admin-specific sections
       renderUserList();
       renderTempPages();
       renderTodoList();
-      // Only render admin-specific sections for admins
-      infrastructureHeader.parentElement.style.display = 'block';
-      devToolsHeader.parentElement.style.display = 'block';
-      userManagementHeader.parentElement.style.display = 'block';
-      formManagementHeader.parentElement.style.display = 'block';
-      tempPagesHeader.parentElement.style.display = 'block';
-      importantLinksHeader.parentElement.style.display = 'block';
-      roadmapHeader.parentElement.style.display = 'block';
+
     } else {
       console.log("DEBUG: User is NOT an admin.");
       loginRequiredMessage.style.display = 'block';
-      adminContent.style.display = 'none';
-      showMessageBox("You are logged in, but do not have admin privileges.", true);
+      adminContent.style.display = 'none'; // Hide all admin content if not admin
+      showMessageBox("You are logged in, but do not have admin privileges for some sections.", true);
 
-      // Hide all admin-specific sections by default for non-admins
-      infrastructureHeader.parentElement.style.display = 'none';
-      devToolsHeader.parentElement.style.display = 'none';
-      userManagementHeader.parentElement.style.display = 'none';
-      formManagementHeader.parentElement.style.display = 'none';
-      tempPagesHeader.parentElement.style.display = 'none';
-      importantLinksHeader.parentElement.style.display = 'none';
-      roadmapHeader.parentElement.style.display = 'none';
+      // Hide admin-specific sections explicitly for non-admins
+      if (infrastructureSection) infrastructureSection.style.display = 'none';
+      if (devToolsSection) devToolsSection.style.display = 'none';
+      if (userManagementSection) userManagementSection.style.display = 'none';
+      if (formManagementSection) formManagementSection.style.display = 'none';
+      if (tempPagesSection) tempPagesSection.style.display = 'none';
+      if (importantLinksSection) importantLinksSection.style.display = 'none';
+      if (roadmapSection) roadmapSection.style.display = 'none';
     }
-    // Darrion API and Onfim Notifications are visible to all logged-in users
-    darrionApiHeader.parentElement.style.display = 'block';
-    griefDetectionHeader.parentElement.style.display = 'block';
-    onfimNotificationsHeader.parentElement.style.display = 'block';
+
+    // Darrion API, Grief Detection, and Onfim Notifications are visible to ALL logged-in users
+    if (darrionApiSection) darrionApiSection.style.display = 'block';
+    if (griefDetectionSection) griefDetectionSection.style.display = 'block';
+    if (onfimNotificationsSection) onfimNotificationsSection.style.display = 'block';
 
   } else {
     console.log("DEBUG: No user is currently authenticated.");
@@ -778,18 +572,18 @@ async function updateAdminUI(user) {
     applyTheme(defaultThemeObj.id, defaultThemeObj);
 
     // Hide all sections if not logged in
-    infrastructureHeader.parentElement.style.display = 'none';
-    devToolsHeader.parentElement.style.display = 'none';
-    userManagementHeader.parentElement.style.display = 'none';
-    formManagementHeader.parentElement.style.display = 'none';
-    tempPagesHeader.parentElement.style.display = 'none';
-    importantLinksHeader.parentElement.style.display = 'none';
-    roadmapHeader.parentElement.style.display = 'none';
-    darrionApiHeader.parentElement.style.display = 'none';
-    griefDetectionHeader.parentElement.style.display = 'none';
-    onfimNotificationsHeader.parentElement.style.display = 'none';
+    if (infrastructureSection) infrastructureSection.style.display = 'none';
+    if (devToolsSection) devToolsSection.style.display = 'none';
+    if (userManagementSection) userManagementSection.style.display = 'none';
+    if (formManagementSection) formManagementSection.style.display = 'none';
+    if (tempPagesSection) tempPagesSection.style.display = 'none';
+    if (importantLinksSection) importantLinksSection.style.display = 'none';
+    if (roadmapSection) roadmapSection.style.display = 'none';
+    if (darrionApiSection) darrionApiSection.style.display = 'none';
+    if (griefDetectionSection) griefDetectionSection.style.display = 'none';
+    if (onfimNotificationsSection) onfimNotificationsSection.style.display = 'none';
   }
-}
+};
 
 // Todo List Functions
 async function addTodoItem(task, worker, priority, eta, notes) {
@@ -1060,7 +854,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   griefDetectionHeader?.addEventListener('click', () => toggleSection(griefDetectionHeader, griefDetectionContent));
   onfimNotificationsHeader?.addEventListener('click', () => toggleSection(onfimNotificationsHeader, onfimNotificationsContent));
 
-  // Initialize all sections as collapsed by default to save vertical space
+  // Initialize all content sections as collapsed by default to save vertical space
+  // Note: These now only add the 'hidden' class, their parent sections are controlled by updateAdminUI's display property.
   if (infrastructureContent) infrastructureContent.classList.add('hidden');
   if (devToolsContent) devToolsContent.classList.add('hidden');
   if (userManagementContent) userManagementContent.classList.add('hidden');
