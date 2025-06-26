@@ -499,11 +499,18 @@
 
       if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
         if (typeof __firebase_config === 'string') {
-          try {
-            finalFirebaseConfig = JSON.parse(__firebase_config);
-            console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
-          } catch (e) {
-            console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
+          // Defensive check for the literal string "[object Object]"
+          if (__firebase_config.trim() === '[object Object]') {
+            console.warn("WARN: __firebase_config provided as literal string '[object Object]'. This is likely an error in the environment passing an object that was implicitly stringified. Skipping parse and retaining hardcoded firebaseConfig.");
+            finalFirebaseConfig = firebaseConfig; // Fallback to hardcoded
+          } else {
+            try {
+              finalFirebaseConfig = JSON.parse(__firebase_config);
+              console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
+            } catch (e) {
+              console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
+              finalFirebaseConfig = firebaseConfig; // Ensure fallback on parse error
+            }
           }
         } else if (typeof __firebase_config === 'object') {
           finalFirebaseConfig = __firebase_config;
