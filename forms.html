@@ -365,55 +365,11 @@
     </div>
   </div>
 </footer>
-<!-- Enhanced Features UI Elements -->
-
-<script>
-// Add tab switching logic for Thémata (all) and Global Threads
-const tabThemataAll = document.getElementById('tab-themata-all');
-const tabDms = document.getElementById('tab-dms');
-const themaAllTabContent = document.getElementById('thema-all-tab-content');
-const dmTabContent = document.getElementById('dm-tab-content');
-
-function showTab(tab) {
-  if (themaAllTabContent) themaAllTabContent.style.display = 'none';
-  if (dmTabContent) dmTabContent.style.display = 'none';
-  if (tabThemataAll) tabThemataAll.classList.remove('btn-blue');
-  if (tabDms) tabDms.classList.remove('btn-purple');
-  if (tab === 'thema-all') {
-    if (themaAllTabContent) themaAllTabContent.style.display = 'block';
-    if (tabThemataAll) tabThemataAll.classList.add('btn-blue');
-  } else if (tab === 'dms') {
-    if (dmTabContent) dmTabContent.style.display = 'block';
-    if (tabDms) tabDms.classList.add('btn-purple');
-  }
-}
-
-const someElement = document.getElementById('some-id');
-if (someElement) someElement.addEventListener('click', () => showTab('thema-all'));
-
-// Render all thémata as boxes in the Thémata tab
-function renderThemaBoxes(themas) {
-  const container = document.getElementById('thema-boxes');
-  if (!container) return;
-  if (!themas.length) {
-    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
-    return;
-  }
-  container.innerHTML = '';
-  themas.forEach(thema => {
-    const box = document.createElement('div');
-    box.className = 'thema-item card p-6 flex flex-col justify-between';
-    box.innerHTML = `
-      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
-      <p class="thema-description mb-4">${thema.description || ''}</p>
-      <button class="view-thema-threads-btn btn-primary btn-blue mt-auto" data-thema-id="${thema.id}">View Threads</button>
-    `;
-    container.appendChild(box);
-  });
-}
-
-// Make Thémata tab the default visible tab on page load
-showTab('thema-all');
-</script>
+<!-- Add missing main content and loading elements for forms.js compatibility -->
+<div id="forms-content" style="display:none;"><!-- Main forum content goes here --></div>
+<div id="loading-spinner" style="display:none;"></div>
+<div id="login-required-message" style="display:none;"></div>
+<!-- Remove the inline <script> block at the end and replace with a single module import for forms.js -->
+<script type="module" src="forms.js"></script>
 </body>
 </html>
