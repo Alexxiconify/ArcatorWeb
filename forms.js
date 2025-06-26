@@ -2073,207 +2073,57 @@ function renderGlobalThreads() {
       const creatorDisplayName = thread.authorDisplayName || 'Unknown';
       const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const li = document.createElement('li');
-      li.className = 'thread-item card p-3 flex items-center justify-between';
+      li.className = 'thread-item card p-3 flex flex-col mb-4';
       li.innerHTML = `
-        <div class='flex items-center gap-3'>
-          <img src='${creatorPhotoURL}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
-          <div>
-            <div class='font-bold'>${thread.title}</div>
-            <div class='text-xs text-gray-400'>by ${creatorDisplayName}</div>
-            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+        <div class='flex items-center justify-between gap-3'>
+          <div class='flex items-center gap-3'>
+            <img src='${creatorPhotoURL}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+            <div>
+              <div class='font-bold'>${thread.title}</div>
+              <div class='text-xs text-gray-400'>by ${creatorDisplayName}</div>
+              <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+            </div>
+          </div>
+          <div class='flex gap-2'>
+            <button class='add-comment-btn btn-primary btn-blue btn-sm' data-thread-id='${doc.id}'>Add Comment</button>
+            <button class='edit-thread-btn btn-primary btn-green btn-sm' data-thread-id='${doc.id}'>Edit</button>
+            <button class='delete-thread-btn btn-primary btn-red btn-sm' data-thread-id='${doc.id}'>Delete</button>
           </div>
         </div>
-        <div class='flex gap-2'>
-          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
-          <button class='btn-primary btn-green btn-sm'>Edit</button>
+        <div class='collapsible-comment-form mt-2' id='comment-form-${doc.id}' style='display:none;'>
+          ${getAddCommentFormHtml(doc.id, true)}
         </div>
+        <ul class='comment-list space-y-4 mt-2' id='global-comment-list-${doc.id}'></ul>
       `;
       globalThreadList.appendChild(li);
+      renderGlobalCommentsForThread(doc.id);
+    });
+    // Add button logic
+    globalThreadList.querySelectorAll('.add-comment-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const tid = btn.dataset.threadId;
+        const form = document.getElementById(`comment-form-${tid}`);
+        if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+    globalThreadList.querySelectorAll('.edit-thread-btn').forEach(btn => {
+      btn.addEventListener('click', e => openEditDialog(btn.dataset.threadId, true));
+    });
+    globalThreadList.querySelectorAll('.delete-thread-btn').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        const tid = btn.dataset.threadId;
+        const confirmed = await showCustomConfirm('Are you sure you want to delete this global thread?', 'All comments within it will also be deleted.');
+        if (confirmed) {
+          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, tid);
+          await deleteDoc(threadRef);
+          showMessageBox('Global thread deleted successfully!', false);
+        }
+      });
     });
   });
 }
 
-// Call renderGlobalThreads on page load
-renderGlobalThreads();
-
-const reactionPalette = document.getElementById('reaction-palette');
-
-// Helper to return add comment form HTML for a thread (global aware)
-function getAddCommentFormHtml(threadId, isGlobal = false) {
-  return `
-    <form class="add-comment-form" data-thread-id="${threadId}" data-global="${isGlobal}">\n      <textarea class="add-comment-input shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Type your comment here..." required></textarea>\n      <button type="submit" class="btn-primary btn-green w-full mt-2">Add Comment</button>\n    </form>\n  `;
-}
-
-// Render global comments for a thread inline
-function renderGlobalCommentsForThread(threadId) {
-  const commentListEl = document.getElementById(`global-comment-list-${threadId}`);
-  if (!commentListEl) return;
-  const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
-  const q = query(commentsCol, orderBy("createdAt", "asc"));
-  onSnapshot(q, (snapshot) => {
-    commentListEl.innerHTML = '';
-    if (snapshot.empty) {
-      commentListEl.innerHTML = '<li class="card p-4 text-center">No comments yet. Be the first to comment!</li>';
-      return;
-    }
-    snapshot.forEach(doc => {
-      const comment = doc.data();
-      const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const displayName = comment.authorDisplayName || 'Unknown';
-      const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
-      const li = document.createElement('li');
-      li.className = 'comment-item card';
-      li.innerHTML = `
-        <div class="flex items-center mb-2">
-          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">By ${displayName} on ${createdAt}</span>
-        </div>
-        <div class="comment-content"><p>${convertMentionsToHTML(comment.content)}</p></div>
-      `;
-      commentListEl.appendChild(li);
-    });
-  });
-}
-
-// Add event listener for add comment forms (global aware)
-globalThreadList.addEventListener('submit', async (event) => {
-  if (event.target.classList.contains('add-comment-form')) {
-    event.preventDefault();
-    const threadId = event.target.dataset.threadId;
-    const isGlobal = event.target.dataset.global === 'true';
-    const textarea = event.target.querySelector('.add-comment-input');
-    const content = textarea.value.trim();
-    if (content) {
-      if (isGlobal) {
-        await addGlobalComment(threadId, content);
-      } else {
-        await addComment(currentThemaId, threadId, content);
-      }
-      textarea.value = '';
-    }
-  }
-});
-
-// Add function to add a comment to a global thread
-async function addGlobalComment(threadId, content, parentCommentId = null) {
-  if (!window.auth.currentUser) {
-    showMessageBox('You must be logged in to add a comment.', true);
-    return;
-  }
-  if (!window.db) {
-    showMessageBox('Database not initialized.', true);
-    return;
-  }
-  try {
-    const user = window.currentUser;
-    const mentions = parseMentions(content);
-    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
-    await addDoc(commentsCol, {
-      content: content,
-      mentions: mentions,
-      reactions: {},
-      createdAt: serverTimestamp(),
-      authorId: window.auth.currentUser.uid,
-      authorDisplayName: user?.displayName || 'Anonymous',
-      authorHandle: user?.handle || '',
-      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
-      editedAt: null,
-      editedBy: null,
-      parentCommentId // <-- for nesting
-    });
-    showMessageBox('Comment posted successfully!', false);
-  } catch (error) {
-    console.error('Error posting comment:', error);
-    showMessageBox(`Error posting comment: ${error.message}`, true);
-  }
-}
-
-// Recursive render for nested comments
-function renderCommentTree(comments, parentId = null, isGlobal = false, threadId = null) {
-  return comments.filter(c => c.parentCommentId === parentId).map(comment => {
-    const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-    const displayName = comment.authorDisplayName || 'Unknown';
-    const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
-    const commentId = comment.id;
-    return `
-      <li class="comment-item card">
-        <div class="flex items-center mb-2">
-          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">By ${displayName} on ${createdAt}</span>
-        </div>
-        <div class="comment-content"><p>${convertMentionsToHTML(comment.content)}</p></div>
-        <button class="reply-btn text-xs text-blue-500 mt-1" data-comment-id="${commentId}" data-thread-id="${threadId}" data-global="${isGlobal}">Reply</button>
-        <form class="reply-form mt-2 hidden" data-parent-id="${commentId}" data-thread-id="${threadId}" data-global="${isGlobal}">
-          <textarea class="reply-input border rounded w-full py-1 px-2 text-xs" placeholder="Reply..." required></textarea>
-          <button type="submit" class="btn-primary btn-green btn-xs mt-1">Add Reply</button>
-        </form>
-        <ul class="nested-comments ml-6 mt-2">
-          ${renderCommentTree(comments, commentId, isGlobal, threadId).join('')}
-        </ul>
-      </li>
-    `;
-  }).join('');
-}
-
-// ... existing code ...
-function renderThemaBoxes(themas) {
-  // Remove empty dynamic section if present
-  const emptyTab = document.getElementById('thema-tab-contents');
-  if (emptyTab) emptyTab.remove();
-  const container = document.getElementById('thema-boxes');
-  if (!container) return;
-  if (!themas.length) {
-    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
-    return;
-  }
-  container.innerHTML = '';
-  themas.forEach(thema => {
-    const details = document.createElement('details');
-    details.className = 'thema-accordion w-full card mb-2';
-    details.open = true; // Expand by default
-    details.innerHTML = `
-      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
-        <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
-      </summary>
-      <div class="p-4">
-        <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
-          <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
-          <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
-          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
-        </form>
-        <ul class="thread-list space-y-2" id="thread-list-${thema.id}"><li class='text-center text-gray-400'>Loading threads...</li></ul>
-      </div>
-    `;
-    container.appendChild(details);
-    loadThreadsForThema(thema.id);
-  });
-  // Accordion: only one open at a time
-  container.querySelectorAll('details').forEach(d => {
-    d.addEventListener('toggle', function() {
-      if (d.open) {
-        container.querySelectorAll('details').forEach(other => {
-          if (other !== d) other.open = false;
-        });
-      }
-    });
-  });
-  // Attach create thread form listeners
-  container.querySelectorAll('.create-thread-form').forEach(form => {
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const themaId = form.dataset.themaId;
-      const title = form.querySelector('.new-thread-title').value.trim();
-      const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
-      if (title && initialComment) {
-        await addCommentThread(themaId, title, initialComment);
-        form.querySelector('.new-thread-title').value = '';
-        form.querySelector('.new-thread-initial-comment').value = '';
-      }
-    });
-  });
-}
-
-// Patch loadThreadsForThema to add user info, edit, and add comment buttons
+// Patch loadThreadsForThema for same comment/edit/delete/collapsible logic and nested comments
 function loadThreadsForThema(themaId) {
   const list = document.getElementById(`thread-list-${themaId}`);
   if (!list) return;
