@@ -29,6 +29,13 @@ window.GROUP_PERMISSIONS = {
 };
 window.EDIT_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+// Global unsubscribe functions
+let unsubscribeThematas;
+let unsubscribeThreads;
+let unsubscribeDmList;
+let unsubscribeDmMessages;
+let unsubscribeCurrentMessagesListener;
+
 // Import Firestore functions
 import {
   doc, getDoc, setDoc, deleteDoc, collection, addDoc, serverTimestamp,
