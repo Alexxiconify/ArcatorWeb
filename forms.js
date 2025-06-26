@@ -1652,8 +1652,7 @@ function renderTempPages() {
 document.addEventListener('DOMContentLoaded', async function() {
   console.log("Initializing forms page.");
 
-  // Initialize DOM elements first
-  initializeDOMElements();
+  // Initialize utility elements only
   initializeUtilityElements();
 
   // Check if essential elements exist
@@ -2241,3 +2240,26 @@ function attachMoveThreadListeners() {
   });
 }
 // After rendering threads/global threads, call attachThreadDeleteListeners() and attachMoveThreadListeners()
+
+const mainLoadingSpinner = document.getElementById('loading-spinner');
+const formsContentSection = document.getElementById('forms-content');
+const mainLoginRequiredMessage = document.getElementById('login-required-message');
+const createThemaForm = document.getElementById('create-thema-form');
+const newThemaNameInput = document.getElementById('new-thema-name');
+const newThemaDescriptionInput = document.getElementById('new-thema-description');
+const themaList = document.getElementById('thema-list');
+const threadsSection = document.getElementById('threads-section');
+const backToThematasBtn = document.getElementById('back-to-thematas-btn');
+const currentThemaTitle = document.getElementById('current-thema-title');
+const currentThemaDescription = document.getElementById('current-thema-description');
+const createThreadForm = document.getElementById('create-thread-form');
+const newThreadTitleInput = document.getElementById('new-thread-title');
+const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+const threadList = document.getElementById('thread-list');
+const commentsSection = document.getElementById('comments-section');
+const backToThreadsBtn = document.getElementById('back-to-threads-btn');
+const currentThreadTitle = document.getElementById('current-thread-title');
+const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+const addCommentForm = document.getElementById('add-comment-form');
+const newCommentContentInput = document.getElementById('new-comment-content');
+const commentList = document.getElementById('comment-list');
