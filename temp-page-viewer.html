@@ -90,6 +90,8 @@
     .html-content {
       line-height: 1.7;
       word-wrap: break-word; /* Ensure long words break */
+      /* Explicitly set default text color for all content inside this div */
+      color: var(--color-text-primary);
     }
 
     /* General HTML element styling to match theme */
@@ -269,7 +271,7 @@
 
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen"> <!-- Removed theme-dark class -->
+<body class="antialiased flex flex-col min-h-screen theme-dark"> <!-- Added theme-dark class for immediate dark appearance -->
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
@@ -288,8 +290,9 @@
   </div>
 
   <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-    <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
-    <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
+    <!-- Changed Tailwind bg- classes to semantic btn- classes -->
+    <a href="admin_and_dev.html" class="inline-block btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
+    <a href="forms.html" class="inline-block btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
   </div>
 </div>
 
