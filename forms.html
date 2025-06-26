@@ -322,22 +322,25 @@
 
 <!-- DM Section (tabbed) -->
 <div id="dm-tab-content" style="display: none;">
-  <details id="dm-section" class="form-container mb-12" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Direct Messages</summary>
-    <div id="dm-list" class="flex flex-col gap-4 w-full">
-      <!-- DM boxes will be loaded here by JavaScript -->
-      <div class="card p-4 text-center">Loading DMs...</div>
+  <div id="conversations-section">
+    <details id="dm-section" class="form-container mb-12" open>
+      <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Direct Messages</summary>
+      <div id="dm-list" class="flex flex-col gap-4 w-full">
+        <!-- DM boxes will be loaded here by JavaScript -->
+        <div class="card p-4 text-center">Loading DMs...</div>
+      </div>
+      <button id="start-conversation-btn" class="btn-primary btn-blue mt-4">Start New DM</button>
+    </details>
+  </div>
+  <div id="conversation-messages-section" class="form-container mb-12" style="display:none;">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 id="dm-title" class="text-2xl font-bold text-heading-card">Direct Message</h3>
+        <p id="dm-participants" class="text-sm text-gray-400">Participants: </p>
+      </div>
     </div>
-    <button id="start-conversation-btn" class="btn-primary btn-blue mt-4">Start New DM</button>
-  </details>
-  <details id="conversation-messages-section" class="form-container mb-12" style="display:none;">
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Conversation</summary>
-    <ul id="conversation-messages" class="space-y-4 mb-4"></ul>
-    <div class="flex gap-2">
-      <input id="conversation-input" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type a message..." />
-      <button id="conversation-send-btn" class="btn-primary btn-blue">Send</button>
-    </div>
-  </details>
+    <div id="conversation-messages" class="space-y-4 mb-4 max-h-96 overflow-y-auto"></div>
+  </div>
 </div>
 
 <!-- Dynamic Théma Thread Sections (tabbed) -->

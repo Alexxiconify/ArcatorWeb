@@ -1351,8 +1351,8 @@ function renderDMList() {
 }
 
 function showDMConversation(dmId, dmData, userProfiles = {}) {
-  if (!dmTabContent || !conversationMessagesSection) return;
-  dmTabContent.style.display = 'none';
+  if (!conversationsSection || !conversationMessagesSection) return;
+  conversationsSection.style.display = 'none';
   conversationMessagesSection.style.display = 'block';
   renderDMMessages(dmId, dmData, userProfiles);
 }
@@ -1396,7 +1396,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     backBtn.textContent = 'Back';
     backBtn.onclick = () => {
       conversationMessagesSection.style.display = 'none';
-      dmTabContent.style.display = 'block';
+      conversationsSection.style.display = 'block';
       if (unsubscribeDmMessages) unsubscribeDmMessages();
     };
     conversationMessagesSection.insertBefore(backBtn, conversationMessagesSection.firstChild);
