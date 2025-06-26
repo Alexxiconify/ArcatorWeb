@@ -1,8 +1,11 @@
+/* jshint esversion: 11 */
+/* global __app_id, __firebase_config, __initial_auth_token */
+
 // forms.js: Centralized JavaScript for Forms page, encompassing Firebase, utilities, theme, navbar, and core forms logic.
 
 // --- Firebase SDK Imports ---
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -33,9 +36,9 @@ const firebaseConfig = {
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
 window.appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-window.app;
-window.auth;
-window.db;
+window.app = null; // Initialize to null
+window.auth = null; // Initialize to null
+window.db = null;   // Initialize to null
 window.currentUser = null;
 
 window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
@@ -198,11 +201,6 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
-// Sanitizes input string for a handle.
-function sanitizeHandle(input) {
-  return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-}
-
 const customConfirmModal = document.getElementById('custom-confirm-modal');
 const confirmMessage = document.getElementById('confirm-message');
 const confirmSubmessage = document.getElementById('confirm-submessage');
@@ -301,46 +299,6 @@ async function fetchCustomThemes() {
   } catch (error) {
     console.error("Error fetching custom themes:", error);
     return [];
-  }
-}
-
-// Saves a custom theme to Firestore.
-async function saveCustomTheme(theme) {
-  if (!_db || !_auth || !_auth.currentUser) {
-    showMessageBox("Please sign in to save custom themes.", true);
-    return false;
-  }
-  const userId = _auth.currentUser.uid;
-  const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, theme.id);
-  try {
-    await setDoc(themeDocRef, theme);
-    showMessageBox("Theme saved successfully!", false);
-    console.log("Theme saved for user.", theme.id);
-    return true;
-  } catch (error) {
-    console.error("Error saving custom theme:", error);
-    showMessageBox("Failed to save theme.", true);
-    return false;
-  }
-}
-
-// Deletes a custom theme from Firestore.
-async function deleteCustomTheme(themeId) {
-  if (!_db || !_auth || !_auth.currentUser) {
-    showMessageBox("Please sign in to delete custom themes.", true);
-    return false;
-  }
-  const userId = _auth.currentUser.uid;
-  const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, themeId);
-  try {
-    await deleteDoc(themeDocRef);
-    showMessageBox("Theme deleted successfully!", false);
-    console.log("Theme deleted.", themeId);
-    return true;
-  } catch (error) {
-    console.error("Error deleting custom theme:", error);
-    showMessageBox("Failed to delete theme.", true);
-    return false;
   }
 }
 
@@ -508,15 +466,23 @@ let unsubscribeThematas = null;
 
 // Displays the main loading spinner.
 function showMainLoading() {
-  if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'flex';
-  if (formsContentSection) formsContentSection.style.display = 'none';
-  if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+  if (mainLoadingSpinner) {
+    mainLoadingSpinner.style.display = 'flex';
+  }
+  if (formsContentSection) {
+    formsContentSection.style.display = 'none';
+  }
+  if (mainLoginRequiredMessage) {
+    mainLoginRequiredMessage.style.display = 'none';
+  }
   console.log("Spinner visible, content hidden.");
 }
 
 // Hides the main loading spinner.
 function hideMainLoading() {
-  if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'none';
+  if (mainLoadingSpinner) {
+    mainLoadingSpinner.style.display = 'none';
+  }
   console.log("Spinner hidden.");
 }
 
@@ -539,20 +505,32 @@ async function updateUIBasedOnAuthAndData() {
     }
 
     if (profileReady) {
-      if (formsContentSection) formsContentSection.style.display = 'block';
-      if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+      if (formsContentSection) {
+        formsContentSection.style.display = 'block';
+      }
+      if (mainLoginRequiredMessage) {
+        mainLoginRequiredMessage.style.display = 'none';
+      }
       console.log("Forms content visible, login message hidden.");
       renderThematas();
     } else {
       console.warn("currentUser profile not fully loaded after waiting. Showing login message.");
       showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
-      if (formsContentSection) formsContentSection.style.display = 'none';
-      if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
+      if (formsContentSection) {
+        formsContentSection.style.display = 'none';
+      }
+      if (mainLoginRequiredMessage) {
+        mainLoginRequiredMessage.style.display = 'block';
+      }
     }
   } else {
     console.log("User NOT logged in. Showing login message.");
-    if (formsContentSection) formsContentSection.style.display = 'none';
-    if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
+    if (formsContentSection) {
+      formsContentSection.style.display = 'none';
+    }
+    if (mainLoginRequiredMessage) {
+      mainLoginRequiredMessage.style.display = 'block';
+    }
   }
 }
 
@@ -722,7 +700,7 @@ async function addCommentThread(themaId, title, initialComment) {
     showMessageBox("You must be logged in to create a thread.", true);
     return;
   }
-  if (!window.db || !themaId) {
+  if (!window.db) {
     showMessageBox("Database or Théma not initialized.", true);
     return;
   }
@@ -872,8 +850,8 @@ async function addComment(themaId, threadId, content) {
     showMessageBox("You must be logged in to add a comment.", true);
     return;
   }
-  if (!window.db || !themaId || !threadId) {
-    showMessageBox("Database, Théma, or Thread not initialized.", true);
+  if (!window.db) {
+    showMessageBox("Database or Théma not initialized.", true);
     return;
   }
 
@@ -1024,80 +1002,98 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log("Footer year set.");
   }
 
-  createThemaForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    console.log("Create Thema form submitted.");
-    const name = newThemaNameInput.value.trim();
-    const description = newThemaDescriptionInput.value.trim();
-    if (name && description) {
-      await addThema(name, description);
-    } else {
-      showMessageBox("Please fill in both Théma Name and Description.", true);
-      console.log("Missing thema name or description.");
-    }
-  });
+  if (createThemaForm) {
+    createThemaForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("Create Thema form submitted.");
+      const name = newThemaNameInput.value.trim();
+      const description = newThemaDescriptionInput.value.trim();
+      if (name && description) {
+        await addThema(name, description);
+      } else {
+        showMessageBox("Please fill in both Théma Name and Description.", true);
+        console.log("Missing thema name or description.");
+      }
+    });
+  }
   console.log("Create Théma form listener attached.");
 
-  backToThematasBtn?.addEventListener('click', () => {
-    console.log("Back to Thémata button clicked.");
-    threadsSection.style.display = 'none';
-    commentsSection.style.display = 'none';
-    if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
-    if (themaList) themaList.style.display = 'block';
-    if (document.querySelector('#main-content > h2')) document.querySelector('#main-content > h2').style.display = 'block';
-    if (document.querySelector('#main-content > h3')) document.querySelector('#main-content > h3').style.display = 'block';
+  if (backToThematasBtn) {
+    backToThematasBtn.addEventListener('click', () => {
+      console.log("Back to Thémata button clicked.");
+      threadsSection.style.display = 'none';
+      commentsSection.style.display = 'none';
+      if (document.getElementById('create-thema-section')) {
+        document.getElementById('create-thema-section').style.display = 'block';
+      }
+      if (themaList) {
+        themaList.style.display = 'block';
+      }
+      if (document.querySelector('#main-content > h2')) {
+        document.querySelector('#main-content > h2').style.display = 'block';
+      }
+      if (document.querySelector('#main-content > h3')) {
+        document.querySelector('#main-content > h3').style.display = 'block';
+      }
 
-    currentThemaId = null;
-    currentThreadId = null;
-    if (unsubscribeThemaComments) {
-      unsubscribeThemaComments();
-      unsubscribeThemaComments = null;
-    }
-    if (unsubscribeThreads) {
-      unsubscribeThreads();
-      unsubscribeThreads = null;
-    }
-    console.log("Returned to thémata list view.");
-  });
+      currentThemaId = null;
+      currentThreadId = null;
+      if (unsubscribeThemaComments) {
+        unsubscribeThemaComments();
+        unsubscribeThemaComments = null;
+      }
+      if (unsubscribeThreads) {
+        unsubscribeThreads();
+        unsubscribeThreads = null;
+      }
+      console.log("Returned to thémata list view.");
+    });
+  }
   console.log("Back to Thémata button listener attached.");
 
-  createThreadForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    console.log("Create Thread form submitted.");
-    const title = newThreadTitleInput.value.trim();
-    const initialComment = newThreadInitialCommentInput.value.trim();
-    if (currentThemaId && title && initialComment) {
-      await addCommentThread(currentThemaId, title, initialComment);
-    } else {
-      showMessageBox("Please fill in both Thread Title and Initial Comment.", true);
-      console.log("Missing thread title or initial comment.");
-    }
-  });
+  if (createThreadForm) {
+    createThreadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("Create Thread form submitted.");
+      const title = newThreadTitleInput.value.trim();
+      const initialComment = newThreadInitialCommentInput.value.trim();
+      if (currentThemaId && title && initialComment) {
+        await addCommentThread(currentThemaId, title, initialComment);
+      } else {
+        showMessageBox("Please fill in both Thread Title and Initial Comment.", true);
+        console.log("Missing title or initial comment.");
+      }
+    });
+  }
   console.log("Create Thread form listener attached.");
 
-  backToThreadsBtn?.addEventListener('click', () => {
-    console.log("Back to Threads button clicked.");
-    commentsSection.style.display = 'none';
-    threadsSection.style.display = 'block';
-    currentThreadId = null;
-    if (unsubscribeThemaComments) {
-      unsubscribeThemaComments();
-      unsubscribeThemaComments = null;
-    }
-    console.log("Returned to threads list view.");
-  });
+  if (backToThreadsBtn) {
+    backToThreadsBtn.addEventListener('click', () => {
+      console.log("Back to Threads button clicked.");
+      commentsSection.style.display = 'none';
+      threadsSection.style.display = 'block';
+      currentThreadId = null;
+      if (unsubscribeThemaComments) {
+        unsubscribeThemaComments();
+        unsubscribeThemaComments = null;
+      }
+      console.log("Returned to threads list view.");
+    });
+  }
   console.log("Back to Threads button listener attached.");
 
-  addCommentForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    console.log("Add Comment form submitted.");
-    const content = newCommentContentInput.value.trim();
-    if (currentThemaId && currentThreadId && content) {
-      await addComment(currentThemaId, currentThreadId, content);
-    } else {
-      showMessageBox("Please type your comment.", true);
-      console.log("Missing comment content.");
-    }
-  });
+  if (addCommentForm) {
+    addCommentForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("Add Comment form submitted.");
+      const content = newCommentContentInput.value.trim();
+      if (currentThemaId && currentThreadId && content) {
+        await addComment(currentThemaId, currentThreadId, content);
+      } else {
+        showMessageBox("Please type your comment.", true);
+        console.log("Missing comment content.");
+      }
+    });
+  }
   console.log("Add Comment form listener attached.");
 });
