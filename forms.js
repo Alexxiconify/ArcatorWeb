@@ -29,6 +29,12 @@ window.GROUP_PERMISSIONS = {
 };
 window.EDIT_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+// Import Firestore functions
+import {
+  doc, getDoc, setDoc, deleteDoc, collection, addDoc, serverTimestamp,
+  query, orderBy, onSnapshot, getDocs, where, updateDoc, increment
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 /**
  * Retrieves user profile from Firestore.
  * @param {string} uid - The user ID.
@@ -325,15 +331,36 @@ function hideMainLoading() {
 async function updateUIBasedOnAuthAndData() {
   console.log('[DEBUG] updateUIBasedOnAuthAndData called. currentUser:', window.currentUser);
   hideMainLoading();
-  // Always show forum content for guests
-  if (formsContentSection) {
-    formsContentSection.style.display = 'block';
-    console.log('[DEBUG] formsContentSection shown');
+  // Wait for currentUser if logged in
+  let waited = false;
+  if (window.auth.currentUser && !window.currentUser) {
+    let attempts = 0;
+    while (attempts < 30 && !window.currentUser) {
+      await new Promise(res => setTimeout(res, 100));
+      attempts++;
+    }
+    waited = true;
+    console.log('[DEBUG] Waited for currentUser:', window.currentUser);
   }
-  if (mainLoginRequiredMessage) {
-    mainLoginRequiredMessage.style.display = 'none';
-    console.log('[DEBUG] mainLoginRequiredMessage hidden');
+  // UI logic
+  if (!window.auth.currentUser && !window.currentUser) {
+    // Guest: show guest UI
+    if (formsContentSection) formsContentSection.style.display = 'block';
+    if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+    renderThematas();
+    return;
   }
+  if (window.auth.currentUser && !window.currentUser) {
+    // Still loading user profile after waiting
+    if (formsContentSection) formsContentSection.style.display = 'block';
+    if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+    const container = document.getElementById('thema-boxes');
+    if (container) container.innerHTML = '<div class="card p-4 text-center">Loading user profile...</div>';
+    return;
+  }
+  // User ready
+  if (formsContentSection) formsContentSection.style.display = 'block';
+  if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
   renderThematas();
 }
 
@@ -490,7 +517,7 @@ function renderThemaBoxes(themasArr) {
         <p class="thema-description mb-4">${thema.description || ''}</p>
         <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
         ${formHtml}
-        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button type="button" class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -589,7 +616,7 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
@@ -609,9 +636,7 @@ function loadThreadsForThema(themaId) {
           const content = commentForm.querySelector('.comment-content-input').value.trim();
           if (!content) return;
           if (!window.auth.currentUser || !window.db) return;
-          const commentsCol = themaId === 'global'
-            ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`)
-            : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
+          const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
           await addDoc(commentsCol, {
             content,
             createdAt: serverTimestamp(),
@@ -625,9 +650,7 @@ function loadThreadsForThema(themaId) {
           threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: doc.id}, thread.initialComment);
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
             if (confirm('Delete this thread?')) {
-              const threadsCol = themaId === 'global'
-                ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
-                : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+              const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
               await deleteDoc(doc(threadsCol, doc.id));
               threadDiv.remove();
             }
@@ -643,9 +666,7 @@ function loadThreadsForThema(themaId) {
 function loadCommentsForThread(themaId, threadId) {
   const commentsDiv = document.getElementById(`thread-comments-${threadId}`);
   if (!window.db || !commentsDiv) return;
-  const commentsCol = themaId === 'global'
-    ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`)
-    : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+  const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
   const q = query(commentsCol, orderBy('createdAt', 'asc'));
   onSnapshot(q, async (snapshot) => {
     commentsDiv.innerHTML = '';
@@ -669,8 +690,8 @@ function loadCommentsForThread(themaId, threadId) {
         });
       });
     }
-    snapshot.forEach(doc => {
-      const comment = doc.data();
+    snapshot.forEach(commentDoc => {
+      const comment = commentDoc.data();
       const user = userProfiles[comment.createdBy] || {};
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
@@ -683,7 +704,7 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
         </div>
         <div class="text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
@@ -691,10 +712,10 @@ function loadCommentsForThread(themaId, threadId) {
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
       if (canEdit) {
-        commentDiv.querySelector('.edit-comment-btn').onclick = () => openEditModal('comment', {themaId, threadId, commentId: doc.id}, comment.content);
+        commentDiv.querySelector('.edit-comment-btn').onclick = () => openEditModal('comment', {themaId, threadId, commentId: commentDoc.id}, comment.content);
         commentDiv.querySelector('.delete-comment-btn').onclick = async () => {
           if (confirm('Delete this comment?')) {
-            await deleteDoc(doc(commentsCol, doc.id));
+            await deleteDoc(doc(commentsCol, commentDoc.id));
             commentDiv.remove();
           }
         };
@@ -723,9 +744,7 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
     const newTitle = editForm.querySelector('.edit-thread-title').value.trim();
     const newContent = editForm.querySelector('.edit-thread-content').value.trim();
     if (!newTitle || !newContent) return;
-    const threadsCol = themaId === 'global'
-      ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
-      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     await updateDoc(doc(threadsCol, threadId), {
       title: newTitle,
       initialComment: newContent
@@ -755,9 +774,7 @@ function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
     e.preventDefault();
     const newContent = editForm.querySelector('.edit-comment-content').value.trim();
     if (!newContent) return;
-    const commentsCol = themaId === 'global'
-      ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`)
-      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+    const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     await updateDoc(doc(commentsCol, commentId), {
       content: newContent
     });
@@ -1263,34 +1280,25 @@ async function sendDMMessage(dmId, content) {
  */
 function renderDMList() {
   if (!window.auth.currentUser || !window.db) return;
-
   const currentUserId = window.auth.currentUser.uid;
   const dmCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`);
   const q = query(dmCol, orderBy("lastActivity", "desc"));
-
   if (unsubscribeDmList) {
     unsubscribeDmList();
   }
-
   unsubscribeDmList = onSnapshot(q, async (snapshot) => {
     if (!dmList) return;
-
     dmList.innerHTML = '';
     if (snapshot.empty) {
       dmList.innerHTML = '<li class="card p-4 text-center">No conversations yet. Start a new DM!</li>';
       return;
     }
-
     for (const doc of snapshot.docs) {
       const dmData = doc.data();
       const li = document.createElement('li');
       li.className = 'dm-item card cursor-pointer';
       li.onclick = () => selectDM(doc.id, dmData);
-
-      const displayName = dmData.type === window.DM_TYPES.GROUP
-        ? dmData.groupName
-        : dmData.participants.find(p => p !== currentUserId) || 'Unknown';
-
+      const displayName = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : dmData.participants.find(p => p !== currentUserId) || 'Unknown';
       li.innerHTML = `
         <h3 class="text-lg font-bold">${displayName}</h3>
         <p class="text-sm text-gray-500">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} message</p>
@@ -1308,25 +1316,15 @@ function renderDMList() {
  */
 function selectDM(dmId, dmData) {
   currentDmId = dmId;
-
   if (dmTitle) {
-    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP
-      ? dmData.groupName
-      : 'Direct Message';
+    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : 'Direct Message';
   }
-
   if (dmParticipants) {
-    const participantNames = dmData.participants
-      .filter(p => p !== window.auth.currentUser.uid)
-      .map(p => getUserDisplayName(p, {}))
-      .join(', ');
+    const participantNames = dmData.participants.filter(p => p !== window.auth.currentUser.uid).map(p => getUserDisplayName(p, {})).join(', ');
     dmParticipants.textContent = `Participants: ${participantNames}`;
   }
-
-  // Show DM section, hide others
   if (dmSection) dmSection.style.display = 'block';
   if (formsContentSection) formsContentSection.style.display = 'none';
-
   renderDMMessages();
 }
 
@@ -1380,18 +1378,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.mainLoadingSpinner = document.getElementById('loading-spinner');
     window.formsContentSection = document.getElementById('forms-content');
     window.mainLoginRequiredMessage = document.getElementById('login-required-message');
+    window.threadList = document.getElementById('thread-list');
+    window.newThemaNameInput = document.getElementById('new-thema-name');
+    window.newThemaDescriptionInput = document.getElementById('new-thema-description');
     console.log('[DEBUG] DOMContentLoaded fired.');
     initializeUtilityElements();
     showMainLoading();
     // Attach create-thema-form handler
     const createThemaForm = document.getElementById('create-thema-form');
-    const newThemaNameInput = document.getElementById('new-thema-name');
-    const newThemaDescriptionInput = document.getElementById('new-thema-description');
     if (createThemaForm) {
       createThemaForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const name = newThemaNameInput.value.trim();
-        const description = newThemaDescriptionInput.value.trim();
+        const name = window.newThemaNameInput.value.trim();
+        const description = window.newThemaDescriptionInput.value.trim();
         if (!name || !description) return;
         await addThema(name, description);
       });
@@ -1446,9 +1445,7 @@ if (document.body) {
     if (type === 'thread') {
       ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, id);
     } else if (type === 'comment') {
-      ref = themaId === 'global'
-        ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, id)
-        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, id);
+      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, id) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, id);
     }
     if (!ref) return;
     const snap = await getDoc(ref);
@@ -1500,14 +1497,10 @@ function enableEditInline(type, themaId, threadId, commentId, oldContent, contai
     if (!newContent) return;
     let ref;
     if (type === 'thread') {
-      ref = themaId === 'global'
-        ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId)
-        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
+      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
       await updateDoc(ref, { initialComment: newContent });
     } else if (type === 'comment') {
-      ref = themaId === 'global'
-        ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, commentId)
-        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
+      ref = (themaId === 'global') ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, commentId) : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
       await updateDoc(ref, { content: newContent });
     }
     container.innerHTML = origHtml;

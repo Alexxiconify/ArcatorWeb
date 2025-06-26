@@ -217,11 +217,13 @@ firebaseReadyPromise.then(() => {
         userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
       }
       currentUser = userProfile;
+      window.currentUser = userProfile; // Ensure global sync for forms.js
       // Notify UI when user/profile is ready
       if (typeof window.onUserReady === 'function') window.onUserReady();
     } else {
       console.log("Auth State Changed: User logged out.");
       currentUser = null;
+      window.currentUser = null; // Ensure global sync for forms.js
       if (typeof window.onUserReady === 'function') window.onUserReady();
     }
     // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.
