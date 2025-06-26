@@ -2073,37 +2073,22 @@ function renderGlobalThreads() {
       const creatorDisplayName = thread.authorDisplayName || 'Unknown';
       const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const li = document.createElement('li');
-      li.className = 'thread-item card';
+      li.className = 'thread-item card p-3 flex items-center justify-between';
       li.innerHTML = `
-        <div class="flex items-center mb-2">
-          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+        <div class='flex items-center gap-3'>
+          <img src='${creatorPhotoURL}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+          <div>
+            <div class='font-bold'>${thread.title}</div>
+            <div class='text-xs text-gray-400'>by ${creatorDisplayName}</div>
+            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+          </div>
         </div>
-        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
-        <div class="thread-actions mt-4">
-          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" data-thread-title=\"${thread.title}\" data-thread-initial-comment=\"${thread.initialComment}\" data-global=\"true\" class=\"delete-thread-btn btn-primary btn-red ml-2\">Delete</button>` : '')}
+        <div class='flex gap-2'>
+          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
+          <button class='btn-primary btn-green btn-sm'>Edit</button>
         </div>
-        <div class="add-comment-section mt-4">${getAddCommentFormHtml(doc.id, true)}</div>
-        <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${doc.id}"></ul>
       `;
       globalThreadList.appendChild(li);
-      renderGlobalCommentsForThread(doc.id);
-    });
-    // Attach delete listeners
-    document.querySelectorAll('.delete-thread-btn[data-global="true"]').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        const threadId = event.target.dataset.threadId;
-        const confirmed = await showCustomConfirm('Are you sure you want to delete this global thread?', 'All comments within it will also be deleted.');
-        if (confirmed) {
-          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
-          await deleteDoc(threadRef);
-          showMessageBox('Global thread deleted successfully!', false);
-          renderGlobalThreads();
-        } else {
-          showMessageBox('Thread deletion cancelled.', false);
-        }
-      });
     });
   });
 }
