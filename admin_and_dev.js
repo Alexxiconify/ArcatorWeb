@@ -278,7 +278,7 @@ async function fetchAllTempPages() {
   }
   const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
   try {
-    const querySnapshot = await getDocs(tempPagesCol);
+    const querySnapshot = await getDocs(q);
     const pages = [];
     querySnapshot.forEach((doc) => {
       pages.push({ id: doc.id, ...doc.data() });
@@ -632,7 +632,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   await firebaseReadyPromise; // Wait for Firebase to be ready
 
   // Initialize themes Firebase integration
-  setupThemesFirebase(db, auth, appId);
+  // Pass db, auth, and appId explicitly to setupThemesFirebase
+  setupThemesFirebase(db, auth, appId); // Corrected this line
 
   // Call the imported loadNavbar function.
   // It will now fetch the user profile internally to determine display.
