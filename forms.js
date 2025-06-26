@@ -1310,12 +1310,34 @@ function renderDMList() {
       dmList.innerHTML = '<div class="card p-4 text-center">No DMs yet.</div>';
       return;
     }
+    // Fetch user profiles for all participants
+    const allUserIds = new Set();
+    snapshot.forEach(doc => {
+      const dmData = doc.data();
+      if (dmData.participants) {
+        dmData.participants.forEach(uid => allUserIds.add(uid));
+      }
+    });
+    const userProfiles = {};
+    if (allUserIds.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(allUserIds)));
+      const userSnapshot = await getDocs(userQuery);
+      userSnapshot.forEach(userDoc => {
+        userProfiles[userDoc.id] = userDoc.data();
+      });
+    }
     snapshot.forEach(doc => {
       const dmData = doc.data();
       const div = document.createElement('div');
       div.className = 'dm-item card flex items-center justify-between p-3 mb-2 cursor-pointer hover:bg-gray-800';
-      div.onclick = () => showDMConversation(doc.id, dmData);
-      const name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : (dmData.participants?.find(p => p !== currentUserId) || 'Unknown');
+      div.onclick = () => showDMConversation(doc.id, dmData, userProfiles);
+      const otherParticipants = dmData.participants?.filter(p => p !== currentUserId) || [];
+      const participantNames = otherParticipants.map(uid => {
+        const profile = userProfiles[uid];
+        return profile?.displayName || profile?.handle || uid;
+      }).join(', ');
+      const name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : participantNames;
       div.innerHTML = `
         <div class="flex flex-col">
           <span class="font-bold text-base">${name}</span>
@@ -1328,14 +1350,14 @@ function renderDMList() {
   });
 }
 
-function showDMConversation(dmId, dmData) {
+function showDMConversation(dmId, dmData, userProfiles = {}) {
   if (!dmTabContent || !conversationMessagesSection) return;
   dmTabContent.style.display = 'none';
   conversationMessagesSection.style.display = 'block';
-  renderDMMessages(dmId, dmData);
+  renderDMMessages(dmId, dmData, userProfiles);
 }
 
-function renderDMMessages(dmId, dmData) {
+function renderDMMessages(dmId, dmData, userProfiles = {}) {
   if (!window.auth.currentUser || !window.db || !dmId) return;
   if (!dmMessages) return;
   const currentUserId = window.auth.currentUser.uid;
@@ -1350,19 +1372,23 @@ function renderDMMessages(dmId, dmData) {
     }
     snapshot.forEach(doc => {
       const m = doc.data();
+      const senderProfile = userProfiles[m.createdBy] || {};
+      const senderName = senderProfile.displayName || senderProfile.handle || m.creatorDisplayName || 'Unknown';
       const div = document.createElement('div');
       div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded`;
-      div.innerHTML = `<div><span class='font-semibold'>${m.creatorDisplayName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div><div>${convertMentionsToHTML(m.content)}</div>`;
+      div.innerHTML = `<div><span class='font-semibold'>${senderName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div><div>${convertMentionsToHTML(m.content)}</div>`;
       dmMessages.appendChild(div);
     });
     dmMessages.scrollTop = dmMessages.scrollHeight;
   });
   // Header and back button
+  const otherParticipants = dmData.participants?.filter(p => p !== window.auth.currentUser.uid) || [];
+  const participantNames = otherParticipants.map(uid => {
+    const profile = userProfiles[uid];
+    return profile?.displayName || profile?.handle || uid;
+  }).join(', ');
   if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : 'Direct Message';
-  if (dmParticipants) {
-    const names = dmData.participants?.filter(p => p !== window.auth.currentUser.uid).join(', ') || '';
-    dmParticipants.textContent = `Participants: ${names}`;
-  }
+  if (dmParticipants) dmParticipants.textContent = `Participants: ${participantNames}`;
   if (!document.getElementById('dm-back-btn')) {
     const backBtn = document.createElement('button');
     backBtn.id = 'dm-back-btn';
@@ -1374,6 +1400,25 @@ function renderDMMessages(dmId, dmData) {
       if (unsubscribeDmMessages) unsubscribeDmMessages();
     };
     conversationMessagesSection.insertBefore(backBtn, conversationMessagesSection.firstChild);
+  }
+  // Add comment form
+  if (!document.getElementById('dm-comment-form')) {
+    const commentForm = document.createElement('form');
+    commentForm.id = 'dm-comment-form';
+    commentForm.className = 'mt-4 p-3 bg-card rounded';
+    commentForm.innerHTML = `
+      <textarea id="dm-comment-input" class="w-full p-2 border rounded mb-2" placeholder="Type your message..." required></textarea>
+      <button type="submit" class="btn-primary btn-green">Send</button>
+    `;
+    commentForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('dm-comment-input');
+      const content = input.value.trim();
+      if (!content) return;
+      await sendDMMessage(dmId, content);
+      input.value = '';
+    };
+    conversationMessagesSection.appendChild(commentForm);
   }
 }
 
