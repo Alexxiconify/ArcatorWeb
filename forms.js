@@ -166,11 +166,11 @@ async function setupFirebaseAndUser() {
         console.log("Firebase initialized.");
 
         const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
-          console.log("Auth state changed. User:", user ? user.uid : "none");
+          console.log("[DEBUG] onAuthStateChanged triggered. User:", user ? user.uid : "none");
           if (user) {
             let userProfile = await window.getUserProfileFromFirestore(user.uid);
             if (!userProfile) {
-              console.log("No profile found. Creating default.");
+              console.log("[DEBUG] No profile found. Creating default.");
               userProfile = {
                 uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
                 email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
@@ -183,13 +183,21 @@ async function setupFirebaseAndUser() {
               userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
             }
             window.currentUser = userProfile;
-            console.log("currentUser set:", window.currentUser);
+            console.log("[DEBUG] currentUser set:", window.currentUser);
+            console.log("[DEBUG] About to call updateUIBasedOnAuthAndData after setting currentUser:", window.currentUser);
+            try {
+              updateUIBasedOnAuthAndData();
+              console.log("[DEBUG] updateUIBasedOnAuthAndData() called successfully after login.");
+            } catch (e) {
+              console.error("[DEBUG] Error calling updateUIBasedOnAuthAndData after login:", e);
+            }
           } else {
-            console.log("User logged out. currentUser set to null.");
+            console.log("[DEBUG] User logged out. currentUser set to null.");
             window.currentUser = null;
+            updateUIBasedOnAuthAndData();
           }
           firebaseReadyResolve();
-          unsubscribe(); // Unsubscribe after initial state received
+          unsubscribe();
         });
 
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -438,11 +446,9 @@ function hideMainLoading() {
  * Updates UI visibility based on authentication and user profile readiness.
  */
 async function updateUIBasedOnAuthAndData() {
-  console.log("Updating UI based on auth and data.");
+  console.log("[DEBUG] updateUIBasedOnAuthAndData called. currentUser:", window.currentUser);
   hideMainLoading();
-
   if (window.auth.currentUser) {
-    // If window.currentUser is not set, set it from window.auth.currentUser
     if (!window.currentUser || window.currentUser.uid !== window.auth.currentUser.uid) {
       window.currentUser = {
         uid: window.auth.currentUser.uid,
@@ -452,28 +458,29 @@ async function updateUIBasedOnAuthAndData() {
         themePreference: window.DEFAULT_THEME_NAME,
         isAdmin: window.ADMIN_UIDS.includes(window.auth.currentUser.uid)
       };
-      console.log("Set window.currentUser from window.auth.currentUser:", window.currentUser);
+      console.log("[DEBUG] Set window.currentUser from window.auth.currentUser:", window.currentUser);
     }
-
-    let profileReady = true; // No need to wait anymore
-
+    let profileReady = true;
     if (profileReady) {
       if (formsContentSection) {
         formsContentSection.style.display = 'block';
+        console.log("[DEBUG] formsContentSection shown");
       }
       if (mainLoginRequiredMessage) {
         mainLoginRequiredMessage.style.display = 'none';
+        console.log("[DEBUG] mainLoginRequiredMessage hidden");
       }
-      console.log("Forms content visible, login message hidden.");
       renderThematas();
     }
   } else {
-    console.log("User NOT logged in. Showing login message.");
+    console.log("[DEBUG] User NOT logged in. Showing login message.");
     if (formsContentSection) {
       formsContentSection.style.display = 'none';
+      console.log("[DEBUG] formsContentSection hidden");
     }
     if (mainLoginRequiredMessage) {
       mainLoginRequiredMessage.style.display = 'block';
+      console.log("[DEBUG] mainLoginRequiredMessage shown");
     }
   }
 }
