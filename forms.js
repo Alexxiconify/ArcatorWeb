@@ -1534,9 +1534,12 @@ let unsubscribeDmList = null;
 // Render reactions bar
 function renderReactions(reactions, type, id, threadId, themaId) {
   const emojis = ['👍','❤️','😂','😮','😢','👎'];
+  const uid = window.auth.currentUser?.uid;
   return emojis.map(emoji => {
-    const count = reactions[emoji] || 0;
-    return `<button class="reaction-btn" data-type="${type}" data-id="${id}" data-emoji="${emoji}" data-thread-id="${threadId||''}" data-thema-id="${themaId||''}">${emoji} <span class="reaction-count">${count}</span></button>`;
+    const users = reactions[emoji] || {};
+    const count = Object.keys(users).length;
+    const reacted = uid && users[uid];
+    return `<button class="reaction-btn${reacted ? ' reacted' : ''}" data-type="${type}" data-id="${id}" data-emoji="${emoji}" data-thread-id="${threadId||''}" data-thema-id="${themaId||''}">${emoji} <span class="reaction-count">${count}</span></button>`;
   }).join('');
 }
 
@@ -1546,6 +1549,8 @@ if (document.body) {
     const btn = e.target.closest('.reaction-btn');
     if (!btn) return;
     const { type, id, emoji, threadId, themaId } = btn.dataset;
+    const uid = window.auth.currentUser?.uid;
+    if (!uid) return;
     let ref;
     if (type === 'thread') {
       ref = themaId === 'global'
@@ -1557,21 +1562,68 @@ if (document.body) {
         : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, id);
     }
     if (!ref) return;
-    await updateDoc(ref, {
-      [`reactions.${emoji}`]: increment(1)
-    });
+    const snap = await getDoc(ref);
+    const data = snap.data();
+    const reactions = data.reactions || {};
+    const users = reactions[emoji] || {};
+    if (users[uid]) {
+      // Unreact
+      delete users[uid];
+    } else {
+      users[uid] = true;
+    }
+    reactions[emoji] = users;
+    await updateDoc(ref, { reactions });
   });
 }
 
 // --- Markdown Rendering ---
 function renderMarkdown(text) {
-  if (window.marked) {
-    return window.marked.parse(text);
+  if (window.marked && window.DOMPurify) {
+    return DOMPurify.sanitize(window.marked.parse(text));
   }
-  // Minimal fallback: bold, italic, code, links
+  if (window.marked) return window.marked.parse(text);
+  // Minimal fallback
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+}
+
+// --- Edit post/comment inline ---
+function enableEditInline(type, themaId, threadId, commentId, oldContent, container) {
+  const editForm = document.createElement('form');
+  editForm.className = 'edit-inline-form flex flex-col gap-2 mb-2';
+  editForm.innerHTML = `
+    <textarea class="edit-content input">${oldContent}</textarea>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary btn-green">Save</button>
+      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
+    </div>
+  `;
+  const origHtml = container.innerHTML;
+  container.innerHTML = '';
+  container.appendChild(editForm);
+  editForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const newContent = editForm.querySelector('.edit-content').value.trim();
+    if (!newContent) return;
+    let ref;
+    if (type === 'thread') {
+      ref = themaId === 'global'
+        ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId)
+        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
+      await updateDoc(ref, { initialComment: newContent });
+    } else if (type === 'comment') {
+      ref = themaId === 'global'
+        ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, commentId)
+        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
+      await updateDoc(ref, { content: newContent });
+    }
+    container.innerHTML = origHtml;
+  };
+  editForm.querySelector('.cancel-edit').onclick = () => {
+    container.innerHTML = origHtml;
+  };
 }
