@@ -1956,14 +1956,6 @@ async function moveThread(threadId, fromThemaId, toThemaId) {
   await addDoc(newRef, threadData);
   showMessageBox('Thread moved successfully!', false);
 }
-// In renderThreads and renderGlobalThreads, add a dropdown to each thread for moving
-// Example for renderThreads:
-// ... inside thread rendering loop ...
-// <select class="move-thread-select" data-thread-id="${doc.id}" data-from-thema="${currentThemaId}">
-//   <option value="">Move to...</option>
-//   <option value="global">Global</option>
-//   ...populate with all thémata...
-// </select>
 // After rendering, attach event listeners:
 function attachMoveThreadListeners() {
   document.querySelectorAll('.move-thread-select').forEach(select => {
@@ -2163,3 +2155,64 @@ function loadThreadsForThema(themaId) {
   });
 }
 // ... existing code ...
+
+function renderThemaBoxes(themas) {
+  // Remove empty dynamic section if present
+  const emptyTab = document.getElementById('thema-tab-contents');
+  if (emptyTab) emptyTab.remove();
+  const container = document.getElementById('thema-boxes');
+  if (!container) return;
+  if (!themas.length) {
+    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  themas.forEach(thema => {
+    const details = document.createElement('details');
+    details.className = 'thema-accordion w-full card mb-2';
+    details.open = true; // Expand by default
+    details.innerHTML = `
+      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
+        <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
+      </summary>
+      <div class="p-4">
+        <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
+          <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
+          <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
+          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
+        </form>
+        <ul class="thread-list space-y-2" id="thread-list-${thema.id}"></ul>
+      </div>
+    `;
+    container.appendChild(details);
+    loadThreadsForThema(thema.id);
+  });
+  // Accordion: only one open at a time
+  container.querySelectorAll('details').forEach(d => {
+    d.addEventListener('toggle', function() {
+      if (d.open) {
+        container.querySelectorAll('details').forEach(other => {
+          if (other !== d) other.open = false;
+        });
+      }
+    });
+  });
+  // Attach create thread form listeners
+  container.querySelectorAll('.create-thread-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const themaId = form.dataset.themaId;
+      const title = form.querySelector('.new-thread-title').value.trim();
+      const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
+      if (title && initialComment) {
+        await addCommentThread(themaId, title, initialComment);
+        form.querySelector('.new-thread-title').value = '';
+        form.querySelector('.new-thread-initial-comment').value = '';
+      }
+    });
+  });
+}
+// ... existing code ...
+
+// Ensure reactionPalette is defined for all usages
+const reactionPalette = document.getElementById('reaction-palette');
