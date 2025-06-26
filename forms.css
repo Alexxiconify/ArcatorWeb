@@ -270,12 +270,29 @@
 .edit-comment-btn,
 .delete-thread-btn,
 .delete-comment-btn {
-  padding: 4px 8px;
-  font-size: 0.875rem;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  padding: 0.2rem 0.5rem;
+  margin-left: 0.2rem;
   border: none;
+  background: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  transition: background 0.15s;
+}
+.edit-thread-btn:hover, .edit-comment-btn:hover {
+  background: #2563eb22;
+}
+.delete-thread-btn:hover, .delete-comment-btn:hover {
+  background: #ef444422;
+}
+.edit-thread-btn .material-icons, .edit-comment-btn .material-icons {
+  color: #2563eb;
+}
+.delete-thread-btn .material-icons, .delete-comment-btn .material-icons {
+  color: #ef4444;
 }
 
 /* Enhanced Button Styles */

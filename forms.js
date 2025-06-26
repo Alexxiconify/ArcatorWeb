@@ -753,7 +753,7 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, themaId)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
           <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
@@ -1059,8 +1059,8 @@ function renderThreads() {
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
           <div class="thread-actions ml-auto">
-            ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
-            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+            ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
+            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : '')}
           </div>
         </div>
         <div class="add-comment-section mt-2">${getAddCommentFormHtml(doc.id)}</div>
