@@ -6,31 +6,118 @@
   <title>Admin & Dev - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- EasyMDE (Markdown Editor) CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <!-- Google Fonts - Inter and others -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for navbar specific styling -->
+  <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to admin_and_dev.css for page-specific styling -->
-  <link rel="stylesheet" href="admin_and_dev.css">
+  <!-- Link to settings.css for page-specific styling -->
+  <link rel="stylesheet" href="settings.css">
+  <!-- Add any specific CSS for sign-in/up forms if not already covered by settings.css -->
+  <style>
+
+    /* Message box styling (from utils.js) */
+    .message-box {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .message-box.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .message-box.error {
+      background-color: #dc3545;
+    }
+
+    .message-box.success {
+      background-color: #28a745;
+    }
+
+    /* Custom confirm modal styling (from utils.js) */
+    .custom-confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      display: none; /* Hidden by default */
+    }
+
+    .custom-confirm-modal .modal-content {
+      background-color: #2d3748;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      max-width: 400px;
+      width: 90%;
+      color: #e2e8f0;
+    }
+
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
+      color: #e2e8f0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Hero banner background image updated here */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body class="antialiased">
-<!-- Navigation Bar Placeholder -->
+<!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section with Background Image -->
+<!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <!-- Direct Image Tag for Hero Background -->
-  <img src="https://placehold.co/1200x250/3498db/ffffff" alt="Creative Spawn Background" class="hero-background-image" onerror="this.style.display='none';">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development</h1>
-    <p class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
+    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development
+    </h1>
+    <p id="hero-subtitle" class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
   </div>
 </section>
-
 <!-- Admin & Dev Section Content -->
 <section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
