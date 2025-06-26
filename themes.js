@@ -1,205 +1,281 @@
-// themes.js - Handles dynamic theme application, fetching, saving, and deletion.
+// themes.js - Handles theme management, including loading default and custom themes,
+// applying themes, and interacting with Firestore for custom theme storage.
 
-import { doc, setDoc, deleteDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { showMessageBox } from './utils.js';
-import { auth, db, appId, DEFAULT_THEME_NAME } from './firebase-init.js'; // Import Firebase instances and constants
+// Imports from firebase-init.js for Firebase instances and constants
+// Import db, auth, and appId directly as they are now globally exported from firebase-init.js
+import { db, auth, appId, firebaseReadyPromise, DEFAULT_THEME_NAME } from './firebase-init.js';
+import { showMessageBox } from './utils.js'; // For showing messages
 
-let _themeSelect;
-let _allThemes = []; // Cache for all available themes (predefined + custom)
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc, // Added deleteDoc import
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Define core predefined themes
-const predefinedThemes = [
+// Global variables for Firebase instances
+// These are not strictly necessary if using direct imports from firebase-init.js
+// but are kept for consistency with the pattern if other parts of themes.js rely on them.
+let themesDb = db; // Assign global db instance
+let themesAuth = auth; // Assign global auth instance
+let themesAppId = appId; // Assign global appId instance
+
+// Cache for available themes
+let availableThemesCache = null;
+
+// Default themes (always available)
+const defaultThemes = [
   {
-    id: 'dark', name: 'Dark Theme',
-    variables: {
-      '--color-body-bg': '#1a202c', '--color-text-primary': '#e2e8f0', '--color-text-secondary': '#a0aec0',
-      '--color-link': '#63b3ed', '--color-link-hover': '#4299e1', '--color-navbar-bg': '#2d3748',
-      '--color-card-bg': '#2d3748', '--color-input-bg': '#4a5568', '--color-input-border': '#2d3748',
-      '--color-button-bg-primary': '#4299e1', '--color-button-text': '#ffffff',
-      '--color-button-hover-primary': '#3182ce', '--color-bg-card': '#2d3748'
+    id: 'dark',
+    name: 'Dark Theme',
+    properties: {
+      '--color-body-bg': '#1a202c',
+      '--color-text-primary': '#e2e8f0',
+      '--color-text-secondary': '#a0aec0',
+      '--color-bg-navbar': '#111827',
+      '--color-bg-content-section': '#2d3748',
+      '--color-bg-card': '#2d3748',
+      '--color-link': '#63b3ed',
+      '--color-link-hover': '#90cdf4',
+      '--color-button-text': '#ffffff',
+      '--color-button-blue-bg': '#4299e1',
+      '--color-button-blue-hover': '#3182ce',
+      '--color-button-red-bg': '#e53e3e',
+      '--color-button-red-hover': '#c53030',
+      '--color-button-green-bg': '#48bb78',
+      '--color-button-green-hover': '#38a169',
+      '--color-button-purple-bg': '#805ad5',
+      '--color-button-purple-hover': '#6b46c1',
+      '--color-button-yellow-bg': '#ecc94b',
+      '--color-button-yellow-hover': '#d69e2e',
+      '--color-button-orange-bg': '#ed8936',
+      '--color-button-orange-hover': '#dd6b20',
+      '--color-button-indigo-bg': '#667eea',
+      '--color-button-indigo-hover': '#5a67d8',
+      '--color-input-bg': '#2d3748',
+      '--color-input-text': '#e2e8f0',
+      '--color-input-border': '#4a5568',
+      '--color-placeholder': '#a0aec0',
+      '--color-table-th-bg': '#2a4365',
+      '--color-table-th-text': '#e2e8f0',
+      '--color-table-td-border': '#4a5568',
+      '--color-table-row-even-bg': '#2c3748',
+      '--color-modal-bg': '#2d3748',
+      '--color-modal-text': '#e2e8f0',
+      '--color-modal-input-bg': '#1a202c',
+      '--color-message-box-bg-success': '#28a745',
+      '--color-message-box-bg-error': '#dc3545',
+      '--color-heading-main': '#d53b3b', // red-400 equivalent for main headings
+      '--color-heading-card': '#63b3ed' // blue-300 equivalent for card headings
     }
   },
   {
-    id: 'light', name: 'Light Theme',
-    variables: {
-      '--color-body-bg': '#f7fafc', '--color-text-primary': '#2d3748', '--color-text-secondary': '#4a5568',
-      '--color-link': '#3182ce', '--color-link-hover': '#2b6cb0', '--color-navbar-bg': '#ffffff',
-      '--color-card-bg': '#ffffff', '--color-input-bg': '#edf2f7', '--color-input-border': '#e2e8f0',
-      '--color-button-bg-primary': '#3182ce', '--color-button-text': '#ffffff',
-      '--color-button-hover-primary': '#2b6cb0', '--color-bg-card': '#ffffff'
+    id: 'light',
+    name: 'Light Theme',
+    properties: {
+      '--color-body-bg': '#f7fafc',
+      '--color-text-primary': '#2d3748',
+      '--color-text-secondary': '#4a5568',
+      '--color-bg-navbar': '#ffffff',
+      '--color-bg-content-section': '#ffffff',
+      '--color-bg-card': '#ffffff',
+      '--color-link': '#2b6cb0',
+      '--color-link-hover': '#3182ce',
+      '--color-button-text': '#ffffff',
+      '--color-button-blue-bg': '#3182ce',
+      '--color-button-blue-hover': '#2b6cb0',
+      '--color-button-red-bg': '#e53e3e',
+      '--color-button-red-hover': '#c53030',
+      '--color-button-green-bg': '#38a169',
+      '--color-button-green-hover': '#2f855a',
+      '--color-button-purple-bg': '#6b46c1',
+      '--color-button-purple-hover': '#553c9a',
+      '--color-button-yellow-bg': '#d69e2e',
+      '--color-button-yellow-hover': '#b7791f',
+      '--color-button-orange-bg': '#dd6b20',
+      '--color-button-orange-hover': '#c05621',
+      '--color-button-indigo-bg': '#5a67d8',
+      '--color-button-indigo-hover': '#4c51bf',
+      '--color-input-bg': '#edf2f7',
+      '--color-input-text': '#2d3748',
+      '--color-input-border': '#e2e8f0',
+      '--color-placeholder': '#a0aec0',
+      '--color-table-th-bg': '#e2e8f0',
+      '--color-table-th-text': '#2d3748',
+      '--color-table-td-border': '#edf2f7',
+      '--color-table-row-even-bg': '#f7fafc',
+      '--color-modal-bg': '#ffffff',
+      '--color-modal-text': '#2d3748',
+      '--color-modal-input-bg': '#edf2f7',
+      '--color-message-box-bg-success': '#28a745',
+      '--color-message-box-bg-error': '#dc3545',
+      '--color-heading-main': '#e53e3e', // red-400 equivalent for main headings
+      '--color-heading-card': '#2b6cb0' // blue-300 equivalent for card headings
     }
-  }
+  },
 ];
 
 /**
- * Initializes the theme module by setting up necessary DOM elements.
- * This is called from the main page script once Firebase is ready.
+ * Initializes Firebase instances for the themes module.
+ * This function's parameters are now optional, as it attempts to use the globally exported
+ * `db`, `auth`, and `appId` from `firebase-init.js` if not explicitly passed.
+ * @param {object} [firestoreDb] - The Firestore DB instance (optional).
+ * @param {object} [firebaseAuth] - The Firebase Auth instance (optional).
+ * @param {string} [appIdentifier] - The application ID (optional).
  */
-export function setupThemesFirebase() {
-  _themeSelect = document.getElementById('theme-select');
+export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
+  // Use passed instances or fall back to globally imported ones
+  themesDb = firestoreDb || db;
+  themesAuth = firebaseAuth || auth;
+  themesAppId = appIdentifier || appId;
   console.log("DEBUG: Themes Firebase setup complete.");
 }
 
 /**
- * Fetches custom themes for the current user from Firestore.
- * @returns {Promise<Array<Object>>} An array of custom theme objects.
+ * Fetches custom themes from Firestore for the current user.
+ * Themes are stored under /artifacts/{appId}/users/{userId}/custom_themes.
+ * @returns {Promise<Array>} A promise that resolves to an array of custom theme objects.
  */
 async function fetchCustomThemes() {
-  // Ensure Firebase instances are available and user is logged in before accessing Firestore
-  if (!db || !auth || !auth.currentUser) {
-    console.log("DEBUG: Not fetching custom themes - DB not ready or user not logged in.");
-    return [];
+  await firebaseReadyPromise; // Ensure Firebase is fully initialized and 'db' is available
+  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
+    console.log("Themes module: Firebase instances or current user not yet available for fetching custom themes. Returning only default themes.");
+    return []; // Return empty array if prerequisites are not met
   }
-  const userId = auth.currentUser.uid;
-  // Firestore path for custom themes: artifacts/{appId}/users/{userId}/custom_themes
-  const customThemesColRef = collection(db, `artifacts/${appId}/users/${userId}/custom_themes`);
+
+  const userId = themesAuth.currentUser.uid;
+  const customThemesColRef = collection(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`);
+  const q = query(customThemesColRef);
+
   try {
-    const querySnapshot = await getDocs(customThemesColRef);
-    const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log("DEBUG: Fetched custom themes:", customThemes.length);
+    const querySnapshot = await getDocs(q);
+    const customThemes = [];
+    querySnapshot.forEach((doc) => {
+      customThemes.push({ id: doc.id, ...doc.data() });
+    });
+    console.log(`DEBUG: Fetched custom themes: ${customThemes.length}`);
     return customThemes;
   } catch (error) {
-    console.error("Error fetching custom themes:", error);
-    showMessageBox("Failed to fetch custom themes.", true);
+    console.error("Error fetching custom themes from Firestore:", error);
+    showMessageBox("Error loading custom themes.", true);
     return [];
   }
 }
 
 /**
- * Saves a custom theme to Firestore for the current user.
- * @param {Object} theme - The theme object to save. Must have an 'id' property.
- * @returns {Promise<boolean>} True if successful, false otherwise.
+ * Retrieves all available themes, including defaults and user-defined custom themes.
+ * Uses a cache to avoid redundant Firestore reads.
+ * @param {boolean} forceRefresh - If true, bypass the cache and refetch themes.
+ * @returns {Promise<Array>} A promise that resolves to an array of all available theme objects.
  */
-async function saveCustomTheme(theme) {
-  if (!db || !auth || !auth.currentUser) {
-    showMessageBox("Please sign in to save custom themes.", true);
+export async function getAvailableThemes(forceRefresh = false) {
+  if (availableThemesCache && !forceRefresh) {
+    console.log("DEBUG: Returning themes from cache.");
+    return availableThemesCache;
+  }
+
+  const customThemes = await fetchCustomThemes();
+  const allThemes = [...defaultThemes, ...customThemes];
+  availableThemesCache = allThemes; // Update cache
+  return allThemes;
+}
+
+/**
+ * Applies the selected theme by setting CSS custom properties (variables) on the document's root element.
+ * @param {string} themeId - The ID of the theme to apply.
+ * @param {object} themeProperties - The object containing theme CSS properties.
+ */
+export function applyTheme(themeId, themeProperties) {
+  const root = document.documentElement;
+  // Clear any existing custom properties to prevent conflicts
+  // This is a safety measure; usually, new properties will overwrite old ones.
+  // However, if a theme removes a property, explicitly removing it ensures cleanup.
+  // Iterate over all known property names (from default themes or previously loaded custom themes)
+  // to ensure proper reset. For simplicity, we'll just apply new ones, which will overwrite.
+
+  // Apply new custom properties
+  if (themeProperties && themeProperties.properties) {
+    for (const [key, value] of Object.entries(themeProperties.properties)) {
+      root.style.setProperty(key, value);
+    }
+    console.log(`Applied theme: ${themeProperties.name} (${themeId})`);
+  } else {
+    console.warn(`Theme properties not found for theme ID: ${themeId}. Applying default theme if possible.`);
+    // Fallback to dark theme if selected theme properties are invalid
+    const defaultTheme = defaultThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (defaultTheme) {
+      for (const [key, value] of Object.entries(defaultTheme.properties)) {
+        root.style.setProperty(key, value);
+      }
+      console.log(`Applied default theme: ${defaultTheme.name} (${defaultTheme.id})`);
+    }
+  }
+  // No need to dynamically link CSS files for themes, as all theme properties are handled via CSS variables.
+  // This addresses the "dark:1 Failed to load resource" error if it was caused by themes.js trying to load a CSS file directly.
+}
+
+
+/**
+ * Saves a custom theme to Firestore for the current user.
+ * @param {string} themeId - The ID of the custom theme.
+ * @param {string} themeName - The display name of the custom theme.
+ * @param {object} properties - The CSS properties of the custom theme.
+ * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise.
+ */
+export async function saveCustomTheme(themeId, themeName, properties) {
+  await firebaseReadyPromise;
+  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
+    showMessageBox("Please log in to save custom themes.", true);
     return false;
   }
-  const userId = auth.currentUser.uid;
-  const themeDocRef = doc(db, `artifacts/${appId}/users/${userId}/custom_themes`, theme.id);
+
+  const userId = themesAuth.currentUser.uid;
+  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`, themeId);
+
   try {
-    await setDoc(themeDocRef, theme);
-    showMessageBox("Theme saved successfully!", false);
+    await setDoc(themeDocRef, {
+      name: themeName,
+      properties: properties,
+      createdAt: new Date(),
+      createdBy: userId
+    }, { merge: true });
+    availableThemesCache = null; // Invalidate cache
+    showMessageBox("Custom theme saved successfully!", false);
     return true;
   } catch (error) {
     console.error("Error saving custom theme:", error);
-    showMessageBox("Failed to save theme.", true);
+    showMessageBox(`Error saving theme: ${error.message}`, true);
     return false;
   }
 }
 
 /**
  * Deletes a custom theme from Firestore for the current user.
- * @param {string} themeId - The ID of the theme to delete.
- * @returns {Promise<boolean>} True if successful, false otherwise.
+ * @param {string} themeId - The ID of the custom theme to delete.
+ * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise.
  */
-async function deleteCustomTheme(themeId) {
-  if (!db || !auth || !auth.currentUser) {
-    showMessageBox("Please sign in to delete custom themes.", true);
+export async function deleteCustomTheme(themeId) { // Exporting deleteCustomTheme
+  await firebaseReadyPromise;
+  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
+    showMessageBox("Please log in to delete custom themes.", true);
     return false;
   }
-  const userId = auth.currentUser.uid;
-  const themeDocRef = doc(db, `artifacts/${appId}/users/${userId}/custom_themes`, themeId);
+
+  const userId = themesAuth.currentUser.uid;
+  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`, themeId);
+
   try {
     await deleteDoc(themeDocRef);
-    showMessageBox("Theme deleted successfully!", false);
+    availableThemesCache = null; // Invalidate cache
+    showMessageBox("Custom theme deleted successfully!", false);
     return true;
   } catch (error) {
     console.error("Error deleting custom theme:", error);
-    showMessageBox("Failed to delete theme.", true);
+    showMessageBox(`Error deleting theme: ${error.message}`, true);
     return false;
   }
 }
-
-/**
- * Applies the specified theme to the document's root element by setting CSS variables.
- * If themeObject is not provided, it fetches themes to find it.
- * @param {string} themeId - The ID of the theme to apply.
- * @param {Object|null} themeObject - Optional. The full theme object to apply directly.
- */
-export async function applyTheme(themeId, themeObject = null) {
-  let themeToApply = themeObject;
-  if (!themeToApply) {
-    // If theme object wasn't passed directly, try to find it in our cached themes
-    themeToApply = _allThemes.find(t => t.id === themeId);
-  }
-  if (!themeToApply) {
-    // If still not found, refresh _allThemes from Firestore (in case new themes were added/deleted)
-    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
-    themeToApply = _allThemes.find(t => t.id === themeId);
-  }
-
-  // If theme is still not found after attempting to fetch, fall back to default
-  if (!themeToApply) {
-    console.warn(`Theme '${themeId}' not found after all attempts. Applying default theme.`);
-    themeToApply = predefinedThemes.find(t => t.id === DEFAULT_THEME_NAME) || predefinedThemes[0];
-  }
-
-  // Apply CSS variables if a valid theme is found
-  if (themeToApply && themeToApply.variables) {
-    for (const [key, value] of Object.entries(themeToApply.variables)) {
-      document.documentElement.style.setProperty(key, value);
-    }
-    console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
-  } else {
-    console.error(`Failed to apply theme: ${themeId}. Variables property missing or invalid.`);
-  }
-}
-
-/**
- * Populates the theme selection dropdown with all available themes.
- */
-async function populateThemeSelect() {
-  _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
-  if (_themeSelect) {
-    _themeSelect.innerHTML = ''; // Clear existing options
-    _allThemes.forEach(theme => {
-      const option = document.createElement('option');
-      option.value = theme.id;
-      option.textContent = theme.name;
-      _themeSelect.appendChild(option);
-    });
-  }
-}
-
-/**
- * Returns an array of all available themes (predefined and custom).
- * Ensures themes are fetched and cached before returning.
- * @returns {Promise<Array<Object>>} An array of theme objects.
- */
-export async function getAvailableThemes() {
-  // Populate themes if not already populated (e.g., on first call)
-  if (_allThemes.length === 0) {
-    await populateThemeSelect();
-  }
-  return _allThemes;
-}
-
-// Event listener for theme selection changes (set up once DOM is ready)
-document.addEventListener('DOMContentLoaded', async () => {
-  // This part assumes setupThemesFirebase has already been called
-  // which generally happens on window.onload in user-main.js
-  // We need to re-select _themeSelect here, as it might be null if DOMContentLoaded fires before window.onload fully sets it up.
-  if (!_themeSelect) {
-    _themeSelect = document.getElementById('theme-select');
-  }
-
-  if (_themeSelect) {
-    _themeSelect.addEventListener('change', async (event) => {
-      const selectedThemeId = event.target.value;
-      await applyTheme(selectedThemeId); // Apply the newly selected theme
-
-      // Save the user's theme preference to Firestore if they are logged in
-      if (auth.currentUser) {
-        try {
-          await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid),
-            { themePreference: selectedThemeId }, { merge: true });
-          console.log(`User theme preference '${selectedThemeId}' saved.`);
-        } catch (error) {
-          console.error("Error saving user theme preference:", error);
-          showMessageBox("Failed to save theme preference.", true);
-        }
-      }
-    });
-  }
-});
