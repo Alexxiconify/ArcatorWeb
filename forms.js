@@ -5,6 +5,12 @@
 
 // --- Global Firebase Instances and Constants ---
 import { auth, db, appId, currentUser, firebaseReadyPromise } from './firebase-init.js';
+// Ensure global access to Firebase instances
+window.auth = auth;
+window.db = db;
+window.appId = appId;
+window.currentUser = currentUser;
+window.firebaseReadyPromise = firebaseReadyPromise;
 
 window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 window.DEFAULT_THEME_NAME = 'dark';
