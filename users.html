@@ -18,7 +18,7 @@
   <style>
     /* Basic styles for auth forms for consistency, if not in settings.css */
     .auth-card {
-      @apply bg-gray-700 p-8 rounded-lg shadow-xl max-w-md mx-auto my-8;
+      @apply bg-gray-700 p-8 rounded-lg shadow-xl max-w-md mx-auto my-8 border border-gray-600; /* Added border */
     }
     .auth-input-field {
       @apply mb-4;
@@ -28,14 +28,15 @@
     }
     .auth-input-field input[type="email"],
     .auth-input-field input[type="password"],
-    .auth-input-field input[type="text"] {
-      @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-600 border-gray-600 text-gray-100;
+    .auth-input-field input[type="text"],
+    .auth-input-field input[type="url"] {
+      @apply shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 border-gray-600 transition duration-200 ease-in-out; /* Enhanced input styling */
     }
     .auth-btn-primary {
-      @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline w-full;
+      @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out transform hover:scale-105; /* Slightly adjusted button styling */
     }
     .auth-link {
-      @apply inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800;
+      @apply inline-block align-baseline font-semibold text-sm text-blue-400 hover:text-blue-200 transition duration-300 ease-in-out; /* Adjusted link styling */
     }
 
     /* Message box styling (from utils.js) */
@@ -134,7 +135,7 @@
 
     <!-- Sign In Section -->
     <div id="signin-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Sign In</h2>
+      <h2 class="text-3xl font-bold text-blue-400 text-center mb-6">Sign In</h2>
       <form id="signin-form">
         <div class="auth-input-field">
           <label for="signin-email">Email Address</label>
@@ -147,7 +148,7 @@
         <div class="mb-6">
           <button type="button" id="signin-btn" class="auth-btn-primary">Sign In</button>
         </div>
-        <div class="flex items-center justify-between text-center">
+        <div class="flex flex-col items-center justify-center space-y-2 text-center mt-4">
           <a href="#" id="go-to-signup-link" class="auth-link">Don't have an account? Sign Up</a>
           <a href="#" id="go-to-forgot-password-link" class="auth-link">Forgot Password?</a>
         </div>
@@ -156,11 +157,16 @@
 
     <!-- Sign Up Section -->
     <div id="signup-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Sign Up</h2>
+      <h2 class="text-3xl font-bold text-green-400 text-center mb-6">Sign Up</h2>
       <form id="signup-form">
         <div class="auth-input-field">
           <label for="signup-display-name">Display Name</label>
           <input type="text" id="signup-display-name" placeholder="Your Display Name">
+        </div>
+        <div class="auth-input-field">
+          <label for="signup-handle">Unique Handle (@)</label>
+          <input type="text" id="signup-handle" placeholder="e.g., @gamer_tag">
+          <p class="text-xs text-gray-400 mt-1">Only alphanumeric, dots, and underscores allowed.</p>
         </div>
         <div class="auth-input-field">
           <label for="signup-email">Email Address</label>
@@ -175,7 +181,7 @@
           <input type="password" id="signup-confirm-password" placeholder="********">
         </div>
         <div class="mb-6">
-          <button type="button" id="signup-btn" class="auth-btn-primary">Sign Up</button>
+          <button type="button" id="signup-btn" class="auth-btn-primary bg-green-600 hover:bg-green-700">Sign Up</button>
         </div>
         <div class="text-center">
           <a href="#" id="go-to-signin-link" class="auth-link">Already have an account? Sign In</a>
@@ -185,14 +191,14 @@
 
     <!-- Forgot Password Section -->
     <div id="forgot-password-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Reset Password</h2>
+      <h2 class="text-3xl font-bold text-orange-400 text-center mb-6">Reset Password</h2>
       <form id="forgot-password-form">
         <div class="auth-input-field">
           <label for="forgot-password-email">Email Address</label>
           <input type="email" id="forgot-password-email" placeholder="email@example.com">
         </div>
         <div class="mb-6">
-          <button type="button" id="reset-password-btn" class="auth-btn-primary">Send Reset Email</button>
+          <button type="button" id="reset-password-btn" class="auth-btn-primary bg-orange-600 hover:bg-orange-700">Send Reset Email</button>
         </div>
         <div class="text-center">
           <a href="#" id="go-to-signin-from-forgot-link" class="auth-link">Back to Sign In</a>
@@ -211,12 +217,19 @@
           <div class="flex flex-col items-center mb-6">
             <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Profile Picture" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;">
             <p id="display-name-text" class="text-gray-200 text-2xl font-semibold">Loading...</p>
+            <p id="handle-text" class="text-gray-400 text-lg">Loading...</p> <!-- New handle display -->
             <p id="email-text" class="text-gray-400 text-sm">Loading...</p>
           </div>
 
           <div class="input-field">
             <label for="display-name-input">Display Name:</label>
             <input type="text" id="display-name-input" placeholder="Your Display Name">
+          </div>
+
+          <div class="input-field">
+            <label for="handle-input">Unique Handle:</label>
+            <input type="text" id="handle-input" placeholder="@yourhandle">
+            <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
           </div>
 
           <div class="input-field">
@@ -376,7 +389,7 @@
   </div>
 </footer>
 
-<!-- Consolidated JavaScript -->
+<!-- Consolidated and Refactored JavaScript -->
 <script type="module">
   // --- Firebase SDK Imports (Consolidated at the very top of the module) ---
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -388,829 +401,947 @@
     setDoc,
     deleteDoc,
     collection,
-    getDocs
+    getDocs,
+    query, // Added query for handle uniqueness check
+    where  // Added where for handle uniqueness check
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // --- firebase-init.js content (embedded) ---
-  // Firebase configuration object
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
+  // ========================================================================
+  // Module: Firebase Initialization and User Profile Management
+  // Provides global Firebase instances and user profile utilities.
+  // ========================================================================
+  (function() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+      authDomain: "arcator-web.firebaseapp.com",
+      projectId: "arcator-web",
+      storageBucket: "arcator-web.firebasestorage.app",
+      messagingSenderId: "1033082068049",
+      appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+      measurementId: "G-DJXNT1L7CM"
+    };
 
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  window.appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+    const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+    window.appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-  window.app;
-  window.auth;
-  window.db;
-  window.currentUser = null; // Stores the current authenticated user's profile data
+    window.app;
+    window.auth;
+    window.db;
+    window.currentUser = null; // Stores the current authenticated user's profile data
 
-  // Exporting constants for profile pic, theme, and admin UIDs
-  window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-  window.DEFAULT_THEME_NAME = 'dark'; // Default theme name
-  window.ADMIN_UIDS = ['uOaZ8v76y2Q0X7PzJtU7Y3A2C1B4']; // Example admin UIDs
+    // Constants exposed globally for ease of access by other modules
+    window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+    window.DEFAULT_THEME_NAME = 'dark';
+    window.ADMIN_UIDS = ['uOaZ8v76y2Q0X7PzJtU7Y3A2C1B4'];
 
-  let firebaseReadyResolve;
-  window.firebaseReadyPromise = new Promise((resolve) => {
-    firebaseReadyResolve = resolve;
-  });
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  window.getUserProfileFromFirestore = async function(uid) {
-    await window.firebaseReadyPromise; // Ensure Firebase is initialized
-    if (!window.db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return { uid: docSnap.id, ...docSnap.data() }; // Include UID in the returned object
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-    }
-    return null;
-  };
-
-  /**
-   * Sets or updates a user's profile in the 'user_profiles' collection in Firestore.
-   * @param {string} uid - The User ID.
-   * @param {Object} profileData - The data to set/merge into the user's profile.
-   * @returns {boolean} True if successful, false otherwise.
-   */
-  window.setUserProfileInFirestore = async function(uid, profileData) {
-    await window.firebaseReadyPromise;
-    if (!window.db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
-    const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-    try {
-      await setDoc(userDocRef, profileData, { merge: true });
-      if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
-      console.log("DEBUG: User profile updated in Firestore for UID:", uid);
-      return true;
-    } catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
-  };
-
-  /**
-   * Deletes a user's profile from the 'user_profiles' collection in Firestore.
-   * @param {string} uid - The User ID.
-   * @returns {boolean} True if successful, false otherwise.
-   */
-  window.deleteUserProfileFromFirestore = async function(uid) {
-    await window.firebaseReadyPromise;
-    if (!window.db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
-    const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-    try {
-      await deleteDoc(userDocRef);
-      console.log("DEBUG: User profile deleted from Firestore for UID:", uid);
-      return true;
-    } catch (error) { console.error("Error deleting user profile from Firestore:", error); return false; }
-  };
-
-  /**
-   * Initializes Firebase, sets up authentication, and resolves firebaseReadyPromise.
-   * This function should be called once at application start.
-   */
-  async function setupFirebaseAndUser() {
-    console.log("DEBUG: setupFirebaseAndUser called.");
-
-    if (getApps().length === 0) {
-      let finalFirebaseConfig = firebaseConfig;
-
-      if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
-        if (typeof __firebase_config === 'string') {
-          try {
-            finalFirebaseConfig = JSON.parse(__firebase_config);
-            console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
-          } catch (e) {
-            console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
-          }
-        } else if (typeof __firebase_config === 'object') {
-          finalFirebaseConfig = __firebase_config;
-          console.log("DEBUG: __firebase_config provided as object. Using directly.");
-        } else {
-          console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Retaining hardcoded firebaseConfig.");
-        }
-      } else {
-        console.log("DEBUG: __firebase_config not provided. Using hardcoded firebaseConfig.");
-      }
-
-      try {
-        window.app = initializeApp(finalFirebaseConfig);
-        window.auth = getAuth(window.app);
-        window.db = getFirestore(window.app);
-        console.log("Firebase initialized successfully.");
-
-        const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
-          console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-          if (user) {
-            let userProfile = await window.getUserProfileFromFirestore(user.uid);
-            if (!userProfile) {
-              console.log("No profile found. Creating default.");
-              userProfile = {
-                uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-                email: user.email || null, photoURL: window.DEFAULT_PROFILE_PIC,
-                createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME,
-                isAdmin: window.ADMIN_UIDS.includes(user.uid)
-              };
-              await window.setUserProfileInFirestore(user.uid, userProfile);
-            } else {
-              await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
-              userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
-            }
-            window.currentUser = userProfile;
-            console.log("DEBUG: currentUser set:", window.currentUser);
-          } else {
-            console.log("Auth State Changed: User logged out.");
-            window.currentUser = null;
-          }
-          firebaseReadyResolve();
-          unsubscribe();
-        });
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          console.log("DEBUG: Attempting to sign in with custom token.");
-          await signInWithCustomToken(window.auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token."))
-            .catch((error) => {
-              console.error("ERROR: Custom token sign-in failed:", error);
-            });
-        } else {
-          console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
-        }
-      } catch (e) {
-        console.error("Error initializing Firebase (initial block):", e);
-        firebaseReadyResolve();
-      }
-    } else {
-      window.app = getApp();
-      window.db = getFirestore(window.app);
-      window.auth = getAuth(window.app);
-      console.log("DEBUG: Firebase app already initialized. Re-using existing app instance.");
-      firebaseReadyResolve();
-    }
-  }
-  setupFirebaseAndUser();
-
-  // --- utils.js content (embedded) ---
-  const messageBox = document.getElementById('message-box');
-  let messageBoxTimeout;
-
-  window.showMessageBox = function(message, isError = false) {
-    if (!messageBox) {
-      console.error("Message box element not found.");
-      return;
-    }
-    if (messageBoxTimeout) { clearTimeout(messageBoxTimeout); }
-    messageBox.textContent = message;
-    messageBox.className = 'message-box';
-    if (isError) { messageBox.classList.add('error'); } else { messageBox.classList.add('success'); }
-    messageBox.classList.add('show');
-    messageBoxTimeout = setTimeout(() => { messageBox.classList.remove('show'); }, 3000);
-  };
-
-  window.sanitizeHandle = function(input) {
-    return input.replace(/[^a-zA-Z0-9_.-]/g, '');
-  };
-
-  const customConfirmModal = document.getElementById('custom-confirm-modal');
-  const confirmMessage = document.getElementById('confirm-message');
-  const confirmSubmessage = document.getElementById('confirm-submessage');
-  const confirmYesButton = document.getElementById('confirm-yes');
-  const confirmNoButton = document.getElementById('confirm-no');
-  const closeButton = document.querySelector('.custom-confirm-modal .close-button');
-  let resolveConfirmPromise;
-
-  window.showCustomConfirm = function(message, submessage = '') {
-    if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton) {
-      console.error("Custom confirmation modal elements not found.");
-      return Promise.resolve(false);
-    }
-    confirmMessage.textContent = message;
-    confirmSubmessage.textContent = submessage;
-    customConfirmModal.style.display = 'flex';
-    return new Promise((resolve) => {
-      resolveConfirmPromise = resolve;
-      confirmYesButton.onclick = null; confirmNoButton.onclick = null; closeButton.onclick = null;
-      confirmYesButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(true); };
-      confirmNoButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
-      closeButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
-      customConfirmModal.onclick = (event) => {
-        if (event.target === customConfirmModal) { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); }
-      };
+    let firebaseReadyResolve;
+    window.firebaseReadyPromise = new Promise((resolve) => {
+      firebaseReadyResolve = resolve;
     });
-  };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    if (customConfirmModal) {
-      console.log("DEBUG-INIT: custom-confirm-modal element found.");
-      if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
-        customConfirmModal.style.display = 'none';
-        console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
-      } else {
-        console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
+    /**
+     * Fetches user profile data from Firestore.
+     * @param {string} uid - The user's UID.
+     * @returns {Promise<Object|null>} - User profile data or null if not found.
+     */
+    window.getUserProfileFromFirestore = async function(uid) {
+      await window.firebaseReadyPromise;
+      if (!window.db) {
+        console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+        return null;
       }
-    }
-  });
-
-  // --- themes.js content (embedded) ---
-  let _db;
-  let _auth;
-  let _appId;
-  let _themeSelect;
-  let _allThemes = [];
-
-  const predefinedThemes = [
-    {
-      id: 'dark', name: 'Dark Theme',
-      variables: {
-        '--color-body-bg': '#1a202c', '--color-text-primary': '#e2e8f0', '--color-text-secondary': '#a0aec0',
-        '--color-link': '#63b3ed', '--color-link-hover': '#4299e1', '--color-navbar-bg': '#2d3748',
-        '--color-card-bg': '#2d3748', '--color-input-bg': '#4a5568', '--color-input-border': '#2d3748',
-        '--color-button-bg-primary': '#4299e1', '--color-button-text': '#ffffff',
-        '--color-button-hover-primary': '#3182ce', '--color-bg-card': '#2d3748'
-      }
-    },
-    {
-      id: 'light', name: 'Light Theme',
-      variables: {
-        '--color-body-bg': '#f7fafc', '--color-text-primary': '#2d3748', '--color-text-secondary': '#4a5568',
-        '--color-link': '#3182ce', '--color-link-hover': '#2b6cb0', '--color-navbar-bg': '#ffffff',
-        '--color-card-bg': '#ffffff', '--color-input-bg': '#edf2f7', '--color-input-border': '#e2e8f0',
-        '--color-button-bg-primary': '#3182ce', '--color-button-text': '#ffffff',
-        '--color-button-hover-primary': '#2b6cb0', '--color-bg-card': '#ffffff'
-      }
-    }
-  ];
-
-  window.setupThemesFirebase = function(dbInstance, authInstance, appIdInstance) {
-    _db = dbInstance;
-    _auth = authInstance;
-    _appId = appIdInstance;
-    _themeSelect = document.getElementById('theme-select');
-    console.log("DEBUG: Themes Firebase setup complete.");
-  };
-
-  async function fetchCustomThemes() {
-    if (!_db || !_auth || !_auth.currentUser) {
-      console.log("DEBUG: Not fetching custom themes - DB not ready or user not logged in.");
-      return [];
-    }
-    const userId = _auth.currentUser.uid;
-    const customThemesColRef = collection(_db, `artifacts/${_appId}/users/${userId}/custom_themes`);
-    try {
-      const querySnapshot = await getDocs(customThemesColRef);
-      const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("DEBUG: Fetched custom themes:", customThemes.length);
-      return customThemes;
-    } catch (error) {
-      console.error("Error fetching custom themes:", error);
-      return [];
-    }
-  }
-
-  async function saveCustomTheme(theme) {
-    if (!_db || !_auth || !_auth.currentUser) {
-      window.showMessageBox("Please sign in to save custom themes.", true);
-      return false;
-    }
-    const userId = _auth.currentUser.uid;
-    const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, theme.id);
-    try {
-      await setDoc(themeDocRef, theme);
-      window.showMessageBox("Theme saved successfully!", false);
-      return true;
-    } catch (error) {
-      console.error("Error saving custom theme:", error);
-      window.showMessageBox("Failed to save theme.", true);
-      return false;
-    }
-  }
-
-  async function deleteCustomTheme(themeId) {
-    if (!_db || !_auth || !_auth.currentUser) {
-      window.showMessageBox("Please sign in to delete custom themes.", true);
-      return false;
-    }
-    const userId = _auth.currentUser.uid;
-    const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, themeId);
-    try {
-      await deleteDoc(themeDocRef);
-      window.showMessageBox("Theme deleted successfully!", false);
-      return true;
-    } catch (error) {
-      console.error("Error deleting custom theme:", error);
-      window.showMessageBox("Failed to delete theme.", true);
-      return false;
-    }
-  }
-
-  window.applyTheme = async function(themeId, themeObject = null) {
-    let themeToApply = themeObject;
-    if (!themeToApply) { themeToApply = _allThemes.find(t => t.id === themeId); }
-    if (!themeToApply) {
-      _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
-      themeToApply = _allThemes.find(t => t.id === themeId);
-    }
-    if (!themeToApply) {
-      console.warn(`Theme '${themeId}' not found. Applying default theme.`);
-      themeToApply = predefinedThemes.find(t => t.id === window.DEFAULT_THEME_NAME) || predefinedThemes[0];
-    }
-    if (themeToApply && themeToApply.variables) {
-      for (const [key, value] of Object.entries(themeToApply.variables)) {
-        document.documentElement.style.setProperty(key, value);
-      }
-      console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
-    } else {
-      console.error(`Failed to apply theme: ${themeId}. Variables not found.`);
-    }
-  };
-
-  async function populateThemeSelect() {
-    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
-    if (_themeSelect) {
-      _themeSelect.innerHTML = '';
-      _allThemes.forEach(theme => {
-        const option = document.createElement('option');
-        option.value = theme.id;
-        option.textContent = theme.name;
-        _themeSelect.appendChild(option);
-      });
-    }
-  }
-
-  window.getAvailableThemes = async function() {
-    if (_allThemes.length === 0) { await populateThemeSelect(); }
-    return _allThemes;
-  };
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    // This DOMContentLoaded listener will run once the entire HTML is parsed.
-    // The main window.onload handles Firebase readiness and initial theme application.
-    // This is primarily for things that rely on _themeSelect being present immediately.
-    // However, since window.onload now fully manages the flow, this part might be redundant or simplified.
-    // It's kept for now but its role might evolve.
-    if (_themeSelect) {
-      _themeSelect.addEventListener('change', async (event) => {
-        const selectedThemeId = event.target.value;
-        await window.applyTheme(selectedThemeId);
-        if (window.auth.currentUser) {
-          await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid),
-            { themePreference: selectedThemeId }, { merge: true });
-        }
-      });
-    }
-  });
-
-
-  // --- navbar.js content (embedded) ---
-  window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
-    const navbarPlaceholder = document.getElementById('navbar-placeholder');
-    console.log("DEBUG: loadNavbar function called.");
-
-    if (navbarPlaceholder) {
-      console.log("DEBUG: 'navbar-placeholder' element found.");
+      const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
       try {
-        const navbarHtml = `
-          <nav class="navbar-bg p-4 shadow-lg w-full">
-            <div class="container mx-auto flex justify-between items-center">
-              <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
-              <div class="flex items-center space-x-4">
-                <a href="user.html" id="navbar-user-settings-link" class="flex items-center text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'flex' : 'none'};">
-                  <img id="navbar-user-icon" src="${user && user.photoURL ? user.photoURL : defaultProfilePic}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-                  <span id="navbar-user-display-name">${user && user.displayName ? user.displayName : 'Loading...'}</span>
-                  <span id="navbar-user-id-display" class="text-xs text-gray-500 ml-2">${user ? user.uid.substring(0, 6) : ''}</span>
-                </a>
-                <a href="user.html" id="navbar-signin-link" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'none' : 'flex'};">Sign In</a>
-                <button id="navbar-signout-btn" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'flex' : 'none'};">Sign Out</button>
-              </div>
-            </div>
-          </nav>
-        `;
-        navbarPlaceholder.innerHTML = navbarHtml;
-        console.log("DEBUG: 'navbar.html' content injected successfully.");
-
-        const signoutButton = document.getElementById('navbar-signout-btn');
-        if (signoutButton) {
-          signoutButton.addEventListener('click', async () => {
-            try {
-              await window.auth.signOut();
-              console.log("DEBUG: User signed out from navbar.");
-              window.location.href = 'user.html';
-            } catch (error) {
-              console.error("Error signing out:", error);
-            }
-          });
-        }
-
-        const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
-        const navbarSigninLink = document.getElementById('navbar-signin-link');
-        const navbarUserIcon = document.getElementById('navbar-user-icon');
-        const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
-        const navbarUserIdDisplay = document.getElementById('navbar-user-id-display');
-
-        if (user) {
-          if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
-          if (navbarSigninLink) navbarSigninLink.style.display = 'none';
-          if (navbarUserIcon) navbarUserIcon.src = user.photoURL || defaultProfilePic;
-          if (navbarUserDisplayName) navbarUserDisplayName.textContent = user.displayName || 'Account';
-          if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = user.uid ? user.uid.substring(0, 6) : '';
-          console.log("DEBUG: Navbar UI updated for logged-in user.");
-        } else {
-          if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
-          if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
-          if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
-          if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
-          if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
-          console.log("DEBUG: Navbar UI updated for logged-out user.");
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          return { uid: docSnap.id, ...docSnap.data() };
         }
       } catch (error) {
-        console.error("ERROR: Failed to load navigation bar:", error);
-        const manualNavbar = `
-          <nav class="navbar-bg p-4 shadow-lg w-full">
-            <div class="container mx-auto flex justify-between items-center">
-              <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
-              <div>
-                <a href="user.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
-              </div>
-            </div>
-          </nav>
-        `;
-        if (navbarPlaceholder) navbarPlaceholder.innerHTML = manualNavbar;
-        console.log("DEBUG: Fallback manual navbar injected due to error.");
+        console.error("Error fetching user profile from Firestore:", error);
       }
-    } else {
-      console.error("ERROR: Navbar placeholder element not found.");
-    }
-  };
+      return null;
+    };
 
-  // --- settings.js content (embedded - originally for sign.html, now integrated) ---
-  // DOM Elements - Using variables from the main script scope if defined above, otherwise get here
-  const signInSection = document.getElementById('signin-section');
-  const signUpSection = document.getElementById('signup-section');
-  const forgotPasswordSection = document.getElementById('forgot-password-section');
+    /**
+     * Sets or updates a user's profile in the 'user_profiles' collection in Firestore.
+     * @param {string} uid - The User ID.
+     * @param {Object} profileData - The data to set/merge into the user's profile.
+     * @returns {boolean} True if successful, false otherwise.
+     */
+    window.setUserProfileInFirestore = async function(uid, profileData) {
+      await window.firebaseReadyPromise;
+      if (!window.db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
+      const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
+      try {
+        await setDoc(userDocRef, profileData, { merge: true });
+        // Update the global currentUser object if this is the currently logged-in user
+        if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
+        console.log("DEBUG: User profile updated in Firestore for UID:", uid);
+        return true;
+      } catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
+    };
 
-  const signInEmailInput = document.getElementById('signin-email');
-  const signInPasswordInput = document.getElementById('signin-password');
-  const signInButton = document.getElementById('signin-btn');
-  const goToSignUpLink = document.getElementById('go-to-signup-link');
-  const goToForgotPasswordLink = document.getElementById('go-to-forgot-password-link');
+    /**
+     * Deletes a user's profile from the 'user_profiles' collection in Firestore.
+     * @param {string} uid - The User ID.
+     * @returns {boolean} True if successful, false otherwise.
+     */
+    window.deleteUserProfileFromFirestore = async function(uid) {
+      await window.firebaseReadyPromise;
+      if (!window.db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
+      const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
+      try {
+        await deleteDoc(userDocRef);
+        console.log("DEBUG: User profile deleted from Firestore for UID:", uid);
+        return true;
+      } catch (error) { console.error("Error deleting user profile from Firestore:", error); return false; }
+    };
 
-  const signUpEmailInput = document.getElementById('signup-email');
-  const signUpPasswordInput = document.getElementById('signup-password');
-  const signUpConfirmPasswordInput = document.getElementById('signup-confirm-password');
-  const signUpDisplayNameInput = document.getElementById('signup-display-name');
-  const signUpButton = document.getElementById('signup-btn');
-  const goToSignInLink = document.getElementById('go-to-signin-link');
+    /**
+     * Initializes Firebase, sets up authentication, and resolves firebaseReadyPromise.
+     * This function should be called once at application start.
+     */
+    async function setupFirebaseAndUser() {
+      console.log("DEBUG: setupFirebaseAndUser called.");
 
-  const forgotPasswordEmailInput = document.getElementById('forgot-password-email');
-  const resetPasswordButton = document.getElementById('reset-password-btn');
-  const goToSignInFromForgotLink = document.getElementById('go-to-signin-from-forgot-link');
+      if (getApps().length === 0) {
+        let finalFirebaseConfig = firebaseConfig;
 
-
-  /**
-   * Shows a specific section and hides others within the main content area.
-   * This is a central control for navigation between auth forms and settings.
-   * @param {string} sectionId - The ID of the section to make visible.
-   */
-  function showSection(sectionId) {
-    if (signInSection) signInSection.style.display = 'none';
-    if (signUpSection) signUpSection.style.display = 'none';
-    if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
-    if (document.getElementById('settings-content')) document.getElementById('settings-content').style.display = 'none';
-    if (document.getElementById('login-required-message')) document.getElementById('login-required-message').style.display = 'none';
-
-    const sectionToShow = document.getElementById(sectionId);
-    if (sectionToShow) {
-      sectionToShow.style.display = 'block';
-      console.log(`DEBUG: Showing section: ${sectionId}`);
-
-      // Update hero banner based on section
-      const heroTitle = document.getElementById('hero-title');
-      const heroSubtitle = document.getElementById('hero-subtitle');
-      if (heroTitle && heroSubtitle) {
-        switch (sectionId) {
-          case 'signin-section':
-            heroTitle.textContent = 'Welcome Back!';
-            heroSubtitle.textContent = 'Sign in to your account.';
-            break;
-          case 'signup-section':
-            heroTitle.textContent = 'Join Arcator.co.uk!';
-            heroSubtitle.textContent = 'Create your new account.';
-            break;
-          case 'forgot-password-section':
-            heroTitle.textContent = 'Forgot Your Password?';
-            heroSubtitle.textContent = 'Reset it here.';
-            break;
-          case 'settings-content':
-            heroTitle.textContent = 'User Settings';
-            heroSubtitle.textContent = 'Personalize your Arcator.co.uk experience.';
-            break;
-          case 'login-required-message':
-            heroTitle.textContent = 'Access Restricted';
-            heroSubtitle.textContent = 'Please sign in to continue.';
-            break;
-          default:
-            heroTitle.textContent = 'Welcome';
-            heroSubtitle.textContent = 'Manage your account or sign in.';
-            break;
-        }
-      }
-    } else {
-      console.warn(`Attempted to show unknown section: ${sectionId}`);
-    }
-    hideLoading();
-  }
-
-
-  // Handler for user sign-in
-  window.handleSignIn = async function() {
-    const email = signInEmailInput.value;
-    const password = signInPasswordInput.value;
-    if (!email || !password) {
-      window.showMessageBox('Please enter both email and password.', true);
-      return;
-    }
-    try {
-      await signInWithEmailAndPassword(window.auth, email, password); // Use window.auth
-      window.showMessageBox('Signed in successfully! Redirecting...', false);
-      // UI will update via onAuthStateChanged
-    } catch (error) {
-      console.error('Sign-in error:', error);
-      window.showMessageBox(`Sign-in failed: ${error.message}`, true);
-    }
-  };
-
-  // Handler for user sign-up
-  window.handleSignUp = async function() {
-    const email = signUpEmailInput.value;
-    const password = signUpPasswordInput.value;
-    const confirmPassword = signUpConfirmPasswordInput.value;
-    const displayName = window.sanitizeHandle(signUpDisplayNameInput.value); // Use window.sanitizeHandle
-
-    if (!email || !password || !confirmPassword || !displayName) {
-      window.showMessageBox('Please fill in all fields.', true);
-      return;
-    }
-    if (password.length < 6) {
-      window.showMessageBox('Password should be at least 6 characters.', true);
-      return;
-    }
-    if (password !== confirmPassword) {
-      window.showMessageBox('Passwords do not match.', true);
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(window.auth, email, password); // Use window.auth
-      const user = userCredential.user;
-
-      // Set display name and photoURL
-      await updateProfile(user, {
-        displayName: displayName,
-        photoURL: window.DEFAULT_PROFILE_PIC // Use default profile picture
-      });
-
-      // Store user profile in Firestore
-      const userProfileData = {
-        uid: user.uid,
-        displayName: displayName,
-        email: email,
-        photoURL: window.DEFAULT_PROFILE_PIC,
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        themePreference: window.DEFAULT_THEME_NAME,
-        isAdmin: window.ADMIN_UIDS.includes(user.uid)
-      };
-      await window.setUserProfileInFirestore(user.uid, userProfileData); // Use window.setUserProfileInFirestore
-
-      window.showMessageBox('Account created successfully! Please sign in.', false);
-      showSection('signin-section'); // Go back to sign-in after successful registration
-    } catch (error) {
-      console.error('Sign-up error:', error);
-      window.showMessageBox(`Sign-up failed: ${error.message}`, true);
-    }
-  };
-
-  // Handler for password reset
-  window.handlePasswordReset = async function() {
-    const email = forgotPasswordEmailInput.value;
-    if (!email) {
-      window.showMessageBox('Please enter your email address.', true);
-      return;
-    }
-    try {
-      await sendPasswordResetEmail(window.auth, email); // Use window.auth
-      window.showMessageBox('Password reset email sent! Check your inbox.', false);
-      showSection('signin-section');
-    } catch (error) {
-      console.error('Password reset error:', error);
-      window.showMessageBox(`Password reset failed: ${error.message}`, true);
-    }
-  };
-
-
-  // --- Main page logic (originally from settings.html inline script) ---
-  const profilePictureDisplay = document.getElementById('profile-picture-display');
-  const displayNameText = document.getElementById('display-name-text');
-  const emailText = document.getElementById('email-text');
-  const settingsContent = document.getElementById('settings-content');
-  const loginRequiredMessage = document.getElementById('login-required-message');
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const displayNameInput = document.getElementById('display-name-input');
-  const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
-
-
-  function showLoading() {
-    if (loadingSpinner) loadingSpinner.style.display = 'flex';
-    if (settingsContent) settingsContent.style.display = 'none';
-    if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
-    if (signInSection) signInSection.style.display = 'none';
-    if (signUpSection) signUpSection.style.display = 'none';
-    if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
-    console.log("DEBUG: showLoading - Spinner visible, content hidden.");
-  }
-
-  function hideLoading() {
-    if (loadingSpinner) loadingSpinner.style.display = 'none';
-    console.log("DEBUG: hideLoading - Spinner hidden.");
-  }
-
-  window.onload = async function() {
-    console.log("user.html: window.onload fired.");
-    showLoading();
-
-    await window.firebaseReadyPromise;
-    console.log("user.html: Firebase is ready. Proceeding with auth state check.");
-
-    window.setupThemesFirebase(window.db, window.auth, window.appId);
-
-    onAuthStateChanged(window.auth, async (user) => {
-      console.log("user.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
-
-      await window.loadNavbar(user, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
-
-      let userThemePreference = null;
-
-      if (user) {
-        // User is signed in. Show settings content.
-        const userProfile = await window.getUserProfileFromFirestore(user.uid);
-        console.log("user.html: User Profile fetched:", userProfile);
-
-        if (userProfile) {
-          userThemePreference = userProfile.themePreference;
-
-          if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || window.DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
-          if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
-
-          if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
-          if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
-
-          if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
-            document.getElementById('last-login-time').textContent = `Last Login: ${new Date(userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : userProfile.lastLoginAt).toLocaleString()}`;
+        if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
+          if (typeof __firebase_config === 'string') {
+            try {
+              finalFirebaseConfig = JSON.parse(__firebase_config);
+              console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
+            } catch (e) {
+              console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
+            }
+          } else if (typeof __firebase_config === 'object') {
+            finalFirebaseConfig = __firebase_config;
+            console.log("DEBUG: __firebase_config provided as object. Using directly.");
+          } else {
+            console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Retaining hardcoded firebaseConfig.");
           }
-          if (document.getElementById('account-creation-time') && userProfile.createdAt) {
-            document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
-          }
-          showSection('settings-content'); // Show settings after login
         } else {
-          console.warn("user.html: User profile not found in Firestore for UID:", user.uid, ". Displaying login required message.");
-          showSection('login-required-message'); // Show login required as fallback
+          console.log("DEBUG: __firebase_config not provided. Using hardcoded firebaseConfig.");
+        }
+
+        try {
+          window.app = initializeApp(finalFirebaseConfig);
+          window.auth = getAuth(window.app);
+          window.db = getFirestore(window.app);
+          console.log("Firebase initialized successfully.");
+
+          const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
+            console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+            if (user) {
+              let userProfile = await window.getUserProfileFromFirestore(user.uid);
+              if (!userProfile) {
+                console.log("No profile found. Creating default.");
+                userProfile = {
+                  uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+                  email: user.email || null, photoURL: window.DEFAULT_PROFILE_PIC,
+                  createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME,
+                  isAdmin: window.ADMIN_UIDS.includes(user.uid),
+                  handle: user.uid.substring(0, 6) // Default handle from UID
+                };
+                await window.setUserProfileInFirestore(user.uid, userProfile);
+              } else {
+                await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
+                userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
+              }
+              window.currentUser = userProfile;
+              console.log("DEBUG: currentUser set:", window.currentUser);
+            } else {
+              console.log("Auth State Changed: User logged out.");
+              window.currentUser = null;
+            }
+            firebaseReadyResolve();
+            unsubscribe();
+          });
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            console.log("DEBUG: Attempting to sign in with custom token.");
+            await signInWithCustomToken(window.auth, __initial_auth_token)
+              .then(() => console.log("DEBUG: Signed in with custom token."))
+              .catch((error) => {
+                console.error("ERROR: Custom token sign-in failed:", error);
+              });
+          } else {
+            console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
+          }
+        } catch (e) {
+          console.error("Error initializing Firebase (initial block):", e);
+          firebaseReadyResolve();
         }
       } else {
-        // User is signed out. Show sign-in form.
-        console.log("user.html: User logged out. Showing sign-in section.");
-        showSection('signin-section'); // Show sign-in if logged out
+        window.app = getApp();
+        window.db = getFirestore(window.app);
+        window.auth = getAuth(window.app);
+        console.log("DEBUG: Firebase app already initialized. Re-using existing app instance.");
+        firebaseReadyResolve();
       }
+    }
+    setupFirebaseAndUser();
+  })(); // End Firebase Module
 
-      const allThemes = await window.getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
-      window.applyTheme(themeToApply.id, themeToApply);
+  // ========================================================================
+  // Module: Utility Functions (MessageBox, SanitizeHandle, CustomConfirm)
+  // Provides general utility functions accessible globally.
+  // ========================================================================
+  (function() {
+    const messageBox = document.getElementById('message-box');
+    let messageBoxTimeout;
 
-      // Event Listeners for auth section navigation
-      if (goToSignUpLink) goToSignUpLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signup-section'); });
-      if (goToSignInLink) goToSignInLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
-      if (goToForgotPasswordLink) goToForgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showSection('forgot-password-section'); });
-      if (goToSignInFromForgotLink) goToSignInFromForgotLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
-      if (document.getElementById('link-to-signin')) document.getElementById('link-to-signin').addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
-
-
-      // Event Listeners for auth actions
-      if (signInButton) signInButton.addEventListener('click', window.handleSignIn);
-      if (signUpButton) signUpButton.addEventListener('click', window.handleSignUp);
-      if (resetPasswordButton) resetPasswordButton.addEventListener('click', window.handlePasswordReset);
-
-      // Event listeners for profile/preferences saving (from original settings.html)
-      const saveProfileBtn = document.getElementById('save-profile-btn');
-      if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', async () => {
-          const newDisplayName = displayNameInput.value;
-          const newPhotoURL = profilePictureUrlInput.value;
-          if (window.auth.currentUser) {
-            try {
-              await updateProfile(window.auth.currentUser, {
-                displayName: newDisplayName,
-                photoURL: newPhotoURL || window.DEFAULT_PROFILE_PIC
-              });
-              await window.setUserProfileInFirestore(window.auth.currentUser.uid, {
-                displayName: newDisplayName,
-                photoURL: newPhotoURL || window.DEFAULT_PROFILE_PIC
-              });
-              window.showMessageBox('Profile updated successfully!', false);
-            } catch (error) {
-              console.error("Error updating profile:", error);
-              window.showMessageBox(`Failed to update profile: ${error.message}`, true);
-            }
-          }
-        });
+    window.showMessageBox = function(message, isError = false) {
+      if (!messageBox) {
+        console.error("Message box element not found.");
+        return;
       }
+      if (messageBoxTimeout) { clearTimeout(messageBoxTimeout); }
+      messageBox.textContent = message;
+      messageBox.className = 'message-box';
+      if (isError) { messageBox.classList.add('error'); } else { messageBox.classList.add('success'); }
+      messageBox.classList.add('show');
+      messageBoxTimeout = setTimeout(() => { messageBox.classList.remove('show'); }, 3000);
+    };
 
-      const savePreferencesBtn = document.getElementById('save-preferences-btn');
-      const fontSizeSelect = document.getElementById('font-size-select');
-      const fontFamilySelect = document.getElementById('font-family-select');
-      const backgroundPatternSelect = document.getElementById('background-pattern-select');
+    window.sanitizeHandle = function(input) {
+      // Allow alphanumeric, dots, and underscores
+      return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+    };
 
-      if (savePreferencesBtn) {
-        savePreferencesBtn.addEventListener('click', async () => {
-          const selectedFontSize = fontSizeSelect.value;
-          const selectedFontFamily = fontFamilySelect.value;
-          const selectedBackgroundPattern = backgroundPatternSelect.value;
+    const customConfirmModal = document.getElementById('custom-confirm-modal');
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmSubmessage = document.getElementById('confirm-submessage');
+    const confirmYesButton = document.getElementById('confirm-yes');
+    const confirmNoButton = document.getElementById('confirm-no');
+    const closeButton = document.querySelector('.custom-confirm-modal .close-button');
+    let resolveConfirmPromise;
 
-          // Apply font size and family to body
-          document.body.style.fontSize = selectedFontSize;
-          document.body.style.fontFamily = selectedFontFamily;
-
-          // Apply background pattern
-          if (selectedBackgroundPattern === 'none') {
-            document.body.style.backgroundImage = 'none';
-          } else if (selectedBackgroundPattern === 'dots') {
-            document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
-            document.body.style.backgroundSize = '20px 20px';
-          } else if (selectedBackgroundPattern === 'grid') {
-            document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
-            document.body.style.backgroundSize = '40px 40px';
-          }
-
-          // Save to Firestore
-          if (window.auth.currentUser) {
-            try {
-              await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid), {
-                fontSize: selectedFontSize,
-                fontFamily: selectedFontFamily,
-                backgroundPattern: selectedBackgroundPattern
-              }, { merge: true });
-              window.showMessageBox('Preferences saved successfully!', false);
-            } catch (error) {
-              console.error("Error saving preferences:", error);
-              window.showMessageBox(`Failed to save preferences: ${error.message}`, true);
-            }
-          }
-        });
+    window.showCustomConfirm = function(message, submessage = '') {
+      if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton) {
+        console.error("Custom confirmation modal elements not found.");
+        return Promise.resolve(false);
       }
+      confirmMessage.textContent = message;
+      confirmSubmessage.textContent = submessage;
+      customConfirmModal.style.display = 'flex';
+      return new Promise((resolve) => {
+        resolveConfirmPromise = resolve;
+        confirmYesButton.onclick = null; confirmNoButton.onclick = null; closeButton.onclick = null;
+        confirmYesButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(true); };
+        confirmNoButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
+        closeButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
+        customConfirmModal.onclick = (event) => {
+          if (event.target === customConfirmModal) { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); }
+        };
+      });
+    };
 
-      // Load existing preferences on page load
-      if (user) { // Only load preferences if user is authenticated
-        const userProfile = await window.getUserProfileFromFirestore(user.uid);
-        if (userProfile) {
-          if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
-          if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
-          if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
-
-          // Apply loaded preferences immediately
-          document.body.style.fontSize = userProfile.fontSize || '16px';
-          document.body.style.fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
-          if (userProfile.backgroundPattern === 'none') {
-            document.body.style.backgroundImage = 'none';
-          } else if (userProfile.backgroundPattern === 'dots') {
-            document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
-            document.body.style.backgroundSize = '20px 20px';
-          } else if (userProfile.backgroundPattern === 'grid') {
-            document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
-            document.body.style.backgroundSize = '40px 40px';
-          }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (customConfirmModal) {
+        console.log("DEBUG-INIT: custom-confirm-modal element found.");
+        if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
+          customConfirmModal.style.display = 'none';
+          console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
+        } else {
+          console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
         }
       }
-
-      // Hide loading spinner after initial UI setup
-      hideLoading();
-      console.log("DEBUG: Current settingsContent display:", settingsContent.style.display);
-      console.log("DEBUG: Current loginRequiredMessage display:", loginRequiredMessage.style.display);
     });
+  })(); // End Utils Module
 
-    document.getElementById('current-year').textContent = new Date().getFullYear().toString();
-  };
+  // ========================================================================
+  // Module: Themes Management
+  // Handles dynamic theme application, fetching, saving, and deletion.
+  // Depends on global Firebase and Utils.
+  // ========================================================================
+  (function() {
+    let _db;
+    let _auth;
+    let _appId;
+    let _themeSelect;
+    let _allThemes = [];
+
+    const predefinedThemes = [
+      {
+        id: 'dark', name: 'Dark Theme',
+        variables: {
+          '--color-body-bg': '#1a202c', '--color-text-primary': '#e2e8f0', '--color-text-secondary': '#a0aec0',
+          '--color-link': '#63b3ed', '--color-link-hover': '#4299e1', '--color-navbar-bg': '#2d3748',
+          '--color-card-bg': '#2d3748', '--color-input-bg': '#4a5568', '--color-input-border': '#2d3748',
+          '--color-button-bg-primary': '#4299e1', '--color-button-text': '#ffffff',
+          '--color-button-hover-primary': '#3182ce', '--color-bg-card': '#2d3748'
+        }
+      },
+      {
+        id: 'light', name: 'Light Theme',
+        variables: {
+          '--color-body-bg': '#f7fafc', '--color-text-primary': '#2d3748', '--color-text-secondary': '#4a5568',
+          '--color-link': '#3182ce', '--color-link-hover': '#2b6cb0', '--color-navbar-bg': '#ffffff',
+          '--color-card-bg': '#ffffff', '--color-input-bg': '#edf2f7', '--color-input-border': '#e2e8f0',
+          '--color-button-bg-primary': '#3182ce', '--color-button-text': '#ffffff',
+          '--color-button-hover-primary': '#2b6cb0', '--color-bg-card': '#ffffff'
+        }
+      }
+    ];
+
+    window.setupThemesFirebase = function(dbInstance, authInstance, appIdInstance) {
+      _db = dbInstance;
+      _auth = authInstance;
+      _appId = appIdInstance;
+      _themeSelect = document.getElementById('theme-select');
+      console.log("DEBUG: Themes Firebase setup complete.");
+    };
+
+    async function fetchCustomThemes() {
+      if (!_db || !_auth || !_auth.currentUser) {
+        console.log("DEBUG: Not fetching custom themes - DB not ready or user not logged in.");
+        return [];
+      }
+      const userId = _auth.currentUser.uid;
+      const customThemesColRef = collection(_db, `artifacts/${_appId}/users/${userId}/custom_themes`);
+      try {
+        const querySnapshot = await getDocs(customThemesColRef);
+        const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log("DEBUG: Fetched custom themes:", customThemes.length);
+        return customThemes;
+      } catch (error) {
+        console.error("Error fetching custom themes:", error);
+        return [];
+      }
+    }
+
+    async function saveCustomTheme(theme) {
+      if (!_db || !_auth || !_auth.currentUser) {
+        window.showMessageBox("Please sign in to save custom themes.", true);
+        return false;
+      }
+      const userId = _auth.currentUser.uid;
+      const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, theme.id);
+      try {
+        await setDoc(themeDocRef, theme);
+        window.showMessageBox("Theme saved successfully!", false);
+        return true;
+      } catch (error) {
+        console.error("Error saving custom theme:", error);
+        window.showMessageBox("Failed to save theme.", true);
+        return false;
+      }
+    }
+
+    async function deleteCustomTheme(themeId) {
+      if (!_db || !_auth || !_auth.currentUser) {
+        window.showMessageBox("Please sign in to delete custom themes.", true);
+        return false;
+      }
+      const userId = _auth.currentUser.uid;
+      const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, themeId);
+      try {
+        await deleteDoc(themeDocRef);
+        window.showMessageBox("Theme deleted successfully!", false);
+        return true;
+      } catch (error) {
+        console.error("Error deleting custom theme:", error);
+        window.showMessageBox("Failed to delete theme.", true);
+        return false;
+      }
+    }
+
+    window.applyTheme = async function(themeId, themeObject = null) {
+      let themeToApply = themeObject;
+      if (!themeToApply) { themeToApply = _allThemes.find(t => t.id === themeId); }
+      if (!themeToApply) {
+        _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
+        themeToApply = _allThemes.find(t => t.id === themeId);
+      }
+      if (!themeToApply) {
+        console.warn(`Theme '${themeId}' not found. Applying default theme.`);
+        themeToApply = predefinedThemes.find(t => t.id === window.DEFAULT_THEME_NAME) || predefinedThemes[0];
+      }
+      if (themeToApply && themeToApply.variables) {
+        for (const [key, value] of Object.entries(themeToApply.variables)) {
+          document.documentElement.style.setProperty(key, value);
+        }
+        console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
+      } else {
+        console.error(`Failed to apply theme: ${themeId}. Variables not found.`);
+      }
+    };
+
+    async function populateThemeSelect() {
+      _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
+      if (_themeSelect) {
+        _themeSelect.innerHTML = '';
+        _allThemes.forEach(theme => {
+          const option = document.createElement('option');
+          option.value = theme.id;
+          option.textContent = theme.name;
+          _themeSelect.appendChild(option);
+        });
+      }
+    }
+
+    window.getAvailableThemes = async function() {
+      if (_allThemes.length === 0) { await populateThemeSelect(); }
+      return _allThemes;
+    };
+
+    // Initial population of themes after DOM is ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Themes logic relies on Firebase being ready, handled by main window.onload
+      // This listener mainly sets up the theme selection change behavior.
+      if (_themeSelect) {
+        _themeSelect.addEventListener('change', async (event) => {
+          const selectedThemeId = event.target.value;
+          await window.applyTheme(selectedThemeId);
+          if (window.auth.currentUser) {
+            await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid),
+              { themePreference: selectedThemeId }, { merge: true });
+          }
+        });
+      }
+    });
+  })(); // End Themes Module
+
+  // ========================================================================
+  // Module: Navbar Logic
+  // Handles dynamically injecting and updating the navigation bar.
+  // Depends on global Firebase, Themes, and Utils.
+  // ========================================================================
+  (function() {
+    window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
+      const navbarPlaceholder = document.getElementById('navbar-placeholder');
+      console.log("DEBUG: loadNavbar function called.");
+
+      if (navbarPlaceholder) {
+        console.log("DEBUG: 'navbar-placeholder' element found.");
+        try {
+          // Use user.handle if available, otherwise substring of UID for display
+          const userHandleDisplay = user && user.handle ? `@${user.handle}` : (user && user.uid ? user.uid.substring(0, 6) : '');
+
+          const navbarHtml = `
+            <nav class="navbar-bg p-4 shadow-lg w-full">
+              <div class="container mx-auto flex justify-between items-center">
+                <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
+                <div class="flex items-center space-x-4">
+                  <a href="user.html" id="navbar-user-settings-link" class="flex items-center text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user && !user.isAnonymous ? 'flex' : 'none'};">
+                    <img id="navbar-user-icon" src="${user && user.photoURL ? user.photoURL : defaultProfilePic}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+                    <span id="navbar-user-display-name">${user && user.displayName ? user.displayName : 'Loading...'}</span>
+                    <span id="navbar-user-id-display" class="text-xs text-gray-500 ml-2">${userHandleDisplay}</span>
+                  </a>
+                  <a href="user.html" id="navbar-signin-link" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user && !user.isAnonymous ? 'none' : 'flex'};">Sign In</a>
+                  <button id="navbar-signout-btn" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user && !user.isAnonymous ? 'flex' : 'none'};">Sign Out</button>
+                </div>
+              </div>
+            </nav>
+          `;
+          navbarPlaceholder.innerHTML = navbarHtml;
+          console.log("DEBUG: 'navbar.html' content injected successfully.");
+
+          const signoutButton = document.getElementById('navbar-signout-btn');
+          if (signoutButton) {
+            signoutButton.addEventListener('click', async () => {
+              try {
+                await window.auth.signOut();
+                console.log("DEBUG: User signed out from navbar.");
+                window.location.href = 'user.html'; // Redirect to user.html to show sign-in
+              } catch (error) {
+                console.error("Error signing out:", error);
+              }
+            });
+          }
+
+          const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
+          const navbarSigninLink = document.getElementById('navbar-signin-link');
+          const navbarUserIcon = document.getElementById('navbar-user-icon');
+          const navbarUserDisplayName = document.getElementById('navbar-user-display-name');
+          const navbarUserIdDisplay = document.getElementById('navbar-user-id-display');
+
+          if (user && !user.isAnonymous) {
+            if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'flex';
+            if (navbarSigninLink) navbarSigninLink.style.display = 'none';
+            if (navbarUserIcon) navbarUserIcon.src = user.photoURL || defaultProfilePic;
+            if (navbarUserDisplayName) navbarUserDisplayName.textContent = user.displayName || 'Account';
+            if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = user.handle ? `@${user.handle}` : (user.uid ? user.uid.substring(0, 6) : '');
+            console.log("DEBUG: Navbar UI updated for logged-in user.");
+          } else {
+            if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
+            if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
+            if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
+            if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
+            if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
+            console.log("DEBUG: Navbar UI updated for logged-out user.");
+          }
+        } catch (error) {
+          console.error("ERROR: Failed to load navigation bar:", error);
+          const manualNavbar = `
+            <nav class="navbar-bg p-4 shadow-lg w-full">
+              <div class="container mx-auto flex justify-between items-center">
+                <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
+                <div>
+                  <a href="user.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
+                </div>
+              </div>
+            </nav>
+          `;
+          if (navbarPlaceholder) navbarPlaceholder.innerHTML = manualNavbar;
+          console.log("DEBUG: Fallback manual navbar injected due to error.");
+        }
+      } else {
+        console.error("ERROR: Navbar placeholder element not found.");
+      }
+    };
+  })(); // End Navbar Module
+
+  // ========================================================================
+  // Module: User Page Main Logic (Authentication and Settings)
+  // Handles display logic, form submissions, and data interactions.
+  // Depends on global Firebase, Utils, Themes, and Navbar functions.
+  // ========================================================================
+  (function() {
+    // DOM Elements - Auth sections
+    const signInSection = document.getElementById('signin-section');
+    const signUpSection = document.getElementById('signup-section');
+    const forgotPasswordSection = document.getElementById('forgot-password-section');
+
+    // DOM Elements - Sign In
+    const signInEmailInput = document.getElementById('signin-email');
+    const signInPasswordInput = document.getElementById('signin-password');
+    const signInButton = document.getElementById('signin-btn');
+    const goToSignUpLink = document.getElementById('go-to-signup-link');
+    const goToForgotPasswordLink = document.getElementById('go-to-forgot-password-link');
+
+    // DOM Elements - Sign Up
+    const signUpEmailInput = document.getElementById('signup-email');
+    const signUpPasswordInput = document.getElementById('signup-password');
+    const signUpConfirmPasswordInput = document.getElementById('signup-confirm-password');
+    const signUpDisplayNameInput = document.getElementById('signup-display-name');
+    const signUpHandleInput = document.getElementById('signup-handle'); // New handle input
+    const signUpButton = document.getElementById('signup-btn');
+    const goToSignInLink = document.getElementById('go-to-signin-link');
+
+    // DOM Elements - Forgot Password
+    const forgotPasswordEmailInput = document.getElementById('forgot-password-email');
+    const resetPasswordButton = document.getElementById('reset-password-btn');
+    const goToSignInFromForgotLink = document.getElementById('go-to-signin-from-forgot-link');
+
+    // DOM Elements - Settings
+    const profilePictureDisplay = document.getElementById('profile-picture-display');
+    const displayNameText = document.getElementById('display-name-text');
+    const handleText = document.getElementById('handle-text'); // New handle display element
+    const emailText = document.getElementById('email-text');
+    const settingsContent = document.getElementById('settings-content');
+    const loginRequiredMessage = document.getElementById('login-required-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const displayNameInput = document.getElementById('display-name-input');
+    const handleInput = document.getElementById('handle-input'); // Existing handle input for settings
+    const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    const savePreferencesBtn = document.getElementById('save-preferences-btn');
+    const fontSizeSelect = document.getElementById('font-size-select');
+    const fontFamilySelect = document.getElementById('font-family-select');
+    const backgroundPatternSelect = document.getElementById('background-pattern-select');
+
+    /**
+     * Shows a specific section and hides others within the main content area.
+     * This is a central control for navigation between auth forms and settings.
+     * @param {string} sectionId - The ID of the section to make visible.
+     */
+    function showSection(sectionId) {
+      // Hide all main content sections first
+      const sections = [signInSection, signUpSection, forgotPasswordSection, settingsContent, loginRequiredMessage];
+      sections.forEach(sec => {
+        if (sec) sec.style.display = 'none';
+      });
+
+      const sectionToShow = document.getElementById(sectionId);
+      if (sectionToShow) {
+        sectionToShow.style.display = 'block';
+        console.log(`DEBUG: Showing section: ${sectionId}`);
+
+        // Update hero banner based on section
+        const heroTitle = document.getElementById('hero-title');
+        const heroSubtitle = document.getElementById('hero-subtitle');
+        if (heroTitle && heroSubtitle) {
+          switch (sectionId) {
+            case 'signin-section':
+              heroTitle.textContent = 'Welcome Back!';
+              heroSubtitle.textContent = 'Sign in to your account.';
+              break;
+            case 'signup-section':
+              heroTitle.textContent = 'Join Arcator.co.uk!';
+              heroSubtitle.textContent = 'Create your new account.';
+              break;
+            case 'forgot-password-section':
+              heroTitle.textContent = 'Forgot Your Password?';
+              heroSubtitle.textContent = 'Reset it here.';
+              break;
+            case 'settings-content':
+              heroTitle.textContent = 'User Settings';
+              heroSubtitle.textContent = 'Personalize your Arcator.co.uk experience.';
+              break;
+            case 'login-required-message':
+              heroTitle.textContent = 'Access Restricted';
+              heroSubtitle.textContent = 'Please sign in to continue.';
+              break;
+            default:
+              heroTitle.textContent = 'Welcome';
+              heroSubtitle.textContent = 'Manage your account or sign in.';
+              break;
+          }
+        }
+      } else {
+        console.warn(`Attempted to show unknown section: ${sectionId}`);
+      }
+      hideLoading();
+    }
+
+    /**
+     * Shows the loading spinner and hides all content sections.
+     */
+    function showLoading() {
+      if (loadingSpinner) loadingSpinner.style.display = 'flex';
+      // Hide all known content sections
+      const sections = [signInSection, signUpSection, forgotPasswordSection, settingsContent, loginRequiredMessage];
+      sections.forEach(sec => {
+        if (sec) sec.style.display = 'none';
+      });
+      console.log("DEBUG: showLoading - Spinner visible, content hidden.");
+    }
+
+    /**
+     * Hides the loading spinner. Visibility of content sections is handled by showSection.
+     */
+    function hideLoading() {
+      if (loadingSpinner) loadingSpinner.style.display = 'none';
+      console.log("DEBUG: hideLoading - Spinner hidden.");
+    }
+
+    // Handler for user sign-in
+    async function handleSignIn() {
+      const email = signInEmailInput.value;
+      const password = signInPasswordInput.value;
+      if (!email || !password) {
+        window.showMessageBox('Please enter both email and password.', true);
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(window.auth, email, password);
+        window.showMessageBox('Signed in successfully! Redirecting...', false);
+        // UI will update via onAuthStateChanged
+      } catch (error) {
+        console.error('Sign-in error:', error);
+        window.showMessageBox(`Sign-in failed: ${error.message}`, true);
+      }
+    }
+
+    // Handler for user sign-up
+    async function handleSignUp() {
+      const email = signUpEmailInput.value;
+      const password = signUpPasswordInput.value;
+      const confirmPassword = signUpConfirmPasswordInput.value;
+      const displayName = signUpDisplayNameInput.value.trim();
+      const rawHandle = signUpHandleInput.value.trim();
+      const handle = window.sanitizeHandle(rawHandle); // Sanitize the handle
+
+      if (!email || !password || !confirmPassword || !displayName || !rawHandle) {
+        window.showMessageBox('Please fill in all fields.', true);
+        return;
+      }
+      if (password.length < 6) {
+        window.showMessageBox('Password should be at least 6 characters.', true);
+        return;
+      }
+      if (password !== confirmPassword) {
+        window.showMessageBox('Passwords do not match.', true);
+        return;
+      }
+      if (handle.length < 3) {
+        window.showMessageBox('Handle must be at least 3 characters.', true);
+        return;
+      }
+      if (handle !== rawHandle.toLowerCase().replace(/[^a-z0-9_.]/g, '') && rawHandle !== '') { // Added check for empty rawHandle
+        window.showMessageBox('Handle contains invalid characters. Use only alphanumeric, dots, and underscores.', true);
+        return;
+      }
+
+      try {
+        // Check for handle uniqueness before creating user
+        const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+        const q = query(usersRef, where('handle', '==', handle));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          window.showMessageBox('This handle is already taken. Please choose another.', true);
+          return;
+        }
+
+        const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, {
+          displayName: displayName,
+          photoURL: window.DEFAULT_PROFILE_PIC
+        });
+
+        const userProfileData = {
+          uid: user.uid,
+          displayName: displayName,
+          email: email,
+          photoURL: window.DEFAULT_PROFILE_PIC,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          themePreference: window.DEFAULT_THEME_NAME,
+          isAdmin: window.ADMIN_UIDS.includes(user.uid),
+          handle: handle // Store the sanitized handle
+        };
+        await window.setUserProfileInFirestore(user.uid, userProfileData);
+
+        window.showMessageBox('Account created successfully! Please sign in.', false);
+        showSection('signin-section');
+      } catch (error) {
+        console.error('Sign-up error:', error);
+        window.showMessageBox(`Sign-up failed: ${error.message}`, true);
+      }
+    }
+
+    // Handler for password reset
+    async function handlePasswordReset() {
+      const email = forgotPasswordEmailInput.value;
+      if (!email) {
+        window.showMessageBox('Please enter your email address.', true);
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(window.auth, email);
+        window.showMessageBox('Password reset email sent! Check your inbox.', false);
+        showSection('signin-section');
+      } catch (error) {
+        console.error('Password reset error:', error);
+        window.showMessageBox(`Password reset failed: ${error.message}`, true);
+      }
+    }
+
+    // Event listeners for profile/preferences saving
+    async function handleSaveProfile() {
+      const newDisplayName = displayNameInput.value.trim();
+      const newPhotoURL = profilePictureUrlInput.value.trim();
+      const rawNewHandle = handleInput.value.trim();
+      const newHandle = window.sanitizeHandle(rawNewHandle);
+
+      if (newHandle.length < 3) {
+        window.showMessageBox('Handle must be at least 3 characters.', true);
+        return;
+      }
+      if (newHandle !== rawNewHandle.toLowerCase().replace(/[^a-z0-9_.]/g, '') && rawNewHandle !== '') { // Added check for empty rawNewHandle
+        window.showMessageBox('Handle contains invalid characters. Use only alphanumeric, dots, and underscores.', true);
+        return;
+      }
+
+      if (window.auth.currentUser) {
+        try {
+          // Check for handle uniqueness if changing
+          if (newHandle && newHandle !== (window.currentUser?.handle || '')) {
+            const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+            const q = query(usersRef, where('handle', '==', newHandle));
+            const querySnapshot = await getDocs(q);
+            // Ensure the found handle is not for the current user
+            if (!querySnapshot.empty && querySnapshot.docs[0].id !== window.auth.currentUser.uid) {
+              window.showMessageBox('This handle is already taken. Please choose another.', true);
+              return;
+            }
+          }
+
+          const updates = {};
+          if (newDisplayName !== window.currentUser?.displayName) {
+            updates.displayName = newDisplayName;
+          }
+          if (newPhotoURL !== (window.currentUser?.photoURL || window.DEFAULT_PROFILE_PIC)) {
+            updates.photoURL = newPhotoURL || window.DEFAULT_PROFILE_PIC;
+          }
+          if (newHandle !== window.currentUser?.handle) {
+            updates.handle = newHandle;
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await updateProfile(window.auth.currentUser, {
+              displayName: updates.displayName,
+              photoURL: updates.photoURL
+            });
+            await window.setUserProfileInFirestore(window.auth.currentUser.uid, updates);
+
+            // Immediately update UI to reflect changes
+            if (profilePictureDisplay) profilePictureDisplay.src = updates.photoURL || window.DEFAULT_PROFILE_PIC;
+            if (displayNameText) displayNameText.textContent = updates.displayName || 'N/A';
+            if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : ''; // Update handle display
+
+            window.showMessageBox('Profile updated successfully!', false);
+          } else {
+            window.showMessageBox('No profile changes detected.', false);
+          }
+        } catch (error) {
+          console.error("Error updating profile:", error);
+          window.showMessageBox(`Failed to update profile: ${error.message}`, true);
+        }
+      }
+    }
+
+    async function handleSavePreferences() {
+      const selectedFontSize = fontSizeSelect.value;
+      const selectedFontFamily = fontFamilySelect.value;
+      const selectedBackgroundPattern = backgroundPatternSelect.value;
+
+      // Apply font size and family to body
+      document.body.style.fontSize = selectedFontSize;
+      document.body.style.fontFamily = selectedFontFamily;
+
+      // Apply background pattern
+      if (selectedBackgroundPattern === 'none') {
+        document.body.style.backgroundImage = 'none';
+      } else if (selectedBackgroundPattern === 'dots') {
+        document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+        document.body.style.backgroundSize = '20px 20px';
+      } else if (selectedBackgroundPattern === 'grid') {
+        document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+        document.body.style.backgroundSize = '40px 40px';
+      }
+
+      // Save to Firestore
+      if (window.auth.currentUser) {
+        try {
+          const updates = {
+            fontSize: selectedFontSize,
+            fontFamily: selectedFontFamily,
+            backgroundPattern: selectedBackgroundPattern
+          };
+          await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid), updates, { merge: true });
+          window.showMessageBox('Preferences saved successfully!', false);
+        } catch (error) {
+          console.error("Error saving preferences:", error);
+          window.showMessageBox(`Failed to save preferences: ${error.message}`, true);
+        }
+      }
+    }
+
+
+    window.onload = async function() {
+      console.log("user.html: window.onload fired.");
+      showLoading();
+
+      try {
+        await window.firebaseReadyPromise;
+        console.log("user.html: Firebase is ready. Proceeding with auth state check.");
+
+        // Initialize themes module with Firebase instances
+        window.setupThemesFirebase(window.db, window.auth, window.appId);
+
+        onAuthStateChanged(window.auth, async (user) => {
+          console.log("user.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
+
+          // Load navbar with current user info
+          await window.loadNavbar(user, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
+
+          let userThemePreference = null;
+
+          if (user && !user.isAnonymous) { // Show settings only for non-anonymous authenticated users
+            // User is signed in (non-anonymous). Show settings content.
+            const userProfile = await window.getUserProfileFromFirestore(user.uid);
+            console.log("user.html: User Profile fetched:", userProfile);
+
+            if (userProfile) {
+              userThemePreference = userProfile.themePreference;
+
+              // Update profile display elements
+              if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || window.DEFAULT_PROFILE_PIC;
+              if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
+              if (handleText) handleText.textContent = userProfile.handle ? `@${userProfile.handle}` : ''; // Display handle
+              if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
+
+              // Populate settings input fields
+              if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
+              if (handleInput) handleInput.value = userProfile.handle || ''; // Populate handle input
+              if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
+
+              // Populate session information
+              if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
+                document.getElementById('last-login-time').textContent = `Last Login: ${new Date(userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : userProfile.lastLoginAt).toLocaleString()}`;
+              }
+              if (document.getElementById('account-creation-time') && userProfile.createdAt) {
+                document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
+              }
+
+              // Load existing preferences for dropdowns
+              if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
+              if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
+              if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
+
+              // Apply loaded preferences immediately to the body
+              document.body.style.fontSize = userProfile.fontSize || '16px';
+              document.body.style.fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
+              if (userProfile.backgroundPattern === 'none') {
+                document.body.style.backgroundImage = 'none';
+              } else if (userProfile.backgroundPattern === 'dots') {
+                document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+                document.body.style.backgroundSize = '20px 20px';
+              } else if (userProfile.backgroundPattern === 'grid') {
+                document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+                document.body.style.backgroundSize = '40px 40px';
+              }
+
+              showSection('settings-content'); // Show settings after non-anonymous login
+            } else {
+              console.warn("user.html: User profile not found in Firestore for UID:", user.uid, ". Displaying login required message.");
+              showSection('login-required-message'); // Fallback to login required
+            }
+          } else {
+            // User is signed out OR is an anonymous user. Show sign-in form.
+            console.log("user.html: User logged out or anonymous. Showing sign-in section.");
+            showSection('signin-section');
+          }
+
+          // Apply the theme: user's preference, or the default theme.
+          const allThemes = await window.getAvailableThemes();
+          const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
+          window.applyTheme(themeToApply.id, themeToApply);
+
+          // Event Listeners for auth section navigation
+          if (goToSignUpLink) goToSignUpLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signup-section'); });
+          if (goToSignInLink) goToSignInLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+          if (goToForgotPasswordLink) goToForgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showSection('forgot-password-section'); });
+          if (goToSignInFromForgotLink) goToSignInFromForgotLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+          if (document.getElementById('link-to-signin')) document.getElementById('link-to-signin').addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+
+          // Event Listeners for auth actions
+          if (signInButton) signInButton.addEventListener('click', handleSignIn);
+          if (signUpButton) signUpButton.addEventListener('click', handleSignUp);
+          if (resetPasswordButton) resetPasswordButton.addEventListener('click', handlePasswordReset);
+
+          // Event listeners for profile/preferences saving
+          if (saveProfileBtn) saveProfileBtn.addEventListener('click', handleSaveProfile);
+          if (savePreferencesBtn) savePreferencesBtn.addEventListener('click', handleSavePreferences);
+
+          // Placeholder for Password Management, Notifications, Accessibility, Delete Account buttons
+          // Add event listeners for these buttons when their functionality is implemented.
+          const changePasswordBtn = document.getElementById('change-password-btn');
+          if (changePasswordBtn) changePasswordBtn.addEventListener('click', () => window.showMessageBox('Change Password functionality coming soon!', false));
+
+          const saveNotificationsBtn = document.getElementById('save-notifications-btn');
+          if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', () => window.showMessageBox('Notification settings saving functionality coming soon!', false));
+
+          const saveAccessibilityBtn = document.getElementById('save-accessibility-btn');
+          if (saveAccessibilityBtn) saveAccessibilityBtn.addEventListener('click', () => window.showMessageBox('Accessibility settings saving functionality coming soon!', false));
+
+          const deleteAccountBtn = document.getElementById('delete-account-btn');
+          if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', () => window.showMessageBox('Delete account functionality coming soon! Be careful with this one!', true));
+
+        });
+
+        document.getElementById('current-year').textContent = new Date().getFullYear().toString();
+      } finally {
+        hideLoading(); // Ensure spinner is hidden even if errors occur
+      }
+    };
+  })(); // End Main Page Logic Module
 </script>
 </body>
 </html>
