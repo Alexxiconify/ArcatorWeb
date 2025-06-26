@@ -8,6 +8,16 @@
   /* background-image: url('path/to/your/forms-hero-image.png'); */
 }
 
+.hero-banner.low-res {
+  background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn-lowres.jpg');
+  filter: blur(2px) brightness(0.8);
+}
+.hero-banner.high-res {
+  background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+  transition: filter 0.5s, background-image 0.5s;
+  filter: none;
+}
+
 /* Styles for the Théma/Thread/Comment structure */
 .thema-item, .thread-item, .comment-item {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -372,3 +382,5 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* For future: Consider splitting non-critical CSS into a separate file and loading with media="print"/onload for further optimization. */

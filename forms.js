@@ -522,80 +522,70 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
 
 // --- Forms Page Specific Logic ---
 
-// DOM elements - will be initialized in DOMContentLoaded
-let mainLoadingSpinner;
-let formsContentSection;
-let mainLoginRequiredMessage;
+// --- DOM ELEMENTS: Move queries to top for faster access ---
+let mainLoadingSpinner = document.getElementById('loading-spinner');
+let formsContentSection = document.getElementById('forms-content');
+let mainLoginRequiredMessage = document.getElementById('login-required-message');
 
-let createThemaForm;
-let newThemaNameInput;
-let newThemaDescriptionInput;
-let themaList;
+let createThemaForm = document.getElementById('create-thema-form');
+let newThemaNameInput = document.getElementById('new-thema-name');
+let newThemaDescriptionInput = document.getElementById('new-thema-description');
+let themaList = document.getElementById('thema-list');
 
-let threadsSection;
-let backToThematasBtn;
-let currentThemaTitle;
-let currentThemaDescription;
-let createThreadForm;
-let newThreadTitleInput;
-let newThreadInitialCommentInput;
-let threadList;
+let threadsSection = document.getElementById('threads-section');
+let backToThematasBtn = document.getElementById('back-to-thematas-btn');
+let currentThemaTitle = document.getElementById('current-thema-title');
+let currentThemaDescription = document.getElementById('current-thema-description');
+let createThreadForm = document.getElementById('create-thread-form');
+let newThreadTitleInput = document.getElementById('new-thread-title');
+let newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+let threadList = document.getElementById('thread-list');
 
-let commentsSection;
-let backToThreadsBtn;
-let currentThreadTitle;
-let currentThreadInitialComment;
-let addCommentForm;
-let newCommentContentInput;
-let commentList;
+let commentsSection = document.getElementById('comments-section');
+let backToThreadsBtn = document.getElementById('back-to-threads-btn');
+let currentThreadTitle = document.getElementById('current-thread-title');
+let currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+let addCommentForm = document.getElementById('add-comment-form');
+let newCommentContentInput = document.getElementById('new-comment-content');
+let commentList = document.getElementById('comment-list');
 
 // Enhanced features DOM elements
-let dmSection;
-let dmList;
-let dmMessages;
-let dmInput;
-let dmSendBtn;
-let createDmBtn;
-let dmBackBtn;
-let dmTitle;
-let dmParticipants;
+let dmSection = document.getElementById('dm-section');
+let dmList = document.getElementById('dm-list');
+let dmMessages = document.getElementById('dm-messages');
+let dmInput = document.getElementById('dm-input');
+let dmSendBtn = document.getElementById('dm-send-btn');
+let createDmBtn = document.getElementById('create-dm-btn');
+let dmBackBtn = document.getElementById('dm-back-btn');
+let dmTitle = document.getElementById('dm-title');
+let dmParticipants = document.getElementById('dm-participants');
 
-let reactionPalette;
-let editForm;
-let editInput;
-let editSaveBtn;
-let editCancelBtn;
+let reactionPalette = document.getElementById('reaction-palette');
+let editForm = document.getElementById('edit-form');
+let editInput = document.getElementById('edit-input');
+let editSaveBtn = document.getElementById('edit-save-btn');
+let editCancelBtn = document.getElementById('edit-cancel-btn');
 
-let tempPagesSection;
-let tempPagesList;
-let createTempPageBtn;
-let tempPageForm;
-let tempPageTitleInput;
-let tempPageContentInput;
+let tempPagesSection = document.getElementById('temp-pages-section');
+let tempPagesList = document.getElementById('temp-pages-list');
+let createTempPageBtn = document.getElementById('create-temp-page-btn');
+let tempPageForm = document.getElementById('temp-page-form');
+let tempPageTitleInput = document.getElementById('temp-page-title');
+let tempPageContentInput = document.getElementById('temp-page-content');
 
-let themaRulesSection;
-let themaRulesList;
-let addRuleBtn;
-let ruleForm;
-let ruleTitleInput;
-let ruleContentInput;
+let themaRulesSection = document.getElementById('thema-rules-section');
+let themaRulesList = document.getElementById('thema-rules-list');
+let addRuleBtn = document.getElementById('add-rule-btn');
+let ruleForm = document.getElementById('rule-form');
+let ruleTitleInput = document.getElementById('rule-title');
+let ruleContentInput = document.getElementById('rule-content');
 
-let currentThemaId = null;
-let currentThreadId = null;
-let currentDmId = null;
-let currentEditId = null;
-let unsubscribeThemaComments = null;
-let unsubscribeThreads = null;
-let unsubscribeThematas = null;
-let unsubscribeDmMessages = null;
-let unsubscribeDmList = null;
-
-// --- GLOBAL THREADS SECTION ---
-let globalThreadsSection;
-let globalThreadList;
-let createGlobalThreadForm;
-let globalThreadTitleInput;
-let globalThreadContentInput;
+// Add global threads section DOM refs
+let globalThreadsSection = document.getElementById('global-threads-section');
+let globalThreadList = document.getElementById('global-thread-list');
+let createGlobalThreadForm = document.getElementById('create-global-thread-form');
+let globalThreadTitleInput = document.getElementById('global-thread-title');
+let globalThreadContentInput = document.getElementById('global-thread-content');
 
 /**
  * Adds a new global thread to Firestore.
