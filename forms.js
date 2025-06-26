@@ -47,19 +47,40 @@ window.firebaseReadyPromise = new Promise((resolve) => {
   firebaseReadyResolve = resolve;
 });
 
-// Commented out: getUserProfileFromFirestore
+// Re-enabled: getUserProfileFromFirestore for full functionality
 window.getUserProfileFromFirestore = async function(uid) {
-  // console.log("DEBUG: getUserProfileFromFirestore commented out.");
+  await window.firebaseReadyPromise;
+  if (!window.db) {
+    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+    return null;
+  }
+  const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
+  try {
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      return { uid: docSnap.id, ...docSnap.data() };
+    }
+  } catch (error) {
+    console.error("Error fetching user profile from Firestore:", error);
+  }
   return null;
 };
 
-// Commented out: setUserProfileInFirestore
+// Re-enabled: setUserProfileInFirestore
 window.setUserProfileInFirestore = async function(uid, profileData) {
-  // console.log("DEBUG: setUserProfileInFirestore commented out.");
-  return false;
+  await window.firebaseReadyPromise;
+  if (!window.db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
+  const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
+  try {
+    await setDoc(userDocRef, profileData, { merge: true });
+    if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
+    console.log("DEBUG: User profile updated in Firestore for UID:", uid);
+    return true;
+  }
+  catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
 };
 
-// Commented out: deleteUserProfileFromFirestore
+// Commented out: deleteUserProfileFromFirestore (kept for future re-enablement)
 window.deleteUserProfileFromFirestore = async function(uid) {
   // console.log("DEBUG: deleteUserProfileFromFirestore commented out.");
   return false;
@@ -104,15 +125,23 @@ async function setupFirebaseAndUser() {
       const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
         console.log("DEBUG forms.js (onAuthStateChanged): Triggered. User:", user ? user.uid : "none");
         if (user) {
-          // Simplified user profile setup for testing, skipping Firestore fetch
-          window.currentUser = {
-            uid: user.uid,
-            displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-            email: user.email || null,
-            photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
-            isAdmin: window.ADMIN_UIDS.includes(user.uid)
-          };
-          console.log("DEBUG forms.js (onAuthStateChanged): currentUser set (simplified):", window.currentUser);
+          // Now properly fetch user profile
+          let userProfile = await window.getUserProfileFromFirestore(user.uid);
+          if (!userProfile) {
+            console.log("DEBUG forms.js (onAuthStateChanged): No profile found. Creating default.");
+            userProfile = {
+              uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+              email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
+              createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME,
+              isAdmin: window.ADMIN_UIDS.includes(user.uid)
+            };
+            await window.setUserProfileInFirestore(user.uid, userProfile);
+          } else {
+            await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
+            userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid); // Ensure isAdmin is updated
+          }
+          window.currentUser = userProfile;
+          console.log("DEBUG forms.js (onAuthStateChanged): currentUser set:", window.currentUser);
         } else {
           console.log("DEBUG forms.js (onAuthStateChanged): User logged out. currentUser set to null.");
           window.currentUser = null;
@@ -170,10 +199,10 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
-// Commented out: sanitizeHandle
-// function sanitizeHandle(input) {
-//   return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-// }
+// Re-enabled: sanitizeHandle
+function sanitizeHandle(input) {
+  return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+}
 
 const customConfirmModal = document.getElementById('custom-confirm-modal');
 const confirmMessage = document.getElementById('confirm-message');
@@ -183,16 +212,24 @@ const confirmNoButton = document.getElementById('confirm-no');
 const closeButton = document.querySelector('.custom-confirm-modal .close-button');
 let resolveConfirmPromise;
 
-// Commented out: showCustomConfirm
+// Re-enabled: showCustomConfirm
 function showCustomConfirm(message, submessage = '') {
-  // console.log("DEBUG: showCustomConfirm commented out, returning false.");
   if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
     console.error("Custom confirmation modal elements not found. Cannot show confirm dialog.");
     return Promise.resolve(false);
   }
-  // Simplified for testing, just hides the modal if called
-  customConfirmModal.style.display = 'none';
-  return Promise.resolve(false);
+  confirmMessage.textContent = message;
+  confirmSubmessage.textContent = submessage;
+  customConfirmModal.style.display = 'flex';
+  return new Promise((resolve) => {
+    resolveConfirmPromise = resolve;
+    confirmYesButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(true); };
+    confirmNoButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
+    closeButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
+    customConfirmModal.onclick = (event) => {
+      if (event.target === customConfirmModal) { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); }
+    };
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -248,29 +285,70 @@ window.setupThemesFirebase = function(dbInstance, authInstance, appIdInstance) {
   console.log("DEBUG forms.js (setupThemesFirebase): Themes Firebase setup complete.");
 };
 
-// Commented out: fetchCustomThemes
+// Re-enabled: fetchCustomThemes
 async function fetchCustomThemes() {
-  // console.log("DEBUG: fetchCustomThemes commented out.");
-  return [];
+  if (!_db || !_auth || !_auth.currentUser) {
+    console.log("DEBUG forms.js (fetchCustomThemes): Not fetching custom themes - DB not ready or user not logged in.");
+    return [];
+  }
+  const userId = _auth.currentUser.uid;
+  const customThemesColRef = collection(_db, `artifacts/${_appId}/users/${userId}/custom_themes`);
+  try {
+    const querySnapshot = await getDocs(customThemesColRef);
+    const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log("DEBUG forms.js (fetchCustomThemes): Fetched custom themes:", customThemes.length);
+    return customThemes;
+  } catch (error) {
+    console.error("ERROR forms.js (fetchCustomThemes): Error fetching custom themes:", error);
+    return [];
+  }
 }
 
-// Commented out: saveCustomTheme
-// async function saveCustomTheme(theme) {
-//   console.log("DEBUG: saveCustomTheme commented out.");
-//   return false;
-// }
+// Re-enabled: saveCustomTheme
+async function saveCustomTheme(theme) {
+  if (!_db || !_auth || !_auth.currentUser) {
+    showMessageBox("Please sign in to save custom themes.", true);
+    return false;
+  }
+  const userId = _auth.currentUser.uid;
+  const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, theme.id);
+  try {
+    await setDoc(themeDocRef, theme);
+    showMessageBox("Theme saved successfully!", false);
+    console.log("DEBUG forms.js (saveCustomTheme): Theme saved for user.", theme.id);
+    return true;
+  } catch (error) {
+    console.error("ERROR forms.js (saveCustomTheme): Error saving custom theme:", error);
+    showMessageBox("Failed to save theme.", true);
+    return false;
+  }
+}
 
-// Commented out: deleteCustomTheme
-// async function deleteCustomTheme(themeId) {
-//   console.log("DEBUG: deleteCustomTheme commented out.");
-//   return false;
-// }
+// Re-enabled: deleteCustomTheme
+async function deleteCustomTheme(themeId) {
+  if (!_db || !_auth || !_auth.currentUser) {
+    showMessageBox("Please sign in to delete custom themes.", true);
+    return false;
+  }
+  const userId = _auth.currentUser.uid;
+  const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, themeId);
+  try {
+    await deleteDoc(themeDocRef);
+    showMessageBox("Theme deleted successfully!", false);
+    console.log("DEBUG forms.js (deleteCustomTheme): Theme deleted.", themeId);
+    return true;
+  } catch (error) {
+    console.error("ERROR forms.js (deleteCustomTheme): Error deleting custom theme:", error);
+    showMessageBox("Failed to delete theme.", true);
+    return false;
+  }
+}
 
 window.applyTheme = async function(themeId, themeObject = null) {
   let themeToApply = themeObject;
   if (!themeToApply) {
-    // For testing, only use predefined themes if themeObject is null
-    themeToApply = predefinedThemes.find(t => t.id === themeId);
+    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())]; // Re-enabled fetching custom themes
+    themeToApply = _allThemes.find(t => t.id === themeId);
   }
   if (!themeToApply) {
     console.warn(`WARN forms.js (applyTheme): Theme '${themeId}' not found. Applying default theme.`);
@@ -286,14 +364,26 @@ window.applyTheme = async function(themeId, themeObject = null) {
   }
 };
 
-// Commented out: populateThemeSelect
-// async function populateThemeSelect() {
-//   console.log("DEBUG: populateThemeSelect commented out.");
-// }
+// Re-enabled: populateThemeSelect
+async function populateThemeSelect() {
+  _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
+  if (_themeSelect) {
+    _themeSelect.innerHTML = '';
+    _allThemes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.id;
+      option.textContent = theme.name;
+      _themeSelect.appendChild(option);
+    });
+    console.log("DEBUG forms.js (populateThemeSelect): Theme select populated with", _allThemes.length, "themes.");
+  } else {
+    console.log("DEBUG forms.js (populateThemeSelect): Theme select element not found.");
+  }
+}
 
 window.getAvailableThemes = async function() {
-  // console.log("DEBUG: getAvailableThemes commented out, returning predefined.");
-  return predefinedThemes; // For testing, only return predefined themes
+  if (_allThemes.length === 0) { await populateThemeSelect(); } // Re-enabled populateThemeSelect call
+  return _allThemes;
 };
 
 // --- Navbar Loading Function (formerly in navbar.js) ---
@@ -386,13 +476,13 @@ const mainLoadingSpinner = document.getElementById('loading-spinner');
 const formsContentSection = document.getElementById('forms-content');
 const mainLoginRequiredMessage = document.getElementById('login-required-message');
 
-// Commented out: createThemaForm and related inputs
-const createThemaForm = null; // document.getElementById('create-thema-form');
-const newThemaNameInput = null; // document.getElementById('new-thema-name');
-const newThemaDescriptionInput = null; // document.getElementById('new-thema-description');
+// Re-enabled: createThemaForm and related inputs
+const createThemaForm = document.getElementById('create-thema-form');
+const newThemaNameInput = document.getElementById('new-thema-name');
+const newThemaDescriptionInput = document.getElementById('new-thema-description');
 const themaList = document.getElementById('thema-list');
 
-// Commented out: threadsSection and related elements
+// Commented out: threadsSection and related elements (for now)
 const threadsSection = document.getElementById('threads-section');
 const backToThematasBtn = document.getElementById('back-to-thematas-btn');
 const currentThemaTitle = document.getElementById('current-thema-title');
@@ -402,7 +492,7 @@ const newThreadTitleInput = null; // document.getElementById('new-thread-title')
 const newThreadInitialCommentInput = null; // document.getElementById('new-thread-initial-comment');
 const threadList = document.getElementById('thread-list');
 
-// Commented out: commentsSection and related elements
+// Commented out: commentsSection and related elements (for now)
 const commentsSection = document.getElementById('comments-section');
 const backToThreadsBtn = document.getElementById('back-to-threads-btn');
 const currentThreadTitle = document.getElementById('current-thread-title');
@@ -436,10 +526,8 @@ async function updateUIBasedOnAuthAndData() {
   if (window.auth.currentUser) {
     console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): User is logged in.", window.auth.currentUser.uid);
     let profileReady = false;
-    // Increased wait time and added logging for profile readiness
     for (let i = 0; i < 30; i++) { // Max 3 seconds wait (30 * 100ms)
-      // Simplified check, assuming currentUser is populated by onAuthStateChanged itself for testing
-      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid) {
+      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
         profileReady = true;
         console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): currentUser profile ready after", i * 100, "ms.");
         break;
@@ -452,10 +540,7 @@ async function updateUIBasedOnAuthAndData() {
       if (formsContentSection) formsContentSection.style.display = 'block';
       if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
       console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Forms content visible, login message hidden.");
-      // renderThematas(); // Commented out to prevent further Firestore calls
-      if (themaList) {
-        themaList.innerHTML = '<li class="card p-4 text-center">Firebase initialized. User logged in. Thematas list will be empty as data loading is commented out.</li>';
-      }
+      renderThematas(); // Re-enabled: Start real-time listening for thémata
     } else {
       console.warn("WARN forms.js (updateUIBasedOnAuthAndData): currentUser profile not fully loaded after waiting. Showing login message.");
       showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
@@ -469,72 +554,200 @@ async function updateUIBasedOnAuthAndData() {
   }
 }
 
-// Commented out: addThema
-// async function addThema(name, description) {
-//   console.log("DEBUG: addThema commented out.");
-// }
+// Re-enabled: addThema
+async function addThema(name, description) {
+  if (!window.auth.currentUser) {
+    showMessageBox("You must be logged in to create a théma.", true);
+    return;
+  }
+  if (!window.db) {
+    showMessageBox("Database not initialized.", true);
+    return;
+  }
 
-// Commented out: renderThematas
-function renderThematas() {
-  console.log("DEBUG forms.js (renderThematas): This function is commented out for testing.");
-  if (themaList) {
-    themaList.innerHTML = '<li class="card p-4 text-center">Themata loading functionality is commented out for testing.</li>';
+  try {
+    const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
+    await addDoc(thematasCol, {
+      name: name,
+      description: description,
+      createdAt: serverTimestamp(),
+      createdBy: window.auth.currentUser.uid,
+      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+    });
+    showMessageBox("Théma created successfully!", false);
+    newThemaNameInput.value = '';
+    newThemaDescriptionInput.value = '';
+    console.log("DEBUG forms.js (addThema): New théma added.");
+  } catch (error) {
+    console.error("ERROR forms.js (addThema): Error creating théma:", error);
+    showMessageBox(`Error creating théma: ${error.message}`, true);
   }
 }
 
-// Commented out: deleteThemaAndSubcollections
-// async function deleteThemaAndSubcollections(themaId) {
-//     console.log("DEBUG: deleteThemaAndSubcollections commented out.");
-// }
+// Re-enabled: renderThematas
+function renderThematas() {
+  console.log("DEBUG forms.js (renderThematas): Called. DB:", !!window.db);
+  if (unsubscribeThematas) {
+    unsubscribeThematas();
+    console.log("DEBUG forms.js (renderThematas): Unsubscribed from previous thémata listener.");
+  }
+  if (!window.db) {
+    themaList.innerHTML = '<li class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</li>';
+    return;
+  }
+
+  const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
+  const q = query(thematasCol, orderBy("createdAt", "desc"));
+
+  unsubscribeThematas = onSnapshot(q, (snapshot) => {
+    console.log("DEBUG forms.js (renderThematas): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+    themaList.innerHTML = '';
+    if (snapshot.empty) {
+      themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
+      return;
+    }
+
+    // Fetch user profiles for display names
+    const userProfilePromises = [];
+    const createdByUids = new Set();
+    snapshot.forEach(doc => {
+      const thema = doc.data();
+      if (thema.createdBy) {
+        createdByUids.add(thema.createdBy);
+      }
+    });
+
+    const userProfiles = {};
+    if (createdByUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
+      userProfilePromises.push(getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for thematas:", error)));
+    }
+
+    Promise.all(userProfilePromises).then(() => {
+      snapshot.forEach((doc) => {
+        const thema = doc.data();
+        const li = document.createElement('li');
+        li.classList.add('thema-item', 'card');
+        const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
+        const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown'; // Prioritize fetched display name
+
+        li.innerHTML = `
+                <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+                <p class="thema-description mt-2">${thema.description}</p>
+                <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
+                <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
+                ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+            `;
+        themaList.appendChild(li);
+      });
+
+      document.querySelectorAll('.view-threads-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const themaId = event.target.dataset.themaId;
+          const themaName = event.target.dataset.themaName;
+          const themaDescription = event.target.dataset.themaDescription;
+          console.log(`DEBUG forms.js (renderThematas): View Threads clicked for themaId: ${themaId}`);
+          displayThreadsForThema(themaId, themaName, themaDescription);
+        });
+      });
+
+      document.querySelectorAll('.delete-thema-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const themaId = event.target.dataset.themaId;
+          console.log(`DEBUG forms.js (renderThematas): Delete Théma clicked for themaId: ${themaId}`);
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
+          if (confirmed) {
+            await deleteThemaAndSubcollections(themaId);
+          } else {
+            showMessageBox("Théma deletion cancelled.", false);
+          }
+        });
+      });
+    });
+  }, (error) => {
+    console.error("ERROR forms.js (renderThematas): Error fetching thémata:", error);
+    themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
+  });
+}
+
+// Re-enabled: deleteThemaAndSubcollections
+async function deleteThemaAndSubcollections(themaId) {
+  try {
+    console.log(`DEBUG forms.js (deleteThemaAndSubcollections): Deleting thema: ${themaId}`);
+    const threadsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const threadsSnapshot = await getDocs(threadsRef);
+    for (const threadDoc of threadsSnapshot.docs) {
+      const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
+      const commentsSnapshot = await getDocs(commentsRef);
+      for (const commentDoc of commentsSnapshot.docs) {
+        await deleteDoc(doc(commentsRef, commentDoc.id));
+      }
+      await deleteDoc(doc(threadsRef, threadDoc.id));
+    }
+    await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId));
+
+    showMessageBox("Théma and all its content deleted successfully!", false);
+    console.log(`DEBUG forms.js (deleteThemaAndSubcollections): Thema ${themaId} and all content deleted.`);
+  } catch (error) {
+    console.error("ERROR forms.js (deleteThemaAndSubcollections): Error deleting théma and subcollections:", error);
+    showMessageBox(`Error deleting théma: ${error.message}`, true);
+  }
+}
 
 
-// Commented out: displayThreadsForThema
+// Commented out: displayThreadsForThema (for now)
 function displayThreadsForThema(themaId, themaName, themaDescription) {
   console.log("DEBUG: displayThreadsForThema commented out.");
   if (threadsSection) threadsSection.style.display = 'none';
-  showMessageBox("Thread display functionality is commented out for testing.", true);
+  showMessageBox("Thread display functionality is currently disabled.", true);
 }
 
-// Commented out: addCommentThread
+// Commented out: addCommentThread (for now)
 // async function addCommentThread(themaId, title, initialComment) {
 //   console.log("DEBUG: addCommentThread commented out.");
 // }
 
-// Commented out: renderThreads
+// Commented out: renderThreads (for now)
 function renderThreads() {
   console.log("DEBUG: renderThreads commented out.");
   if (threadList) {
-    threadList.innerHTML = '<li class="card p-4 text-center">Thread loading functionality is commented out for testing.</li>';
+    threadList.innerHTML = '<li class="card p-4 text-center">Thread loading functionality is currently disabled.</li>';
   }
 }
 
-// Commented out: deleteThreadAndSubcollection
+// Commented out: deleteThreadAndSubcollection (for now)
 // async function deleteThreadAndSubcollection(themaId, threadId) {
 //     console.log("DEBUG: deleteThreadAndSubcollection commented out.");
 // }
 
 
-// Commented out: displayCommentsForThread
+// Commented out: displayCommentsForThread (for now)
 function displayCommentsForThread(threadId, threadTitle, threadInitialComment) {
   console.log("DEBUG: displayCommentsForThread commented out.");
   if (commentsSection) commentsSection.style.display = 'none';
-  showMessageBox("Comment display functionality is commented out for testing.", true);
+  showMessageBox("Comment display functionality is currently disabled.", true);
 }
 
-// Commented out: addComment
+// Commented out: addComment (for now)
 // async function addComment(themaId, threadId, content) {
 //   console.log("DEBUG: addComment commented out.");
 // }
 
-// Commented out: renderComments
+// Commented out: renderComments (for now)
 function renderComments() {
   console.log("DEBUG: renderComments commented out.");
   if (commentList) {
-    commentList.innerHTML = '<li class="card p-4 text-center">Comment loading functionality is commented out for testing.</li>';
+    commentList.innerHTML = '<li class="card p-4 text-center">Comment loading functionality is currently disabled.</li>';
   }
 }
 
-// Commented out: deleteComment
+// Commented out: deleteComment (for now)
 // async function deleteComment(themaId, threadId, commentId) {
 //     console.log("DEBUG: deleteComment commented out.");
 // }
@@ -580,23 +793,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log("DEBUG forms.js (DOMContentLoaded listener): Footer year set.");
   }
 
-  // Commented out: Théma Form Submission
-  // createThemaForm?.addEventListener('submit', async (event) => {
-  //   event.preventDefault();
-  //   console.log("DEBUG forms.js (createThemaForm submit): Form submitted - commented out.");
-  //   showMessageBox("Creating thémata is disabled for testing.", true);
-  // });
-  // console.log("DEBUG forms.js (DOMContentLoaded listener): Create Théma form listener (commented out).");
+  // Re-enabled: Théma Form Submission
+  createThemaForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    console.log("DEBUG forms.js (createThemaForm submit): Form submitted.");
+    const name = newThemaNameInput.value.trim();
+    const description = newThemaDescriptionInput.value.trim();
+    if (name && description) {
+      await addThema(name, description);
+    } else {
+      showMessageBox("Please fill in both Théma Name and Description.", true);
+      console.log("DEBUG forms.js (createThemaForm submit): Missing name or description.");
+    }
+  });
+  console.log("DEBUG forms.js (DOMContentLoaded listener): Create Théma form listener attached.");
 
 
-  // Commented out: Back to Thémata button listener
+  // Commented out: Back to Thémata button listener (for now, as threads are disabled)
   backToThematasBtn?.addEventListener('click', () => {
     console.log("DEBUG forms.js (backToThematasBtn click): Back to Thémata button clicked - commented out.");
     showMessageBox("Navigation to thémata is disabled for testing.", true);
   });
   // console.log("DEBUG forms.js (DOMContentLoaded listener): Back to Thémata button listener (commented out).");
 
-  // Commented out: Thread Form Submission
+  // Commented out: Thread Form Submission (for now)
   // createThreadForm?.addEventListener('submit', async (event) => {
   //   event.preventDefault();
   //   console.log("DEBUG forms.js (createThreadForm submit): Form submitted - commented out.");
@@ -605,7 +825,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // console.log("DEBUG forms.js (DOMContentLoaded listener): Create Thread form listener (commented out).");
 
 
-  // Commented out: Back to Threads button listener
+  // Commented out: Back to Threads button listener (for now)
   backToThreadsBtn?.addEventListener('click', () => {
     console.log("DEBUG forms.js (backToThreadsBtn click): Back to Threads button clicked - commented out.");
     showMessageBox("Navigation to threads is disabled for testing.", true);
@@ -613,7 +833,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // console.log("DEBUG forms.js (DOMContentLoaded listener): Back to Threads button listener (commented out).");
 
 
-  // Commented out: Comment Form Submission
+  // Commented out: Comment Form Submission (for now)
   // addCommentForm?.addEventListener('submit', async (event) => {
   //   event.preventDefault();
   //   console.log("DEBUG forms.js (addCommentForm submit): Form submitted - commented out.");
