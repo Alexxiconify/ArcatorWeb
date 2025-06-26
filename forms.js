@@ -1444,3 +1444,11 @@ function openEditModal(type, ids, content, description = '', title = '') {
   alert('Edit modal not implemented yet.');
 }
 window.openEditModal = openEditModal;
+
+// Minimal Markdown rendering using marked.js and DOMPurify
+function renderMarkdown(text) {
+  if (window.marked && window.DOMPurify) {
+    return DOMPurify.sanitize(marked.parse(text || ''));
+  }
+  return text;
+}
