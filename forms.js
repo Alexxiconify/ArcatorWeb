@@ -839,7 +839,7 @@ function renderThreads() {
         </div>
         <div class="thread-actions mt-4">
           ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
-          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
         </div>
         <div class="add-comment-section mt-4">${getAddCommentFormHtml(doc.id)}</div>
         <ul class="comment-list space-y-4 mt-2" id="comment-list-${doc.id}"></ul>
