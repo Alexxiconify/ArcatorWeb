@@ -1506,32 +1506,7 @@ function renderComments() {
  * @param {string} pageContent - The page content
  */
 function viewTempPage(pageId, pageTitle, pageContent) {
-  // Create a modal or new window to display the page
-  const modal = document.createElement('div');
-  modal.className = 'temp-page-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-  modal.innerHTML = `
-    <div class="temp-page-content bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">${pageTitle}</h2>
-        <button class="close-modal text-2xl font-bold">&times;</button>
-      </div>
-      <div class="temp-page-body">
-        ${pageContent.replace(/\n/g, '<br>')}
-      </div>
-    </div>
-  `;
-
-  modal.querySelector('.close-modal').onclick = () => {
-    document.body.removeChild(modal);
-  };
-
-  modal.onclick = (event) => {
-    if (event.target === modal) {
-      document.body.removeChild(modal);
-    }
-  };
-
-  document.body.appendChild(modal);
+  window.open(`temp-page-viewer.html?id=${encodeURIComponent(pageId)}`, '_blank');
 }
 
 /**
@@ -2293,6 +2268,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       event.preventDefault();
       const title = newThreadTitleInput.value.trim();
       const initialComment = newThreadInitialCommentInput.value.trim();
+      threadThemaSelect = document.getElementById('thread-thema-select');
       const location = threadThemaSelect ? threadThemaSelect.value : 'global';
       if (title && initialComment) {
         if (location === 'global') {
@@ -2634,3 +2610,76 @@ document.addEventListener('DOMContentLoaded', function() {
     tabConversations.addEventListener('click', showConversationsSection);
   }
 });
+
+// --- PATCH: Fix thread deletion for both global and thema threads ---
+// In renderThreads and renderGlobalThreads, update delete button event listeners:
+function attachThreadDeleteListeners() {
+  document.querySelectorAll('.delete-thread-btn').forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const threadId = event.target.dataset.threadId;
+      const isGlobal = event.target.dataset.global === 'true';
+      const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
+      if (confirmed) {
+        if (isGlobal) {
+          // Delete global thread
+          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+          await deleteDoc(threadRef);
+        } else {
+          // Delete thema thread
+          await deleteThreadAndSubcollection(currentThemaId, threadId);
+        }
+        showMessageBox("Thread deleted successfully!", false);
+      } else {
+        showMessageBox("Thread deletion cancelled.", false);
+      }
+    });
+  });
+}
+// Call attachThreadDeleteListeners after rendering threads/global threads
+// --- PATCH: Allow moving a thread to another thema or global ---
+async function moveThread(threadId, fromThemaId, toThemaId) {
+  if (!window.db) return;
+  let threadData = null;
+  let threadRef = null;
+  if (fromThemaId === 'global') {
+    threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+  } else {
+    threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${fromThemaId}/threads`, threadId);
+  }
+  const threadSnap = await getDoc(threadRef);
+  if (!threadSnap.exists()) return;
+  threadData = threadSnap.data();
+  // Remove from old location
+  await deleteDoc(threadRef);
+  // Add to new location
+  let newRef;
+  if (toThemaId === 'global') {
+    newRef = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+  } else {
+    newRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${toThemaId}/threads`);
+  }
+  await addDoc(newRef, threadData);
+  showMessageBox('Thread moved successfully!', false);
+}
+// In renderThreads and renderGlobalThreads, add a dropdown to each thread for moving
+// Example for renderThreads:
+// ... inside thread rendering loop ...
+// <select class="move-thread-select" data-thread-id="${doc.id}" data-from-thema="${currentThemaId}">
+//   <option value="">Move to...</option>
+//   <option value="global">Global</option>
+//   ...populate with all thémata...
+// </select>
+// After rendering, attach event listeners:
+function attachMoveThreadListeners() {
+  document.querySelectorAll('.move-thread-select').forEach(select => {
+    select.addEventListener('change', async (event) => {
+      const toThemaId = event.target.value;
+      const threadId = event.target.dataset.threadId;
+      const fromThemaId = event.target.dataset.fromThema;
+      if (toThemaId && threadId) {
+        await moveThread(threadId, fromThemaId, toThemaId);
+      }
+    });
+  });
+}
+// After rendering threads/global threads, call attachThreadDeleteListeners() and attachMoveThreadListeners()
