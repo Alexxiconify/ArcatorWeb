@@ -444,33 +444,20 @@
 </footer>
 <!-- External JavaScript modules -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<!-- Ensure firebase-init.js is loaded first as its exports are used by others -->
+<script type="module" src="firebase-init.js"></script>
 <script type="module" src="themes.js"></script>
 <script type="module" src="custom_theme_modal.js"></script>
 <script type="module" src="navbar.js"></script>
-<script type="module" src="firebase-init.js"></script> <!-- Ensure firebase-init.js is loaded first -->
 <script type="module" src="admin_and_dev.js"></script>
 <script type="module">
   // This inline script is for the specific admin_and_dev.html page's initialization
   // and interacts with the globally exported Firebase instances and utility functions.
 
-  import { auth, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser as firebaseCurrentUser } from './firebase-init.js';
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
+  // The necessary imports (auth, firebaseReadyPromise, etc.) are already handled by admin_and_dev.js
+  // and other linked modules. This inline script primarily focuses on setting the footer year.
 
-
-  // Main execution logic on window load
   document.addEventListener('DOMContentLoaded', async function() {
-    // Wait for Firebase to be ready before proceeding
-    await firebaseReadyPromise;
-
-    // Initialize themes Firebase integration
-    // Note: db and appId are already initialized and exported from firebase-init.js
-    setupThemesFirebase(auth.app.options.projectId, auth); // Correctly pass appId and auth to themes
-
-    // Call the imported loadNavbar function.
-    // It will now fetch the user profile internally to determine display.
-    await loadNavbar(auth.currentUser, firebaseCurrentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME); // Pass auth.currentUser for current login state and firebaseCurrentUser for detailed profile
-
     // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
     const currentYearElement = document.getElementById('current-year-admin-dev');
     if (currentYearElement) {
