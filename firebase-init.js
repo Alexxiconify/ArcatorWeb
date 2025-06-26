@@ -83,6 +83,10 @@ export async function setUserProfileInFirestore(uid, profileData) {
   }
 }
 
+// Export updateUserProfileInFirestore directly as requested by admin_and_dev.js
+export { setUserProfileInFirestore as updateUserProfileInFirestore };
+
+
 /**
  * Deletes a user's profile from the 'user_profiles' collection in Firestore.
  * @param {string} uid - The User ID.
