@@ -279,6 +279,10 @@
     <p class="text-xl md:text-2xl mb-8">Discuss, collaborate, and share ideas with the Arcator community.</p>
   </div>
 </section>
+<!-- Main content and loading elements for forms.js compatibility -->
+<div id="forms-content" style="display:none;">[DEBUG] Main forum content placeholder</div>
+<div id="loading-spinner" style="display:none;">[DEBUG] Loading...</div>
+<div id="login-required-message" style="display:none;">[DEBUG] Please log in to use the forum.</div>
 
 <!-- Tabs for Thémata (all), Global Threads -->
 <div class="tabs flex space-x-4 mb-8">
@@ -373,5 +377,10 @@
 <script type="module" src="forms.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+<script>
+window.mainLoadingSpinner = document.getElementById('loading-spinner');
+window.formsContentSection = document.getElementById('forms-content');
+window.mainLoginRequiredMessage = document.getElementById('login-required-message');
+</script>
 </body>
 </html>

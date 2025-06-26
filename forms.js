@@ -688,13 +688,23 @@ function loadThreadsForThema(themaId) {
       if (!threadListDiv) console.warn(`[DEBUG] threadListDiv not found for themaId ${themaId}`);
       return;
     }
-    const threadsCol = themaId === 'global'
-      ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
-      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    // Always use /thematas/{themaId}/threads for all thémata, including 'global'
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const q = query(threadsCol, orderBy('createdAt', 'desc'));
     onSnapshot(q, async (snapshot) => {
       threadListDiv.innerHTML = '';
       if (snapshot.empty) {
+        // Auto-create default global thread if admin
+        if (themaId === 'global' && window.currentUser && window.currentUser.isAdmin) {
+          await addDoc(threadsCol, {
+            title: 'Welcome to the Arcator Community Forum',
+            initialComment: 'This is the first thread in the global section. Feel free to introduce yourself or ask questions!',
+            createdAt: serverTimestamp(),
+            createdBy: window.currentUser.uid,
+            creatorDisplayName: window.currentUser.displayName || 'Admin'
+          });
+          return; // Wait for snapshot to update
+        }
         threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
         return;
       }
@@ -1512,12 +1522,19 @@ function renderDMMessages() {
 }
 
 // --- Event Listeners and Initial Load ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async function() {
   try {
+    window.mainLoadingSpinner = document.getElementById('loading-spinner');
+    window.formsContentSection = document.getElementById('forms-content');
+    window.mainLoginRequiredMessage = document.getElementById('login-required-message');
     console.log('[DEBUG] DOMContentLoaded fired.');
     initializeUtilityElements();
     showMainLoading();
     // ... any other main entry logic ...
+    // Ensure thémata always load after UI/auth ready
+    await updateUIBasedOnAuthAndData();
+    console.log('[DEBUG] renderThematas() called from DOMContentLoaded');
+    renderThematas();
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
   }
