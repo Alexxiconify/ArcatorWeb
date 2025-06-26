@@ -633,6 +633,7 @@ function renderThemaBoxes(themasArr) {
       });
       threadForm.reset();
     };
+    renderThemaAdminControls(thema, box);
   });
 }
 
@@ -712,13 +713,14 @@ function loadThreadsForThema(themaId) {
       };
       // Edit/Delete thread handlers
       if (canEdit) {
-        threadDiv.querySelector('.edit-thread-btn').onclick = () => editThread(themaId, doc.id, thread.title, thread.initialComment, threadDiv);
+        threadDiv.querySelector('.edit-thread-btn').onclick = () => enableEditInline('thread', themaId, doc.id, null, thread.initialComment, threadDiv);
         threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
           if (confirm('Delete this thread?')) {
             const threadsCol = themaId === 'global'
               ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
               : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
             await deleteDoc(doc(threadsCol, doc.id));
+            threadDiv.remove();
           }
         };
       }
@@ -777,10 +779,11 @@ function loadCommentsForThread(themaId, threadId) {
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
       if (canEdit) {
-        commentDiv.querySelector('.edit-comment-btn').onclick = () => editComment(themaId, threadId, doc.id, comment.content, commentDiv);
+        commentDiv.querySelector('.edit-comment-btn').onclick = () => enableEditInline('comment', themaId, threadId, doc.id, comment.content, commentDiv);
         commentDiv.querySelector('.delete-comment-btn').onclick = async () => {
           if (confirm('Delete this comment?')) {
             await deleteDoc(doc(commentsCol, doc.id));
+            commentDiv.remove();
           }
         };
       }
@@ -1174,7 +1177,7 @@ async function handleReaction(itemType, itemId, emoji) {
 
     const itemData = itemDoc.data();
     const reactions = itemData.reactions || {};
-    const emojiReactions = reactions[emoji] || { count: 0, users: [] };
+    const emojiReactions = reactions[emoji] || {};
 
     const userIndex = emojiReactions.users.indexOf(userId);
     if (userIndex > -1) {
@@ -1625,5 +1628,53 @@ function enableEditInline(type, themaId, threadId, commentId, oldContent, contai
   };
   editForm.querySelector('.cancel-edit').onclick = () => {
     container.innerHTML = origHtml;
+  };
+}
+
+// Add edit/delete for thema (admin/creator only)
+function renderThemaAdminControls(thema, box) {
+  if (!window.currentUser || (!window.currentUser.isAdmin && window.currentUser.uid !== thema.createdBy)) return;
+  const controls = document.createElement('div');
+  controls.className = 'thema-admin-controls flex gap-2 mt-2';
+  controls.innerHTML = `
+    <button class="edit-thema-btn" title="Edit"><span class="material-icons text-orange-400">edit</span></button>
+    <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
+  `;
+  box.appendChild(controls);
+  controls.querySelector('.edit-thema-btn').onclick = () => enableEditThemaInline(thema, box);
+  controls.querySelector('.delete-thema-btn').onclick = async () => {
+    if (confirm('Delete this Théma and all its threads?')) {
+      await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
+      box.remove();
+    }
+  };
+}
+function enableEditThemaInline(thema, box) {
+  const form = document.createElement('form');
+  form.className = 'edit-thema-form flex flex-col gap-2 mb-2';
+  form.innerHTML = `
+    <input type="text" class="edit-thema-title input" value="${thema.name}" required />
+    <textarea class="edit-thema-desc input">${thema.description || ''}</textarea>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary btn-green">Save</button>
+      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
+    </div>
+  `;
+  const origHtml = box.innerHTML;
+  box.innerHTML = '';
+  box.appendChild(form);
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const newName = form.querySelector('.edit-thema-title').value.trim();
+    const newDesc = form.querySelector('.edit-thema-desc').value.trim();
+    if (!newName) return;
+    await updateDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id), {
+      name: newName,
+      description: newDesc
+    });
+    box.innerHTML = origHtml;
+  };
+  form.querySelector('.cancel-edit').onclick = () => {
+    box.innerHTML = origHtml;
   };
 }

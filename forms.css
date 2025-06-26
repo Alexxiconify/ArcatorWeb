@@ -485,3 +485,36 @@
   box-shadow: 0 2px 8px #0005;
   border: 1px solid #333a;
 }
+
+/* Dark theme for create new thema section */
+.form-container {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0005;
+  border: 1px solid var(--color-input-border);
+}
+.form-container label {
+  color: var(--color-text-secondary);
+}
+.form-container input,
+.form-container textarea {
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  border: 1px solid var(--color-input-border);
+}
+.form-container input::placeholder,
+.form-container textarea::placeholder {
+  color: var(--color-placeholder);
+}
+.form-container button {
+  background: var(--color-button-blue-bg);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.form-container button:hover {
+  background: var(--color-button-blue-hover);
+}
