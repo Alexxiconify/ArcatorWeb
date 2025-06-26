@@ -469,17 +469,20 @@ async function updateUIBasedOnAuthAndData() {
   hideMainLoading();
 
   if (window.auth.currentUser) {
-    console.log("User logged in.", window.auth.currentUser.uid);
-    let profileReady = false;
-    for (let i = 0; i < 30; i++) { // Max 3 seconds wait
-      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
-        profileReady = true;
-        console.log("currentUser profile ready after", i * 100, "ms.");
-        break;
-      }
-      console.log("Waiting for currentUser to be set. Attempt:", i + 1);
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+    // If window.currentUser is not set, set it from window.auth.currentUser
+    if (!window.currentUser || window.currentUser.uid !== window.auth.currentUser.uid) {
+      window.currentUser = {
+        uid: window.auth.currentUser.uid,
+        displayName: window.auth.currentUser.displayName || `User-${window.auth.currentUser.uid.substring(0, 6)}`,
+        email: window.auth.currentUser.email || null,
+        photoURL: window.auth.currentUser.photoURL || window.DEFAULT_PROFILE_PIC,
+        themePreference: window.DEFAULT_THEME_NAME,
+        isAdmin: window.ADMIN_UIDS.includes(window.auth.currentUser.uid)
+      };
+      console.log("Set window.currentUser from window.auth.currentUser:", window.currentUser);
     }
+
+    let profileReady = true; // No need to wait anymore
 
     if (profileReady) {
       if (formsContentSection) {
@@ -490,16 +493,7 @@ async function updateUIBasedOnAuthAndData() {
       }
       console.log("Forms content visible, login message hidden.");
       renderThematas();
-      renderGlobalThreads();
-    } else {
-      console.warn("currentUser profile not fully loaded after waiting. Showing login message.");
-      showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
-      if (formsContentSection) {
-        formsContentSection.style.display = 'none';
-      }
-      if (mainLoginRequiredMessage) {
-        mainLoginRequiredMessage.style.display = 'block';
-      }
+      renderGlobalThreads?.();
     }
   } else {
     console.log("User NOT logged in. Showing login message.");
@@ -1666,6 +1660,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   await window.firebaseReadyPromise;
   console.log("Firebase ready. Current User:", window.auth.currentUser ? window.auth.currentUser.uid : "None");
 
+  // Only run UI logic after onAuthStateChanged has fired and window.currentUser is set
+  if (window.auth.currentUser) {
+    updateUIBasedOnAuthAndData();
+  } else {
+    // Listen for auth state change and update UI when user is set
+    onAuthStateChanged(window.auth, (user) => {
+      updateUIBasedOnAuthAndData();
+    });
+  }
+
   // Check if Firebase is properly initialized
   if (!window.auth || !window.db) {
     console.error("Firebase not properly initialized. Showing error message.");
@@ -2263,3 +2267,7 @@ const currentThreadInitialComment = document.getElementById('current-thread-init
 const addCommentForm = document.getElementById('add-comment-form');
 const newCommentContentInput = document.getElementById('new-comment-content');
 const commentList = document.getElementById('comment-list');
+const dmSection = document.getElementById('dm-section');
+const editSaveBtn = document.getElementById('edit-save-btn');
+const editCancelBtn = document.getElementById('edit-cancel-btn');
+const editInput = document.getElementById('edit-input');
