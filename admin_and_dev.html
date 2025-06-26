@@ -152,6 +152,59 @@
     .collapsible-content li {
       margin-bottom: 0.25rem; /* Reduce space between list items */
     }
+
+    /* Styles for temporary page tabs (from temp-page-viewer for consistency) */
+    .temp-page-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--color-input-border);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-link) var(--color-bg-navbar);
+    }
+
+    .temp-page-tabs::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .temp-page-tabs::-webkit-scrollbar-track {
+      background: var(--color-bg-navbar);
+      border-radius: 10px;
+    }
+
+    .temp-page-tabs::-webkit-scrollbar-thumb {
+      background-color: var(--color-link);
+      border-radius: 10px;
+      border: 2px solid var(--color-bg-navbar);
+    }
+
+    .temp-page-tab-button {
+      flex-shrink: 0;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      background-color: var(--color-bg-navbar);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    .temp-page-tab-button:hover {
+      background-color: var(--color-link);
+      color: var(--color-button-text);
+    }
+
+    .temp-page-tab-button.active {
+      background-color: var(--color-link);
+      color: var(--color-button-text);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -302,15 +355,15 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="temp-pages-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages.</p>
+            <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages. Use **HTML** for advanced content styling, including collapsible sections.</p>
             <form id="create-temp-page-form" class="space-y-4">
               <div>
                 <label for="temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
                 <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title">
               </div>
               <div>
-                <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
-                <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here..."></textarea>
+                <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (HTML allowed):</label>
+                <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here... Use HTML for styling!"></textarea>
               </div>
               <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
             </form>
@@ -327,7 +380,7 @@
                   <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
-                  <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (Markdown allowed):</label>
+                  <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (HTML allowed):</label>
                   <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
                 </div>
                 <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>

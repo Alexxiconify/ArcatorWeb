@@ -110,9 +110,9 @@ const onfimNotificationsHeader = document.getElementById('onfim-notifications-he
 const onfimNotificationsContent = document.getElementById('onfim-notifications-content');
 
 
-// EasyMDE instances
-let easyMDECreate;
-let easyMDEEdit;
+// EasyMDE instances (No longer using EasyMDE for temporary pages - it will be HTML editor)
+// let easyMDECreate;
+// let easyMDEEdit;
 
 
 /**
@@ -316,7 +316,7 @@ async function createTempPage(title, content) {
     });
     showMessageBox("Temporary page created successfully!", false);
     tempPageTitleInput.value = '';
-    easyMDECreate.value('');
+    tempPageContentInput.value = ''; // Clear content input
     renderTempPages();
     console.log("DEBUG: Temporary page created:", docRef.id);
   } catch (error) {
@@ -366,7 +366,7 @@ async function renderTempPages() {
     li.innerHTML = `
       <span class="font-semibold break-all md:w-3/5">${page.title}</span>
       <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
-        <a href="#" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page" data-id="${page.id}">View</a>
+        <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page">View</a>
         <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}">Edit</button>
         <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-temp-page-btn" data-id="${page.id}">Delete</button>
       </div>
@@ -374,14 +374,7 @@ async function renderTempPages() {
     tempPageList.appendChild(li);
   });
 
-  document.querySelectorAll('.view-temp-page').forEach(link => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      const pageId = event.target.dataset.id;
-      // Assuming temp-page-viewer.html exists for viewing.
-      window.open(`temp-page-viewer.html?id=${pageId}`, '_blank');
-    });
-  });
+  // No longer need separate click listeners for view-temp-page as it's a direct link
   document.querySelectorAll('.edit-temp-page-btn').forEach(button => {
     button.addEventListener('click', (event) => {
       console.log("DEBUG: Edit Temporary Page button clicked.");
@@ -404,18 +397,7 @@ async function renderTempPages() {
 function openEditTempPageModal(id, title, content) {
   currentEditingTempPageId = id;
   editTempPageTitleInput.value = title;
-
-  if (!easyMDEEdit) {
-    easyMDEEdit = new EasyMDE({
-      element: document.getElementById('edit-temp-page-content'),
-      spellChecker: false,
-      forceSync: true,
-      minHeight: "200px",
-      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-    });
-    console.log("DEBUG: easyMDEEdit initialized.");
-  }
-  easyMDEEdit.value(content);
+  editTempPageContentInput.value = content; // Set raw HTML content
   editTempPageModal.style.display = 'flex';
   console.log("DEBUG: Temporary Page Edit Modal opened.");
 }
@@ -428,7 +410,7 @@ if (saveTempPageChangesBtn) {
       return;
     }
     const newTitle = editTempPageTitleInput.value.trim();
-    const newContent = easyMDEEdit.value().trim();
+    const newContent = editTempPageContentInput.value.trim(); // Get raw HTML content
     if (!newTitle || !newContent) {
       showMessageBox("Title and Content cannot be empty.", true);
       return;
@@ -764,17 +746,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.warn("Element with ID 'current-year-admin-dev' not found in admin_and_dev.html.");
   }
 
-  // Initialize EasyMDE for new temp page creation form
-  if (tempPageContentInput) {
-    easyMDECreate = new EasyMDE({
-      element: tempPageContentInput,
-      spellChecker: false,
-      forceSync: true,
-      minHeight: "200px",
-      toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-    });
-    console.log("DEBUG: easyMDECreate initialized.");
-  }
+  // No longer initializing EasyMDE for new temp page creation form
+  // if (tempPageContentInput) {
+  //   easyMDECreate = new EasyMDE({
+  //     element: tempPageContentInput,
+  //     spellChecker: false,
+  //     forceSync: true,
+  //     minHeight: "200px",
+  //     toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
+  //   });
+  //   console.log("DEBUG: easyMDECreate initialized.");
+  // }
 
 
   // After Firebase is set up and page content loaded, update UI based on auth state
@@ -802,7 +784,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   createTempPageForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = tempPageTitleInput.value.trim();
-    const content = easyMDECreate.value().trim();
+    const content = tempPageContentInput.value.trim(); // Get raw HTML content
     if (!title || !content) {
       showMessageBox("Please enter both title and content for the temporary page.", true);
       return;
