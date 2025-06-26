@@ -1531,6 +1531,8 @@ function renderDMMessages() {
 
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
+  // Wait for firebase-init.js to finish setting up Firebase and user
+  await window.firebaseReadyPromise;
   try {
     window.mainLoadingSpinner = document.getElementById('loading-spinner');
     window.formsContentSection = document.getElementById('forms-content');
@@ -1551,10 +1553,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         await addThema(name, description);
       });
     }
-    // Do NOT call renderThematas() here; it will be called after currentUser is set in updateUIBasedOnAuthAndData
-    await updateUIBasedOnAuthAndData();
-    // console.log('[DEBUG] renderThematas() called from DOMContentLoaded'); // Remove this line
-    // renderThematas(); // Remove this line
+    // Do NOT call updateUIBasedOnAuthAndData() here; it will be called by firebase-init.js after currentUser is set
+    // await updateUIBasedOnAuthAndData(); // REMOVE THIS LINE
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
   }
@@ -1777,15 +1777,4 @@ function openEditModal(type, context, oldContent) {
   editModal.style.display = 'flex';
 }
 
-// Test function to verify user and render logic
-function testRenderThematasTiming() {
-  console.log('[TEST] currentUser:', window.currentUser);
-  if (window.currentUser) {
-    console.log('[TEST] renderThematas() should run now.');
-    renderThematas();
-  } else {
-    console.log('[TEST] currentUser not set, skipping renderThematas().');
-  }
-}
-
-testRenderThematasTiming();
+if (typeof updateUIBasedOnAuthAndData === 'function') updateUIBasedOnAuthAndData();
