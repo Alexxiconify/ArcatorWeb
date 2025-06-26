@@ -294,7 +294,7 @@ function initializeUtilityElements() {
   confirmYesButton = document.getElementById('confirm-yes');
   confirmNoButton = document.getElementById('confirm-no');
   closeButton = document.querySelector('.custom-confirm-modal .close-button');
-  
+
   if (customConfirmModal) {
     console.log("Custom confirm modal element found.");
     if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
@@ -302,7 +302,7 @@ function initializeUtilityElements() {
       console.log("Custom confirm modal forcibly hidden.");
     }
   }
-  
+
   console.log("Utility elements initialized.");
 }
 
@@ -636,7 +636,7 @@ async function addGlobalThread(title, content) {
     console.log("New global thread added.");
   } catch (error) {
     console.error("Error creating global thread:", error);
-    showMessageBox(`Error creating global thread: ${error.message}", true);
+    showMessageBox("Error creating globalthread: ${error.message}", true);
   }
 }
 
@@ -682,7 +682,7 @@ async function addGlobalThreadComment(threadId, content) {
     console.log("New comment added to global thread.");
   } catch (error) {
     console.error("Error posting comment:", error);
-    showMessageBox(`Error posting comment: ${error.message}", true);
+    showMessageBox(`Error posting comment: ${error.message}`, true);
   }
 }
 
@@ -1541,7 +1541,7 @@ function canEditPost(post, user) {
   if (!user) return false;
   if (user.isAdmin) return true;
   if (post.createdBy !== user.uid) return false;
-  
+
   const postTime = post.createdAt?.toDate?.() || new Date(post.createdAt);
   const now = new Date();
   return (now - postTime) < window.EDIT_TIMEOUT;
@@ -1595,7 +1595,7 @@ function createReactionButton(emoji, count, hasReacted, itemId, itemType) {
  */
 function showReactionPalette(itemId, itemType, x, y) {
   if (!reactionPalette) return;
-  
+
   reactionPalette.innerHTML = '';
   window.REACTION_TYPES.forEach(emoji => {
     const button = document.createElement('button');
@@ -1607,7 +1607,7 @@ function showReactionPalette(itemId, itemType, x, y) {
     };
     reactionPalette.appendChild(button);
   });
-  
+
   reactionPalette.style.left = `${x}px`;
   reactionPalette.style.top = `${y}px`;
   reactionPalette.style.display = 'block';
@@ -1630,7 +1630,7 @@ function hideReactionPalette() {
  */
 function showEditForm(content, itemId, itemType) {
   if (!editForm || !editInput) return;
-  
+
   currentEditId = { id: itemId, type: itemType };
   editInput.value = content;
   editForm.style.display = 'block';
@@ -1764,7 +1764,7 @@ async function createDM(type, participantIds, groupName = '') {
   try {
     const currentUserId = window.auth.currentUser.uid;
     const allParticipants = [...new Set([currentUserId, ...participantIds])];
-    
+
     const dmData = {
       type: type,
       participants: allParticipants,
@@ -1824,7 +1824,7 @@ async function sendDMMessage(dmId, content) {
   try {
     const currentUserId = window.auth.currentUser.uid;
     const mentions = parseMentions(content);
-    
+
     const messageData = {
       content: content,
       mentions: mentions,
@@ -1863,7 +1863,7 @@ function renderDMList() {
 
   unsubscribeDmList = onSnapshot(q, async (snapshot) => {
     if (!dmList) return;
-    
+
     dmList.innerHTML = '';
     if (snapshot.empty) {
       dmList.innerHTML = '<li class="card p-4 text-center">No conversations yet. Start a new DM!</li>';
@@ -1876,8 +1876,8 @@ function renderDMList() {
       li.className = 'dm-item card cursor-pointer';
       li.onclick = () => selectDM(doc.id, dmData);
 
-      const displayName = dmData.type === window.DM_TYPES.GROUP 
-        ? dmData.groupName 
+      const displayName = dmData.type === window.DM_TYPES.GROUP
+        ? dmData.groupName
         : dmData.participants.find(p => p !== currentUserId) || 'Unknown';
 
       li.innerHTML = `
@@ -1897,10 +1897,10 @@ function renderDMList() {
  */
 function selectDM(dmId, dmData) {
   currentDmId = dmId;
-  
+
   if (dmTitle) {
-    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP 
-      ? dmData.groupName 
+    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP
+      ? dmData.groupName
       : 'Direct Message';
   }
 
@@ -1936,7 +1936,7 @@ function renderDMMessages() {
 
   unsubscribeDmMessages = onSnapshot(q, (snapshot) => {
     if (!dmMessages) return;
-    
+
     dmMessages.innerHTML = '';
     if (snapshot.empty) {
       dmMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet. Start the conversation!</li>';
@@ -1947,7 +1947,7 @@ function renderDMMessages() {
       const message = doc.data();
       const li = document.createElement('li');
       li.className = `message-item ${message.createdBy === currentUserId ? 'own-message' : 'other-message'}`;
-      
+
       li.innerHTML = `
         <div class="message-content">
           <p>${convertMentionsToHTML(message.content)}</p>
@@ -2007,7 +2007,7 @@ function renderTempPages() {
 
   onSnapshot(q, async (snapshot) => {
     if (!tempPagesList) return;
-    
+
     tempPagesList.innerHTML = '';
     if (snapshot.empty) {
       tempPagesList.innerHTML = '<li class="card p-4 text-center">No temporary pages yet. Create one!</li>';
@@ -2076,17 +2076,17 @@ function renderTempPages() {
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
   console.log("Initializing forms page.");
-  
+
   // Initialize DOM elements first
   initializeDOMElements();
   initializeUtilityElements();
-  
+
   // Check if essential elements exist
   if (!mainLoadingSpinner || !formsContentSection || !mainLoginRequiredMessage) {
     console.error("Essential DOM elements not found. Cannot initialize forms page.");
     return;
   }
-  
+
   showMainLoading();
 
   await window.firebaseReadyPromise;
@@ -2129,7 +2129,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   } else {
     console.log("No user logged in, using default theme.");
   }
-  
+
   try {
     const allThemes = await window.getAvailableThemes();
     const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
