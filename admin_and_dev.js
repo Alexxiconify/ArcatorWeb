@@ -70,7 +70,7 @@ const editTodoTaskInput = document.getElementById('edit-todo-task');
 const editTodoWorkerInput = document.getElementById('edit-todo-worker');
 const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
 const editTodoEtaInput = document.getElementById('edit-todo-eta');
-const editTodoNotesInput = document.getElementById('edit-todo-notes');
+const editTodoNotesInput = document.getElementById('todo-notes');
 const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
 let currentEditingTodoId = null;
 
@@ -279,7 +279,7 @@ async function fetchAllTempPages() {
   }
   const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
   try {
-    // FIX: Changed getDocs(q) to getDocs(tempPagesCol) as 'q' was undefined here.
+    // FIX: Removed the undefined 'q' and directly used tempPagesCol for getDocs
     const querySnapshot = await getDocs(tempPagesCol);
     const pages = [];
     querySnapshot.forEach((doc) => {
