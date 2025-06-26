@@ -1,5 +1,4 @@
-// forms.js: Consolidates all JavaScript for the Forms page, including Firebase init,
-// utility functions, theme management, navbar loading, and specific forms page logic.
+// forms.js: Centralized JavaScript for Forms page, encompassing Firebase, utilities, theme, navbar, and core forms logic.
 
 // --- Firebase SDK Imports ---
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -17,10 +16,10 @@ import {
   serverTimestamp,
   onSnapshot,
   getDocs,
-  where // Added where for user profile query
+  where
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Global Firebase Instances and Constants (formerly in firebase-init.js) ---
+// --- Global Firebase Instances and Constants ---
 const firebaseConfig = {
   apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
   authDomain: "arcator-web.firebaseapp.com",
@@ -48,11 +47,11 @@ window.firebaseReadyPromise = new Promise((resolve) => {
   firebaseReadyResolve = resolve;
 });
 
-// Re-enabled: getUserProfileFromFirestore for full functionality
+// Retrieves user profile from Firestore.
 window.getUserProfileFromFirestore = async function(uid) {
   await window.firebaseReadyPromise;
   if (!window.db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+    console.error("Firestore DB not initialized.");
     return null;
   }
   const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
@@ -62,33 +61,33 @@ window.getUserProfileFromFirestore = async function(uid) {
       return { uid: docSnap.id, ...docSnap.data() };
     }
   } catch (error) {
-    console.error("Error fetching user profile from Firestore:", error);
+    console.error("Error fetching user profile:", error);
   }
   return null;
 };
 
-// Re-enabled: setUserProfileInFirestore
+// Sets or updates user profile in Firestore.
 window.setUserProfileInFirestore = async function(uid, profileData) {
   await window.firebaseReadyPromise;
-  if (!window.db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
+  if (!window.db) { console.error("Firestore DB not initialized."); return false; }
   const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
   try {
     await setDoc(userDocRef, profileData, { merge: true });
     if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
-    console.log("DEBUG: User profile updated in Firestore for UID:", uid);
+    console.log("User profile updated in Firestore for UID:", uid);
     return true;
   }
   catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
 };
 
-// Commented out: deleteUserProfileFromFirestore (kept for future re-enablement)
+// Deletes user profile from Firestore (currently commented out).
 window.deleteUserProfileFromFirestore = async function(uid) {
-  // console.log("DEBUG: deleteUserProfileFromFirestore commented out.");
   return false;
 };
 
+// Initializes Firebase app, authentication, and Firestore.
 async function setupFirebaseAndUser() {
-  console.log("DEBUG forms.js (setupFirebaseAndUser): Function called.");
+  console.log("Setup Firebase and user.");
 
   if (getApps().length === 0) {
     let finalFirebaseConfig = firebaseConfig;
@@ -96,40 +95,39 @@ async function setupFirebaseAndUser() {
     if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
       if (typeof __firebase_config === 'string') {
         if (__firebase_config.trim() === '[object Object]') {
-          console.warn("WARN forms.js (setupFirebaseAndUser): __firebase_config provided as literal string '[object Object]'. This is likely an error. Skipping parse.");
+          console.warn("WARN: __firebase_config literal string '[object Object]'. Skipping parse.");
           finalFirebaseConfig = firebaseConfig;
         } else {
           try {
             finalFirebaseConfig = JSON.parse(__firebase_config);
-            console.log("DEBUG forms.js (setupFirebaseAndUser): __firebase_config provided as string and parsed successfully.");
+            console.log("Parsed __firebase_config.");
           } catch (e) {
-            console.error("ERROR forms.js (setupFirebaseAndUser): Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
+            console.error("Error parsing __firebase_config. Using hardcoded config.", e);
             finalFirebaseConfig = firebaseConfig;
           }
         }
       } else if (typeof __firebase_config === 'object') {
         finalFirebaseConfig = __firebase_config;
-        console.log("DEBUG forms.js (setupFirebaseAndUser): __firebase_config provided as object. Using directly.");
+        console.log("Using __firebase_config object directly.");
       } else {
-        console.warn("DEBUG forms.js (setupFirebaseAndUser): __firebase_config provided but not string or object. Retaining hardcoded firebaseConfig. Type:", typeof __firebase_config);
+        console.warn("__firebase_config not string or object. Using hardcoded config. Type:", typeof __firebase_config);
       }
     } else {
-      console.log("DEBUG forms.js (setupFirebaseAndUser): __firebase_config not provided. Using hardcoded firebaseConfig.");
+      console.log("__firebase_config not provided. Using hardcoded config.");
     }
 
     try {
       window.app = initializeApp(finalFirebaseConfig);
       window.auth = getAuth(window.app);
       window.db = getFirestore(window.app);
-      console.log("DEBUG forms.js (setupFirebaseAndUser): Firebase initialized successfully.");
+      console.log("Firebase initialized.");
 
       const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
-        console.log("DEBUG forms.js (onAuthStateChanged): Triggered. User:", user ? user.uid : "none");
+        console.log("Auth state changed. User:", user ? user.uid : "none");
         if (user) {
-          // Now properly fetch user profile
           let userProfile = await window.getUserProfileFromFirestore(user.uid);
           if (!userProfile) {
-            console.log("DEBUG forms.js (onAuthStateChanged): No profile found. Creating default.");
+            console.log("No profile found. Creating default.");
             userProfile = {
               uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
               email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
@@ -139,12 +137,12 @@ async function setupFirebaseAndUser() {
             await window.setUserProfileInFirestore(user.uid, userProfile);
           } else {
             await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
-            userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid); // Ensure isAdmin is updated
+            userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
           }
           window.currentUser = userProfile;
-          console.log("DEBUG forms.js (onAuthStateChanged): currentUser set:", window.currentUser);
+          console.log("currentUser set:", window.currentUser);
         } else {
-          console.log("DEBUG forms.js (onAuthStateChanged): User logged out. currentUser set to null.");
+          console.log("User logged out. currentUser set to null.");
           window.currentUser = null;
         }
         firebaseReadyResolve();
@@ -152,36 +150,37 @@ async function setupFirebaseAndUser() {
       });
 
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        console.log("DEBUG forms.js (setupFirebaseAndUser): Attempting to sign in with custom token.");
+        console.log("Signing in with custom token.");
         await signInWithCustomToken(window.auth, __initial_auth_token)
-          .then(() => console.log("DEBUG forms.js (setupFirebaseAndUser): Signed in with custom token."))
+          .then(() => console.log("Signed in with custom token."))
           .catch((error) => {
-            console.error("ERROR forms.js (setupFirebaseAndUser): Custom token sign-in failed:", error);
+            console.error("Custom token sign-in failed:", error);
           });
       } else {
-        console.log("DEBUG forms.js (setupFirebaseAndUser): __initial_auth_token not defined. Relying on platform for initial auth state.");
+        console.log("__initial_auth_token not defined. Relying on platform for initial auth state.");
       }
     } catch (e) {
-      console.error("ERROR forms.js (setupFirebaseAndUser): Error initializing Firebase:", e);
+      console.error("Error initializing Firebase:", e);
       firebaseReadyResolve();
     }
   } else {
     window.app = getApp();
     window.db = getFirestore(window.app);
     window.auth = getAuth(window.app);
-    console.log("DEBUG forms.js (setupFirebaseAndUser): Firebase app already initialized. Re-using existing instance.");
+    console.log("Firebase app already initialized. Re-using instance.");
     firebaseReadyResolve();
   }
 }
 setupFirebaseAndUser();
 
-// --- Utility Functions (formerly in utils.js) ---
+// --- Utility Functions ---
 const messageBox = document.getElementById('message-box');
 let messageBoxTimeout;
 
+// Displays a temporary message box.
 function showMessageBox(message, isError = false) {
   if (!messageBox) {
-    console.error("Message box element not found. Cannot show message.");
+    console.error("Message box element not found.");
     return;
   }
   if (messageBoxTimeout) {
@@ -200,7 +199,7 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
-// Re-enabled: sanitizeHandle
+// Sanitizes input string for a handle.
 function sanitizeHandle(input) {
   return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
@@ -213,10 +212,10 @@ const confirmNoButton = document.getElementById('confirm-no');
 const closeButton = document.querySelector('.custom-confirm-modal .close-button');
 let resolveConfirmPromise;
 
-// Re-enabled: showCustomConfirm
+// Displays a custom confirmation modal.
 function showCustomConfirm(message, submessage = '') {
   if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
-    console.error("Custom confirmation modal elements not found. Cannot show confirm dialog.");
+    console.error("Custom confirmation modal elements not found.");
     return Promise.resolve(false);
   }
   confirmMessage.textContent = message;
@@ -235,16 +234,16 @@ function showCustomConfirm(message, submessage = '') {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (customConfirmModal) {
-    console.log("DEBUG forms.js (DOMContentLoaded, utils part): custom-confirm-modal element found.");
+    console.log("Custom confirm modal element found.");
     if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
       customConfirmModal.style.display = 'none';
-      console.log("DEBUG forms.js (DOMContentLoaded, utils part): custom-confirm-modal forcibly hidden.");
+      console.log("Custom confirm modal forcibly hidden.");
     }
   }
 });
 
 
-// --- Theme Management Functions (formerly in themes.js) ---
+// --- Theme Management Functions ---
 let _db;
 let _auth;
 let _appId;
@@ -278,18 +277,19 @@ const predefinedThemes = [
   }
 ];
 
+// Sets up Firebase instances for theme management.
 window.setupThemesFirebase = function(dbInstance, authInstance, appIdInstance) {
   _db = dbInstance;
   _auth = authInstance;
   _appId = appIdInstance;
   _themeSelect = document.getElementById('theme-select');
-  console.log("DEBUG forms.js (setupThemesFirebase): Themes Firebase setup complete.");
+  console.log("Themes Firebase setup complete.");
 };
 
-// Re-enabled: fetchCustomThemes
+// Fetches custom themes from Firestore.
 async function fetchCustomThemes() {
   if (!_db || !_auth || !_auth.currentUser) {
-    console.log("DEBUG forms.js (fetchCustomThemes): Not fetching custom themes - DB not ready or user not logged in.");
+    console.log("Not fetching custom themes - DB not ready or user not logged in.");
     return [];
   }
   const userId = _auth.currentUser.uid;
@@ -297,15 +297,15 @@ async function fetchCustomThemes() {
   try {
     const querySnapshot = await getDocs(customThemesColRef);
     const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log("DEBUG forms.js (fetchCustomThemes): Fetched custom themes:", customThemes.length);
+    console.log("Fetched custom themes:", customThemes.length);
     return customThemes;
   } catch (error) {
-    console.error("ERROR forms.js (fetchCustomThemes): Error fetching custom themes:", error);
+    console.error("Error fetching custom themes:", error);
     return [];
   }
 }
 
-// Re-enabled: saveCustomTheme
+// Saves a custom theme to Firestore.
 async function saveCustomTheme(theme) {
   if (!_db || !_auth || !_auth.currentUser) {
     showMessageBox("Please sign in to save custom themes.", true);
@@ -316,16 +316,16 @@ async function saveCustomTheme(theme) {
   try {
     await setDoc(themeDocRef, theme);
     showMessageBox("Theme saved successfully!", false);
-    console.log("DEBUG forms.js (saveCustomTheme): Theme saved for user.", theme.id);
+    console.log("Theme saved for user.", theme.id);
     return true;
   } catch (error) {
-    console.error("ERROR forms.js (saveCustomTheme): Error saving custom theme:", error);
+    console.error("Error saving custom theme:", error);
     showMessageBox("Failed to save theme.", true);
     return false;
   }
 }
 
-// Re-enabled: deleteCustomTheme
+// Deletes a custom theme from Firestore.
 async function deleteCustomTheme(themeId) {
   if (!_db || !_auth || !_auth.currentUser) {
     showMessageBox("Please sign in to delete custom themes.", true);
@@ -336,36 +336,37 @@ async function deleteCustomTheme(themeId) {
   try {
     await deleteDoc(themeDocRef);
     showMessageBox("Theme deleted successfully!", false);
-    console.log("DEBUG forms.js (deleteCustomTheme): Theme deleted.", themeId);
+    console.log("Theme deleted.", themeId);
     return true;
   } catch (error) {
-    console.error("ERROR forms.js (deleteCustomTheme): Error deleting custom theme:", error);
+    console.error("Error deleting custom theme:", error);
     showMessageBox("Failed to delete theme.", true);
     return false;
   }
 }
 
+// Applies a theme by setting CSS variables.
 window.applyTheme = async function(themeId, themeObject = null) {
   let themeToApply = themeObject;
   if (!themeToApply) {
-    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())]; // Re-enabled fetching custom themes
+    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
     themeToApply = _allThemes.find(t => t.id === themeId);
   }
   if (!themeToApply) {
-    console.warn(`WARN forms.js (applyTheme): Theme '${themeId}' not found. Applying default theme.`);
+    console.warn(`Theme '${themeId}' not found. Applying default theme.`);
     themeToApply = predefinedThemes.find(t => t.id === window.DEFAULT_THEME_NAME) || predefinedThemes[0];
   }
   if (themeToApply && themeToApply.variables) {
     for (const [key, value] of Object.entries(themeToApply.variables)) {
       document.documentElement.style.setProperty(key, value);
     }
-    console.log(`DEBUG forms.js (applyTheme): Applied theme: ${themeToApply.name} (${themeToApply.id})`);
+    console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
   } else {
-    console.error(`ERROR forms.js (applyTheme): Failed to apply theme: ${themeId}. Variables not found.`);
+    console.error(`Failed to apply theme: ${themeId}. Variables not found.`);
   }
 };
 
-// Re-enabled: populateThemeSelect
+// Populates the theme selection dropdown.
 async function populateThemeSelect() {
   _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
   if (_themeSelect) {
@@ -376,24 +377,25 @@ async function populateThemeSelect() {
       option.textContent = theme.name;
       _themeSelect.appendChild(option);
     });
-    console.log("DEBUG forms.js (populateThemeSelect): Theme select populated with", _allThemes.length, "themes.");
+    console.log("Theme select populated with", _allThemes.length, "themes.");
   } else {
-    console.log("DEBUG forms.js (populateThemeSelect): Theme select element not found.");
+    console.log("Theme select element not found.");
   }
 }
 
+// Returns available themes.
 window.getAvailableThemes = async function() {
-  if (_allThemes.length === 0) { await populateThemeSelect(); } // Re-enabled populateThemeSelect call
+  if (_allThemes.length === 0) { await populateThemeSelect(); }
   return _allThemes;
 };
 
-// --- Navbar Loading Function (formerly in navbar.js) ---
+// --- Navbar Loading Function ---
 window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
-  console.log("DEBUG forms.js (loadNavbar): Function called.");
+  console.log("Loading navbar.");
 
   if (navbarPlaceholder) {
-    console.log("DEBUG forms.js (loadNavbar): 'navbar-placeholder' element found.");
+    console.log("Navbar placeholder found.");
     try {
       const navbarHtml = `
         <nav class="navbar-bg p-4 shadow-lg w-full">
@@ -412,20 +414,20 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
         </nav>
       `;
       navbarPlaceholder.innerHTML = navbarHtml;
-      console.log("DEBUG forms.js (loadNavbar): 'navbar.html' content injected successfully.");
+      console.log("Navbar content injected.");
 
       const signoutButton = document.getElementById('navbar-signout-btn');
       if (signoutButton) {
         signoutButton.addEventListener('click', async () => {
           try {
             await window.auth.signOut();
-            console.log("DEBUG forms.js (navbar signout): User signed out.");
-            window.location.href = 'users.html'; // Changed to users.html
+            console.log("User signed out.");
+            window.location.href = 'users.html';
           } catch (error) {
-            console.error("ERROR forms.js (navbar signout): Error signing out:", error);
+            console.error("Error signing out:", error);
           }
         });
-        console.log("DEBUG forms.js (loadNavbar): Signout button event listener attached.");
+        console.log("Signout button event listener attached.");
       }
 
       const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
@@ -440,17 +442,17 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
         if (navbarUserIcon) navbarUserIcon.src = user.photoURL || defaultProfilePic;
         if (navbarUserDisplayName) navbarUserDisplayName.textContent = user.displayName || 'Account';
         if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = user.uid ? user.uid.substring(0, 6) : '';
-        console.log("DEBUG forms.js (loadNavbar): Navbar UI updated for logged-in user.");
+        console.log("Navbar UI updated for logged-in user.");
       } else {
         if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
         if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
         if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
         if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
         if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
-        console.log("DEBUG forms.js (loadNavbar): Navbar UI updated for logged-out user.");
+        console.log("Navbar UI updated for logged-out user.");
       }
     } catch (error) {
-      console.error("ERROR forms.js (loadNavbar): Failed to load navigation bar:", error);
+      console.error("Failed to load navigation bar:", error);
       const manualNavbar = `
         <nav class="navbar-bg p-4 shadow-lg w-full">
           <div class="container mx-auto flex justify-between items-center">
@@ -462,10 +464,10 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
         </nav>
       `;
       if (navbarPlaceholder) navbarPlaceholder.innerHTML = manualNavbar;
-      console.log("DEBUG forms.js (loadNavbar): Fallback manual navbar injected due to error.");
+      console.log("Fallback manual navbar injected due to error.");
     }
   } else {
-    console.error("ERROR forms.js (loadNavbar): Navbar placeholder element not found.");
+    console.error("Navbar placeholder element not found.");
   }
 };
 
@@ -477,29 +479,26 @@ const mainLoadingSpinner = document.getElementById('loading-spinner');
 const formsContentSection = document.getElementById('forms-content');
 const mainLoginRequiredMessage = document.getElementById('login-required-message');
 
-// Re-enabled: createThemaForm and related inputs
 const createThemaForm = document.getElementById('create-thema-form');
 const newThemaNameInput = document.getElementById('new-thema-name');
 const newThemaDescriptionInput = document.getElementById('new-thema-description');
 const themaList = document.getElementById('thema-list');
 
-// Commented out: threadsSection and related elements (for now)
 const threadsSection = document.getElementById('threads-section');
 const backToThematasBtn = document.getElementById('back-to-thematas-btn');
 const currentThemaTitle = document.getElementById('current-thema-title');
 const currentThemaDescription = document.getElementById('current-thema-description');
-const createThreadForm = document.getElementById('create-thread-form'); // Corrected from null
-const newThreadTitleInput = document.getElementById('new-thread-title'); // Corrected from null
-const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment'); // Corrected from null
+const createThreadForm = document.getElementById('create-thread-form');
+const newThreadTitleInput = document.getElementById('new-thread-title');
+const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
 const threadList = document.getElementById('thread-list');
 
-// Commented out: commentsSection and related elements (for now)
 const commentsSection = document.getElementById('comments-section');
 const backToThreadsBtn = document.getElementById('back-to-threads-btn');
 const currentThreadTitle = document.getElementById('current-thread-title');
 const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
-const addCommentForm = document.getElementById('add-comment-form'); // Corrected from null
-const newCommentContentInput = document.getElementById('new-comment-content'); // Corrected from null
+const addCommentForm = document.getElementById('add-comment-form');
+const newCommentContentInput = document.getElementById('new-comment-content');
 const commentList = document.getElementById('comment-list');
 
 let currentThemaId = null;
@@ -508,54 +507,57 @@ let unsubscribeThemaComments = null;
 let unsubscribeThreads = null;
 let unsubscribeThematas = null;
 
+// Displays the main loading spinner.
 function showMainLoading() {
   if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'flex';
   if (formsContentSection) formsContentSection.style.display = 'none';
   if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
-  console.log("DEBUG forms.js (showMainLoading): Spinner visible, content hidden.");
+  console.log("Spinner visible, content hidden.");
 }
 
+// Hides the main loading spinner.
 function hideMainLoading() {
   if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'none';
-  console.log("DEBUG forms.js (hideMainLoading): Spinner hidden.");
+  console.log("Spinner hidden.");
 }
 
+// Updates UI visibility based on authentication and user profile readiness.
 async function updateUIBasedOnAuthAndData() {
-  console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Called.");
+  console.log("Updating UI based on auth and data.");
   hideMainLoading();
 
   if (window.auth.currentUser) {
-    console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): User is logged in.", window.auth.currentUser.uid);
+    console.log("User logged in.", window.auth.currentUser.uid);
     let profileReady = false;
-    for (let i = 0; i < 30; i++) { // Max 3 seconds wait (30 * 100ms)
+    for (let i = 0; i < 30; i++) { // Max 3 seconds wait
       if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
         profileReady = true;
-        console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): currentUser profile ready after", i * 100, "ms.");
+        console.log("currentUser profile ready after", i * 100, "ms.");
         break;
       }
-      console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Waiting for currentUser to be set. Attempt:", i + 1);
+      console.log("Waiting for currentUser to be set. Attempt:", i + 1);
       await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
     }
 
     if (profileReady) {
       if (formsContentSection) formsContentSection.style.display = 'block';
       if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
-      console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Forms content visible, login message hidden.");
-      renderThematas(); // Re-enabled: Start real-time listening for thémata
+      console.log("Forms content visible, login message hidden.");
+      renderThematas();
     } else {
-      console.warn("WARN forms.js (updateUIBasedOnAuthAndData): currentUser profile not fully loaded after waiting. Showing login message.");
+      console.warn("currentUser profile not fully loaded after waiting. Showing login message.");
       showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
       if (formsContentSection) formsContentSection.style.display = 'none';
       if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
     }
   } else {
-    console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): User is NOT logged in. Showing login message.");
+    console.log("User NOT logged in. Showing login message.");
     if (formsContentSection) formsContentSection.style.display = 'none';
     if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
   }
 }
 
-// Re-enabled: addThema
+// Adds a new thema to Firestore.
 async function addThema(name, description) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to create a théma.", true);
@@ -578,19 +580,19 @@ async function addThema(name, description) {
     showMessageBox("Théma created successfully!", false);
     newThemaNameInput.value = '';
     newThemaDescriptionInput.value = '';
-    console.log("DEBUG forms.js (addThema): New théma added.");
+    console.log("New théma added.");
   } catch (error) {
-    console.error("ERROR forms.js (addThema): Error creating théma:", error);
+    console.error("Error creating théma:", error);
     showMessageBox(`Error creating théma: ${error.message}`, true);
   }
 }
 
-// Re-enabled: renderThematas
+// Renders thémata from Firestore in real-time.
 function renderThematas() {
-  console.log("DEBUG forms.js (renderThematas): Called. DB:", !!window.db);
+  console.log("Rendering thematas. DB:", !!window.db);
   if (unsubscribeThematas) {
     unsubscribeThematas();
-    console.log("DEBUG forms.js (renderThematas): Unsubscribed from previous thémata listener.");
+    console.log("Unsubscribed from previous thémata listener.");
   }
   if (!window.db) {
     themaList.innerHTML = '<li class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</li>';
@@ -600,16 +602,14 @@ function renderThematas() {
   const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
   const q = query(thematasCol, orderBy("createdAt", "desc"));
 
-  unsubscribeThematas = onSnapshot(q, async (snapshot) => { // Made async to await user profiles
-    console.log("DEBUG forms.js (renderThematas): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+  unsubscribeThematas = onSnapshot(q, async (snapshot) => {
+    console.log("onSnapshot callback fired for thematas. Changes:", snapshot.docChanges().length);
     themaList.innerHTML = '';
     if (snapshot.empty) {
       themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
       return;
     }
 
-    // Fetch user profiles for display names
-    const userProfilePromises = [];
     const createdByUids = new Set();
     snapshot.forEach(doc => {
       const thema = doc.data();
@@ -621,26 +621,20 @@ function renderThematas() {
     const userProfiles = {};
     if (createdByUids.size > 0) {
       const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      // Use 'in' query if Firebase allows for fetching multiple user profiles
-      // Note: 'in' operator has a limit of 10 items. For more, multiple queries or a different approach is needed.
       const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
-      userProfilePromises.push(getDocs(userQuery).then(userSnapshot => {
+      await getDocs(userQuery).then(userSnapshot => {
         userSnapshot.forEach(userDoc => {
           const userData = userDoc.data();
           userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
         });
-      }).catch(error => console.error("Error fetching user profiles for thematas:", error)));
+      }).catch(error => console.error("Error fetching user profiles for thematas:", error));
     }
-
-    // Wait for all user profiles to be fetched before rendering
-    await Promise.all(userProfilePromises);
 
     snapshot.forEach((doc) => {
       const thema = doc.data();
       const li = document.createElement('li');
       li.classList.add('thema-item', 'card');
       const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
-      // Prioritize fetched display name, then existing, then 'Unknown'
       const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
 
       li.innerHTML = `
@@ -658,7 +652,7 @@ function renderThematas() {
         const themaId = event.target.dataset.themaId;
         const themaName = event.target.dataset.themaName;
         const themaDescription = event.target.dataset.themaDescription;
-        console.log(`DEBUG forms.js (renderThematas): View Threads clicked for themaId: ${themaId}`);
+        console.log(`View Threads clicked for themaId: ${themaId}`);
         displayThreadsForThema(themaId, themaName, themaDescription);
       });
     });
@@ -666,7 +660,7 @@ function renderThematas() {
     document.querySelectorAll('.delete-thema-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const themaId = event.target.dataset.themaId;
-        console.log(`DEBUG forms.js (renderThematas): Delete Théma clicked for themaId: ${themaId}`);
+        console.log(`Delete Théma clicked for themaId: ${themaId}`);
         const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
         if (confirmed) {
           await deleteThemaAndSubcollections(themaId);
@@ -676,15 +670,15 @@ function renderThematas() {
       });
     });
   }, (error) => {
-    console.error("ERROR forms.js (renderThematas): Error fetching thémata:", error);
+    console.error("Error fetching thémata:", error);
     themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
   });
 }
 
-// Re-enabled: deleteThemaAndSubcollections
+// Deletes a thema and all its subcollections (threads, comments).
 async function deleteThemaAndSubcollections(themaId) {
   try {
-    console.log(`DEBUG forms.js (deleteThemaAndSubcollections): Deleting thema: ${themaId}`);
+    console.log(`Deleting thema: ${themaId}`);
     const threadsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const threadsSnapshot = await getDocs(threadsRef);
     for (const threadDoc of threadsSnapshot.docs) {
@@ -698,14 +692,14 @@ async function deleteThemaAndSubcollections(themaId) {
     await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId));
 
     showMessageBox("Théma and all its content deleted successfully!", false);
-    console.log(`DEBUG forms.js (deleteThemaAndSubcollections): Thema ${themaId} and all content deleted.`);
+    console.log(`Thema ${themaId} and all content deleted.`);
   } catch (error) {
-    console.error("ERROR forms.js (deleteThemaAndSubcollections): Error deleting théma and subcollections:", error);
+    console.error("Error deleting théma and subcollections:", error);
     showMessageBox(`Error deleting théma: ${error.message}`, true);
   }
 }
 
-
+// Displays threads for a selected thema.
 function displayThreadsForThema(themaId, themaName, themaDescription) {
   currentThemaId = themaId;
   currentThemaTitle.textContent = `Théma: ${themaName}`;
@@ -719,10 +713,11 @@ function displayThreadsForThema(themaId, themaName, themaDescription) {
   threadsSection.style.display = 'block';
   commentsSection.style.display = 'none';
 
-  console.log(`DEBUG forms.js (displayThreadsForThema): Displaying threads for thema: ${themaId}`);
+  console.log(`Displaying threads for thema: ${themaId}`);
   renderThreads();
 }
 
+// Adds a new comment thread to Firestore.
 async function addCommentThread(themaId, title, initialComment) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to create a thread.", true);
@@ -745,18 +740,19 @@ async function addCommentThread(themaId, title, initialComment) {
     showMessageBox("Thread created successfully!", false);
     newThreadTitleInput.value = '';
     newThreadInitialCommentInput.value = '';
-    console.log("DEBUG forms.js (addCommentThread): New thread added.");
+    console.log("New thread added.");
   } catch (error) {
-    console.error("ERROR forms.js (addCommentThread): Error creating thread:", error);
+    console.error("Error creating thread:", error);
     showMessageBox(`Error creating thread: ${error.message}`, true);
   }
 }
 
+// Renders comment threads for the current thema in real-time.
 function renderThreads() {
-  console.log("DEBUG forms.js (renderThreads): Called. DB:", !!window.db, "currentThemaId:", currentThemaId);
+  console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
   if (unsubscribeThreads) {
     unsubscribeThreads();
-    console.log("DEBUG forms.js (renderThreads): Unsubscribed from previous threads listener.");
+    console.log("Unsubscribed from previous threads listener.");
   }
   if (!window.db || !currentThemaId) {
     threadList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Théma to view threads.</li>';
@@ -766,16 +762,14 @@ function renderThreads() {
   const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`);
   const q = query(threadsCol, orderBy("createdAt", "desc"));
 
-  unsubscribeThreads = onSnapshot(q, async (snapshot) => { // Made async to await user profiles
-    console.log("DEBUG forms.js (renderThreads): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+  unsubscribeThreads = onSnapshot(q, async (snapshot) => {
+    console.log("onSnapshot callback fired for threads. Changes:", snapshot.docChanges().length);
     threadList.innerHTML = '';
     if (snapshot.empty) {
       threadList.innerHTML = '<li class="card p-4 text-center">No threads yet. Be the first to start one!</li>';
       return;
     }
 
-    // Fetch user profiles for display names for threads
-    const threadUserPromises = [];
     const threadCreatedByUids = new Set();
     snapshot.forEach(doc => {
       const thread = doc.data();
@@ -788,14 +782,13 @@ function renderThreads() {
     if (threadCreatedByUids.size > 0) {
       const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
       const threadUserQuery = query(usersRef, where('uid', 'in', Array.from(threadCreatedByUids)));
-      threadUserPromises.push(getDocs(threadUserQuery).then(userSnapshot => {
+      await getDocs(threadUserQuery).then(userSnapshot => {
         userSnapshot.forEach(userDoc => {
           const userData = userDoc.data();
           threadUserProfiles[userDoc.id] = userData.displayName || 'Unknown User';
         });
-      }).catch(error => console.error("Error fetching user profiles for threads:", error)));
+      }).catch(error => console.error("Error fetching user profiles for threads:", error));
     }
-    await Promise.all(threadUserPromises); // Wait for thread user profiles
 
     snapshot.forEach((doc) => {
       const thread = doc.data();
@@ -819,7 +812,7 @@ function renderThreads() {
         const threadId = event.target.dataset.threadId;
         const threadTitle = event.target.dataset.threadTitle;
         const threadInitialComment = event.target.dataset.threadInitialComment;
-        console.log(`DEBUG forms.js (renderThreads): View Comments clicked for threadId: ${threadId}`);
+        console.log(`View Comments clicked for threadId: ${threadId}`);
         displayCommentsForThread(threadId, threadTitle, threadInitialComment);
       });
     });
@@ -827,7 +820,7 @@ function renderThreads() {
     document.querySelectorAll('.delete-thread-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const threadId = event.target.dataset.threadId;
-        console.log(`DEBUG forms.js (renderThreads): Delete Thread clicked for threadId: ${threadId}`);
+        console.log(`Delete Thread clicked for threadId: ${threadId}`);
         const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
         if (confirmed) {
           await deleteThreadAndSubcollection(currentThemaId, threadId);
@@ -837,14 +830,15 @@ function renderThreads() {
       });
     });
   }, (error) => {
-    console.error("ERROR forms.js (renderThreads): Error fetching threads:", error);
+    console.error("Error fetching threads:", error);
     threadList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading threads: ${error.message}</li>`;
   });
 }
 
+// Deletes a thread and its comments.
 async function deleteThreadAndSubcollection(themaId, threadId) {
   try {
-    console.log(`DEBUG forms.js (deleteThreadAndSubcollection): Deleting thread: ${threadId}`);
+    console.log(`Deleting thread: ${threadId}`);
     const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     const commentsSnapshot = await getDocs(commentsRef);
     for (const commentDoc of commentsSnapshot.docs) {
@@ -853,14 +847,14 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
     await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId));
 
     showMessageBox("Thread and its comments deleted successfully!", false);
-    console.log(`DEBUG forms.js (deleteThreadAndSubcollection): Thread ${threadId} and comments deleted.`);
+    console.log(`Thread ${threadId} and comments deleted.`);
   } catch (error) {
-    console.error("ERROR forms.js (deleteThreadAndSubcollection): Error deleting thread and subcollection:", error);
+    console.error("Error deleting thread and subcollection:", error);
     showMessageBox(`Error deleting thread: ${error.message}`, true);
   }
 }
 
-
+// Displays comments for a selected thread.
 function displayCommentsForThread(threadId, threadTitle, threadInitialComment) {
   currentThreadId = threadId;
   currentThreadTitle.textContent = `Thread: ${threadTitle}`;
@@ -869,10 +863,11 @@ function displayCommentsForThread(threadId, threadTitle, threadInitialComment) {
   threadsSection.style.display = 'none';
   commentsSection.style.display = 'block';
 
-  console.log(`DEBUG forms.js (displayCommentsForThread): Displaying comments for thread: ${threadId}`);
+  console.log(`Displaying comments for thread: ${threadId}`);
   renderComments();
 }
 
+// Adds a new comment to Firestore.
 async function addComment(themaId, threadId, content) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to add a comment.", true);
@@ -893,18 +888,19 @@ async function addComment(themaId, threadId, content) {
     });
     showMessageBox("Comment posted successfully!", false);
     newCommentContentInput.value = '';
-    console.log("DEBUG forms.js (addComment): New comment added.");
+    console.log("New comment added.");
   } catch (error) {
-    console.error("ERROR forms.js (addComment): Error posting comment:", error);
+    console.error("Error posting comment:", error);
     showMessageBox(`Error posting comment: ${error.message}`, true);
   }
 }
 
+// Renders comments for the current thread in real-time.
 function renderComments() {
-  console.log("DEBUG forms.js (renderComments): Called. DB:", !!window.db, "currentThemaId:", currentThemaId, "currentThreadId:", currentThreadId);
+  console.log("Rendering comments. DB:", !!window.db, "currentThemaId:", currentThemaId, "currentThreadId:", currentThreadId);
   if (unsubscribeThemaComments) {
     unsubscribeThemaComments();
-    console.log("DEBUG forms.js (renderComments): Unsubscribed from previous comments listener.");
+    console.log("Unsubscribed from previous comments listener.");
   }
   if (!window.db || !currentThemaId || !currentThreadId) {
     commentList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Thread to view comments.</li>';
@@ -915,15 +911,13 @@ function renderComments() {
   const q = query(commentsCol, orderBy("createdAt", "asc"));
 
   unsubscribeThemaComments = onSnapshot(q, async (snapshot) => {
-    console.log("DEBUG forms.js (renderComments): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+    console.log("onSnapshot callback fired for comments. Changes:", snapshot.docChanges().length);
     commentList.innerHTML = '';
     if (snapshot.empty) {
       commentList.innerHTML = '<li class="card p-4 text-center">No comments yet. Be the first to comment!</li>';
       return;
     }
 
-    // Fetch user profiles for display names for comments
-    const commentUserPromises = [];
     const commentCreatedByUids = new Set();
     snapshot.forEach(doc => {
       const comment = doc.data();
@@ -936,14 +930,13 @@ function renderComments() {
     if (commentCreatedByUids.size > 0) {
       const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
       const commentUserQuery = query(usersRef, where('uid', 'in', Array.from(commentCreatedByUids)));
-      commentUserPromises.push(getDocs(commentUserQuery).then(userSnapshot => {
+      await getDocs(commentUserQuery).then(userSnapshot => {
         userSnapshot.forEach(userDoc => {
           const userData = userDoc.data();
           commentUserProfiles[userDoc.id] = userData.displayName || 'Unknown User';
         });
-      }).catch(error => console.error("Error fetching user profiles for comments:", error)));
+      }).catch(error => console.error("Error fetching user profiles for comments:", error));
     }
-    await Promise.all(commentUserPromises); // Wait for comment user profiles
 
     snapshot.forEach((doc) => {
       const comment = doc.data();
@@ -964,7 +957,7 @@ function renderComments() {
     document.querySelectorAll('.delete-comment-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const commentId = event.target.dataset.commentId;
-        console.log(`DEBUG forms.js (renderComments): Delete Comment clicked for commentId: ${commentId}`);
+        console.log(`Delete Comment clicked for commentId: ${commentId}`);
         const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
         if (confirmed) {
           await deleteComment(currentThemaId, currentThreadId, commentId);
@@ -974,19 +967,20 @@ function renderComments() {
       });
     });
   }, (error) => {
-    console.error("ERROR forms.js (renderComments): Error fetching comments:", error);
+    console.error("Error fetching comments:", error);
     commentList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading comments: ${error.message}</li>`;
   });
 }
 
+// Deletes a comment.
 async function deleteComment(themaId, threadId, commentId) {
   try {
-    console.log(`DEBUG forms.js (deleteComment): Deleting comment: ${commentId}`);
+    console.log(`Deleting comment: ${commentId}`);
     await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId));
     showMessageBox("Comment deleted successfully!", false);
-    console.log(`DEBUG forms.js (deleteComment): Comment ${commentId} deleted.`);
+    console.log(`Comment ${commentId} deleted.`);
   } catch (error) {
-    console.error("ERROR forms.js (deleteComment): Error deleting comment:", error);
+    console.error("Error deleting comment:", error);
     showMessageBox(`Error deleting comment: ${error.message}`, true);
   }
 }
@@ -994,59 +988,59 @@ async function deleteComment(themaId, threadId, commentId) {
 
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Initializing page.");
+  console.log("Initializing page.");
   showMainLoading();
 
   await window.firebaseReadyPromise;
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Firebase ready. Current User:", window.auth.currentUser ? window.auth.currentUser.uid : "None");
+  console.log("Firebase ready. Current User:", window.auth.currentUser ? window.auth.currentUser.uid : "None");
 
   window.setupThemesFirebase(window.db, window.auth, window.appId);
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Themes setup complete.");
+  console.log("Themes setup complete.");
 
   await window.loadNavbar(window.auth.currentUser, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Navbar loaded.");
+  console.log("Navbar loaded.");
 
   let userThemePreference = window.DEFAULT_THEME_NAME;
   if (window.currentUser && window.currentUser.themePreference) {
     userThemePreference = window.currentUser.themePreference;
-    console.log("DEBUG forms.js (DOMContentLoaded listener): User theme preference found:", userThemePreference);
+    console.log("User theme preference found:", userThemePreference);
   } else if (window.currentUser) {
-    console.log("DEBUG forms.js (DOMContentLoaded listener): No specific theme preference for logged-in user, using default.");
+    console.log("No specific theme preference for logged-in user, using default.");
   } else {
-    console.log("DEBUG forms.js (DOMContentLoaded listener): No user logged in, using default theme.");
+    console.log("No user logged in, using default theme.");
   }
   const allThemes = await window.getAvailableThemes();
   const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
   window.applyTheme(themeToApply.id, themeToApply);
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Theme applied.");
+  console.log("Theme applied.");
 
   onAuthStateChanged(window.auth, (user) => {
-    console.log("DEBUG forms.js (onAuthStateChanged listener at end of DOMContentLoaded): User state changed. User:", user ? user.uid : "None");
+    console.log("Auth state changed. User:", user ? user.uid : "None");
     updateUIBasedOnAuthAndData();
   });
 
   const currentYearElement = document.getElementById('current-year-forms');
   if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear().toString();
-    console.log("DEBUG forms.js (DOMContentLoaded listener): Footer year set.");
+    console.log("Footer year set.");
   }
 
   createThemaForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    console.log("DEBUG forms.js (createThemaForm submit): Form submitted.");
+    console.log("Create Thema form submitted.");
     const name = newThemaNameInput.value.trim();
     const description = newThemaDescriptionInput.value.trim();
     if (name && description) {
       await addThema(name, description);
     } else {
       showMessageBox("Please fill in both Théma Name and Description.", true);
-      console.log("DEBUG forms.js (createThemaForm submit): Missing name or description.");
+      console.log("Missing thema name or description.");
     }
   });
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Create Théma form listener attached.");
+  console.log("Create Théma form listener attached.");
 
   backToThematasBtn?.addEventListener('click', () => {
-    console.log("DEBUG forms.js (backToThematasBtn click): Back to Thémata button clicked.");
+    console.log("Back to Thémata button clicked.");
     threadsSection.style.display = 'none';
     commentsSection.style.display = 'none';
     if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
@@ -1064,26 +1058,26 @@ document.addEventListener('DOMContentLoaded', async function() {
       unsubscribeThreads();
       unsubscribeThreads = null;
     }
-    console.log("DEBUG forms.js (backToThematasBtn click): Returned to thémata list view.");
+    console.log("Returned to thémata list view.");
   });
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Back to Thémata button listener attached.");
+  console.log("Back to Thémata button listener attached.");
 
   createThreadForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    console.log("DEBUG forms.js (createThreadForm submit): Form submitted.");
+    console.log("Create Thread form submitted.");
     const title = newThreadTitleInput.value.trim();
     const initialComment = newThreadInitialCommentInput.value.trim();
     if (currentThemaId && title && initialComment) {
       await addCommentThread(currentThemaId, title, initialComment);
     } else {
       showMessageBox("Please fill in both Thread Title and Initial Comment.", true);
-      console.log("DEBUG forms.js (createThreadForm submit): Missing title or initial comment.");
+      console.log("Missing thread title or initial comment.");
     }
   });
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Create Thread form listener attached.");
+  console.log("Create Thread form listener attached.");
 
   backToThreadsBtn?.addEventListener('click', () => {
-    console.log("DEBUG forms.js (backToThreadsBtn click): Back to Threads button clicked.");
+    console.log("Back to Threads button clicked.");
     commentsSection.style.display = 'none';
     threadsSection.style.display = 'block';
     currentThreadId = null;
@@ -1091,20 +1085,20 @@ document.addEventListener('DOMContentLoaded', async function() {
       unsubscribeThemaComments();
       unsubscribeThemaComments = null;
     }
-    console.log("DEBUG forms.js (backToThreadsBtn click): Returned to threads list view.");
+    console.log("Returned to threads list view.");
   });
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Back to Threads button listener attached.");
+  console.log("Back to Threads button listener attached.");
 
   addCommentForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    console.log("DEBUG forms.js (addCommentForm submit): Form submitted.");
+    console.log("Add Comment form submitted.");
     const content = newCommentContentInput.value.trim();
     if (currentThemaId && currentThreadId && content) {
       await addComment(currentThemaId, currentThreadId, content);
     } else {
       showMessageBox("Please type your comment.", true);
-      console.log("DEBUG forms.js (addCommentForm submit): Missing comment content.");
+      console.log("Missing comment content.");
     }
   });
-  console.log("DEBUG forms.js (DOMContentLoaded listener): Add Comment form listener attached.");
+  console.log("Add Comment form listener attached.");
 });
