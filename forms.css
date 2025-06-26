@@ -535,3 +535,42 @@
 .form-container button:hover {
   background: var(--color-button-blue-hover);
 }
+
+/* Consistent card and item spacing */
+.card, .thema-item, .thread-item, .comment-item {
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-input-border, #333a);
+  background: var(--color-bg-card, #23272e);
+}
+
+/* Right-aligned actions */
+.actions-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Reaction bar improvements */
+.reactions-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Section spacing utility */
+.section-spacing {
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .card, .thema-item, .thread-item, .comment-item {
+    padding: 1rem;
+  }
+  .actions-right {
+    flex-wrap: wrap;
+  }
+}

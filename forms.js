@@ -500,8 +500,8 @@ function renderThemaBoxes(themasArr) {
       const headerHtml = `
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-          ${window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId) ? `
-            <div class="flex gap-2">
+          ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `
+            <div class="actions-right">
               <button class="edit-thema-btn" title="Edit"><span class="material-icons text-orange-400">edit</span></button>
               <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
             </div>
@@ -952,7 +952,7 @@ function renderThreads() {
         <div class="flex items-center mb-2">
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, currentThemaId)}</div>
-          <div class="thread-actions ml-auto">
+          <div class="thread-actions actions-right ml-auto">
             ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${threadDoc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
             ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${threadDoc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : '')}
           </div>
