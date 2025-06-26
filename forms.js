@@ -174,13 +174,11 @@ async function setupFirebaseAndUser() {
               userProfile = {
                 uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
                 email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
-                createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME,
-                isAdmin: window.ADMIN_UIDS.includes(user.uid)
+                createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME
               };
               await window.setUserProfileInFirestore(user.uid, userProfile);
             } else {
-              await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
-              userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
+              await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date() });
             }
             window.currentUser = userProfile;
             console.log("[DEBUG] currentUser set:", window.currentUser);
@@ -455,8 +453,7 @@ async function updateUIBasedOnAuthAndData() {
         displayName: window.auth.currentUser.displayName || `User-${window.auth.currentUser.uid.substring(0, 6)}`,
         email: window.auth.currentUser.email || null,
         photoURL: window.auth.currentUser.photoURL || window.DEFAULT_PROFILE_PIC,
-        themePreference: window.DEFAULT_THEME_NAME,
-        isAdmin: window.ADMIN_UIDS.includes(window.auth.currentUser.uid)
+        themePreference: window.DEFAULT_THEME_NAME
       };
       console.log("[DEBUG] Set window.currentUser from window.auth.currentUser:", window.currentUser);
     }
