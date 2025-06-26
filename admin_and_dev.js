@@ -10,7 +10,7 @@ import {
   DEFAULT_THEME_NAME,
   updateUserProfileInFirestore,
   currentUser as firebaseCurrentUser,
-  onAuthStateChanged // Now correctly imported from firebase-init.js
+  onAuthStateChanged
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -69,7 +69,7 @@ const editTodoModal = document.getElementById('edit-todo-modal');
 const editTodoTaskInput = document.getElementById('edit-todo-task');
 const editTodoWorkerInput = document.getElementById('edit-todo-worker');
 const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
-const editTodoEtaInput = document.getElementById('edit-todo-eta'); // Corrected typo
+const editTodoEtaInput = document.getElementById('edit-todo-eta');
 const editTodoNotesInput = document.getElementById('edit-todo-notes');
 const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
 let currentEditingTodoId = null;
@@ -434,6 +434,9 @@ async function updateAdminUI(user) {
   if (user) {
     console.log("DEBUG: Authenticated User UID:", user.uid);
     console.log("DEBUG: Authenticated User Email:", user.email);
+    console.log("DEBUG: firebaseCurrentUser object:", firebaseCurrentUser); // Log the full object
+    console.log("DEBUG: firebaseCurrentUser.isAdmin:", firebaseCurrentUser?.isAdmin); // Log isAdmin explicitly
+
 
     // Fetch user profile to get theme preference and then apply
     // Use firebaseCurrentUser which is exported from firebase-init.js and kept updated
