@@ -588,20 +588,24 @@ function renderThematas() {
     console.log("Unsubscribed from previous thémata listener.");
   }
   if (!window.db) {
-    themaList.innerHTML = '<li class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</li>';
+    const container = document.getElementById('thema-boxes');
+    if (container) container.innerHTML = '<div class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</div>';
     return;
   }
-
+  const themasArr = [];
+  // Always add 'Global' as the first thema
+  themasArr.push({
+    id: 'global',
+    name: 'Global',
+    description: 'Site-wide threads not tied to any specific Théma.'
+  });
   const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
   const q = query(thematasCol, orderBy("createdAt", "desc"));
-
   unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    const themasArr = [];
     snapshot.forEach((doc) => {
       const thema = doc.data();
       themasArr.push({ ...thema, id: doc.id });
     });
-    cacheSet('arcator_themes_cache', themasArr);
     renderThemaBoxes(themasArr);
   }, (error) => {
     const container = document.getElementById('thema-boxes');
@@ -1671,20 +1675,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  // Attach event listener for creating global threads
-  if (createGlobalThreadForm && globalThreadTitleInput && globalThreadContentInput) {
-    createGlobalThreadForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const title = globalThreadTitleInput.value.trim();
-      const content = globalThreadContentInput.value.trim();
-      if (title && content) {
-        await addGlobalThread(title, content);
-      } else {
-        showMessageBox("Please fill in both Thread Title and Content.", true);
-      }
-    });
-  }
-
   // Navigation tab logic
   const tabThema = document.getElementById('tab-thematas');
   const tabDms = document.getElementById('tab-dms');
@@ -2047,70 +2037,76 @@ async function addGlobalThread(title, content) {
   }
 }
 
-// Add function to render global threads
+// --- PATCH renderGlobalThreads: Use same logic as themata threads, but for global threads ---
 function renderGlobalThreads() {
   if (!window.db || !globalThreadList) return;
   const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
   const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  onSnapshot(q, (snapshot) => {
+  if (window.unsubscribeGlobalThreads) window.unsubscribeGlobalThreads();
+  window.unsubscribeGlobalThreads = onSnapshot(q, async (snapshot) => {
     globalThreadList.innerHTML = '';
     if (globalThreadsCount) globalThreadsCount.textContent = `(${snapshot.size})`;
     if (snapshot.empty) {
       globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads yet. Be the first to start one!</li>';
       return;
     }
+    const authorUids = new Set();
+    const threadsArr = [];
     snapshot.forEach(doc => {
       const thread = doc.data();
+      if (thread.authorId) authorUids.add(thread.authorId);
+      threadsArr.push({ ...thread, id: doc.id });
+    });
+    // Fetch user profiles for all unique authorIds
+    const userProfiles = {};
+    if (authorUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(authorUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          userProfiles[userDoc.id] = userDoc.data();
+        });
+      }).catch(error => console.error("Error fetching user profiles for global threads:", error));
+    }
+    threadsArr.forEach(thread => {
+      const userProfile = userProfiles[thread.authorId] || {};
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
-      const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
+      const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
+      const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const commentCount = thread.commentCount || 0;
       const li = document.createElement('li');
-      li.className = 'thread-item card';
+      li.className = 'thread-item card flex flex-col mb-4 p-4';
       li.innerHTML = `
         <div class="flex items-center mb-2">
-          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+          <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="font-bold">${displayName}</span>
+          <span class="text-gray-400 ml-2">${handle}</span>
+          <span class="meta-info ml-4">${createdAt}</span>
         </div>
-        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
-        <div class="thread-actions mt-4">
-          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" data-thread-title=\"${thread.title}\" data-thread-initial-comment=\"${thread.initialComment}\" data-global=\"true\" class=\"delete-thread-btn btn-primary btn-red ml-2\">Delete</button>` : '')}
-        </div>
-        <div class="add-comment-section mt-4">${getAddCommentFormHtml(doc.id, true)}</div>
-        <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${doc.id}"></ul>
-          <div class='flex gap-2'>
-            <button class='add-comment-btn btn-primary btn-blue btn-sm' data-thread-id='${doc.id}'>Add Comment</button>
-            <button class='edit-thread-btn btn-primary btn-green btn-sm' data-thread-id='${doc.id}'>Edit</button>
-            <button class='delete-thread-btn btn-primary btn-red btn-sm' data-thread-id='${doc.id}'>Delete</button>
+        <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
+        <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
+        <div class="flex items-center mb-2">
+          <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
+          <div class="thread-actions ml-auto">
+            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${thread.id}" data-global="true" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
           </div>
         </div>
-        <div class='collapsible-comment-form mt-2' id='comment-form-${doc.id}' style='display:none;'>
-          ${getAddCommentFormHtml(doc.id, true)}
-        </div>
-        <ul class='comment-list space-y-4 mt-2' id='global-comment-list-${doc.id}'></ul>
+        <div class="add-comment-section mt-2">${getAddCommentFormHtml(thread.id, true)}</div>
+        <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${thread.id}"></ul>
       `;
       globalThreadList.appendChild(li);
-      renderGlobalCommentsForThread(doc.id);
+      renderGlobalCommentsForThread(thread.id);
     });
-    // Add button logic
-    globalThreadList.querySelectorAll('.add-comment-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const tid = btn.dataset.threadId;
-        const form = document.getElementById(`comment-form-${tid}`);
-        if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
-      });
-    });
-    globalThreadList.querySelectorAll('.edit-thread-btn').forEach(btn => {
-      btn.addEventListener('click', e => openEditDialog(btn.dataset.threadId, true));
-    });
-    globalThreadList.querySelectorAll('.delete-thread-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        const tid = btn.dataset.threadId;
-        const confirmed = await showCustomConfirm('Are you sure you want to delete this global thread?', 'All comments within it will also be deleted.');
+    // Attach delete button listeners
+    globalThreadList.querySelectorAll('.delete-thread-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const threadId = event.target.dataset.threadId;
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this global thread?", "All comments within it will also be deleted.");
         if (confirmed) {
-          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, tid);
+          const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
           await deleteDoc(threadRef);
-          showMessageBox('Global thread deleted successfully!', false);
+          showMessageBox("Global thread deleted successfully!", false);
         }
       });
     });
@@ -2159,9 +2155,6 @@ function loadThreadsForThema(themaId) {
 // ... existing code ...
 
 function renderThemaBoxes(themas) {
-  // Remove empty dynamic section if present
-  const emptyTab = document.getElementById('thema-tab-contents');
-  if (emptyTab) emptyTab.remove();
   const container = document.getElementById('thema-boxes');
   if (!container) return;
   if (!themas.length) {
@@ -2172,7 +2165,7 @@ function renderThemaBoxes(themas) {
   themas.forEach(thema => {
     const details = document.createElement('details');
     details.className = 'thema-accordion w-full card mb-2';
-    details.open = true; // Expand by default
+    details.open = true;
     details.innerHTML = `
       <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
         <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
@@ -2187,7 +2180,11 @@ function renderThemaBoxes(themas) {
       </div>
     `;
     container.appendChild(details);
-    loadThreadsForThema(thema.id);
+    if (thema.id === 'global') {
+      loadGlobalThreadsForThema('global');
+    } else {
+      loadThreadsForThema(thema.id);
+    }
   });
   // Accordion: only one open at a time
   container.querySelectorAll('details').forEach(d => {
@@ -2207,10 +2204,53 @@ function renderThemaBoxes(themas) {
       const title = form.querySelector('.new-thread-title').value.trim();
       const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
       if (title && initialComment) {
-        await addCommentThread(themaId, title, initialComment);
+        if (themaId === 'global') {
+          await addGlobalThread(title, initialComment);
+        } else {
+          await addCommentThread(themaId, title, initialComment);
+        }
         form.querySelector('.new-thread-title').value = '';
         form.querySelector('.new-thread-initial-comment').value = '';
       }
+    });
+  });
+}
+// Add loadGlobalThreadsForThema to load threads from global threads collection
+function loadGlobalThreadsForThema(themaId) {
+  const list = document.getElementById(`thread-list-${themaId}`);
+  if (!list) return;
+  list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
+  if (!window.db) {
+    list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
+    return;
+  }
+  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+  const q = query(threadsCol, orderBy('createdAt', 'desc'));
+  onSnapshot(q, snapshot => {
+    list.innerHTML = '';
+    if (snapshot.empty) {
+      list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to start one!</li>";
+      return;
+    }
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      const li = document.createElement('li');
+      li.className = 'thread-item card p-3 flex items-center justify-between';
+      li.innerHTML = `
+        <div class='flex items-center gap-3'>
+          <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+          <div>
+            <div class='font-bold'>${thread.title}</div>
+            <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
+            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+          </div>
+        </div>
+        <div class='flex gap-2'>
+          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
+          <button class='btn-primary btn-green btn-sm'>Edit</button>
+        </div>
+      `;
+      list.appendChild(li);
     });
   });
 }
