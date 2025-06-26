@@ -42,6 +42,14 @@ import {
   query, orderBy, onSnapshot, getDocs, where, updateDoc, increment
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Minimal Markdown rendering using marked.js and DOMPurify
+function renderMarkdown(text) {
+  if (window.marked && window.DOMPurify) {
+    return DOMPurify.sanitize(marked.parse(text || ''));
+  }
+  return text;
+}
+
 /**
  * Retrieves user profile from Firestore.
  * @param {string} uid - The user ID.
@@ -1028,33 +1036,16 @@ function getUserDisplayName(uid, userProfiles) {
   return userProfiles[uid]?.displayName || 'Unknown User';
 }
 
-/**
- * Creates a reaction button element
- * @param {string} emoji - The reaction emoji
- * @param {number} count - The reaction count
- * @param {boolean} hasReacted - Whether current user has reacted
- * @param {string} itemId - The item ID (thread or comment)
- * @param {string} itemType - The item type ('thread' or 'comment')
- * @returns {HTMLElement} The reaction button element
- */
-function createReactionButton(emoji, count, hasReacted, itemId, itemType) {
-  const button = document.createElement('button');
-  button.className = `reaction-btn ${hasReacted ? 'reacted' : ''} px-2 py-1 rounded text-sm mr-2 mb-2`;
-  button.innerHTML = `${emoji} ${count}`;
-  button.onclick = () => handleReaction(itemType, itemId, emoji);
-  return button;
+// Ensure reaction palette exists in DOM
+let reactionPalette = document.getElementById('reaction-palette');
+if (!reactionPalette) {
+  reactionPalette = document.createElement('div');
+  reactionPalette.id = 'reaction-palette';
+  document.body.appendChild(reactionPalette);
 }
 
-/**
- * Shows the reaction palette
- * @param {string} itemId - The item ID
- * @param {string} itemType - The item type
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
- */
 function showReactionPalette(itemId, itemType, x, y) {
   if (!reactionPalette) return;
-
   reactionPalette.innerHTML = '';
   window.REACTION_TYPES.forEach(emoji => {
     const button = document.createElement('button');
@@ -1066,44 +1057,20 @@ function showReactionPalette(itemId, itemType, x, y) {
     };
     reactionPalette.appendChild(button);
   });
-
   reactionPalette.style.left = `${x}px`;
   reactionPalette.style.top = `${y}px`;
   reactionPalette.style.display = 'block';
 }
 
-/**
- * Hides the reaction palette
- */
 function hideReactionPalette() {
-  if (reactionPalette) {
-    reactionPalette.style.display = 'none';
+  if (reactionPalette) reactionPalette.style.display = 'none';
+}
+
+document.addEventListener('click', (e) => {
+  if (reactionPalette && reactionPalette.style.display === 'block' && !reactionPalette.contains(e.target)) {
+    hideReactionPalette();
   }
-}
-
-/**
- * Shows the edit form
- * @param {string} content - Current content
- * @param {string} itemId - Item ID
- * @param {string} itemType - Item type
- */
-function showEditForm(content, itemId, itemType) {
-  if (!editForm || !editInput) return;
-
-  currentEditId = { id: itemId, type: itemType };
-  editInput.value = content;
-  editForm.style.display = 'block';
-}
-
-/**
- * Hides the edit form
- */
-function hideEditForm() {
-  if (editForm) {
-    editForm.style.display = 'none';
-  }
-  currentEditId = null;
-}
+});
 
 /**
  * Handles reactions on threads and comments
@@ -1490,8 +1457,23 @@ function showDmTab() {
 }
 
 function showThemaTab() {
+  if (dmTabContent) dmTabContent.style.display = 'none';
   if (conversationsSection) conversationsSection.style.display = 'none';
   if (conversationMessagesSection) conversationMessagesSection.style.display = 'none';
   if (themaAllTabContent) themaAllTabContent.style.display = 'block';
   renderThematas();
 }
+
+// Minimal reactions renderer for threads/comments
+function renderReactions(reactions = {}, itemType, itemId, parentId = null, themaId = null) {
+  let html = '';
+  window.REACTION_TYPES.forEach(emoji => {
+    const data = reactions[emoji] || { count: 0 };
+    const count = data.count || 0;
+    html += `<button class="reaction-btn" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} ${count > 0 ? count : ''}</button>`;
+  });
+  return html;
+}
+
+window.showReactionPalette = showReactionPalette;
+window.handleReaction = handleReaction;
