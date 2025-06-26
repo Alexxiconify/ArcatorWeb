@@ -1749,6 +1749,23 @@ function setupEditModal() {
   editModalTitle = editModal.querySelector('#edit-modal-title');
   editModalTextarea = editModal.querySelector('#edit-modal-textarea');
   saveEditBtn = editModal.querySelector('#save-edit-btn');
+  saveEditBtn.addEventListener('click', async () => {
+    if (!currentEditContext) return;
+    const newContent = editModalTextarea.value.trim();
+    if (!newContent) return;
+    let ref;
+    if (currentEditContext.type === 'thread') {
+      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
+      await updateDoc(ref, { initialComment: newContent });
+    } else if (currentEditContext.type === 'comment') {
+      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
+      await updateDoc(ref, { content: newContent });
+    } else if (currentEditContext.type === 'thema') {
+      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
+      await updateDoc(ref, { description: newContent });
+    }
+    editModal.style.display = 'none';
+  });
   editModal.querySelector('.close-button').onclick = () => { editModal.style.display = 'none'; };
   window.addEventListener('click', (event) => {
     if (event.target === editModal) editModal.style.display = 'none';
@@ -1762,21 +1779,3 @@ function openEditModal(type, context, oldContent) {
   editModalTextarea.value = oldContent;
   editModal.style.display = 'flex';
 }
-
-saveEditBtn && saveEditBtn.addEventListener('click', async () => {
-  if (!currentEditContext) return;
-  const newContent = editModalTextarea.value.trim();
-  if (!newContent) return;
-  let ref;
-  if (currentEditContext.type === 'thread') {
-    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
-    await updateDoc(ref, { initialComment: newContent });
-  } else if (currentEditContext.type === 'comment') {
-    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
-    await updateDoc(ref, { content: newContent });
-  } else if (currentEditContext.type === 'thema') {
-    ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
-    await updateDoc(ref, { description: newContent });
-  }
-  editModal.style.display = 'none';
-});
