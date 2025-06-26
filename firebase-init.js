@@ -41,7 +41,7 @@ export const firebaseReadyPromise = new Promise((resolve) => {
  * @returns {Promise<Object|null>} - User profile data or null if not found.
  */
 export async function getUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise; // Ensure Firebase is ready
+  await firebaseReadyPromise; // Ensure Firebase is ready before accessing db
   if (!db) {
     console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
     return null;
@@ -65,7 +65,7 @@ export async function getUserProfileFromFirestore(uid) {
  * @returns {boolean} True if successful, false otherwise.
  */
 export async function setUserProfileInFirestore(uid, profileData) {
-  await firebaseReadyPromise; // Ensure Firebase is ready
+  await firebaseReadyPromise; // Ensure Firebase is ready before accessing db
   if (!db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
@@ -89,7 +89,7 @@ export async function setUserProfileInFirestore(uid, profileData) {
  * @returns {boolean} True if successful, false otherwise.
  */
 export async function deleteUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise; // Ensure Firebase is ready
+  await firebaseReadyPromise; // Ensure Firebase is ready before accessing db
   if (!db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
@@ -103,11 +103,11 @@ export async function deleteUserProfileFromFirestore(uid) {
 }
 
 /**
- * Initializes Firebase, sets up authentication, and resolves firebaseReadyPromise.
+ * Initializes Firebase app and core services.
  * This function is called immediately when the module loads.
  */
-async function setupFirebaseAndUser() {
-  console.log("DEBUG: setupFirebaseAndUser called.");
+async function setupFirebaseCore() {
+  console.log("DEBUG: setupFirebaseCore called.");
 
   if (getApps().length === 0) {
     let finalFirebaseConfig = firebaseConfig; // Default to hardcoded config
@@ -146,41 +146,8 @@ async function setupFirebaseAndUser() {
       // Resolve firebaseReadyPromise as soon as Firebase instances are available
       firebaseReadyResolve();
 
-      // Listen for auth state changes to update currentUser and handle initial profile creation
-      onAuthStateChanged(auth, async (user) => {
-        console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
-        if (user) {
-          // Check if user profile exists in Firestore, create if not
-          let userProfile = await getUserProfileFromFirestore(user.uid);
-          if (!userProfile) {
-            console.log("No profile found. Creating default.");
-            userProfile = {
-              uid: user.uid,
-              displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-              email: user.email || null,
-              photoURL: DEFAULT_PROFILE_PIC,
-              createdAt: new Date(),
-              lastLoginAt: new Date(),
-              themePreference: DEFAULT_THEME_NAME,
-              isAdmin: ADMIN_UIDS.includes(user.uid),
-              handle: user.uid.substring(0, 6) // Default handle from UID
-            };
-            await setUserProfileInFirestore(user.uid, userProfile);
-          } else {
-            // Update last login time and isAdmin status for existing profiles
-            await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
-            userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
-          }
-          currentUser = userProfile;
-          console.log("DEBUG: currentUser set:", currentUser);
-        } else {
-          console.log("Auth State Changed: User logged out.");
-          currentUser = null;
-        }
-        // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.
-      });
-
       // Attempt to sign in with custom token if provided (e.g., from Canvas environment)
+      // This is done after firebaseReadyResolve to ensure auth is fully set up.
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
         console.log("DEBUG: Attempting to sign in with custom token.");
         await signInWithCustomToken(auth, __initial_auth_token)
@@ -191,6 +158,7 @@ async function setupFirebaseAndUser() {
       } else {
         console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
       }
+
     } catch (e) {
       console.error("Error initializing Firebase (initial block):", e);
       firebaseReadyResolve(); // Resolve on error to prevent infinite loading state
@@ -205,5 +173,44 @@ async function setupFirebaseAndUser() {
   }
 }
 
-// Call initialization function immediately when the script loads.
-setupFirebaseAndUser();
+// Call core initialization function immediately when the module loads.
+setupFirebaseCore();
+
+// Register onAuthStateChanged listener ONLY after firebaseReadyPromise resolves.
+// This ensures 'auth' and 'db' instances are definitely available.
+firebaseReadyPromise.then(() => {
+  onAuthStateChanged(auth, async (user) => {
+    console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
+    if (user) {
+      // Check if user profile exists in Firestore, create if not
+      let userProfile = await getUserProfileFromFirestore(user.uid);
+      if (!userProfile) {
+        console.log("No profile found. Creating default.");
+        userProfile = {
+          uid: user.uid,
+          displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+          email: user.email || null,
+          photoURL: DEFAULT_PROFILE_PIC,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          themePreference: DEFAULT_THEME_NAME,
+          isAdmin: ADMIN_UIDS.includes(user.uid),
+          handle: user.uid.substring(0, 6) // Default handle from UID
+        };
+        await setUserProfileInFirestore(user.uid, userProfile);
+      } else {
+        // Update last login time and isAdmin status for existing profiles
+        await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
+        userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
+      }
+      currentUser = userProfile;
+      console.log("DEBUG: currentUser set:", currentUser);
+    } else {
+      console.log("Auth State Changed: User logged out.");
+      currentUser = null;
+    }
+    // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.
+  });
+}).catch(error => {
+  console.error("Error setting up onAuthStateChanged listener after Firebase ready:", error);
+});
