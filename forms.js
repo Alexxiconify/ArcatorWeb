@@ -552,7 +552,7 @@ function renderThemaBoxes(themasArr) {
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
         box.querySelector('.edit-thema-btn').dataset.themaId = thema.id;
         box.querySelector('.edit-thema-btn').onclick = () => {
-          openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
+          openEditModal('thema', {themaId: thema.id}, '', thema.description, thema.name);
         };
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
@@ -753,6 +753,7 @@ function loadCommentsForThread(themaId, threadId) {
           }
         };
       }
+      commentDiv.setAttribute('data-comment-id', commentDoc.id);
     });
   });
 }
@@ -778,7 +779,8 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
     const newTitle = editForm.querySelector('.edit-thread-title').value.trim();
     const newContent = editForm.querySelector('.edit-thread-content').value.trim();
     if (!newTitle || !newContent) return;
-    const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    // Always use thematas/{themaId}/threads/{threadId}
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     await updateDoc(doc(threadsCol, threadId), {
       title: newTitle,
       initialComment: newContent
@@ -795,6 +797,9 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
 
 // Edit comment
 function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
+  const contentDiv = commentDiv.querySelector('.comment-content');
+  if (!contentDiv) return;
+  const origHtml = contentDiv.innerHTML;
   const editForm = document.createElement('form');
   editForm.className = 'edit-comment-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
@@ -804,22 +809,24 @@ function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
       <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
     </div>
   `;
-  const origHtml = commentDiv.innerHTML;
-  commentDiv.innerHTML = '';
-  commentDiv.appendChild(editForm);
+  contentDiv.innerHTML = '';
+  contentDiv.appendChild(editForm);
   editForm.onsubmit = async (e) => {
     e.preventDefault();
     const newContent = editForm.querySelector('.edit-comment-content').value.trim();
     if (!newContent) return;
-    const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+    // Always use thematas/{themaId}/threads/{threadId}/comments/{commentId}
+    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     await updateDoc(doc(commentsCol, commentId), {
       content: newContent
     });
-    commentDiv.innerHTML = origHtml;
+    contentDiv.innerHTML = origHtml;
+    contentDiv.textContent = newContent;
   };
   editForm.querySelector('.cancel-edit').onclick = () => {
-    commentDiv.innerHTML = origHtml;
+    contentDiv.innerHTML = origHtml;
   };
+  editForm.onclick = (e) => e.stopPropagation();
 }
 
 /**
@@ -1049,7 +1056,10 @@ function showReactionPalette(itemId, itemType, x, y) {
     button.className = 'reaction-option text-2xl p-2 hover:bg-gray-200 rounded';
     button.textContent = emoji;
     button.onclick = () => {
-      handleReaction(itemType, itemId, emoji);
+      // Use the context-aware function with current thema and thread IDs
+      const themaId = window.currentThemaId || 'global';
+      const threadId = window.currentThreadId || '';
+      handleReactionWithContext(itemType, itemId, emoji, themaId, threadId);
       hideReactionPalette();
     };
     reactionPalette.appendChild(button);
@@ -1085,10 +1095,22 @@ async function handleReaction(itemType, itemId, emoji) {
     const userId = window.auth.currentUser.uid;
     let itemRef;
 
+    // Use the correct Firestore paths based on the current context
     if (itemType === 'thread') {
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${window.currentThemaId}/threads`, itemId);
+      // For threads, we need to find which thema they belong to
+      // Since we're in a thema context, use the current thema ID
+      const themaId = window.currentThemaId || 'global';
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, itemId);
     } else if (itemType === 'comment') {
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${window.currentThemaId}/threads/${window.currentThreadId}/comments`, itemId);
+      // For comments, we need the thread ID and thema ID
+      // Since we're in a thread context, use the current thread ID
+      const themaId = window.currentThemaId || 'global';
+      const threadId = window.currentThreadId;
+      if (!threadId) {
+        console.error("No current thread ID found for comment reaction");
+        return;
+      }
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, itemId);
     } else {
       console.error("Invalid item type for reaction:", itemType);
       return;
@@ -1096,7 +1118,7 @@ async function handleReaction(itemType, itemId, emoji) {
 
     const itemDoc = await getDoc(itemRef);
     if (!itemDoc.exists()) {
-      console.error("Item not found for reaction");
+      console.error("Item not found for reaction:", itemType, itemId);
       return;
     }
 
@@ -1486,13 +1508,78 @@ function renderReactions(reactions = {}, itemType, itemId, parentId = null, them
     if (typeof data.count === 'number') count = data.count;
     else if (Array.isArray(data.users)) count = data.users.length;
     const reacted = Array.isArray(data.users) && userId && data.users.includes(userId);
-    html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
+    
+    // Pass the correct context to handleReaction
+    const threadId = itemType === 'comment' ? parentId : null;
+    const currentThemaId = themaId || window.currentThemaId || 'global';
+    
+    html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" type="button" onclick="handleReactionWithContext('${itemType}','${itemId}','${emoji}','${currentThemaId}','${threadId || ''}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
   });
   return html;
 }
 
+// Add a new function to handle reactions with context
+async function handleReactionWithContext(itemType, itemId, emoji, themaId, threadId) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to react.", true);
+    return;
+  }
+
+  try {
+    const userId = window.auth.currentUser.uid;
+    let itemRef;
+
+    if (itemType === 'thread') {
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, itemId);
+    } else if (itemType === 'comment') {
+      if (!threadId) {
+        console.error("No thread ID provided for comment reaction");
+        return;
+      }
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, itemId);
+    } else {
+      console.error("Invalid item type for reaction:", itemType);
+      return;
+    }
+
+    const itemDoc = await getDoc(itemRef);
+    if (!itemDoc.exists()) {
+      console.error("Item not found for reaction:", itemType, itemId);
+      return;
+    }
+
+    const itemData = itemDoc.data();
+    const reactions = itemData.reactions || {};
+    const emojiReactions = reactions[emoji] || { users: [], count: 0 };
+
+    const userIndex = emojiReactions.users.indexOf(userId);
+    if (userIndex > -1) {
+      // Remove reaction
+      emojiReactions.users.splice(userIndex, 1);
+      emojiReactions.count--;
+    } else {
+      // Add reaction
+      emojiReactions.users.push(userId);
+      emojiReactions.count++;
+    }
+
+    if (emojiReactions.count === 0) {
+      delete reactions[emoji];
+    } else {
+      reactions[emoji] = emojiReactions;
+    }
+
+    await updateDoc(itemRef, { reactions: reactions, lastActivity: serverTimestamp() });
+    console.log(`Reaction ${emoji} ${userIndex > -1 ? 'removed from' : 'added to'} ${itemType}`);
+  } catch (error) {
+    console.error("Error handling reaction:", error);
+    showMessageBox("Error updating reaction.", true);
+  }
+}
+
+window.handleReactionWithContext = handleReactionWithContext;
 window.showReactionPalette = showReactionPalette;
-window.handleReaction = handleReaction;
+window.handleReaction = handleReaction; // Keep for backward compatibility
 
 // Replace openEditModal with inline edit logic
 function openEditModal(type, ids, content, description = '', title = '') {
@@ -1504,27 +1591,42 @@ function openEditModal(type, ids, content, description = '', title = '') {
     if (commentDiv) editComment(ids.themaId, ids.threadId, ids.commentId, content, commentDiv);
   } else if (type === 'thema') {
     const themaBox = document.querySelector(`[data-thema-id='${ids.themaId}']`);
-    if (themaBox) editThema(ids.themaId, description, title, themaBox);
+    if (themaBox) editThema(ids.themaId, title, description, themaBox);
   }
 }
 window.openEditModal = openEditModal;
 
 // Minimal inline edit for thema
-function editThema(themaId, oldDescription, oldName, themaBox) {
+function editThema(themaId, oldName, oldDescription, themaBox) {
+  if (themaId === 'global') {
+    showMessageBox("The Global théma cannot be edited.", true);
+    editingThemaId = null;
+    renderThematas();
+    return;
+  }
   editingThemaId = themaId;
+  // Remove any existing edit form
+  const existingForm = themaBox.querySelector('.edit-thema-form');
+  if (existingForm) existingForm.remove();
+  // Hide the header and description
+  const header = themaBox.querySelector('div.flex.items-center.justify-between');
+  const desc = themaBox.querySelector('p.thema-description');
+  if (header) header.style.display = 'none';
+  if (desc) desc.style.display = 'none';
+  // Create and insert the edit form at the top
   const editForm = document.createElement('form');
   editForm.className = 'edit-thema-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
-    <input type="text" class="edit-thema-title input" value="${oldName}" required />
-    <textarea class="edit-thema-description input">${oldDescription}</textarea>
-    <div class="flex gap-2">
+    <label class="block text-sm font-semibold mb-1" for="edit-thema-title-${themaId}">Title</label>
+    <input type="text" id="edit-thema-title-${themaId}" class="edit-thema-title input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" value="${oldName}" required />
+    <label class="block text-sm font-semibold mb-1" for="edit-thema-description-${themaId}">Description</label>
+    <textarea id="edit-thema-description-${themaId}" class="edit-thema-description input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" required>${oldDescription}</textarea>
+    <div class="flex gap-2 mt-2">
       <button type="submit" class="btn-primary btn-green">Save</button>
       <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
     </div>
   `;
-  const origHtml = themaBox.innerHTML;
-  themaBox.innerHTML = '';
-  themaBox.appendChild(editForm);
+  themaBox.insertBefore(editForm, themaBox.firstChild);
   editForm.onsubmit = async (e) => {
     e.preventDefault();
     const newName = editForm.querySelector('.edit-thema-title').value.trim();
