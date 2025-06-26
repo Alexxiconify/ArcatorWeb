@@ -773,20 +773,13 @@ async function addCommentThread(themaId, title, initialComment) {
 
 // --- PATCH renderThreads: Show user icon, edit/delete for all users/admins, emoji reactions ---
 function renderThreads() {
-  renderThreadsFromCache(currentThemaId);
-  console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
-  if (unsubscribeThreads) {
-    unsubscribeThreads();
-    console.log("Unsubscribed from previous threads listener.");
-  }
+  if (unsubscribeThreads) unsubscribeThreads();
   if (!window.db || !currentThemaId) {
     threadList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Théma to view threads.</li>';
     return;
   }
-
   const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`);
   const q = query(threadsCol, orderBy("createdAt", "desc"));
-
   unsubscribeThreads = onSnapshot(q, async (snapshot) => {
     threadList.innerHTML = '';
     if (snapshot.empty) {
@@ -819,37 +812,47 @@ function renderThreads() {
       const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
       const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
       const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const commentCount = thread.commentCount || 0;
       const li = document.createElement('li');
-      li.className = 'thread-item card';
+      li.className = 'thread-item card flex flex-col mb-4 p-4';
       li.innerHTML = `
         <div class="flex items-center mb-2">
-          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="meta-info">By ${displayName} on ${createdAt}${isEdited}</span>
+          <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="font-bold">${displayName}</span>
+          <span class="text-gray-400 ml-2">${handle}</span>
+          <span class="meta-info ml-4">${createdAt}${editedInfo}</span>
         </div>
-        <div class="comment-content">
-          <p>${convertMentionsToHTML(comment.content)}</p>
+        <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
+        <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
+        <div class="flex items-center mb-2">
+          <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
+          <div class="reactions-container flex items-center">
+            ${(thread.reactions ? Object.entries(thread.reactions).map(([emoji, data]) => {
+              const hasReacted = data.users.includes(window.auth.currentUser?.uid);
+              return createReactionButton(emoji, data.count, hasReacted, doc.id, 'thread').outerHTML;
+            }).join('') : '')}
+            <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm ml-2" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
+          </div>
+          <div class="thread-actions ml-auto">
+            ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
+            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+          </div>
         </div>
-        <div class="reactions-container mt-2">
-          ${reactionsHtml}
-          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'comment', event.clientX, event.clientY)">+</button>
-        </div>
-        <div class="comment-actions mt-2">
-          ${(canEditPost(comment, window.currentUser) ? `<button onclick=\"showEditForm('${comment.content.replace(/'/g, "&#39;")}', '${doc.id}', 'comment')\" class="edit-comment-btn btn-primary btn-blue text-xs">Edit</button>` : '')}
-          ${(canDeletePost(comment, window.currentUser) ? `<button data-comment-id=\"${doc.id}\" class=\"delete-comment-btn btn-primary btn-red text-xs ml-2\">Delete</button>` : '')}
-        </div>
+        <div class="add-comment-section mt-2">${getAddCommentFormHtml(doc.id)}</div>
+        <ul class="comment-list space-y-4 mt-2" id="comment-list-${doc.id}"></ul>
       `;
-      commentList.appendChild(li);
+      threadList.appendChild(li);
+      renderCommentsForThread(doc.id, currentThemaId);
     });
-    // Add event listeners
-    document.querySelectorAll('.delete-comment-btn').forEach(button => {
+    cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
+    document.querySelectorAll('.delete-thread-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
-        const commentId = event.target.dataset.commentId;
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+        const threadId = event.target.dataset.threadId;
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
         if (confirmed) {
-          // Delete comment logic
-          const commentRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`, commentId);
-          await deleteDoc(commentRef);
-          showMessageBox("Comment deleted successfully!", false);
+          await deleteThreadAndSubcollection(currentThemaId, threadId);
+        } else {
+          showMessageBox("Thread deletion cancelled.", false);
         }
       });
     });
