@@ -326,7 +326,7 @@
           <form id="add-comment-form" class="space-y-4">
             <div>
               <label for="new-comment-content" class="block text-text-primary text-sm font-bold mb-2">Your Comment:</label>
-              <textarea id="new-comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Type your comment here..." required></textarea>
+              <textarea id="new-comment-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Type your comment here... Use @username to mention users" required></textarea>
             </div>
             <button type="submit" id="add-comment-btn" class="btn-primary btn-green w-full">Post Comment</button>
           </form>
@@ -337,6 +337,82 @@
         <ul id="comment-list" class="space-y-4">
           <!-- Comments will be loaded here by JavaScript -->
           <li class="card p-4 text-center">No comments yet. Be the first to comment!</li>
+        </ul>
+      </div>
+
+      <!-- DM Section (Initially hidden) -->
+      <div id="dm-section" class="mt-12 p-6 card" style="display: none;">
+        <button id="dm-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
+        <h2 id="dm-title" class="text-3xl font-bold mb-6 text-center">Direct Messages</h2>
+        <p id="dm-participants" class="text-text-secondary text-center mb-8"></p>
+
+        <!-- DM Messages -->
+        <div class="dm-messages-container h-96 overflow-y-auto border rounded p-4 mb-4">
+          <ul id="dm-messages" class="space-y-4">
+            <!-- DM messages will be loaded here -->
+          </ul>
+        </div>
+
+        <!-- DM Input -->
+        <div class="dm-input-container flex space-x-2">
+          <input type="text" id="dm-input" class="flex-1 shadow appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type your message... Use @username to mention users">
+          <button id="dm-send-btn" class="btn-primary btn-blue px-6">Send</button>
+        </div>
+      </div>
+
+      <!-- Temporary Pages Section (Initially hidden) -->
+      <div id="temp-pages-section" class="mt-12 p-6 card" style="display: none;">
+        <button id="temp-pages-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
+        <h2 class="text-3xl font-bold mb-6 text-center">Temporary Pages</h2>
+
+        <!-- Create Temporary Page Form -->
+        <div class="form-container mb-8">
+          <h3 class="text-2xl font-bold text-heading-card mb-4">Create Temporary Page</h3>
+          <form id="temp-page-form" class="space-y-4">
+            <div>
+              <label for="temp-page-title" class="block text-text-primary text-sm font-bold mb-2">Page Title:</label>
+              <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title" required>
+            </div>
+            <div>
+              <label for="temp-page-content" class="block text-text-primary text-sm font-bold mb-2">Page Content:</label>
+              <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Enter page content" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary btn-blue w-full">Create Page</button>
+          </form>
+        </div>
+
+        <!-- Temporary Pages List -->
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Existing Pages</h3>
+        <ul id="temp-pages-list" class="space-y-4">
+          <!-- Temporary pages will be loaded here -->
+        </ul>
+      </div>
+
+      <!-- Théma Rules Section (Initially hidden) -->
+      <div id="thema-rules-section" class="mt-12 p-6 card" style="display: none;">
+        <button id="thema-rules-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
+        <h2 class="text-3xl font-bold mb-6 text-center">Théma Rules</h2>
+
+        <!-- Add Rule Form -->
+        <div class="form-container mb-8">
+          <h3 class="text-2xl font-bold text-heading-card mb-4">Add Rule</h3>
+          <form id="rule-form" class="space-y-4">
+            <div>
+              <label for="rule-title" class="block text-text-primary text-sm font-bold mb-2">Rule Title:</label>
+              <input type="text" id="rule-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter rule title" required>
+            </div>
+            <div>
+              <label for="rule-content" class="block text-text-primary text-sm font-bold mb-2">Rule Content:</label>
+              <textarea id="rule-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Enter rule content" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary btn-blue w-full">Add Rule</button>
+          </form>
+        </div>
+
+        <!-- Rules List -->
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Current Rules</h3>
+        <ul id="thema-rules-list" class="space-y-4">
+          <!-- Rules will be loaded here -->
         </ul>
       </div>
 
@@ -384,5 +460,34 @@
 
 <!-- Link to external forms.js -->
 <script type="module" src="forms.js"></script>
+
+<!-- Enhanced Features UI Elements -->
+
+<!-- Reaction Palette -->
+<div id="reaction-palette" class="fixed bg-white border rounded-lg shadow-lg p-2 z-50" style="display: none;">
+  <!-- Reaction options will be populated by JavaScript -->
+</div>
+
+<!-- Edit Form Modal -->
+<div id="edit-form" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+  <div class="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
+    <h3 class="text-xl font-bold mb-4">Edit Post</h3>
+    <textarea id="edit-input" class="w-full h-32 border rounded p-2 mb-4" placeholder="Edit your post content..."></textarea>
+    <div class="flex justify-end space-x-2">
+      <button id="edit-cancel-btn" class="btn-primary btn-red">Cancel</button>
+      <button id="edit-save-btn" class="btn-primary btn-blue">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="nav-tabs bg-gray-800 p-4 rounded-lg mb-8">
+  <div class="flex space-x-4">
+    <button id="tab-thematas" class="tab-btn btn-primary btn-blue active">Thémata</button>
+    <button id="tab-dms" class="tab-btn btn-primary btn-green">Direct Messages</button>
+    <button id="tab-temp-pages" class="tab-btn btn-primary btn-purple">Temporary Pages</button>
+    <button id="tab-rules" class="tab-btn btn-primary btn-orange">Rules</button>
+  </div>
+</div>
 </body>
 </html>
