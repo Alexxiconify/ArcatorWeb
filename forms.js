@@ -1654,3 +1654,88 @@ function renderMarkdown(text) {
   }
   return text;
 }
+
+// --- DM Start Modal ---
+let startDmModal = document.getElementById('start-dm-modal');
+if (!startDmModal) {
+  startDmModal = document.createElement('div');
+  startDmModal.id = 'start-dm-modal';
+  startDmModal.style.display = 'none';
+  startDmModal.style.position = 'fixed';
+  startDmModal.style.top = '0';
+  startDmModal.style.left = '0';
+  startDmModal.style.width = '100vw';
+  startDmModal.style.height = '100vh';
+  startDmModal.style.background = 'rgba(0,0,0,0.7)';
+  startDmModal.style.zIndex = '2000';
+  startDmModal.innerHTML = `
+    <form id="start-dm-form" class="card p-6 flex flex-col gap-3" style="max-width:400px;margin:10vh auto;background:#23272e;">
+      <h3 class="text-xl font-bold mb-2">Start New DM</h3>
+      <label for="dm-user-input">Select User</label>
+      <input id="dm-user-input" list="dm-user-datalist" class="input p-2 rounded border" placeholder="Type username..." required />
+      <datalist id="dm-user-datalist"></datalist>
+      <label for="dm-title-input">Title</label>
+      <input id="dm-title-input" class="input p-2 rounded border" placeholder="Conversation title" required />
+      <label for="dm-message-input">Message</label>
+      <textarea id="dm-message-input" class="input p-2 rounded border" placeholder="Type your message..." required></textarea>
+      <div class="flex gap-2 mt-2">
+        <button type="submit" class="btn-primary btn-green">Send</button>
+        <button type="button" id="cancel-dm-btn" class="btn-primary btn-red">Cancel</button>
+      </div>
+    </form>
+  `;
+  document.body.appendChild(startDmModal);
+}
+
+async function populateDmUserDatalist() {
+  const datalist = document.getElementById('dm-user-datalist');
+  if (!window.db || !datalist) return;
+  datalist.innerHTML = '';
+  const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+  const snap = await getDocs(usersRef);
+  snap.forEach(doc => {
+    const u = doc.data();
+    if (window.auth.currentUser && doc.id === window.auth.currentUser.uid) return;
+    const opt = document.createElement('option');
+    opt.value = u.displayName || doc.id;
+    opt.setAttribute('data-uid', doc.id);
+    datalist.appendChild(opt);
+  });
+}
+
+const startConversationBtn = document.getElementById('start-conversation-btn');
+if (startConversationBtn) {
+  startConversationBtn.onclick = async () => {
+    await populateDmUserDatalist();
+    startDmModal.style.display = 'flex';
+  };
+}
+
+startDmModal.onclick = (e) => { if (e.target === startDmModal) startDmModal.style.display = 'none'; };
+document.getElementById('cancel-dm-btn').onclick = () => { startDmModal.style.display = 'none'; };
+
+document.getElementById('start-dm-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const userInput = document.getElementById('dm-user-input').value.trim();
+  const title = document.getElementById('dm-title-input').value.trim();
+  const message = document.getElementById('dm-message-input').value.trim();
+  if (!userInput || !title || !message) return;
+  // Find UID from datalist
+  const datalist = document.getElementById('dm-user-datalist');
+  let targetUid = null;
+  for (const opt of datalist.options) {
+    if (opt.value === userInput) { targetUid = opt.getAttribute('data-uid'); break; }
+  }
+  if (!targetUid) {
+    showMessageBox('User not found.', true);
+    return;
+  }
+  // Create DM and send message
+  const dmId = await createDM(window.DM_TYPES.DIRECT, [targetUid], title);
+  if (dmId) {
+    await sendDMMessage(dmId, message);
+    showMessageBox('DM started!', false);
+    startDmModal.style.display = 'none';
+    renderDMList();
+  }
+};
