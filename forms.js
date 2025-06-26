@@ -1310,8 +1310,8 @@ function renderDMList() {
       dmList.innerHTML = '<div class="card p-4 text-center">No DMs yet.</div>';
       return;
     }
-    // Fetch user profiles for all participants
-    const allUserIds = new Set();
+    // Fetch user profiles for all participants including current user
+    const allUserIds = new Set([currentUserId]);
     snapshot.forEach(doc => {
       const dmData = doc.data();
       if (dmData.participants) {
@@ -1380,9 +1380,16 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
       const m = doc.data();
       const senderProfile = userProfiles[m.createdBy] || {};
       const senderName = senderProfile.displayName || senderProfile.handle || m.creatorDisplayName || 'Unknown';
+      const senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
       const div = document.createElement('div');
-      div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded`;
-      div.innerHTML = `<div><span class='font-semibold'>${senderName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div><div>${convertMentionsToHTML(m.content)}</div>`;
+      div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded flex gap-2`;
+      div.innerHTML = `
+        <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile">
+        <div class="flex-1">
+          <div><span class='font-semibold'>${senderName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div>
+          <div>${convertMentionsToHTML(m.content)}</div>
+        </div>
+      `;
       dmMessages.appendChild(div);
     });
     dmMessages.scrollTop = dmMessages.scrollHeight;
