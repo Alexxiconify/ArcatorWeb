@@ -403,7 +403,8 @@ window.onload = async function() {
       console.log("user-main.js: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
       console.log("DEBUG: Starting onAuthStateChanged processing block.");
 
-      let userProfile = null; // Initialize userProfile here
+      let userProfile = null; // Initialize userProfile here, moved to higher scope
+      let userThemePreference = null; // Initialize here, moved to higher scope
 
       if (user && !user.isAnonymous) {
         console.log("DEBUG: User is authenticated and not anonymous. Attempting to fetch user profile.");
@@ -419,7 +420,7 @@ window.onload = async function() {
 
         if (userProfile) {
           console.log("DEBUG: User profile found. Populating settings UI.");
-          const userThemePreference = userProfile.themePreference;
+          userThemePreference = userProfile.themePreference; // Assign value here
 
           // Update profile display elements
           if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
