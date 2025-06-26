@@ -1006,7 +1006,7 @@ function renderThreadsFromCache(themaId) {
   }
 }
 
-// --- PATCH renderThematas ---
+// --- PATCH renderThematas: Use <details> for collapsible thémata ---
 function renderThematas() {
   renderThematasFromCache(); // Show cached immediately
   console.log("Rendering thematas. DB:", !!window.db);
@@ -1023,66 +1023,45 @@ function renderThematas() {
   const q = query(thematasCol, orderBy("createdAt", "desc"));
 
   unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    console.log("onSnapshot callback fired for thematas. Changes:", snapshot.docChanges().length);
     themaList.innerHTML = '';
     if (snapshot.empty) {
       themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
       return;
     }
-
-    const createdByUids = new Set();
-    snapshot.forEach(doc => {
-      const thema = doc.data();
-      if (thema.createdBy) {
-        createdByUids.add(thema.createdBy);
-      }
-    });
-
-    const userProfiles = {};
-    if (createdByUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
-      await getDocs(userQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          const userData = userDoc.data();
-          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
-        });
-      }).catch(error => console.error("Error fetching user profiles for thematas:", error));
-    }
-
     const themasArr = [];
     snapshot.forEach((doc) => {
       const thema = doc.data();
       themasArr.push({ ...thema, id: doc.id });
-      const li = document.createElement('li');
-      li.classList.add('thema-item', 'card');
       const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
       const creatorDisplayName = thema.authorDisplayName || 'Unknown';
-
-      li.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-        <p class="thema-description mt-2">${thema.description}</p>
+      const details = document.createElement('details');
+      details.className = 'thema-collapsible';
+      const summary = document.createElement('summary');
+      summary.innerHTML = `<span class="font-bold">${thema.name}</span> <span class="ml-2 text-sm text-gray-400">${thema.description}</span>`;
+      details.appendChild(summary);
+      const inner = document.createElement('div');
+      inner.innerHTML = `
         <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
         <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
         ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
       `;
+      details.appendChild(inner);
+      const li = document.createElement('li');
+      li.appendChild(details);
       themaList.appendChild(li);
     });
-
+    cacheSet('arcator_themes_cache', themasArr);
     document.querySelectorAll('.view-threads-btn').forEach(button => {
       button.addEventListener('click', (event) => {
         const themaId = event.target.dataset.themaId;
         const themaName = event.target.dataset.themaName;
         const themaDescription = event.target.dataset.themaDescription;
-        console.log(`View Threads clicked for themaId: ${themaId}`);
         displayThreadsForThema(themaId, themaName, themaDescription);
       });
     });
-
     document.querySelectorAll('.delete-thema-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const themaId = event.target.dataset.themaId;
-        console.log(`Delete Théma clicked for themaId: ${themaId}`);
         const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
         if (confirmed) {
           await deleteThemaAndSubcollections(themaId);
@@ -1091,10 +1070,7 @@ function renderThematas() {
         }
       });
     });
-
-    cacheSet('arcator_themes_cache', themasArr);
   }, (error) => {
-    console.error("Error fetching thémata:", error);
     themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
   });
 }
@@ -1209,7 +1185,7 @@ async function addCommentThread(themaId, title, initialComment) {
   }
 }
 
-// --- PATCH renderThreads ---
+// --- PATCH renderThreads: Use <details> for collapsible threads ---
 function renderThreads() {
   renderThreadsFromCache(currentThemaId); // Show cached immediately
   console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
@@ -1226,82 +1202,48 @@ function renderThreads() {
   const q = query(threadsCol, orderBy("createdAt", "desc"));
 
   unsubscribeThreads = onSnapshot(q, async (snapshot) => {
-    console.log("onSnapshot callback fired for threads. Changes:", snapshot.docChanges().length);
     threadList.innerHTML = '';
     if (snapshot.empty) {
       threadList.innerHTML = '<li class="card p-4 text-center">No threads yet. Be the first to start one!</li>';
       return;
     }
-
-    const threadCreatedByUids = new Set();
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      if (thread.createdBy) {
-        threadCreatedByUids.add(thread.createdBy);
-      }
-    });
-
-    const threadUserProfiles = {};
-    if (threadCreatedByUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const threadUserQuery = query(usersRef, where('uid', 'in', Array.from(threadCreatedByUids)));
-      await getDocs(threadUserQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          const userData = userDoc.data();
-          threadUserProfiles[userDoc.id] = userData.displayName || 'Unknown User';
-        });
-      }).catch(error => console.error("Error fetching user profiles for threads:", error));
-    }
-
     const threadsArr = [];
     snapshot.forEach((doc) => {
       const thread = doc.data();
       threadsArr.push({ ...thread, id: doc.id });
-      const li = document.createElement('li');
-      li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = threadUserProfiles[thread.createdBy] || thread.authorDisplayName || 'Unknown';
-      const isEdited = thread.editedAt ? ` (edited by ${thread.editedBy})` : '';
-
-      // Create reactions HTML
-      const reactionsHtml = thread.reactions ? Object.entries(thread.reactions)
-        .map(([emoji, data]) => {
-          const hasReacted = data.users.includes(window.auth.currentUser?.uid);
-          return createReactionButton(emoji, data.count, hasReacted, doc.id, 'thread').outerHTML;
-        }).join('') : '';
-
-      li.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-        <p class="thread-initial-comment mt-2">${convertMentionsToHTML(thread.initialComment)}</p>
-        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}${isEdited}</p>
-        <div class="reactions-container mt-2">
-          ${reactionsHtml}
-          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
-        </div>
+      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+      const details = document.createElement('details');
+      details.className = 'thread-collapsible';
+      const summary = document.createElement('summary');
+      summary.innerHTML = `<span class="font-bold">${thread.title}</span> <span class="ml-2 text-sm text-gray-400">${thread.initialComment}</span>`;
+      details.appendChild(summary);
+      const inner = document.createElement('div');
+      inner.innerHTML = `
+        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
         <div class="thread-actions mt-4">
           <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
           ${canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : ''}
           ${canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : ''}
         </div>
       `;
+      details.appendChild(inner);
+      const li = document.createElement('li');
+      li.appendChild(details);
       threadList.appendChild(li);
     });
-
-    // Add event listeners
+    cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
     document.querySelectorAll('.view-comments-btn').forEach(button => {
       button.addEventListener('click', (event) => {
         const threadId = event.target.dataset.threadId;
         const threadTitle = event.target.dataset.threadTitle;
         const threadInitialComment = event.target.dataset.threadInitialComment;
-        console.log(`View Comments clicked for threadId: ${threadId}`);
         displayCommentsForThread(threadId, threadTitle, threadInitialComment);
       });
     });
-
     document.querySelectorAll('.delete-thread-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
         const threadId = event.target.dataset.threadId;
-        console.log(`Delete Thread clicked for threadId: ${threadId}`);
         const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
         if (confirmed) {
           await deleteThreadAndSubcollection(currentThemaId, threadId);
@@ -1310,10 +1252,7 @@ function renderThreads() {
         }
       });
     });
-
-    cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
   }, (error) => {
-    console.error("Error fetching threads:", error);
     threadList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading threads: ${error.message}</li>`;
   });
 }
@@ -2387,3 +2326,160 @@ let unsubscribeThemaComments = null;
 let unsubscribeThreads = null;
 let unsubscribeThematas = null;
 let unsubscribeDmList = null;
+
+// --- CONVERSATIONS (DMs) ---
+let conversationsSection = null;
+let startConversationBtn = null;
+let conversationsList = null;
+let conversationMessagesSection = null;
+let conversationMessages = null;
+let conversationInput = null;
+let conversationSendBtn = null;
+let currentConversationId = null;
+let unsubscribeConversations = null;
+let unsubscribeConversationMessages = null;
+
+function initializeConversationElements() {
+  conversationsSection = document.getElementById('conversations-section');
+  startConversationBtn = document.getElementById('start-conversation-btn');
+  conversationsList = document.getElementById('conversations-list');
+  conversationMessagesSection = document.getElementById('conversation-messages-section');
+  conversationMessages = document.getElementById('conversation-messages');
+  conversationInput = document.getElementById('conversation-input');
+  conversationSendBtn = document.getElementById('conversation-send-btn');
+}
+
+function showConversationsSection() {
+  if (conversationsSection) conversationsSection.style.display = 'block';
+  if (formsContentSection) formsContentSection.style.display = 'none';
+  if (dmSection) dmSection.style.display = 'none';
+  if (tempPagesSection) tempPagesSection.style.display = 'none';
+  if (themaRulesSection) themaRulesSection.style.display = 'none';
+  renderConversations();
+}
+
+function renderConversations() {
+  if (!window.db || !window.auth.currentUser) return;
+  if (!conversationsList) return;
+  if (unsubscribeConversations) unsubscribeConversations();
+  const userId = window.auth.currentUser.uid;
+  const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
+  const q = query(convCol, where('participants', 'array-contains', userId), orderBy('lastMessageAt', 'desc'));
+  unsubscribeConversations = onSnapshot(q, (snapshot) => {
+    conversationsList.innerHTML = '';
+    if (snapshot.empty) {
+      conversationsList.innerHTML = '<li class="card p-4 text-center">No conversations yet.</li>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const conv = doc.data();
+      const li = document.createElement('li');
+      li.className = 'card cursor-pointer';
+      li.innerHTML = `
+        <div class="flex flex-col">
+          <span class="font-bold text-lg">${conv.name || 'Conversation'}</span>
+          <span class="text-sm text-gray-400">Last: ${conv.lastMessageContent || ''}</span>
+          <span class="text-xs text-gray-500">${conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleString() : ''}</span>
+        </div>
+      `;
+      li.onclick = () => selectConversation(doc.id, conv);
+      conversationsList.appendChild(li);
+    });
+  });
+}
+
+function selectConversation(convId, convData) {
+  currentConversationId = convId;
+  if (conversationMessagesSection) conversationMessagesSection.style.display = 'block';
+  renderConversationMessages(convId);
+}
+
+function renderConversationMessages(convId) {
+  if (!window.db || !window.auth.currentUser) return;
+  if (!conversationMessages) return;
+  if (unsubscribeConversationMessages) unsubscribeConversationMessages();
+  const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${convId}/messages`);
+  const q = query(messagesCol, orderBy('createdAt', 'asc'));
+  unsubscribeConversationMessages = onSnapshot(q, (snapshot) => {
+    conversationMessages.innerHTML = '';
+    if (snapshot.empty) {
+      conversationMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet.</li>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      const li = document.createElement('li');
+      li.className = `message-item ${msg.createdBy === window.auth.currentUser.uid ? 'own-message' : 'other-message'}`;
+      li.innerHTML = `
+        <div class="message-content">
+          <p>${convertMentionsToHTML(msg.content)}</p>
+          <small class="text-gray-500">${msg.lastMessageSenderHandle || msg.createdBy} - ${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</small>
+        </div>
+      `;
+      conversationMessages.appendChild(li);
+    });
+    conversationMessages.scrollTop = conversationMessages.scrollHeight;
+  });
+}
+
+async function sendConversationMessage() {
+  if (!window.db || !window.auth.currentUser || !currentConversationId) return;
+  const content = conversationInput.value.trim();
+  if (!content) return;
+  const user = window.currentUser;
+  const msgData = {
+    content: content,
+    createdAt: serverTimestamp(),
+    createdBy: window.auth.currentUser.uid,
+    lastMessageSenderHandle: user?.handle || user?.displayName || 'You',
+    lastMessageSenderId: window.auth.currentUser.uid
+  };
+  const messagesCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations/${currentConversationId}/messages`);
+  await addDoc(messagesCol, msgData);
+  // Update conversation last message
+  const convRef = doc(window.db, `artifacts/${window.appId}/public/data/conversations`, currentConversationId);
+  await updateDoc(convRef, {
+    lastMessageAt: serverTimestamp(),
+    lastMessageContent: content,
+    lastMessageSenderHandle: msgData.lastMessageSenderHandle,
+    lastMessageSenderId: msgData.lastMessageSenderId
+  });
+  conversationInput.value = '';
+}
+
+async function startNewConversation() {
+  if (!window.db || !window.auth.currentUser) return;
+  const userId = window.auth.currentUser.uid;
+  let participantId = prompt('Enter the user ID to DM (leave blank to DM yourself):', userId);
+  if (!participantId) participantId = userId;
+  const participants = [userId, participantId];
+  const convCol = collection(window.db, `artifacts/${window.appId}/public/data/conversations`);
+  const convDoc = await addDoc(convCol, {
+    participants: participants,
+    type: participantId === userId ? 'private' : 'private',
+    createdBy: userId,
+    createdAt: serverTimestamp(),
+    lastMessageAt: null,
+    lastMessageContent: '',
+    lastMessageSenderHandle: '',
+    lastMessageSenderId: '',
+    name: participantId === userId ? 'Self DM' : ''
+  });
+  selectConversation(convDoc.id, {});
+  showMessageBox('Conversation started!', false);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeConversationElements();
+  if (startConversationBtn) {
+    startConversationBtn.addEventListener('click', startNewConversation);
+  }
+  if (conversationSendBtn) {
+    conversationSendBtn.addEventListener('click', sendConversationMessage);
+  }
+  // Add tab for conversations
+  const tabConversations = document.getElementById('tab-dms');
+  if (tabConversations) {
+    tabConversations.addEventListener('click', showConversationsSection);
+  }
+});

@@ -343,6 +343,24 @@
         </ul>
       </div>
 
+      <!-- Conversations Section (DMs) -->
+      <div id="conversations-section" class="form-container mb-12" style="display: none;">
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Direct Messages (Conversations)</h3>
+        <button id="start-conversation-btn" class="btn-primary btn-green mb-4">Start New Conversation</button>
+        <ul id="conversations-list" class="space-y-4 mb-8">
+          <!-- Conversations will be loaded here by JavaScript -->
+          <li class="card p-4 text-center">No conversations yet.</li>
+        </ul>
+        <div id="conversation-messages-section" style="display: none;">
+          <h4 class="text-xl font-bold mb-2">Messages</h4>
+          <ul id="conversation-messages" class="space-y-2 mb-4"></ul>
+          <div class="flex space-x-2">
+            <input type="text" id="conversation-input" class="flex-1 shadow appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type your message... Use @username to mention users">
+            <button id="conversation-send-btn" class="btn-primary btn-blue px-6">Send</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Comments Section (Initially hidden) -->
       <div id="comments-section" class="mt-12 p-6 card" style="display: none;">
         <button id="back-to-threads-btn" class="btn-primary btn-red mb-6">← Back to Threads</button>
