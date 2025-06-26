@@ -1057,7 +1057,7 @@ function renderComments() {
  * @param {string} pageContent - The page content
  */
 function viewTempPage(pageId, pageTitle, pageContent) {
-  window.location.href = `temp-page-viewer.html?id=${encodeURIComponent(pageId)}`;
+  window.location.href = `temp-page-viewer.html`;
 }
 
 /**
@@ -2271,4 +2271,6 @@ const editSaveBtn = document.getElementById('edit-save-btn');
 const editCancelBtn = document.getElementById('edit-cancel-btn');
 const editInput = document.getElementById('edit-input');
 const dmSendBtn = document.getElementById('dm-send-btn');
-const dmInput = document.getElementById('dm-input'); // Add this line
+const dmInput = document.getElementById('dm-input');
+const dmBackBtn = document.getElementById('dm-back-btn'); // Add this line
+const tempPagesSection = document.getElementById('temp-pages-section'); // Add this line
