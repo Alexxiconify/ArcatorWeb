@@ -2318,6 +2318,62 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
+
+  // Navigation tab logic
+  const tabThema = document.getElementById('tab-thematas');
+  const tabDms = document.getElementById('tab-dms');
+  const tabTempPages = document.getElementById('tab-temp-pages');
+
+  function showThemaTab() {
+    // Hide all sections except formsContentSection
+    if (formsContentSection) formsContentSection.style.display = 'block';
+    if (dmSection) dmSection.style.display = 'none';
+    if (tempPagesSection) tempPagesSection.style.display = 'none';
+    if (conversationsSection) conversationsSection.style.display = 'none';
+    if (threadsSection) threadsSection.style.display = 'none';
+    if (commentsSection) commentsSection.style.display = 'none';
+    // Show main thémata list
+    if (themaList) themaList.style.display = 'block';
+    if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
+    if (document.querySelector('#main-content > h2')) document.querySelector('#main-content > h2').style.display = 'block';
+    if (document.querySelector('#main-content > h3')) document.querySelector('#main-content > h3').style.display = 'block';
+    // Remove active from all tabs, set active on this
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (tabThema) tabThema.classList.add('active');
+    // Re-render thematas if needed
+    renderThematas();
+  }
+
+  function showDmTab() {
+    if (formsContentSection) formsContentSection.style.display = 'none';
+    if (dmSection) dmSection.style.display = 'block';
+    if (tempPagesSection) tempPagesSection.style.display = 'none';
+    if (conversationsSection) conversationsSection.style.display = 'none';
+    if (threadsSection) threadsSection.style.display = 'none';
+    if (commentsSection) commentsSection.style.display = 'none';
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (tabDms) tabDms.classList.add('active');
+    renderDMList();
+  }
+
+  function showTempPagesTab() {
+    if (formsContentSection) formsContentSection.style.display = 'none';
+    if (dmSection) dmSection.style.display = 'none';
+    if (tempPagesSection) tempPagesSection.style.display = 'block';
+    if (conversationsSection) conversationsSection.style.display = 'none';
+    if (threadsSection) threadsSection.style.display = 'none';
+    if (commentsSection) commentsSection.style.display = 'none';
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (tabTempPages) tabTempPages.classList.add('active');
+    renderTempPages();
+  }
+
+  if (tabThema) tabThema.addEventListener('click', showThemaTab);
+  if (tabDms) tabDms.addEventListener('click', showDmTab);
+  if (tabTempPages) tabTempPages.addEventListener('click', showTempPagesTab);
+
+  // Optionally, show Thémata tab by default on load
+  showThemaTab();
 });
 
 let unsubscribeThemaComments = null;
