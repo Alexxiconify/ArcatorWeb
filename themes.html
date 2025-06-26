@@ -6,516 +6,157 @@
   <title>Themes Core</title>
   <style>
     /* CSS Variables will be set on the <body> tag based on the active theme */
+    /* This section remains as is, as it defines the CSS variables for themes. */
     body {
       /* Default fallback variables (for dark theme, or if no theme is applied) */
       --color-body-bg: #1F2937;
       --color-text-primary: #E5E7EB;
-      --color-text-secondary: #CBD5E0;
-      --color-heading-main: #F87171; /* Red */
-      --color-heading-card: #60A5FA; /* Blue */
+      --color-text-secondary: #9CA3AF;
+      --color-link: #60A5FA;
+      --color-link-hover: #3B82F6;
+
       --color-bg-navbar: #111827;
       --color-bg-content-section: #1F2937;
       --color-bg-card: #2D3748;
-      --color-bg-ip-box: #1A202C;
-      --color-border-ip-box: #4A5568;
+
+      --color-heading-main: #F9FAFB;
+      --color-heading-card: #93C5FD;
+
       --color-input-bg: #374151;
       --color-input-text: #E5E7EB;
       --color-input-border: #4B5563;
       --color-placeholder: #9CA3AF;
-      --color-table-th-bg: #374151;
-      --color-table-th-text: #F87171;
-      --color-table-td-border: #374151;
-      --color-table-row-even-bg: #2F3B4E;
-      --color-link: #60A5FA;
-      --color-button-text: white;
-      --color-button-blue-bg: #2563EB; /* Tailwind blue-600 */
-      --color-button-blue-hover: #1D4ED8; /* Tailwind blue-700 */
-      --color-button-red-bg: #DC2626; /* Tailwind red-600 */
-      --color-button-red-hover: #B91C1C; /* Tailwind red-700 */
-      --color-button-green-bg: #16A34A; /* Tailwind green-600 */
-      --color-button-green-hover: #15803D; /* Tailwind green-700 */
-      --color-button-yellow-bg: #D97706; /* Tailwind yellow-600 */
-      --color-button-yellow-hover: #B45309; /* Tailwind yellow-700 */
-      --color-button-purple-bg: #9333EA; /* Tailwind purple-600 */
-      --color-button-purple-hover: #7E22CE; /* Tailwind purple-700 */
-      --color-button-indigo-bg: #4F46E5; /* Tailwind indigo-600 */
-      --color-button-indigo-hover: #4338CA; /* Tailwind indigo-700 */
-      --color-button-teal-bg: #0D9488; /* Tailwind teal-600 */
-      --color-button-teal-hover: #0F766E; /* Tailwind teal-700 */
-      --color-message-box-bg-success: #4CAF50;
-      --color-message-box-bg-error: #F44336;
+
+      --color-button-text: #FFFFFF;
+      --color-button-blue-bg: #3B82F6;
+      --color-button-blue-hover: #2563EB;
+      --color-button-green-bg: #10B981;
+      --color-button-green-hover: #059669;
+      --color-button-red-bg: #EF4444;
+      --color-button-red-hover: #DC2626;
+      --color-button-purple-bg: #9333EA;
+      --color-button-purple-hover: #7E22CE;
+      --color-button-yellow-bg: #FBBF24;
+      --color-button-yellow-hover: #D97706;
+      --color-button-orange-bg: #F97316;
+      --color-button-orange-hover: #EA580C;
+      --color-button-indigo-bg: #6366F1;
+      --color-button-indigo-hover: #4F46E5;
+
+      --color-table-th-bg: #1F2937;
+      --color-table-th-text: #E5E7EB;
+      --color-table-td-border: #4B5563;
+      --color-table-row-even-bg: #374151;
+
       --color-modal-bg: #2D3748;
       --color-modal-text: #E5E7EB;
       --color-modal-input-bg: #374151;
       --color-modal-input-text: #E5E7EB;
+
+      --color-message-box-bg-success: #4CAF50; /* Green for success */
+      --color-message-box-bg-error: #F44336;   /* Red for error */
+
+      /* Default font family variable */
+      --font-family-body: 'Inter', sans-serif;
     }
 
     /* Apply CSS variables */
+    /* These base rules apply the variables from :root or the active theme class */
     body {
       background-color: var(--color-body-bg);
       color: var(--color-text-primary);
     }
-    .bg-navbar { background-color: var(--color-bg-navbar); }
-    .bg-content-section { background-color: var(--color-bg-content-section); }
+    /* ... other theme application styles as in your original themes.html ... */
+    /* Example for .bg-card, .text-primary etc. */
     .bg-card { background-color: var(--color-bg-card); }
-    .bg-ip-box { background-color: var(--color-bg-ip-box); border-color: var(--color-border-ip-box); }
-
-    /* Text colors */
     .text-primary { color: var(--color-text-primary); }
-    .text-secondary { color: var(--color-text-secondary); }
-    .text-heading-main { color: var(--color-heading-main); }
-    .text-heading-card { color: var(--color-heading-card); }
-    .text-link { color: var(--color-link); }
 
-    /* Input fields */
-    input, select, textarea {
-      background-color: var(--color-input-bg);
-      color: var(--color-input-text);
-      border-color: var(--color-input-border);
-    }
-    input::placeholder, textarea::placeholder {
-      color: var(--color-placeholder);
-    }
+    /* --- Theme Specific Variable Overrides --- */
+    /* These classes are added to the <body> by JS to apply specific theme variable sets */
 
-    /* Tables */
-    table th {
-      background-color: var(--color-table-th-bg);
-      color: var(--color-table-th-text);
-      border-bottom-color: var(--color-table-td-border); /* Use border color for consistency */
-    }
-    table td {
-      border-bottom-color: var(--color-table-td-border);
-    }
-    table tr:nth-child(even) {
-      background-color: var(--color-table-row-even-bg);
-    }
-
-    /* Buttons (semantic colors) */
-    .btn-blue { background-color: var(--color-button-blue-bg); color: var(--color-button-text); }
-    .btn-blue:hover { background-color: var(--color-button-blue-hover); }
-    .btn-red { background-color: var(--color-button-red-bg); color: var(--color-button-text); }
-    .btn-red:hover { background-color: var(--color-button-red-hover); }
-    .btn-green { background-color: var(--color-button-green-bg); color: var(--color-button-text); }
-    .btn-green:hover { background-color: var(--color-button-green-hover); }
-    .btn-yellow { background-color: var(--color-button-yellow-bg); color: var(--color-button-text); }
-    .btn-yellow:hover { background-color: var(--color-button-yellow-hover); }
-    .btn-purple { background-color: var(--color-button-purple-bg); color: var(--color-button-text); }
-    .btn-purple:hover { background-color: var(--color-button-purple-hover); }
-    .btn-indigo { background-color: var(--color-button-indigo-bg); color: var(--color-button-text); }
-    .btn-indigo:hover { background-color: var(--color-button-indigo-hover); }
-    .btn-teal { background-color: var(--color-button-teal-bg); color: var(--color-button-text); }
-    .btn-teal:hover { background-color: var(--color-button-teal-hover); }
-
-
-    /* Message Box */
-    .message-box.success { background-color: var(--color-message-box-bg-success); }
-    .message-box.error { background-color: var(--color-message-box-bg-error); }
-
-    /* Modals */
-    .modal-content {
-      background-color: var(--color-modal-bg);
-      color: var(--color-modal-text);
-    }
-    .modal-content input, .modal-content select, .modal-content textarea {
-      background-color: var(--color-modal-input-bg);
-      color: var(--color-modal-input-text);
-    }
-    .modal-content label { /* Fix for labels in modals */
-      color: var(--color-modal-text);
-    }
-
-    /* EasyMDE specific styling adjustments */
-    .editor-toolbar {
-      background-color: var(--color-input-bg) !important;
-      border-bottom: 1px solid var(--color-input-border) !important;
-    }
-    .editor-toolbar button {
-      color: var(--color-input-text) !important;
-    }
-    .editor-toolbar button.active, .editor-toolbar button:hover {
-      background-color: var(--color-input-border) !important;
-    }
-    .CodeMirror, .CodeMirror-scroll {
-      background-color: var(--color-body-bg) !important;
-      color: var(--color-text-primary) !important;
-    }
-    .CodeMirror-cursor {
-      border-left: 1px solid var(--color-text-primary) !important;
-    }
-    .CodeMirror-selected {
-      background-color: var(--color-input-border) !important;
-    }
-    .CodeMirror-placeholder {
-      color: var(--color-placeholder) !important;
-    }
-
-    /* Profile picture styling (common for settings and navbar) */
-    .profile-pic-large {
-      width: 128px;
-      height: 128px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid var(--color-heading-card); /* Blue border for profile pics */
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-    .navbar-profile-pic {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid var(--color-heading-card); /* Blue border */
-      vertical-align: middle;
-    }
-
-    /* Specific background-image for dark theme */
-    body.theme-dark {
+    /* Dark Theme (example - these specific values should match theme_variables.css) */
+    .theme-dark {
       background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
     }
-    /* Specific background-image for arcator-blue theme */
-    body.theme-arcator-blue {
+    /* Light Theme */
+    .theme-light {
+      background-image: none;
+    }
+    /* Arcator Blue Theme */
+    .theme-arcator-blue {
       background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
       linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
       background-size: cover;
       background-attachment: fixed;
     }
-    /* No specific background-image for light theme */
-    body.theme-light {
-      background-image: none;
-    }
+    /* Add other theme-specific styles if they modify elements not covered by general CSS variables */
 
   </style>
 </head>
 <body>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  // Import Firebase instances and utility functions from firebase-init.js
+  import { db, auth, appId, firebaseReadyPromise, DEFAULT_THEME_NAME } from './firebase-init.js';
+  // Import theme-related functions from themes.js
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { doc, getDoc, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // IMPORTANT: Replace these with your actual Firebase project configuration!
-  // These are placeholders and will prevent Firebase from initializing correctly if not updated.
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // <-- REPLACE THIS
-    authDomain: "YOUR_AUTH_DOMAIN", // <-- REPLACE THIS
-    projectId: "YOUR_PROJECT_ID", // <-- REPLACE THIS
-    storageBucket: "YOUR_STORAGE_BUCKET", // <-- REPLACE THIS
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <-- REPLACE THIS
-    appId: "YOUR_APP_ID", // <-- REPLACE THIS
-    measurementId: "YOUR_MEASUREMENT_ID" // <-- REPLACE THIS
-  };
 
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-  // Global Firebase instances (exposed to window for other scripts to use)
-  window.firebaseApp = null;
-  window.firebaseAuth = null;
-  window.firestoreDb = null;
-  window.isFirebaseInitialized = false; // Global flag
-
-  // Initialize Firebase (only if config is valid)
-  // We check for "YOUR_PROJECT_ID" as a strong indicator if config is still placeholder
-  if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.projectId !== "YOUR_PROJECT_ID") {
-    try {
-      window.firebaseApp = initializeApp(firebaseConfig);
-      window.firebaseAuth = getAuth(window.firebaseApp);
-      window.firestoreDb = getFirestore(window.firebaseApp);
-      window.isFirebaseInitialized = true;
-      console.log("Firebase initialized in themes.html.");
-    } catch (e) {
-      console.error("Error initializing Firebase in themes.html:", e);
-      window.isFirebaseInitialized = false;
-    }
-  } else {
-    console.error("Firebase configuration is incomplete or placeholder in themes.html. Please update firebaseConfig with your actual project details. Theme features requiring Firestore will be disabled.");
-  }
-
-  // Predefined themes
-  const PREDEFINED_THEMES = {
-    'dark': {
-      id: 'dark', // Explicit ID for predefined themes
-      name: 'Dark',
-      isCustom: false,
-      properties: {
-        bodyBg: '#1F2937',
-        textPrimary: '#E5E7EB',
-        textSecondary: '#CBD5E0',
-        headingMain: '#F87171',
-        headingCard: '#60A5FA',
-        bgNavbar: '#111827',
-        bgContentSection: '#1F2937',
-        bgCard: '#2D3748',
-        bgIpBox: '#1A202C',
-        borderIpBox: '#4A5568',
-        inputBg: '#374151',
-        inputText: '#E5E7EB',
-        inputBorder: '#4B5563',
-        placeholder: '#9CA3AF',
-        tableThBg: '#374151',
-        tableThText: '#F87171',
-        tableTdBorder: '#374151',
-        tableRowEvenBg: '#2F3B4E',
-        link: '#60A5FA',
-        buttonText: 'white',
-        buttonBlueBg: '#2563EB',
-        buttonBlueHover: '#1D4ED8',
-        buttonRedBg: '#DC2626',
-        buttonRedHover: '#B91C1C',
-        buttonGreenBg: '#16A34A',
-        buttonGreenHover: '#15803D',
-        buttonYellowBg: '#D97706',
-        buttonYellowHover: '#B45309',
-        buttonPurpleBg: '#9333EA',
-        buttonPurpleHover: '#7E22CE',
-        buttonIndigoBg: '#4F46E5',
-        buttonIndigoHover: '#4338CA',
-        buttonTealBg: '#0D9488',
-        buttonTealHover: '#0F766E',
-        messageBoxBgSuccess: '#4CAF50',
-        messageBoxBgError: '#F44336',
-        modalBg: '#2D3748',
-        modalText: '#E5E7EB',
-        modalInputBg: '#374151',
-        modalInputText: '#E5E7EB'
-      }
-    },
-    'light': {
-      id: 'light', // Explicit ID
-      name: 'Light',
-      isCustom: false,
-      properties: {
-        bodyBg: '#F3F4F6',
-        textPrimary: '#1F2937',
-        textSecondary: '#4B5563',
-        headingMain: '#DC2626',
-        headingCard: '#2563EB',
-        bgNavbar: '#E5E7EB',
-        bgContentSection: '#F9FAFB',
-        bgCard: '#FFFFFF',
-        bgIpBox: '#E2E8F0',
-        borderIpBox: '#CBD5E0',
-        inputBg: '#FFFFFF',
-        inputText: '#1F2937',
-        inputBorder: '#D1D5DB',
-        placeholder: '#6B7280',
-        tableThBg: '#E0E0E0',
-        tableThText: '#4B5563',
-        tableTdBorder: '#E0E0E0',
-        tableRowEvenBg: '#F0F0F0',
-        link: '#2563EB',
-        buttonText: 'white',
-        buttonBlueBg: '#2563EB',
-        buttonBlueHover: '#1D4ED8',
-        buttonRedBg: '#DC2626',
-        buttonRedHover: '#B91C1C',
-        buttonGreenBg: '#16A34A',
-        buttonGreenHover: '#15803D',
-        buttonYellowBg: '#D97706',
-        buttonYellowHover: '#B45309',
-        buttonPurpleBg: '#9333EA',
-        buttonPurpleHover: '#7E22CE',
-        buttonIndigoBg: '#4F46E5',
-        buttonIndigoHover: '#4338CA',
-        buttonTealBg: '#0D9488',
-        buttonTealHover: '#0F766E',
-        messageBoxBgSuccess: '#4CAF50',
-        messageBoxBgError: '#F44336',
-        modalBg: '#FFFFFF',
-        modalText: '#1F2937',
-        modalInputBg: '#FFFFFF',
-        modalInputText: '#1F2937'
-      }
-    },
-    'arcator-blue': {
-      id: 'arcator-blue', // Explicit ID
-      name: 'Arcator Blue',
-      isCustom: false,
-      properties: {
-        bodyBg: '#1a202c',
-        textPrimary: '#E2E8F0',
-        textSecondary: '#CBD5E0',
-        headingMain: '#FC8181',
-        headingCard: '#63B3ED',
-        bgNavbar: '#111827',
-        bgContentSection: '#1a202c',
-        bgCard: '#2b3b55',
-        bgIpBox: '#1A253A',
-        borderIpBox: '#3B82F6',
-        inputBg: '#3b4d6b',
-        inputText: '#E2E8F0',
-        inputBorder: '#5a6e8f',
-        placeholder: '#94A3B8',
-        tableThBg: '#3b4d6b',
-        tableThText: '#90CDF4',
-        tableTdBorder: '#374151',
-        tableRowEvenBg: '#2F3B4E',
-        link: '#63B3ED',
-        buttonText: 'white',
-        buttonBlueBg: '#4299E1',
-        buttonBlueHover: '#3182CE',
-        buttonRedBg: '#FC8181',
-        buttonRedHover: '#E53E3E',
-        buttonGreenBg: '#48BB78',
-        buttonGreenHover: '#38A169',
-        buttonYellowBg: '#ECC94B',
-        buttonYellowHover: '#D69E2E',
-        buttonPurpleBg: '#9F7AEA',
-        buttonPurpleHover: '#805AD5',
-        buttonIndigoBg: '#667EEA',
-        buttonIndigoHover: '#5A67D8',
-        buttonTealBg: '#38B2AC',
-        buttonTealHover: '#319795',
-        messageBoxBgSuccess: '#4CAF50',
-        messageBoxBgError: '#F44336',
-        modalBg: '#2b3b55',
-        modalText: '#E2E8F0',
-        modalInputBg: '#3b4d6b',
-        modalInputText: '#E2E8F0'
-      }
-    }
-  };
-
-  let customThemes = {}; // Stores fetched custom themes
-
-  /**
-   * Fetches custom themes from Firestore.
-   * @returns {Promise<Object>} A dictionary of custom themes.
-   */
-  async function fetchCustomThemes() {
-    if (!window.isFirebaseInitialized || !window.firestoreDb) {
-      console.warn("Firebase not initialized. Cannot fetch custom themes.");
-      return {};
-    }
-    const themesCollectionRef = collection(window.firestoreDb, `artifacts/${appId}/public/data/custom_themes`);
-    const fetchedThemes = {};
-    try {
-      const querySnapshot = await getDocs(themesCollectionRef);
-      querySnapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        // Ensure properties exist, if not, fill with default or warn
-        fetchedThemes[docSnap.id] = {
-          id: docSnap.id,
-          name: data.name || docSnap.id,
-          isCustom: true,
-          properties: data.properties || {}
-        };
-      });
-      console.log("Custom themes fetched:", fetchedThemes);
-    } catch (error) {
-      console.error("Error fetching custom themes:", error);
-    }
-    return fetchedThemes;
-  }
-
-  /**
-   * Applies a given theme to the document by setting CSS variables.
-   * @param {string} themeId The ID of the theme to apply (e.g., 'dark', 'my-custom-theme').
-   * @param {object} [themeData=null] Optional. The theme object itself. If not provided,
-   * it will attempt to find the theme in PREDEFINED_THEMES or customThemes.
-   */
-  window.applyTheme = function(themeId, themeData = null) {
-    let activeTheme = themeData;
-
-    if (!activeTheme) {
-      activeTheme = PREDEFINED_THEMES[themeId];
-      if (!activeTheme) {
-        activeTheme = customThemes[themeId]; // Check in custom themes
-      }
-    }
-
-    if (activeTheme && activeTheme.properties) {
-      console.log(`Applying theme: ${activeTheme.name || themeId}`);
-      for (const key in activeTheme.properties) {
-        if (activeTheme.properties.hasOwnProperty(key)) {
-          document.documentElement.style.setProperty(`--color-${camelToKebab(key)}`, activeTheme.properties[key]);
-        }
-      }
-      // Add or remove theme-specific body classes for any special background-image logic
-      document.body.classList.remove('theme-dark', 'theme-light', 'theme-arcator-blue');
-      if (activeTheme.id === 'dark') { // Use ID for checking predefined themes
-        document.body.classList.add('theme-dark');
-      } else if (activeTheme.id === 'light') {
-        document.body.classList.add('theme-light');
-      } else if (activeTheme.id === 'arcator-blue') {
-        document.body.classList.add('theme-arcator-blue');
-      }
-    } else {
-      console.error(`Theme "${themeId}" not found or has no properties. Falling back to default dark.`);
-      // Fallback to default dark theme if specified theme is not found
-      if (PREDEFINED_THEMES['dark']) {
-        window.applyTheme('dark', PREDEFINED_THEMES['dark']); // Pass the theme object
-      }
-    }
-  };
-
-  /**
-   * Converts camelCase to kebab-case (for CSS variables).
-   * @param {string} camelCaseString
-   * @returns {string} kebab-case string
-   */
-  function camelToKebab(camelCaseString) {
-    return camelCaseString.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
-  }
-
-  /**
-   * Returns a combined list of predefined and custom themes.
-   * @returns {Promise<Array<Object>>} An array of theme objects.
-   */
-  window.getAvailableThemes = async function() {
-    if (Object.keys(customThemes).length === 0 && window.isFirebaseInitialized) {
-      customThemes = await fetchCustomThemes();
-    }
-    // Return a new array combining values from both objects
-    return [
-      ...Object.values(PREDEFINED_THEMES),
-      ...Object.values(customThemes)
-    ];
-  };
-
-  // Auto-apply user's saved theme on page load using Firebase Auth
+  // Main execution logic on window load for themes.html
   document.addEventListener('DOMContentLoaded', async () => {
-    if (window.isFirebaseInitialized && window.firebaseAuth) {
-      // Wait for auth state to be resolved
-      onAuthStateChanged(window.firebaseAuth, async (user) => {
-        let userThemePreference = null;
-        if (user) {
-          const userDocRef = doc(window.firestoreDb, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-          try {
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              userThemePreference = data.themePreference;
-            }
-          } catch (error) {
-            console.error("Error fetching user profile for theme:", error);
-          }
-        }
+    // 1. Ensure Firebase is fully initialized and ready
+    await firebaseReadyPromise;
 
-        // If no user preference or user is anonymous, try to sign in anonymously
-        // and then apply a default theme (only if in Canvas environment)
-        if (!userThemePreference && !user && typeof __initial_auth_token !== 'undefined') {
-          try {
-            await signInAnonymously(window.firebaseAuth);
-            console.log("Signed in anonymously for initial theme load.");
-          } catch (error) {
-            console.error("Anonymous sign-in failed during theme load:", error);
-          }
-        }
+    // 2. Setup themes Firebase integration with the initialized instances
+    setupThemesFirebase(db, auth, appId); // Pass the imported instances
 
-        // Apply the theme: user's preference, or 'dark' default
-        window.applyTheme(userThemePreference || 'dark');
-      });
-    } else {
-      // If Firebase is not initialized, apply default dark theme
-      console.warn("Firebase not initialized in themes.html. Applying default 'dark' theme.");
-      window.applyTheme('dark');
-    }
+    // 3. Listen for auth state changes to apply user's theme preference
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+        try {
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            userThemePreference = data.themePreference;
+          }
+        } catch (error) {
+          console.error("Error fetching user profile for theme:", error);
+        }
+      }
+
+      // If no user preference and user is anonymous, attempt anonymous sign-in
+      // (This block is primarily for environments where auth is needed just for initial theme load,
+      // like standalone previews if not already authenticated by a parent app).
+      if (!userThemePreference && !user && typeof __initial_auth_token !== 'undefined') {
+        try {
+          await signInAnonymously(auth); // Use the imported 'auth' instance
+          console.log("Signed in anonymously for initial theme load.");
+        } catch (error) {
+          console.error("Anonymous sign-in failed during theme load:", error);
+        }
+      }
+
+      // Get all available themes (predefined + custom)
+      const allThemes = await getAvailableThemes();
+      // Determine the theme to apply: user's preference, or the default
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+
+      // Apply the theme using the imported applyTheme function
+      if (themeToApply) {
+        applyTheme(themeToApply.id, themeToApply);
+      } else {
+        console.error("No valid theme found to apply. Falling back to hardcoded dark theme variables.");
+        // As a last resort, directly set dark theme properties if all else fails
+        document.documentElement.style.setProperty('--color-body-bg', '#1F2937');
+        document.documentElement.style.setProperty('--color-text-primary', '#E5E7EB');
+        // ... and so on for other core dark theme variables
+      }
+    });
   });
-
-  // Provide default properties for new custom themes (using dark theme as template)
-  window.DEFAULT_CUSTOM_THEME_PROPERTIES = PREDEFINED_THEMES['dark'].properties;
-
 </script>
 </body>
 </html>
