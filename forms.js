@@ -469,40 +469,33 @@ function hideMainLoading() {
  * Updates UI visibility based on authentication and user profile readiness.
  */
 async function updateUIBasedOnAuthAndData() {
-  console.log("[DEBUG] updateUIBasedOnAuthAndData called. currentUser:", window.currentUser);
+  console.log('[DEBUG] updateUIBasedOnAuthAndData called. currentUser:', window.currentUser);
   hideMainLoading();
   if (window.auth.currentUser) {
-    if (!window.currentUser || window.currentUser.uid !== window.auth.currentUser.uid) {
-      window.currentUser = {
-        uid: window.auth.currentUser.uid,
-        displayName: window.auth.currentUser.displayName || `User-${window.auth.currentUser.uid.substring(0, 6)}`,
-        email: window.auth.currentUser.email || null,
-        photoURL: window.auth.currentUser.photoURL || window.DEFAULT_PROFILE_PIC,
-        themePreference: window.DEFAULT_THEME_NAME
-      };
-      console.log("[DEBUG] Set window.currentUser from window.auth.currentUser:", window.currentUser);
+    if (!window.currentUser) {
+      console.log('[DEBUG] currentUser not ready, retrying updateUIBasedOnAuthAndData in 100ms');
+      setTimeout(updateUIBasedOnAuthAndData, 100);
+      return;
     }
-    let profileReady = true;
-    if (profileReady) {
-      if (formsContentSection) {
-        formsContentSection.style.display = 'block';
-        console.log("[DEBUG] formsContentSection shown");
-      }
-      if (mainLoginRequiredMessage) {
-        mainLoginRequiredMessage.style.display = 'none';
-        console.log("[DEBUG] mainLoginRequiredMessage hidden");
-      }
-      renderThematas();
+    if (formsContentSection) {
+      formsContentSection.style.display = 'block';
+      console.log('[DEBUG] formsContentSection shown');
     }
+    if (mainLoginRequiredMessage) {
+      mainLoginRequiredMessage.style.display = 'none';
+      console.log('[DEBUG] mainLoginRequiredMessage hidden');
+    }
+    console.log('[DEBUG] About to call renderThematas() with currentUser:', window.currentUser);
+    renderThematas();
   } else {
-    console.log("[DEBUG] User NOT logged in. Showing login message.");
+    console.log('[DEBUG] User NOT logged in. Showing login message.');
     if (formsContentSection) {
       formsContentSection.style.display = 'none';
-      console.log("[DEBUG] formsContentSection hidden");
+      console.log('[DEBUG] formsContentSection hidden');
     }
     if (mainLoginRequiredMessage) {
       mainLoginRequiredMessage.style.display = 'block';
-      console.log("[DEBUG] mainLoginRequiredMessage shown");
+      console.log('[DEBUG] mainLoginRequiredMessage shown');
     }
   }
 }
@@ -588,6 +581,10 @@ function renderThreadsFromCache(themaId) {
 
 // --- PATCH renderThematas: Use <details> for collapsible thémata ---
 function renderThematas() {
+  if (!window.currentUser) {
+    console.log('[DEBUG] renderThematas() called with null currentUser, skipping render.');
+    return;
+  }
   try {
     console.log('[DEBUG] renderThematas called. DB:', !!window.db, 'currentUser:', window.currentUser);
     if (typeof unsubscribeThematas !== 'undefined' && unsubscribeThematas) {
@@ -1554,10 +1551,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         await addThema(name, description);
       });
     }
-    // ... any other main entry logic ...
+    // Do NOT call renderThematas() here; it will be called after currentUser is set in updateUIBasedOnAuthAndData
     await updateUIBasedOnAuthAndData();
-    console.log('[DEBUG] renderThematas() called from DOMContentLoaded');
-    renderThematas();
+    // console.log('[DEBUG] renderThematas() called from DOMContentLoaded'); // Remove this line
+    // renderThematas(); // Remove this line
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
   }
@@ -1779,3 +1776,16 @@ function openEditModal(type, context, oldContent) {
   editModalTextarea.value = oldContent;
   editModal.style.display = 'flex';
 }
+
+// Test function to verify user and render logic
+function testRenderThematasTiming() {
+  console.log('[TEST] currentUser:', window.currentUser);
+  if (window.currentUser) {
+    console.log('[TEST] renderThematas() should run now.');
+    renderThematas();
+  } else {
+    console.log('[TEST] currentUser not set, skipping renderThematas().');
+  }
+}
+
+testRenderThematasTiming();
