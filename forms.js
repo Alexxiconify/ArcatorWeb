@@ -1338,10 +1338,16 @@ function renderDMList() {
         return profile?.displayName || profile?.handle || uid;
       }).join(', ');
       const name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : participantNames;
+      // Get profile pic for first other participant
+      const firstOtherParticipant = otherParticipants[0];
+      const profilePic = firstOtherParticipant ? (userProfiles[firstOtherParticipant]?.photoURL || window.DEFAULT_PROFILE_PIC) : window.DEFAULT_PROFILE_PIC;
       div.innerHTML = `
-        <div class="flex flex-col">
-          <span class="font-bold text-base">${name}</span>
-          <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
+        <div class="flex items-center gap-3">
+          <img src="${profilePic}" class="w-10 h-10 rounded-full object-cover border" alt="Profile">
+          <div class="flex flex-col">
+            <span class="font-bold text-base">${name}</span>
+            <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
+          </div>
         </div>
         <span class="material-icons text-gray-500">chevron_right</span>
       `;
