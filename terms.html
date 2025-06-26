@@ -14,6 +14,46 @@
   <link rel="stylesheet" href="navbar.css">
   <!-- Link to terms.css for page-specific styling -->
   <link rel="stylesheet" href="terms.css">
+  <style>
+    /* Ensure the HTML and Body default to dark colors immediately */
+    html {
+      background-color: var(--color-body-bg, #1F2937); /* Fallback to a dark grey */
+      color: var(--color-text-primary, #E5E7EB); /* Fallback to a light grey */
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh; /* Ensure body takes full viewport height */
+      display: flex;
+      flex-direction: column;
+      background-color: var(--color-body-bg, #1F2937); /* Fallback to a dark grey */
+      color: var(--color-text-primary, #E5E7EB); /* Fallback to a light grey */
+    }
+
+    /* Container for the main page content - ensure it uses theme colors */
+    #terms-of-service-content .container {
+      background-color: var(--color-bg-content-section, #1F2937); /* Ensure content section background is applied */
+      color: var(--color-text-primary, #E5E7EB); /* Ensure text within container uses primary text color */
+    }
+
+    /* Ensure direct text elements within the container inherit primary text color */
+    #terms-of-service-content .container p,
+    #terms-of-service-content .container ul,
+    #terms-of-service-content .container li {
+      color: var(--color-text-primary, #E5E7EB) !important; /* Use !important to override Tailwind's text-gray-100 */
+    }
+
+    /* Headers need to pick up heading colors explicitly */
+    #terms-of-service-content .container h2 {
+      color: var(--color-heading-card, #93C5FD) !important; /* Changed to heading-card color, with fallback */
+    }
+
+    /* Links within terms content */
+    #terms-of-service-content .container a {
+      color: var(--color-link, #60A5FA);
+    }
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -28,38 +68,38 @@
 
 <!-- Terms of Service Content Section -->
 <section id="terms-of-service-content" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4 text-gray-100">
-    <h2 class="text-3xl font-bold mb-6 text-purple-400">Introduction</h2>
+  <div class="container mx-auto px-4"> <!-- Removed text-gray-100 as it's handled by CSS var -->
+    <h2 class="text-3xl font-bold mb-6">Introduction</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">Welcome to Arcator.co.uk! These Terms of Service ("Terms") govern your use of our website and services. By accessing or using our website and services, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our website or services.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Acceptance of Terms</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Acceptance of Terms</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">By using Arcator.co.uk, you agree to comply with and be legally bound by these Terms, whether or not you become a registered user of the services. These Terms govern your access to and use of the website and services and all Collective Content (as defined below).</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">User Conduct</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">User Conduct</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">You agree not to use the website or services for any unlawful purpose or in any way that might harm, abuse, or otherwise interfere with the normal operation of the services. This includes, but is not limited to, respecting other users, avoiding harassment, and not engaging in any form of cheating or exploitation on our Minecraft servers.</p>
-    <ul class="list-disc list-inside text-gray-400 ml-4 mb-4">
+    <ul class="list-disc list-inside ml-4 mb-4"> <!-- Removed text-gray-400 -->
       <li>No griefing, hacking, or unauthorized modifications to the game or server.</li>
       <li>Respectful communication with all community members and staff.</li>
       <li>No spamming, advertising, or inappropriate content.</li>
       <li>Adherence to specific server rules posted within the game or on our Discord.</li>
     </ul>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Intellectual Property</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Intellectual Property</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">All content on Arcator.co.uk, including text, graphics, logos, images, and software, is the property of Arcator.co.uk or its content suppliers and protected by international copyright laws. You may not reproduce, distribute, modify, or create derivative works of any content without explicit permission.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Disclaimer of Warranties</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Disclaimer of Warranties</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">The website and services are provided "as is" and "as available" without any warranties of any kind, either express or implied. Arcator.co.uk does not warrant that the services will be uninterrupted, error-free, or secure.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Limitation of Liability</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Limitation of Liability</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">To the fullest extent permitted by applicable law, Arcator.co.uk shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (a) your access to or use of or inability to access or use the services; (b) any conduct or content of any third party on the services; or (c) unauthorized access, use, or alteration of your transmissions or content.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Governing Law</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Governing Law</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">These Terms shall be governed and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Changes to Terms</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Changes to Terms</h2> <!-- Removed text-purple-400 -->
     <p class="mb-4">We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-purple-400">Contact Us</h2>
+    <h2 class="text-3xl font-bold mt-8 mb-6">Contact Us</h2> <!-- Removed text-purple-400 -->
     <p>If you have any questions about these Terms, please contact us through our Discord server or other official communication channels available on Arcator.co.uk.</p>
   </div>
 </section>
@@ -71,7 +111,7 @@
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out text-purple-400">Terms of Service</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a> <!-- Removed text-purple-400 -->
       <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
       <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
       <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
@@ -84,126 +124,67 @@
 <script type="module" src="navbar.js"></script>
 <script type="module" src="firebase-init.js"></script> <!-- Ensure firebase-init.js is loaded first -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  // Import setupThemesFirebase from themes.js
+  import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  // Import loadNavbar from navbar.js
   import { loadNavbar } from './navbar.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-  // Firebase configuration object
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-
-  let app;
-  let auth;
-  let db;
-  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
-
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-  const DEFAULT_THEME_NAME = 'dark'; // Default theme name
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  async function getUserProfileFromFirestore(uid) {
-    await firebaseReadyPromise; // Ensure Firebase is initialized
-    if (!db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-    }
-    return null;
-  }
-
-  // Initialize Firebase and setup firebaseReadyPromise
-  firebaseReadyPromise = new Promise((resolve) => {
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log("Firebase initialized successfully.");
-      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
-
-// Critical: Ensure auth state is settled before resolving
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first call
-
-// Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
-            .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
-              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
-            })
-            .finally(() => resolve()); // Resolve promise after token attempt
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
-            .finally(() => resolve());
-        }
-        else {
-          resolve(); // Resolve immediately if user is already authenticated or no token to use
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing Firebase (initial block):", e);
-      resolve(); // Resolve immediately on error to prevent infinite loading
-    }
-  });
-
-
-  // Main execution logic on window load
-  window.onload = async function() {
-// Wait for Firebase to be ready before proceeding
+  // Main execution logic on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', async function() {
+    // Wait for Firebase to be ready before proceeding with any Firebase-dependent operations.
+    // This ensures `auth`, `db`, and `appId` are initialized.
     await firebaseReadyPromise;
 
-// Pass the necessary Firebase instances and theme-related functions
-// loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-    document.getElementById('current-year-infra').textContent = new Date().getFullYear();
+    // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set
+    setupThemesFirebase(db, auth, appId);
 
-// After everything is loaded and Firebase is ready, apply the user's theme
+    // Load navbar dynamically after Firebase is ready
+    await loadNavbar(auth.currentUser, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+    // Set current year for footer
+    const currentYearElement = document.getElementById('current-year-terms');
+    if (currentYearElement) {
+      currentYearElement.textContent = new Date().getFullYear().toString();
+    }
+
+    // After everything is loaded and Firebase is ready, apply the user's theme
+    // This onAuthStateChanged listener is still useful here to react to *any* auth state change
+    // after the initial load (e.g., user logs in/out from another tab).
     onAuthStateChanged(auth, async (user) => {
       let userThemePreference = null;
       if (user) {
-        const userProfile = await getUserProfileFromFirestore(user.uid);
+        // Use the centralized getUserProfileFromFirestore, which relies on the initialized `db`
+        // Note: Assuming getUserProfileFromFirestore is globally available or imported from firebase-init.js
+        // If not, you might need to manually fetch the user profile here using doc(db, ...)
+        // For this context, it's safer to ensure getUserProfileFromFirestore is exported by firebase-init.js
+        // and imported here, or to inline its logic.
+        // Given previous contexts, it seems to be exposed globally or imported via firebase-init.js.
+        // Let's assume it's correctly handled by firebase-init.js and its exports.
+        const userProfile = await (typeof getUserProfileFromFirestore !== 'undefined' ? getUserProfileFromFirestore(user.uid) : (async () => {
+          // Fallback if getUserProfileFromFirestore is not globally available/imported
+          if (!db) {
+            console.error("Firestore DB not initialized for fallback user profile fetch.");
+            return null;
+          }
+          const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+          try {
+            const docSnap = await getDoc(userDocRef);
+            return docSnap.exists() ? docSnap.data() : null;
+          } catch (error) {
+            console.error("Error fetching user profile from Firestore (fallback):", error);
+            return null;
+          }
+        })());
         userThemePreference = userProfile?.themePreference;
       }
-// Apply the theme: user's preference, or 'dark' default
+      // Apply the theme: user's preference, or DEFAULT_THEME_NAME
       const allThemes = await getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
-  };
+  });
 </script>
 </body>
 </html>

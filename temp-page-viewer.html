@@ -13,19 +13,27 @@
   <!-- Markdown renderer (Marked.js) - Keep this for potential future use or if any content might still be markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    /* Base styles */
+    /* Ensure the HTML and Body default to dark colors immediately */
+    html {
+      background-color: var(--color-body-bg, #1F2937); /* Fallback to a dark grey */
+      color: var(--color-text-primary, #E5E7EB); /* Fallback to a light grey */
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
       min-height: 100vh; /* Ensure body takes full viewport height */
       display: flex;
       flex-direction: column;
+      background-color: var(--color-body-bg, #1F2937); /* Fallback to a dark grey */
+      color: var(--color-text-primary, #E5E7EB); /* Fallback to a light grey */
     }
 
-    /* Container for the main page content */
+    /* Container for the main page content - ensure it uses theme colors */
     .container {
       flex-grow: 1; /* Allow container to grow and fill available space */
-      /* No explicit background or text color here, rely on theme_variables.css */
+      background-color: var(--color-bg-card, #2D3748); /* Ensure card background is applied, with fallback */
+      color: var(--color-text-primary, #E5E7EB); /* Ensure text within container uses primary text color, with fallback */
     }
 
     /* Temporary Page Navigation Tabs */
@@ -90,13 +98,14 @@
     .html-content {
       line-height: 1.7;
       word-wrap: break-word; /* Ensure long words break */
-      /* Explicitly set default text color for all content inside this div */
-      color: var(--color-text-primary);
+      color: var(--color-text-primary, #E5E7EB) !important; /* Force primary text color for all content */
+      background-color: var(--color-input-bg, #374151); /* Background for content block */
+      border-color: var(--color-input-border, #4B5563); /* Border for content block */
     }
 
     /* General HTML element styling to match theme */
     .html-content h1, .html-content h2, .html-content h3, .html-content h4, .html-content h5, .html-content h6 {
-      color: var(--color-heading-main); /* Main heading color from theme_variables.css */
+      color: var(--color-heading-main, #F9FAFB) !important; /* Force heading color */
       margin-top: 1.5em;
       margin-bottom: 0.8em;
       font-weight: 700;
@@ -271,7 +280,7 @@
 
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen theme-dark"> <!-- Added theme-dark class for immediate dark appearance -->
+<body class="antialiased flex flex-col min-h-screen theme-dark">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
