@@ -169,10 +169,10 @@ async function setupFirebaseAndUser() {
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
         console.log("Signing in with custom token.");
         await signInWithCustomToken(window.auth, __initial_auth_token)
-            .then(() => console.log("Signed in with custom token."))
-            .catch((error) => {
-              console.error("Custom token sign-in failed:", error);
-            });
+          .then(() => console.log("Signed in with custom token."))
+          .catch((error) => {
+            console.error("Custom token sign-in failed:", error);
+          });
       } else {
         console.log("__initial_auth_token not defined. Relying on platform for initial auth state.");
       }
@@ -191,7 +191,7 @@ async function setupFirebaseAndUser() {
 setupFirebaseAndUser();
 
 // --- Utility Functions ---
-let messageBox;
+const messageBox = document.getElementById('message-box');
 let messageBoxTimeout;
 
 /**
@@ -220,12 +220,12 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
-let customConfirmModal;
-let confirmMessage;
-let confirmSubmessage;
-let confirmYesButton;
-let confirmNoButton;
-let closeButton;
+const customConfirmModal = document.getElementById('custom-confirm-modal');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmSubmessage = document.getElementById('confirm-submessage');
+const confirmYesButton = document.getElementById('confirm-yes');
+const confirmNoButton = document.getElementById('confirm-no');
+const closeButton = document.querySelector('.custom-confirm-modal .close-button');
 let resolveConfirmPromise;
 
 /**
@@ -257,8 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (customConfirmModal) {
     console.log("Custom confirm modal element found.");
     if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
-        customConfirmModal.style.display = 'none';
-        console.log("Custom confirm modal forcibly hidden.");
+      customConfirmModal.style.display = 'none';
+      console.log("Custom confirm modal forcibly hidden.");
     }
   }
 });
@@ -477,32 +477,32 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
 
 // --- Forms Page Specific Logic ---
 
-// DOM elements - will be initialized in DOMContentLoaded
-let mainLoadingSpinner;
-let formsContentSection;
-let mainLoginRequiredMessage;
+// DOM elements - initialized immediately upon script execution
+const mainLoadingSpinner = document.getElementById('loading-spinner');
+const formsContentSection = document.getElementById('forms-content');
+const mainLoginRequiredMessage = document.getElementById('login-required-message');
 
-let createThemaForm;
-let newThemaNameInput;
-let newThemaDescriptionInput;
-let themaList;
+const createThemaForm = document.getElementById('create-thema-form');
+const newThemaNameInput = document.getElementById('new-thema-name');
+const newThemaDescriptionInput = document.getElementById('new-thema-description');
+const themaList = document.getElementById('thema-list');
 
-let threadsSection;
-let backToThematasBtn;
-let currentThemaTitle;
-let currentThemaDescription;
-let createThreadForm;
-let newThreadTitleInput;
-let newThreadInitialCommentInput;
-let threadList;
+const threadsSection = document.getElementById('threads-section');
+const backToThematasBtn = document.getElementById('back-to-thematas-btn');
+const currentThemaTitle = document.getElementById('current-thema-title');
+const currentThemaDescription = document.getElementById('current-thema-description');
+const createThreadForm = document.getElementById('create-thread-form');
+const newThreadTitleInput = document.getElementById('new-thread-title');
+const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+const threadList = document.getElementById('thread-list');
 
-let commentsSection;
-let backToThreadsBtn;
-let currentThreadTitle;
-let currentThreadInitialComment;
-let addCommentForm;
-let newCommentContentInput;
-let commentList;
+const commentsSection = document.getElementById('comments-section');
+const backToThreadsBtn = document.getElementById('back-to-threads-btn');
+const currentThreadTitle = document.getElementById('current-thread-title');
+const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+const addCommentForm = document.getElementById('add-comment-form');
+const newCommentContentInput = document.getElementById('new-comment-content');
+const commentList = document.getElementById('comment-list');
 
 let currentThemaId = null;
 let currentThreadId = null;
@@ -547,13 +547,13 @@ async function updateUIBasedOnAuthAndData() {
     console.log("User logged in.", window.auth.currentUser.uid);
     let profileReady = false;
     for (let i = 0; i < 30; i++) { // Max 3 seconds wait
-        if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
-            profileReady = true;
-            console.log("currentUser profile ready after", i * 100, "ms.");
-            break;
-        }
-        console.log("Waiting for currentUser to be set. Attempt:", i + 1);
-        await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
+        profileReady = true;
+        console.log("currentUser profile ready after", i * 100, "ms.");
+        break;
+      }
+      console.log("Waiting for currentUser to be set. Attempt:", i + 1);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
     }
 
     if (profileReady) {
@@ -647,62 +647,62 @@ function renderThematas() {
 
     const createdByUids = new Set();
     snapshot.forEach(doc => {
-        const thema = doc.data();
-        if (thema.createdBy) {
-            createdByUids.add(thema.createdBy);
-        }
+      const thema = doc.data();
+      if (thema.createdBy) {
+        createdByUids.add(thema.createdBy);
+      }
     });
 
     const userProfiles = {};
     if (createdByUids.size > 0) {
-        const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-        const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
-        await getDocs(userQuery).then(userSnapshot => {
-            userSnapshot.forEach(userDoc => {
-                const userData = userDoc.data();
-                userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
-            });
-        }).catch(error => console.error("Error fetching user profiles for thematas:", error));
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for thematas:", error));
     }
 
     snapshot.forEach((doc) => {
-        const thema = doc.data();
-        const li = document.createElement('li');
-        li.classList.add('thema-item', 'card');
-        const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
-        const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
+      const thema = doc.data();
+      const li = document.createElement('li');
+      li.classList.add('thema-item', 'card');
+      const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
+      const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
 
-        li.innerHTML = `
+      li.innerHTML = `
             <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
             <p class="thema-description mt-2">${thema.description}</p>
             <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
             <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
             ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
         `;
-        themaList.appendChild(li);
+      themaList.appendChild(li);
     });
 
     document.querySelectorAll('.view-threads-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const themaId = event.target.dataset.themaId;
-            const themaName = event.target.dataset.themaName;
-            const themaDescription = event.target.dataset.themaDescription;
-            console.log(`View Threads clicked for themaId: ${themaId}`);
-            displayThreadsForThema(themaId, themaName, themaDescription);
-        });
+      button.addEventListener('click', (event) => {
+        const themaId = event.target.dataset.themaId;
+        const themaName = event.target.dataset.themaName;
+        const themaDescription = event.target.dataset.themaDescription;
+        console.log(`View Threads clicked for themaId: ${themaId}`);
+        displayThreadsForThema(themaId, themaName, themaDescription);
+      });
     });
 
     document.querySelectorAll('.delete-thema-btn').forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const themaId = event.target.dataset.themaId;
-            console.log(`Delete Théma clicked for themaId: ${themaId}`);
-            const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
-            if (confirmed) {
-                await deleteThemaAndSubcollections(themaId);
-            } else {
-                showMessageBox("Théma deletion cancelled.", false);
-            }
-        });
+      button.addEventListener('click', async (event) => {
+        const themaId = event.target.dataset.themaId;
+        console.log(`Delete Théma clicked for themaId: ${themaId}`);
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
+        if (confirmed) {
+          await deleteThemaAndSubcollections(themaId);
+        } else {
+          showMessageBox("Théma deletion cancelled.", false);
+        }
+      });
     });
   }, (error) => {
     console.error("Error fetching thémata:", error);
@@ -715,26 +715,26 @@ function renderThematas() {
  * @param {string} themaId - The ID of the thema to delete.
  */
 async function deleteThemaAndSubcollections(themaId) {
-    try {
-        console.log(`Deleting thema: ${themaId}`);
-        const threadsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-        const threadsSnapshot = await getDocs(threadsRef);
-        for (const threadDoc of threadsSnapshot.docs) {
-            const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
-            const commentsSnapshot = await getDocs(commentsRef);
-            for (const commentDoc of commentsSnapshot.docs) {
-                await deleteDoc(doc(commentsRef, commentDoc.id));
-            }
-            await deleteDoc(doc(threadsRef, threadDoc.id));
-        }
-        await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId));
-
-        showMessageBox("Théma and all its content deleted successfully!", false);
-        console.log(`Thema ${themaId} and all content deleted.`);
-    } catch (error) {
-        console.error("Error deleting théma and subcollections:", error);
-        showMessageBox(`Error deleting théma: ${error.message}`, true);
+  try {
+    console.log(`Deleting thema: ${themaId}`);
+    const threadsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const threadsSnapshot = await getDocs(threadsRef);
+    for (const threadDoc of threadsSnapshot.docs) {
+      const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
+      const commentsSnapshot = await getDocs(commentsRef);
+      for (const commentDoc of commentsSnapshot.docs) {
+        await deleteDoc(doc(commentsRef, commentDoc.id));
+      }
+      await deleteDoc(doc(threadsRef, threadDoc.id));
     }
+    await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId));
+
+    showMessageBox("Théma and all its content deleted successfully!", false);
+    console.log(`Thema ${themaId} and all content deleted.`);
+  } catch (error) {
+    console.error("Error deleting théma and subcollections:", error);
+    showMessageBox(`Error deleting théma: ${error.message}`, true);
+  }
 }
 
 /**
