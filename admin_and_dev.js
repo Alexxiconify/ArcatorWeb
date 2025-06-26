@@ -425,7 +425,7 @@ async function deleteTempPage(id) {
 
 /**
  * Updates the UI based on the user's authentication and admin status.
- * This function now ensures Firebase is ready before proceeding with Firestore checks.
+ * This function now explicitly waits for firebaseCurrentUser to be populated with isAdmin.
  * @param {Object|null} user - The Firebase User object or null.
  */
 async function updateAdminUI(user) {
@@ -434,23 +434,44 @@ async function updateAdminUI(user) {
   if (user) {
     console.log("DEBUG: Authenticated User UID:", user.uid);
     console.log("DEBUG: Authenticated User Email:", user.email);
-    console.log("DEBUG: firebaseCurrentUser object:", firebaseCurrentUser); // Log the full object
-    console.log("DEBUG: firebaseCurrentUser.isAdmin:", firebaseCurrentUser?.isAdmin); // Log isAdmin explicitly
+
+    let profileLoaded = false;
+    // Wait for firebaseCurrentUser to be populated and isAdmin to be set.
+    // Give it a short delay to allow firebase-init.js's onAuthStateChanged to run.
+    for (let i = 0; i < 10; i++) { // Try up to 10 times with 100ms delay each
+      // Ensure firebaseCurrentUser is not null, its UID matches the authenticated user,
+      // and isAdmin property is defined (meaning the profile from Firestore has been merged).
+      if (firebaseCurrentUser && firebaseCurrentUser.uid === user.uid && typeof firebaseCurrentUser.isAdmin !== 'undefined') {
+        profileLoaded = true;
+        break;
+      }
+      console.log("DEBUG: Waiting for firebaseCurrentUser to be fully populated...");
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+    }
+
+    if (!profileLoaded) {
+      console.error("ERROR: firebaseCurrentUser did not get fully populated within expected time. Displaying access denied.");
+      loginRequiredMessage.style.display = 'block';
+      adminContent.style.display = 'none';
+      showMessageBox("Could not retrieve admin status. Access denied.", true);
+      return;
+    }
+
+    console.log("DEBUG: firebaseCurrentUser object (after wait):", firebaseCurrentUser);
+    console.log("DEBUG: firebaseCurrentUser.isAdmin (after wait):", firebaseCurrentUser.isAdmin);
 
 
-    // Fetch user profile to get theme preference and then apply
-    // Use firebaseCurrentUser which is exported from firebase-init.js and kept updated
-    const userProfile = firebaseCurrentUser; // Directly use the globally updated currentUser
+    const userProfile = firebaseCurrentUser; // Now firebaseCurrentUser should be the fully loaded profile
     const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
-    const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+    const allThemes = await getAvailableThemes();
     const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply); // Apply the theme using the imported function
+    applyTheme(themeToApply.id, themeToApply);
 
-    if (firebaseCurrentUser && firebaseCurrentUser.isAdmin) { // Use isAdmin from enriched firebaseCurrentUser
-      console.log("DEBUG: User is confirmed as ADMIN via firebaseCurrentUser.isAdmin.");
+    if (userProfile.isAdmin) { // Use isAdmin from the now confirmed userProfile
+      console.log("DEBUG: User is confirmed as ADMIN via userProfile.isAdmin.");
       loginRequiredMessage.style.display = 'none';
       adminContent.style.display = 'block';
-      adminUserDisplay.textContent = firebaseCurrentUser?.displayName || userProfile?.displayName || user.displayName || user.email || user.uid;
+      adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
       renderUserList();
       renderTempPages();
       renderTodoList();
@@ -464,9 +485,9 @@ async function updateAdminUI(user) {
     console.log("DEBUG: No user is currently authenticated.");
     loginRequiredMessage.style.display = 'block';
     adminContent.style.display = 'none';
-    const allThemes = await getAvailableThemes(); // Get all themes from themes.js
+    const allThemes = await getAvailableThemes();
     const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(defaultThemeObj.id, defaultThemeObj); // Apply default theme using the imported function
+    applyTheme(defaultThemeObj.id, defaultThemeObj);
   }
 }
 
