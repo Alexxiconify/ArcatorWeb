@@ -596,57 +596,16 @@ function renderThematas() {
   const q = query(thematasCol, orderBy("createdAt", "desc"));
 
   unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    // Remove old rendering to #thema-list
-    // themaList.innerHTML = '';
-    if (snapshot.empty) {
-      // Optionally show a message in the tab area
-      renderThemaTabs([]);
-      return;
-    }
     const themasArr = [];
     snapshot.forEach((doc) => {
       const thema = doc.data();
       themasArr.push({ ...thema, id: doc.id });
-      const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = thema.authorDisplayName || 'Unknown';
-      const details = document.createElement('details');
-      details.className = 'thema-collapsible';
-      const summary = document.createElement('summary');
-      summary.innerHTML = `<span class="font-bold">${thema.name}</span> <span class="ml-2 text-sm text-gray-400">${thema.description}</span>`;
-      details.appendChild(summary);
-      const inner = document.createElement('div');
-      inner.innerHTML = `
-        <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
-        <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
-        ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
-      `;
-      details.appendChild(inner);
-      const li = document.createElement('li');
-      li.appendChild(details);
-      themaList.appendChild(li);
     });
     cacheSet('arcator_themes_cache', themasArr);
-    document.querySelectorAll('.view-threads-btn').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const themaId = event.target.dataset.themaId;
-        const themaName = event.target.dataset.themaName;
-        const themaDescription = event.target.dataset.themaDescription;
-        displayThreadsForThema(themaId, themaName, themaDescription);
-      });
-    });
-    document.querySelectorAll('.delete-thema-btn').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        const themaId = event.target.dataset.themaId;
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
-        if (confirmed) {
-          await deleteThemaAndSubcollections(themaId);
-        } else {
-          showMessageBox("Théma deletion cancelled.", false);
-        }
-      });
-    });
+    renderThemaBoxes(themasArr);
   }, (error) => {
-    themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
+    const container = document.getElementById('thema-boxes');
+    if (container) container.innerHTML = `<div class='card p-4 text-center'>Error loading thémata: ${error.message}</div>`;
   });
 }
 
