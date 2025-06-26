@@ -676,7 +676,7 @@ function renderThemaBoxes(themasArr) {
       };
       renderThemaAdminControls(thema, box);
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
-        box.querySelector('.edit-thema-btn').onclick = () => enableEditThemaInline(thema, box);
+        box.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description);
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
             await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
@@ -782,7 +782,7 @@ function loadThreadsForThema(themaId) {
         };
         // Edit/Delete thread handlers
         if (canEdit) {
-          threadDiv.querySelector('.edit-thread-btn').onclick = () => enableEditInline('thread', themaId, doc.id, null, thread.initialComment, threadDiv);
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: doc.id}, thread.initialComment);
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
             if (confirm('Delete this thread?')) {
               const threadsCol = themaId === 'global'
@@ -851,7 +851,7 @@ function loadCommentsForThread(themaId, threadId) {
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
       if (canEdit) {
-        commentDiv.querySelector('.edit-comment-btn').onclick = () => enableEditInline('comment', themaId, threadId, doc.id, comment.content, commentDiv);
+        commentDiv.querySelector('.edit-comment-btn').onclick = () => openEditModal('comment', {themaId, threadId, commentId: doc.id}, comment.content);
         commentDiv.querySelector('.delete-comment-btn').onclick = async () => {
           if (confirm('Delete this comment?')) {
             await deleteDoc(doc(commentsCol, doc.id));
@@ -1687,7 +1687,7 @@ function renderThemaAdminControls(thema, box) {
     <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
   `;
   box.appendChild(controls);
-  controls.querySelector('.edit-thema-btn').onclick = () => enableEditThemaInline(thema, box);
+  controls.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description);
   controls.querySelector('.delete-thema-btn').onclick = async () => {
     if (confirm('Delete this Théma and all its threads?')) {
       await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
