@@ -221,9 +221,10 @@ async function handleSignUp() {
     const user = userCredential.user;
     console.log("DEBUG: Firebase user created:", user.uid);
 
+    // Ensure photoURL is DEFAULT_PROFILE_PIC on signup
     await updateProfile(user, {
       displayName: displayName,
-      photoURL: DEFAULT_PROFILE_PIC
+      photoURL: DEFAULT_PROFILE_PIC // Always use default on signup
     });
     console.log("DEBUG: User profile updated in Firebase Auth.");
 
@@ -231,7 +232,7 @@ async function handleSignUp() {
       uid: user.uid,
       displayName: displayName,
       email: email,
-      photoURL: DEFAULT_PROFILE_PIC,
+      photoURL: DEFAULT_PROFILE_PIC, // Ensure photoURL is DEFAULT_PROFILE_PIC in Firestore data
       createdAt: new Date(),
       lastLoginAt: new Date(),
       themePreference: DEFAULT_THEME_NAME,
@@ -270,7 +271,7 @@ async function handlePasswordReset() {
 // Handler for saving profile changes
 async function handleSaveProfile() {
   const newDisplayName = displayNameInput.value.trim();
-  const newPhotoURL = profilePictureUrlInput.value.trim();
+  const newPhotoURL = profilePictureUrlInput.value.trim(); // Get raw input from field
   const rawNewHandle = handleInput.value.trim();
   const newHandle = sanitizeHandle(rawNewHandle);
 
@@ -306,10 +307,13 @@ async function handleSaveProfile() {
       if (newDisplayName !== (currentProfile?.displayName || auth.currentUser.displayName)) {
         updates.displayName = newDisplayName;
       }
-      const effectivePhotoURL = newPhotoURL || DEFAULT_PROFILE_PIC;
+
+      // Determine the effective photo URL: use newPhotoURL if provided and valid, else fallback to current or default
+      const effectivePhotoURL = newPhotoURL.startsWith('http') || newPhotoURL.startsWith('https') ? newPhotoURL : DEFAULT_PROFILE_PIC;
       if (effectivePhotoURL !== (currentProfile?.photoURL || auth.currentUser.photoURL || DEFAULT_PROFILE_PIC)) {
         updates.photoURL = effectivePhotoURL;
       }
+
       if (newHandle !== (currentProfile?.handle || auth.currentUser.uid.substring(0,6))) { // Compare with Firestore handle or default UID handle
         updates.handle = newHandle;
       }
@@ -431,7 +435,11 @@ window.onload = async function() {
           // Populate settings input fields
           if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
           if (handleInput) handleInput.value = userProfile.handle || '';
-          if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
+          // Ensure profilePictureUrlInput is correctly populated or left empty for user input
+          if (profilePictureUrlInput) {
+            profilePictureUrlInput.value = userProfile.photoURL && userProfile.photoURL !== DEFAULT_PROFILE_PIC ? userProfile.photoURL : '';
+          }
+
 
           // Populate session information
           if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
