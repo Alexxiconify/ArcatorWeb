@@ -557,7 +557,9 @@ function renderThemaBoxes(themasArr) {
       
       // Admin controls for thémata
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
-        box.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
+        box.querySelector('.edit-thema-btn').onclick = () => {
+          openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
+        };
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
             await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
@@ -661,7 +663,9 @@ function loadThreadsForThema(themaId) {
         };
         // Edit/Delete thread handlers
         if (canEdit) {
-          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => {
+            openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
+          };
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
             if (confirm('Delete this thread?')) {
               const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
@@ -726,7 +730,9 @@ function loadCommentsForThread(themaId, threadId) {
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
       if (canEdit) {
-        commentDiv.querySelector('.edit-comment-btn').onclick = () => openEditModal('comment', {themaId, threadId, commentId: commentDoc.id}, comment.content);
+        commentDiv.querySelector('.edit-comment-btn').onclick = () => {
+          openEditModal('comment', {themaId, threadId, commentId: commentDoc.id}, comment.content);
+        };
         commentDiv.querySelector('.delete-comment-btn').onclick = async () => {
           if (confirm('Delete this comment?')) {
             await deleteDoc(doc(commentsCol, commentDoc.id));
@@ -1539,22 +1545,28 @@ function openEditModal(type, context, oldContent, oldName = null, oldTitle = nul
   if (type === 'thema') {
     // Find the thema container by looking for the thema box with the correct ID
     const themaBoxes = document.querySelectorAll('.thema-item');
-    container = Array.from(themaBoxes).find(box => 
-      box.querySelector('.edit-thema-btn') && 
-      box.querySelector('.edit-thema-btn').onclick.toString().includes(context.themaId)
-    );
+    container = Array.from(themaBoxes).find(box => {
+      const editBtn = box.querySelector('.edit-thema-btn');
+      return editBtn && editBtn.onclick && editBtn.onclick.toString().includes(context.themaId);
+    });
   } else if (type === 'thread') {
-    // Find the thread container
-    container = document.querySelector(`[data-thread-id="${context.threadId}"]`) || 
-                document.querySelector(`#thread-comments-${context.threadId}`)?.parentElement;
+    // Find the thread container by looking for the thread div that contains the edit button
+    const threadDivs = document.querySelectorAll('.thread-item');
+    container = Array.from(threadDivs).find(div => {
+      const editBtn = div.querySelector('.edit-thread-btn');
+      return editBtn && editBtn.onclick && editBtn.onclick.toString().includes(context.threadId);
+    });
   } else if (type === 'comment') {
-    // Find the comment container
-    container = document.querySelector(`[data-comment-id="${context.commentId}"]`) ||
-                document.querySelector(`#comment-${context.commentId}`);
+    // Find the comment container by looking for the comment div that contains the edit button
+    const commentDivs = document.querySelectorAll('.comment-item');
+    container = Array.from(commentDivs).find(div => {
+      const editBtn = div.querySelector('.edit-comment-btn');
+      return editBtn && editBtn.onclick && editBtn.onclick.toString().includes(context.commentId);
+    });
   }
   
   if (!container) {
-    console.error('Could not find container for edit modal');
+    console.error('Could not find container for edit modal:', { type, context });
     return;
   }
   
