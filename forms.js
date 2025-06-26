@@ -2325,14 +2325,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   const tabTempPages = document.getElementById('tab-temp-pages');
 
   function showThemaTab() {
-    // Hide all sections except formsContentSection
-    if (formsContentSection) formsContentSection.style.display = 'block';
+    // Hide all other sections
+    if (threadsSection) threadsSection.style.display = 'none';
+    if (commentsSection) commentsSection.style.display = 'none';
     if (dmSection) dmSection.style.display = 'none';
     if (tempPagesSection) tempPagesSection.style.display = 'none';
     if (conversationsSection) conversationsSection.style.display = 'none';
-    if (threadsSection) threadsSection.style.display = 'none';
-    if (commentsSection) commentsSection.style.display = 'none';
-    // Show main thémata list
+    // Show main forms content and thémata list
+    if (formsContentSection) formsContentSection.style.display = 'block';
     if (themaList) themaList.style.display = 'block';
     if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
     if (document.querySelector('#main-content > h2')) document.querySelector('#main-content > h2').style.display = 'block';
@@ -2340,7 +2340,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Remove active from all tabs, set active on this
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     if (tabThema) tabThema.classList.add('active');
-    // Re-render thematas if needed
+    // Always re-render thémata
     renderThematas();
   }
 
