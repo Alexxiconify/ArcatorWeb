@@ -745,16 +745,18 @@ async function addThema(name, description, rules = []) {
     showMessageBox("Database not initialized.", true);
     return;
   }
-
   try {
+    const user = window.currentUser;
     const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
     await addDoc(thematasCol, {
       name: name,
       description: description,
       rules: rules,
       createdAt: serverTimestamp(),
-      createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
       threadCount: 0,
       commentCount: 0,
       lastActivity: serverTimestamp()
@@ -819,15 +821,15 @@ function renderThematas() {
       const li = document.createElement('li');
       li.classList.add('thema-item', 'card');
       const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
+      const creatorDisplayName = thema.authorDisplayName || 'Unknown';
 
       li.innerHTML = `
-            <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-            <p class="thema-description mt-2">${thema.description}</p>
-            <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
-            <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
-            ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
-        `;
+        <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+        <p class="thema-description mt-2">${thema.description}</p>
+        <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
+        <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
+        ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+      `;
       themaList.appendChild(li);
     });
 
@@ -924,8 +926,8 @@ async function addCommentThread(themaId, title, initialComment) {
     showMessageBox("Database or Théma not initialized.", true);
     return;
   }
-
   try {
+    const user = window.currentUser;
     const mentions = parseMentions(initialComment);
     const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const threadDoc = await addDoc(threadsCol, {
@@ -934,21 +936,21 @@ async function addCommentThread(themaId, title, initialComment) {
       mentions: mentions,
       reactions: {},
       createdAt: serverTimestamp(),
-      createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
       commentCount: 0,
       lastActivity: serverTimestamp(),
       editedAt: null,
       editedBy: null
     });
-
     // Update thema thread count
     const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId);
     await updateDoc(themaRef, {
       threadCount: increment(1),
       lastActivity: serverTimestamp()
     });
-
     showMessageBox("Thread created successfully!", false);
     newThreadTitleInput.value = '';
     newThreadInitialCommentInput.value = '';
@@ -1009,7 +1011,7 @@ function renderThreads() {
       const li = document.createElement('li');
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = threadUserProfiles[thread.createdBy] || thread.creatorDisplayName || 'Unknown';
+      const creatorDisplayName = threadUserProfiles[thread.createdBy] || thread.authorDisplayName || 'Unknown';
       const isEdited = thread.editedAt ? ` (edited by ${thread.editedBy})` : '';
 
       // Create reactions HTML
@@ -1121,8 +1123,8 @@ async function addComment(themaId, threadId, content) {
     showMessageBox("Database or Théma not initialized.", true);
     return;
   }
-
   try {
+    const user = window.currentUser;
     const mentions = parseMentions(content);
     const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     await addDoc(commentsCol, {
@@ -1130,26 +1132,25 @@ async function addComment(themaId, threadId, content) {
       mentions: mentions,
       reactions: {},
       createdAt: serverTimestamp(),
-      createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
       editedAt: null,
       editedBy: null
     });
-
     // Update thread comment count
     const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
     await updateDoc(threadRef, {
       commentCount: increment(1),
       lastActivity: serverTimestamp()
     });
-
     // Update thema comment count
     const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId);
     await updateDoc(themaRef, {
       commentCount: increment(1),
       lastActivity: serverTimestamp()
     });
-
     showMessageBox("Comment posted successfully!", false);
     newCommentContentInput.value = '';
     console.log("New comment added.");
@@ -1209,7 +1210,7 @@ function renderComments() {
       const li = document.createElement('li');
       li.classList.add('comment-item', 'card');
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const displayName = commentUserProfiles[comment.createdBy] || comment.creatorDisplayName || 'Unknown';
+      const displayName = commentUserProfiles[comment.createdBy] || comment.authorDisplayName || 'Unknown';
       const isEdited = comment.editedAt ? ` (edited by ${comment.editedBy})` : '';
 
       // Create reactions HTML
