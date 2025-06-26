@@ -289,7 +289,9 @@
 <!-- Thémata Boxes Section (tabbed, collapsible/accordion style) -->
 <div id="thema-all-tab-content" style="display: block;">
   <details class="form-container mb-4 w-full" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Create New Théma (Subreddit)</summary>
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none flex items-center">
+      <span class="mr-2">&#9660;</span> Create New Théma (Subreddit)
+    </summary>
     <form id="create-thema-form" class="space-y-4">
       <div>
         <label for="new-thema-name" class="block text-text-primary text-sm font-bold mb-2">Théma Name:</label>
@@ -303,7 +305,9 @@
     </form>
   </details>
   <details class="form-container mb-4 w-full" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">All Thémata</summary>
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none flex items-center">
+      <span class="mr-2">&#9660;</span> All Thémata
+    </summary>
     <div id="thema-boxes" class="flex flex-col gap-4 w-full">
       <!-- Thémata boxes will be loaded here by JavaScript -->
       <div class="card p-4 text-center">Loading thémata...</div>

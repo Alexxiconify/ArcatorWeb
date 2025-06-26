@@ -2232,6 +2232,9 @@ function renderCommentTree(comments, parentId = null, isGlobal = false, threadId
 
 // ... existing code ...
 function renderThemaBoxes(themas) {
+  // Remove empty dynamic section if present
+  const emptyTab = document.getElementById('thema-tab-contents');
+  if (emptyTab) emptyTab.remove();
   const container = document.getElementById('thema-boxes');
   if (!container) return;
   if (!themas.length) {
@@ -2242,8 +2245,11 @@ function renderThemaBoxes(themas) {
   themas.forEach(thema => {
     const details = document.createElement('details');
     details.className = 'thema-accordion w-full card mb-2';
+    details.open = true; // Expand by default
     details.innerHTML = `
-      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span></summary>
+      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">
+        <span class='mr-2'>&#9660;</span> ${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span>
+      </summary>
       <div class="p-4">
         <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
           <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
@@ -2254,7 +2260,6 @@ function renderThemaBoxes(themas) {
       </div>
     `;
     container.appendChild(details);
-    // Load threads for this thema
     loadThreadsForThema(thema.id);
   });
   // Accordion: only one open at a time
@@ -2282,9 +2287,8 @@ function renderThemaBoxes(themas) {
     });
   });
 }
-// ... existing code ...
 
-// Helper to load threads for a thema and render them under the box
+// Patch loadThreadsForThema to add user info, edit, and add comment buttons
 function loadThreadsForThema(themaId) {
   const list = document.getElementById(`thread-list-${themaId}`);
   if (!list) return;
@@ -2304,9 +2308,23 @@ function loadThreadsForThema(themaId) {
     snapshot.forEach(doc => {
       const thread = doc.data();
       const li = document.createElement('li');
-      li.className = 'thread-item card p-3';
-      li.innerHTML = `<div class='font-bold mb-1'>${thread.title}</div><div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>`;
+      li.className = 'thread-item card p-3 flex items-center justify-between';
+      li.innerHTML = `
+        <div class='flex items-center gap-3'>
+          <img src='${thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}' alt='Profile' class='w-8 h-8 rounded-full border border-gray-600'>
+          <div>
+            <div class='font-bold'>${thread.title}</div>
+            <div class='text-xs text-gray-400'>by ${thread.authorDisplayName || 'Anonymous'}</div>
+            <div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>
+          </div>
+        </div>
+        <div class='flex gap-2'>
+          <button class='btn-primary btn-blue btn-sm'>Add Comment</button>
+          <button class='btn-primary btn-green btn-sm'>Edit</button>
+        </div>
+      `;
       list.appendChild(li);
     });
   });
 }
+// ... existing code ...
