@@ -633,7 +633,6 @@ function renderThemaBoxes(themasArr) {
 function loadThreadsForThema(themaId) {
   const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
   if (!window.db || !threadListDiv) return;
-  // Special case: 'global' thema loads from global threads collection
   const threadsCol = themaId === 'global'
     ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
     : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
@@ -644,13 +643,11 @@ function loadThreadsForThema(themaId) {
       threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
       return;
     }
-    // Collect user UIDs for profile lookup
     const threadUids = new Set();
     snapshot.forEach(doc => {
       const thread = doc.data();
       if (thread.createdBy) threadUids.add(thread.createdBy);
     });
-    // Fetch user profiles
     const userProfiles = {};
     if (threadUids.size > 0) {
       const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
@@ -665,28 +662,29 @@ function loadThreadsForThema(themaId) {
     snapshot.forEach(doc => {
       const thread = doc.data();
       const threadDiv = document.createElement('div');
-      threadDiv.className = 'thread-item card p-3 mb-2';
+      threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
       const user = userProfiles[thread.createdBy] || {};
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+      const canEdit = window.currentUser && (window.currentUser.uid === thread.createdBy || window.currentUser.isAdmin);
       threadDiv.innerHTML = `
-        <div class="flex items-center mb-2">
-          <img src="${profilePic}" class="w-8 h-8 rounded-full mr-2 object-cover" alt="Profile">
+        <div class="flex items-center gap-2 mb-1">
+          <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+          ${canEdit ? `<button class="edit-thread-btn btn-primary btn-orange ml-auto mr-1" data-thread-id="${doc.id}">Edit</button><button class="delete-thread-btn btn-primary btn-red" data-thread-id="${doc.id}">Delete</button>` : ''}
         </div>
-        <div class="font-semibold">${thread.title}</div>
-        <div class="text-sm text-gray-400 mb-2">${thread.initialComment || ''}</div>
+        <div class="font-semibold text-lg">${thread.title}</div>
+        <div class="text-sm text-gray-300 mb-2">${thread.initialComment || ''}</div>
         <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
-        <form class="add-comment-form mt-2" id="add-comment-form-${doc.id}">
-          <textarea class="comment-content-input input mb-2" placeholder="Add a comment (Markdown supported)" required></textarea>
+        <form class="add-comment-form mt-2 flex gap-2" id="add-comment-form-${doc.id}">
+          <textarea class="comment-content-input input flex-1" placeholder="Add a comment (Markdown supported)" required></textarea>
           <button type="submit" class="btn-primary btn-green">Add Comment</button>
         </form>
       `;
       threadListDiv.appendChild(threadDiv);
       loadCommentsForThread(themaId, doc.id);
-      // Add comment handler
       const commentForm = threadDiv.querySelector(`#add-comment-form-${doc.id}`);
       commentForm.onsubmit = async (e) => {
         e.preventDefault();
@@ -704,6 +702,18 @@ function loadThreadsForThema(themaId) {
         });
         commentForm.reset();
       };
+      // Edit/Delete thread handlers
+      if (canEdit) {
+        threadDiv.querySelector('.edit-thread-btn').onclick = () => editThread(themaId, doc.id, thread.title, thread.initialComment, threadDiv);
+        threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
+          if (confirm('Delete this thread?')) {
+            const threadsCol = themaId === 'global'
+              ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
+              : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+            await deleteDoc(doc(threadsCol, doc.id));
+          }
+        };
+      }
     });
   });
 }
@@ -721,13 +731,11 @@ function loadCommentsForThread(themaId, threadId) {
       commentsDiv.innerHTML = '<div class="text-xs text-gray-400">No comments yet.</div>';
       return;
     }
-    // Collect user UIDs for profile lookup
     const commentUids = new Set();
     snapshot.forEach(doc => {
       const comment = doc.data();
       if (comment.createdBy) commentUids.add(comment.createdBy);
     });
-    // Fetch user profiles
     const userProfiles = {};
     if (commentUids.size > 0) {
       const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
@@ -745,19 +753,95 @@ function loadCommentsForThread(themaId, threadId) {
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+      const canEdit = window.currentUser && (window.currentUser.uid === comment.createdBy || window.currentUser.isAdmin);
       const commentDiv = document.createElement('div');
-      commentDiv.className = 'comment-item card p-2 mb-1';
+      commentDiv.className = 'comment-item card p-2 mb-1 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
-        <div class="flex items-center mb-1">
-          <img src="${profilePic}" class="w-6 h-6 rounded-full mr-2 object-cover" alt="Profile">
+        <div class="flex items-center gap-2 mb-1">
+          <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+          ${canEdit ? `<button class="edit-comment-btn btn-primary btn-orange ml-auto mr-1" data-comment-id="${doc.id}">Edit</button><button class="delete-comment-btn btn-primary btn-red" data-comment-id="${doc.id}">Delete</button>` : ''}
         </div>
         <div class="text-sm">${comment.content}</div>
       `;
       commentsDiv.appendChild(commentDiv);
+      // Edit/Delete comment handlers
+      if (canEdit) {
+        commentDiv.querySelector('.edit-comment-btn').onclick = () => editComment(themaId, threadId, doc.id, comment.content, commentDiv);
+        commentDiv.querySelector('.delete-comment-btn').onclick = async () => {
+          if (confirm('Delete this comment?')) {
+            await deleteDoc(doc(commentsCol, doc.id));
+          }
+        };
+      }
     });
   });
+}
+
+// Edit thread
+function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
+  const editForm = document.createElement('form');
+  editForm.className = 'edit-thread-form flex flex-col gap-2 mb-2';
+  editForm.innerHTML = `
+    <input type="text" class="edit-thread-title input" value="${oldTitle}" required />
+    <textarea class="edit-thread-content input">${oldContent}</textarea>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary btn-green">Save</button>
+      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
+    </div>
+  `;
+  const origHtml = threadDiv.innerHTML;
+  threadDiv.innerHTML = '';
+  threadDiv.appendChild(editForm);
+  editForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const newTitle = editForm.querySelector('.edit-thread-title').value.trim();
+    const newContent = editForm.querySelector('.edit-thread-content').value.trim();
+    if (!newTitle || !newContent) return;
+    const threadsCol = themaId === 'global'
+      ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
+      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    await updateDoc(doc(threadsCol, threadId), {
+      title: newTitle,
+      initialComment: newContent
+    });
+    threadDiv.innerHTML = origHtml;
+  };
+  editForm.querySelector('.cancel-edit').onclick = () => {
+    threadDiv.innerHTML = origHtml;
+  };
+}
+
+// Edit comment
+function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
+  const editForm = document.createElement('form');
+  editForm.className = 'edit-comment-form flex flex-col gap-2 mb-2';
+  editForm.innerHTML = `
+    <textarea class="edit-comment-content input">${oldContent}</textarea>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary btn-green">Save</button>
+      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
+    </div>
+  `;
+  const origHtml = commentDiv.innerHTML;
+  commentDiv.innerHTML = '';
+  commentDiv.appendChild(editForm);
+  editForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const newContent = editForm.querySelector('.edit-comment-content').value.trim();
+    if (!newContent) return;
+    const commentsCol = themaId === 'global'
+      ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`)
+      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+    await updateDoc(doc(commentsCol, commentId), {
+      content: newContent
+    });
+    commentDiv.innerHTML = origHtml;
+  };
+  editForm.querySelector('.cancel-edit').onclick = () => {
+    commentDiv.innerHTML = origHtml;
+  };
 }
 
 /**
