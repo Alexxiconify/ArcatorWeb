@@ -333,6 +333,13 @@
           <h3 class="text-2xl font-bold text-heading-card mb-4">Start a New Thread</h3>
           <form id="create-thread-form" class="space-y-4">
             <div>
+              <label for="thread-thema-select" class="block text-text-primary text-sm font-bold mb-2">Thread Location:</label>
+              <select id="thread-thema-select" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="global">Global</option>
+                <!-- Thémata options will be populated by JS -->
+              </select>
+            </div>
+            <div>
               <label for="new-thread-title" class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
               <input type="text" id="new-thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Suggestions for New Features" required>
             </div>

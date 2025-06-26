@@ -2247,22 +2247,63 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.warn("Back to thematas button elements not found.");
   }
 
+  // Add after DOM elements initialization
+  let threadThemaSelect = null;
+
+  function populateThreadThemaSelect() {
+    threadThemaSelect = document.getElementById('thread-thema-select');
+    if (!threadThemaSelect) return;
+    // Clear and add Global option
+    threadThemaSelect.innerHTML = '<option value="global">Global</option>';
+    // Fetch thémata from cache or Firestore
+    const cached = cacheGet('arcator_themes_cache');
+    if (cached && Array.isArray(cached)) {
+      cached.forEach(thema => {
+        const option = document.createElement('option');
+        option.value = thema.id;
+        option.textContent = thema.name;
+        threadThemaSelect.appendChild(option);
+      });
+    }
+    // Also update when thémata are re-rendered
+  }
+
+  // Patch renderThematas to also call populateThreadThemaSelect
+  const origRenderThematas = renderThematas;
+  renderThematas = function() {
+    origRenderThematas();
+    populateThreadThemaSelect();
+  };
+
+  // On DOMContentLoaded, also call populateThreadThemaSelect
+  const origDOMContentLoaded = document.addEventListener;
+  document.addEventListener = function(type, listener, options) {
+    if (type === 'DOMContentLoaded') {
+      origDOMContentLoaded.call(document, type, function(e) {
+        listener(e);
+        populateThreadThemaSelect();
+      }, options);
+    } else {
+      origDOMContentLoaded.call(document, type, listener, options);
+    }
+  };
+
   if (createThreadForm && newThreadTitleInput && newThreadInitialCommentInput) {
     createThreadForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      console.log("Create Thread form submitted.");
       const title = newThreadTitleInput.value.trim();
       const initialComment = newThreadInitialCommentInput.value.trim();
-      if (currentThemaId && title && initialComment) {
-        await addCommentThread(currentThemaId, title, initialComment);
+      const location = threadThemaSelect ? threadThemaSelect.value : 'global';
+      if (title && initialComment) {
+        if (location === 'global') {
+          await addGlobalThread(title, initialComment);
+        } else {
+          await addCommentThread(location, title, initialComment);
+        }
       } else {
-        showMessageBox("Please fill in both Thread Title and Initial Comment.", true);
-        console.log("Missing title or initial comment.");
+        showMessageBox('Please fill in both Thread Title and Initial Comment.', true);
       }
     });
-    console.log("Create Thread form listener attached.");
-  } else {
-    console.warn("Create thread form elements not found.");
   }
 
   if (backToThreadsBtn && commentsSection && threadsSection) {
@@ -2428,6 +2469,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Optionally, show Thémata tab by default on load
   showThemaTab();
+
+  populateThreadThemaSelect();
 });
 
 let unsubscribeThemaComments = null;
