@@ -266,23 +266,32 @@ function showCustomConfirm(message, submessage = '') {
  * Initializes utility DOM elements.
  */
 function initializeUtilityElements() {
-  messageBox = document.getElementById('message-box');
-  customConfirmModal = document.getElementById('custom-confirm-modal');
-  confirmMessage = document.getElementById('confirm-message');
-  confirmSubmessage = document.getElementById('confirm-submessage');
-  confirmYesButton = document.getElementById('confirm-yes');
-  confirmNoButton = document.getElementById('confirm-no');
-  closeButton = document.querySelector('.custom-confirm-modal .close-button');
-
-  if (customConfirmModal) {
-    console.log("Custom confirm modal element found.");
-    if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
-      customConfirmModal.style.display = 'none';
-      console.log("Custom confirm modal forcibly hidden.");
+  try {
+    messageBox = document.getElementById('message-box');
+    customConfirmModal = document.getElementById('custom-confirm-modal');
+    confirmMessage = document.getElementById('confirm-message');
+    confirmSubmessage = document.getElementById('confirm-submessage');
+    confirmYesButton = document.getElementById('confirm-yes');
+    confirmNoButton = document.getElementById('confirm-no');
+    closeButton = document.querySelector('.custom-confirm-modal .close-button');
+    if (!messageBox) console.warn('[DEBUG] messageBox element not found.');
+    if (!customConfirmModal) console.warn('[DEBUG] customConfirmModal element not found.');
+    if (!confirmMessage) console.warn('[DEBUG] confirmMessage element not found.');
+    if (!confirmSubmessage) console.warn('[DEBUG] confirmSubmessage element not found.');
+    if (!confirmYesButton) console.warn('[DEBUG] confirmYesButton element not found.');
+    if (!confirmNoButton) console.warn('[DEBUG] confirmNoButton element not found.');
+    if (!closeButton) console.warn('[DEBUG] closeButton element not found.');
+    if (customConfirmModal) {
+      console.log('[DEBUG] custom-confirm-modal element found.');
+      if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
+        customConfirmModal.style.display = 'none';
+        console.log('[DEBUG] custom-confirm-modal forcibly hidden on script load.');
+      }
     }
+    console.log('[DEBUG] Utility elements initialized.');
+  } catch (e) {
+    console.error('[DEBUG] Error in initializeUtilityElements:', e);
   }
-
-  console.log("Utility elements initialized.");
 }
 
 // --- Theme Management Functions ---
@@ -418,26 +427,42 @@ import { loadNavbar } from './navbar.js';
  * Displays the main loading spinner and hides content sections.
  */
 function showMainLoading() {
-  if (mainLoadingSpinner) {
-    mainLoadingSpinner.style.display = 'flex';
+  try {
+    if (typeof mainLoadingSpinner !== 'undefined' && mainLoadingSpinner) {
+      mainLoadingSpinner.style.display = 'flex';
+    } else {
+      console.warn('[DEBUG] mainLoadingSpinner not found.');
+    }
+    if (typeof formsContentSection !== 'undefined' && formsContentSection) {
+      formsContentSection.style.display = 'none';
+    } else {
+      console.warn('[DEBUG] formsContentSection not found.');
+    }
+    if (typeof mainLoginRequiredMessage !== 'undefined' && mainLoginRequiredMessage) {
+      mainLoginRequiredMessage.style.display = 'none';
+    } else {
+      console.warn('[DEBUG] mainLoginRequiredMessage not found.');
+    }
+    console.log('[DEBUG] Spinner visible, content hidden.');
+  } catch (e) {
+    console.error('[DEBUG] Error in showMainLoading:', e);
   }
-  if (formsContentSection) {
-    formsContentSection.style.display = 'none';
-  }
-  if (mainLoginRequiredMessage) {
-    mainLoginRequiredMessage.style.display = 'none';
-  }
-  console.log("Spinner visible, content hidden.");
 }
 
 /**
  * Hides the main loading spinner.
  */
 function hideMainLoading() {
-  if (mainLoadingSpinner) {
-    mainLoadingSpinner.style.display = 'none';
+  try {
+    if (typeof mainLoadingSpinner !== 'undefined' && mainLoadingSpinner) {
+      mainLoadingSpinner.style.display = 'none';
+    } else {
+      console.warn('[DEBUG] mainLoadingSpinner not found.');
+    }
+    console.log('[DEBUG] Spinner hidden.');
+  } catch (e) {
+    console.error('[DEBUG] Error in hideMainLoading:', e);
   }
-  console.log("Spinner hidden.");
 }
 
 /**
@@ -538,198 +563,220 @@ function cacheGet(key) {
 
 // --- CACHED THREADS ---
 function renderThreadsFromCache(themaId) {
-  const cached = cacheGet('arcator_threads_cache_' + themaId);
-  if (cached && Array.isArray(cached)) {
-    threadList.innerHTML = '';
-    cached.forEach(thread => {
-      const li = document.createElement('li');
-      li.classList.add('thread-item', 'card');
-      const createdAt = thread.createdAt ? new Date(thread.createdAt).toLocaleString() : 'N/A';
-      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
-      li.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
-        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
-        <button data-thread-id="${thread.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments</button>
-      `;
-      threadList.appendChild(li);
-    });
+  try {
+    const cached = cacheGet('arcator_threads_cache_' + themaId);
+    if (cached && Array.isArray(cached)) {
+      threadList.innerHTML = '';
+      cached.forEach(thread => {
+        const li = document.createElement('li');
+        li.classList.add('thread-item', 'card');
+        const createdAt = thread.createdAt ? new Date(thread.createdAt).toLocaleString() : 'N/A';
+        const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+        li.innerHTML = `
+          <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
+          <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
+          <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+          <button data-thread-id="${thread.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments</button>
+        `;
+        threadList.appendChild(li);
+      });
+    }
+  } catch (e) {
+    console.error('[DEBUG] Error in renderThreadsFromCache:', e);
   }
 }
 
 // --- PATCH renderThematas: Use <details> for collapsible thémata ---
 function renderThematas() {
-  console.log("Rendering thematas. DB:", !!window.db);
-  if (unsubscribeThematas) {
-    unsubscribeThematas();
-    console.log("Unsubscribed from previous thémata listener.");
-  }
-  if (!window.db) {
-    const container = document.getElementById('thema-boxes');
-    if (container) container.innerHTML = '<div class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</div>';
-    return;
-  }
-  const themasArr = [];
-  // Always add 'Global' as the first thema
-  themasArr.push({
-    id: 'global',
-    name: 'Global',
-    description: 'Site-wide threads not tied to any specific Théma.'
-  });
-  const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
-  const q = query(thematasCol, orderBy("createdAt", "desc"));
-  unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    snapshot.forEach((doc) => {
-      const thema = doc.data();
-      themasArr.push({ ...thema, id: doc.id });
+  try {
+    console.log('[DEBUG] renderThematas called. DB:', !!window.db, 'currentUser:', window.currentUser);
+    if (typeof unsubscribeThematas !== 'undefined' && unsubscribeThematas) {
+      unsubscribeThematas();
+      console.log('[DEBUG] Unsubscribed from previous thémata listener.');
+    }
+    if (!window.db) {
+      const container = document.getElementById('thema-boxes');
+      if (container) container.innerHTML = '<div class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</div>';
+      else console.warn('[DEBUG] thema-boxes container not found.');
+      return;
+    }
+    const themasArr = [];
+    // Always add 'Global' as the first thema
+    themasArr.push({
+      id: 'global',
+      name: 'Global',
+      description: 'Site-wide threads not tied to any specific Théma.'
     });
-    renderThemaBoxes(themasArr);
-  }, (error) => {
-    const container = document.getElementById('thema-boxes');
-    if (container) container.innerHTML = `<div class='card p-4 text-center'>Error loading thémata: ${error.message}</div>`;
-  });
+    const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
+    const q = query(thematasCol, orderBy("createdAt", "desc"));
+    unsubscribeThematas = onSnapshot(q, async (snapshot) => {
+      snapshot.forEach((doc) => {
+        const thema = doc.data();
+        themasArr.push({ ...thema, id: doc.id });
+      });
+      renderThemaBoxes(themasArr);
+    }, (error) => {
+      const container = document.getElementById('thema-boxes');
+      if (container) container.innerHTML = `<div class='card p-4 text-center'>Error loading thémata: ${error.message}</div>`;
+    });
+  } catch (e) {
+    console.error('[DEBUG] Error in renderThematas:', e);
+  }
 }
 
 function renderThemaBoxes(themasArr) {
-  const container = document.getElementById('thema-boxes');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!themasArr.length) {
-    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
-    return;
-  }
-  themasArr.forEach(thema => {
-    const box = document.createElement('div');
-    box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
-    box.innerHTML = `
-      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
-      <p class="thema-description mb-4">${thema.description || ''}</p>
-      <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
-      <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
-        <div class="mb-2">
-          <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
-          <input type="text" id="thread-title-input-${thema.id}" class="thread-title-input input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" maxlength="120" placeholder="Title (e.g. What's on your mind?)" required />
-        </div>
-        <div class="mb-2">
-          <label class="block text-sm font-semibold mb-1" for="thread-content-input-${thema.id}">Body</label>
-          <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
-        </div>
-        <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
-      </form>
-    `;
-    container.appendChild(box);
-    loadThreadsForThema(thema.id);
-    // Thread creation handler
-    const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
-    threadForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const title = threadForm.querySelector('.thread-title-input').value.trim();
-      const content = threadForm.querySelector('.thread-content-input').value.trim();
-      if (!title || !content) return;
-      if (!window.auth.currentUser || !window.db) return;
-      const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
-      await addDoc(threadsCol, {
-        title,
-        initialComment: content,
-        createdAt: serverTimestamp(),
-        createdBy: window.auth.currentUser.uid,
-        creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
-      });
-      threadForm.reset();
-    };
-    renderThemaAdminControls(thema, box);
-  });
-}
-
-function loadThreadsForThema(themaId) {
-  const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
-  if (!window.db || !threadListDiv) return;
-  const threadsCol = themaId === 'global'
-    ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
-    : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-  const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  onSnapshot(q, async (snapshot) => {
-    threadListDiv.innerHTML = '';
-    if (snapshot.empty) {
-      threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
+  try {
+    console.log('[DEBUG] renderThemaBoxes called. themasArr:', themasArr, 'currentUser:', window.currentUser);
+    const container = document.getElementById('thema-boxes');
+    if (!container) { console.warn('[DEBUG] thema-boxes container not found.'); return; }
+    container.innerHTML = '';
+    if (!themasArr.length) {
+      container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
       return;
     }
-    const threadUids = new Set();
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      if (thread.createdBy) threadUids.add(thread.createdBy);
-    });
-    const userProfiles = {};
-    if (threadUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const userQuery = query(usersRef, where('uid', 'in', Array.from(threadUids)));
-      await getDocs(userQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          const userData = userDoc.data();
-          userProfiles[userDoc.id] = userData;
-        });
-      });
-    }
-    snapshot.forEach(doc => {
-      const thread = doc.data();
-      const threadDiv = document.createElement('div');
-      threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
-      const user = userProfiles[thread.createdBy] || {};
-      const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
-      const displayName = user.displayName || 'Unknown';
-      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const canEdit = window.currentUser && (window.currentUser.uid === thread.createdBy || window.currentUser.isAdmin);
-      threadDiv.innerHTML = `
-        <div class="flex items-center gap-2 mb-1">
-          <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
-          <span class="font-semibold">${displayName}</span>
-          <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
-        </div>
-        <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
-        <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-        <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
-        <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
-        <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
-          <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
-          <textarea id="comment-content-input-${doc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
-          <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">Add Comment</button>
+    themasArr.forEach(thema => {
+      const box = document.createElement('div');
+      box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
+      box.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+        <p class="thema-description mb-4">${thema.description || ''}</p>
+        <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
+        <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
+          <div class="mb-2">
+            <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
+            <input type="text" id="thread-title-input-${thema.id}" class="thread-title-input input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" maxlength="120" placeholder="Title (e.g. What's on your mind?)" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-semibold mb-1" for="thread-content-input-${thema.id}">Body</label>
+            <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
         </form>
       `;
-      threadListDiv.appendChild(threadDiv);
-      loadCommentsForThread(themaId, doc.id);
-      const commentForm = threadDiv.querySelector(`#add-comment-form-${doc.id}`);
-      commentForm.onsubmit = async (e) => {
+      container.appendChild(box);
+      loadThreadsForThema(thema.id);
+      // Thread creation handler
+      const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
+      threadForm.onsubmit = async (e) => {
         e.preventDefault();
-        const content = commentForm.querySelector('.comment-content-input').value.trim();
-        if (!content) return;
+        const title = threadForm.querySelector('.thread-title-input').value.trim();
+        const content = threadForm.querySelector('.thread-content-input').value.trim();
+        if (!title || !content) return;
         if (!window.auth.currentUser || !window.db) return;
-        const commentsCol = themaId === 'global'
-          ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`)
-          : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
-        await addDoc(commentsCol, {
-          content,
+        const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+        await addDoc(threadsCol, {
+          title,
+          initialComment: content,
           createdAt: serverTimestamp(),
           createdBy: window.auth.currentUser.uid,
           creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
         });
-        commentForm.reset();
+        threadForm.reset();
       };
-      // Edit/Delete thread handlers
-      if (canEdit) {
-        threadDiv.querySelector('.edit-thread-btn').onclick = () => enableEditInline('thread', themaId, doc.id, null, thread.initialComment, threadDiv);
-        threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
-          if (confirm('Delete this thread?')) {
-            const threadsCol = themaId === 'global'
-              ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
-              : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-            await deleteDoc(doc(threadsCol, doc.id));
-            threadDiv.remove();
-          }
-        };
-      }
+      renderThemaAdminControls(thema, box);
     });
-  });
+  } catch (e) {
+    console.error('[DEBUG] Error in renderThemaBoxes:', e);
+  }
+}
+
+function loadThreadsForThema(themaId) {
+  try {
+    const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
+    if (!window.db || !threadListDiv) {
+      if (!window.db) console.warn('[DEBUG] DB not initialized in loadThreadsForThema.');
+      if (!threadListDiv) console.warn(`[DEBUG] threadListDiv not found for themaId ${themaId}`);
+      return;
+    }
+    const threadsCol = themaId === 'global'
+      ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
+      : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const q = query(threadsCol, orderBy('createdAt', 'desc'));
+    onSnapshot(q, async (snapshot) => {
+      threadListDiv.innerHTML = '';
+      if (snapshot.empty) {
+        threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
+        return;
+      }
+      const threadUids = new Set();
+      snapshot.forEach(doc => {
+        const thread = doc.data();
+        if (thread.createdBy) threadUids.add(thread.createdBy);
+      });
+      const userProfiles = {};
+      if (threadUids.size > 0) {
+        const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+        const userQuery = query(usersRef, where('uid', 'in', Array.from(threadUids)));
+        await getDocs(userQuery).then(userSnapshot => {
+          userSnapshot.forEach(userDoc => {
+            const userData = userDoc.data();
+            userProfiles[userDoc.id] = userData;
+          });
+        });
+      }
+      snapshot.forEach(doc => {
+        const thread = doc.data();
+        const threadDiv = document.createElement('div');
+        threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
+        const user = userProfiles[thread.createdBy] || {};
+        const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
+        const displayName = user.displayName || 'Unknown';
+        const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+        const canEdit = window.currentUser && window.currentUser.uid === thread.createdBy;
+        threadDiv.innerHTML = `
+          <div class="flex items-center gap-2 mb-1">
+            <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
+            <span class="font-semibold">${displayName}</span>
+            <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
+          </div>
+          <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
+          <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
+          <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
+          <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
+            <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
+            <textarea id="comment-content-input-${doc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
+            <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">Add Comment</button>
+          </form>
+        `;
+        threadListDiv.appendChild(threadDiv);
+        loadCommentsForThread(themaId, doc.id);
+        const commentForm = threadDiv.querySelector(`#add-comment-form-${doc.id}`);
+        commentForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const content = commentForm.querySelector('.comment-content-input').value.trim();
+          if (!content) return;
+          if (!window.auth.currentUser || !window.db) return;
+          const commentsCol = themaId === 'global'
+            ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`)
+            : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
+          await addDoc(commentsCol, {
+            content,
+            createdAt: serverTimestamp(),
+            createdBy: window.auth.currentUser.uid,
+            creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+          });
+          commentForm.reset();
+        };
+        // Edit/Delete thread handlers
+        if (canEdit) {
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => enableEditInline('thread', themaId, doc.id, null, thread.initialComment, threadDiv);
+          threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
+            if (confirm('Delete this thread?')) {
+              const threadsCol = themaId === 'global'
+                ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
+                : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+              await deleteDoc(doc(threadsCol, doc.id));
+              threadDiv.remove();
+            }
+          };
+        }
+      });
+    });
+  } catch (e) {
+    console.error('[DEBUG] Error in loadThreadsForThema:', e);
+  }
 }
 
 function loadCommentsForThread(themaId, threadId) {
@@ -767,7 +814,7 @@ function loadCommentsForThread(themaId, threadId) {
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const canEdit = window.currentUser && (window.currentUser.uid === comment.createdBy || window.currentUser.isAdmin);
+      const canEdit = window.currentUser && window.currentUser.uid === comment.createdBy;
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment-item card p-3 mb-2 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
@@ -1465,58 +1512,15 @@ function renderDMMessages() {
 }
 
 // --- Event Listeners and Initial Load ---
-document.addEventListener('DOMContentLoaded', async function() {
-  // Assign all DOM elements at the very top before any function calls
-  window.mainLoadingSpinner = document.getElementById('loading-spinner');
-  window.formsContentSection = document.getElementById('forms-content');
-  window.mainLoginRequiredMessage = document.getElementById('login-required-message');
-  window.themaAllTabContent = document.getElementById('thema-all-tab-content');
-  window.dmTabContent = document.getElementById('dm-tab-content');
-  window.themaList = document.getElementById('thema-list');
-  window.threadList = document.getElementById('thread-list');
-  window.commentsSection = document.getElementById('comments-section');
-  window.threadsSection = document.getElementById('threads-section');
-  window.currentThemaTitle = document.getElementById('current-thema-title');
-  window.currentThemaDescription = document.getElementById('current-thema-description');
-  window.createThemaForm = document.getElementById('create-thema-form');
-  window.newThemaNameInput = document.getElementById('new-thema-name');
-  window.newThemaDescriptionInput = document.getElementById('new-thema-description');
-  window.createThreadForm = document.getElementById('create-thread-form');
-  window.newThreadTitleInput = document.getElementById('new-thread-title');
-  window.newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
-  window.addCommentForm = document.getElementById('add-comment-form');
-  window.newCommentContentInput = document.getElementById('new-comment-content');
-  window.commentList = document.getElementById('comment-list');
-  // DM/Conversation elements
-  window.dmList = document.getElementById('dm-list');
-  window.conversationsSection = document.getElementById('dm-tab-content');
-  window.conversationsList = document.getElementById('dm-list');
-  window.conversationMessagesSection = document.getElementById('conversation-messages-section');
-  window.conversationMessages = document.getElementById('conversation-messages');
-  window.conversationInput = document.getElementById('conversation-input');
-  window.conversationSendBtn = document.getElementById('conversation-send-btn');
-  window.startConversationBtn = document.getElementById('start-conversation-btn');
-
-  // Tab switching logic
-  const tabThemataAll = document.getElementById('tab-themata-all');
-  const tabDms = document.getElementById('tab-dms');
-  if (tabThemataAll) tabThemataAll.onclick = showThemaTab;
-  if (tabDms) tabDms.onclick = showDmTab;
-  // Default to Thémata tab
-  showThemaTab();
-
-  showMainLoading();
-  initializeUtilityElements();
-  await window.firebaseReadyPromise;
-  window.setupThemesFirebase(window.db, window.auth, window.appId);
-  let userThemePreference = window.DEFAULT_THEME_NAME;
-  if (window.currentUser && window.currentUser.themePreference) {
-    userThemePreference = window.currentUser.themePreference;
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    console.log('[DEBUG] DOMContentLoaded fired.');
+    initializeUtilityElements();
+    showMainLoading();
+    // ... any other main entry logic ...
+  } catch (e) {
+    console.error('[DEBUG] Error in DOMContentLoaded:', e);
   }
-  const allThemes = await window.getAvailableThemes();
-  const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
-  await window.applyTheme(themeToApply.id, themeToApply);
-  updateUIBasedOnAuthAndData();
 });
 
 // Patch showDmTab and showThemaTab for null checks and correct section toggling
