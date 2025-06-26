@@ -1298,110 +1298,83 @@ async function sendDMMessage(dmId, content) {
  */
 function renderDMList() {
   if (!window.auth.currentUser || !window.db) return;
-  if (!dmList) {
-    console.warn('DM list element not found');
-    return;
-  }
-  
+  if (!dmList) return;
   const currentUserId = window.auth.currentUser.uid;
   const dmCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`);
   const q = query(dmCol, orderBy("lastActivity", "desc"));
-  
-  if (unsubscribeDmList) {
-    unsubscribeDmList();
-  }
-  
+  if (unsubscribeDmList) unsubscribeDmList();
   unsubscribeDmList = onSnapshot(q, async (snapshot) => {
     if (!dmList) return;
-    
     dmList.innerHTML = '';
     if (snapshot.empty) {
-      dmList.innerHTML = '<div class="card p-4 text-center">No conversations yet. Start a new DM!</div>';
+      dmList.innerHTML = '<div class="card p-4 text-center">No DMs yet.</div>';
       return;
     }
-    
-    for (const doc of snapshot.docs) {
+    snapshot.forEach(doc => {
       const dmData = doc.data();
       const div = document.createElement('div');
-      div.className = 'dm-item card cursor-pointer p-4 mb-2';
-      div.onclick = () => selectDM(doc.id, dmData);
-      
-      const displayName = dmData.type === window.DM_TYPES?.GROUP ? dmData.groupName : 
-                         dmData.participants?.find(p => p !== currentUserId) || 'Unknown';
-      
+      div.className = 'dm-item card flex items-center justify-between p-3 mb-2 cursor-pointer hover:bg-gray-800';
+      div.onclick = () => showDMConversation(doc.id, dmData);
+      const name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : (dmData.participants?.find(p => p !== currentUserId) || 'Unknown');
       div.innerHTML = `
-        <h3 class="text-lg font-bold">${displayName}</h3>
-        <p class="text-sm text-gray-500">${dmData.type === window.DM_TYPES?.GROUP ? 'Group' : 'Direct'} message</p>
-        <p class="text-xs text-gray-400">Last activity: ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</p>
+        <div class="flex flex-col">
+          <span class="font-bold text-base">${name}</span>
+          <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
+        </div>
+        <span class="material-icons text-gray-500">chevron_right</span>
       `;
       dmList.appendChild(div);
-    }
+    });
   });
 }
 
-/**
- * Selects a DM conversation
- * @param {string} dmId - The DM ID
- * @param {object} dmData - The DM data
- */
-function selectDM(dmId, dmData) {
-  currentDmId = dmId;
-  if (dmTitle) {
-    dmTitle.textContent = dmData.type === window.DM_TYPES?.GROUP ? dmData.groupName : 'Direct Message';
-  }
-  if (dmParticipants) {
-    const participantNames = dmData.participants?.filter(p => p !== window.auth.currentUser.uid)
-      .map(p => getUserDisplayName(p, {})).join(', ') || '';
-    dmParticipants.textContent = `Participants: ${participantNames}`;
-  }
-  if (dmSection) dmSection.style.display = 'block';
-  renderDMMessages();
+function showDMConversation(dmId, dmData) {
+  if (!dmTabContent || !conversationMessagesSection) return;
+  dmTabContent.style.display = 'none';
+  conversationMessagesSection.style.display = 'block';
+  renderDMMessages(dmId, dmData);
 }
 
-/**
- * Renders DM messages
- */
-function renderDMMessages() {
-  if (!window.auth.currentUser || !window.db || !currentDmId) return;
-  if (!dmMessages) {
-    console.warn('DM messages element not found');
-    return;
-  }
-
+function renderDMMessages(dmId, dmData) {
+  if (!window.auth.currentUser || !window.db || !dmId) return;
+  if (!dmMessages) return;
   const currentUserId = window.auth.currentUser.uid;
-  const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${currentDmId}/messages`);
+  const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${dmId}/messages`);
   const q = query(messagesCol, orderBy("createdAt", "asc"));
-
-  if (unsubscribeDmMessages) {
-    unsubscribeDmMessages();
-  }
-
+  if (unsubscribeDmMessages) unsubscribeDmMessages();
   unsubscribeDmMessages = onSnapshot(q, (snapshot) => {
-    if (!dmMessages) return;
-
     dmMessages.innerHTML = '';
     if (snapshot.empty) {
-      dmMessages.innerHTML = '<div class="text-center text-gray-500">No messages yet. Start the conversation!</div>';
+      dmMessages.innerHTML = '<div class="text-center text-gray-500">No messages yet.</div>';
       return;
     }
-
     snapshot.forEach(doc => {
-      const message = doc.data();
+      const m = doc.data();
       const div = document.createElement('div');
-      div.className = `message-item ${message.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2`;
-
-      div.innerHTML = `
-        <div class="message-content">
-          <p>${convertMentionsToHTML(message.content)}</p>
-          <small class="text-gray-500">${message.creatorDisplayName} - ${message.createdAt ? new Date(message.createdAt.toDate()).toLocaleString() : 'N/A'}</small>
-        </div>
-      `;
+      div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded`;
+      div.innerHTML = `<div><span class='font-semibold'>${m.creatorDisplayName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div><div>${convertMentionsToHTML(m.content)}</div>`;
       dmMessages.appendChild(div);
     });
-
-    // Scroll to bottom
     dmMessages.scrollTop = dmMessages.scrollHeight;
   });
+  // Header and back button
+  if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : 'Direct Message';
+  if (dmParticipants) {
+    const names = dmData.participants?.filter(p => p !== window.auth.currentUser.uid).join(', ') || '';
+    dmParticipants.textContent = `Participants: ${names}`;
+  }
+  if (!document.getElementById('dm-back-btn')) {
+    const backBtn = document.createElement('button');
+    backBtn.id = 'dm-back-btn';
+    backBtn.className = 'btn-primary btn-blue mb-2';
+    backBtn.textContent = 'Back';
+    backBtn.onclick = () => {
+      conversationMessagesSection.style.display = 'none';
+      dmTabContent.style.display = 'block';
+      if (unsubscribeDmMessages) unsubscribeDmMessages();
+    };
+    conversationMessagesSection.insertBefore(backBtn, conversationMessagesSection.firstChild);
+  }
 }
 
 // --- Event Listeners and Initial Load ---
