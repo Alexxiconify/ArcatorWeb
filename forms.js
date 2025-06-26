@@ -1221,9 +1221,18 @@ document.addEventListener('DOMContentLoaded', async function() {
   window.commentList = document.getElementById('comment-list');
   // ... assign any other required DOM elements here ...
 
-  // Now safe to call functions that use these variables
   showMainLoading();
-  // ... rest of your logic ...
+  initializeUtilityElements();
+  await window.firebaseReadyPromise;
+  window.setupThemesFirebase(window.db, window.auth, window.appId);
+  let userThemePreference = window.DEFAULT_THEME_NAME;
+  if (window.currentUser && window.currentUser.themePreference) {
+    userThemePreference = window.currentUser.themePreference;
+  }
+  const allThemes = await window.getAvailableThemes();
+  const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
+  await window.applyTheme(themeToApply.id, themeToApply);
+  updateUIBasedOnAuthAndData();
 });
 
 // --- DOM Elements for DMs and Conversations ---
