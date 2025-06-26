@@ -2326,11 +2326,13 @@ function renderGlobalThreads() {
         <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
         <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
         <div class="thread-actions mt-4">
-          <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
-          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" data-global="true" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" data-thread-title=\"${thread.title}\" data-thread-initial-comment=\"${thread.initialComment}\" data-global=\"true\" class=\"delete-thread-btn btn-primary btn-red ml-2\">Delete</button>` : '')}
         </div>
+        <div class="add-comment-section mt-4">${getAddCommentFormHtml(doc.id, true)}</div>
+        <ul class="comment-list space-y-4 mt-2" id="global-comment-list-${doc.id}"></ul>
       `;
       globalThreadList.appendChild(li);
+      renderGlobalCommentsForThread(doc.id);
     });
     // Attach delete listeners
     document.querySelectorAll('.delete-thread-btn[data-global="true"]').forEach(button => {
@@ -2355,17 +2357,17 @@ renderGlobalThreads();
 
 const reactionPalette = document.getElementById('reaction-palette');
 
-// Helper to return add comment form HTML for a thread
-function getAddCommentFormHtml(threadId) {
+// Helper to return add comment form HTML for a thread (global aware)
+function getAddCommentFormHtml(threadId, isGlobal = false) {
   return `
-    <form class="add-comment-form" data-thread-id="${threadId}">\n      <textarea class="add-comment-input shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Type your comment here..." required></textarea>\n      <button type="submit" class="btn-primary btn-green w-full mt-2">Post Comment</button>\n    </form>\n  `;
+    <form class="add-comment-form" data-thread-id="${threadId}" data-global="${isGlobal}">\n      <textarea class="add-comment-input shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Type your comment here..." required></textarea>\n      <button type="submit" class="btn-primary btn-green w-full mt-2">Add Comment</button>\n    </form>\n  `;
 }
 
-// Render comments for a thread inline
-function renderCommentsForThread(threadId, themaId) {
-  const commentListEl = document.getElementById(`comment-list-${threadId}`);
+// Render global comments for a thread inline
+function renderGlobalCommentsForThread(threadId) {
+  const commentListEl = document.getElementById(`global-comment-list-${threadId}`);
   if (!commentListEl) return;
-  const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+  const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
   const q = query(commentsCol, orderBy("createdAt", "asc"));
   onSnapshot(q, (snapshot) => {
     commentListEl.innerHTML = '';
@@ -2392,16 +2394,54 @@ function renderCommentsForThread(threadId, themaId) {
   });
 }
 
-// Add event listener for add comment forms
-threadList.addEventListener('submit', async (event) => {
+// Add event listener for add comment forms (global aware)
+globalThreadList.addEventListener('submit', async (event) => {
   if (event.target.classList.contains('add-comment-form')) {
     event.preventDefault();
     const threadId = event.target.dataset.threadId;
+    const isGlobal = event.target.dataset.global === 'true';
     const textarea = event.target.querySelector('.add-comment-input');
     const content = textarea.value.trim();
     if (content) {
-      await addComment(currentThemaId, threadId, content);
+      if (isGlobal) {
+        await addGlobalComment(threadId, content);
+      } else {
+        await addComment(currentThemaId, threadId, content);
+      }
       textarea.value = '';
     }
   }
 });
+
+// Add function to add a comment to a global thread
+async function addGlobalComment(threadId, content) {
+  if (!window.auth.currentUser) {
+    showMessageBox('You must be logged in to add a comment.', true);
+    return;
+  }
+  if (!window.db) {
+    showMessageBox('Database not initialized.', true);
+    return;
+  }
+  try {
+    const user = window.currentUser;
+    const mentions = parseMentions(content);
+    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
+    await addDoc(commentsCol, {
+      content: content,
+      mentions: mentions,
+      reactions: {},
+      createdAt: serverTimestamp(),
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+      editedAt: null,
+      editedBy: null
+    });
+    showMessageBox('Comment posted successfully!', false);
+  } catch (error) {
+    console.error('Error posting comment:', error);
+    showMessageBox(`Error posting comment: ${error.message}`, true);
+  }
+}
