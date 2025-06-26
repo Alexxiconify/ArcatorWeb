@@ -8,9 +8,9 @@ import {
   appId,
   firebaseReadyPromise,
   DEFAULT_THEME_NAME,
-  updateUserProfileInFirestore, // Now correctly imported
-  currentUser as firebaseCurrentUser, // Import currentUser as firebaseCurrentUser to avoid name conflict
-  onAuthStateChanged // <--- ADDED: Import onAuthStateChanged
+  updateUserProfileInFirestore,
+  currentUser as firebaseCurrentUser,
+  onAuthStateChanged // Now correctly imported from firebase-init.js
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -69,8 +69,8 @@ const editTodoModal = document.getElementById('edit-todo-modal');
 const editTodoTaskInput = document.getElementById('edit-todo-task');
 const editTodoWorkerInput = document.getElementById('edit-todo-worker');
 const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
-const editTodoEtaInput = document.getElementById('edit-todo-eta');
-const editTodoNotesInput = document.getElementById('todo-notes');
+const editTodoEtaInput = document.getElementById('edit-todo-eta'); // Corrected typo
+const editTodoNotesInput = document.getElementById('edit-todo-notes');
 const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
 let currentEditingTodoId = null;
 
@@ -279,8 +279,7 @@ async function fetchAllTempPages() {
   }
   const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
   try {
-    // FIX: Removed the undefined 'q' and directly used tempPagesCol for getDocs
-    const querySnapshot = await getDocs(tempPagesCol);
+    const querySnapshot = await getDocs(tempPagesCol); // Directly use tempPagesCol for getDocs
     const pages = [];
     querySnapshot.forEach((doc) => {
       pages.push({ id: doc.id, ...doc.data() });
@@ -666,7 +665,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // The onAuthStateChanged listener within setupFirebaseAndUser now handles initial UI update
   // We can call updateAdminUI directly here once the promise resolves.
   // Also, add an onAuthStateChanged listener specific to this page for dynamic updates
-  onAuthStateChanged(auth, (user) => { // <--- FIXED: onAuthStateChanged is now imported
+  onAuthStateChanged(auth, (user) => { // onAuthStateChanged is now imported
     updateAdminUI(user);
   });
 
@@ -676,8 +675,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     showMessageBox("", false);
     try {
       await auth.signOut(); // Use imported auth
-      console.log("DEBUG: User signed out.");
-      showMessageBox("You have been signed out.", false);
+      console.log("DEBUG: User signed out from admin & dev page.");
+      // Redirect to index.html after logout
+      window.location.href = 'index.html';
     } catch (error) {
       console.error("ERROR: Logout failed:", error);
       showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
