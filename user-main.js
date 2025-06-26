@@ -15,7 +15,7 @@ import {
 
 import { showMessageBox, sanitizeHandle, showCustomConfirm } from './utils.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-import { loadNavbar } from './navbar.js';
+import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
 
 import {
   createUserWithEmailAndPassword,
@@ -403,21 +403,23 @@ window.onload = async function() {
       console.log("user-main.js: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
       console.log("DEBUG: Starting onAuthStateChanged processing block.");
 
-      // Load navbar with current user info. Navbar will fetch full profile internally.
-      await loadNavbar(user, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-      console.log("DEBUG: Navbar loaded.");
-
-      let userThemePreference = null;
+      let userProfile = null; // Initialize userProfile here
 
       if (user && !user.isAnonymous) {
         console.log("DEBUG: User is authenticated and not anonymous. Attempting to fetch user profile.");
-        // User is signed in and not anonymous. Fetch user profile and display settings.
-        const userProfile = await getUserProfileFromFirestore(user.uid);
+        // User is signed in and not anonymous. Fetch user profile.
+        userProfile = await getUserProfileFromFirestore(user.uid);
         console.log("user-main.js: User Profile fetched for settings:", userProfile);
+
+        // Load navbar with *both* the basic user object and the fetched userProfile.
+        // This ensures navbar has full data to render correctly.
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+        console.log("DEBUG: Navbar loaded.");
+
 
         if (userProfile) {
           console.log("DEBUG: User profile found. Populating settings UI.");
-          userThemePreference = userProfile.themePreference;
+          const userThemePreference = userProfile.themePreference;
 
           // Update profile display elements
           if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
@@ -463,18 +465,30 @@ window.onload = async function() {
           console.warn("user-main.js: User profile not found in Firestore for UID:", user.uid, ". Displaying login required message.");
           showSection(loginRequiredMessage); // Fallback to login required
         }
+
+        console.log("DEBUG: Attempting to apply theme after user profile processed.");
+        // Apply the theme: user's preference, or the default theme.
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        applyTheme(themeToApply.id, themeToApply);
+        console.log("DEBUG: Theme applied.");
+
       } else {
         // User is signed out or anonymous. Display the sign-in form.
         console.log("user-main.js: User logged out or anonymous. Showing sign-in section.");
+        // Load navbar for logged-out state
+        await loadNavbar(user, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+        console.log("DEBUG: Navbar loaded for logged-out user.");
         showSection(signInSection);
-      }
+        console.log("DEBUG: Sign-in section displayed.");
 
-      console.log("DEBUG: Attempting to apply theme.");
-      // Apply the theme: user's preference, or the default theme.
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-      applyTheme(themeToApply.id, themeToApply);
-      console.log("DEBUG: Theme applied.");
+        // Apply default theme for logged-out users
+        console.log("DEBUG: Applying default theme for logged-out user.");
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        applyTheme(themeToApply.id, themeToApply);
+        console.log("DEBUG: Default theme applied.");
+      }
     });
 
     // --- Event Listeners for Authentication Navigation ---
@@ -513,8 +527,7 @@ window.onload = async function() {
     console.error("user-main.js: Error during window.onload execution:", error);
     showMessageBox("An unexpected error occurred during page load.", true);
   } finally {
-    // This finally block ensures hideLoading is called, but showSection also calls it.
-    // Redundant but safe.
-    // hideLoading(); // Removed here as showSection already calls it.
+    // The hideLoading() is now consistently called within showSection()
+    // which is invoked once the appropriate UI section is determined.
   }
 };
