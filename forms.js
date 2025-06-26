@@ -559,27 +559,6 @@ function cacheGet(key) {
   } catch (e) { return null; }
 }
 
-// --- CACHED THEMES ---
-function renderThematasFromCache() {
-  const cached = cacheGet('arcator_themes_cache');
-  if (cached && Array.isArray(cached)) {
-    themaList.innerHTML = '';
-    cached.forEach(thema => {
-      const li = document.createElement('li');
-      li.classList.add('thema-item', 'card');
-      const createdAt = thema.createdAt ? new Date(thema.createdAt).toLocaleString() : 'N/A';
-      const creatorDisplayName = thema.authorDisplayName || 'Unknown';
-      li.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-        <p class="thema-description mt-2">${thema.description}</p>
-        <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
-        <button data-thema-id="${thema.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
-      `;
-      themaList.appendChild(li);
-    });
-  }
-}
-
 // --- CACHED THREADS ---
 function renderThreadsFromCache(themaId) {
   const cached = cacheGet('arcator_threads_cache_' + themaId);
@@ -603,7 +582,6 @@ function renderThreadsFromCache(themaId) {
 
 // --- PATCH renderThematas: Use <details> for collapsible thémata ---
 function renderThematas() {
-  renderThematasFromCache(); // Show cached immediately
   console.log("Rendering thematas. DB:", !!window.db);
   if (unsubscribeThematas) {
     unsubscribeThematas();
