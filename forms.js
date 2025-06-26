@@ -743,7 +743,7 @@ function loadThreadsForThema(themaId) {
         const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
         const displayName = user.displayName || 'Unknown';
         const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-        const canEdit = window.currentUser && window.currentUser.uid === thread.authorId;
+        const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy);
         threadDiv.innerHTML = `
           <div class="flex items-center gap-2 mb-1">
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
@@ -835,7 +835,7 @@ function loadCommentsForThread(themaId, threadId) {
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const canEdit = window.currentUser && window.currentUser.uid === comment.authorId;
+      const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy);
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment-item card p-3 mb-2 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
