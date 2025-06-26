@@ -8,7 +8,8 @@ import {
   appId,
   firebaseReadyPromise,
   DEFAULT_THEME_NAME,
-  updateUserProfileInFirestore
+  updateUserProfileInFirestore, // Now correctly imported
+  currentUser as firebaseCurrentUser // Import currentUser as firebaseCurrentUser to avoid name conflict
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -88,7 +89,14 @@ async function renderUserList() {
     return;
   }
   userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
-  const users = await fetchAllUserProfiles(); // This function uses `db` internally after it's ready.
+  // Assuming fetchAllUserProfiles is implemented elsewhere or is a direct Firestore call
+  const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+  const querySnapshot = await getDocs(usersRef);
+  const users = [];
+  querySnapshot.forEach(doc => {
+    users.push({ id: doc.id, ...doc.data() });
+  });
+
   userListTbody.innerHTML = '';
   if (users.length === 0) {
     userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
@@ -127,12 +135,14 @@ async function renderUserList() {
       const uid = event.target.dataset.uid;
       const confirmed = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
       if (confirmed) {
-        const success = await deleteUserProfileFromFirestore(uid); // Use imported function
-        if (success) {
+        const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+        try {
+          await deleteDoc(userDocRef); // Directly use deleteDoc
           showMessageBox(`User profile ${uid} deleted successfully!`, false);
           renderUserList();
-        } else {
-          showMessageBox(`Error deleting user profile ${uid}.`, true);
+        } catch (error) {
+          console.error("Error deleting user profile:", error);
+          showMessageBox(`Error deleting user profile ${uid}. ${error.message}`, true);
         }
       } else {
         showMessageBox("Deletion cancelled.", false);
@@ -184,7 +194,8 @@ if (saveUserChangesBtn) {
     const newDisplayName = editUserDisplayNameInput.value.trim();
     const newTheme = editUserThemeSelect.value;
     console.log(`DEBUG: Saving User Changes for UID: ${currentEditingUserUid}, Display Name: ${newDisplayName}, Theme: ${newTheme}`);
-    const success = (currentEditingUserUid, { // Use imported function
+    // Use the imported updateUserProfileInFirestore
+    const success = await updateUserProfileInFirestore(currentEditingUserUid, {
       displayName: newDisplayName,
       themePreference: newTheme
     });
@@ -424,17 +435,18 @@ async function updateAdminUI(user) {
     console.log("DEBUG: Authenticated User Email:", user.email);
 
     // Fetch user profile to get theme preference and then apply
-    const userProfile = await getUserProfileFromFirestore(user.uid);
+    // Use firebaseCurrentUser which is exported from firebase-init.js and kept updated
+    const userProfile = firebaseCurrentUser; // Directly use the globally updated currentUser
     const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
     const allThemes = await getAvailableThemes(); // Get all themes from themes.js
     const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
     applyTheme(themeToApply.id, themeToApply); // Apply the theme using the imported function
 
-    if (currentUserData && currentUserData.isAdmin) { // Use isAdmin from enriched currentUser
-      console.log("DEBUG: User is confirmed as ADMIN via currentUser.isAdmin.");
+    if (firebaseCurrentUser && firebaseCurrentUser.isAdmin) { // Use isAdmin from enriched firebaseCurrentUser
+      console.log("DEBUG: User is confirmed as ADMIN via firebaseCurrentUser.isAdmin.");
       loginRequiredMessage.style.display = 'none';
       adminContent.style.display = 'block';
-      adminUserDisplay.textContent = currentUserData?.displayName || userProfile?.displayName || user.displayName || user.email || user.uid;
+      adminUserDisplay.textContent = firebaseCurrentUser?.displayName || userProfile?.displayName || user.displayName || user.email || user.uid;
       renderUserList();
       renderTempPages();
       renderTodoList();
@@ -499,7 +511,8 @@ async function fetchAllTodoItems() {
     });
     console.log("DEBUG: Fetched todo items:", todos.length);
     return todos;
-  } catch (error) {
+  }
+  catch (error) {
     console.error("ERROR: Error fetching todo items:", error);
     showMessageBox(`Error loading tasks: ${error.message}`, true);
     return [];
@@ -527,7 +540,6 @@ async function renderTodoList() {
       <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
       <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
       <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.eta || 'N/A'}</td>
       <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
       <td class="px-4 py-2 border-b border-table-td-border">
         <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
@@ -622,10 +634,17 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize themes Firebase integration
   setupThemesFirebase(db, auth, appId);
 
-  // Call the imported loadNavbar function
-  loadNavbar();
+  // Call the imported loadNavbar function.
+  // It will now fetch the user profile internally to determine display.
+  await loadNavbar(auth.currentUser, firebaseCurrentUser, DEFAULT_THEME_NAME); // Pass auth.currentUser for current login state and firebaseCurrentUser for detailed profile
 
-  document.getElementById('current-year-admin-dev').textContent = new Date().getFullYear();
+  // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
+  const currentYearElement = document.getElementById('current-year-admin-dev');
+  if (currentYearElement) {
+    currentYearElement.textContent = new Date().getFullYear();
+  } else {
+    console.warn("Element with ID 'current-year-admin-dev' not found in admin_and_dev.html.");
+  }
 
   // Initialize EasyMDE for new temp page creation form
   if (tempPageContentInput) {
