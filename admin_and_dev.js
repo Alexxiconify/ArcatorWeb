@@ -9,7 +9,8 @@ import {
   firebaseReadyPromise,
   DEFAULT_THEME_NAME,
   updateUserProfileInFirestore, // Now correctly imported
-  currentUser as firebaseCurrentUser // Import currentUser as firebaseCurrentUser to avoid name conflict
+  currentUser as firebaseCurrentUser, // Import currentUser as firebaseCurrentUser to avoid name conflict
+  onAuthStateChanged // <--- ADDED: Import onAuthStateChanged
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -278,7 +279,8 @@ async function fetchAllTempPages() {
   }
   const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
   try {
-    const querySnapshot = await getDocs(q);
+    // FIX: Changed getDocs(q) to getDocs(tempPagesCol) as 'q' was undefined here.
+    const querySnapshot = await getDocs(tempPagesCol);
     const pages = [];
     querySnapshot.forEach((doc) => {
       pages.push({ id: doc.id, ...doc.data() });
@@ -664,7 +666,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // The onAuthStateChanged listener within setupFirebaseAndUser now handles initial UI update
   // We can call updateAdminUI directly here once the promise resolves.
   // Also, add an onAuthStateChanged listener specific to this page for dynamic updates
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, (user) => { // <--- FIXED: onAuthStateChanged is now imported
     updateAdminUI(user);
   });
 
