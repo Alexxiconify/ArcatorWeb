@@ -6,6 +6,10 @@
   <title id="page-title-display">Loading...</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Link to the CSS variables for theming -->
+  <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to navbar.css for consistent navbar styling -->
+  <link rel="stylesheet" href="navbar.css">
   <!-- Markdown renderer (Marked.js) -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
@@ -18,154 +22,10 @@
       flex-direction: column;
     }
 
+    /* Container for the main page content */
     .container {
       flex-grow: 1; /* Allow container to grow and fill available space */
-    }
-
-    /* Default Dark Theme */
-    body.theme-dark {
-      background-color: #1F2937; /* Dark background */
-      color: #E5E7EB; /* Light text */
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
-    }
-    body.theme-dark .bg-card {
-      background-color: #2D3748 !important; /* Darker card background for dark theme */
-      color: #E5E7EB !important; /* Light text for card */
-    }
-    body.theme-dark input,
-    body.theme.dark select,
-    body.theme-dark textarea { /* Add textarea */
-      background-color: #374151 !important; /* Darker input background */
-      color: #E5E7EB !important; /* Light text in input */
-      border-color: #4B5563 !important; /* Subtle border for inputs */
-    }
-    body.theme-dark input::placeholder,
-    body.theme-dark textarea::placeholder { /* Add textarea placeholder */
-      color: #9CA3AF !important; /* Lighter placeholder text */
-    }
-    body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
-      color: #E5E7EB !important;
-    }
-
-    /* Light Theme */
-    body.theme-light {
-      background-color: #F3F4F6; /* Light background */
-      color: #1F2937; /* Dark text */
-      background-image: none; /* No pattern for light theme */
-    }
-    body.theme-light .bg-card {
-      background-color: #FFFFFF !important; /* White card background for light theme */
-      color: #1F2937 !important; /* Dark text for card */
-    }
-    body.theme-light input,
-    body.theme-light select,
-    body.theme-light textarea { /* Add textarea */
-      background-color: #FFFFFF !important; /* White input background */
-      color: #1F2937 !important; /* Dark text in input */
-      border-color: #D1D5DB !important; /* Light border for inputs */
-    }
-    body.theme-light input::placeholder,
-    body.theme-light textarea::placeholder { /* Add textarea placeholder */
-      color: #6B7280 !important; /* Darker placeholder text */
-    }
-    body.theme-light .text-gray-700 {
-      color: #1F2937 !important;
-    }
-
-    /* Arcator Blue Theme */
-    body.theme-arcator-blue {
-      background-color: #1a202c; /* Deep blue-grey */
-      color: #E2E8F0; /* Light off-white text */
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-      background-size: cover;
-      background-attachment: fixed;
-    }
-    body.theme-arcator-blue .bg-card {
-      background-color: #2b3b55 !important; /* Slightly lighter blue-grey for cards */
-      color: #E2E8F0 !important; /* Light text for card */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    body.theme-arcator-blue input,
-    body.theme-arcator-blue select,
-    body.theme-arcator-blue textarea { /* Add textarea */
-      background-color: #3b4d6b !important; /* Darker input background */
-      color: #E2E8F0 !important; /* Light text in input */
-      border-color: #5a6e8f !important; /* Blueish border */
-    }
-    body.theme-arcator-blue input::placeholder,
-    body.theme-arcator-blue textarea::placeholder { /* Add textarea placeholder */
-      color: #94A3B8 !important; /* Subtle blue placeholder */
-    }
-    body.theme-arcator-blue .text-blue-600 { /* Primary button color */
-      background-color: #4299E1 !important; /* Arcator blue */
-      color: white !important;
-    }
-    body.theme-arcator-blue .text-gray-700 {
-      color: #E2E8F0 !important;
-    }
-    body.theme-arcator-blue .text-blue-500 {
-      color: #63B3ED !important;
-    }
-
-    /* Settings card styling (not directly used here, but for consistency if copied) */
-    .settings-card {
-      max-width: 600px;
-      width: 90%;
-      padding: 2.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-    }
-    .input-field {
-      margin-bottom: 1rem;
-    }
-    .input-field label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem; /* text-sm */
-      font-weight: 600; /* font-semibold */
-    }
-    .input-field input, .input-field select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid #D1D5DB; /* border-gray-300 */
-      border-radius: 0.5rem; /* rounded-md */
-      font-size: 1rem;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 700; /* font-bold */
-      transition: background-color 0.2s, transform 0.2s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-    }
-
-    /* Message box styling */
-    .message-box {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
-    }
-    .message-box.success {
-      background-color: #4CAF50; /* Green for success */
-    }
-    .message-box.error {
-      background-color: #F44336; /* Red for error */
+      /* No explicit background or text color here, rely on theme_variables.css */
     }
 
     /* Temporary Page Navigation Tabs */
@@ -181,6 +41,7 @@
       scrollbar-color: var(--color-link) var(--color-bg-navbar); /* Firefox */
     }
 
+    /* Webkit (Chrome, Safari) scrollbar styling */
     .temp-page-nav::-webkit-scrollbar {
       height: 8px;
     }
@@ -232,7 +93,7 @@
     }
 
     .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
-      color: var(--color-heading-main, #3498db); /* Main heading color */
+      color: var(--color-heading-main); /* Main heading color from theme_variables.css */
       margin-top: 1.5em;
       margin-bottom: 0.8em;
       font-weight: 700;
@@ -281,16 +142,16 @@
     }
 
     .markdown-content code {
-      background-color: var(--color-code-bg, #374151); /* Darker background for inline code */
+      background-color: var(--color-code-bg); /* Code background from theme_variables.css */
       border-radius: 0.25rem;
       padding: 0.2em 0.4em;
       font-family: 'Roboto Mono', monospace;
       font-size: 0.9em;
-      color: var(--color-code-text, #e2e8f0);
+      color: var(--color-code-text); /* Code text color from theme_variables.css */
     }
 
     .markdown-content pre {
-      background-color: var(--color-code-bg, #374151); /* Darker background for code blocks */
+      background-color: var(--color-code-bg); /* Code background from theme_variables.css */
       border-radius: 0.5rem;
       padding: 1em;
       overflow-x: auto;
@@ -302,7 +163,7 @@
       padding: 0;
       background-color: transparent;
       font-size: 1em;
-      color: var(--color-code-text, #e2e8f0);
+      color: var(--color-code-text); /* Code text color from theme_variables.css */
     }
 
     .markdown-content table {
@@ -324,19 +185,48 @@
     }
 
     .markdown-content tr:nth-child(even) {
-      background-color: var(--color-table-row-even-bg, rgba(0,0,0,0.05));
+      background-color: var(--color-table-row-even-bg);
+    }
+
+    /* Message box styling */
+    .message-box {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      font-size: 1rem;
+      text-align: center;
+    }
+    .message-box.show {
+      display: block;
+    }
+    .message-box.success {
+      background-color: #4CAF50; /* Green for success */
+    }
+    .message-box.error {
+      background-color: #F44336; /* Red for error */
     }
 
   </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">
-<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-8 mb-8">
+<!-- Navbar Placeholder -->
+<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+
+<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8"> <!-- Adjusted mt-8 to mt-20 for navbar -->
   <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
   <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
 
   <!-- Temporary Page Navigation -->
   <div id="temp-page-nav" class="temp-page-nav">
-    <!-- Buttons will be dynamically inserted here -->
+    <!-- Buttons will be dynamically inserted here by JavaScript -->
   </div>
 
   <div id="page-display-content" class="markdown-content p-4 border border-input-border rounded-md bg-input-bg text-input-text">
@@ -352,41 +242,56 @@
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Footer Section (Optional, can be added if needed, or rely on main site footer) -->
-<!-- For now, we'll keep it simple or assume a single page app context -->
+<!-- Footer Section (consistent with admin_and_dev.html) -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-auto"> <!-- mt-auto pushes footer to bottom -->
+  <div class="container mx-auto px-4">
+    <p>© 2012 - <span id="current-year-temp-page"></span> Arcator.co.uk. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+    <div class="flex flex-wrap justify-center space-x-6 mt-4">
+      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
+      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
+      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+    </div>
+  </div>
+</footer>
 
 <script type="module">
-  // Firebase configuration and initialization (from firebase-init.js for consistency)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-  let firebaseAppInstance;
-  if (!firebase.getApps().length) { // Check if Firebase app is already initialized
-    firebaseAppInstance = firebase.initializeApp(firebaseConfig);
-  } else {
-    firebaseAppInstance = firebase.getApp(); // Get existing app instance
-  }
-  const db = firebase.getFirestore(firebaseAppInstance);
-  // No auth needed for public page viewing, but leaving comments in case.
-  // const auth = firebase.getAuth(firebaseAppInstance);
+  // Import Firebase modules and other project utilities
+  import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
+  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { loadNavbar } from './navbar.js';
+  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Explicitly import Firestore methods
 
   const pageDisplayTitle = document.getElementById('page-display-title');
   const pageDisplayContent = document.getElementById('page-display-content');
   const pageUpdatedAt = document.getElementById('page-updated-at');
   const pageHtmlTitle = document.getElementById('page-title-display');
   const tempPageNav = document.getElementById('temp-page-nav');
+  const messageBox = document.getElementById('message-box'); // Get message box element
 
   let allTemporaryPages = []; // Store all fetched pages
+
+  /**
+   * Displays a message box with success or error styling.
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True if it's an error message, false for success.
+   */
+  function showMessageBox(message, isError) {
+    if (messageBox) {
+      messageBox.textContent = message;
+      messageBox.className = 'message-box show'; // Reset classes and show
+      if (isError) {
+        messageBox.classList.add('error');
+      } else {
+        messageBox.classList.add('success');
+      }
+      setTimeout(() => {
+        messageBox.classList.remove('show');
+      }, 3000); // Hide after 3 seconds
+    }
+  }
 
   /**
    * Fetches all temporary pages from Firestore.
@@ -394,8 +299,14 @@
    */
   async function fetchAllTemporaryPages() {
     try {
-      const tempPagesCol = firebase.collection(db, `artifacts/${appId}/public/data/temp_pages`);
-      const querySnapshot = await firebase.getDocs(tempPagesCol);
+      // Ensure db is initialized before trying to use it
+      if (!db) {
+        console.error("Firestore DB not initialized for fetchAllTemporaryPages.");
+        showMessageBox("Database not ready. Cannot load pages.", true);
+        return [];
+      }
+      const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+      const querySnapshot = await getDocs(tempPagesCol);
       const pages = [];
       querySnapshot.forEach(doc => {
         pages.push({ id: doc.id, ...doc.data() });
@@ -404,12 +315,17 @@
       pages.sort((a, b) => {
         const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
         const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        // If timestamps are the same or missing, sort by title
+        if (dateA === dateB) {
+          return (a.title || '').localeCompare(b.title || '');
+        }
         return dateA - dateB;
       });
       console.log("DEBUG: Fetched and sorted temporary pages:", pages.length);
       return pages;
     } catch (error) {
       console.error("Error fetching all temporary pages:", error);
+      showMessageBox(`Error loading temporary pages: ${error.message}`, true);
       return [];
     }
   }
@@ -454,29 +370,30 @@
    * Initializes the temporary page viewer.
    */
   async function initTemporaryPageViewer() {
-    // Dynamically load Firebase SDK only when needed
-    // This script now loads Firebase modules using import maps directly in the HTML <head> for simplicity
-    // and relies on global firebase object (which will be populated by the CDN script).
-    // It's crucial that firebase.js is loaded BEFORE this script executes if using global `firebase` object.
-    // For this Canvas environment, we use direct import statements as done below.
+    // Ensure Firebase is initialized and ready before proceeding
+    await firebaseReadyPromise;
 
-    // Ensure Firebase is loaded and initialized from CDN
-    // This part relies on the top-level imports and the global `firebase` object available after those imports.
-    await new Promise(resolve => {
-      // Wait for Firebase to be globally available
-      const checkFirebase = setInterval(() => {
-        if (typeof firebase !== 'undefined' && firebase.getApps().length > 0) {
-          clearInterval(checkFirebase);
-          resolve();
-        }
-      }, 50);
-    });
+    // Setup themes integration using the imported function
+    setupThemesFirebase(db, auth, appId);
+
+    // Load the navbar using the imported function
+    // Pass auth.currentUser for current login state and currentUser for detailed profile
+    await loadNavbar(auth.currentUser, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+    // Apply the initial theme based on user preference or default
+    let userThemePreference = DEFAULT_THEME_NAME;
+    if (currentUser && currentUser.themePreference) {
+      userThemePreference = currentUser.themePreference;
+    }
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, themeToApply);
 
     allTemporaryPages = await fetchAllTemporaryPages();
 
     if (allTemporaryPages.length === 0) {
       pageDisplayTitle.textContent = 'No Pages Found';
-      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet.</p>';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin & Dev to create some.</p>';
       pageHtmlTitle.textContent = 'No Pages';
       pageUpdatedAt.textContent = 'N/A';
       return;
@@ -504,16 +421,14 @@
 
     // If no specific page from URL or page not found, display the first page
     displayPage(initialPage || allTemporaryPages[0]);
+
+    // Update footer year
+    const currentYearElement = document.getElementById('current-year-temp-page');
+    if (currentYearElement) {
+      currentYearElement.textContent = new Date().getFullYear();
+    }
   }
 
-  // Ensure Firebase is ready before running init
-  window.onload = async function() {
-    // Dynamically import Firebase modules inside window.onload if they haven't been imported as type="module" in head.
-    // Given the HTML structure, the CDN imports in head with type="module" ensure `firebase` is globally available.
-    // We just need to wait for it.
-    initTemporaryPageViewer();
-  };
+  // Use DOMContentLoaded to ensure all HTML elements are available before script runs
+  document.addEventListener('DOMContentLoaded', initTemporaryPageViewer);
 </script>
-<!-- Firebase SDK initialization scripts -->
-<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
