@@ -11,6 +11,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   collection,
   query,
@@ -19,7 +20,10 @@ import {
   serverTimestamp,
   onSnapshot,
   getDocs,
-  where
+  where,
+  arrayUnion,
+  arrayRemove,
+  increment
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Global Firebase Instances and Constants ---
@@ -44,6 +48,19 @@ window.currentUser = null;
 window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 window.DEFAULT_THEME_NAME = 'dark';
 window.ADMIN_UIDS = ['uOaZ8v76y2Q0X7PzJtU7Y3A2C1B4'];
+
+// Enhanced features constants
+window.REACTION_TYPES = ['👍', '❤️', '😂', '😮', '😢', '😡', '👏', '🎉', '🔥', '💯'];
+window.DM_TYPES = {
+  DIRECT: 'direct',
+  GROUP: 'group'
+};
+window.GROUP_PERMISSIONS = {
+  OWNER: 'owner',
+  ADMIN: 'admin',
+  MEMBER: 'member'
+};
+window.EDIT_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 let firebaseReadyResolve;
 window.firebaseReadyPromise = new Promise((resolve) => {
@@ -532,11 +549,46 @@ let addCommentForm;
 let newCommentContentInput;
 let commentList;
 
+// Enhanced features DOM elements
+let dmSection;
+let dmList;
+let dmMessages;
+let dmInput;
+let dmSendBtn;
+let createDmBtn;
+let dmBackBtn;
+let dmTitle;
+let dmParticipants;
+
+let reactionPalette;
+let editForm;
+let editInput;
+let editSaveBtn;
+let editCancelBtn;
+
+let tempPagesSection;
+let tempPagesList;
+let createTempPageBtn;
+let tempPageForm;
+let tempPageTitleInput;
+let tempPageContentInput;
+
+let themaRulesSection;
+let themaRulesList;
+let addRuleBtn;
+let ruleForm;
+let ruleTitleInput;
+let ruleContentInput;
+
 let currentThemaId = null;
 let currentThreadId = null;
+let currentDmId = null;
+let currentEditId = null;
 let unsubscribeThemaComments = null;
 let unsubscribeThreads = null;
 let unsubscribeThematas = null;
+let unsubscribeDmMessages = null;
+let unsubscribeDmList = null;
 
 /**
  * Initializes DOM elements for the forms page.
@@ -567,6 +619,37 @@ function initializeDOMElements() {
   addCommentForm = document.getElementById('add-comment-form');
   newCommentContentInput = document.getElementById('new-comment-content');
   commentList = document.getElementById('comment-list');
+
+  // Enhanced features DOM elements
+  dmSection = document.getElementById('dm-section');
+  dmList = document.getElementById('dm-list');
+  dmMessages = document.getElementById('dm-messages');
+  dmInput = document.getElementById('dm-input');
+  dmSendBtn = document.getElementById('dm-send-btn');
+  createDmBtn = document.getElementById('create-dm-btn');
+  dmBackBtn = document.getElementById('dm-back-btn');
+  dmTitle = document.getElementById('dm-title');
+  dmParticipants = document.getElementById('dm-participants');
+
+  reactionPalette = document.getElementById('reaction-palette');
+  editForm = document.getElementById('edit-form');
+  editInput = document.getElementById('edit-input');
+  editSaveBtn = document.getElementById('edit-save-btn');
+  editCancelBtn = document.getElementById('edit-cancel-btn');
+
+  tempPagesSection = document.getElementById('temp-pages-section');
+  tempPagesList = document.getElementById('temp-pages-list');
+  createTempPageBtn = document.getElementById('create-temp-page-btn');
+  tempPageForm = document.getElementById('temp-page-form');
+  tempPageTitleInput = document.getElementById('temp-page-title');
+  tempPageContentInput = document.getElementById('temp-page-content');
+
+  themaRulesSection = document.getElementById('thema-rules-section');
+  themaRulesList = document.getElementById('thema-rules-list');
+  addRuleBtn = document.getElementById('add-rule-btn');
+  ruleForm = document.getElementById('rule-form');
+  ruleTitleInput = document.getElementById('rule-title');
+  ruleContentInput = document.getElementById('rule-content');
 
   console.log("DOM elements initialized.");
 }
@@ -651,8 +734,9 @@ async function updateUIBasedOnAuthAndData() {
  * Adds a new thema (main topic) to Firestore.
  * @param {string} name - The name of the thema.
  * @param {string} description - The description of the thema.
+ * @param {Array} rules - Optional array of rules for the thema.
  */
-async function addThema(name, description) {
+async function addThema(name, description, rules = []) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to create a théma.", true);
     return;
@@ -667,9 +751,13 @@ async function addThema(name, description) {
     await addDoc(thematasCol, {
       name: name,
       description: description,
+      rules: rules,
       createdAt: serverTimestamp(),
       createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      threadCount: 0,
+      commentCount: 0,
+      lastActivity: serverTimestamp()
     });
     showMessageBox("Théma created successfully!", false);
     newThemaNameInput.value = '';
@@ -838,14 +926,29 @@ async function addCommentThread(themaId, title, initialComment) {
   }
 
   try {
+    const mentions = parseMentions(initialComment);
     const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-    await addDoc(threadsCol, {
+    const threadDoc = await addDoc(threadsCol, {
       title: title,
       initialComment: initialComment,
+      mentions: mentions,
+      reactions: {},
       createdAt: serverTimestamp(),
       createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      commentCount: 0,
+      lastActivity: serverTimestamp(),
+      editedAt: null,
+      editedBy: null
     });
+
+    // Update thema thread count
+    const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId);
+    await updateDoc(themaRef, {
+      threadCount: increment(1),
+      lastActivity: serverTimestamp()
+    });
+
     showMessageBox("Thread created successfully!", false);
     newThreadTitleInput.value = '';
     newThreadInitialCommentInput.value = '';
@@ -907,17 +1010,33 @@ function renderThreads() {
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
       const creatorDisplayName = threadUserProfiles[thread.createdBy] || thread.creatorDisplayName || 'Unknown';
+      const isEdited = thread.editedAt ? ` (edited by ${thread.editedBy})` : '';
+
+      // Create reactions HTML
+      const reactionsHtml = thread.reactions ? Object.entries(thread.reactions)
+        .map(([emoji, data]) => {
+          const hasReacted = data.users.includes(window.auth.currentUser?.uid);
+          return createReactionButton(emoji, data.count, hasReacted, doc.id, 'thread').outerHTML;
+        }).join('') : '';
 
       li.innerHTML = `
         <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
-        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
-        <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green mt-4">View Comments</button>
-        ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+        <p class="thread-initial-comment mt-2">${convertMentionsToHTML(thread.initialComment)}</p>
+        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}${isEdited}</p>
+        <div class="reactions-container mt-2">
+          ${reactionsHtml}
+          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
+        </div>
+        <div class="thread-actions mt-4">
+          <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
+          ${canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : ''}
+          ${canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : ''}
+        </div>
       `;
       threadList.appendChild(li);
     });
 
+    // Add event listeners
     document.querySelectorAll('.view-comments-btn').forEach(button => {
       button.addEventListener('click', (event) => {
         const threadId = event.target.dataset.threadId;
@@ -1004,13 +1123,33 @@ async function addComment(themaId, threadId, content) {
   }
 
   try {
+    const mentions = parseMentions(content);
     const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     await addDoc(commentsCol, {
       content: content,
+      mentions: mentions,
+      reactions: {},
       createdAt: serverTimestamp(),
       createdBy: window.auth.currentUser.uid,
-      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous',
+      editedAt: null,
+      editedBy: null
     });
+
+    // Update thread comment count
+    const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
+    await updateDoc(threadRef, {
+      commentCount: increment(1),
+      lastActivity: serverTimestamp()
+    });
+
+    // Update thema comment count
+    const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId);
+    await updateDoc(themaRef, {
+      commentCount: increment(1),
+      lastActivity: serverTimestamp()
+    });
+
     showMessageBox("Comment posted successfully!", false);
     newCommentContentInput.value = '';
     console.log("New comment added.");
@@ -1073,7 +1212,7 @@ function renderComments() {
       const displayName = commentUserProfiles[comment.createdBy] || comment.creatorDisplayName || 'Unknown User';
 
       li.innerHTML = `
-        <p class="comment-content">${comment.content}</p>
+        <p class="comment-content">${convertMentionsToHTML(comment.content)}</p>
         <p class="meta-info">By ${displayName} on ${createdAt}
         ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-comment-id="${doc.id}" class="delete-comment-btn btn-primary btn-red ml-2 text-xs">Delete</button>` : ''}
         </p>
@@ -1117,6 +1256,461 @@ async function deleteComment(themaId, threadId, commentId) {
   }
 }
 
+// Enhanced utility functions
+/**
+ * Parses text for @mentions and returns array of mentioned user IDs
+ * @param {string} text - The text to parse
+ * @returns {Array<string>} Array of mentioned user IDs
+ */
+function parseMentions(text) {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  return mentions;
+}
+
+/**
+ * Converts text with @mentions to HTML with clickable links
+ * @param {string} text - The text to convert
+ * @returns {string} HTML with clickable mentions
+ */
+function convertMentionsToHTML(text) {
+  return text.replace(/@(\w+)/g, '<span class="mention" data-username="$1">@$1</span>');
+}
+
+/**
+ * Checks if user can edit a post (within time limit or is admin)
+ * @param {object} post - The post object
+ * @param {object} user - The current user
+ * @returns {boolean} True if user can edit
+ */
+function canEditPost(post, user) {
+  if (!user) return false;
+  if (user.isAdmin) return true;
+  if (post.createdBy !== user.uid) return false;
+  
+  const postTime = post.createdAt?.toDate?.() || new Date(post.createdAt);
+  const now = new Date();
+  return (now - postTime) < window.EDIT_TIMEOUT;
+}
+
+/**
+ * Checks if user can delete a post
+ * @param {object} post - The post object
+ * @param {object} user - The current user
+ * @returns {boolean} True if user can delete
+ */
+function canDeletePost(post, user) {
+  if (!user) return false;
+  if (user.isAdmin) return true;
+  return post.createdBy === user.uid;
+}
+
+/**
+ * Gets user display name by UID
+ * @param {string} uid - User ID
+ * @param {object} userProfiles - Object mapping UIDs to user profiles
+ * @returns {string} Display name
+ */
+function getUserDisplayName(uid, userProfiles) {
+  return userProfiles[uid]?.displayName || 'Unknown User';
+}
+
+/**
+ * Creates a reaction button element
+ * @param {string} emoji - The reaction emoji
+ * @param {number} count - The reaction count
+ * @param {boolean} hasReacted - Whether current user has reacted
+ * @param {string} itemId - The item ID (thread or comment)
+ * @param {string} itemType - The item type ('thread' or 'comment')
+ * @returns {HTMLElement} The reaction button element
+ */
+function createReactionButton(emoji, count, hasReacted, itemId, itemType) {
+  const button = document.createElement('button');
+  button.className = `reaction-btn ${hasReacted ? 'reacted' : ''} px-2 py-1 rounded text-sm mr-2 mb-2`;
+  button.innerHTML = `${emoji} ${count}`;
+  button.onclick = () => handleReaction(itemType, itemId, emoji);
+  return button;
+}
+
+/**
+ * Shows the reaction palette
+ * @param {string} itemId - The item ID
+ * @param {string} itemType - The item type
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ */
+function showReactionPalette(itemId, itemType, x, y) {
+  if (!reactionPalette) return;
+  
+  reactionPalette.innerHTML = '';
+  window.REACTION_TYPES.forEach(emoji => {
+    const button = document.createElement('button');
+    button.className = 'reaction-option text-2xl p-2 hover:bg-gray-200 rounded';
+    button.textContent = emoji;
+    button.onclick = () => {
+      handleReaction(itemType, itemId, emoji);
+      hideReactionPalette();
+    };
+    reactionPalette.appendChild(button);
+  });
+  
+  reactionPalette.style.left = `${x}px`;
+  reactionPalette.style.top = `${y}px`;
+  reactionPalette.style.display = 'block';
+}
+
+/**
+ * Hides the reaction palette
+ */
+function hideReactionPalette() {
+  if (reactionPalette) {
+    reactionPalette.style.display = 'none';
+  }
+}
+
+/**
+ * Shows the edit form
+ * @param {string} content - Current content
+ * @param {string} itemId - Item ID
+ * @param {string} itemType - Item type
+ */
+function showEditForm(content, itemId, itemType) {
+  if (!editForm || !editInput) return;
+  
+  currentEditId = { id: itemId, type: itemType };
+  editInput.value = content;
+  editForm.style.display = 'block';
+}
+
+/**
+ * Hides the edit form
+ */
+function hideEditForm() {
+  if (editForm) {
+    editForm.style.display = 'none';
+  }
+  currentEditId = null;
+}
+
+/**
+ * Handles reactions on threads and comments
+ * @param {string} itemType - The type of item ('thread' or 'comment')
+ * @param {string} itemId - The ID of the item
+ * @param {string} emoji - The reaction emoji
+ */
+async function handleReaction(itemType, itemId, emoji) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to react.", true);
+    return;
+  }
+
+  try {
+    const userId = window.auth.currentUser.uid;
+    let itemRef;
+
+    if (itemType === 'thread') {
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`, itemId);
+    } else if (itemType === 'comment') {
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`, itemId);
+    } else {
+      console.error("Invalid item type for reaction:", itemType);
+      return;
+    }
+
+    const itemDoc = await getDoc(itemRef);
+    if (!itemDoc.exists()) {
+      console.error("Item not found for reaction");
+      return;
+    }
+
+    const itemData = itemDoc.data();
+    const reactions = itemData.reactions || {};
+    const emojiReactions = reactions[emoji] || { count: 0, users: [] };
+
+    const userIndex = emojiReactions.users.indexOf(userId);
+    if (userIndex > -1) {
+      // Remove reaction
+      emojiReactions.users.splice(userIndex, 1);
+      emojiReactions.count--;
+    } else {
+      // Add reaction
+      emojiReactions.users.push(userId);
+      emojiReactions.count++;
+    }
+
+    if (emojiReactions.count === 0) {
+      delete reactions[emoji];
+    } else {
+      reactions[emoji] = emojiReactions;
+    }
+
+    await updateDoc(itemRef, { reactions: reactions });
+    console.log(`Reaction ${emoji} ${userIndex > -1 ? 'removed from' : 'added to'} ${itemType}`);
+  } catch (error) {
+    console.error("Error handling reaction:", error);
+    showMessageBox("Error updating reaction.", true);
+  }
+}
+
+/**
+ * Edits a post (thread or comment)
+ * @param {string} itemType - The type of item ('thread' or 'comment')
+ * @param {string} itemId - The ID of the item
+ * @param {string} newContent - The new content
+ */
+async function editPost(itemType, itemId, newContent) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to edit.", true);
+    return;
+  }
+
+  try {
+    let itemRef;
+    const updateData = {
+      editedAt: serverTimestamp(),
+      editedBy: window.currentUser.displayName
+    };
+
+    if (itemType === 'thread') {
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`, itemId);
+      updateData.initialComment = newContent;
+      updateData.mentions = parseMentions(newContent);
+    } else if (itemType === 'comment') {
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`, itemId);
+      updateData.content = newContent;
+      updateData.mentions = parseMentions(newContent);
+    } else {
+      console.error("Invalid item type for editing:", itemType);
+      return;
+    }
+
+    await updateDoc(itemRef, updateData);
+    showMessageBox("Post edited successfully!", false);
+    hideEditForm();
+    console.log(`${itemType} edited successfully`);
+  } catch (error) {
+    console.error("Error editing post:", error);
+    showMessageBox("Error editing post.", true);
+  }
+}
+
+/**
+ * Creates a new DM conversation
+ * @param {string} type - The type of DM ('direct' or 'group')
+ * @param {Array} participantIds - Array of participant user IDs
+ * @param {string} groupName - Optional group name for group DMs
+ * @returns {Promise<string>} The conversation ID
+ */
+async function createDM(type, participantIds, groupName = '') {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to create a DM.", true);
+    return null;
+  }
+
+  try {
+    const currentUserId = window.auth.currentUser.uid;
+    const allParticipants = [...new Set([currentUserId, ...participantIds])];
+    
+    const dmData = {
+      type: type,
+      participants: allParticipants,
+      participantProfiles: {},
+      createdAt: serverTimestamp(),
+      createdBy: currentUserId,
+      lastActivity: serverTimestamp()
+    };
+
+    if (type === window.DM_TYPES.GROUP) {
+      dmData.groupName = groupName || 'Group Chat';
+      dmData.permissions = {
+        [currentUserId]: window.GROUP_PERMISSIONS.OWNER
+      };
+      // Set other participants as members
+      participantIds.forEach(pid => {
+        if (pid !== currentUserId) {
+          dmData.permissions[pid] = window.GROUP_PERMISSIONS.MEMBER;
+        }
+      });
+    }
+
+    const dmCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`);
+    const dmDoc = await addDoc(dmCol, dmData);
+
+    // Create the same DM for other participants
+    for (const participantId of participantIds) {
+      if (participantId !== currentUserId) {
+        const participantDmCol = collection(window.db, `artifacts/${window.appId}/users/${participantId}/dms`);
+        await addDoc(participantDmCol, {
+          ...dmData,
+          dmId: dmDoc.id // Reference to the original DM
+        });
+      }
+    }
+
+    showMessageBox("DM created successfully!", false);
+    return dmDoc.id;
+  } catch (error) {
+    console.error("Error creating DM:", error);
+    showMessageBox("Error creating DM.", true);
+    return null;
+  }
+}
+
+/**
+ * Sends a message in a DM
+ * @param {string} dmId - The DM ID
+ * @param {string} content - The message content
+ */
+async function sendDMMessage(dmId, content) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to send a message.", true);
+    return;
+  }
+
+  try {
+    const currentUserId = window.auth.currentUser.uid;
+    const mentions = parseMentions(content);
+    
+    const messageData = {
+      content: content,
+      mentions: mentions,
+      createdAt: serverTimestamp(),
+      createdBy: currentUserId,
+      creatorDisplayName: window.currentUser.displayName
+    };
+
+    const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${dmId}/messages`);
+    await addDoc(messagesCol, messageData);
+
+    // Update DM last activity
+    const dmRef = doc(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`, dmId);
+    await updateDoc(dmRef, { lastActivity: serverTimestamp() });
+
+    console.log("DM message sent successfully");
+  } catch (error) {
+    console.error("Error sending DM message:", error);
+    showMessageBox("Error sending message.", true);
+  }
+}
+
+/**
+ * Renders DM conversations list
+ */
+function renderDMList() {
+  if (!window.auth.currentUser || !window.db) return;
+
+  const currentUserId = window.auth.currentUser.uid;
+  const dmCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms`);
+  const q = query(dmCol, orderBy("lastActivity", "desc"));
+
+  if (unsubscribeDmList) {
+    unsubscribeDmList();
+  }
+
+  unsubscribeDmList = onSnapshot(q, async (snapshot) => {
+    if (!dmList) return;
+    
+    dmList.innerHTML = '';
+    if (snapshot.empty) {
+      dmList.innerHTML = '<li class="card p-4 text-center">No conversations yet. Start a new DM!</li>';
+      return;
+    }
+
+    for (const doc of snapshot.docs) {
+      const dmData = doc.data();
+      const li = document.createElement('li');
+      li.className = 'dm-item card cursor-pointer';
+      li.onclick = () => selectDM(doc.id, dmData);
+
+      const displayName = dmData.type === window.DM_TYPES.GROUP 
+        ? dmData.groupName 
+        : dmData.participants.find(p => p !== currentUserId) || 'Unknown';
+
+      li.innerHTML = `
+        <h3 class="text-lg font-bold">${displayName}</h3>
+        <p class="text-sm text-gray-500">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} message</p>
+        <p class="text-xs text-gray-400">Last activity: ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</p>
+      `;
+      dmList.appendChild(li);
+    }
+  });
+}
+
+/**
+ * Selects a DM conversation
+ * @param {string} dmId - The DM ID
+ * @param {object} dmData - The DM data
+ */
+function selectDM(dmId, dmData) {
+  currentDmId = dmId;
+  
+  if (dmTitle) {
+    dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP 
+      ? dmData.groupName 
+      : 'Direct Message';
+  }
+
+  if (dmParticipants) {
+    const participantNames = dmData.participants
+      .filter(p => p !== window.auth.currentUser.uid)
+      .map(p => getUserDisplayName(p, {}))
+      .join(', ');
+    dmParticipants.textContent = `Participants: ${participantNames}`;
+  }
+
+  // Show DM section, hide others
+  if (dmSection) dmSection.style.display = 'block';
+  if (formsContentSection) formsContentSection.style.display = 'none';
+  if (tempPagesSection) tempPagesSection.style.display = 'none';
+
+  renderDMMessages();
+}
+
+/**
+ * Renders DM messages
+ */
+function renderDMMessages() {
+  if (!window.auth.currentUser || !window.db || !currentDmId) return;
+
+  const currentUserId = window.auth.currentUser.uid;
+  const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${currentDmId}/messages`);
+  const q = query(messagesCol, orderBy("createdAt", "asc"));
+
+  if (unsubscribeDmMessages) {
+    unsubscribeDmMessages();
+  }
+
+  unsubscribeDmMessages = onSnapshot(q, (snapshot) => {
+    if (!dmMessages) return;
+    
+    dmMessages.innerHTML = '';
+    if (snapshot.empty) {
+      dmMessages.innerHTML = '<li class="text-center text-gray-500">No messages yet. Start the conversation!</li>';
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const message = doc.data();
+      const li = document.createElement('li');
+      li.className = `message-item ${message.createdBy === currentUserId ? 'own-message' : 'other-message'}`;
+      
+      li.innerHTML = `
+        <div class="message-content">
+          <p>${convertMentionsToHTML(message.content)}</p>
+          <small class="text-gray-500">${message.creatorDisplayName} - ${message.createdAt ? new Date(message.createdAt.toDate()).toLocaleString() : 'N/A'}</small>
+        </div>
+      `;
+      dmMessages.appendChild(li);
+    });
+
+    // Scroll to bottom
+    dmMessages.scrollTop = dmMessages.scrollHeight;
+  });
+}
 
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
@@ -1302,3 +1896,170 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.warn("Add comment form elements not found.");
   }
 });
+
+/**
+ * Creates a temporary page
+ * @param {string} title - The page title
+ * @param {string} content - The page content
+ */
+async function createTempPage(title, content) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to create a temporary page.", true);
+    return;
+  }
+
+  try {
+    const tempPageData = {
+      title: title,
+      content: content,
+      createdAt: serverTimestamp(),
+      createdBy: window.auth.currentUser.uid,
+      creatorDisplayName: window.currentUser.displayName,
+      lastModified: serverTimestamp()
+    };
+
+    const tempPagesCol = collection(window.db, `artifacts/${window.appId}/public/data/temp_pages`);
+    await addDoc(tempPagesCol, tempPageData);
+
+    showMessageBox("Temporary page created successfully!", false);
+    if (tempPageTitleInput) tempPageTitleInput.value = '';
+    if (tempPageContentInput) tempPageContentInput.value = '';
+    console.log("Temporary page created successfully");
+  } catch (error) {
+    console.error("Error creating temporary page:", error);
+    showMessageBox("Error creating temporary page.", true);
+  }
+}
+
+/**
+ * Renders temporary pages list
+ */
+function renderTempPages() {
+  if (!window.db) return;
+
+  const tempPagesCol = collection(window.db, `artifacts/${window.appId}/public/data/temp_pages`);
+  const q = query(tempPagesCol, orderBy("lastModified", "desc"));
+
+  onSnapshot(q, async (snapshot) => {
+    if (!tempPagesList) return;
+    
+    tempPagesList.innerHTML = '';
+    if (snapshot.empty) {
+      tempPagesList.innerHTML = '<li class="card p-4 text-center">No temporary pages yet. Create one!</li>';
+      return;
+    }
+
+    const createdByUids = new Set();
+    snapshot.forEach(doc => {
+      const page = doc.data();
+      if (page.createdBy) {
+        createdByUids.add(page.createdBy);
+      }
+    });
+
+    const userProfiles = {};
+    if (createdByUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for temp pages:", error));
+    }
+
+    snapshot.forEach(doc => {
+      const page = doc.data();
+      const li = document.createElement('li');
+      li.className = 'temp-page-item card';
+      const createdAt = page.createdAt ? new Date(page.createdAt.toDate()).toLocaleString() : 'N/A';
+      const creatorDisplayName = userProfiles[page.createdBy] || page.creatorDisplayName || 'Unknown';
+
+      li.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card">${page.title}</h3>
+        <p class="temp-page-content mt-2">${page.content.substring(0, 200)}${page.content.length > 200 ? '...' : ''}</p>
+        <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
+        <button data-page-id="${doc.id}" data-page-title="${page.title}" data-page-content="${page.content}" class="view-temp-page-btn btn-primary btn-blue mt-4">View Page</button>
+        ${canDeletePost(page, window.currentUser) ? `<button data-page-id="${doc.id}" class="delete-temp-page-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+      `;
+      tempPagesList.appendChild(li);
+    });
+
+    // Add event listeners
+    document.querySelectorAll('.view-temp-page-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const pageId = event.target.dataset.pageId;
+        const pageTitle = event.target.dataset.pageTitle;
+        const pageContent = event.target.dataset.pageContent;
+        viewTempPage(pageId, pageTitle, pageContent);
+      });
+    });
+
+    document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const pageId = event.target.dataset.pageId;
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this temporary page?", "This action cannot be undone.");
+        if (confirmed) {
+          await deleteTempPage(pageId);
+        }
+      });
+    });
+  });
+}
+
+/**
+ * Views a temporary page
+ * @param {string} pageId - The page ID
+ * @param {string} pageTitle - The page title
+ * @param {string} pageContent - The page content
+ */
+function viewTempPage(pageId, pageTitle, pageContent) {
+  // Create a modal or new window to display the page
+  const modal = document.createElement('div');
+  modal.className = 'temp-page-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+  modal.innerHTML = `
+    <div class="temp-page-content bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">${pageTitle}</h2>
+        <button class="close-modal text-2xl font-bold">&times;</button>
+      </div>
+      <div class="temp-page-body">
+        ${pageContent.replace(/\n/g, '<br>')}
+      </div>
+    </div>
+  `;
+
+  modal.querySelector('.close-modal').onclick = () => {
+    document.body.removeChild(modal);
+  };
+
+  modal.onclick = (event) => {
+    if (event.target === modal) {
+      document.body.removeChild(modal);
+    }
+  };
+
+  document.body.appendChild(modal);
+}
+
+/**
+ * Deletes a temporary page
+ * @param {string} pageId - The page ID
+ */
+async function deleteTempPage(pageId) {
+  if (!window.auth.currentUser || !window.db) {
+    showMessageBox("You must be logged in to delete a temporary page.", true);
+    return;
+  }
+
+  try {
+    const pageRef = doc(window.db, `artifacts/${window.appId}/public/data/temp_pages`, pageId);
+    await deleteDoc(pageRef);
+    showMessageBox("Temporary page deleted successfully!", false);
+    console.log("Temporary page deleted successfully");
+  } catch (error) {
+    console.error("Error deleting temporary page:", error);
+    showMessageBox("Error deleting temporary page.", true);
+  }
+}
