@@ -616,7 +616,7 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
@@ -917,7 +917,7 @@ function renderThreads() {
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
           <div class="thread-actions ml-auto">
             ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
-            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : '')}
+            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : '')}
           </div>
         </div>
         <div class="add-comment-section mt-2">${getAddCommentFormHtml(doc.id)}</div>
