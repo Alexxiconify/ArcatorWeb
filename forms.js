@@ -593,9 +593,101 @@ let unsubscribeDmList = null;
 // --- GLOBAL THREADS SECTION ---
 let globalThreadsSection;
 let globalThreadList;
+let createGlobalThreadForm;
+let globalThreadTitleInput;
+let globalThreadContentInput;
 
 /**
- * Renders global threads from Firestore in real-time.
+ * Adds a new global thread to Firestore.
+ * @param {string} title - The thread title.
+ * @param {string} content - The thread content.
+ */
+async function addGlobalThread(title, content) {
+  if (!window.auth.currentUser) {
+    showMessageBox("You must be logged in to create a global thread.", true);
+    return;
+  }
+  if (!window.db) {
+    showMessageBox("Database not initialized.", true);
+    return;
+  }
+  try {
+    const user = window.currentUser;
+    const mentions = parseMentions(content);
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+    await addDoc(threadsCol, {
+      title: title,
+      content: content,
+      mentions: mentions,
+      reactions: {},
+      createdAt: serverTimestamp(),
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+      commentCount: 0,
+      lastActivity: serverTimestamp(),
+      editedAt: null,
+      editedBy: null
+    });
+    showMessageBox("Global thread created successfully!", false);
+    if (globalThreadTitleInput) globalThreadTitleInput.value = '';
+    if (globalThreadContentInput) globalThreadContentInput.value = '';
+    console.log("New global thread added.");
+  } catch (error) {
+    console.error("Error creating global thread:", error);
+    showMessageBox(`Error creating global thread: ${error.message}", true);
+  }
+}
+
+/**
+ * Adds a new comment to a global thread in Firestore.
+ * @param {string} threadId - The ID of the global thread.
+ * @param {string} content - The comment content.
+ */
+async function addGlobalThreadComment(threadId, content) {
+  if (!window.auth.currentUser) {
+    showMessageBox("You must be logged in to comment.", true);
+    return;
+  }
+  if (!window.db) {
+    showMessageBox("Database not initialized.", true);
+    return;
+  }
+  try {
+    const user = window.currentUser;
+    const mentions = parseMentions(content);
+    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
+    await addDoc(commentsCol, {
+      content: content,
+      mentions: mentions,
+      reactions: {},
+      createdAt: serverTimestamp(),
+      authorId: window.auth.currentUser.uid,
+      authorDisplayName: user?.displayName || 'Anonymous',
+      authorHandle: user?.handle || '',
+      authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+      editedAt: null,
+      editedBy: null
+    });
+    // Update thread comment count
+    const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+    await updateDoc(threadRef, {
+      commentCount: increment(1),
+      lastActivity: serverTimestamp()
+    });
+    showMessageBox("Comment posted successfully!", false);
+    const input = document.getElementById(`global-thread-comment-input-${threadId}`);
+    if (input) input.value = '';
+    console.log("New comment added to global thread.");
+  } catch (error) {
+    console.error("Error posting comment:", error);
+    showMessageBox(`Error posting comment: ${error.message}", true);
+  }
+}
+
+/**
+ * Renders global threads from Firestore in real-time, with comment forms and lists.
  */
 function renderGlobalThreads() {
   if (!window.db) return;
@@ -612,6 +704,7 @@ function renderGlobalThreads() {
     }
     snapshot.forEach((doc) => {
       const thread = doc.data();
+      const threadId = doc.id;
       const li = document.createElement('li');
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
@@ -620,8 +713,61 @@ function renderGlobalThreads() {
         <h3 class="text-xl font-bold text-heading-card">${thread.title || '(No Title)'}</h3>
         <p class="thread-initial-comment mt-2">${convertMentionsToHTML(thread.content || thread.initialComment || '')}</p>
         <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+        <form id="global-thread-comment-form-${threadId}" class="mt-4 space-y-2">
+          <textarea id="global-thread-comment-input-${threadId}" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Add a comment..." required></textarea>
+          <button type="submit" class="btn-primary btn-green w-full">Post Comment</button>
+        </form>
+        <ul id="global-thread-comment-list-${threadId}" class="space-y-2 mt-4"></ul>
       `;
       globalThreadList.appendChild(li);
+      // Attach comment form event listener
+      setTimeout(() => {
+        const commentForm = document.getElementById(`global-thread-comment-form-${threadId}`);
+        if (commentForm) {
+          commentForm.onsubmit = async (event) => {
+            event.preventDefault();
+            const input = document.getElementById(`global-thread-comment-input-${threadId}`);
+            if (input && input.value.trim()) {
+              await addGlobalThreadComment(threadId, input.value.trim());
+            }
+          };
+        }
+      }, 0);
+      // Render comments for this thread
+      renderGlobalThreadComments(threadId);
+    });
+  });
+}
+
+/**
+ * Renders comments for a global thread in real-time.
+ * @param {string} threadId - The global thread ID.
+ */
+function renderGlobalThreadComments(threadId) {
+  if (!window.db) return;
+  const commentList = document.getElementById(`global-thread-comment-list-${threadId}`);
+  if (!commentList) return;
+  const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
+  const q = query(commentsCol, orderBy("createdAt", "asc"));
+  onSnapshot(q, (snapshot) => {
+    commentList.innerHTML = '';
+    if (snapshot.empty) {
+      commentList.innerHTML = '<li class="card p-2 text-center">No comments yet.</li>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+      const displayName = comment.authorDisplayName || 'Unknown';
+      const li = document.createElement('li');
+      li.className = 'comment-item card';
+      li.innerHTML = `
+        <div class="comment-content">
+          <p>${convertMentionsToHTML(comment.content)}</p>
+          <p class="meta-info">By ${displayName} on ${createdAt}</p>
+        </div>
+      `;
+      commentList.appendChild(li);
     });
   });
 }
@@ -690,6 +836,9 @@ function initializeDOMElements() {
   // Add global threads section DOM refs
   globalThreadsSection = document.getElementById('global-threads-section');
   globalThreadList = document.getElementById('global-thread-list');
+  createGlobalThreadForm = document.getElementById('create-global-thread-form');
+  globalThreadTitleInput = document.getElementById('global-thread-title');
+  globalThreadContentInput = document.getElementById('global-thread-content');
 
   console.log("DOM elements initialized.");
 }
@@ -2167,4 +2316,18 @@ document.addEventListener('DOMContentLoaded', async function() {
       hideReactionPalette();
     }
   });
+
+  // Attach event listener for creating global threads
+  if (createGlobalThreadForm && globalThreadTitleInput && globalThreadContentInput) {
+    createGlobalThreadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = globalThreadTitleInput.value.trim();
+      const content = globalThreadContentInput.value.trim();
+      if (title && content) {
+        await addGlobalThread(title, content);
+      } else {
+        showMessageBox("Please fill in both Thread Title and Content.", true);
+      }
+    });
+  }
 });

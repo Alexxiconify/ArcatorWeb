@@ -425,6 +425,27 @@
         <a href="sign.html" class="inline-block btn-blue text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
       </div>
 
+      <!-- Global Threads Section -->
+      <div id="global-threads-section" class="form-container mb-12">
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Global Threads</h3>
+        <!-- Create Global Thread Form -->
+        <form id="create-global-thread-form" class="space-y-4 mb-8">
+          <div>
+            <label for="global-thread-title" class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
+            <input type="text" id="global-thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., General Discussion" required>
+          </div>
+          <div>
+            <label for="global-thread-content" class="block text-text-primary text-sm font-bold mb-2">Content:</label>
+            <textarea id="global-thread-content" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Start the discussion..." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-purple w-full">Create Global Thread</button>
+        </form>
+        <ul id="global-thread-list" class="space-y-4">
+          <!-- Global threads will be loaded here by JavaScript -->
+          <li class="card p-4 text-center">Loading global threads...</li>
+        </ul>
+      </div>
+
     </div>
   </div>
 </section>
