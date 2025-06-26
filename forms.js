@@ -652,7 +652,7 @@ function renderThemaBoxes(themasArr) {
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
         </form>
-        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -749,7 +749,7 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
@@ -843,7 +843,7 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
         </div>
         <div class="text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
