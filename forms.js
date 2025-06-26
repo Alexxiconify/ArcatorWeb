@@ -671,6 +671,20 @@ function loadThreadsForThema(themaId) {
             }
           };
         }
+        // Edit/Delete thread handlers
+        if (canEdit) {
+          threadDiv.querySelector('.edit-thread-btn').dataset.threadId = threadDoc.id;
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => {
+            openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
+          };
+          threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
+            if (confirm('Delete this thread?')) {
+              const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+              await deleteDoc(doc(threadsCol, threadDoc.id));
+              threadDiv.remove();
+            }
+          };
+        }
         threadDiv.setAttribute('data-thread-id', threadDoc.id);
       });
     });
@@ -1388,10 +1402,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (createThemaForm) {
       createThemaForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        // Check if form is still connected to DOM
+        if (!document.contains(createThemaForm)) {
+          console.warn('Create thema form not connected to DOM, skipping submission');
+          return;
+        }
         const name = window.newThemaNameInput.value.trim();
         const description = window.newThemaDescriptionInput.value.trim();
         if (!name || !description) return;
         await addThema(name, description);
+        // Reset form only if still connected
+        if (document.contains(createThemaForm)) {
+          createThemaForm.reset();
+        }
       });
     }
     // Ensure UI updates after user/profile is ready
