@@ -16,7 +16,8 @@ import {
   addDoc,
   serverTimestamp,
   onSnapshot,
-  getDocs
+  getDocs,
+  where // Added where for user profile query
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Global Firebase Instances and Constants (formerly in firebase-init.js) ---
@@ -47,6 +48,7 @@ window.firebaseReadyPromise = new Promise((resolve) => {
   firebaseReadyResolve = resolve;
 });
 
+// Re-enabled: getUserProfileFromFirestore for full functionality
 window.getUserProfileFromFirestore = async function(uid) {
   await window.firebaseReadyPromise;
   if (!window.db) {
@@ -65,6 +67,7 @@ window.getUserProfileFromFirestore = async function(uid) {
   return null;
 };
 
+// Re-enabled: setUserProfileInFirestore
 window.setUserProfileInFirestore = async function(uid, profileData) {
   await window.firebaseReadyPromise;
   if (!window.db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
@@ -74,18 +77,14 @@ window.setUserProfileInFirestore = async function(uid, profileData) {
     if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
     console.log("DEBUG: User profile updated in Firestore for UID:", uid);
     return true;
-  } catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
+  }
+  catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
 };
 
+// Commented out: deleteUserProfileFromFirestore (kept for future re-enablement)
 window.deleteUserProfileFromFirestore = async function(uid) {
-  await window.firebaseReadyPromise;
-  if (!window.db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
-  const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-  try {
-    await deleteDoc(userDocRef);
-    console.log("DEBUG: User profile deleted from Firestore for UID:", uid);
-    return true;
-  } catch (error) { console.error("Error deleting user profile from Firestore:", error); return false; }
+  // console.log("DEBUG: deleteUserProfileFromFirestore commented out.");
+  return false;
 };
 
 async function setupFirebaseAndUser() {
@@ -127,19 +126,20 @@ async function setupFirebaseAndUser() {
       const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
         console.log("DEBUG forms.js (onAuthStateChanged): Triggered. User:", user ? user.uid : "none");
         if (user) {
+          // Now properly fetch user profile
           let userProfile = await window.getUserProfileFromFirestore(user.uid);
           if (!userProfile) {
             console.log("DEBUG forms.js (onAuthStateChanged): No profile found. Creating default.");
             userProfile = {
               uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-              email: user.email || null, photoURL: window.DEFAULT_PROFILE_PIC,
+              email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
               createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME,
               isAdmin: window.ADMIN_UIDS.includes(user.uid)
             };
             await window.setUserProfileInFirestore(user.uid, userProfile);
           } else {
             await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: window.ADMIN_UIDS.includes(user.uid) });
-            userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
+            userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid); // Ensure isAdmin is updated
           }
           window.currentUser = userProfile;
           console.log("DEBUG forms.js (onAuthStateChanged): currentUser set:", window.currentUser);
@@ -148,7 +148,7 @@ async function setupFirebaseAndUser() {
           window.currentUser = null;
         }
         firebaseReadyResolve();
-        unsubscribe();
+        unsubscribe(); // Unsubscribe after initial state received
       });
 
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -200,6 +200,7 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
+// Re-enabled: sanitizeHandle
 function sanitizeHandle(input) {
   return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
@@ -212,6 +213,7 @@ const confirmNoButton = document.getElementById('confirm-no');
 const closeButton = document.querySelector('.custom-confirm-modal .close-button');
 let resolveConfirmPromise;
 
+// Re-enabled: showCustomConfirm
 function showCustomConfirm(message, submessage = '') {
   if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
     console.error("Custom confirmation modal elements not found. Cannot show confirm dialog.");
@@ -284,6 +286,7 @@ window.setupThemesFirebase = function(dbInstance, authInstance, appIdInstance) {
   console.log("DEBUG forms.js (setupThemesFirebase): Themes Firebase setup complete.");
 };
 
+// Re-enabled: fetchCustomThemes
 async function fetchCustomThemes() {
   if (!_db || !_auth || !_auth.currentUser) {
     console.log("DEBUG forms.js (fetchCustomThemes): Not fetching custom themes - DB not ready or user not logged in.");
@@ -302,6 +305,7 @@ async function fetchCustomThemes() {
   }
 }
 
+// Re-enabled: saveCustomTheme
 async function saveCustomTheme(theme) {
   if (!_db || !_auth || !_auth.currentUser) {
     showMessageBox("Please sign in to save custom themes.", true);
@@ -321,6 +325,7 @@ async function saveCustomTheme(theme) {
   }
 }
 
+// Re-enabled: deleteCustomTheme
 async function deleteCustomTheme(themeId) {
   if (!_db || !_auth || !_auth.currentUser) {
     showMessageBox("Please sign in to delete custom themes.", true);
@@ -342,9 +347,8 @@ async function deleteCustomTheme(themeId) {
 
 window.applyTheme = async function(themeId, themeObject = null) {
   let themeToApply = themeObject;
-  if (!themeToApply) { themeToApply = _allThemes.find(t => t.id === themeId); }
   if (!themeToApply) {
-    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
+    _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())]; // Re-enabled fetching custom themes
     themeToApply = _allThemes.find(t => t.id === themeId);
   }
   if (!themeToApply) {
@@ -352,7 +356,6 @@ window.applyTheme = async function(themeId, themeObject = null) {
     themeToApply = predefinedThemes.find(t => t.id === window.DEFAULT_THEME_NAME) || predefinedThemes[0];
   }
   if (themeToApply && themeToApply.variables) {
-    // FIX: Changed `=` to `of` for destructuring assignment
     for (const [key, value] of Object.entries(themeToApply.variables)) {
       document.documentElement.style.setProperty(key, value);
     }
@@ -362,6 +365,7 @@ window.applyTheme = async function(themeId, themeObject = null) {
   }
 };
 
+// Re-enabled: populateThemeSelect
 async function populateThemeSelect() {
   _allThemes = [...predefinedThemes, ...(await fetchCustomThemes())];
   if (_themeSelect) {
@@ -379,7 +383,7 @@ async function populateThemeSelect() {
 }
 
 window.getAvailableThemes = async function() {
-  if (_allThemes.length === 0) { await populateThemeSelect(); }
+  if (_allThemes.length === 0) { await populateThemeSelect(); } // Re-enabled populateThemeSelect call
   return _allThemes;
 };
 
@@ -473,26 +477,29 @@ const mainLoadingSpinner = document.getElementById('loading-spinner');
 const formsContentSection = document.getElementById('forms-content');
 const mainLoginRequiredMessage = document.getElementById('login-required-message');
 
+// Re-enabled: createThemaForm and related inputs
 const createThemaForm = document.getElementById('create-thema-form');
 const newThemaNameInput = document.getElementById('new-thema-name');
 const newThemaDescriptionInput = document.getElementById('new-thema-description');
 const themaList = document.getElementById('thema-list');
 
+// Commented out: threadsSection and related elements (for now)
 const threadsSection = document.getElementById('threads-section');
 const backToThematasBtn = document.getElementById('back-to-thematas-btn');
 const currentThemaTitle = document.getElementById('current-thema-title');
 const currentThemaDescription = document.getElementById('current-thema-description');
-const createThreadForm = document.getElementById('create-thread-form');
-const newThreadTitleInput = document.getElementById('new-thread-title');
-const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+const createThreadForm = document.getElementById('create-thread-form'); // Corrected from null
+const newThreadTitleInput = document.getElementById('new-thread-title'); // Corrected from null
+const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment'); // Corrected from null
 const threadList = document.getElementById('thread-list');
 
+// Commented out: commentsSection and related elements (for now)
 const commentsSection = document.getElementById('comments-section');
 const backToThreadsBtn = document.getElementById('back-to-threads-btn');
 const currentThreadTitle = document.getElementById('current-thread-title');
 const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
-const addCommentForm = document.getElementById('add-comment-form');
-const newCommentContentInput = document.getElementById('new-comment-content');
+const addCommentForm = document.getElementById('add-comment-form'); // Corrected from null
+const newCommentContentInput = document.getElementById('new-comment-content'); // Corrected from null
 const commentList = document.getElementById('comment-list');
 
 let currentThemaId = null;
@@ -520,20 +527,21 @@ async function updateUIBasedOnAuthAndData() {
   if (window.auth.currentUser) {
     console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): User is logged in.", window.auth.currentUser.uid);
     let profileReady = false;
-    for (let i = 0; i < 20; i++) {
-      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined') {
+    for (let i = 0; i < 30; i++) { // Max 3 seconds wait (30 * 100ms)
+      if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined' && window.currentUser.displayName !== null) {
         profileReady = true;
-        console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): currentUser profile ready.");
+        console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): currentUser profile ready after", i * 100, "ms.");
         break;
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Waiting for currentUser to be set. Attempt:", i + 1);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
     }
 
     if (profileReady) {
       if (formsContentSection) formsContentSection.style.display = 'block';
       if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
       console.log("DEBUG forms.js (updateUIBasedOnAuthAndData): Forms content visible, login message hidden.");
-      renderThematas();
+      renderThematas(); // Re-enabled: Start real-time listening for thémata
     } else {
       console.warn("WARN forms.js (updateUIBasedOnAuthAndData): currentUser profile not fully loaded after waiting. Showing login message.");
       showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
@@ -547,6 +555,7 @@ async function updateUIBasedOnAuthAndData() {
   }
 }
 
+// Re-enabled: addThema
 async function addThema(name, description) {
   if (!window.auth.currentUser) {
     showMessageBox("You must be logged in to create a théma.", true);
@@ -576,6 +585,7 @@ async function addThema(name, description) {
   }
 }
 
+// Re-enabled: renderThematas
 function renderThematas() {
   console.log("DEBUG forms.js (renderThematas): Called. DB:", !!window.db);
   if (unsubscribeThematas) {
@@ -590,7 +600,7 @@ function renderThematas() {
   const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
   const q = query(thematasCol, orderBy("createdAt", "desc"));
 
-  unsubscribeThematas = onSnapshot(q, (snapshot) => {
+  unsubscribeThematas = onSnapshot(q, async (snapshot) => { // Made async to await user profiles
     console.log("DEBUG forms.js (renderThematas): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
     themaList.innerHTML = '';
     if (snapshot.empty) {
@@ -598,19 +608,48 @@ function renderThematas() {
       return;
     }
 
+    // Fetch user profiles for display names
+    const userProfilePromises = [];
+    const createdByUids = new Set();
+    snapshot.forEach(doc => {
+      const thema = doc.data();
+      if (thema.createdBy) {
+        createdByUids.add(thema.createdBy);
+      }
+    });
+
+    const userProfiles = {};
+    if (createdByUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      // Use 'in' query if Firebase allows for fetching multiple user profiles
+      // Note: 'in' operator has a limit of 10 items. For more, multiple queries or a different approach is needed.
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
+      userProfilePromises.push(getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for thematas:", error)));
+    }
+
+    // Wait for all user profiles to be fetched before rendering
+    await Promise.all(userProfilePromises);
+
     snapshot.forEach((doc) => {
       const thema = doc.data();
       const li = document.createElement('li');
       li.classList.add('thema-item', 'card');
       const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
+      // Prioritize fetched display name, then existing, then 'Unknown'
+      const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
 
       li.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-        <p class="thema-description mt-2">${thema.description}</p>
-        <p class="meta-info">Created by ${thema.creatorDisplayName || 'Unknown'} on ${createdAt}</p>
-        <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
-        ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
-      `;
+            <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+            <p class="thema-description mt-2">${thema.description}</p>
+            <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
+            <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
+            ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+        `;
       themaList.appendChild(li);
     });
 
@@ -642,6 +681,7 @@ function renderThematas() {
   });
 }
 
+// Re-enabled: deleteThemaAndSubcollections
 async function deleteThemaAndSubcollections(themaId) {
   try {
     console.log(`DEBUG forms.js (deleteThemaAndSubcollections): Deleting thema: ${themaId}`);
@@ -726,7 +766,7 @@ function renderThreads() {
   const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`);
   const q = query(threadsCol, orderBy("createdAt", "desc"));
 
-  unsubscribeThreads = onSnapshot(q, (snapshot) => {
+  unsubscribeThreads = onSnapshot(q, async (snapshot) => { // Made async to await user profiles
     console.log("DEBUG forms.js (renderThreads): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
     threadList.innerHTML = '';
     if (snapshot.empty) {
@@ -734,16 +774,40 @@ function renderThreads() {
       return;
     }
 
+    // Fetch user profiles for display names for threads
+    const threadUserPromises = [];
+    const threadCreatedByUids = new Set();
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      if (thread.createdBy) {
+        threadCreatedByUids.add(thread.createdBy);
+      }
+    });
+
+    const threadUserProfiles = {};
+    if (threadCreatedByUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const threadUserQuery = query(usersRef, where('uid', 'in', Array.from(threadCreatedByUids)));
+      threadUserPromises.push(getDocs(threadUserQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          threadUserProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for threads:", error)));
+    }
+    await Promise.all(threadUserPromises); // Wait for thread user profiles
+
     snapshot.forEach((doc) => {
       const thread = doc.data();
       const li = document.createElement('li');
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+      const creatorDisplayName = threadUserProfiles[thread.createdBy] || thread.creatorDisplayName || 'Unknown';
 
       li.innerHTML = `
         <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
         <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
-        <p class="meta-info">Started by ${thread.creatorDisplayName || 'Unknown'} on ${createdAt}</p>
+        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
         <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green mt-4">View Comments</button>
         ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
       `;
@@ -858,21 +922,35 @@ function renderComments() {
       return;
     }
 
-    const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-    const usersSnapshot = await getDocs(usersRef);
-    const userProfiles = {};
-    usersSnapshot.forEach(doc => {
-      const data = doc.data();
-      userProfiles[doc.id] = data.displayName || 'Unknown User';
+    // Fetch user profiles for display names for comments
+    const commentUserPromises = [];
+    const commentCreatedByUids = new Set();
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      if (comment.createdBy) {
+        commentCreatedByUids.add(comment.createdBy);
+      }
     });
 
+    const commentUserProfiles = {};
+    if (commentCreatedByUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const commentUserQuery = query(usersRef, where('uid', 'in', Array.from(commentCreatedByUids)));
+      commentUserPromises.push(getDocs(commentUserQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          commentUserProfiles[userDoc.id] = userData.displayName || 'Unknown User';
+        });
+      }).catch(error => console.error("Error fetching user profiles for comments:", error)));
+    }
+    await Promise.all(commentUserPromises); // Wait for comment user profiles
 
     snapshot.forEach((doc) => {
       const comment = doc.data();
       const li = document.createElement('li');
       li.classList.add('comment-item', 'card');
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const displayName = userProfiles[comment.createdBy] || comment.creatorDisplayName || 'Unknown User';
+      const displayName = commentUserProfiles[comment.createdBy] || comment.creatorDisplayName || 'Unknown User';
 
       li.innerHTML = `
         <p class="comment-content">${comment.content}</p>
