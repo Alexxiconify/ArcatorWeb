@@ -652,6 +652,7 @@ function renderThemaBoxes(themasArr) {
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
         </form>
+        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy)) ? `<button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -674,6 +675,14 @@ function renderThemaBoxes(themasArr) {
         threadForm.reset();
       };
       renderThemaAdminControls(thema, box);
+      if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy)) {
+        box.querySelector('.delete-thema-btn').onclick = async () => {
+          if (confirm('Delete this Théma and all its threads?')) {
+            await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
+            box.remove();
+          }
+        };
+      }
     });
   } catch (e) {
     console.error('[DEBUG] Error in renderThemaBoxes:', e);
@@ -739,7 +748,7 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
@@ -833,7 +842,7 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
         </div>
         <div class="text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
@@ -1531,8 +1540,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('[DEBUG] DOMContentLoaded fired.');
     initializeUtilityElements();
     showMainLoading();
+    // Attach create-thema-form handler
+    const createThemaForm = document.getElementById('create-thema-form');
+    const newThemaNameInput = document.getElementById('new-thema-name');
+    const newThemaDescriptionInput = document.getElementById('new-thema-description');
+    if (createThemaForm) {
+      createThemaForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const name = newThemaNameInput.value.trim();
+        const description = newThemaDescriptionInput.value.trim();
+        if (!name || !description) return;
+        await addThema(name, description);
+      });
+    }
     // ... any other main entry logic ...
-    // Ensure thémata always load after UI/auth ready
     await updateUIBasedOnAuthAndData();
     console.log('[DEBUG] renderThematas() called from DOMContentLoaded');
     renderThematas();
