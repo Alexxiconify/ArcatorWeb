@@ -652,7 +652,7 @@ function renderThemaBoxes(themasArr) {
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
         </form>
-        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy)) ? `<button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -675,7 +675,7 @@ function renderThemaBoxes(themasArr) {
         threadForm.reset();
       };
       renderThemaAdminControls(thema, box);
-      if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy)) {
+      if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
             await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
@@ -742,7 +742,7 @@ function loadThreadsForThema(themaId) {
         const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
         const displayName = user.displayName || 'Unknown';
         const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-        const canEdit = window.currentUser && window.currentUser.uid === thread.createdBy;
+        const canEdit = window.currentUser && window.currentUser.uid === thread.authorId;
         threadDiv.innerHTML = `
           <div class="flex items-center gap-2 mb-1">
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
@@ -834,7 +834,7 @@ function loadCommentsForThread(themaId, threadId) {
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
       const displayName = user.displayName || 'Unknown';
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-      const canEdit = window.currentUser && window.currentUser.uid === comment.createdBy;
+      const canEdit = window.currentUser && window.currentUser.uid === comment.authorId;
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment-item card p-3 mb-2 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
@@ -1678,7 +1678,7 @@ function enableEditInline(type, themaId, threadId, commentId, oldContent, contai
 
 // Add edit/delete for thema (admin/creator only)
 function renderThemaAdminControls(thema, box) {
-  if (!window.currentUser || (!window.currentUser.isAdmin && window.currentUser.uid !== thema.createdBy)) return;
+  if (!window.currentUser || (!window.currentUser.isAdmin && window.currentUser.uid !== thema.authorId)) return;
   const controls = document.createElement('div');
   controls.className = 'thema-admin-controls flex gap-2 mt-2';
   controls.innerHTML = `
