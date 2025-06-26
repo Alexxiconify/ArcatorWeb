@@ -517,7 +517,7 @@ function renderThemaBoxes(themasArr) {
         <p class="thema-description mb-4">${thema.description || ''}</p>
         <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
         ${formHtml}
-        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button type="button" class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+        <!-- Admin controls are appended by renderThemaAdminControls -->
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -704,7 +704,7 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
         </div>
         <div class="text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
@@ -1520,7 +1520,7 @@ function renderThemaAdminControls(thema, box) {
     <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
   `;
   box.appendChild(controls);
-  controls.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description);
+  controls.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
   controls.querySelector('.delete-thema-btn').onclick = async () => {
     if (confirm('Delete this Théma and all its threads?')) {
       await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
@@ -1574,28 +1574,34 @@ function setupEditModal() {
     <div class="modal-content">
       <span class="close-button">&times;</span>
       <h3 class="text-xl font-bold mb-4 text-blue-300" id="edit-modal-title"></h3>
-      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4"></textarea>
+      <div id="edit-modal-fields"></div>
       <button id="save-edit-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
     </div>
   `;
   document.body.appendChild(editModal);
   editModalTitle = editModal.querySelector('#edit-modal-title');
-  editModalTextarea = editModal.querySelector('#edit-modal-textarea');
   saveEditBtn = editModal.querySelector('#save-edit-btn');
   saveEditBtn.addEventListener('click', async () => {
     if (!currentEditContext) return;
-    const newContent = editModalTextarea.value.trim();
-    if (!newContent) return;
-    let ref;
-    if (currentEditContext.type === 'thread') {
-      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
-      await updateDoc(ref, { initialComment: newContent });
-    } else if (currentEditContext.type === 'comment') {
-      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
-      await updateDoc(ref, { content: newContent });
-    } else if (currentEditContext.type === 'thema') {
-      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
-      await updateDoc(ref, { description: newContent });
+    if (currentEditContext.type === 'thema') {
+      const nameInput = editModal.querySelector('#edit-modal-name-input');
+      const descTextarea = editModal.querySelector('#edit-modal-textarea');
+      const newName = nameInput.value.trim();
+      const newDesc = descTextarea.value.trim();
+      if (!newName) return;
+      const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
+      await updateDoc(ref, { name: newName, description: newDesc });
+    } else {
+      const descTextarea = editModal.querySelector('#edit-modal-textarea');
+      const newContent = descTextarea.value.trim();
+      let ref;
+      if (currentEditContext.type === 'thread') {
+        ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
+        await updateDoc(ref, { initialComment: newContent });
+      } else if (currentEditContext.type === 'comment') {
+        ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
+        await updateDoc(ref, { content: newContent });
+      }
     }
     editModal.style.display = 'none';
   });
@@ -1605,11 +1611,21 @@ function setupEditModal() {
   });
 }
 
-function openEditModal(type, context, oldContent) {
+function openEditModal(type, context, oldContent, oldName = null) {
   setupEditModal();
   currentEditContext = { type, ...context };
   editModalTitle.textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-  editModalTextarea.value = oldContent;
+  const fieldsDiv = editModal.querySelector('#edit-modal-fields');
+  if (type === 'thema') {
+    fieldsDiv.innerHTML = `
+      <input id="edit-modal-name-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" value="${oldName || ''}" placeholder="Théma Name" required />
+      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4" placeholder="Description">${oldContent || ''}</textarea>
+    `;
+  } else {
+    fieldsDiv.innerHTML = `
+      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4">${oldContent || ''}</textarea>
+    `;
+  }
   editModal.style.display = 'flex';
 }
 
