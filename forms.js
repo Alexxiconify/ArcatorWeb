@@ -3,47 +3,8 @@
 
 // forms.js: Centralized JavaScript for Forms page, encompassing Firebase, utilities, theme, navbar, and core forms logic.
 
-// --- Firebase SDK Imports ---
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  collection,
-  query,
-  orderBy,
-  addDoc,
-  serverTimestamp,
-  onSnapshot,
-  getDocs,
-  where,
-  arrayUnion,
-  arrayRemove,
-  increment
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 // --- Global Firebase Instances and Constants ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-  authDomain: "arcator-web.firebaseapp.com",
-  projectId: "arcator-web",
-  storageBucket: "arcator-web.firebasestorage.app",
-  messagingSenderId: "1033082068049",
-  appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-  measurementId: "G-DJXNT1L7CM"
-};
-
-const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-window.appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-window.app = null; // Initialize to null
-window.auth = null; // Initialize to null
-window.db = null;   // Initialize to null
-window.currentUser = null;
+import { auth, db, appId, currentUser, firebaseReadyPromise } from './firebase-init.js';
 
 window.DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 window.DEFAULT_THEME_NAME = 'dark';
@@ -61,19 +22,6 @@ window.GROUP_PERMISSIONS = {
   MEMBER: 'member'
 };
 window.EDIT_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-let firebaseReadyResolve;
-window.firebaseReadyPromise = new Promise((resolve) => {
-  firebaseReadyResolve = resolve;
-});
-
-// Add a timeout to prevent hanging
-setTimeout(() => {
-  if (firebaseReadyResolve) {
-    console.warn("Firebase ready promise timed out after 60 seconds. Continuing anyway.");
-    firebaseReadyResolve();
-  }
-}, 60000); // 60 seconds
 
 /**
  * Retrieves user profile from Firestore.
@@ -125,106 +73,6 @@ window.setUserProfileInFirestore = async function(uid, profileData) {
 window.deleteUserProfileFromFirestore = async function(uid) {
   return false;
 };
-
-/**
- * Initializes Firebase app, authentication, and Firestore.
- */
-async function setupFirebaseAndUser() {
-  console.log("Setup Firebase and user.");
-
-  try {
-    if (getApps().length === 0) {
-      let finalFirebaseConfig = firebaseConfig;
-
-      if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
-        if (typeof __firebase_config === 'string') {
-          try {
-            finalFirebaseConfig = JSON.parse(__firebase_config);
-            console.log("Parsed __firebase_config.");
-          } catch (e) {
-            if (e instanceof SyntaxError && __firebase_config.trim() === '[object Object]') {
-              console.warn("WARN: __firebase_config is the literal string '[object Object]' and caused a parse error. Using hardcoded config.");
-            } else {
-              console.error("Error parsing __firebase_config as JSON. Using hardcoded config.", e);
-            }
-            finalFirebaseConfig = firebaseConfig;
-          }
-        } else if (typeof __firebase_config === 'object') {
-          finalFirebaseConfig = __firebase_config;
-          console.log("Using __firebase_config object directly.");
-        } else {
-          console.warn("__firebase_config provided but not string or object. Using hardcoded config. Type:", typeof __firebase_config);
-        }
-      } else {
-        console.log("__firebase_config not provided. Using hardcoded config.");
-      }
-
-      try {
-        window.app = initializeApp(finalFirebaseConfig);
-        window.auth = getAuth(window.app);
-        window.db = getFirestore(window.app);
-        console.log("Firebase initialized.");
-
-        const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
-          console.log("[DEBUG] onAuthStateChanged triggered. User:", user ? user.uid : "none");
-          if (user) {
-            let userProfile = await window.getUserProfileFromFirestore(user.uid);
-            if (!userProfile) {
-              console.log("[DEBUG] No profile found. Creating default.");
-              userProfile = {
-                uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-                email: user.email || null, photoURL: user.photoURL || window.DEFAULT_PROFILE_PIC,
-                createdAt: new Date(), lastLoginAt: new Date(), themePreference: window.DEFAULT_THEME_NAME
-              };
-              await window.setUserProfileInFirestore(user.uid, userProfile);
-            } else {
-              await window.setUserProfileInFirestore(user.uid, { lastLoginAt: new Date() });
-            }
-            window.currentUser = userProfile;
-            console.log("[DEBUG] currentUser set:", window.currentUser);
-            console.log("[DEBUG] About to call updateUIBasedOnAuthAndData after setting currentUser:", window.currentUser);
-            try {
-              updateUIBasedOnAuthAndData();
-              console.log("[DEBUG] updateUIBasedOnAuthAndData() called successfully after login.");
-            } catch (e) {
-              console.error("[DEBUG] Error calling updateUIBasedOnAuthAndData after login:", e);
-            }
-          } else {
-            console.log("[DEBUG] User logged out. currentUser set to null.");
-            window.currentUser = null;
-            updateUIBasedOnAuthAndData();
-          }
-          firebaseReadyResolve();
-          unsubscribe();
-        });
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          console.log("Signing in with custom token.");
-          await signInWithCustomToken(window.auth, __initial_auth_token)
-            .then(() => console.log("Signed in with custom token."))
-            .catch((error) => {
-              console.error("Custom token sign-in failed:", error);
-            });
-        } else {
-          console.log("__initial_auth_token not defined. Relying on platform for initial auth state.");
-        }
-      } catch (e) {
-        console.error("Error initializing Firebase:", e);
-        firebaseReadyResolve();
-      }
-    } else {
-      window.app = getApp();
-      window.db = getFirestore(window.app);
-      window.auth = getAuth(window.app);
-      console.log("Firebase app already initialized. Re-using instance.");
-      firebaseReadyResolve();
-    }
-  } catch (error) {
-    console.error("Critical error in Firebase setup:", error);
-    firebaseReadyResolve();
-  }
-}
-setupFirebaseAndUser();
 
 // --- Utility Functions ---
 let messageBox;
@@ -1777,4 +1625,5 @@ function openEditModal(type, context, oldContent) {
   editModal.style.display = 'flex';
 }
 
-if (typeof updateUIBasedOnAuthAndData === 'function') updateUIBasedOnAuthAndData();
+// At the end of function definitions, before DOMContentLoaded:
+window.onUserReady = updateUIBasedOnAuthAndData; // UI updates only when user/profile is ready

@@ -184,15 +184,14 @@ setupFirebaseCore();
 // This ensures 'auth' and 'db' instances are definitely available.
 firebaseReadyPromise.then(() => {
   // Export onAuthStateChanged directly from here so it can be imported by other modules
-  // The onAuthStateChanged listener needs to be set up here within firebase-init.js
-  // and the onAuthStateChanged function itself can be re-exported.
+  // The onAuthStateChanged listener needs to be set up here within firebase-init.js,
+  // while the exported `onAuthStateChanged` is for other modules to subscribe to changes.
   // This is a common pattern for modules that provide a service (like Firebase auth state).
   // The global 'onAuthStateChanged' function from the Firebase SDK is imported at the top.
   // We can then re-export it along with our setup logic.
 
   // No change needed to the listener itself, just ensuring the function is exported.
   // The listener below is for internal state management within firebase-init.js,
-  // while the exported `onAuthStateChanged` is for other modules to subscribe to changes.
   onAuthStateChanged(auth, async (user) => {
     console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
     if (user) {
@@ -218,10 +217,12 @@ firebaseReadyPromise.then(() => {
         userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
       }
       currentUser = userProfile;
-      console.log("DEBUG: currentUser set:", currentUser);
+      // Notify UI when user/profile is ready
+      if (typeof window.onUserReady === 'function') window.onUserReady();
     } else {
       console.log("Auth State Changed: User logged out.");
       currentUser = null;
+      if (typeof window.onUserReady === 'function') window.onUserReady();
     }
     // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.
   });
