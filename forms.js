@@ -319,33 +319,16 @@ function hideMainLoading() {
 async function updateUIBasedOnAuthAndData() {
   console.log('[DEBUG] updateUIBasedOnAuthAndData called. currentUser:', window.currentUser);
   hideMainLoading();
-  if (window.auth.currentUser) {
-    if (!window.currentUser) {
-      console.log('[DEBUG] currentUser not ready, retrying updateUIBasedOnAuthAndData in 100ms');
-      setTimeout(updateUIBasedOnAuthAndData, 100);
-      return;
-    }
-    if (formsContentSection) {
-      formsContentSection.style.display = 'block';
-      console.log('[DEBUG] formsContentSection shown');
-    }
-    if (mainLoginRequiredMessage) {
-      mainLoginRequiredMessage.style.display = 'none';
-      console.log('[DEBUG] mainLoginRequiredMessage hidden');
-    }
-    console.log('[DEBUG] About to call renderThematas() with currentUser:', window.currentUser);
-    renderThematas();
-  } else {
-    console.log('[DEBUG] User NOT logged in. Showing login message.');
-    if (formsContentSection) {
-      formsContentSection.style.display = 'none';
-      console.log('[DEBUG] formsContentSection hidden');
-    }
-    if (mainLoginRequiredMessage) {
-      mainLoginRequiredMessage.style.display = 'block';
-      console.log('[DEBUG] mainLoginRequiredMessage shown');
-    }
+  // Always show forum content for guests
+  if (formsContentSection) {
+    formsContentSection.style.display = 'block';
+    console.log('[DEBUG] formsContentSection shown');
   }
+  if (mainLoginRequiredMessage) {
+    mainLoginRequiredMessage.style.display = 'none';
+    console.log('[DEBUG] mainLoginRequiredMessage hidden');
+  }
+  renderThematas();
 }
 
 /**
@@ -429,10 +412,7 @@ function renderThreadsFromCache(themaId) {
 
 // --- PATCH renderThematas: Use <details> for collapsible thémata ---
 function renderThematas() {
-  if (!window.currentUser) {
-    console.log('[DEBUG] renderThematas() called with null currentUser, skipping render.');
-    return;
-  }
+  // Always render thémata for guests and users
   try {
     console.log('[DEBUG] renderThematas called. DB:', !!window.db, 'currentUser:', window.currentUser);
     if (typeof unsubscribeThematas !== 'undefined' && unsubscribeThematas) {
@@ -482,10 +462,9 @@ function renderThemaBoxes(themasArr) {
     themasArr.forEach(thema => {
       const box = document.createElement('div');
       box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
-      box.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
-        <p class="thema-description mb-4">${thema.description || ''}</p>
-        <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
+      let formHtml = '';
+      if (window.currentUser) {
+        formHtml = `
         <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
           <div class="mb-2">
             <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
@@ -496,29 +475,39 @@ function renderThemaBoxes(themasArr) {
             <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
-        </form>
+        </form>`;
+      } else {
+        formHtml = `<div class="text-center text-gray-400 italic mt-4">Log in to create a thread.</div>`;
+      }
+      box.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+        <p class="thema-description mb-4">${thema.description || ''}</p>
+        <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
+        ${formHtml}
         ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span>🗑️</button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
       // Thread creation handler
-      const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
-      threadForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const title = threadForm.querySelector('.thread-title-input').value.trim();
-        const content = threadForm.querySelector('.thread-content-input').value.trim();
-        if (!title || !content) return;
-        if (!window.auth.currentUser || !window.db) return;
-        const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
-        await addDoc(threadsCol, {
-          title,
-          initialComment: content,
-          createdAt: serverTimestamp(),
-          createdBy: window.auth.currentUser.uid,
-          creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
-        });
-        threadForm.reset();
-      };
+      if (window.currentUser) {
+        const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
+        threadForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const title = threadForm.querySelector('.thread-title-input').value.trim();
+          const content = threadForm.querySelector('.thread-content-input').value.trim();
+          if (!title || !content) return;
+          if (!window.auth.currentUser || !window.db) return;
+          const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+          await addDoc(threadsCol, {
+            title,
+            initialComment: content,
+            createdAt: serverTimestamp(),
+            createdBy: window.auth.currentUser.uid,
+            creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+          });
+          threadForm.reset();
+        };
+      }
       renderThemaAdminControls(thema, box);
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
         box.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description);
