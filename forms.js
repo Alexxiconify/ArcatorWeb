@@ -682,12 +682,12 @@ async function addGlobalThreadComment(threadId, content) {
 function renderGlobalThreads() {
   if (!window.db) return;
   if (!globalThreadList) return;
-
   const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
   const q = query(threadsCol, orderBy("createdAt", "desc"));
-
   onSnapshot(q, async (snapshot) => {
     globalThreadList.innerHTML = '';
+    const countSpan = document.getElementById('global-threads-count');
+    if (countSpan) countSpan.textContent = `(${snapshot.size})`;
     if (snapshot.empty) {
       globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads found.</li>';
       return;
@@ -710,7 +710,6 @@ function renderGlobalThreads() {
         <ul id="global-thread-comment-list-${threadId}" class="space-y-2 mt-4"></ul>
       `;
       globalThreadList.appendChild(li);
-      // Attach comment form event listener
       setTimeout(() => {
         const commentForm = document.getElementById(`global-thread-comment-form-${threadId}`);
         if (commentForm) {
@@ -723,7 +722,6 @@ function renderGlobalThreads() {
           };
         }
       }, 0);
-      // Render comments for this thread
       renderGlobalThreadComments(threadId);
     });
   });

@@ -343,6 +343,24 @@
         </ul>
       </div>
 
+      <!-- DM Section (Direct Messages, initially hidden) -->
+      <div id="dm-section" class="mt-12 p-6 card" style="display: none;">
+        <button id="dm-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
+        <h2 id="dm-title" class="text-3xl font-bold mb-6 text-center">Direct Messages</h2>
+        <p id="dm-participants" class="text-text-secondary text-center mb-8"></p>
+        <!-- DM Messages -->
+        <div class="dm-messages-container h-96 overflow-y-auto border rounded p-4 mb-4">
+          <ul id="dm-messages" class="space-y-4">
+            <!-- DM messages will be loaded here -->
+          </ul>
+        </div>
+        <!-- DM Input -->
+        <div class="dm-input-container flex space-x-2">
+          <input type="text" id="dm-input" class="flex-1 shadow appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type your message... Use @username to mention users">
+          <button id="dm-send-btn" class="btn-primary btn-blue px-6">Send</button>
+        </div>
+      </div>
+
       <!-- Conversations Section (DMs) -->
       <div id="conversations-section" class="form-container mb-12" style="display: none;">
         <h3 class="text-2xl font-bold text-heading-card mb-4">Direct Messages (Conversations)</h3>
@@ -385,26 +403,6 @@
           <!-- Comments will be loaded here by JavaScript -->
           <li class="card p-4 text-center">No comments yet. Be the first to comment!</li>
         </ul>
-      </div>
-
-      <!-- DM Section (Initially hidden) -->
-      <div id="dm-section" class="mt-12 p-6 card" style="display: none;">
-        <button id="dm-back-btn" class="btn-primary btn-red mb-6">← Back to Main</button>
-        <h2 id="dm-title" class="text-3xl font-bold mb-6 text-center">Direct Messages</h2>
-        <p id="dm-participants" class="text-text-secondary text-center mb-8"></p>
-
-        <!-- DM Messages -->
-        <div class="dm-messages-container h-96 overflow-y-auto border rounded p-4 mb-4">
-          <ul id="dm-messages" class="space-y-4">
-            <!-- DM messages will be loaded here -->
-          </ul>
-        </div>
-
-        <!-- DM Input -->
-        <div class="dm-input-container flex space-x-2">
-          <input type="text" id="dm-input" class="flex-1 shadow appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Type your message... Use @username to mention users">
-          <button id="dm-send-btn" class="btn-primary btn-blue px-6">Send</button>
-        </div>
       </div>
 
       <!-- Temporary Pages Section (Initially hidden) -->
@@ -473,8 +471,8 @@
       </div>
 
       <!-- Global Threads Section -->
-      <div id="global-threads-section" class="form-container mb-12">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Global Threads</h3>
+      <details id="global-threads-section" class="form-container mb-12" open>
+        <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Global Threads <span id="global-threads-count" class="ml-2 text-base font-normal text-gray-400"></span></summary>
         <!-- Create Global Thread Form -->
         <form id="create-global-thread-form" class="space-y-4 mb-8">
           <div>
@@ -491,7 +489,7 @@
           <!-- Global threads will be loaded here by JavaScript -->
           <li class="card p-4 text-center">Loading global threads...</li>
         </ul>
-      </div>
+      </details>
 
     </div>
   </div>
