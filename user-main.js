@@ -86,6 +86,7 @@ const backgroundPatternSelect = document.getElementById('background-pattern-sele
  * @param {HTMLElement} sectionElement - The DOM element of the section to make visible.
  */
 function showSection(sectionElement) {
+  console.log(`DEBUG: showSection called with element: ${sectionElement ? sectionElement.id : 'null'}`);
   // Hide all main content sections first
   const sections = [signInSection, signUpSection, forgotPasswordSection, settingsContent, loginRequiredMessage];
   sections.forEach(sec => {
@@ -94,7 +95,7 @@ function showSection(sectionElement) {
 
   if (sectionElement) {
     sectionElement.style.display = 'block';
-    console.log(`DEBUG: Showing section: ${sectionElement.id}`);
+    console.log(`DEBUG: Displayed section: ${sectionElement.id}`);
 
     // Update hero banner based on section
     const heroTitle = document.getElementById('hero-title');
@@ -164,6 +165,7 @@ async function handleSignIn() {
     return;
   }
   try {
+    console.log("DEBUG: Attempting sign-in for:", email);
     await signInWithEmailAndPassword(auth, email, password);
     showMessageBox('Signed in successfully! Redirecting...', false);
     // UI will update via onAuthStateChanged listener
@@ -204,6 +206,7 @@ async function handleSignUp() {
   }
 
   try {
+    console.log("DEBUG: Checking handle uniqueness for:", handle);
     // Check for handle uniqueness before creating user
     const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
     const q = query(usersRef, where('handle', '==', handle));
@@ -212,14 +215,17 @@ async function handleSignUp() {
       showMessageBox('This handle is already taken. Please choose another.', true);
       return;
     }
+    console.log("DEBUG: Handle is unique. Proceeding with user creation.");
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    console.log("DEBUG: Firebase user created:", user.uid);
 
     await updateProfile(user, {
       displayName: displayName,
       photoURL: DEFAULT_PROFILE_PIC
     });
+    console.log("DEBUG: User profile updated in Firebase Auth.");
 
     const userProfileData = {
       uid: user.uid,
@@ -233,6 +239,7 @@ async function handleSignUp() {
       handle: handle // Store the sanitized handle
     };
     await setUserProfileInFirestore(user.uid, userProfileData);
+    console.log("DEBUG: User profile saved to Firestore.");
 
     showMessageBox('Account created successfully! Please sign in.', false);
     showSection(signInSection); // Redirect to sign-in after successful signup
@@ -250,6 +257,7 @@ async function handlePasswordReset() {
     return;
   }
   try {
+    console.log("DEBUG: Sending password reset email to:", email);
     await sendPasswordResetEmail(auth, email);
     showMessageBox('Password reset email sent! Check your inbox.', false);
     showSection(signInSection); // Redirect to sign-in after sending reset email
@@ -277,6 +285,7 @@ async function handleSaveProfile() {
 
   if (auth.currentUser) {
     try {
+      console.log("DEBUG: Preparing to save profile for UID:", auth.currentUser.uid);
       // Check for handle uniqueness if changing
       if (newHandle && newHandle !== (auth.currentUser.handle || '')) {
         const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
@@ -287,6 +296,7 @@ async function handleSaveProfile() {
           showMessageBox('This handle is already taken. Please choose another.', true);
           return;
         }
+        console.log("DEBUG: New handle is unique or belongs to current user.");
       }
 
       const updates = {};
@@ -305,14 +315,17 @@ async function handleSaveProfile() {
       }
 
       if (Object.keys(updates).length > 0) {
+        console.log("DEBUG: Detected profile updates:", updates);
         // Update Firebase Auth profile (display name and photo URL)
         await updateProfile(auth.currentUser, {
           displayName: updates.displayName !== undefined ? updates.displayName : auth.currentUser.displayName,
           photoURL: updates.photoURL !== undefined ? updates.photoURL : auth.currentUser.photoURL
         });
+        console.log("DEBUG: Firebase Auth profile updated.");
 
         // Update Firestore user profile (all fields including handle)
         await setUserProfileInFirestore(auth.currentUser.uid, updates);
+        console.log("DEBUG: Firestore user profile updated.");
 
         // Immediately update UI elements
         if (profilePictureDisplay) profilePictureDisplay.src = updates.photoURL || DEFAULT_PROFILE_PIC;
@@ -322,6 +335,7 @@ async function handleSaveProfile() {
         showMessageBox('Profile updated successfully!', false);
       } else {
         showMessageBox('No profile changes detected.', false);
+        console.log("DEBUG: No profile changes detected.");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -354,6 +368,7 @@ async function handleSavePreferences() {
   // Save to Firestore
   if (auth.currentUser) {
     try {
+      console.log("DEBUG: Saving preferences for UID:", auth.currentUser.uid, "updates:", { selectedFontSize, selectedFontFamily, selectedBackgroundPattern });
       const updates = {
         fontSize: selectedFontSize,
         fontFamily: selectedFontFamily,
@@ -361,6 +376,7 @@ async function handleSavePreferences() {
       };
       await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), updates, { merge: true });
       showMessageBox('Preferences saved successfully!', false);
+      console.log("DEBUG: Preferences saved to Firestore.");
     } catch (error) {
       console.error("Error saving preferences:", error);
       showMessageBox(`Failed to save preferences: ${error.message}`, true);
@@ -380,22 +396,27 @@ window.onload = async function() {
 
     // Initialize themes module (connects it to Firebase instances)
     setupThemesFirebase();
+    console.log("DEBUG: Themes module initialized.");
 
     // Listen for authentication state changes
     onAuthStateChanged(auth, async (user) => {
       console.log("user-main.js: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
+      console.log("DEBUG: Starting onAuthStateChanged processing block.");
 
       // Load navbar with current user info. Navbar will fetch full profile internally.
       await loadNavbar(user, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+      console.log("DEBUG: Navbar loaded.");
 
       let userThemePreference = null;
 
       if (user && !user.isAnonymous) {
+        console.log("DEBUG: User is authenticated and not anonymous. Attempting to fetch user profile.");
         // User is signed in and not anonymous. Fetch user profile and display settings.
         const userProfile = await getUserProfileFromFirestore(user.uid);
         console.log("user-main.js: User Profile fetched for settings:", userProfile);
 
         if (userProfile) {
+          console.log("DEBUG: User profile found. Populating settings UI.");
           userThemePreference = userProfile.themePreference;
 
           // Update profile display elements
@@ -448,10 +469,12 @@ window.onload = async function() {
         showSection(signInSection);
       }
 
+      console.log("DEBUG: Attempting to apply theme.");
       // Apply the theme: user's preference, or the default theme.
       const allThemes = await getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
+      console.log("DEBUG: Theme applied.");
     });
 
     // --- Event Listeners for Authentication Navigation ---
@@ -466,7 +489,7 @@ window.onload = async function() {
     if (signUpButton) signUpButton.addEventListener('click', handleSignUp);
     if (resetPasswordButton) resetPasswordButton.addEventListener('click', handlePasswordReset);
 
-    // --- Event Listeners for Profile/Preferences Saving ---
+    // --- Event listeners for profile/preferences saving ---
     if (saveProfileBtn) saveProfileBtn.addEventListener('click', handleSaveProfile);
     if (savePreferencesBtn) savePreferencesBtn.addEventListener('click', handleSavePreferences);
 
@@ -490,7 +513,8 @@ window.onload = async function() {
     console.error("user-main.js: Error during window.onload execution:", error);
     showMessageBox("An unexpected error occurred during page load.", true);
   } finally {
-    // Ensure spinner is hidden regardless of success or failure in try block
-    hideLoading();
+    // This finally block ensures hideLoading is called, but showSection also calls it.
+    // Redundant but safe.
+    // hideLoading(); // Removed here as showSection already calls it.
   }
 };
