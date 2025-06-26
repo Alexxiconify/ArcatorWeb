@@ -587,8 +587,8 @@ function loadThreadsForThema(themaId) {
         return;
       }
       const threadUids = new Set();
-      snapshot.forEach(doc => {
-        const thread = doc.data();
+      snapshot.forEach(threadDoc => {
+        const thread = threadDoc.data();
         if (thread.createdBy) threadUids.add(thread.createdBy);
       });
       const userProfiles = {};
@@ -602,8 +602,8 @@ function loadThreadsForThema(themaId) {
           });
         });
       }
-      snapshot.forEach(doc => {
-        const thread = doc.data();
+      snapshot.forEach(threadDoc => {
+        const thread = threadDoc.data();
         const threadDiv = document.createElement('div');
         threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
         const user = userProfiles[thread.createdBy] || {};
@@ -620,23 +620,23 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, themaId)}</div>
-          <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
-          <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
-            <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
-            <textarea id="comment-content-input-${doc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId)}</div>
+          <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
+          <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
+            <label class="block text-sm font-semibold mb-1" for="comment-content-input-${threadDoc.id}">Add a comment</label>
+            <textarea id="comment-content-input-${threadDoc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
             <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">Add Comment</button>
           </form>
         `;
         threadListDiv.appendChild(threadDiv);
-        loadCommentsForThread(themaId, doc.id);
-        const commentForm = threadDiv.querySelector(`#add-comment-form-${doc.id}`);
+        loadCommentsForThread(themaId, threadDoc.id);
+        const commentForm = threadDiv.querySelector(`#add-comment-form-${threadDoc.id}`);
         commentForm.onsubmit = async (e) => {
           e.preventDefault();
           const content = commentForm.querySelector('.comment-content-input').value.trim();
           if (!content) return;
           if (!window.auth.currentUser || !window.db) return;
-          const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
+          const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadDoc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
           await addDoc(commentsCol, {
             content,
             createdAt: serverTimestamp(),
@@ -647,11 +647,11 @@ function loadThreadsForThema(themaId) {
         };
         // Edit/Delete thread handlers
         if (canEdit) {
-          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: doc.id}, thread.initialComment);
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment);
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
             if (confirm('Delete this thread?')) {
               const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-              await deleteDoc(doc(threadsCol, doc.id));
+              await deleteDoc(doc(threadsCol, threadDoc.id));
               threadDiv.remove();
             }
           };
@@ -675,8 +675,8 @@ function loadCommentsForThread(themaId, threadId) {
       return;
     }
     const commentUids = new Set();
-    snapshot.forEach(doc => {
-      const comment = doc.data();
+    snapshot.forEach(commentDoc => {
+      const comment = commentDoc.data();
       if (comment.createdBy) commentUids.add(comment.createdBy);
     });
     const userProfiles = {};
@@ -707,7 +707,7 @@ function loadCommentsForThread(themaId, threadId) {
           ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
         </div>
         <div class="text-sm">${renderMarkdown(comment.content)}</div>
-        <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
+        <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId)}</div>
       `;
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
@@ -876,10 +876,10 @@ function renderThreads() {
     }
     const threadsArr = [];
     const authorUids = new Set();
-    snapshot.forEach((doc) => {
-      const thread = doc.data();
+    snapshot.forEach((threadDoc) => {
+      const thread = threadDoc.data();
       if (thread.authorId) authorUids.add(thread.authorId);
-      threadsArr.push({ ...thread, id: doc.id });
+      threadsArr.push({ ...thread, id: threadDoc.id });
     });
     // Fetch user profiles for all unique authorIds
     const userProfiles = {};
@@ -892,8 +892,8 @@ function renderThreads() {
         });
       }).catch(error => console.error("Error fetching user profiles for threads:", error));
     }
-    snapshot.forEach((doc) => {
-      const thread = doc.data();
+    snapshot.forEach((threadDoc) => {
+      const thread = threadDoc.data();
       const userProfile = userProfiles[thread.authorId] || {};
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
       const editedInfo = thread.editedAt ? ` (edited${thread.editedBy ? ' by ' + thread.editedBy : ''} ${thread.editedAt.toDate ? new Date(thread.editedAt.toDate()).toLocaleString() : ''})` : '';
@@ -914,17 +914,17 @@ function renderThreads() {
         <p class="thread-initial-comment mb-2">${renderMarkdown(thread.initialComment || '')}</p>
         <div class="flex items-center mb-2">
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, currentThemaId)}</div>
           <div class="thread-actions ml-auto">
-            ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
-            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : '')}
+            ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${threadDoc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
+            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${threadDoc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : '')}
           </div>
         </div>
-        <div class="add-comment-section mt-2">${getAddCommentFormHtml(doc.id)}</div>
-        <ul class="comment-list space-y-4 mt-2" id="comment-list-${doc.id}"></ul>
+        <div class="add-comment-section mt-2">${getAddCommentFormHtml(threadDoc.id)}</div>
+        <ul class="comment-list space-y-4 mt-2" id="comment-list-${threadDoc.id}"></ul>
       `;
       threadList.appendChild(li);
-      renderCommentsForThread(doc.id, currentThemaId);
+      renderCommentsForThread(threadDoc.id, currentThemaId);
     });
     cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
     document.querySelectorAll('.delete-thread-btn').forEach(button => {
