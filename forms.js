@@ -176,7 +176,7 @@ async function setupFirebaseAndUser() {
 setupFirebaseAndUser();
 
 // --- Utility Functions ---
-const messageBox = document.getElementById('message-box');
+let messageBox;
 let messageBoxTimeout;
 
 // Displays a temporary message box.
@@ -201,12 +201,12 @@ function showMessageBox(message, isError = false) {
   }, 3000);
 }
 
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-const confirmMessage = document.getElementById('confirm-message');
-const confirmSubmessage = document.getElementById('confirm-submessage');
-const confirmYesButton = document.getElementById('confirm-yes');
-const confirmNoButton = document.getElementById('confirm-no');
-const closeButton = document.querySelector('.custom-confirm-modal .close-button');
+let customConfirmModal;
+let confirmMessage;
+let confirmSubmessage;
+let confirmYesButton;
+let confirmNoButton;
+let closeButton;
 let resolveConfirmPromise;
 
 // Displays a custom confirmation modal.
@@ -238,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
-
 
 // --- Theme Management Functions ---
 let _db;
@@ -431,32 +430,32 @@ window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
 
 // --- Forms Page Specific Logic ---
 
-// DOM elements
-const mainLoadingSpinner = document.getElementById('loading-spinner');
-const formsContentSection = document.getElementById('forms-content');
-const mainLoginRequiredMessage = document.getElementById('login-required-message');
+// DOM elements - will be initialized in DOMContentLoaded
+let mainLoadingSpinner;
+let formsContentSection;
+let mainLoginRequiredMessage;
 
-const createThemaForm = document.getElementById('create-thema-form');
-const newThemaNameInput = document.getElementById('new-thema-name');
-const newThemaDescriptionInput = document.getElementById('new-thema-description');
-const themaList = document.getElementById('thema-list');
+let createThemaForm;
+let newThemaNameInput;
+let newThemaDescriptionInput;
+let themaList;
 
-const threadsSection = document.getElementById('threads-section');
-const backToThematasBtn = document.getElementById('back-to-thematas-btn');
-const currentThemaTitle = document.getElementById('current-thema-title');
-const currentThemaDescription = document.getElementById('current-thema-description');
-const createThreadForm = document.getElementById('create-thread-form');
-const newThreadTitleInput = document.getElementById('new-thread-title');
-const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
-const threadList = document.getElementById('thread-list');
+let threadsSection;
+let backToThematasBtn;
+let currentThemaTitle;
+let currentThemaDescription;
+let createThreadForm;
+let newThreadTitleInput;
+let newThreadInitialCommentInput;
+let threadList;
 
-const commentsSection = document.getElementById('comments-section');
-const backToThreadsBtn = document.getElementById('back-to-threads-btn');
-const currentThreadTitle = document.getElementById('current-thread-title');
-const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
-const addCommentForm = document.getElementById('add-comment-form');
-const newCommentContentInput = document.getElementById('new-comment-content');
-const commentList = document.getElementById('comment-list');
+let commentsSection;
+let backToThreadsBtn;
+let currentThreadTitle;
+let currentThreadInitialComment;
+let addCommentForm;
+let newCommentContentInput;
+let commentList;
 
 let currentThemaId = null;
 let currentThreadId = null;
@@ -966,6 +965,42 @@ async function deleteComment(themaId, threadId, commentId) {
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
   console.log("Initializing page.");
+  
+  // Initialize DOM elements
+  messageBox = document.getElementById('message-box');
+  customConfirmModal = document.getElementById('custom-confirm-modal');
+  confirmMessage = document.getElementById('confirm-message');
+  confirmSubmessage = document.getElementById('confirm-submessage');
+  confirmYesButton = document.getElementById('confirm-yes');
+  confirmNoButton = document.getElementById('confirm-no');
+  closeButton = document.querySelector('.custom-confirm-modal .close-button');
+  
+  mainLoadingSpinner = document.getElementById('loading-spinner');
+  formsContentSection = document.getElementById('forms-content');
+  mainLoginRequiredMessage = document.getElementById('login-required-message');
+
+  createThemaForm = document.getElementById('create-thema-form');
+  newThemaNameInput = document.getElementById('new-thema-name');
+  newThemaDescriptionInput = document.getElementById('new-thema-description');
+  themaList = document.getElementById('thema-list');
+
+  threadsSection = document.getElementById('threads-section');
+  backToThematasBtn = document.getElementById('back-to-thematas-btn');
+  currentThemaTitle = document.getElementById('current-thema-title');
+  currentThemaDescription = document.getElementById('current-thema-description');
+  createThreadForm = document.getElementById('create-thread-form');
+  newThreadTitleInput = document.getElementById('new-thread-title');
+  newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+  threadList = document.getElementById('thread-list');
+
+  commentsSection = document.getElementById('comments-section');
+  backToThreadsBtn = document.getElementById('back-to-threads-btn');
+  currentThreadTitle = document.getElementById('current-thread-title');
+  currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+  addCommentForm = document.getElementById('add-comment-form');
+  newCommentContentInput = document.getElementById('new-comment-content');
+  commentList = document.getElementById('comment-list');
+
   showMainLoading();
 
   await window.firebaseReadyPromise;
@@ -995,12 +1030,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log("Auth state changed. User:", user ? user.uid : "None");
     updateUIBasedOnAuthAndData();
   });
-
-  const currentYearElement = document.getElementById('current-year-forms');
-  if (currentYearElement) {
-    currentYearElement.textContent = new Date().getFullYear().toString();
-    console.log("Footer year set.");
-  }
 
   if (createThemaForm) {
     createThemaForm.addEventListener('submit', async (event) => {
