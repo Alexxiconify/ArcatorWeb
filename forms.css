@@ -394,34 +394,42 @@
   padding: 1.5rem;
 }
 
-/* Comment form matches thread post body */
-.add-comment-form.card {
-  background: #23272e;
+/* Thread create post and add comment forms: correct dark theme */
+.create-thread-form.card, .add-comment-form.card {
+  background: var(--color-bg-card);
   border-radius: 10px;
   box-shadow: 0 2px 8px #0005;
-  border: 1px solid #333a;
+  border: 1px solid var(--color-input-border);
 }
-
-.add-comment-form label {
-  color: #bfc7d5;
+.create-thread-form label, .add-comment-form label {
+  color: var(--color-text-secondary);
 }
-
+.create-thread-form input,
+.create-thread-form textarea,
+.add-comment-form input,
 .add-comment-form textarea {
-  background: #181a20;
-  color: #e5e7eb;
-  border: 1px solid #333a;
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  border: 1px solid var(--color-input-border);
 }
-
+.create-thread-form input::placeholder,
+.create-thread-form textarea::placeholder,
+.add-comment-form input::placeholder,
+.add-comment-form textarea::placeholder {
+  color: var(--color-placeholder);
+}
+.create-thread-form button,
 .add-comment-form button {
-  background: #1f8b4c;
-  color: #fff;
+  background: var(--color-button-green-bg);
+  color: var(--color-button-text);
   border: none;
   border-radius: 6px;
   font-weight: 700;
   transition: background 0.2s;
 }
+.create-thread-form button:hover,
 .add-comment-form button:hover {
-  background: #166c38;
+  background: var(--color-button-green-hover);
 }
 
 /* Reaction bar */

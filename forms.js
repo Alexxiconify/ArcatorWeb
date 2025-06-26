@@ -682,7 +682,7 @@ function loadThreadsForThema(themaId) {
           ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
         </div>
         <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
-        <div class="text-sm text-gray-300 mb-2">${thread.initialComment || ''}</div>
+        <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
         <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
         <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
         <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
@@ -771,7 +771,7 @@ function loadCommentsForThread(themaId, threadId) {
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
           ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
         </div>
-        <div class="text-sm">${comment.content}</div>
+        <div class="text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
       `;
       commentsDiv.appendChild(commentDiv);
@@ -979,7 +979,7 @@ function renderThreads() {
           <span class="meta-info ml-4">${createdAt}${editedInfo}</span>
         </div>
         <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
-        <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
+        <p class="thread-initial-comment mb-2">${renderMarkdown(thread.initialComment || '')}</p>
         <div class="flex items-center mb-2">
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
@@ -1561,4 +1561,17 @@ if (document.body) {
       [`reactions.${emoji}`]: increment(1)
     });
   });
+}
+
+// --- Markdown Rendering ---
+function renderMarkdown(text) {
+  if (window.marked) {
+    return window.marked.parse(text);
+  }
+  // Minimal fallback: bold, italic, code, links
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
 }
