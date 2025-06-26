@@ -2240,21 +2240,32 @@ function renderThemaBoxes(themas) {
   }
   container.innerHTML = '';
   themas.forEach(thema => {
-    const box = document.createElement('div');
-    box.className = 'thema-item card p-6 flex flex-col justify-between';
-    box.innerHTML = `
-      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
-      <p class="thema-description mb-4">${thema.description || ''}</p>
-      <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
-        <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
-        <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
-        <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
-      </form>
-      <ul class="thread-list space-y-2" id="thread-list-${thema.id}"><li class='text-center text-gray-400'>Loading threads...</li></ul>
+    const details = document.createElement('details');
+    details.className = 'thema-accordion w-full card mb-2';
+    details.innerHTML = `
+      <summary class="flex items-center justify-between cursor-pointer select-none p-4 text-xl font-bold text-heading-card">${thema.name}<span class='text-base font-normal text-gray-400 ml-4'>${thema.description || ''}</span></summary>
+      <div class="p-4">
+        <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
+          <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
+          <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
+          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
+        </form>
+        <ul class="thread-list space-y-2" id="thread-list-${thema.id}"><li class='text-center text-gray-400'>Loading threads...</li></ul>
+      </div>
     `;
-    container.appendChild(box);
+    container.appendChild(details);
     // Load threads for this thema
     loadThreadsForThema(thema.id);
+  });
+  // Accordion: only one open at a time
+  container.querySelectorAll('details').forEach(d => {
+    d.addEventListener('toggle', function() {
+      if (d.open) {
+        container.querySelectorAll('details').forEach(other => {
+          if (other !== d) other.open = false;
+        });
+      }
+    });
   });
   // Attach create thread form listeners
   container.querySelectorAll('.create-thread-form').forEach(form => {
@@ -2271,6 +2282,8 @@ function renderThemaBoxes(themas) {
     });
   });
 }
+// ... existing code ...
+
 // Helper to load threads for a thema and render them under the box
 function loadThreadsForThema(themaId) {
   const list = document.getElementById(`thread-list-${themaId}`);
@@ -2297,4 +2310,3 @@ function loadThreadsForThema(themaId) {
     });
   });
 }
-// ... existing code ...
