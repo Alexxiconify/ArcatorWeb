@@ -675,7 +675,7 @@ function loadThreadsForThema(themaId) {
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
           ${canEdit ? `<button class="edit-thread-btn btn-primary btn-orange ml-auto mr-1" data-thread-id="${doc.id}">Edit</button><button class="delete-thread-btn btn-primary btn-red" data-thread-id="${doc.id}">Delete</button>` : ''}
         </div>
-        <div class="font-semibold text-lg">${thread.title}</div>
+        <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
         <div class="text-sm text-gray-300 mb-2">${thread.initialComment || ''}</div>
         <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
         <form class="add-comment-form mt-2 flex gap-2" id="add-comment-form-${doc.id}">
