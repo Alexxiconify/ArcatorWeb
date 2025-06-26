@@ -887,10 +887,16 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
 function displayCommentsForThread(threadId, threadTitle, threadInitialComment, threadThemaId) {
   currentThreadId = threadId;
   currentThemaId = threadThemaId || currentThemaId;
-  currentThreadTitle.textContent = `Thread: ${threadTitle}`;
-  currentThreadInitialComment.textContent = threadInitialComment;
-  threadsSection.style.display = 'none';
-  commentsSection.style.display = 'block';
+  currentThreadTitle.textContent = `Thread: ${threadTitle || ''}`;
+  currentThreadInitialComment.textContent = threadInitialComment || '';
+  // Only show comments section
+  if (threadsSection) threadsSection.style.display = 'none';
+  if (themaList) themaList.style.display = 'none';
+  if (formsContentSection) formsContentSection.style.display = 'none';
+  if (dmSection) dmSection.style.display = 'none';
+  if (tempPagesSection) tempPagesSection.style.display = 'none';
+  if (conversationsSection) conversationsSection.style.display = 'none';
+  if (commentsSection) commentsSection.style.display = 'block';
   renderComments();
 }
 
