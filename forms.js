@@ -590,6 +590,42 @@ let unsubscribeThematas = null;
 let unsubscribeDmMessages = null;
 let unsubscribeDmList = null;
 
+// --- GLOBAL THREADS SECTION ---
+let globalThreadsSection;
+let globalThreadList;
+
+/**
+ * Renders global threads from Firestore in real-time.
+ */
+function renderGlobalThreads() {
+  if (!window.db) return;
+  if (!globalThreadList) return;
+
+  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+  const q = query(threadsCol, orderBy("createdAt", "desc"));
+
+  onSnapshot(q, async (snapshot) => {
+    globalThreadList.innerHTML = '';
+    if (snapshot.empty) {
+      globalThreadList.innerHTML = '<li class="card p-4 text-center">No global threads found.</li>';
+      return;
+    }
+    snapshot.forEach((doc) => {
+      const thread = doc.data();
+      const li = document.createElement('li');
+      li.classList.add('thread-item', 'card');
+      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+      li.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card">${thread.title || '(No Title)'}</h3>
+        <p class="thread-initial-comment mt-2">${convertMentionsToHTML(thread.content || thread.initialComment || '')}</p>
+        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+      `;
+      globalThreadList.appendChild(li);
+    });
+  });
+}
+
 /**
  * Initializes DOM elements for the forms page.
  */
@@ -651,6 +687,10 @@ function initializeDOMElements() {
   ruleTitleInput = document.getElementById('rule-title');
   ruleContentInput = document.getElementById('rule-content');
 
+  // Add global threads section DOM refs
+  globalThreadsSection = document.getElementById('global-threads-section');
+  globalThreadList = document.getElementById('global-thread-list');
+
   console.log("DOM elements initialized.");
 }
 
@@ -709,6 +749,7 @@ async function updateUIBasedOnAuthAndData() {
       }
       console.log("Forms content visible, login message hidden.");
       renderThematas();
+      renderGlobalThreads();
     } else {
       console.warn("currentUser profile not fully loaded after waiting. Showing login message.");
       showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
@@ -906,6 +947,16 @@ function displayThreadsForThema(themaId, themaName, themaDescription) {
 
   threadsSection.style.display = 'block';
   commentsSection.style.display = 'none';
+
+  // Show create thread form for all logged-in users
+  const createThreadSection = document.getElementById('create-thread-section');
+  if (createThreadSection) {
+    if (window.auth && window.auth.currentUser) {
+      createThreadSection.style.display = 'block';
+    } else {
+      createThreadSection.style.display = 'none';
+    }
+  }
 
   console.log(`Displaying threads for thema: ${themaId}`);
   renderThreads();
