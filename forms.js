@@ -2229,3 +2229,72 @@ function renderCommentTree(comments, parentId = null, isGlobal = false, threadId
     `;
   }).join('');
 }
+
+// ... existing code ...
+function renderThemaBoxes(themas) {
+  const container = document.getElementById('thema-boxes');
+  if (!container) return;
+  if (!themas.length) {
+    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  themas.forEach(thema => {
+    const box = document.createElement('div');
+    box.className = 'thema-item card p-6 flex flex-col justify-between';
+    box.innerHTML = `
+      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+      <p class="thema-description mb-4">${thema.description || ''}</p>
+      <form class="create-thread-form space-y-2 mb-4" data-thema-id="${thema.id}">
+        <input type="text" class="new-thread-title shadow border rounded w-full py-1 px-2 mb-1" placeholder="Thread Title" required />
+        <textarea class="new-thread-initial-comment shadow border rounded w-full py-1 px-2 mb-1" placeholder="Initial Comment" required></textarea>
+        <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
+      </form>
+      <ul class="thread-list space-y-2" id="thread-list-${thema.id}"><li class='text-center text-gray-400'>Loading threads...</li></ul>
+    `;
+    container.appendChild(box);
+    // Load threads for this thema
+    loadThreadsForThema(thema.id);
+  });
+  // Attach create thread form listeners
+  container.querySelectorAll('.create-thread-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const themaId = form.dataset.themaId;
+      const title = form.querySelector('.new-thread-title').value.trim();
+      const initialComment = form.querySelector('.new-thread-initial-comment').value.trim();
+      if (title && initialComment) {
+        await addCommentThread(themaId, title, initialComment);
+        form.querySelector('.new-thread-title').value = '';
+        form.querySelector('.new-thread-initial-comment').value = '';
+      }
+    });
+  });
+}
+// Helper to load threads for a thema and render them under the box
+function loadThreadsForThema(themaId) {
+  const list = document.getElementById(`thread-list-${themaId}`);
+  if (!list) return;
+  list.innerHTML = "<li class='text-center text-gray-400'>Loading threads...</li>";
+  if (!window.db) {
+    list.innerHTML = "<li class='text-center text-red-400'>Database not initialized.</li>";
+    return;
+  }
+  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+  const q = query(threadsCol, orderBy('createdAt', 'desc'));
+  onSnapshot(q, snapshot => {
+    list.innerHTML = '';
+    if (snapshot.empty) {
+      list.innerHTML = "<li class='text-center text-gray-400'>No threads yet. Be the first to create one!</li>";
+      return;
+    }
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      const li = document.createElement('li');
+      li.className = 'thread-item card p-3';
+      li.innerHTML = `<div class='font-bold mb-1'>${thread.title}</div><div class='text-sm text-gray-300 mb-1'>${thread.initialComment}</div>`;
+      list.appendChild(li);
+    });
+  });
+}
+// ... existing code ...
