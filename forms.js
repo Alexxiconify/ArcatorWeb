@@ -568,6 +568,7 @@ function renderThemaBoxes(themasArr) {
           }
         };
       }
+      box.setAttribute('data-thema-id', thema.id);
     });
   } catch (e) {
     console.error('[DEBUG] Error in renderThemaBoxes:', e);
@@ -676,6 +677,7 @@ function loadThreadsForThema(themaId) {
             }
           };
         }
+        threadDiv.setAttribute('data-thread-id', threadDoc.id);
       });
     });
   } catch (e) {
@@ -1542,44 +1544,17 @@ function setupEditModal() {
 
 function openEditModal(type, context, oldContent, oldName = null, oldTitle = null) {
   currentEditContext = { type, ...context };
-  
-  // Find the container element based on the type using data attributes
-  let container;
+  let container, contentArea, originalHTML;
   if (type === 'thema') {
-    // Find the thema container by looking for the thema box with the correct ID
+    // For thema, still replace the whole box
     const themaBoxes = document.querySelectorAll('.thema-item');
     container = Array.from(themaBoxes).find(box => {
       const editBtn = box.querySelector('.edit-thema-btn');
       return editBtn && editBtn.dataset.themaId === context.themaId;
     });
-  } else if (type === 'thread') {
-    // Find the thread container by looking for the thread div that contains the edit button
-    const threadDivs = document.querySelectorAll('.thread-item');
-    container = Array.from(threadDivs).find(div => {
-      const editBtn = div.querySelector('.edit-thread-btn');
-      return editBtn && editBtn.dataset.threadId === context.threadId;
-    });
-  } else if (type === 'comment') {
-    // Find the comment container by looking for the comment div that contains the edit button
-    const commentDivs = document.querySelectorAll('.comment-item');
-    container = Array.from(commentDivs).find(div => {
-      const editBtn = div.querySelector('.edit-comment-btn');
-      return editBtn && editBtn.dataset.commentId === context.commentId;
-    });
-  }
-  
-  if (!container) {
-    console.error('Could not find container for edit modal:', { type, context });
-    return;
-  }
-  
-  // Store original content
-  const originalHTML = container.innerHTML;
-  
-  // Create inline edit form
-  let editFormHTML = '';
-  if (type === 'thema') {
-    editFormHTML = `
+    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
+    originalHTML = container.innerHTML;
+    container.innerHTML = `
       <div class="edit-form-inline bg-card p-4 rounded-lg border border-blue-300">
         <h4 class="text-lg font-bold mb-3 text-blue-300">Edit Théma</h4>
         <div class="space-y-3">
@@ -1598,86 +1573,108 @@ function openEditModal(type, context, oldContent, oldName = null, oldTitle = nul
         </div>
       </div>
     `;
-  } else if (type === 'thread') {
-    editFormHTML = `
-      <div class="edit-form-inline bg-card p-4 rounded-lg border border-blue-300">
-        <h4 class="text-lg font-bold mb-3 text-blue-300">Edit Thread</h4>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-semibold mb-1">Title:</label>
-            <input type="text" id="edit-thread-title" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldTitle || ''}" placeholder="Thread Title" required />
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">Content:</label>
-            <textarea id="edit-thread-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Thread Content">${oldContent || ''}</textarea>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-            <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-  } else if (type === 'comment') {
-    editFormHTML = `
-      <div class="edit-form-inline bg-card p-4 rounded-lg border border-blue-300">
-        <h4 class="text-lg font-bold mb-3 text-blue-300">Edit Comment</h4>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-semibold mb-1">Content:</label>
-            <textarea id="edit-comment-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Comment Content">${oldContent || ''}</textarea>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-            <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  
-  // Replace container content with edit form
-  container.innerHTML = editFormHTML;
-  
-  // Add event listeners
-  const saveBtn = container.querySelector('.save-edit-btn');
-  const cancelBtn = container.querySelector('.cancel-edit-btn');
-  
-  saveBtn.addEventListener('click', async () => {
-    try {
-      if (type === 'thema') {
+    const saveBtn = container.querySelector('.save-edit-btn');
+    const cancelBtn = container.querySelector('.cancel-edit-btn');
+    saveBtn.addEventListener('click', async () => {
+      try {
         const newName = container.querySelector('#edit-thema-name').value.trim();
         const newDesc = container.querySelector('#edit-thema-description').value.trim();
         if (!newName) return;
         const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, context.themaId);
         await updateDoc(ref, { name: newName, description: newDesc });
-      } else if (type === 'thread') {
+        container.innerHTML = originalHTML;
+        currentEditContext = null;
+      } catch (error) {
+        console.error('Error saving edit:', error);
+        showMessageBox('Error saving changes.', true);
+      }
+    });
+    cancelBtn.addEventListener('click', () => {
+      container.innerHTML = originalHTML;
+      currentEditContext = null;
+    });
+    return;
+  }
+  if (type === 'thread') {
+    // Only replace the title and content area
+    const threadDivs = document.querySelectorAll('.thread-item');
+    container = Array.from(threadDivs).find(div => {
+      const editBtn = div.querySelector('.edit-thread-btn');
+      return editBtn && editBtn.dataset.threadId === context.threadId;
+    });
+    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
+    const titleEl = container.querySelector('.thread-title');
+    const contentEl = container.querySelector('.thread-initial-comment');
+    if (!titleEl || !contentEl) { console.error('Could not find thread title/content for edit modal'); return; }
+    const origTitle = titleEl.innerHTML;
+    const origContent = contentEl.innerHTML;
+    titleEl.innerHTML = `<input type="text" id="edit-thread-title" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldTitle || ''}" placeholder="Thread Title" required />`;
+    contentEl.innerHTML = `<textarea id="edit-thread-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Thread Content">${oldContent || ''}</textarea>
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      </div>`;
+    const saveBtn = contentEl.querySelector('.save-edit-btn');
+    const cancelBtn = contentEl.querySelector('.cancel-edit-btn');
+    saveBtn.addEventListener('click', async () => {
+      try {
         const newTitle = container.querySelector('#edit-thread-title').value.trim();
         const newContent = container.querySelector('#edit-thread-content').value.trim();
         if (!newTitle || !newContent) return;
         const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${context.themaId}/threads`, context.threadId);
         await updateDoc(ref, { title: newTitle, initialComment: newContent });
-      } else if (type === 'comment') {
+        titleEl.innerHTML = origTitle;
+        contentEl.innerHTML = origContent;
+        currentEditContext = null;
+      } catch (error) {
+        console.error('Error saving edit:', error);
+        showMessageBox('Error saving changes.', true);
+      }
+    });
+    cancelBtn.addEventListener('click', () => {
+      titleEl.innerHTML = origTitle;
+      contentEl.innerHTML = origContent;
+      currentEditContext = null;
+    });
+    return;
+  }
+  if (type === 'comment') {
+    // Only replace the comment content area
+    const commentDivs = document.querySelectorAll('.comment-item');
+    container = Array.from(commentDivs).find(div => {
+      const editBtn = div.querySelector('.edit-comment-btn');
+      return editBtn && editBtn.dataset.commentId === context.commentId;
+    });
+    if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
+    const contentEl = container.querySelector('.comment-content');
+    if (!contentEl) { console.error('Could not find comment content for edit modal'); return; }
+    const origContent = contentEl.innerHTML;
+    contentEl.innerHTML = `<textarea id="edit-comment-content" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Comment Content">${oldContent || ''}</textarea>
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      </div>`;
+    const saveBtn = contentEl.querySelector('.save-edit-btn');
+    const cancelBtn = contentEl.querySelector('.cancel-edit-btn');
+    saveBtn.addEventListener('click', async () => {
+      try {
         const newContent = container.querySelector('#edit-comment-content').value.trim();
         if (!newContent) return;
         const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${context.themaId}/threads/${context.threadId}/comments`, context.commentId);
         await updateDoc(ref, { content: newContent });
+        contentEl.innerHTML = origContent;
+        currentEditContext = null;
+      } catch (error) {
+        console.error('Error saving edit:', error);
+        showMessageBox('Error saving changes.', true);
       }
-      
-      // Restore original content - the real-time listener will update it
-      container.innerHTML = originalHTML;
+    });
+    cancelBtn.addEventListener('click', () => {
+      contentEl.innerHTML = origContent;
       currentEditContext = null;
-    } catch (error) {
-      console.error('Error saving edit:', error);
-      showMessageBox('Error saving changes.', true);
-    }
-  });
-  
-  cancelBtn.addEventListener('click', () => {
-    // Restore original content
-    container.innerHTML = originalHTML;
-    currentEditContext = null;
-  });
+    });
+    return;
+  }
 }
 
 // At the end of function definitions, before DOMContentLoaded:
