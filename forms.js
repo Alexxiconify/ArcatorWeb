@@ -493,7 +493,6 @@ async function updateUIBasedOnAuthAndData() {
       }
       console.log("Forms content visible, login message hidden.");
       renderThematas();
-      renderGlobalThreads?.();
     }
   } else {
     console.log("User NOT logged in. Showing login message.");
@@ -2271,3 +2270,5 @@ const dmSection = document.getElementById('dm-section');
 const editSaveBtn = document.getElementById('edit-save-btn');
 const editCancelBtn = document.getElementById('edit-cancel-btn');
 const editInput = document.getElementById('edit-input');
+const dmSendBtn = document.getElementById('dm-send-btn');
+const dmInput = document.getElementById('dm-input'); // Add this line
