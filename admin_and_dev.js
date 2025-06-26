@@ -74,11 +74,49 @@ const editTodoNotesInput = document.getElementById('edit-todo-notes');
 const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
 let currentEditingTodoId = null;
 
+// NEW: Collapsible section elements
+const infrastructureHeader = document.getElementById('infrastructure-header');
+const infrastructureContent = document.getElementById('infrastructure-content');
+const devToolsHeader = document.getElementById('dev-tools-header');
+const devToolsContent = document.getElementById('dev-tools-content');
+const userManagementHeader = document.getElementById('user-management-header');
+const userManagementContent = document.getElementById('user-management-content');
+const formManagementHeader = document.getElementById('form-management-header');
+const formManagementContent = document.getElementById('form-management-content');
+const tempPagesHeader = document.getElementById('temp-pages-header');
+const tempPagesContent = document.getElementById('temp-pages-content');
+const importantLinksHeader = document.getElementById('important-links-header');
+const importantLinksContent = document.getElementById('important-links-content');
+const roadmapHeader = document.getElementById('roadmap-header');
+const roadmapContent = document.getElementById('roadmap-content');
+const darrionApiHeader = document.getElementById('darrion-api-header');
+const darrionApiContent = document.getElementById('darrion-api-content');
+const griefDetectionHeader = document.getElementById('grief-detection-header');
+const griefDetectionContent = document.getElementById('grief-detection-content');
+const onfimNotificationsHeader = document.getElementById('onfim-notifications-header');
+const onfimNotificationsContent = document.getElementById('onfim-notifications-content');
+
 
 // EasyMDE instances
 let easyMDECreate;
 let easyMDEEdit;
 
+
+/**
+ * Toggles the visibility of a collapsible section.
+ * @param {HTMLElement} headerElement - The header element of the section.
+ * @param {HTMLElement} contentElement - The content element of the section.
+ */
+function toggleSection(headerElement, contentElement) {
+  const isHidden = contentElement.classList.contains('hidden');
+  if (isHidden) {
+    contentElement.classList.remove('hidden');
+    headerElement.querySelector('svg').classList.remove('rotate-90'); // Adjust arrow
+  } else {
+    contentElement.classList.add('hidden');
+    headerElement.querySelector('svg').classList.add('rotate-90'); // Adjust arrow
+  }
+}
 
 /**
  * Renders the list of users in the table.
@@ -651,18 +689,278 @@ async function deleteTodoItem(id) {
   }
 }
 
+/**
+ * Updates the UI based on the user's authentication and admin status.
+ * This function now explicitly waits for firebaseCurrentUser to be populated with isAdmin.
+ * @param {Object|null} user - The Firebase User object or null.
+ */
+async function updateAdminUI(user) {
+  loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
+
+  if (user) {
+    console.log("DEBUG: Authenticated User UID:", user.uid);
+    console.log("DEBUG: Authenticated User Email:", user.email);
+
+    let profileLoaded = false;
+    // Wait for firebaseCurrentUser to be populated and isAdmin to be set.
+    // Give it a short delay to allow firebase-init.js's onAuthStateChanged to run.
+    for (let i = 0; i < 10; i++) { // Try up to 10 times with 100ms delay each
+      // Ensure firebaseCurrentUser is not null, its UID matches the authenticated user,
+      // and isAdmin property is defined (meaning the profile from Firestore has been merged).
+      if (firebaseCurrentUser && firebaseCurrentUser.uid === user.uid && typeof firebaseCurrentUser.isAdmin !== 'undefined') {
+        profileLoaded = true;
+        break;
+      }
+      console.log("DEBUG: Waiting for firebaseCurrentUser to be fully populated...");
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+    }
+
+    if (!profileLoaded) {
+      console.error("ERROR: firebaseCurrentUser did not get fully populated within expected time. Displaying access denied.");
+      loginRequiredMessage.style.display = 'block';
+      adminContent.style.display = 'none';
+      showMessageBox("Could not retrieve admin status. Access denied.", true);
+      return;
+    }
+
+    console.log("DEBUG: firebaseCurrentUser object (after wait):", firebaseCurrentUser);
+    console.log("DEBUG: firebaseCurrentUser.isAdmin (after wait):", firebaseCurrentUser.isAdmin);
+
+
+    const userProfile = firebaseCurrentUser; // Now firebaseCurrentUser should be the fully loaded profile
+    const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, themeToApply);
+
+    if (userProfile.isAdmin) { // Use isAdmin from the now confirmed userProfile
+      console.log("DEBUG: User is confirmed as ADMIN via userProfile.isAdmin.");
+      loginRequiredMessage.style.display = 'none';
+      adminContent.style.display = 'block';
+      adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
+      renderUserList();
+      renderTempPages();
+      renderTodoList();
+      // Only render admin-specific sections for admins
+      infrastructureHeader.parentElement.style.display = 'block';
+      devToolsHeader.parentElement.style.display = 'block';
+      userManagementHeader.parentElement.style.display = 'block';
+      formManagementHeader.parentElement.style.display = 'block';
+      tempPagesHeader.parentElement.style.display = 'block';
+      importantLinksHeader.parentElement.style.display = 'block';
+      roadmapHeader.parentElement.style.display = 'block';
+    } else {
+      console.log("DEBUG: User is NOT an admin.");
+      loginRequiredMessage.style.display = 'block';
+      adminContent.style.display = 'none';
+      showMessageBox("You are logged in, but do not have admin privileges.", true);
+
+      // Hide all admin-specific sections by default for non-admins
+      infrastructureHeader.parentElement.style.display = 'none';
+      devToolsHeader.parentElement.style.display = 'none';
+      userManagementHeader.parentElement.style.display = 'none';
+      formManagementHeader.parentElement.style.display = 'none';
+      tempPagesHeader.parentElement.style.display = 'none';
+      importantLinksHeader.parentElement.style.display = 'none';
+      roadmapHeader.parentElement.style.display = 'none';
+    }
+    // Darrion API and Onfim Notifications are visible to all logged-in users
+    darrionApiHeader.parentElement.style.display = 'block';
+    griefDetectionHeader.parentElement.style.display = 'block';
+    onfimNotificationsHeader.parentElement.style.display = 'block';
+
+  } else {
+    console.log("DEBUG: No user is currently authenticated.");
+    loginRequiredMessage.style.display = 'block';
+    adminContent.style.display = 'none';
+    const allThemes = await getAvailableThemes();
+    const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(defaultThemeObj.id, defaultThemeObj);
+
+    // Hide all sections if not logged in
+    infrastructureHeader.parentElement.style.display = 'none';
+    devToolsHeader.parentElement.style.display = 'none';
+    userManagementHeader.parentElement.style.display = 'none';
+    formManagementHeader.parentElement.style.display = 'none';
+    tempPagesHeader.parentElement.style.display = 'none';
+    importantLinksHeader.parentElement.style.display = 'none';
+    roadmapHeader.parentElement.style.display = 'none';
+    darrionApiHeader.parentElement.style.display = 'none';
+    griefDetectionHeader.parentElement.style.display = 'none';
+    onfimNotificationsHeader.parentElement.style.display = 'none';
+  }
+}
+
+// Todo List Functions
+async function addTodoItem(task, worker, priority, eta, notes) {
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot add task.", true);
+    return;
+  }
+  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
+  try {
+    const docRef = await addDoc(todosCol, {
+      task: task,
+      worker: worker,
+      priority: priority,
+      eta: eta,
+      notes: notes,
+      createdAt: serverTimestamp() // Use serverTimestamp
+    });
+    showMessageBox("Task added successfully!", false);
+    todoTaskInput.value = '';
+    todoWorkerInput.value = '';
+    todoPrioritySelect.value = 'Low';
+    todoEtaInput.value = '';
+    todoNotesInput.value = '';
+    renderTodoList();
+    console.log("DEBUG: Todo item added:", docRef.id);
+  } catch (error) {
+    console.error("Error adding todo item:", error);
+    showMessageBox(`Error adding task: ${error.message}`, true);
+  }
+}
+
+async function fetchAllTodoItems() {
+  if (!db) {
+    console.error("Firestore DB not initialized for fetchAllTodoItems.");
+    return [];
+  }
+  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
+  const q = query(todosCol, orderBy("createdAt", "asc"));
+  try {
+    const querySnapshot = await getDocs(q);
+    const todos = [];
+    querySnapshot.forEach((doc) => {
+      todos.push({ id: doc.id, ...doc.data() });
+    });
+    console.log("DEBUG: Fetched todo items:", todos.length);
+    return todos;
+  }
+  catch (error) {
+    console.error("ERROR: Error fetching todo items:", error);
+    showMessageBox(`Error loading tasks: ${error.message}`, true);
+    return [];
+  }
+}
+
+async function renderTodoList() {
+  if (!roadmapTodoListTbody) return;
+  roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>';
+  const todos = await fetchAllTodoItems();
+  roadmapTodoListTbody.innerHTML = '';
+  if (todos.length === 0) {
+    roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No roadmap tasks found. Add a new task above.</td></tr>';
+    return;
+  }
+
+  todos.forEach(todo => {
+    const row = roadmapTodoListTbody.insertRow();
+    // Apply theme-aware classes to the table rows/cells for consistency
+    row.classList.add('text-text-primary'); // Apply primary text color
+    if (roadmapTodoListTbody.rows.length % 2 === 0) { // Check if it's an even row
+      row.style.backgroundColor = 'var(--color-table-row-even-bg)';
+    }
+    row.innerHTML = `
+      <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
+      <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
+      <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
+      <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
+      <td class="px-4 py-2 border-b border-table-td-border">
+        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
+                data-id="${todo.id}" data-task="${encodeURIComponent(todo.task || '')}" data-worker="${encodeURIComponent(todo.worker || '')}"
+                data-priority="${encodeURIComponent(todo.priority || '')}" data-eta="${encodeURIComponent(todo.eta || '')}" data-notes="${encodeURIComponent(todo.notes || '')}">Edit</button>
+        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-todo-btn" data-id="${todo.id}">Delete</button>
+      </td>
+    `;
+  });
+
+  document.querySelectorAll('.edit-todo-btn').forEach(button => {
+    button.addEventListener('click', (event) => {
+      console.log("DEBUG: Edit Todo button clicked.");
+      const { id, task, worker, priority, eta, notes } = event.target.dataset;
+      openEditTodoModal(id, decodeURIComponent(task), decodeURIComponent(worker), decodeURIComponent(priority), decodeURIComponent(eta), decodeURIComponent(notes));
+    });
+  });
+
+  document.querySelectorAll('.delete-todo-btn').forEach(button => {
+    button.addEventListener('click', async (event) => {
+      console.log("DEBUG: Delete Todo button clicked.");
+      const id = event.target.dataset.id;
+      await deleteTodoItem(id);
+    });
+  });
+}
+
+function openEditTodoModal(id, task, worker, priority, eta, notes) {
+  currentEditingTodoId = id;
+  editTodoTaskInput.value = task;
+  editTodoWorkerInput.value = worker;
+  editTodoPrioritySelect.value = priority;
+  editTodoEtaInput.value = eta;
+  editTodoNotesInput.value = notes;
+  editTodoModal.style.display = 'flex';
+  console.log("DEBUG: Todo Edit Modal opened.");
+}
+
+async function updateTodoItem(id, task, worker, priority, eta, notes) {
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot save changes.", true);
+    return;
+  }
+  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
+  try {
+    await updateDoc(todoDocRef, {
+      task: task,
+      worker: worker,
+      priority: priority,
+      eta: eta,
+      notes: notes,
+      updatedAt: serverTimestamp() // Use serverTimestamp
+    });
+    showMessageBox("Task updated successfully!", false);
+    editTodoModal.style.display = 'none';
+    renderTodoList();
+    console.log("DEBUG: Todo item updated successfully in Firestore.");
+  } catch (error) {
+    console.error("ERROR: Error updating todo item:", error);
+    showMessageBox(`Error updating task: ${error.message}`, true);
+  }
+}
+
+async function deleteTodoItem(id) {
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete task.", true);
+    return;
+  }
+  const confirmation = await showCustomConfirm("Are you sure you want to delete this roadmap task?", "This action cannot be undone.");
+  if (!confirmation) {
+    showMessageBox("Deletion cancelled.", false);
+    return;
+  }
+
+  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
+  try {
+    await deleteDoc(todoDocRef);
+    showMessageBox("Task deleted successfully!", false);
+    renderTodoList();
+    console.log("DEBUG: Todo item deleted:", id);
+  } catch (error) {
+    console.error("ERROR: Error deleting todo item:", error);
+    showMessageBox(`Error deleting task: ${error.message}`, true);
+  }
+}
+
 // Main execution logic on window load
 document.addEventListener('DOMContentLoaded', async function() {
   // Setup Firebase and user authentication first
   await firebaseReadyPromise; // Wait for Firebase to be ready
 
   // Initialize themes Firebase integration
-  // Pass db, auth, and appId explicitly to setupThemesFirebase
-  setupThemesFirebase(db, auth, appId); // Corrected this line
+  setupThemesFirebase(db, auth, appId);
 
   // Call the imported loadNavbar function.
-  // It will now fetch the user profile internally to determine display.
-  await loadNavbar(auth.currentUser, firebaseCurrentUser, DEFAULT_THEME_NAME); // Pass auth.currentUser for current login state and firebaseCurrentUser for detailed profile
+  await loadNavbar(auth.currentUser, firebaseCurrentUser, DEFAULT_THEME_NAME);
 
   // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
   const currentYearElement = document.getElementById('current-year-admin-dev');
@@ -686,10 +984,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
   // After Firebase is set up and page content loaded, update UI based on auth state
-  // The onAuthStateChanged listener within setupFirebaseAndUser now handles initial UI update
-  // We can call updateAdminUI directly here once the promise resolves.
-  // Also, add an onAuthStateChanged listener specific to this page for dynamic updates
-  onAuthStateChanged(auth, (user) => { // onAuthStateChanged is now imported
+  onAuthStateChanged(auth, (user) => {
     updateAdminUI(user);
   });
 
@@ -698,9 +993,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   logoutBtn?.addEventListener('click', async () => {
     showMessageBox("", false);
     try {
-      await auth.signOut(); // Use imported auth
+      await auth.signOut();
       console.log("DEBUG: User signed out from admin & dev page.");
-      // Redirect to index.html after logout
       window.location.href = 'index.html';
     } catch (error) {
       console.error("ERROR: Logout failed:", error);
@@ -753,4 +1047,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     await updateTodoItem(currentEditingTodoId, task, worker, priority, eta, notes);
   });
+
+  // Attach event listeners for collapsible sections
+  infrastructureHeader?.addEventListener('click', () => toggleSection(infrastructureHeader, infrastructureContent));
+  devToolsHeader?.addEventListener('click', () => toggleSection(devToolsHeader, devToolsContent));
+  userManagementHeader?.addEventListener('click', () => toggleSection(userManagementHeader, userManagementContent));
+  formManagementHeader?.addEventListener('click', () => toggleSection(formManagementHeader, formManagementContent));
+  tempPagesHeader?.addEventListener('click', () => toggleSection(tempPagesHeader, tempPagesContent));
+  importantLinksHeader?.addEventListener('click', () => toggleSection(importantLinksHeader, importantLinksContent));
+  roadmapHeader?.addEventListener('click', () => toggleSection(roadmapHeader, roadmapContent));
+  darrionApiHeader?.addEventListener('click', () => toggleSection(darrionApiHeader, darrionApiContent));
+  griefDetectionHeader?.addEventListener('click', () => toggleSection(griefDetectionHeader, griefDetectionContent));
+  onfimNotificationsHeader?.addEventListener('click', () => toggleSection(onfimNotificationsHeader, onfimNotificationsContent));
+
+  // Initialize all sections as collapsed by default to save vertical space
+  if (infrastructureContent) infrastructureContent.classList.add('hidden');
+  if (devToolsContent) devToolsContent.classList.add('hidden');
+  if (userManagementContent) userManagementContent.classList.add('hidden');
+  if (formManagementContent) formManagementContent.classList.add('hidden');
+  if (tempPagesContent) tempPagesContent.classList.add('hidden');
+  if (importantLinksContent) importantLinksContent.classList.add('hidden');
+  if (roadmapContent) roadmapContent.classList.add('hidden');
+  if (darrionApiContent) darrionApiContent.classList.add('hidden');
+  if (griefDetectionContent) griefDetectionContent.classList.add('hidden');
+  if (onfimNotificationsContent) onfimNotificationsContent.classList.add('hidden');
 });
