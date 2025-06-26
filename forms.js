@@ -1048,9 +1048,9 @@ async function handleReaction(itemType, itemId, emoji) {
     let itemRef;
 
     if (itemType === 'thread') {
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`, itemId);
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${window.currentThemaId}/threads`, itemId);
     } else if (itemType === 'comment') {
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`, itemId);
+      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${window.currentThemaId}/threads/${window.currentThreadId}/comments`, itemId);
     } else {
       console.error("Invalid item type for reaction:", itemType);
       return;
@@ -1064,7 +1064,7 @@ async function handleReaction(itemType, itemId, emoji) {
 
     const itemData = itemDoc.data();
     const reactions = itemData.reactions || {};
-    const emojiReactions = reactions[emoji] || {};
+    const emojiReactions = reactions[emoji] || { users: [], count: 0 };
 
     const userIndex = emojiReactions.users.indexOf(userId);
     if (userIndex > -1) {
