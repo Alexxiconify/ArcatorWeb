@@ -753,7 +753,7 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, themaId)}</div>
           <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
