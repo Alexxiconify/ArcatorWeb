@@ -229,7 +229,11 @@
         <div class="settings-card bg-gray-700 shadow-xl">
           <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Profile Information</h3>
           <div class="flex flex-col items-center mb-6">
-            <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Profile Picture" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;">
+            <!-- Added onerror to fallback to DEFAULT_PROFILE_PIC from firebase-init.js -->
+            <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large"
+                 src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV"
+                 alt="Profile Picture"
+                 onerror="this.onerror=null; this.src=DEFAULT_PROFILE_PIC;">
             <p id="display-name-text" class="text-gray-200 text-2xl font-semibold">Loading...</p>
             <p id="handle-text" class="text-gray-400 text-lg">Loading...</p> <!-- New handle display -->
             <p id="email-text" class="text-gray-400 text-sm">Loading...</p>
