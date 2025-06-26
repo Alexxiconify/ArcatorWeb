@@ -1743,6 +1743,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     currentThemaId = themaId;
     renderThreads();
   });
+
+  // At the end of DOMContentLoaded, after all initialization:
+  await window.firebaseReadyPromise;
+  renderGlobalThreads();
 });
 
 let unsubscribeThemaComments = null;
@@ -1905,8 +1909,6 @@ document.addEventListener('DOMContentLoaded', function() {
     tabConversations.addEventListener('click', showConversationsSection);
   }
 });
-
-// --- PATCH: Fix thread deletion for both global and thema threads ---
 // In renderThreads and renderGlobalThreads, update delete button event listeners:
 function attachThreadDeleteListeners() {
   document.querySelectorAll('.delete-thread-btn').forEach(button => {
@@ -1931,7 +1933,6 @@ function attachThreadDeleteListeners() {
   });
 }
 // Call attachThreadDeleteListeners after rendering threads/global threads
-// --- PATCH: Allow moving a thread to another thema or global ---
 async function moveThread(threadId, fromThemaId, toThemaId) {
   if (!window.db) return;
   let threadData = null;
@@ -1970,7 +1971,6 @@ function attachMoveThreadListeners() {
   });
 }
 // After rendering threads/global threads, call attachThreadDeleteListeners() and attachMoveThreadListeners()
-
 const mainLoadingSpinner = document.getElementById('loading-spinner');
 const formsContentSection = document.getElementById('forms-content');
 const mainLoginRequiredMessage = document.getElementById('login-required-message');
