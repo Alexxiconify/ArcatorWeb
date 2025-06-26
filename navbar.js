@@ -34,14 +34,26 @@ export async function loadNavbar(userAuthObject, userProfile, defaultProfilePic,
           <div class="container mx-auto flex justify-between items-center">
             <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
             <div class="flex items-center space-x-4">
+              <a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a>
+              <a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a>
+              <a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a>
+              <a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a>
+              <a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a>
+              <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a>
+              <a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a>
+              <a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a>
+              <a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a>
               <!-- User Profile Link -->
-              <a href="user.html" id="navbar-user-settings-link" class="flex items-center text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${isLoggedIn ? 'flex' : 'none'};">
+              <a href="users.html" id="navbar-user-settings-link" class="flex items-center space-x-2 navbar-text navbar-link px-3 py-2 rounded-md font-medium" style="display: ${isLoggedIn ? 'flex' : 'none'};">
                 <img id="navbar-user-icon" src="${userPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
                 <span id="navbar-user-display-name">${displayUserName}</span>
                 <span id="navbar-user-id-display" class="text-xs text-gray-500 ml-2">${userHandleDisplay}</span>
               </a>
               <!-- Sign In Link -->
-              <a href="user.html" id="navbar-signin-link" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${isLoggedIn ? 'none' : 'flex'};">Sign In</a>
+              <a href="users.html" id="navbar-signin-link" class="flex items-center space-x-2 navbar-text navbar-link px-3 py-2 rounded-md font-medium" style="display: ${isLoggedIn ? 'none' : 'flex'};">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span>Sign In</span>
+              </a>
               <!-- Sign Out Button -->
               <button id="navbar-signout-btn" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${isLoggedIn ? 'flex' : 'none'};">Sign Out</button>
             </div>
@@ -73,7 +85,7 @@ export async function loadNavbar(userAuthObject, userProfile, defaultProfilePic,
           <div class="container mx-auto flex justify-between items-center">
             <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
             <div>
-              <a href="user.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
+              <a href="users.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
             </div>
           </div>
         </nav>
