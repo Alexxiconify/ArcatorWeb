@@ -1370,8 +1370,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         await addThema(name, description);
       });
     }
-    // Do NOT call updateUIBasedOnAuthAndData() here; it will be called by firebase-init.js after currentUser is set
-    // await updateUIBasedOnAuthAndData(); // REMOVE THIS LINE
+    // Ensure UI updates after user/profile is ready
+    if (window.firebaseReadyPromise) {
+      window.firebaseReadyPromise.then(() => {
+        updateUIBasedOnAuthAndData();
+      });
+    } else {
+      updateUIBasedOnAuthAndData();
+    }
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
   }
@@ -1426,12 +1432,14 @@ function showThemaTab() {
 // Update renderReactions
 function renderReactions(reactions = {}, itemType, itemId, parentId = null, themaId = null) {
   let html = '';
+  const userId = window.auth?.currentUser?.uid;
   window.REACTION_TYPES.forEach(emoji => {
     const data = reactions[emoji] || { count: 0, users: [] };
     let count = 0;
     if (typeof data.count === 'number') count = data.count;
     else if (Array.isArray(data.users)) count = data.users.length;
-    html += `<button class="reaction-btn" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
+    const reacted = Array.isArray(data.users) && userId && data.users.includes(userId);
+    html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
   });
   return html;
 }
@@ -1439,11 +1447,52 @@ function renderReactions(reactions = {}, itemType, itemId, parentId = null, them
 window.showReactionPalette = showReactionPalette;
 window.handleReaction = handleReaction;
 
-// Minimal placeholder for edit modal to prevent errors
+// Replace openEditModal with inline edit logic
 function openEditModal(type, ids, content, description = '', title = '') {
-  alert('Edit modal not implemented yet.');
+  if (type === 'thread') {
+    const threadDiv = document.querySelector(`[data-thread-id='${ids.threadId}']`);
+    if (threadDiv) editThread(ids.themaId, ids.threadId, title, content, threadDiv);
+  } else if (type === 'comment') {
+    const commentDiv = document.querySelector(`[data-comment-id='${ids.commentId}']`);
+    if (commentDiv) editComment(ids.themaId, ids.threadId, ids.commentId, content, commentDiv);
+  } else if (type === 'thema') {
+    const themaBox = document.querySelector(`[data-thema-id='${ids.themaId}']`);
+    if (themaBox) editThema(ids.themaId, description, title, themaBox);
+  }
 }
 window.openEditModal = openEditModal;
+
+// Minimal inline edit for thema
+function editThema(themaId, oldDescription, oldName, themaBox) {
+  const editForm = document.createElement('form');
+  editForm.className = 'edit-thema-form flex flex-col gap-2 mb-2';
+  editForm.innerHTML = `
+    <input type="text" class="edit-thema-title input" value="${oldName}" required />
+    <textarea class="edit-thema-description input">${oldDescription}</textarea>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary btn-green">Save</button>
+      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
+    </div>
+  `;
+  const origHtml = themaBox.innerHTML;
+  themaBox.innerHTML = '';
+  themaBox.appendChild(editForm);
+  editForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const newName = editForm.querySelector('.edit-thema-title').value.trim();
+    const newDescription = editForm.querySelector('.edit-thema-description').value.trim();
+    if (!newName || !newDescription) return;
+    const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId);
+    await updateDoc(themaRef, {
+      name: newName,
+      description: newDescription
+    });
+    themaBox.innerHTML = origHtml;
+  };
+  editForm.querySelector('.cancel-edit').onclick = () => {
+    themaBox.innerHTML = origHtml;
+  };
+}
 
 // Minimal Markdown rendering using marked.js and DOMPurify
 function renderMarkdown(text) {
