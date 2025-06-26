@@ -6,13 +6,20 @@
   <title id="page-title-display">Loading...</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Markdown renderer (e.g., Marked.js) -->
+  <!-- Markdown renderer (Marked.js) -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh; /* Ensure body takes full viewport height */
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      flex-grow: 1; /* Allow container to grow and fill available space */
     }
 
     /* Default Dark Theme */
@@ -28,12 +35,14 @@
       color: #E5E7EB !important; /* Light text for card */
     }
     body.theme-dark input,
-    body.theme-dark select {
+    body.theme.dark select,
+    body.theme-dark textarea { /* Add textarea */
       background-color: #374151 !important; /* Darker input background */
       color: #E5E7EB !important; /* Light text in input */
       border-color: #4B5563 !important; /* Subtle border for inputs */
     }
-    body.theme-dark input::placeholder {
+    body.theme-dark input::placeholder,
+    body.theme-dark textarea::placeholder { /* Add textarea placeholder */
       color: #9CA3AF !important; /* Lighter placeholder text */
     }
     body.theme-dark .text-gray-700 { /* For general text that might be dark by default */
@@ -51,12 +60,14 @@
       color: #1F2937 !important; /* Dark text for card */
     }
     body.theme-light input,
-    body.theme-light select {
+    body.theme-light select,
+    body.theme-light textarea { /* Add textarea */
       background-color: #FFFFFF !important; /* White input background */
       color: #1F2937 !important; /* Dark text in input */
       border-color: #D1D5DB !important; /* Light border for inputs */
     }
-    body.theme-light input::placeholder {
+    body.theme-light input::placeholder,
+    body.theme-light textarea::placeholder { /* Add textarea placeholder */
       color: #6B7280 !important; /* Darker placeholder text */
     }
     body.theme-light .text-gray-700 {
@@ -78,12 +89,14 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     body.theme-arcator-blue input,
-    body.theme-arcator-blue select {
+    body.theme-arcator-blue select,
+    body.theme-arcator-blue textarea { /* Add textarea */
       background-color: #3b4d6b !important; /* Darker input background */
       color: #E2E8F0 !important; /* Light text in input */
       border-color: #5a6e8f !important; /* Blueish border */
     }
-    body.theme-arcator-blue input::placeholder {
+    body.theme-arcator-blue input::placeholder,
+    body.theme-arcator-blue textarea::placeholder { /* Add textarea placeholder */
       color: #94A3B8 !important; /* Subtle blue placeholder */
     }
     body.theme-arcator-blue .text-blue-600 { /* Primary button color */
@@ -97,7 +110,7 @@
       color: #63B3ED !important;
     }
 
-    /* Settings card styling */
+    /* Settings card styling (not directly used here, but for consistency if copied) */
     .settings-card {
       max-width: 600px;
       width: 90%;
@@ -154,25 +167,196 @@
     .message-box.error {
       background-color: #F44336; /* Red for error */
     }
+
+    /* Temporary Page Navigation Tabs */
+    .temp-page-nav {
+      display: flex;
+      flex-wrap: wrap; /* Allow tabs to wrap */
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-input-border);
+      overflow-x: auto; /* Enable horizontal scrolling for many tabs */
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: var(--color-link) var(--color-bg-navbar); /* Firefox */
+    }
+
+    .temp-page-nav::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .temp-page-nav::-webkit-scrollbar-track {
+      background: var(--color-bg-navbar);
+      border-radius: 10px;
+    }
+
+    .temp-page-nav::-webkit-scrollbar-thumb {
+      background-color: var(--color-link);
+      border-radius: 10px;
+      border: 2px solid var(--color-bg-navbar);
+    }
+
+    .temp-page-nav button {
+      flex-shrink: 0; /* Prevent buttons from shrinking */
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      background-color: var(--color-bg-card); /* Use card background for inactive tabs */
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap; /* Prevent text wrapping inside button */
+      max-width: 180px; /* Limit tab width for better wrapping/scrolling */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid transparent; /* Add a subtle border */
+    }
+
+    .temp-page-nav button:hover {
+      background-color: var(--color-link);
+      color: var(--color-button-text);
+      border-color: var(--color-link);
+    }
+
+    .temp-page-nav button.active {
+      background-color: var(--color-link);
+      color: var(--color-button-text);
+      font-weight: 700; /* Bold for active tab */
+      border-color: var(--color-link-dark);
+    }
+
+    /* Markdown content styling within the viewer */
+    .markdown-content {
+      line-height: 1.7;
+      word-wrap: break-word; /* Ensure long words break */
+    }
+
+    .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+      color: var(--color-heading-main, #3498db); /* Main heading color */
+      margin-top: 1.5em;
+      margin-bottom: 0.8em;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .markdown-content h1 { font-size: 2.5rem; }
+    .markdown-content h2 { font-size: 2rem; }
+    .markdown-content h3 { font-size: 1.75rem; }
+    .markdown-content h4 { font-size: 1.5rem; }
+    .markdown-content h5 { font-size: 1.25rem; }
+    .markdown-content h6 { font-size: 1rem; }
+
+    .markdown-content p {
+      margin-bottom: 1em;
+      line-height: 1.6;
+    }
+
+    .markdown-content ul, .markdown-content ol {
+      margin-bottom: 1em;
+      padding-left: 2em; /* More padding for lists */
+    }
+    .markdown-content ul li, .markdown-content ol li {
+      margin-bottom: 0.5em;
+    }
+
+    .markdown-content a {
+      color: var(--color-link);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .markdown-content strong {
+      font-weight: 700;
+    }
+
+    .markdown-content em {
+      font-style: italic;
+    }
+
+    .markdown-content blockquote {
+      border-left: 4px solid var(--color-link);
+      padding-left: 1em;
+      margin: 1em 0;
+      color: var(--color-text-secondary);
+      font-style: italic;
+    }
+
+    .markdown-content code {
+      background-color: var(--color-code-bg, #374151); /* Darker background for inline code */
+      border-radius: 0.25rem;
+      padding: 0.2em 0.4em;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.9em;
+      color: var(--color-code-text, #e2e8f0);
+    }
+
+    .markdown-content pre {
+      background-color: var(--color-code-bg, #374151); /* Darker background for code blocks */
+      border-radius: 0.5rem;
+      padding: 1em;
+      overflow-x: auto;
+      margin-bottom: 1.5em;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .markdown-content pre code {
+      padding: 0;
+      background-color: transparent;
+      font-size: 1em;
+      color: var(--color-code-text, #e2e8f0);
+    }
+
+    .markdown-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+    }
+
+    .markdown-content th, .markdown-content td {
+      border: 1px solid var(--color-input-border);
+      padding: 0.75em;
+      text-align: left;
+    }
+
+    .markdown-content th {
+      background-color: var(--color-table-th-bg);
+      color: var(--color-table-th-text);
+      font-weight: bold;
+    }
+
+    .markdown-content tr:nth-child(even) {
+      background-color: var(--color-table-row-even-bg, rgba(0,0,0,0.05));
+    }
+
   </style>
 </head>
-<body class="antialiased">
-<div class="container">
-  <h1 class="text-4xl font-bold mb-4" id="page-display-title"></h1>
+<body class="antialiased flex flex-col min-h-screen">
+<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-8 mb-8">
+  <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
   <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
-  <div id="page-display-content" class="markdown-content">
-    <p class="text-center">Loading page content...</p>
+
+  <!-- Temporary Page Navigation -->
+  <div id="temp-page-nav" class="temp-page-nav">
+    <!-- Buttons will be dynamically inserted here -->
   </div>
-  <div class="mt-8 text-center">
-    <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out">Back to Admin Panel</a>
+
+  <div id="page-display-content" class="markdown-content p-4 border border-input-border rounded-md bg-input-bg text-input-text">
+    <p class="text-center text-gray-400">Loading page content...</p>
+  </div>
+
+  <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+    <a href="admin_and_dev.html" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
+    <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<!-- Message Box Element -->
+<div id="message-box" class="message-box"></div>
 
-  // Firebase configuration (re-use from admin_and_dev.html or define here)
+<!-- Footer Section (Optional, can be added if needed, or rely on main site footer) -->
+<!-- For now, we'll keep it simple or assume a single page app context -->
+
+<script type="module">
+  // Firebase configuration and initialization (from firebase-init.js for consistency)
   const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -186,53 +370,150 @@
   const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
   const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  let firebaseAppInstance;
+  if (!firebase.getApps().length) { // Check if Firebase app is already initialized
+    firebaseAppInstance = firebase.initializeApp(firebaseConfig);
+  } else {
+    firebaseAppInstance = firebase.getApp(); // Get existing app instance
+  }
+  const db = firebase.getFirestore(firebaseAppInstance);
+  // No auth needed for public page viewing, but leaving comments in case.
+  // const auth = firebase.getAuth(firebaseAppInstance);
 
-  async function loadTemporaryPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageId = urlParams.get('id');
+  const pageDisplayTitle = document.getElementById('page-display-title');
+  const pageDisplayContent = document.getElementById('page-display-content');
+  const pageUpdatedAt = document.getElementById('page-updated-at');
+  const pageHtmlTitle = document.getElementById('page-title-display');
+  const tempPageNav = document.getElementById('temp-page-nav');
 
-    const pageDisplayTitle = document.getElementById('page-display-title');
-    const pageDisplayContent = document.getElementById('page-display-content');
-    const pageUpdatedAt = document.getElementById('page-updated-at');
-    const pageHtmlTitle = document.getElementById('page-title-display');
+  let allTemporaryPages = []; // Store all fetched pages
 
-    if (!pageId) {
-      pageDisplayTitle.textContent = 'Page Not Found';
-      pageDisplayContent.innerHTML = '<p class="text-red-400">No page ID provided in the URL.</p>';
-      pageHtmlTitle.textContent = 'Error - No ID';
-      return;
-    }
-
+  /**
+   * Fetches all temporary pages from Firestore.
+   * @returns {Promise<Array>} A promise that resolves with an array of temporary page objects.
+   */
+  async function fetchAllTemporaryPages() {
     try {
-      const pageDocRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, pageId);
-      const docSnap = await getDoc(pageDocRef);
-
-      if (docSnap.exists()) {
-        const pageData = docSnap.data();
-        pageDisplayTitle.textContent = pageData.title;
-        pageHtmlTitle.textContent = pageData.title; // Update HTML <title>
-        pageDisplayContent.innerHTML = marked.parse(pageData.content || ''); // Render Markdown
-        if (pageData.updatedAt && pageData.updatedAt.toDate) {
-          pageUpdatedAt.textContent = pageData.updatedAt.toDate().toLocaleString();
-        } else {
-          pageUpdatedAt.textContent = 'N/A';
-        }
-      } else {
-        pageDisplayTitle.textContent = 'Page Not Found';
-        pageDisplayContent.innerHTML = '<p class="text-red-400">The temporary page you are looking for does not exist.</p>';
-        pageHtmlTitle.textContent = 'Page Not Found';
-      }
+      const tempPagesCol = firebase.collection(db, `artifacts/${appId}/public/data/temp_pages`);
+      const querySnapshot = await firebase.getDocs(tempPagesCol);
+      const pages = [];
+      querySnapshot.forEach(doc => {
+        pages.push({ id: doc.id, ...doc.data() });
+      });
+      // Sort pages by createdAt timestamp, or by title if createdAt is not consistent
+      pages.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        return dateA - dateB;
+      });
+      console.log("DEBUG: Fetched and sorted temporary pages:", pages.length);
+      return pages;
     } catch (error) {
-      console.error("Error loading temporary page:", error);
-      pageDisplayTitle.textContent = 'Error Loading Page';
-      pageDisplayContent.innerHTML = `<p class="text-red-400">Failed to load page content: ${error.message}</p>`;
-      pageHtmlTitle.textContent = 'Error';
+      console.error("Error fetching all temporary pages:", error);
+      return [];
     }
   }
 
-  window.addEventListener('load', loadTemporaryPage);
+  /**
+   * Displays a specific temporary page's content.
+   * @param {Object} pageData - The data of the page to display.
+   */
+  function displayPage(pageData) {
+    if (!pageData) {
+      pageDisplayTitle.textContent = 'Page Not Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">The temporary page you are looking for does not exist.</p>';
+      pageHtmlTitle.textContent = 'Page Not Found';
+      pageUpdatedAt.textContent = 'N/A';
+      return;
+    }
+
+    pageDisplayTitle.textContent = pageData.title;
+    pageHtmlTitle.textContent = pageData.title; // Update HTML <title>
+    pageDisplayContent.innerHTML = marked.parse(pageData.content || ''); // Render Markdown
+    if (pageData.updatedAt && pageData.updatedAt.toDate) {
+      pageUpdatedAt.textContent = pageData.updatedAt.toDate().toLocaleString();
+    } else {
+      pageUpdatedAt.textContent = 'N/A';
+    }
+
+    // Update URL without reloading the page
+    const newUrl = `${window.location.pathname}?id=${pageData.id}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+
+    // Update active tab button
+    document.querySelectorAll('.temp-page-nav button').forEach(btn => {
+      if (btn.dataset.pageId === pageData.id) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  /**
+   * Initializes the temporary page viewer.
+   */
+  async function initTemporaryPageViewer() {
+    // Dynamically load Firebase SDK only when needed
+    // This script now loads Firebase modules using import maps directly in the HTML <head> for simplicity
+    // and relies on global firebase object (which will be populated by the CDN script).
+    // It's crucial that firebase.js is loaded BEFORE this script executes if using global `firebase` object.
+    // For this Canvas environment, we use direct import statements as done below.
+
+    // Ensure Firebase is loaded and initialized from CDN
+    // This part relies on the top-level imports and the global `firebase` object available after those imports.
+    await new Promise(resolve => {
+      // Wait for Firebase to be globally available
+      const checkFirebase = setInterval(() => {
+        if (typeof firebase !== 'undefined' && firebase.getApps().length > 0) {
+          clearInterval(checkFirebase);
+          resolve();
+        }
+      }, 50);
+    });
+
+    allTemporaryPages = await fetchAllTemporaryPages();
+
+    if (allTemporaryPages.length === 0) {
+      pageDisplayTitle.textContent = 'No Pages Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet.</p>';
+      pageHtmlTitle.textContent = 'No Pages';
+      pageUpdatedAt.textContent = 'N/A';
+      return;
+    }
+
+    // Create navigation tabs
+    tempPageNav.innerHTML = ''; // Clear existing content
+    allTemporaryPages.forEach(page => {
+      const button = document.createElement('button');
+      button.textContent = page.title;
+      button.dataset.pageId = page.id;
+      button.classList.add('temp-page-nav-button'); // Add a class for styling
+      button.addEventListener('click', () => displayPage(page));
+      tempPageNav.appendChild(button);
+    });
+
+    // Determine which page to display initially
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageIdFromUrl = urlParams.get('id');
+
+    let initialPage = null;
+    if (pageIdFromUrl) {
+      initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
+    }
+
+    // If no specific page from URL or page not found, display the first page
+    displayPage(initialPage || allTemporaryPages[0]);
+  }
+
+  // Ensure Firebase is ready before running init
+  window.onload = async function() {
+    // Dynamically import Firebase modules inside window.onload if they haven't been imported as type="module" in head.
+    // Given the HTML structure, the CDN imports in head with type="module" ensure `firebase` is globally available.
+    // We just need to wait for it.
+    initTemporaryPageViewer();
+  };
 </script>
-</body>
-</html>
+<!-- Firebase SDK initialization scripts -->
+<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
