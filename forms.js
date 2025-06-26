@@ -42,64 +42,9 @@ import {
   query, orderBy, onSnapshot, getDocs, where, updateDoc, increment
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Minimal Markdown rendering using marked.js and DOMPurify
-function renderMarkdown(text) {
-  if (window.marked && window.DOMPurify) {
-    return DOMPurify.sanitize(marked.parse(text || ''));
-  }
-  return text;
-}
-
-/**
- * Retrieves user profile from Firestore.
- * @param {string} uid - The user ID.
- * @returns {Promise<object|null>} The user profile object or null if not found/error.
- */
-window.getUserProfileFromFirestore = async function(uid) {
-  await window.firebaseReadyPromise;
-  if (!window.db) {
-    console.error("Firestore DB not initialized.");
-    return null;
-  }
-  const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-  try {
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-      return { uid: docSnap.id, ...docSnap.data() };
-    }
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-  }
-  return null;
-};
-
-/**
- * Sets or updates user profile in Firestore.
- * @param {string} uid - The user ID.
- * @param {object} profileData - The profile data to set or merge.
- * @returns {Promise<boolean>} True if successful, false otherwise.
- */
-window.setUserProfileInFirestore = async function(uid, profileData) {
-  await window.firebaseReadyPromise;
-  if (!window.db) { console.error("Firestore DB not initialized."); return false; }
-  const userDocRef = doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, uid);
-  try {
-    await setDoc(userDocRef, profileData, { merge: true });
-    if (window.currentUser && window.currentUser.uid === uid) { window.currentUser = { ...window.currentUser, ...profileData }; }
-    console.log("User profile updated in Firestore for UID:", uid);
-    return true;
-  }
-  catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
-};
-
-/**
- * Deletes user profile from Firestore (currently commented out).
- * @param {string} uid - The user ID.
- * @returns {Promise<boolean>} Always false as it's commented out.
- */
-window.deleteUserProfileFromFirestore = async function(uid) {
-  return false;
-};
+// At the top, ensure global currentThemaId/currentThreadId
+window.currentThemaId = null;
+window.currentThreadId = null;
 
 // --- Utility Functions ---
 let messageBox;
@@ -111,6 +56,20 @@ let confirmYesButton;
 let confirmNoButton;
 let closeButton;
 let resolveConfirmPromise;
+
+// Minimal showMessageBox implementation
+function showMessageBox(message, isError = false) {
+  if (!window.messageBox) {
+    window.messageBox = document.getElementById('message-box');
+  }
+  if (!window.messageBox) return;
+  window.messageBox.textContent = message;
+  window.messageBox.className = 'message-box ' + (isError ? 'error' : 'success') + ' show';
+  setTimeout(() => {
+    window.messageBox.className = 'message-box';
+  }, 3000);
+}
+window.showMessageBox = showMessageBox;
 
 /**
  * Displays a custom confirmation modal.
@@ -1464,16 +1423,24 @@ function showThemaTab() {
   renderThematas();
 }
 
-// Minimal reactions renderer for threads/comments
+// Update renderReactions
 function renderReactions(reactions = {}, itemType, itemId, parentId = null, themaId = null) {
   let html = '';
   window.REACTION_TYPES.forEach(emoji => {
-    const data = reactions[emoji] || { count: 0 };
-    const count = data.count || 0;
-    html += `<button class="reaction-btn" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} ${count > 0 ? count : ''}</button>`;
+    const data = reactions[emoji] || { count: 0, users: [] };
+    let count = 0;
+    if (typeof data.count === 'number') count = data.count;
+    else if (Array.isArray(data.users)) count = data.users.length;
+    html += `<button class="reaction-btn" type="button" onclick="handleReaction('${itemType}','${itemId}','${emoji}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
   });
   return html;
 }
 
 window.showReactionPalette = showReactionPalette;
 window.handleReaction = handleReaction;
+
+// Minimal placeholder for edit modal to prevent errors
+function openEditModal(type, ids, content, description = '', title = '') {
+  alert('Edit modal not implemented yet.');
+}
+window.openEditModal = openEditModal;
