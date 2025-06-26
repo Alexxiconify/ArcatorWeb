@@ -586,6 +586,33 @@ function renderThematas() {
   });
 }
 
+function renderThemaBoxes(themasArr) {
+  const container = document.getElementById('thema-boxes');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!themasArr.length) {
+    container.innerHTML = '<div class="card p-4 text-center">No thémata found. Be the first to create one!</div>';
+    return;
+  }
+  themasArr.forEach(thema => {
+    const box = document.createElement('div');
+    box.className = 'thema-item card p-6 flex flex-col justify-between';
+    box.innerHTML = `
+      <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+      <p class="thema-description mb-4">${thema.description || ''}</p>
+      <button class="view-thema-threads-btn btn-primary btn-blue mt-auto" data-thema-id="${thema.id}">View Threads</button>
+    `;
+    container.appendChild(box);
+  });
+  container.querySelectorAll('.view-thema-threads-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = btn.getAttribute('data-thema-id');
+      const thema = themasArr.find(t => t.id === id);
+      if (thema) displayThreadsForThema(thema.id, thema.name, thema.description);
+    });
+  });
+}
+
 /**
  * Displays threads for a selected thema.
  * @param {string} themaId - The ID of the selected thema.
@@ -1266,3 +1293,6 @@ function showDmTab() {
   if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
   renderDMList();
 }
+
+let unsubscribeThematas = null;
+let unsubscribeDmList = null;
