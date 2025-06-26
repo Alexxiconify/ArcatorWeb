@@ -1785,6 +1785,25 @@ document.addEventListener('DOMContentLoaded', async function() {
   showThemaTab();
 
   populateThreadThemaSelect();
+
+  // --- Thémata Reddit-style Thread Listing ---
+  // When a Théma is clicked, show its threads below and show the thread creation form above the list.
+  // Remove old navigation/section toggling logic for threads-section.
+  // Patch event listeners for thema-list items:
+  themaList.addEventListener('click', function(e) {
+    const btn = e.target.closest('.thema-item');
+    if (!btn) return;
+    const themaId = btn.dataset.themaId;
+    const themaName = btn.dataset.themaName;
+    // Show thread creation form and set selected thema
+    document.getElementById('create-thread-section').style.display = 'block';
+    document.getElementById('selected-thema-name').textContent = themaName;
+    // Show threads list title
+    document.getElementById('threads-list-title').style.display = 'block';
+    // Load threads for this thema
+    currentThemaId = themaId;
+    renderThreads();
+  });
 });
 
 let unsubscribeThemaComments = null;
