@@ -838,15 +838,17 @@ function renderThreads() {
           <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
         </div>
         <div class="thread-actions mt-4">
-          <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
           ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
           ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
         </div>
+        <div class="add-comment-section mt-4">${getAddCommentFormHtml(doc.id)}</div>
+        <ul class="comment-list space-y-4 mt-2" id="comment-list-${doc.id}"></ul>
       `;
       details.appendChild(inner);
       const li = document.createElement('li');
       li.appendChild(details);
       threadList.appendChild(li);
+      renderCommentsForThread(doc.id, currentThemaId);
     });
     cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
     document.querySelectorAll('.view-comments-btn').forEach(button => {
@@ -2352,3 +2354,54 @@ function renderGlobalThreads() {
 renderGlobalThreads();
 
 const reactionPalette = document.getElementById('reaction-palette');
+
+// Helper to return add comment form HTML for a thread
+function getAddCommentFormHtml(threadId) {
+  return `
+    <form class="add-comment-form" data-thread-id="${threadId}">\n      <textarea class="add-comment-input shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Type your comment here..." required></textarea>\n      <button type="submit" class="btn-primary btn-green w-full mt-2">Post Comment</button>\n    </form>\n  `;
+}
+
+// Render comments for a thread inline
+function renderCommentsForThread(threadId, themaId) {
+  const commentListEl = document.getElementById(`comment-list-${threadId}`);
+  if (!commentListEl) return;
+  const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+  const q = query(commentsCol, orderBy("createdAt", "asc"));
+  onSnapshot(q, (snapshot) => {
+    commentListEl.innerHTML = '';
+    if (snapshot.empty) {
+      commentListEl.innerHTML = '<li class="card p-4 text-center">No comments yet. Be the first to comment!</li>';
+      return;
+    }
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+      const displayName = comment.authorDisplayName || 'Unknown';
+      const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+      const li = document.createElement('li');
+      li.className = 'comment-item card';
+      li.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">By ${displayName} on ${createdAt}</span>
+        </div>
+        <div class="comment-content"><p>${convertMentionsToHTML(comment.content)}</p></div>
+      `;
+      commentListEl.appendChild(li);
+    });
+  });
+}
+
+// Add event listener for add comment forms
+threadList.addEventListener('submit', async (event) => {
+  if (event.target.classList.contains('add-comment-form')) {
+    event.preventDefault();
+    const threadId = event.target.dataset.threadId;
+    const textarea = event.target.querySelector('.add-comment-input');
+    const content = textarea.value.trim();
+    if (content) {
+      await addComment(currentThemaId, threadId, content);
+      textarea.value = '';
+    }
+  }
+});
