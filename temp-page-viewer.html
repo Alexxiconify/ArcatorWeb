@@ -269,11 +269,11 @@
 
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen theme-dark"> <!-- Added theme-dark class here -->
+<body class="antialiased flex flex-col min-h-screen theme-dark">
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8"> <!-- Adjusted mt-8 to mt-20 for navbar -->
+<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8">
   <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
   <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
 
@@ -297,7 +297,7 @@
 <div id="message-box" class="message-box"></div>
 
 <!-- Footer Section (consistent with admin_and_dev.html) -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-auto"> <!-- mt-auto pushes footer to bottom -->
+<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-auto">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-temp-page"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
@@ -316,22 +316,191 @@
   // These imports assume firebase-init.js, themes.js, and navbar.js are in the same directory.
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } => {
-    // This inline script is for the specific admin_and_dev.html page's initialization
-    // and interacts with the globally exported Firebase instances and utility functions.
+  import { loadNavbar } from './navbar.js'; // Corrected import statement
+  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Explicitly import Firestore methods
 
-    // The necessary imports (auth, firebaseReadyPromise, etc.) are already handled by admin_and_dev.js
-    // and other linked modules. This inline script primarily focuses on setting the footer year.
+  const pageDisplayTitle = document.getElementById('page-display-title');
+  const pageDisplayContent = document.getElementById('page-display-content');
+  const pageUpdatedAt = document.getElementById('page-updated-at');
+  const pageHtmlTitle = document.getElementById('page-title-display');
+  const tempPageNav = document.getElementById('temp-page-nav');
+  const messageBox = document.getElementById('message-box'); // Get message box element
 
-    document.addEventListener('DOMContentLoaded', async function() {
-      // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
-      const currentYearElement = document.getElementById('current-year-admin-dev');
-      if (currentYearElement) {
-        currentYearElement.textContent = new Date().getFullYear();
+  let allTemporaryPages = []; // Store all fetched pages
+
+  /**
+   * Displays a message box with success or error styling.
+   * @param {string} message - The message to display.
+   * @param {boolean} isError - True if it's an error message, false for success.
+   */
+  function showMessageBox(message, isError) {
+    if (messageBox) {
+      messageBox.textContent = message;
+      messageBox.className = 'message-box show'; // Reset classes and show
+      if (isError) {
+        messageBox.classList.add('error');
       } else {
-        console.warn("Element with ID 'current-year-admin-dev' not found in admin_and_dev.html.");
+        messageBox.classList.add('success');
+      }
+      setTimeout(() => {
+        messageBox.classList.remove('show');
+      }, 3000); // Hide after 3 seconds
+    }
+  }
+
+  /**
+   * Fetches all temporary pages from Firestore.
+   * @returns {Promise<Array>} A promise that resolves with an array of temporary page objects.
+   */
+  async function fetchAllTemporaryPages() {
+    try {
+      // Ensure db is initialized before trying to use it
+      if (!db) {
+        console.error("Firestore DB not initialized for fetchAllTemporaryPages.");
+        showMessageBox("Database not ready. Cannot load pages.", true);
+        return [];
+      }
+      const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
+      const querySnapshot = await getDocs(tempPagesCol);
+      const pages = [];
+      querySnapshot.forEach(doc => {
+        pages.push({ id: doc.id, ...doc.data() });
+      });
+      // Sort pages by createdAt timestamp, or by title if createdAt is not consistent
+      pages.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        // If timestamps are the same or missing, sort by title
+        if (dateA === dateB) {
+          return (a.title || '').localeCompare(b.title || '');
+        }
+        return dateA - dateB;
+      });
+      console.log("DEBUG: Fetched and sorted temporary pages:", pages.length);
+      return pages;
+    } catch (error) {
+      console.error("Error fetching all temporary pages:", error);
+      showMessageBox(`Error loading temporary pages: ${error.message}`, true);
+      return [];
+    }
+  }
+
+  /**
+   * Displays a specific temporary page's content.
+   * @param {Object} pageData - The data of the page to display.
+   */
+  function displayPage(pageData) {
+    if (!pageData) {
+      pageDisplayTitle.textContent = 'Page Not Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">The temporary page you are looking for does not exist.</p>';
+      pageHtmlTitle.textContent = 'Page Not Found';
+      pageUpdatedAt.textContent = 'N/A';
+      return;
+    }
+
+    pageDisplayTitle.textContent = pageData.title;
+    pageHtmlTitle.textContent = pageData.title; // Update HTML <title>
+    // Directly set innerHTML as content is now expected to be HTML
+    pageDisplayContent.innerHTML = pageData.content || '';
+
+    // Re-attach event listeners for any custom collapsible sections within the loaded HTML
+    pageDisplayContent.querySelectorAll('.custom-collapsible-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        if (content && content.classList.contains('custom-collapsible-content')) {
+          content.classList.toggle('hidden');
+          // Toggle SVG rotation if an SVG exists within the header
+          header.querySelector('svg')?.classList.toggle('rotate-90');
+        }
+      });
+    });
+
+
+    if (pageData.updatedAt && pageData.updatedAt.toDate) {
+      pageUpdatedAt.textContent = pageData.updatedAt.toDate().toLocaleString();
+    } else {
+      pageUpdatedAt.textContent = 'N/A';
+    }
+
+    // Update URL without reloading the page
+    const newUrl = `${window.location.pathname}?id=${pageData.id}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+
+    // Update active tab button
+    document.querySelectorAll('.temp-page-nav button').forEach(btn => {
+      if (btn.dataset.pageId === pageData.id) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
       }
     });
+  }
+
+  /**
+   * Initializes the temporary page viewer.
+   */
+  async function initTemporaryPageViewer() {
+    // Ensure Firebase is initialized and ready before proceeding
+    await firebaseReadyPromise;
+
+    // Setup themes integration using the imported function
+    setupThemesFirebase(db, auth, appId);
+
+    // Load the navbar using the imported function
+    // Pass auth.currentUser for current login state and currentUser for detailed profile
+    await loadNavbar(auth.currentUser, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+    // Apply the initial theme based on user preference or default
+    let userThemePreference = DEFAULT_THEME_NAME;
+    if (currentUser && currentUser.themePreference) {
+      userThemePreference = currentUser.themePreference;
+    }
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, themeToApply);
+
+    allTemporaryPages = await fetchAllTemporaryPages();
+
+    if (allTemporaryPages.length === 0) {
+      pageDisplayTitle.textContent = 'No Pages Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin & Dev to create some.</p>';
+      pageHtmlTitle.textContent = 'No Pages';
+      pageUpdatedAt.textContent = 'N/A';
+      return;
+    }
+
+    // Create navigation tabs
+    tempPageNav.innerHTML = ''; // Clear existing content
+    allTemporaryPages.forEach(page => {
+      const button = document.createElement('button');
+      button.textContent = page.title;
+      button.dataset.pageId = page.id;
+      button.classList.add('temp-page-nav-button'); // Add a class for styling
+      // Optionally add an SVG icon for the collapsible arrow in the tab button itself
+      // button.innerHTML = `${page.title} <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+      button.addEventListener('click', () => displayPage(page));
+      tempPageNav.appendChild(button);
+    });
+
+    // Determine which page to display initially
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageIdFromUrl = urlParams.get('id');
+
+    let initialPage = null;
+    if (pageIdFromUrl) {
+      initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
+    }
+
+    // If no specific page from URL or page not found, display the first page
+    displayPage(initialPage || allTemporaryPages[0]);
+
+    // Update footer year
+    const currentYearElement = document.getElementById('current-year-temp-page');
+    if (currentYearElement) {
+      currentYearElement.textContent = new Date().getFullYear();
+    }
+  }
+
+  // Use DOMContentLoaded to ensure all HTML elements are available before script runs
+  document.addEventListener('DOMContentLoaded', initTemporaryPageViewer);
 </script>
-</body>
-</html>
