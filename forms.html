@@ -492,7 +492,7 @@
    * This function should be called once at application start.
    */
   async function setupFirebaseAndUser() {
-    console.log("DEBUG: setupFirebaseAndUser called.");
+    console.log("DEBUG forms.html (setupFirebaseAndUser): Function called.");
 
     if (getApps().length === 0) {
       let finalFirebaseConfig = firebaseConfig;
@@ -501,39 +501,39 @@
         if (typeof __firebase_config === 'string') {
           // Defensive check for the literal string "[object Object]"
           if (__firebase_config.trim() === '[object Object]') {
-            console.warn("WARN: __firebase_config provided as literal string '[object Object]'. This is likely an error in the environment passing an object that was implicitly stringified. Skipping parse and retaining hardcoded firebaseConfig.");
+            console.warn("WARN forms.html (setupFirebaseAndUser): __firebase_config provided as literal string '[object Object]'. This is likely an error in the environment passing an object that was implicitly stringified. Skipping parse and retaining hardcoded firebaseConfig.");
             finalFirebaseConfig = firebaseConfig; // Fallback to hardcoded
           } else {
             try {
               finalFirebaseConfig = JSON.parse(__firebase_config);
-              console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
+              console.log("DEBUG forms.html (setupFirebaseAndUser): __firebase_config provided as string and parsed successfully.");
             } catch (e) {
-              console.error("ERROR: Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
+              console.error("ERROR forms.html (setupFirebaseAndUser): Failed to parse __firebase_config string as JSON. Retaining hardcoded firebaseConfig.", e);
               finalFirebaseConfig = firebaseConfig; // Ensure fallback on parse error
             }
           }
         } else if (typeof __firebase_config === 'object') {
           finalFirebaseConfig = __firebase_config;
-          console.log("DEBUG: __firebase_config provided as object. Using directly.");
+          console.log("DEBUG forms.html (setupFirebaseAndUser): __firebase_config provided as object. Using directly.");
         } else {
-          console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Retaining hardcoded firebaseConfig.");
+          console.warn("DEBUG forms.html (setupFirebaseAndUser): __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Retaining hardcoded firebaseConfig.");
         }
       } else {
-        console.log("DEBUG: __firebase_config not provided. Using hardcoded firebaseConfig.");
+        console.log("DEBUG forms.html (setupFirebaseAndUser): __firebase_config not provided. Using hardcoded firebaseConfig.");
       }
 
       try {
         window.app = initializeApp(finalFirebaseConfig);
         window.auth = getAuth(window.app);
         window.db = getFirestore(window.app);
-        console.log("Firebase initialized successfully.");
+        console.log("DEBUG forms.html (setupFirebaseAndUser): Firebase initialized successfully.");
 
         const unsubscribe = onAuthStateChanged(window.auth, async (user) => {
-          console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+          console.log("DEBUG forms.html (onAuthStateChanged): Triggered. User:", user ? user.uid : "none");
           if (user) {
             let userProfile = await window.getUserProfileFromFirestore(user.uid);
             if (!userProfile) {
-              console.log("No profile found. Creating default.");
+              console.log("DEBUG forms.html (onAuthStateChanged): No profile found. Creating default.");
               userProfile = {
                 uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
                 email: user.email || null, photoURL: window.DEFAULT_PROFILE_PIC,
@@ -546,38 +546,38 @@
               userProfile.isAdmin = window.ADMIN_UIDS.includes(user.uid);
             }
             window.currentUser = userProfile;
-            console.log("DEBUG: currentUser set:", window.currentUser);
+            console.log("DEBUG forms.html (onAuthStateChanged): currentUser set:", window.currentUser);
           } else {
-            console.log("Auth State Changed: User logged out.");
+            console.log("DEBUG forms.html (onAuthStateChanged): User logged out. currentUser set to null.");
             window.currentUser = null;
           }
           firebaseReadyResolve();
-          unsubscribe();
+          unsubscribe(); // Unsubscribe after the first state change to avoid multiple calls to resolve
         });
 
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          console.log("DEBUG: Attempting to sign in with custom token.");
+          console.log("DEBUG forms.html (setupFirebaseAndUser): Attempting to sign in with custom token.");
           await signInWithCustomToken(window.auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token."))
+            .then(() => console.log("DEBUG forms.html (setupFirebaseAndUser): Signed in with custom token."))
             .catch((error) => {
-              console.error("ERROR: Custom token sign-in failed:", error);
+              console.error("ERROR forms.html (setupFirebaseAndUser): Custom token sign-in failed:", error);
             });
         } else {
-          console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
+          console.log("DEBUG forms.html (setupFirebaseAndUser): __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
         }
       } catch (e) {
-        console.error("Error initializing Firebase (initial block):", e);
-        firebaseReadyResolve();
+        console.error("ERROR forms.html (setupFirebaseAndUser): Error initializing Firebase (initial block):", e);
+        firebaseReadyResolve(); // Resolve even on error to prevent infinite loading
       }
     } else {
       window.app = getApp();
       window.db = getFirestore(window.app);
       window.auth = getAuth(window.app);
-      console.log("DEBUG: Firebase app already initialized. Re-using existing app instance.");
-      firebaseReadyResolve();
+      console.log("DEBUG forms.html (setupFirebaseAndUser): Firebase app already initialized. Re-using existing app instance.");
+      firebaseReadyResolve(); // Resolve if already initialized
     }
   }
-  setupFirebaseAndUser();
+  setupFirebaseAndUser(); // Call the setup function
 
   // --- utils.js content (embedded) ---
   const messageBox = document.getElementById('message-box');
@@ -728,12 +728,12 @@
     _auth = authInstance;
     _appId = appIdInstance;
     _themeSelect = document.getElementById('theme-select');
-    console.log("DEBUG: Themes Firebase setup complete.");
+    console.log("DEBUG forms.html (setupThemesFirebase): Themes Firebase setup complete.");
   };
 
   async function fetchCustomThemes() {
     if (!_db || !_auth || !_auth.currentUser) {
-      console.log("DEBUG: Not fetching custom themes - DB not ready or user not logged in.");
+      console.log("DEBUG forms.html (fetchCustomThemes): Not fetching custom themes - DB not ready or user not logged in.");
       return [];
     }
     const userId = _auth.currentUser.uid;
@@ -742,10 +742,10 @@
     try {
       const querySnapshot = await getDocs(customThemesColRef);
       const customThemes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("DEBUG: Fetched custom themes:", customThemes.length);
+      console.log("DEBUG forms.html (fetchCustomThemes): Fetched custom themes:", customThemes.length);
       return customThemes;
     } catch (error) {
-      console.error("Error fetching custom themes:", error);
+      console.error("ERROR forms.html (fetchCustomThemes): Error fetching custom themes:", error);
       return [];
     }
   }
@@ -761,9 +761,10 @@
     try {
       await setDoc(themeDocRef, theme);
       window.showMessageBox("Theme saved successfully!", false);
+      console.log("DEBUG forms.html (saveCustomTheme): Theme saved for user.", theme.id);
       return true;
     } catch (error) {
-      console.error("Error saving custom theme:", error);
+      console.error("ERROR forms.html (saveCustomTheme): Error saving custom theme:", error);
       window.showMessageBox("Failed to save theme.", true);
       return false;
     }
@@ -778,11 +779,12 @@
     // Use directly imported doc and deleteDoc
     const themeDocRef = doc(_db, `artifacts/${appId}/users/${userId}/custom_themes`, themeId);
     try {
-      await deleteDoc(themeDocRef); // Changed from firestoreDeleteDoc to deleteDoc
+      await deleteDoc(themeDocRef);
       window.showMessageBox("Theme deleted successfully!", false);
+      console.log("DEBUG forms.html (deleteCustomTheme): Theme deleted.", themeId);
       return true;
     } catch (error) {
-      console.error("Error deleting custom theme:", error);
+      console.error("ERROR forms.html (deleteCustomTheme): Error deleting custom theme:", error);
       window.showMessageBox("Failed to delete theme.", true);
       return false;
     }
@@ -796,16 +798,16 @@
       themeToApply = _allThemes.find(t => t.id === themeId);
     }
     if (!themeToApply) {
-      console.warn(`Theme '${themeId}' not found. Applying default theme.`);
+      console.warn(`WARN forms.html (applyTheme): Theme '${themeId}' not found. Applying default theme.`);
       themeToApply = predefinedThemes.find(t => t.id === window.DEFAULT_THEME_NAME) || predefinedThemes[0];
     }
     if (themeToApply && themeToApply.variables) {
-      for (const [key, value] of Object.entries(themeToApply.variables)) {
+      for (const [key, value] = Object.entries(themeToApply.variables)) {
         document.documentElement.style.setProperty(key, value);
       }
-      console.log(`Applied theme: ${themeToApply.name} (${themeToApply.id})`);
+      console.log(`DEBUG forms.html (applyTheme): Applied theme: ${themeToApply.name} (${themeToApply.id})`);
     } else {
-      console.error(`Failed to apply theme: ${themeId}. Variables not found.`);
+      console.error(`ERROR forms.html (applyTheme): Failed to apply theme: ${themeId}. Variables not found.`);
     }
   };
 
@@ -819,6 +821,9 @@
         option.textContent = theme.name;
         _themeSelect.appendChild(option);
       });
+      console.log("DEBUG forms.html (populateThemeSelect): Theme select populated with", _allThemes.length, "themes.");
+    } else {
+      console.log("DEBUG forms.html (populateThemeSelect): Theme select element not found.");
     }
   }
 
@@ -828,7 +833,9 @@
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG forms.html (DOMContentLoaded): Event fired.");
     await window.firebaseReadyPromise;
+    console.log("DEBUG forms.html (DOMContentLoaded): FirebaseReadyPromise resolved.");
     await populateThemeSelect();
     if (_themeSelect) {
       _themeSelect.addEventListener('change', async (event) => {
@@ -837,8 +844,10 @@
         if (window.auth.currentUser) {
           await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid),
             { themePreference: selectedThemeId }, { merge: true });
+          console.log("DEBUG forms.html (theme-select change): User theme preference saved.");
         }
       });
+      console.log("DEBUG forms.html (DOMContentLoaded): Theme select event listener attached.");
     }
   });
 
@@ -849,10 +858,10 @@
 
   window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
     const navbarPlaceholder = document.getElementById('navbar-placeholder');
-    console.log("DEBUG: loadNavbar function called.");
+    console.log("DEBUG forms.html (loadNavbar): Function called.");
 
     if (navbarPlaceholder) {
-      console.log("DEBUG: 'navbar-placeholder' element found.");
+      console.log("DEBUG forms.html (loadNavbar): 'navbar-placeholder' element found.");
       try {
         const navbarHtml = `
           <nav class="navbar-bg p-4 shadow-lg w-full">
@@ -871,19 +880,20 @@
           </nav>
         `;
         navbarPlaceholder.innerHTML = navbarHtml;
-        console.log("DEBUG: 'navbar.html' content injected successfully.");
+        console.log("DEBUG forms.html (loadNavbar): 'navbar.html' content injected successfully.");
 
         const signoutButton = document.getElementById('navbar-signout-btn');
         if (signoutButton) {
           signoutButton.addEventListener('click', async () => {
             try {
               await window.auth.signOut();
-              console.log("DEBUG: User signed out from navbar.");
+              console.log("DEBUG forms.html (navbar signout): User signed out.");
               window.location.href = 'sign.html';
             } catch (error) {
-              console.error("Error signing out:", error);
+              console.error("ERROR forms.html (navbar signout): Error signing out:", error);
             }
           });
+          console.log("DEBUG forms.html (loadNavbar): Signout button event listener attached.");
         }
 
         const navbarUserSettingsLink = document.getElementById('navbar-user-settings-link');
@@ -898,17 +908,17 @@
           if (navbarUserIcon) navbarUserIcon.src = user.photoURL || defaultProfilePic;
           if (navbarUserDisplayName) navbarUserDisplayName.textContent = user.displayName || 'Account';
           if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = user.uid ? user.uid.substring(0, 6) : '';
-          console.log("DEBUG: Navbar UI updated for logged-in user.");
+          console.log("DEBUG forms.html (loadNavbar): Navbar UI updated for logged-in user.");
         } else {
           if (navbarUserSettingsLink) navbarUserSettingsLink.style.display = 'none';
           if (navbarSigninLink) navbarSigninLink.style.display = 'flex';
           if (navbarUserIcon) navbarUserIcon.src = defaultProfilePic;
           if (navbarUserDisplayName) navbarUserDisplayName.textContent = 'Sign In';
           if (navbarUserIdDisplay) navbarUserIdDisplay.textContent = '';
-          console.log("DEBUG: Navbar UI updated for logged-out user.");
+          console.log("DEBUG forms.html (loadNavbar): Navbar UI updated for logged-out user.");
         }
       } catch (error) {
-        console.error("ERROR: Failed to load navigation bar:", error);
+        console.error("ERROR forms.html (loadNavbar): Failed to load navigation bar:", error);
         const manualNavbar = `
           <nav class="navbar-bg p-4 shadow-lg w-full">
             <div class="container mx-auto flex justify-between items-center">
@@ -920,107 +930,613 @@
           </nav>
         `;
         if (navbarPlaceholder) navbarPlaceholder.innerHTML = manualNavbar;
-        console.log("DEBUG: Fallback manual navbar injected due to error.");
+        console.log("DEBUG forms.html (loadNavbar): Fallback manual navbar injected due to error.");
       }
     } else {
-      console.error("ERROR: Navbar placeholder element not found.");
+      console.error("ERROR forms.html (loadNavbar): Navbar placeholder element not found.");
     }
   };
 
-  // --- Main page script for settings.html (embedded) ---
+  // --- Main page script for forms.html (embedded) ---
   // Firebase and other utility functions are now available via the window object
 
-  const profilePictureDisplay = document.getElementById('profile-picture-display');
-  const displayNameText = document.getElementById('display-name-text');
-  const emailText = document.getElementById('email-text');
-  const settingsContent = document.getElementById('settings-content');
-  const loginRequiredMessage = document.getElementById('login-required-message');
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const displayNameInput = document.getElementById('display-name-input');
-  const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
+  // DOM elements (re-declared for local scope and clarity)
+  const mainLoadingSpinner = document.getElementById('loading-spinner'); // Renamed to avoid confusion
+  const formsContentSection = document.getElementById('forms-content'); // Renamed for clarity
+  const mainLoginRequiredMessage = document.getElementById('login-required-message'); // Renamed for clarity
 
+  const createThemaForm = document.getElementById('create-thema-form');
+  const newThemaNameInput = document.getElementById('new-thema-name');
+  const newThemaDescriptionInput = document.getElementById('new-thema-description');
+  const themaList = document.getElementById('thema-list');
 
-  function showLoading() {
-    if (loadingSpinner) loadingSpinner.style.display = 'flex';
-    if (settingsContent) settingsContent.style.display = 'none';
-    if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
-    console.log("DEBUG: showLoading - Spinner visible, content hidden.");
+  const threadsSection = document.getElementById('threads-section');
+  const backToThematasBtn = document.getElementById('back-to-thematas-btn');
+  const currentThemaTitle = document.getElementById('current-thema-title');
+  const currentThemaDescription = document.getElementById('current-thema-description');
+  const createThreadForm = document.getElementById('create-thread-form');
+  const newThreadTitleInput = document.getElementById('new-thread-title');
+  const newThreadInitialCommentInput = document.getElementById('new-thread-initial-comment');
+  const threadList = document.getElementById('thread-list');
+
+  const commentsSection = document.getElementById('comments-section');
+  const backToThreadsBtn = document.getElementById('back-to-threads-btn');
+  const currentThreadTitle = document.getElementById('current-thread-title');
+  const currentThreadInitialComment = document.getElementById('current-thread-initial-comment');
+  const addCommentForm = document.getElementById('add-comment-form');
+  const newCommentContentInput = document.getElementById('new-comment-content');
+  const commentList = document.getElementById('comment-list');
+
+  let currentThemaId = null;
+  let currentThreadId = null;
+  let unsubscribeThemaComments = null;
+  let unsubscribeThreads = null; // To unsubscribe from thread snapshots
+  let unsubscribeThematas = null; // To unsubscribe from thema snapshots
+
+  function showMainLoading() {
+    if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'flex';
+    if (formsContentSection) formsContentSection.style.display = 'none';
+    if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+    console.log("DEBUG forms.html (showMainLoading): Spinner visible, content hidden.");
   }
 
-  function hideLoading() {
-    if (loadingSpinner) loadingSpinner.style.display = 'none';
-    console.log("DEBUG: hideLoading - Spinner hidden.");
+  function hideMainLoading() {
+    if (mainLoadingSpinner) mainLoadingSpinner.style.display = 'none';
+    console.log("DEBUG forms.html (hideMainLoading): Spinner hidden.");
   }
 
-  window.onload = async function() {
-    console.log("settings.html: window.onload fired.");
-    showLoading();
+  async function updateUIBasedOnAuthAndData() {
+    console.log("DEBUG forms.html (updateUIBasedOnAuthAndData): Called.");
+    hideMainLoading(); // Always hide spinner once data processing starts
 
-    await window.firebaseReadyPromise;
-    console.log("settings.html: Firebase is ready. Proceeding with auth state check.");
-
-    window.setupThemesFirebase(window.db, window.auth, window.appId);
-
-    onAuthStateChanged(window.auth, async (user) => {
-      console.log("settings.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
-
-      await window.loadNavbar(user, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
-
-      let userThemePreference = null;
-
-      if (user) {
-        const userProfile = await window.getUserProfileFromFirestore(user.uid);
-        console.log("settings.html: User Profile fetched:", userProfile);
-
-        if (userProfile) {
-          userThemePreference = userProfile.themePreference;
-
-          if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || window.DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
-          if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
-
-          if (settingsContent) settingsContent.style.display = 'block';
-          if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
-
-          if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
-          if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
-
-          if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
-            document.getElementById('last-login-time').textContent = `Last Login: ${new Date(userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : userProfile.lastLoginAt).toLocaleString()}`;
-          }
-          if (document.getElementById('account-creation-time') && userProfile.createdAt) {
-            document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
-          }
-
-        } else {
-          console.warn("settings.html: User profile not found in Firestore for UID:", user.uid, ". Displaying generic info for authenticated user.");
-          if (profilePictureDisplay) profilePictureDisplay.src = window.DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = user.displayName || 'Guest User (No Profile)';
-          if (emailText) emailText.textContent = user.email || 'N/A';
-
-          if (settingsContent) settingsContent.style.display = 'none';
-          if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+    if (window.auth.currentUser) {
+      console.log("DEBUG forms.html (updateUIBasedOnAuthAndData): User is logged in.", window.auth.currentUser.uid);
+      // Ensure currentUser profile is fully loaded before proceeding
+      let profileReady = false;
+      // Added a more robust wait for currentUser to be fully populated by firebase-init.js
+      // This is crucial because currentUser.displayName and .photoURL are used.
+      for (let i = 0; i < 20; i++) { // Max 2 seconds wait
+        if (window.currentUser && window.currentUser.uid === window.auth.currentUser.uid && typeof window.currentUser.displayName !== 'undefined') {
+          profileReady = true;
+          console.log("DEBUG forms.html (updateUIBasedOnAuthAndData): currentUser profile ready.");
+          break;
         }
-      } else {
-        console.log("settings.html: User logged out. Showing login required message.");
-        if (profilePictureDisplay) profilePictureDisplay.src = window.DEFAULT_PROFILE_PIC;
-        if (displayNameText) displayNameText.textContent = 'Guest User';
-        if (emailText) emailText.textContent = 'Sign in to view profile';
-        if (settingsContent) settingsContent.style.display = 'none';
-        if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
       }
 
-      const allThemes = await window.getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
-      window.applyTheme(themeToApply.id, themeToApply);
+      if (profileReady) {
+        if (formsContentSection) formsContentSection.style.display = 'block';
+        if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'none';
+        console.log("DEBUG forms.html (updateUIBasedOnAuthAndData): Forms content visible, login message hidden.");
+        renderThematas(); // Start real-time listening for thémata
+      } else {
+        console.warn("WARN forms.html (updateUIBasedOnAuthAndData): currentUser profile not fully loaded after waiting. Showing login message.");
+        window.showMessageBox("Failed to load user profile. Please try refreshing or logging in again.", true);
+        if (formsContentSection) formsContentSection.style.display = 'none';
+        if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
+      }
+    } else {
+      console.log("DEBUG forms.html (updateUIBasedOnAuthAndData): User is NOT logged in. Showing login message.");
+      if (formsContentSection) formsContentSection.style.display = 'none';
+      if (mainLoginRequiredMessage) mainLoginRequiredMessage.style.display = 'block';
+    }
+  }
 
-      hideLoading();
-      console.log("DEBUG: Current settingsContent display:", settingsContent.style.display);
-      console.log("DEBUG: Current loginRequiredMessage display:", loginRequiredMessage.style.display);
+  // --- Thémata Functions ---
+
+  async function addThema(name, description) {
+    if (!window.auth.currentUser) {
+      showMessageBox("You must be logged in to create a théma.", true);
+      return;
+    }
+    if (!window.db) {
+      showMessageBox("Database not initialized.", true);
+      return;
+    }
+
+    try {
+      const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
+      await addDoc(thematasCol, {
+        name: name,
+        description: description,
+        createdAt: serverTimestamp(),
+        createdBy: window.auth.currentUser.uid,
+        creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      });
+      showMessageBox("Théma created successfully!", false);
+      newThemaNameInput.value = '';
+      newThemaDescriptionInput.value = '';
+      console.log("DEBUG forms.html (addThema): New théma added.");
+    } catch (error) {
+      console.error("ERROR forms.html (addThema): Error creating théma:", error);
+      showMessageBox(`Error creating théma: ${error.message}`, true);
+    }
+  }
+
+  function renderThematas() {
+    console.log("DEBUG forms.html (renderThematas): Called. DB:", !!window.db);
+    if (unsubscribeThematas) {
+      unsubscribeThematas(); // Unsubscribe from previous listener
+      console.log("DEBUG forms.html (renderThematas): Unsubscribed from previous thémata listener.");
+    }
+    if (!window.db) {
+      themaList.innerHTML = '<li class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</li>';
+      return;
+    }
+
+    const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
+    const q = query(thematasCol, orderBy("createdAt", "desc"));
+
+    unsubscribeThematas = onSnapshot(q, (snapshot) => {
+      console.log("DEBUG forms.html (renderThematas): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+      themaList.innerHTML = ''; // Clear current list
+      if (snapshot.empty) {
+        themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const thema = doc.data();
+        const li = document.createElement('li');
+        li.classList.add('thema-item', 'card');
+        const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
+
+        li.innerHTML = `
+          <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+          <p class="thema-description mt-2">${thema.description}</p>
+          <p class="meta-info">Created by ${thema.creatorDisplayName || 'Unknown'} on ${createdAt}</p>
+          <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
+          ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+        `;
+        themaList.appendChild(li);
+      });
+
+      // Attach event listeners (re-attach after rendering new elements)
+      document.querySelectorAll('.view-threads-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const themaId = event.target.dataset.themaId;
+          const themaName = event.target.dataset.themaName;
+          const themaDescription = event.target.dataset.themaDescription;
+          console.log(`DEBUG forms.html (renderThematas): View Threads clicked for themaId: ${themaId}`);
+          displayThreadsForThema(themaId, themaName, themaDescription);
+        });
+      });
+
+      document.querySelectorAll('.delete-thema-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const themaId = event.target.dataset.themaId;
+          console.log(`DEBUG forms.html (renderThematas): Delete Théma clicked for themaId: ${themaId}`);
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
+          if (confirmed) {
+            await deleteThemaAndSubcollections(themaId);
+          } else {
+            showMessageBox("Théma deletion cancelled.", false);
+          }
+        });
+      });
+    }, (error) => {
+      console.error("ERROR forms.html (renderThematas): Error fetching thémata:", error);
+      themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
+    });
+  }
+
+  async function deleteThemaAndSubcollections(themaId) {
+    try {
+      console.log(`DEBUG forms.html (deleteThemaAndSubcollections): Deleting thema: ${themaId}`);
+      // Delete all comments within all threads of this théma
+      const threadsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+      const threadsSnapshot = await getDocs(threadsRef);
+      for (const threadDoc of threadsSnapshot.docs) {
+        const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
+        const commentsSnapshot = await getDocs(commentsRef);
+        for (const commentDoc of commentsSnapshot.docs) {
+          await deleteDoc(doc(commentsRef, commentDoc.id));
+        }
+        // After deleting comments, delete the thread itself
+        await deleteDoc(doc(threadsRef, threadDoc.id));
+      }
+      // Finally, delete the théma document
+      await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, themaId));
+
+      showMessageBox("Théma and all its content deleted successfully!", false);
+      console.log(`DEBUG forms.html (deleteThemaAndSubcollections): Thema ${themaId} and all content deleted.`);
+    } catch (error) {
+      console.error("ERROR forms.html (deleteThemaAndSubcollections): Error deleting théma and subcollections:", error);
+      showMessageBox(`Error deleting théma: ${error.message}`, true);
+    }
+  }
+
+
+  function displayThreadsForThema(themaId, themaName, themaDescription) {
+    currentThemaId = themaId;
+    currentThemaTitle.textContent = `Théma: ${themaName}`;
+    currentThemaDescription.textContent = themaDescription;
+
+    // Hide main content (thema list) and show threads section
+    document.getElementById('create-thema-section').style.display = 'none'; // Hide create thema form
+    themaList.style.display = 'none'; // Hide the thema list UL
+    document.querySelector('#main-content > h2').style.display = 'none'; // Hide "Community Thémata" title
+    document.querySelector('#main-content > h3').style.display = 'none'; // Hide "Existing Thémata" title
+
+    threadsSection.style.display = 'block';
+    commentsSection.style.display = 'none'; // Ensure comments section is hidden
+
+    console.log(`DEBUG forms.html (displayThreadsForThema): Displaying threads for thema: ${themaId}`);
+    renderThreads(); // Load threads for the selected théma
+  }
+
+  // --- Comment Threads Functions ---
+
+  async function addCommentThread(themaId, title, initialComment) {
+    if (!window.auth.currentUser) {
+      showMessageBox("You must be logged in to create a thread.", true);
+      return;
+    }
+    if (!window.db || !themaId) {
+      showMessageBox("Database or Théma not initialized.", true);
+      return;
+    }
+
+    try {
+      const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+      await addDoc(threadsCol, {
+        title: title,
+        initialComment: initialComment,
+        createdAt: serverTimestamp(),
+        createdBy: window.auth.currentUser.uid,
+        creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      });
+      showMessageBox("Thread created successfully!", false);
+      newThreadTitleInput.value = '';
+      newThreadInitialCommentInput.value = '';
+      console.log("DEBUG forms.html (addCommentThread): New thread added.");
+    } catch (error) {
+      console.error("ERROR forms.html (addCommentThread): Error creating thread:", error);
+      showMessageBox(`Error creating thread: ${error.message}`, true);
+    }
+  }
+
+  function renderThreads() {
+    console.log("DEBUG forms.html (renderThreads): Called. DB:", !!window.db, "currentThemaId:", currentThemaId);
+    if (unsubscribeThreads) {
+      unsubscribeThreads(); // Unsubscribe from previous listener
+      console.log("DEBUG forms.html (renderThreads): Unsubscribed from previous threads listener.");
+    }
+    if (!window.db || !currentThemaId) {
+      threadList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Théma to view threads.</li>';
+      return;
+    }
+
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`);
+    const q = query(threadsCol, orderBy("createdAt", "desc"));
+
+    unsubscribeThreads = onSnapshot(q, (snapshot) => {
+      console.log("DEBUG forms.html (renderThreads): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+      threadList.innerHTML = ''; // Clear current list
+      if (snapshot.empty) {
+        threadList.innerHTML = '<li class="card p-4 text-center">No threads yet. Be the first to start one!</li>';
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const thread = doc.data();
+        const li = document.createElement('li');
+        li.classList.add('thread-item', 'card');
+        const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+
+        li.innerHTML = `
+          <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
+          <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
+          <p class="meta-info">Started by ${thread.creatorDisplayName || 'Unknown'} on ${createdAt}</p>
+          <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green mt-4">View Comments</button>
+          ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
+        `;
+        threadList.appendChild(li);
+      });
+
+      // Attach event listeners for "View Comments" buttons
+      document.querySelectorAll('.view-comments-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const threadId = event.target.dataset.threadId;
+          const threadTitle = event.target.dataset.threadTitle;
+          const threadInitialComment = event.target.dataset.threadInitialComment;
+          console.log(`DEBUG forms.html (renderThreads): View Comments clicked for threadId: ${threadId}`);
+          displayCommentsForThread(threadId, threadTitle, threadInitialComment);
+        });
+      });
+
+      // Attach event listeners for "Delete Thread" buttons (only visible to admins)
+      document.querySelectorAll('.delete-thread-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const threadId = event.target.dataset.threadId;
+          console.log(`DEBUG forms.html (renderThreads): Delete Thread clicked for threadId: ${threadId}`);
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
+          if (confirmed) {
+            await deleteThreadAndSubcollection(currentThemaId, threadId);
+          } else {
+            showMessageBox("Thread deletion cancelled.", false);
+          }
+        });
+      });
+    }, (error) => {
+      console.error("ERROR forms.html (renderThreads): Error fetching threads:", error);
+      threadList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading threads: ${error.message}</li>`;
+    });
+  }
+
+  async function deleteThreadAndSubcollection(themaId, threadId) {
+    try {
+      console.log(`DEBUG forms.html (deleteThreadAndSubcollection): Deleting thread: ${threadId}`);
+      // Delete all comments within this thread
+      const commentsRef = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+      const commentsSnapshot = await getDocs(commentsRef);
+      for (const commentDoc of commentsSnapshot.docs) {
+        await deleteDoc(doc(commentsRef, commentDoc.id));
+      }
+      // After deleting comments, delete the thread document itself
+      await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId));
+
+      showMessageBox("Thread and its comments deleted successfully!", false);
+      console.log(`DEBUG forms.html (deleteThreadAndSubcollection): Thread ${threadId} and comments deleted.`);
+    } catch (error) {
+      console.error("ERROR forms.html (deleteThreadAndSubcollection): Error deleting thread and subcollection:", error);
+      showMessageBox(`Error deleting thread: ${error.message}`, true);
+    }
+  }
+
+
+  function displayCommentsForThread(threadId, threadTitle, threadInitialComment) {
+    currentThreadId = threadId;
+    currentThreadTitle.textContent = `Thread: ${threadTitle}`;
+    currentThreadInitialComment.textContent = threadInitialComment;
+
+    // Hide threads section and show comments section
+    threadsSection.style.display = 'none';
+    commentsSection.style.display = 'block';
+
+    console.log(`DEBUG forms.html (displayCommentsForThread): Displaying comments for thread: ${threadId}`);
+    renderComments(); // Load comments for the selected thread
+  }
+
+  // --- Comments Functions ---
+
+  async function addComment(themaId, threadId, content) {
+    if (!window.auth.currentUser) {
+      showMessageBox("You must be logged in to add a comment.", true);
+      return;
+    }
+    if (!window.db || !themaId || !threadId) {
+      showMessageBox("Database, Théma, or Thread not initialized.", true);
+      return;
+    }
+
+    try {
+      const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+      await addDoc(commentsCol, {
+        content: content,
+        createdAt: serverTimestamp(),
+        createdBy: window.auth.currentUser.uid,
+        creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      });
+      showMessageBox("Comment posted successfully!", false);
+      newCommentContentInput.value = '';
+      console.log("DEBUG forms.html (addComment): New comment added.");
+    } catch (error) {
+      console.error("ERROR forms.html (addComment): Error posting comment:", error);
+      showMessageBox(`Error posting comment: ${error.message}`, true);
+    }
+  }
+
+  function renderComments() {
+    console.log("DEBUG forms.html (renderComments): Called. DB:", !!window.db, "currentThemaId:", currentThemaId, "currentThreadId:", currentThreadId);
+    if (unsubscribeThemaComments) {
+      unsubscribeThemaComments(); // Unsubscribe from previous listener
+      console.log("DEBUG forms.html (renderComments): Unsubscribed from previous comments listener.");
+    }
+    if (!window.db || !currentThemaId || !currentThreadId) {
+      commentList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Thread to view comments.</li>';
+      return;
+    }
+
+    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`);
+    const q = query(commentsCol, orderBy("createdAt", "asc"));
+
+    unsubscribeThemaComments = onSnapshot(q, async (snapshot) => {
+      console.log("DEBUG forms.html (renderComments): onSnapshot callback fired. Changes:", snapshot.docChanges().length);
+      commentList.innerHTML = ''; // Clear current list
+      if (snapshot.empty) {
+        commentList.innerHTML = '<li class="card p-4 text-center">No comments yet. Be the first to comment!</li>';
+        return;
+      }
+
+      // Fetch all user profiles once to avoid repeated calls in loop
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const usersSnapshot = await getDocs(usersRef);
+      const userProfiles = {};
+      usersSnapshot.forEach(doc => {
+        const data = doc.data();
+        userProfiles[doc.id] = data.displayName || 'Unknown User';
+      });
+
+
+      snapshot.forEach((doc) => {
+        const comment = doc.data();
+        const li = document.createElement('li');
+        li.classList.add('comment-item', 'card');
+        const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+        const displayName = userProfiles[comment.createdBy] || comment.creatorDisplayName || 'Unknown User';
+
+        li.innerHTML = `
+          <p class="comment-content">${comment.content}</p>
+          <p class="meta-info">By ${displayName} on ${createdAt}
+          ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-comment-id="${doc.id}" class="delete-comment-btn btn-primary btn-red ml-2 text-xs">Delete</button>` : ''}
+          </p>
+        `;
+        commentList.appendChild(li);
+      });
+
+      // Attach event listeners for "Delete Comment" buttons (only visible to admins)
+      document.querySelectorAll('.delete-comment-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const commentId = event.target.dataset.commentId;
+          console.log(`DEBUG forms.html (renderComments): Delete Comment clicked for commentId: ${commentId}`);
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+          if (confirmed) {
+            await deleteComment(currentThemaId, currentThreadId, commentId);
+          } else {
+            showMessageBox("Comment deletion cancelled.", false);
+          }
+        });
+      });
+    }, (error) => {
+      console.error("ERROR forms.html (renderComments): Error fetching comments:", error);
+      commentList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading comments: ${error.message}</li>`;
+    });
+  }
+
+  async function deleteComment(themaId, threadId, commentId) {
+    try {
+      console.log(`DEBUG forms.html (deleteComment): Deleting comment: ${commentId}`);
+      await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId));
+      showMessageBox("Comment deleted successfully!", false);
+      console.log(`DEBUG forms.html (deleteComment): Comment ${commentId} deleted.`);
+    } catch (error) {
+      console.error("ERROR forms.html (deleteComment): Error deleting comment:", error);
+      showMessageBox(`Error deleting comment: ${error.message}`, true);
+    }
+  }
+
+
+  // --- Event Listeners and Initial Load ---
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Initializing page.");
+    showMainLoading();
+
+    // Wait for Firebase to be ready and user state determined
+    await window.firebaseReadyPromise;
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Firebase ready. Current User:", window.auth.currentUser ? window.auth.currentUser.uid : "None");
+
+    // Setup themes integration
+    window.setupThemesFirebase(window.db, window.auth, window.appId);
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Themes setup complete.");
+
+    // Load the navbar first
+    await window.loadNavbar(window.auth.currentUser, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Navbar loaded.");
+
+    // Apply the theme based on user preference or default
+    let userThemePreference = window.DEFAULT_THEME_NAME;
+    if (window.currentUser && window.currentUser.themePreference) {
+      userThemePreference = window.currentUser.themePreference;
+      console.log("DEBUG forms.html (DOMContentLoaded listener): User theme preference found:", userThemePreference);
+    } else if (window.currentUser) {
+      console.log("DEBUG forms.html (DOMContentLoaded listener): No specific theme preference for logged-in user, using default.");
+    } else {
+      console.log("DEBUG forms.html (DOMContentLoaded listener): No user logged in, using default theme.");
+    }
+    const allThemes = await window.getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
+    window.applyTheme(themeToApply.id, themeToApply);
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Theme applied.");
+
+    // This onAuthStateChanged ensures the UI reacts to login/logout events *after* initial load
+    // and triggers content loading based on authentication.
+    onAuthStateChanged(window.auth, (user) => {
+      console.log("DEBUG forms.html (onAuthStateChanged listener at end of DOMContentLoaded): User state changed. User:", user ? user.uid : "None");
+      updateUIBasedOnAuthAndData(); // Update UI and load content based on new auth state
     });
 
-    document.getElementById('current-year-settings').textContent = new Date().getFullYear().toString();
-  };
+    // Set current year for footer
+    const currentYearElement = document.getElementById('current-year-forms');
+    if (currentYearElement) {
+      currentYearElement.textContent = new Date().getFullYear().toString();
+      console.log("DEBUG forms.html (DOMContentLoaded listener): Footer year set.");
+    }
+
+    // Théma Form Submission
+    createThemaForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("DEBUG forms.html (createThemaForm submit): Form submitted.");
+      const name = newThemaNameInput.value.trim();
+      const description = newThemaDescriptionInput.value.trim();
+      if (name && description) {
+        await addThema(name, description);
+      } else {
+        showMessageBox("Please fill in both Théma Name and Description.", true);
+        console.log("DEBUG forms.html (createThemaForm submit): Missing name or description.");
+      }
+    });
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Create Théma form listener attached.");
+
+
+    // Back to Thémata button
+    backToThematasBtn?.addEventListener('click', () => {
+      console.log("DEBUG forms.html (backToThematasBtn click): Back to Thémata button clicked.");
+      threadsSection.style.display = 'none';
+      commentsSection.style.display = 'none';
+      if (document.getElementById('create-thema-section')) document.getElementById('create-thema-section').style.display = 'block';
+      if (themaList) themaList.style.display = 'block';
+      if (document.querySelector('#main-content > h2')) document.querySelector('#main-content > h2').style.display = 'block';
+      if (document.querySelector('#main-content > h3')) document.querySelector('#main-content > h3').style.display = 'block';
+
+      currentThemaId = null;
+      currentThreadId = null;
+      if (unsubscribeThemaComments) {
+        unsubscribeThemaComments();
+        unsubscribeThemaComments = null;
+      }
+      if (unsubscribeThreads) {
+        unsubscribeThreads();
+        unsubscribeThreads = null;
+      }
+      console.log("DEBUG forms.html (backToThematasBtn click): Returned to thémata list view.");
+    });
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Back to Thémata button listener attached.");
+
+    // Thread Form Submission
+    createThreadForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("DEBUG forms.html (createThreadForm submit): Form submitted.");
+      const title = newThreadTitleInput.value.trim();
+      const initialComment = newThreadInitialCommentInput.value.trim();
+      if (currentThemaId && title && initialComment) {
+        await addCommentThread(currentThemaId, title, initialComment);
+      } else {
+        showMessageBox("Please fill in both Thread Title and Initial Comment.", true);
+        console.log("DEBUG forms.html (createThreadForm submit): Missing title or initial comment.");
+      }
+    });
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Create Thread form listener attached.");
+
+
+    // Back to Threads button
+    backToThreadsBtn?.addEventListener('click', () => {
+      console.log("DEBUG forms.html (backToThreadsBtn click): Back to Threads button clicked.");
+      commentsSection.style.display = 'none';
+      threadsSection.style.display = 'block';
+      currentThreadId = null;
+      if (unsubscribeThemaComments) {
+        unsubscribeThemaComments();
+        unsubscribeThemaComments = null;
+      }
+      console.log("DEBUG forms.html (backToThreadsBtn click): Returned to threads list view.");
+    });
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Back to Threads button listener attached.");
+
+
+    // Comment Form Submission
+    addCommentForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      console.log("DEBUG forms.html (addCommentForm submit): Form submitted.");
+      const content = newCommentContentInput.value.trim();
+      if (currentThemaId && currentThreadId && content) {
+        await addComment(currentThemaId, currentThreadId, content);
+      } else {
+        showMessageBox("Please type your comment.", true);
+        console.log("DEBUG forms.html (addCommentForm submit): Missing comment content.");
+      }
+    });
+    console.log("DEBUG forms.html (DOMContentLoaded listener): Add Comment form listener attached.");
+  });
 </script>
-</body>
-</html>
