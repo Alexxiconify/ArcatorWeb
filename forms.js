@@ -681,6 +681,7 @@ function renderThemaBoxes(themasArr) {
 }
 
 function loadThreadsForThema(themaId) {
+  if (!themaId) return; // Prevent invalid Firestore path
   try {
     const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
     if (!window.db || !threadListDiv) {
@@ -742,7 +743,7 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, themaId)}</div>
           <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
@@ -1046,7 +1047,7 @@ function renderThreads() {
         <p class="thread-initial-comment mb-2">${renderMarkdown(thread.initialComment || '')}</p>
         <div class="flex items-center mb-2">
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id, null, currentThemaId)}</div>
           <div class="thread-actions ml-auto">
             ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
             ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
@@ -1581,9 +1582,7 @@ if (document.body) {
     if (!uid) return;
     let ref;
     if (type === 'thread') {
-      ref = themaId === 'global'
-        ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, id)
-        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, id);
+      ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, id);
     } else if (type === 'comment') {
       ref = themaId === 'global'
         ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, id)
