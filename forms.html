@@ -286,11 +286,25 @@
   <button id="tab-global" class="tab-btn btn-primary btn-purple">Global Threads</button>
 </div>
 
-<!-- Thémata Boxes Section (tabbed) -->
-<div id="thema-all-tab-content" style="display: none;">
-  <details class="form-container mb-12" open>
+<!-- Thémata Boxes Section (tabbed, collapsible/accordion style) -->
+<div id="thema-all-tab-content" style="display: block;">
+  <details class="form-container mb-4 w-full" open>
+    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Create New Théma (Subreddit)</summary>
+    <form id="create-thema-form" class="space-y-4">
+      <div>
+        <label for="new-thema-name" class="block text-text-primary text-sm font-bold mb-2">Théma Name:</label>
+        <input type="text" id="new-thema-name" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., General Discussion, Game Updates" required>
+      </div>
+      <div>
+        <label for="new-thema-description" class="block text-text-primary text-sm font-bold mb-2">Description:</label>
+        <textarea id="new-thema-description" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Briefly describe the purpose of this théma." required></textarea>
+      </div>
+      <button type="submit" id="create-thema-btn" class="btn-primary btn-blue w-full">Create Théma</button>
+    </form>
+  </details>
+  <details class="form-container mb-4 w-full" open>
     <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">All Thémata</summary>
-    <div id="thema-boxes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="thema-boxes" class="flex flex-col gap-4 w-full">
       <!-- Thémata boxes will be loaded here by JavaScript -->
       <div class="card p-4 text-center">Loading thémata...</div>
     </div>
@@ -331,24 +345,6 @@
     </div>
 
     <div id="forms-content" style="display: none;">
-      <h2 class="text-3xl font-bold mb-8 text-center">Community Thémata</h2>
-
-      <!-- Create New Théma Form -->
-      <div id="create-thema-section" class="form-container mb-12" style="display: none;"> <!-- Controlled by JS -->
-        <h3 class="text-2xl font-bold text-heading-card mb-4">Create New Théma (Subreddit)</h3>
-        <form id="create-thema-form" class="space-y-4">
-          <div>
-            <label for="new-thema-name" class="block text-text-primary text-sm font-bold mb-2">Théma Name:</label>
-            <input type="text" id="new-thema-name" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., General Discussion, Game Updates" required>
-          </div>
-          <div>
-            <label for="new-thema-description" class="block text-text-primary text-sm font-bold mb-2">Description:</label>
-            <textarea id="new-thema-description" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Briefly describe the purpose of this théma." required></textarea>
-          </div>
-          <button type="submit" id="create-thema-btn" class="btn-primary btn-blue w-full">Create Théma</button>
-        </form>
-      </div>
-
       <!-- Comment Thread Section (Initially hidden) -->
       <div id="comments-section" class="mt-12 p-6 card" style="display: none;">
         <button id="back-to-threads-btn" class="btn-primary btn-red mb-6">← Back to Threads</button>
@@ -510,6 +506,9 @@ function renderThemaBoxes(themas) {
     container.appendChild(box);
   });
 }
+
+// Make Thémata tab the default visible tab on page load
+showTab('thema-all');
 </script>
 </body>
 </html>
