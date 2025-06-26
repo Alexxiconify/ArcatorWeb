@@ -69,8 +69,8 @@ const defaultThemes = [
       '--color-modal-input-bg': '#1a202c',
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
-      '--color-heading-main': '#d53b3b', // red-400 equivalent for main headings
-      '--color-heading-card': '#63b3ed' // blue-300 equivalent for card headings
+      '--color-heading-main': '#F9FAFB', // Changed from red-equivalent to inviting light color
+      '--color-heading-card': '#93C5FD' // Changed from blue-300 equivalent to inviting light blue
     }
   },
   {
@@ -113,8 +113,8 @@ const defaultThemes = [
       '--color-modal-input-bg': '#edf2f7',
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
-      '--color-heading-main': '#e53e3e', // red-400 equivalent for main headings
-      '--color-heading-card': '#2b6cb0' // blue-300 equivalent for card headings
+      '--color-heading-main': '#1F2937', // Changed from red-equivalent to inviting dark grey/black
+      '--color-heading-card': '#3B82F6' // Changed from blue-300 equivalent to inviting blue
     }
   },
 ];
