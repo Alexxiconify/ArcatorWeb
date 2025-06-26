@@ -601,33 +601,161 @@ function renderThemaBoxes(themasArr) {
       <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
       <p class="thema-description mb-4">${thema.description || ''}</p>
       <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
+      <form class="create-thread-form mt-4" id="create-thread-form-${thema.id}">
+        <input type="text" class="thread-title-input input mb-2" placeholder="Thread Title" required />
+        <textarea class="thread-content-input input mb-2" placeholder="Thread content (Markdown supported)" required></textarea>
+        <button type="submit" class="btn-primary btn-blue">Create Thread</button>
+      </form>
     `;
     container.appendChild(box);
-    // Load threads for this thema and render inline
     loadThreadsForThema(thema.id);
+    // Thread creation handler
+    const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
+    threadForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const title = threadForm.querySelector('.thread-title-input').value.trim();
+      const content = threadForm.querySelector('.thread-content-input').value.trim();
+      if (!title || !content) return;
+      if (!window.auth.currentUser || !window.db) return;
+      const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+      await addDoc(threadsCol, {
+        title,
+        initialComment: content,
+        createdAt: serverTimestamp(),
+        createdBy: window.auth.currentUser.uid,
+        creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+      });
+      threadForm.reset();
+    };
   });
 }
 
 function loadThreadsForThema(themaId) {
   const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
   if (!window.db || !threadListDiv) return;
-  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+  // Special case: 'global' thema loads from global threads collection
+  const threadsCol = themaId === 'global'
+    ? collection(window.db, `artifacts/${window.appId}/public/data/threads`)
+    : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
   const q = query(threadsCol, orderBy('createdAt', 'desc'));
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(q, async (snapshot) => {
     threadListDiv.innerHTML = '';
     if (snapshot.empty) {
       threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
       return;
     }
+    // Collect user UIDs for profile lookup
+    const threadUids = new Set();
+    snapshot.forEach(doc => {
+      const thread = doc.data();
+      if (thread.createdBy) threadUids.add(thread.createdBy);
+    });
+    // Fetch user profiles
+    const userProfiles = {};
+    if (threadUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(threadUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData;
+        });
+      });
+    }
     snapshot.forEach(doc => {
       const thread = doc.data();
       const threadDiv = document.createElement('div');
       threadDiv.className = 'thread-item card p-3 mb-2';
+      const user = userProfiles[thread.createdBy] || {};
+      const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
+      const displayName = user.displayName || 'Unknown';
+      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
       threadDiv.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${profilePic}" class="w-8 h-8 rounded-full mr-2 object-cover" alt="Profile">
+          <span class="font-semibold">${displayName}</span>
+          <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+        </div>
         <div class="font-semibold">${thread.title}</div>
-        <div class="text-sm text-gray-400">${thread.initialComment || ''}</div>
+        <div class="text-sm text-gray-400 mb-2">${thread.initialComment || ''}</div>
+        <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
+        <form class="add-comment-form mt-2" id="add-comment-form-${doc.id}">
+          <textarea class="comment-content-input input mb-2" placeholder="Add a comment (Markdown supported)" required></textarea>
+          <button type="submit" class="btn-primary btn-green">Add Comment</button>
+        </form>
       `;
       threadListDiv.appendChild(threadDiv);
+      loadCommentsForThread(themaId, doc.id);
+      // Add comment handler
+      const commentForm = threadDiv.querySelector(`#add-comment-form-${doc.id}`);
+      commentForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const content = commentForm.querySelector('.comment-content-input').value.trim();
+        if (!content) return;
+        if (!window.auth.currentUser || !window.db) return;
+        const commentsCol = themaId === 'global'
+          ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${doc.id}/comments`)
+          : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${doc.id}/comments`);
+        await addDoc(commentsCol, {
+          content,
+          createdAt: serverTimestamp(),
+          createdBy: window.auth.currentUser.uid,
+          creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
+        });
+        commentForm.reset();
+      };
+    });
+  });
+}
+
+function loadCommentsForThread(themaId, threadId) {
+  const commentsDiv = document.getElementById(`thread-comments-${threadId}`);
+  if (!window.db || !commentsDiv) return;
+  const commentsCol = themaId === 'global'
+    ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`)
+    : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+  const q = query(commentsCol, orderBy('createdAt', 'asc'));
+  onSnapshot(q, async (snapshot) => {
+    commentsDiv.innerHTML = '';
+    if (snapshot.empty) {
+      commentsDiv.innerHTML = '<div class="text-xs text-gray-400">No comments yet.</div>';
+      return;
+    }
+    // Collect user UIDs for profile lookup
+    const commentUids = new Set();
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      if (comment.createdBy) commentUids.add(comment.createdBy);
+    });
+    // Fetch user profiles
+    const userProfiles = {};
+    if (commentUids.size > 0) {
+      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
+      const userQuery = query(usersRef, where('uid', 'in', Array.from(commentUids)));
+      await getDocs(userQuery).then(userSnapshot => {
+        userSnapshot.forEach(userDoc => {
+          const userData = userDoc.data();
+          userProfiles[userDoc.id] = userData;
+        });
+      });
+    }
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      const user = userProfiles[comment.createdBy] || {};
+      const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
+      const displayName = user.displayName || 'Unknown';
+      const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment-item card p-2 mb-1';
+      commentDiv.innerHTML = `
+        <div class="flex items-center mb-1">
+          <img src="${profilePic}" class="w-6 h-6 rounded-full mr-2 object-cover" alt="Profile">
+          <span class="font-semibold">${displayName}</span>
+          <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+        </div>
+        <div class="text-sm">${comment.content}</div>
+      `;
+      commentsDiv.appendChild(commentDiv);
     });
   });
 }
@@ -1306,8 +1434,8 @@ function showThemaTab() {
   renderThematas();
 }
 function showDmTab() {
-  if (window.formsContentSection) window.formsContentSection.style.display = 'none';
   if (window.themaAllTabContent) window.themaAllTabContent.style.display = 'none';
+  if (window.dmTabContent) window.dmTabContent.style.display = 'block';
   if (window.conversationsSection) window.conversationsSection.style.display = 'block';
   if (window.conversationMessagesSection) window.conversationMessagesSection.style.display = 'none';
   renderDMList();
