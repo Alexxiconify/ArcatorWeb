@@ -951,10 +951,64 @@ async function addThema(name, description, rules = []) {
   }
 }
 
-/**
- * Renders thémata from Firestore in real-time.
- */
+// --- CACHING UTILS ---
+function cacheSet(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) { /* ignore quota errors */ }
+}
+function cacheGet(key) {
+  try {
+    const val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : null;
+  } catch (e) { return null; }
+}
+
+// --- CACHED THEMES ---
+function renderThematasFromCache() {
+  const cached = cacheGet('arcator_themes_cache');
+  if (cached && Array.isArray(cached)) {
+    themaList.innerHTML = '';
+    cached.forEach(thema => {
+      const li = document.createElement('li');
+      li.classList.add('thema-item', 'card');
+      const createdAt = thema.createdAt ? new Date(thema.createdAt).toLocaleString() : 'N/A';
+      const creatorDisplayName = thema.authorDisplayName || 'Unknown';
+      li.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+        <p class="thema-description mt-2">${thema.description}</p>
+        <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
+        <button data-thema-id="${thema.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
+      `;
+      themaList.appendChild(li);
+    });
+  }
+}
+
+// --- CACHED THREADS ---
+function renderThreadsFromCache(themaId) {
+  const cached = cacheGet('arcator_threads_cache_' + themaId);
+  if (cached && Array.isArray(cached)) {
+    threadList.innerHTML = '';
+    cached.forEach(thread => {
+      const li = document.createElement('li');
+      li.classList.add('thread-item', 'card');
+      const createdAt = thread.createdAt ? new Date(thread.createdAt).toLocaleString() : 'N/A';
+      const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+      li.innerHTML = `
+        <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
+        <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
+        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+        <button data-thread-id="${thread.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments</button>
+      `;
+      threadList.appendChild(li);
+    });
+  }
+}
+
+// --- PATCH renderThematas ---
 function renderThematas() {
+  renderThematasFromCache(); // Show cached immediately
   console.log("Rendering thematas. DB:", !!window.db);
   if (unsubscribeThematas) {
     unsubscribeThematas();
@@ -996,8 +1050,10 @@ function renderThematas() {
       }).catch(error => console.error("Error fetching user profiles for thematas:", error));
     }
 
+    const themasArr = [];
     snapshot.forEach((doc) => {
       const thema = doc.data();
+      themasArr.push({ ...thema, id: doc.id });
       const li = document.createElement('li');
       li.classList.add('thema-item', 'card');
       const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
@@ -1035,6 +1091,8 @@ function renderThematas() {
         }
       });
     });
+
+    cacheSet('arcator_themes_cache', themasArr);
   }, (error) => {
     console.error("Error fetching thémata:", error);
     themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
@@ -1151,10 +1209,9 @@ async function addCommentThread(themaId, title, initialComment) {
   }
 }
 
-/**
- * Renders comment threads for the current thema in real-time.
- */
+// --- PATCH renderThreads ---
 function renderThreads() {
+  renderThreadsFromCache(currentThemaId); // Show cached immediately
   console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
   if (unsubscribeThreads) {
     unsubscribeThreads();
@@ -1196,8 +1253,10 @@ function renderThreads() {
       }).catch(error => console.error("Error fetching user profiles for threads:", error));
     }
 
+    const threadsArr = [];
     snapshot.forEach((doc) => {
       const thread = doc.data();
+      threadsArr.push({ ...thread, id: doc.id });
       const li = document.createElement('li');
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
@@ -1251,6 +1310,8 @@ function renderThreads() {
         }
       });
     });
+
+    cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
   }, (error) => {
     console.error("Error fetching threads:", error);
     threadList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading threads: ${error.message}</li>`;
