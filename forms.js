@@ -637,7 +637,7 @@ function loadThreadsForThema(themaId) {
             ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
-          <div class="text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
+          <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId)}</div>
           <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
@@ -728,7 +728,7 @@ function loadCommentsForThread(themaId, threadId) {
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
           ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
         </div>
-        <div class="text-sm">${renderMarkdown(comment.content)}</div>
+        <div class="comment-content text-sm">${renderMarkdown(comment.content)}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId)}</div>
       `;
       commentsDiv.appendChild(commentDiv);
@@ -1544,37 +1544,28 @@ function setupEditModal() {
 
 function openEditModal(type, context, oldContent, oldName = null, oldTitle = null) {
   currentEditContext = { type, ...context };
-  let container, contentArea, originalHTML;
+  let container, titleEl, descEl, originalTitle, originalDesc;
   if (type === 'thema') {
-    // For thema, still replace the whole box
+    // Only replace the title and description area
     const themaBoxes = document.querySelectorAll('.thema-item');
     container = Array.from(themaBoxes).find(box => {
       const editBtn = box.querySelector('.edit-thema-btn');
       return editBtn && editBtn.dataset.themaId === context.themaId;
     });
     if (!container) { console.error('Could not find container for edit modal:', { type, context }); return; }
-    originalHTML = container.innerHTML;
-    container.innerHTML = `
-      <div class="edit-form-inline bg-card p-4 rounded-lg border border-blue-300">
-        <h4 class="text-lg font-bold mb-3 text-blue-300">Edit Théma</h4>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-semibold mb-1">Name:</label>
-            <input type="text" id="edit-thema-name" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldName || ''}" placeholder="Théma Name" required />
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">Description:</label>
-            <textarea id="edit-thema-description" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Description">${oldContent || ''}</textarea>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-            <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-    const saveBtn = container.querySelector('.save-edit-btn');
-    const cancelBtn = container.querySelector('.cancel-edit-btn');
+    titleEl = container.querySelector('h3');
+    descEl = container.querySelector('.thema-description');
+    if (!titleEl || !descEl) { console.error('Could not find thema title/description for edit modal'); return; }
+    originalTitle = titleEl.innerHTML;
+    originalDesc = descEl.innerHTML;
+    titleEl.innerHTML = `<input type="text" id="edit-thema-name" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border" value="${oldName || ''}" placeholder="Théma Name" required />`;
+    descEl.innerHTML = `<textarea id="edit-thema-description" class="w-full px-3 py-2 border rounded bg-input-bg text-input-text border-input-border h-24" placeholder="Description">${oldContent || ''}</textarea>
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+        <button type="button" class="cancel-edit-btn bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      </div>`;
+    const saveBtn = descEl.querySelector('.save-edit-btn');
+    const cancelBtn = descEl.querySelector('.cancel-edit-btn');
     saveBtn.addEventListener('click', async () => {
       try {
         const newName = container.querySelector('#edit-thema-name').value.trim();
@@ -1582,7 +1573,8 @@ function openEditModal(type, context, oldContent, oldName = null, oldTitle = nul
         if (!newName) return;
         const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, context.themaId);
         await updateDoc(ref, { name: newName, description: newDesc });
-        container.innerHTML = originalHTML;
+        titleEl.innerHTML = originalTitle;
+        descEl.innerHTML = originalDesc;
         currentEditContext = null;
       } catch (error) {
         console.error('Error saving edit:', error);
@@ -1590,7 +1582,8 @@ function openEditModal(type, context, oldContent, oldName = null, oldTitle = nul
       }
     });
     cancelBtn.addEventListener('click', () => {
-      container.innerHTML = originalHTML;
+      titleEl.innerHTML = originalTitle;
+      descEl.innerHTML = originalDesc;
       currentEditContext = null;
     });
     return;
