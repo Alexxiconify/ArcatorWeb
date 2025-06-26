@@ -835,7 +835,8 @@ function renderThreads() {
         const threadId = event.target.dataset.threadId;
         const threadTitle = event.target.dataset.threadTitle;
         const threadInitialComment = event.target.dataset.threadInitialComment;
-        displayCommentsForThread(threadId, threadTitle, threadInitialComment);
+        const threadThemaId = event.target.dataset.themaId;
+        displayCommentsForThread(threadId, threadTitle, threadInitialComment, threadThemaId);
       });
     });
     document.querySelectorAll('.delete-thread-btn').forEach(button => {
@@ -883,15 +884,13 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
  * @param {string} threadTitle - The title of the selected thread.
  * @param {string} threadInitialComment - The initial comment of the selected thread.
  */
-function displayCommentsForThread(threadId, threadTitle, threadInitialComment) {
+function displayCommentsForThread(threadId, threadTitle, threadInitialComment, threadThemaId) {
   currentThreadId = threadId;
+  currentThemaId = threadThemaId || currentThemaId;
   currentThreadTitle.textContent = `Thread: ${threadTitle}`;
   currentThreadInitialComment.textContent = threadInitialComment;
-
   threadsSection.style.display = 'none';
   commentsSection.style.display = 'block';
-
-  console.log(`Displaying comments for thread: ${threadId}`);
   renderComments();
 }
 
@@ -2355,6 +2354,7 @@ function renderGlobalThreads() {
           const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
           await deleteDoc(threadRef);
           showMessageBox('Global thread deleted successfully!', false);
+          renderGlobalThreads();
         } else {
           showMessageBox('Thread deletion cancelled.', false);
         }
