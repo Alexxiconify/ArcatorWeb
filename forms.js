@@ -652,7 +652,7 @@ function renderThemaBoxes(themasArr) {
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
         </form>
-        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+        ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `<button class="edit-thema-btn btn-primary btn-blue mt-2 mr-2" title="Edit"><span class="material-icons">edit</span></button><button class="delete-thema-btn btn-primary btn-red mt-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -676,6 +676,7 @@ function renderThemaBoxes(themasArr) {
       };
       renderThemaAdminControls(thema, box);
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
+        box.querySelector('.edit-thema-btn').onclick = () => enableEditThemaInline(thema, box);
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
             await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
