@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Firebase configuration object
+// Firebase configuration object (replace with your actual config if different)
 const firebaseConfig = {
   apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
   authDomain: "arcator-web.firebaseapp.com",
@@ -14,24 +14,26 @@ const firebaseConfig = {
   measurementId: "G-DJXNT1L7CM"
 };
 
+// Determine the correct appId for Firestore paths
 const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-export const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id'; // Export appId
+export const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
+// Declare Firebase instances globally (within this module)
 export let app;
 export let auth;
 export let db;
 export let currentUser = null; // Stores the current authenticated user's profile data
 
-// Exporting constants for profile pic, theme, and admin UIDs
-export const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-export const DEFAULT_THEME_NAME = 'dark'; // Default theme name
+// Constants exported for use across modules
+export const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+export const DEFAULT_THEME_NAME = 'dark';
 export const ADMIN_UIDS = ['uOaZ8v76y2Q0X7PzJtU7Y3A2C1B4']; // Example admin UIDs
 
+// Promise to signal when Firebase has been initialized and is ready
 let firebaseReadyResolve;
 export const firebaseReadyPromise = new Promise((resolve) => {
   firebaseReadyResolve = resolve;
 });
-
 
 /**
  * Fetches user profile data from Firestore.
@@ -39,7 +41,7 @@ export const firebaseReadyPromise = new Promise((resolve) => {
  * @returns {Promise<Object|null>} - User profile data or null if not found.
  */
 export async function getUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise; // Ensure Firebase is initialized
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) {
     console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
     return null;
@@ -48,7 +50,7 @@ export async function getUserProfileFromFirestore(uid) {
   try {
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
-      return { uid: docSnap.id, ...docSnap.data() }; // Include UID in the returned object
+      return { uid: docSnap.id, ...docSnap.data() };
     }
   } catch (error) {
     console.error("Error fetching user profile from Firestore:", error);
@@ -63,15 +65,22 @@ export async function getUserProfileFromFirestore(uid) {
  * @returns {boolean} True if successful, false otherwise.
  */
 export async function setUserProfileInFirestore(uid, profileData) {
-  await firebaseReadyPromise;
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) { console.error("Firestore DB not initialized for setUserProfileInFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     await setDoc(userDocRef, profileData, { merge: true });
-    if (currentUser && currentUser.uid === uid) { currentUser = { ...currentUser, ...profileData }; }
+    // Update the global currentUser object if this is the currently logged-in user
+    if (auth.currentUser && auth.currentUser.uid === uid) {
+      // Re-fetch the updated profile to ensure currentUser is fully synchronized
+      currentUser = await getUserProfileFromFirestore(uid);
+    }
     console.log("DEBUG: User profile updated in Firestore for UID:", uid);
     return true;
-  } catch (error) { console.error("Error updating user profile in Firestore:", error); return false; }
+  } catch (error) {
+    console.error("Error updating user profile in Firestore:", error);
+    return false;
+  }
 }
 
 /**
@@ -80,28 +89,30 @@ export async function setUserProfileInFirestore(uid, profileData) {
  * @returns {boolean} True if successful, false otherwise.
  */
 export async function deleteUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise;
+  await firebaseReadyPromise; // Ensure Firebase is ready
   if (!db) { console.error("Firestore DB not initialized for deleteUserProfileFromFirestore."); return false; }
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     await deleteDoc(userDocRef);
     console.log("DEBUG: User profile deleted from Firestore for UID:", uid);
     return true;
-  } catch (error) { console.error("Error deleting user profile from Firestore:", error); return false; }
+  } catch (error) {
+    console.error("Error deleting user profile from Firestore:", error);
+    return false;
+  }
 }
-
 
 /**
  * Initializes Firebase, sets up authentication, and resolves firebaseReadyPromise.
- * This function should be called once at application start.
+ * This function is called immediately when the module loads.
  */
 async function setupFirebaseAndUser() {
   console.log("DEBUG: setupFirebaseAndUser called.");
 
-  // Check if Firebase app is already initialized to prevent "duplicate-app" error
   if (getApps().length === 0) {
-    let finalFirebaseConfig = firebaseConfig; // Start with the hardcoded config
+    let finalFirebaseConfig = firebaseConfig;
 
+    // Attempt to parse __firebase_config from the Canvas environment
     if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
       if (typeof __firebase_config === 'string') {
         try {
@@ -121,28 +132,39 @@ async function setupFirebaseAndUser() {
     }
 
     try {
+      // Initialize Firebase app and services
       app = initializeApp(finalFirebaseConfig);
       auth = getAuth(app);
       db = getFirestore(app);
       console.log("Firebase initialized successfully.");
 
-      // Critical: Ensure auth state is settled before resolving firebaseReadyPromise
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+      // Resolve firebaseReadyPromise as soon as Firebase instances are available
+      firebaseReadyResolve();
+
+      // Listen for auth state changes to update currentUser and handle initial profile creation
+      onAuthStateChanged(auth, async (user) => {
+        console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
         if (user) {
+          // Check if user profile exists in Firestore, create if not
           let userProfile = await getUserProfileFromFirestore(user.uid);
           if (!userProfile) {
             console.log("No profile found. Creating default.");
             userProfile = {
-              uid: user.uid, displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
-              email: user.email || null, photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
-              createdAt: new Date(), lastLoginAt: new Date(), themePreference: DEFAULT_THEME_NAME,
-              isAdmin: ADMIN_UIDS.includes(user.uid)
+              uid: user.uid,
+              displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
+              email: user.email || null,
+              photoURL: DEFAULT_PROFILE_PIC,
+              createdAt: new Date(),
+              lastLoginAt: new Date(),
+              themePreference: DEFAULT_THEME_NAME,
+              isAdmin: ADMIN_UIDS.includes(user.uid),
+              handle: user.uid.substring(0, 6) // Default handle from UID
             };
             await setUserProfileInFirestore(user.uid, userProfile);
           } else {
+            // Update last login time and isAdmin status for existing profiles
             await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
-            userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Update isAdmin status
+            userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
           }
           currentUser = userProfile;
           console.log("DEBUG: currentUser set:", currentUser);
@@ -150,33 +172,26 @@ async function setupFirebaseAndUser() {
           console.log("Auth State Changed: User logged out.");
           currentUser = null;
         }
-        firebaseReadyResolve(); // Resolve the promise AFTER currentUser is set or confirmed null
-        unsubscribe(); // Unsubscribe after the first state change to prevent multiple resolutions
+        // Do NOT unsubscribe here, as other parts of the app might need to react to auth changes.
       });
 
-      // Attempt initial sign-in: either with custom token.
-      // DO NOT explicitly call signInAnonymously here. The Canvas environment
-      // will automatically sign in an anonymous user if no custom token is provided
-      // and no user is logged in. This avoids redundant anonymous sign-ins.
+      // Attempt to sign in with custom token if provided (e.g., from Canvas environment)
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
         console.log("DEBUG: Attempting to sign in with custom token.");
         await signInWithCustomToken(auth, __initial_auth_token)
             .then(() => console.log("DEBUG: Signed in with custom token."))
             .catch((error) => {
               console.error("ERROR: Custom token sign-in failed:", error);
-              // No explicit anonymous fallback here. Rely on platform's default.
             });
       } else {
         console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
-        // The onAuthStateChanged listener above will handle the actual user state.
       }
-
     } catch (e) {
       console.error("Error initializing Firebase (initial block):", e);
-      firebaseReadyResolve(); // Resolve immediately on error to prevent infinite loading
+      firebaseReadyResolve(); // Resolve on error to prevent infinite loading state
     }
   } else {
-    // If app already exists, retrieve it and set global variables
+    // If app already exists (e.g., hot reload in dev environment), reuse existing instances
     app = getApp();
     db = getFirestore(app);
     auth = getAuth(app);

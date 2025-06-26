@@ -1,35 +1,24 @@
-// utils.js: Provides common utility functions like custom message boxes and confirmation modals.
+// utils.js - Provides general utility functions
 
-// Import necessary Firebase variables from firebase-init.js for any Firebase-related utils
-// NOTE: `db` and `appId` are needed if utils functions directly interact with Firestore.
-// If not, these imports can be removed from here to keep utils more independent.
-// For now, including them to align with a broader app structure where utils might grow to need them.
-import { db, appId, firebaseReadyPromise } from './firebase-init.js'; // Ensure these are correctly exported from firebase-init.js
-
-
-// Immediately attempt to hide the custom confirm modal as soon as the script loads
-const customConfirmModalOnLoad = document.getElementById('custom-confirm-modal');
-if (customConfirmModalOnLoad) {
-  customConfirmModalOnLoad.style.display = 'none';
-  console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
-}
-
+const messageBox = document.getElementById('message-box');
 let messageBoxTimeout;
 
 /**
- * Displays a custom message box for user feedback.
+ * Displays a temporary message box at the bottom center of the screen.
  * @param {string} message - The message to display.
- * @param {boolean} isError - True for error message (red background), false for success message (green background).
+ * @param {boolean} isError - If true, styles the message as an error; otherwise, as success.
  */
-export function showMessageBox(message, isError) {
-  const messageBox = document.getElementById('message-box');
+export function showMessageBox(message, isError = false) {
   if (!messageBox) {
-    console.error("MessageBox element not found. Message:", message);
+    console.error("Message box element not found. Cannot show message.");
     return;
   }
-  // Clear any existing timeout to prevent previous messages from being hidden prematurely
-  clearTimeout(messageBoxTimeout);
+  // Clear any existing timeout to allow new messages to display immediately
+  if (messageBoxTimeout) {
+    clearTimeout(messageBoxTimeout);
+  }
 
+  // Set message content and appropriate class for styling
   messageBox.textContent = message;
   messageBox.className = 'message-box'; // Reset classes
   if (isError) {
@@ -37,98 +26,102 @@ export function showMessageBox(message, isError) {
   } else {
     messageBox.classList.add('success');
   }
-  messageBox.style.opacity = '0'; // Start with opacity 0 for fade-in
-  messageBox.style.display = 'block';
 
-  // Force reflow to ensure transition works
-  void messageBox.offsetWidth;
+  // Show the message box
+  messageBox.classList.add('show');
 
-  messageBox.style.opacity = '1'; // Fade in
-
-  // Hide the message box after 5 seconds
+  // Hide the message box after 3 seconds
   messageBoxTimeout = setTimeout(() => {
-    messageBox.style.opacity = '0'; // Fade out
-    messageBox.addEventListener('transitionend', function handler() {
-      messageBox.style.display = 'none';
-      messageBox.removeEventListener('transitionend', handler);
-    }, { once: true });
-  }, 5000);
-}
-
-/**
- * Shows a custom confirmation modal and returns a Promise that resolves to true (Yes) or false (Cancel).
- * @param {string} message - The main message to display in the confirmation modal.
- * @param {string} subMessage - An optional secondary message.
- * @returns {Promise<boolean>} A promise that resolves to true if 'Yes' is clicked, false otherwise.
- */
-export function showCustomConfirm(message, subMessage = '') {
-  console.log("DEBUG: showCustomConfirm called with message:", message);
-  const customConfirmModal = document.getElementById('custom-confirm-modal');
-  const confirmMessageElement = document.getElementById('confirm-message');
-  const confirmSubMessageElement = document.getElementById('confirm-submessage');
-  const confirmYesBtn = document.getElementById('confirm-yes');
-  const confirmNoBtn = document.getElementById('confirm-no');
-  const closeButton = customConfirmModal ? customConfirmModal.querySelector('.close-button') : null;
-
-
-  if (!customConfirmModal || !confirmMessageElement || !confirmYesBtn || !confirmNoBtn || !closeButton) {
-    console.error("Confirmation modal elements not found. Falling back to browser's confirm.");
-    // Fallback to browser's native confirm if custom elements are missing
-    return Promise.resolve(window.confirm(message + (subMessage ? `\n\n${subMessage}` : '')));
-  }
-
-  confirmMessageElement.textContent = message;
-  confirmSubMessageElement.textContent = subMessage;
-  customConfirmModal.style.display = 'flex'; // Make the modal visible
-
-  return new Promise(resolve => {
-    const cleanup = () => {
-      confirmYesBtn.removeEventListener('click', onYes);
-      confirmNoBtn.removeEventListener('click', onNo);
-      closeButton.removeEventListener('click', onNo);
-      customConfirmModal.removeEventListener('click', onClickOutside);
-      customConfirmModal.style.display = 'none'; // Hide modal after resolution
-    };
-
-    const onYes = () => { resolve(true); cleanup(); };
-    const onNo = () => { resolve(false); cleanup(); };
-    const onClickOutside = (event) => {
-      if (event.target === customConfirmModal) { // Check if click was on the overlay, not the content
-        resolve(false);
-        cleanup();
-      }
-    };
-
-    confirmYesBtn.addEventListener('click', onYes);
-    confirmNoBtn.addEventListener('click', onNo);
-    closeButton.addEventListener('click', onNo); // Allow closing with the 'x' button
-    customConfirmModal.addEventListener('click', onClickOutside); // Close if clicking outside the modal content
-  });
+    messageBox.classList.remove('show');
+  }, 3000);
 }
 
 /**
  * Sanitizes a string to be suitable for a user handle.
- * Converts to lowercase and removes any characters not allowed (alphanumeric, underscore, dot, hyphen).
- * @param {string} input - The raw string to sanitize.
- * @returns {string} The sanitized handle string.
+ * Allows only alphanumeric characters, dots, and underscores, converting to lowercase.
+ * @param {string} input - The raw input string.
+ * @returns {string} The sanitized handle.
  */
 export function sanitizeHandle(input) {
-  return input.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+  // Convert to lowercase and remove any characters that are not alphanumeric, dot, or underscore.
+  return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
 
-// --- DEBUGGING INITIAL MODAL STATE --
+// Custom confirmation modal elements
+const customConfirmModal = document.getElementById('custom-confirm-modal');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmSubmessage = document.getElementById('confirm-submessage');
+const confirmYesButton = document.getElementById('confirm-yes');
+const confirmNoButton = document.getElementById('confirm-no');
+const closeButton = document.querySelector('.custom-confirm-modal .close-button');
+let resolveConfirmPromise; // Stores the resolve function for the confirmation promise
+
+/**
+ * Displays a custom confirmation modal to the user.
+ * @param {string} message - The main message for the confirmation.
+ * @param {string} submessage - An optional sub-message for more details.
+ * @returns {Promise<boolean>} A promise that resolves to true if 'Yes' is clicked, false otherwise.
+ */
+export function showCustomConfirm(message, submessage = '') {
+  if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
+    console.error("Custom confirmation modal elements not found. Cannot show confirm dialog.");
+    // Resolve immediately to prevent blocking if elements are missing
+    return Promise.resolve(false);
+  }
+
+  // Set messages
+  confirmMessage.textContent = message;
+  confirmSubmessage.textContent = submessage;
+
+  // Show the modal
+  customConfirmModal.style.display = 'flex';
+
+  // Return a new promise that resolves when the user interacts with the modal
+  return new Promise((resolve) => {
+    resolveConfirmPromise = resolve; // Store resolve function for later use
+
+    // Clear previous event listeners to prevent multiple firings
+    confirmYesButton.onclick = null;
+    confirmNoButton.onclick = null;
+    closeButton.onclick = null;
+    customConfirmModal.onclick = null; // Clear overlay click listener
+
+    // Set new event listeners
+    confirmYesButton.onclick = () => {
+      customConfirmModal.style.display = 'none';
+      resolveConfirmPromise(true);
+    };
+
+    confirmNoButton.onclick = () => {
+      customConfirmModal.style.display = 'none';
+      resolveConfirmPromise(false);
+    };
+
+    closeButton.onclick = () => {
+      customConfirmModal.style.display = 'none';
+      resolveConfirmPromise(false);
+    };
+
+    // Close modal if clicking outside the modal content
+    customConfirmModal.onclick = (event) => {
+      if (event.target === customConfirmModal) {
+        customConfirmModal.style.display = 'none';
+        resolveConfirmPromise(false);
+      }
+    };
+  });
+}
+
+// Ensure the modal is hidden on initial DOM load if it somehow became visible
 document.addEventListener('DOMContentLoaded', () => {
-  const customConfirmModal = document.getElementById('custom-confirm-modal');
   if (customConfirmModal) {
     console.log("DEBUG-INIT: custom-confirm-modal element found.");
-    const currentDisplay = window.getComputedStyle(customConfirmModal).display;
-    if (currentDisplay !== 'none') {
-      console.log(`DEBUG-INIT: custom-confirm-modal is VISIBLE by default! Current display: ${currentDisplay}. Forcibly hiding it.`);
-      customConfirmModal.style.display = 'none'; // Attempt to hide it forcefully if it's visible by default
+    // Force hide on load to prevent flickering or incorrect display state
+    if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
+      customConfirmModal.style.display = 'none';
+      console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
     } else {
       console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
     }
-  } else {
-    console.error("DEBUG-INIT: custom-confirm-modal element not found.");
   }
 });
