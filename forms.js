@@ -1219,7 +1219,23 @@ document.addEventListener('DOMContentLoaded', async function() {
   window.addCommentForm = document.getElementById('add-comment-form');
   window.newCommentContentInput = document.getElementById('new-comment-content');
   window.commentList = document.getElementById('comment-list');
-  // ... assign any other required DOM elements here ...
+  // DM/Conversation elements
+  window.dmList = document.getElementById('dm-list');
+  window.conversationsSection = document.getElementById('dm-tab-content');
+  window.conversationsList = document.getElementById('dm-list');
+  window.conversationMessagesSection = document.getElementById('conversation-messages-section');
+  window.conversationMessages = document.getElementById('conversation-messages');
+  window.conversationInput = document.getElementById('conversation-input');
+  window.conversationSendBtn = document.getElementById('conversation-send-btn');
+  window.startConversationBtn = document.getElementById('start-conversation-btn');
+
+  // Tab switching logic
+  const tabThemataAll = document.getElementById('tab-themata-all');
+  const tabDms = document.getElementById('tab-dms');
+  if (tabThemataAll) tabThemataAll.onclick = showThemaTab;
+  if (tabDms) tabDms.onclick = showDmTab;
+  // Default to Thémata tab
+  showThemaTab();
 
   showMainLoading();
   initializeUtilityElements();
@@ -1233,18 +1249,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
   await window.applyTheme(themeToApply.id, themeToApply);
   updateUIBasedOnAuthAndData();
-});
-
-// --- DOM Elements for DMs and Conversations ---
-document.addEventListener('DOMContentLoaded', function() {
-  window.dmList = document.getElementById('dm-list');
-  window.conversationsSection = document.getElementById('dm-tab-content');
-  window.conversationsList = document.getElementById('dm-list');
-  window.conversationMessagesSection = document.getElementById('conversation-messages-section');
-  window.conversationMessages = document.getElementById('conversation-messages');
-  window.conversationInput = document.getElementById('conversation-input');
-  window.conversationSendBtn = document.getElementById('conversation-send-btn');
-  window.startConversationBtn = document.getElementById('start-conversation-btn');
 });
 
 // Patch showDmTab and showThemaTab for null checks and correct section toggling
