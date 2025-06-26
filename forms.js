@@ -708,25 +708,16 @@ function displayThreadsForThema(themaId, themaName, themaDescription) {
   currentThemaTitle.textContent = `Théma: ${themaName}`;
   currentThemaDescription.textContent = themaDescription;
 
-  document.getElementById('create-thema-section').style.display = 'none';
-  themaList.style.display = 'none';
-  document.querySelector('#main-content > h2').style.display = 'none';
-  document.querySelector('#main-content > h3').style.display = 'none';
-
-  threadsSection.style.display = 'block';
-  commentsSection.style.display = 'none';
-
-  // Show create thread form for all logged-in users
-  const createThreadSection = document.getElementById('create-thread-section');
-  if (createThreadSection) {
-    if (window.auth && window.auth.currentUser) {
-      createThreadSection.style.display = 'block';
-    } else {
-      createThreadSection.style.display = 'none';
-    }
+  // Hide only the create thema section, keep the thema list visible for context
+  if (document.getElementById('create-thema-section')) {
+    document.getElementById('create-thema-section').style.display = 'none';
   }
-
-  console.log(`Displaying threads for thema: ${themaId}`);
+  // Show threads section for this thema
+  if (threadsSection) threadsSection.style.display = 'block';
+  if (commentsSection) commentsSection.style.display = 'none';
+  // Optionally, scroll to threads section for better UX
+  threadsSection.scrollIntoView({ behavior: 'smooth' });
+  // Render threads for this thema
   renderThreads();
 }
 
