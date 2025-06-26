@@ -679,14 +679,16 @@ function loadThreadsForThema(themaId) {
           <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-thread-btn btn-primary btn-orange ml-auto mr-1" data-thread-id="${doc.id}">Edit</button><button class="delete-thread-btn btn-primary btn-red" data-thread-id="${doc.id}">Delete</button>` : ''}
+          ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-thread-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
         </div>
         <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
         <div class="text-sm text-gray-300 mb-2">${thread.initialComment || ''}</div>
+        <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
         <div class="thread-comments" id="thread-comments-${doc.id}">Loading comments...</div>
-        <form class="add-comment-form mt-2 flex gap-2" id="add-comment-form-${doc.id}">
-          <textarea class="comment-content-input input flex-1" placeholder="Add a comment (Markdown supported)" required></textarea>
-          <button type="submit" class="btn-primary btn-green">Add Comment</button>
+        <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${doc.id}">
+          <label class="block text-sm font-semibold mb-1" for="comment-content-input-${doc.id}">Add a comment</label>
+          <textarea id="comment-content-input-${doc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
+          <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">Add Comment</button>
         </form>
       `;
       threadListDiv.appendChild(threadDiv);
@@ -761,15 +763,16 @@ function loadCommentsForThread(themaId, threadId) {
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
       const canEdit = window.currentUser && (window.currentUser.uid === comment.createdBy || window.currentUser.isAdmin);
       const commentDiv = document.createElement('div');
-      commentDiv.className = 'comment-item card p-2 mb-1 bg-card flex flex-col gap-1';
+      commentDiv.className = 'comment-item card p-3 mb-2 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
         <div class="flex items-center gap-2 mb-1">
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn btn-primary btn-orange ml-auto mr-1" data-comment-id="${doc.id}">Edit</button><button class="delete-comment-btn btn-primary btn-red" data-comment-id="${doc.id}">Delete</button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button class="delete-comment-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>` : ''}
         </div>
         <div class="text-sm">${comment.content}</div>
+        <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', doc.id, threadId, themaId)}</div>
       `;
       commentsDiv.appendChild(commentDiv);
       // Edit/Delete comment handlers
@@ -979,13 +982,7 @@ function renderThreads() {
         <p class="thread-initial-comment mb-2">${thread.initialComment}</p>
         <div class="flex items-center mb-2">
           <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
-          <div class="reactions-container flex items-center">
-            ${(thread.reactions ? Object.entries(thread.reactions).map(([emoji, data]) => {
-              const hasReacted = data.users.includes(window.auth.currentUser?.uid);
-              return createReactionButton(emoji, data.count, hasReacted, doc.id, 'thread').outerHTML;
-            }).join('') : '')}
-            <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm ml-2" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
-          </div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', doc.id)}</div>
           <div class="thread-actions ml-auto">
             ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
             ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id=\"${doc.id}\" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
@@ -1533,3 +1530,35 @@ function showDmTab() {
 
 let unsubscribeThematas = null;
 let unsubscribeDmList = null;
+
+// Render reactions bar
+function renderReactions(reactions, type, id, threadId, themaId) {
+  const emojis = ['👍','❤️','😂','😮','😢','👎'];
+  return emojis.map(emoji => {
+    const count = reactions[emoji] || 0;
+    return `<button class="reaction-btn" data-type="${type}" data-id="${id}" data-emoji="${emoji}" data-thread-id="${threadId||''}" data-thema-id="${themaId||''}">${emoji} <span class="reaction-count">${count}</span></button>`;
+  }).join('');
+}
+
+// Reaction event delegation
+if (document.body) {
+  document.body.addEventListener('click', async function(e) {
+    const btn = e.target.closest('.reaction-btn');
+    if (!btn) return;
+    const { type, id, emoji, threadId, themaId } = btn.dataset;
+    let ref;
+    if (type === 'thread') {
+      ref = themaId === 'global'
+        ? doc(window.db, `artifacts/${window.appId}/public/data/threads`, id)
+        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, id);
+    } else if (type === 'comment') {
+      ref = themaId === 'global'
+        ? doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, id)
+        : doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, id);
+    }
+    if (!ref) return;
+    await updateDoc(ref, {
+      [`reactions.${emoji}`]: increment(1)
+    });
+  });
+}
