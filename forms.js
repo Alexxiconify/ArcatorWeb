@@ -1633,7 +1633,6 @@ function enableEditInline(type, themaId, threadId, commentId, oldContent, contai
 
 // Add edit/delete for thema (admin/creator only)
 function renderThemaAdminControls(thema, box) {
-  if (!window.currentUser || (!window.currentUser.isAdmin && window.currentUser.uid !== thema.createdBy)) return;
   const controls = document.createElement('div');
   controls.className = 'thema-admin-controls flex gap-2 mt-2';
   controls.innerHTML = `
