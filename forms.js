@@ -436,19 +436,6 @@ window.getAvailableThemes = async function() {
 import { loadNavbar } from './navbar.js';
 
 /**
- * Loads the navigation bar dynamically.
- * @param {object|null} user - The current authenticated user object, or null.
- * @param {string} defaultProfilePic - URL for the default profile picture.
- * @param {string} defaultThemeName - The default theme name.
- */
-export async function loadNavbar(auth, userProfile, defaultProfilePic, defaultThemeName) {
-  // Fetch navbar.html or build HTML here
-  // Set user info, profile pic, etc.
-  // Apply theme using the centralized theme logic
-  // (call applyTheme from themes.js)
-}
-
-/**
  * Displays the main loading spinner and hides content sections.
  */
 function showMainLoading() {
