@@ -6,14 +6,9 @@ import {
   auth,
   db,
   appId,
-  getCurrentUser,
-  firebaseReadyPromise, // Import firebaseReadyPromise
-  getUserProfileFromFirestore,
-  updateUserProfileInFirestore,
-  deleteUserProfileFromFirestore, // New: Import delete function
-  ADMIN_UIDS,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME
+  firebaseReadyPromise,
+  DEFAULT_THEME_NAME,
+  updateUserProfileInFirestore
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
@@ -189,7 +184,7 @@ if (saveUserChangesBtn) {
     const newDisplayName = editUserDisplayNameInput.value.trim();
     const newTheme = editUserThemeSelect.value;
     console.log(`DEBUG: Saving User Changes for UID: ${currentEditingUserUid}, Display Name: ${newDisplayName}, Theme: ${newTheme}`);
-    const success = await updateUserProfileInFirestore(currentEditingUserUid, { // Use imported function
+    const success = (currentEditingUserUid, { // Use imported function
       displayName: newDisplayName,
       themePreference: newTheme
     });
@@ -427,9 +422,6 @@ async function updateAdminUI(user) {
   if (user) {
     console.log("DEBUG: Authenticated User UID:", user.uid);
     console.log("DEBUG: Authenticated User Email:", user.email);
-
-    // Get the full currentUser object which includes isAdmin from firebase-init.js
-    const currentUserData = getCurrentUser();
 
     // Fetch user profile to get theme preference and then apply
     const userProfile = await getUserProfileFromFirestore(user.uid);

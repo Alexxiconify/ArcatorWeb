@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Settings - Arcator.co.uk</title>
+  <title>User Account - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter and others -->
@@ -12,8 +12,106 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to settings.css for page-specific styling (now external) -->
+  <!-- Link to settings.css for page-specific styling -->
   <link rel="stylesheet" href="settings.css">
+  <!-- Add any specific CSS for sign-in/up forms if not already covered by settings.css -->
+  <style>
+    /* Basic styles for auth forms for consistency, if not in settings.css */
+    .auth-card {
+      @apply bg-gray-700 p-8 rounded-lg shadow-xl max-w-md mx-auto my-8;
+    }
+    .auth-input-field {
+      @apply mb-4;
+    }
+    .auth-input-field label {
+      @apply block text-gray-300 text-sm font-bold mb-2;
+    }
+    .auth-input-field input[type="email"],
+    .auth-input-field input[type="password"],
+    .auth-input-field input[type="text"] {
+      @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-600 border-gray-600 text-gray-100;
+    }
+    .auth-btn-primary {
+      @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline w-full;
+    }
+    .auth-link {
+      @apply inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800;
+    }
+
+    /* Message box styling (from utils.js) */
+    .message-box {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .message-box.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .message-box.error {
+      background-color: #dc3545;
+    }
+
+    .message-box.success {
+      background-color: #28a745;
+    }
+
+    /* Custom confirm modal styling (from utils.js) */
+    .custom-confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      display: none; /* Hidden by default */
+    }
+
+    .custom-confirm-modal .modal-content {
+      background-color: #2d3748;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      max-width: 400px;
+      width: 90%;
+      color: #e2e8f0;
+    }
+
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
+      color: #e2e8f0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -22,27 +120,95 @@
 <!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Settings</h1>
-    <p class="text-xl md:text-2xl mb-8">Personalize your Arcator.co.uk experience.</p>
+    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Welcome</h1>
+    <p id="hero-subtitle" class="text-xl md:text-2xl mb-8">Manage your account or sign in</p>
   </div>
 </section>
 
-<!-- Settings Section -->
+<!-- Main Content Area -->
 <section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
     <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
+    <!-- Sign In Section -->
+    <div id="signin-section" class="auth-card" style="display: none;">
+      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Sign In</h2>
+      <form id="signin-form">
+        <div class="auth-input-field">
+          <label for="signin-email">Email Address</label>
+          <input type="email" id="signin-email" placeholder="email@example.com">
+        </div>
+        <div class="auth-input-field">
+          <label for="signin-password">Password</label>
+          <input type="password" id="signin-password" placeholder="********">
+        </div>
+        <div class="mb-6">
+          <button type="button" id="signin-btn" class="auth-btn-primary">Sign In</button>
+        </div>
+        <div class="flex items-center justify-between text-center">
+          <a href="#" id="go-to-signup-link" class="auth-link">Don't have an account? Sign Up</a>
+          <a href="#" id="go-to-forgot-password-link" class="auth-link">Forgot Password?</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sign Up Section -->
+    <div id="signup-section" class="auth-card" style="display: none;">
+      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Sign Up</h2>
+      <form id="signup-form">
+        <div class="auth-input-field">
+          <label for="signup-display-name">Display Name</label>
+          <input type="text" id="signup-display-name" placeholder="Your Display Name">
+        </div>
+        <div class="auth-input-field">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" placeholder="email@example.com">
+        </div>
+        <div class="auth-input-field">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" placeholder="********">
+        </div>
+        <div class="auth-input-field">
+          <label for="signup-confirm-password">Confirm Password</label>
+          <input type="password" id="signup-confirm-password" placeholder="********">
+        </div>
+        <div class="mb-6">
+          <button type="button" id="signup-btn" class="auth-btn-primary">Sign Up</button>
+        </div>
+        <div class="text-center">
+          <a href="#" id="go-to-signin-link" class="auth-link">Already have an account? Sign In</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Forgot Password Section -->
+    <div id="forgot-password-section" class="auth-card" style="display: none;">
+      <h2 class="text-3xl font-bold text-red-400 text-center mb-6">Reset Password</h2>
+      <form id="forgot-password-form">
+        <div class="auth-input-field">
+          <label for="forgot-password-email">Email Address</label>
+          <input type="email" id="forgot-password-email" placeholder="email@example.com">
+        </div>
+        <div class="mb-6">
+          <button type="button" id="reset-password-btn" class="auth-btn-primary">Send Reset Email</button>
+        </div>
+        <div class="text-center">
+          <a href="#" id="go-to-signin-from-forgot-link" class="auth-link">Back to Sign In</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Settings Content Section -->
     <div id="settings-content" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Manage Your Profile & Preferences</h2>
+      <h2 class="text-4xl font-bold text-blue-400 text-center mb-10">Manage Your Profile & Preferences</h2>
 
       <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
         <!-- Profile Picture and Display Name Card -->
         <div class="settings-card bg-gray-700 shadow-xl">
           <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Profile Information</h3>
           <div class="flex flex-col items-center mb-6">
-            <!-- Updated onerror to use DEFAULT_PROFILE_PIC variable directly -->
             <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large" src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV" alt="Profile Picture" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;">
             <p id="display-name-text" class="text-gray-200 text-2xl font-semibold">Loading...</p>
             <p id="email-text" class="text-gray-400 text-sm">Loading...</p>
@@ -173,9 +339,9 @@
       </div>
     </div>
 
-    <!-- Message for unauthenticated users -->
+    <!-- Message for unauthenticated users (fallback, if not using auth forms) -->
     <div id="login-required-message" class="text-center text-gray-300 text-xl py-12" style="display: none;">
-      <p>Please <a href="sign.html" class="text-blue-500 hover:underline">sign in</a> to view and manage your settings.</p>
+      <p>Please <a href="#" id="link-to-signin" class="text-blue-500 hover:underline">sign in</a> to view and manage your settings.</p>
     </div>
 
   </div>
@@ -198,7 +364,7 @@
 <!-- Footer Section -->
 <footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-settings"></span> Arcator.co.uk. All rights reserved.</p>
+    <p>© 2012 - <span id="current-year"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
       <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
@@ -214,13 +380,13 @@
 <script type="module">
   // --- Firebase SDK Imports (Consolidated at the very top of the module) ---
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {
     getFirestore,
     doc,
     getDoc,
     setDoc,
-    deleteDoc, // Standard deleteDoc
+    deleteDoc,
     collection,
     getDocs
   } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -459,8 +625,6 @@
   });
 
   // --- themes.js content (embedded) ---
-  // No longer importing Firestore functions here, they are imported at the top of the main script.
-
   let _db;
   let _auth;
   let _appId;
@@ -504,7 +668,6 @@
       return [];
     }
     const userId = _auth.currentUser.uid;
-    // Use directly imported collection and getDocs
     const customThemesColRef = collection(_db, `artifacts/${_appId}/users/${userId}/custom_themes`);
     try {
       const querySnapshot = await getDocs(customThemesColRef);
@@ -523,7 +686,6 @@
       return false;
     }
     const userId = _auth.currentUser.uid;
-    // Use directly imported doc and setDoc
     const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, theme.id);
     try {
       await setDoc(themeDocRef, theme);
@@ -542,10 +704,9 @@
       return false;
     }
     const userId = _auth.currentUser.uid;
-    // Use directly imported doc and deleteDoc
     const themeDocRef = doc(_db, `artifacts/${_appId}/users/${userId}/custom_themes`, themeId);
     try {
-      await deleteDoc(themeDocRef); // Changed from firestoreDeleteDoc to deleteDoc
+      await deleteDoc(themeDocRef);
       window.showMessageBox("Theme deleted successfully!", false);
       return true;
     } catch (error) {
@@ -595,8 +756,11 @@
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
-    await window.firebaseReadyPromise;
-    await populateThemeSelect();
+    // This DOMContentLoaded listener will run once the entire HTML is parsed.
+    // The main window.onload handles Firebase readiness and initial theme application.
+    // This is primarily for things that rely on _themeSelect being present immediately.
+    // However, since window.onload now fully manages the flow, this part might be redundant or simplified.
+    // It's kept for now but its role might evolve.
     if (_themeSelect) {
       _themeSelect.addEventListener('change', async (event) => {
         const selectedThemeId = event.target.value;
@@ -609,11 +773,8 @@
     }
   });
 
-  // --- navbar.js content (embedded) ---
-  // Using global window properties for dependencies
-  // window.applyTheme, window.getAvailableThemes are already exposed by themes.js
-  // window.auth, window.db, window.appId, window.getUserProfileFromFirestore, window.firebaseReadyPromise, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME are exposed by firebase-init.js
 
+  // --- navbar.js content (embedded) ---
   window.loadNavbar = async function(user, defaultProfilePic, defaultThemeName) {
     const navbarPlaceholder = document.getElementById('navbar-placeholder');
     console.log("DEBUG: loadNavbar function called.");
@@ -626,12 +787,12 @@
             <div class="container mx-auto flex justify-between items-center">
               <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
               <div class="flex items-center space-x-4">
-                <a href="settings.html" id="navbar-user-settings-link" class="flex items-center text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'flex' : 'none'};">
+                <a href="user.html" id="navbar-user-settings-link" class="flex items-center text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'flex' : 'none'};">
                   <img id="navbar-user-icon" src="${user && user.photoURL ? user.photoURL : defaultProfilePic}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
                   <span id="navbar-user-display-name">${user && user.displayName ? user.displayName : 'Loading...'}</span>
                   <span id="navbar-user-id-display" class="text-xs text-gray-500 ml-2">${user ? user.uid.substring(0, 6) : ''}</span>
                 </a>
-                <a href="sign.html" id="navbar-signin-link" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'none' : 'flex'};">Sign In</a>
+                <a href="user.html" id="navbar-signin-link" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'none' : 'flex'};">Sign In</a>
                 <button id="navbar-signout-btn" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium" style="display: ${user ? 'flex' : 'none'};">Sign Out</button>
               </div>
             </div>
@@ -646,7 +807,7 @@
             try {
               await window.auth.signOut();
               console.log("DEBUG: User signed out from navbar.");
-              window.location.href = 'sign.html';
+              window.location.href = 'user.html';
             } catch (error) {
               console.error("Error signing out:", error);
             }
@@ -681,7 +842,7 @@
             <div class="container mx-auto flex justify-between items-center">
               <a href="index.html" class="text-gray-50 text-2xl font-bold">Arcator.co.uk</a>
               <div>
-                <a href="sign.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
+                <a href="user.html" class="text-gray-300 hover:text-gray-50 px-3 py-2 rounded-md text-lg font-medium">Sign In / Account</a>
               </div>
             </div>
           </nav>
@@ -694,9 +855,173 @@
     }
   };
 
-  // --- Main page script for settings.html (embedded) ---
-  // Firebase and other utility functions are now available via the window object
+  // --- settings.js content (embedded - originally for sign.html, now integrated) ---
+  // DOM Elements - Using variables from the main script scope if defined above, otherwise get here
+  const signInSection = document.getElementById('signin-section');
+  const signUpSection = document.getElementById('signup-section');
+  const forgotPasswordSection = document.getElementById('forgot-password-section');
 
+  const signInEmailInput = document.getElementById('signin-email');
+  const signInPasswordInput = document.getElementById('signin-password');
+  const signInButton = document.getElementById('signin-btn');
+  const goToSignUpLink = document.getElementById('go-to-signup-link');
+  const goToForgotPasswordLink = document.getElementById('go-to-forgot-password-link');
+
+  const signUpEmailInput = document.getElementById('signup-email');
+  const signUpPasswordInput = document.getElementById('signup-password');
+  const signUpConfirmPasswordInput = document.getElementById('signup-confirm-password');
+  const signUpDisplayNameInput = document.getElementById('signup-display-name');
+  const signUpButton = document.getElementById('signup-btn');
+  const goToSignInLink = document.getElementById('go-to-signin-link');
+
+  const forgotPasswordEmailInput = document.getElementById('forgot-password-email');
+  const resetPasswordButton = document.getElementById('reset-password-btn');
+  const goToSignInFromForgotLink = document.getElementById('go-to-signin-from-forgot-link');
+
+
+  /**
+   * Shows a specific section and hides others within the main content area.
+   * This is a central control for navigation between auth forms and settings.
+   * @param {string} sectionId - The ID of the section to make visible.
+   */
+  function showSection(sectionId) {
+    if (signInSection) signInSection.style.display = 'none';
+    if (signUpSection) signUpSection.style.display = 'none';
+    if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
+    if (document.getElementById('settings-content')) document.getElementById('settings-content').style.display = 'none';
+    if (document.getElementById('login-required-message')) document.getElementById('login-required-message').style.display = 'none';
+
+    const sectionToShow = document.getElementById(sectionId);
+    if (sectionToShow) {
+      sectionToShow.style.display = 'block';
+      console.log(`DEBUG: Showing section: ${sectionId}`);
+
+      // Update hero banner based on section
+      const heroTitle = document.getElementById('hero-title');
+      const heroSubtitle = document.getElementById('hero-subtitle');
+      if (heroTitle && heroSubtitle) {
+        switch (sectionId) {
+          case 'signin-section':
+            heroTitle.textContent = 'Welcome Back!';
+            heroSubtitle.textContent = 'Sign in to your account.';
+            break;
+          case 'signup-section':
+            heroTitle.textContent = 'Join Arcator.co.uk!';
+            heroSubtitle.textContent = 'Create your new account.';
+            break;
+          case 'forgot-password-section':
+            heroTitle.textContent = 'Forgot Your Password?';
+            heroSubtitle.textContent = 'Reset it here.';
+            break;
+          case 'settings-content':
+            heroTitle.textContent = 'User Settings';
+            heroSubtitle.textContent = 'Personalize your Arcator.co.uk experience.';
+            break;
+          case 'login-required-message':
+            heroTitle.textContent = 'Access Restricted';
+            heroSubtitle.textContent = 'Please sign in to continue.';
+            break;
+          default:
+            heroTitle.textContent = 'Welcome';
+            heroSubtitle.textContent = 'Manage your account or sign in.';
+            break;
+        }
+      }
+    } else {
+      console.warn(`Attempted to show unknown section: ${sectionId}`);
+    }
+    hideLoading();
+  }
+
+
+  // Handler for user sign-in
+  window.handleSignIn = async function() {
+    const email = signInEmailInput.value;
+    const password = signInPasswordInput.value;
+    if (!email || !password) {
+      window.showMessageBox('Please enter both email and password.', true);
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(window.auth, email, password); // Use window.auth
+      window.showMessageBox('Signed in successfully! Redirecting...', false);
+      // UI will update via onAuthStateChanged
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      window.showMessageBox(`Sign-in failed: ${error.message}`, true);
+    }
+  };
+
+  // Handler for user sign-up
+  window.handleSignUp = async function() {
+    const email = signUpEmailInput.value;
+    const password = signUpPasswordInput.value;
+    const confirmPassword = signUpConfirmPasswordInput.value;
+    const displayName = window.sanitizeHandle(signUpDisplayNameInput.value); // Use window.sanitizeHandle
+
+    if (!email || !password || !confirmPassword || !displayName) {
+      window.showMessageBox('Please fill in all fields.', true);
+      return;
+    }
+    if (password.length < 6) {
+      window.showMessageBox('Password should be at least 6 characters.', true);
+      return;
+    }
+    if (password !== confirmPassword) {
+      window.showMessageBox('Passwords do not match.', true);
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(window.auth, email, password); // Use window.auth
+      const user = userCredential.user;
+
+      // Set display name and photoURL
+      await updateProfile(user, {
+        displayName: displayName,
+        photoURL: window.DEFAULT_PROFILE_PIC // Use default profile picture
+      });
+
+      // Store user profile in Firestore
+      const userProfileData = {
+        uid: user.uid,
+        displayName: displayName,
+        email: email,
+        photoURL: window.DEFAULT_PROFILE_PIC,
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        themePreference: window.DEFAULT_THEME_NAME,
+        isAdmin: window.ADMIN_UIDS.includes(user.uid)
+      };
+      await window.setUserProfileInFirestore(user.uid, userProfileData); // Use window.setUserProfileInFirestore
+
+      window.showMessageBox('Account created successfully! Please sign in.', false);
+      showSection('signin-section'); // Go back to sign-in after successful registration
+    } catch (error) {
+      console.error('Sign-up error:', error);
+      window.showMessageBox(`Sign-up failed: ${error.message}`, true);
+    }
+  };
+
+  // Handler for password reset
+  window.handlePasswordReset = async function() {
+    const email = forgotPasswordEmailInput.value;
+    if (!email) {
+      window.showMessageBox('Please enter your email address.', true);
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(window.auth, email); // Use window.auth
+      window.showMessageBox('Password reset email sent! Check your inbox.', false);
+      showSection('signin-section');
+    } catch (error) {
+      console.error('Password reset error:', error);
+      window.showMessageBox(`Password reset failed: ${error.message}`, true);
+    }
+  };
+
+
+  // --- Main page logic (originally from settings.html inline script) ---
   const profilePictureDisplay = document.getElementById('profile-picture-display');
   const displayNameText = document.getElementById('display-name-text');
   const emailText = document.getElementById('email-text');
@@ -711,6 +1036,9 @@
     if (loadingSpinner) loadingSpinner.style.display = 'flex';
     if (settingsContent) settingsContent.style.display = 'none';
     if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+    if (signInSection) signInSection.style.display = 'none';
+    if (signUpSection) signUpSection.style.display = 'none';
+    if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
     console.log("DEBUG: showLoading - Spinner visible, content hidden.");
   }
 
@@ -720,24 +1048,25 @@
   }
 
   window.onload = async function() {
-    console.log("settings.html: window.onload fired.");
+    console.log("user.html: window.onload fired.");
     showLoading();
 
     await window.firebaseReadyPromise;
-    console.log("settings.html: Firebase is ready. Proceeding with auth state check.");
+    console.log("user.html: Firebase is ready. Proceeding with auth state check.");
 
     window.setupThemesFirebase(window.db, window.auth, window.appId);
 
     onAuthStateChanged(window.auth, async (user) => {
-      console.log("settings.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
+      console.log("user.html: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
 
       await window.loadNavbar(user, window.DEFAULT_PROFILE_PIC, window.DEFAULT_THEME_NAME);
 
       let userThemePreference = null;
 
       if (user) {
+        // User is signed in. Show settings content.
         const userProfile = await window.getUserProfileFromFirestore(user.uid);
-        console.log("settings.html: User Profile fetched:", userProfile);
+        console.log("user.html: User Profile fetched:", userProfile);
 
         if (userProfile) {
           userThemePreference = userProfile.themePreference;
@@ -745,9 +1074,6 @@
           if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || window.DEFAULT_PROFILE_PIC;
           if (displayNameText) displayNameText.textContent = userProfile.displayName || user.displayName || 'N/A';
           if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
-
-          if (settingsContent) settingsContent.style.display = 'block';
-          if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
 
           if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
           if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
@@ -758,35 +1084,132 @@
           if (document.getElementById('account-creation-time') && userProfile.createdAt) {
             document.getElementById('account-creation-time').textContent = `Account Created: ${new Date(userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : userProfile.createdAt).toLocaleString()}`;
           }
-
+          showSection('settings-content'); // Show settings after login
         } else {
-          console.warn("settings.html: User profile not found in Firestore for UID:", user.uid, ". Displaying generic info for authenticated user.");
-          if (profilePictureDisplay) profilePictureDisplay.src = window.DEFAULT_PROFILE_PIC;
-          if (displayNameText) displayNameText.textContent = user.displayName || 'Guest User (No Profile)';
-          if (emailText) emailText.textContent = user.email || 'N/A';
-
-          if (settingsContent) settingsContent.style.display = 'none';
-          if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+          console.warn("user.html: User profile not found in Firestore for UID:", user.uid, ". Displaying login required message.");
+          showSection('login-required-message'); // Show login required as fallback
         }
       } else {
-        console.log("settings.html: User logged out. Showing login required message.");
-        if (profilePictureDisplay) profilePictureDisplay.src = window.DEFAULT_PROFILE_PIC;
-        if (displayNameText) displayNameText.textContent = 'Guest User';
-        if (emailText) emailText.textContent = 'Sign in to view profile';
-        if (settingsContent) settingsContent.style.display = 'none';
-        if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+        // User is signed out. Show sign-in form.
+        console.log("user.html: User logged out. Showing sign-in section.");
+        showSection('signin-section'); // Show sign-in if logged out
       }
 
       const allThemes = await window.getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === window.DEFAULT_THEME_NAME);
       window.applyTheme(themeToApply.id, themeToApply);
 
+      // Event Listeners for auth section navigation
+      if (goToSignUpLink) goToSignUpLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signup-section'); });
+      if (goToSignInLink) goToSignInLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+      if (goToForgotPasswordLink) goToForgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showSection('forgot-password-section'); });
+      if (goToSignInFromForgotLink) goToSignInFromForgotLink.addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+      if (document.getElementById('link-to-signin')) document.getElementById('link-to-signin').addEventListener('click', (e) => { e.preventDefault(); showSection('signin-section'); });
+
+
+      // Event Listeners for auth actions
+      if (signInButton) signInButton.addEventListener('click', window.handleSignIn);
+      if (signUpButton) signUpButton.addEventListener('click', window.handleSignUp);
+      if (resetPasswordButton) resetPasswordButton.addEventListener('click', window.handlePasswordReset);
+
+      // Event listeners for profile/preferences saving (from original settings.html)
+      const saveProfileBtn = document.getElementById('save-profile-btn');
+      if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', async () => {
+          const newDisplayName = displayNameInput.value;
+          const newPhotoURL = profilePictureUrlInput.value;
+          if (window.auth.currentUser) {
+            try {
+              await updateProfile(window.auth.currentUser, {
+                displayName: newDisplayName,
+                photoURL: newPhotoURL || window.DEFAULT_PROFILE_PIC
+              });
+              await window.setUserProfileInFirestore(window.auth.currentUser.uid, {
+                displayName: newDisplayName,
+                photoURL: newPhotoURL || window.DEFAULT_PROFILE_PIC
+              });
+              window.showMessageBox('Profile updated successfully!', false);
+            } catch (error) {
+              console.error("Error updating profile:", error);
+              window.showMessageBox(`Failed to update profile: ${error.message}`, true);
+            }
+          }
+        });
+      }
+
+      const savePreferencesBtn = document.getElementById('save-preferences-btn');
+      const fontSizeSelect = document.getElementById('font-size-select');
+      const fontFamilySelect = document.getElementById('font-family-select');
+      const backgroundPatternSelect = document.getElementById('background-pattern-select');
+
+      if (savePreferencesBtn) {
+        savePreferencesBtn.addEventListener('click', async () => {
+          const selectedFontSize = fontSizeSelect.value;
+          const selectedFontFamily = fontFamilySelect.value;
+          const selectedBackgroundPattern = backgroundPatternSelect.value;
+
+          // Apply font size and family to body
+          document.body.style.fontSize = selectedFontSize;
+          document.body.style.fontFamily = selectedFontFamily;
+
+          // Apply background pattern
+          if (selectedBackgroundPattern === 'none') {
+            document.body.style.backgroundImage = 'none';
+          } else if (selectedBackgroundPattern === 'dots') {
+            document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+            document.body.style.backgroundSize = '20px 20px';
+          } else if (selectedBackgroundPattern === 'grid') {
+            document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+            document.body.style.backgroundSize = '40px 40px';
+          }
+
+          // Save to Firestore
+          if (window.auth.currentUser) {
+            try {
+              await setDoc(doc(window.db, `artifacts/${window.appId}/public/data/user_profiles`, window.auth.currentUser.uid), {
+                fontSize: selectedFontSize,
+                fontFamily: selectedFontFamily,
+                backgroundPattern: selectedBackgroundPattern
+              }, { merge: true });
+              window.showMessageBox('Preferences saved successfully!', false);
+            } catch (error) {
+              console.error("Error saving preferences:", error);
+              window.showMessageBox(`Failed to save preferences: ${error.message}`, true);
+            }
+          }
+        });
+      }
+
+      // Load existing preferences on page load
+      if (user) { // Only load preferences if user is authenticated
+        const userProfile = await window.getUserProfileFromFirestore(user.uid);
+        if (userProfile) {
+          if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
+          if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
+          if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
+
+          // Apply loaded preferences immediately
+          document.body.style.fontSize = userProfile.fontSize || '16px';
+          document.body.style.fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
+          if (userProfile.backgroundPattern === 'none') {
+            document.body.style.backgroundImage = 'none';
+          } else if (userProfile.backgroundPattern === 'dots') {
+            document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+            document.body.style.backgroundSize = '20px 20px';
+          } else if (userProfile.backgroundPattern === 'grid') {
+            document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+            document.body.style.backgroundSize = '40px 40px';
+          }
+        }
+      }
+
+      // Hide loading spinner after initial UI setup
       hideLoading();
       console.log("DEBUG: Current settingsContent display:", settingsContent.style.display);
       console.log("DEBUG: Current loginRequiredMessage display:", loginRequiredMessage.style.display);
     });
 
-    document.getElementById('current-year-settings').textContent = new Date().getFullYear().toString();
+    document.getElementById('current-year').textContent = new Date().getFullYear().toString();
   };
 </script>
 </body>
