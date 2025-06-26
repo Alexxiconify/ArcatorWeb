@@ -280,43 +280,14 @@
   </div>
 </section>
 
-<!-- Tabs for Thémata and Global Threads -->
+<!-- Tabs for Thémata and Global Threads, with dynamic Théma tabs -->
 <div class="tabs flex space-x-4 mb-8">
-  <button id="tab-themata" class="tab-btn btn-primary btn-blue">Thémata</button>
   <button id="tab-global" class="tab-btn btn-primary btn-purple">Global Threads</button>
-</div>
-
-<!-- Thémata Section (tabbed, Reddit-style) -->
-<div id="thema-tab-content">
-  <h3 class="text-2xl font-bold text-heading-card mb-4">Existing Thémata</h3>
-  <ul id="thema-list" class="space-y-4 mb-8">
-    <!-- Thémata will be loaded here by JavaScript as clickable items -->
-    <li class="card p-4 text-center">Loading thémata...</li>
-  </ul>
-  <!-- Thread creation form, only shown when a Théma is selected -->
-  <div id="create-thread-section" class="form-container mb-8" style="display: none;">
-    <h3 class="text-2xl font-bold text-heading-card mb-4">Start a New Thread in <span id="selected-thema-name"></span></h3>
-    <form id="create-thread-form" class="space-y-4">
-      <div>
-        <label for="new-thread-title" class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
-        <input type="text" id="new-thread-title" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Suggestions for New Features" required>
-      </div>
-      <div>
-        <label for="new-thread-initial-comment" class="block text-text-primary text-sm font-bold mb-2">Initial Comment:</label>
-        <textarea id="new-thread-initial-comment" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Share your thoughts or start the discussion." required></textarea>
-      </div>
-      <button type="submit" id="create-thread-btn" class="btn-primary btn-purple w-full">Create Thread</button>
-    </form>
-  </div>
-  <!-- Thread list for selected Théma -->
-  <h3 id="threads-list-title" class="text-2xl font-bold text-heading-card mb-4" style="display: none;">Threads</h3>
-  <ul id="thread-list" class="space-y-4">
-    <!-- Threads for selected Théma will be loaded here by JavaScript -->
-  </ul>
+  <div id="thema-tabs" class="flex space-x-2"></div>
 </div>
 
 <!-- Global Threads Section (tabbed) -->
-<div id="global-tab-content" style="display: none;">
+<div id="global-tab-content">
   <details id="global-threads-section" class="form-container mb-12" open>
     <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Global Threads <span id="global-threads-count" class="ml-2 text-base font-normal text-gray-400"></span></summary>
     <!-- Create Global Thread Form -->
@@ -337,6 +308,9 @@
     </ul>
   </details>
 </div>
+
+<!-- Dynamic Théma Thread Sections (tabbed) -->
+<div id="thema-tab-contents"></div>
 
 <!-- Main Content Section: Thémata List -->
 <section id="main-content" class="py-16 content-section rounded-lg shadow-inner mx-4 my-8">
@@ -483,37 +457,58 @@
 </div>
 
 <script>
-// Tab switching logic
-const tabThemata = document.getElementById('tab-themata');
-const tabGlobal = document.getElementById('tab-global');
-const themaTabContent = document.getElementById('thema-tab-content');
-const globalTabContent = document.getElementById('global-tab-content');
-tabThemata.addEventListener('click', () => {
-  tabThemata.classList.add('btn-blue');
-  tabThemata.classList.remove('btn-outline');
-  tabGlobal.classList.remove('btn-purple');
-  tabGlobal.classList.add('btn-outline');
-  themaTabContent.style.display = 'block';
-  globalTabContent.style.display = 'none';
-});
-tabGlobal.addEventListener('click', () => {
-  tabGlobal.classList.add('btn-purple');
-  tabGlobal.classList.remove('btn-outline');
-  tabThemata.classList.remove('btn-blue');
-  tabThemata.classList.add('btn-outline');
-  themaTabContent.style.display = 'none';
-  globalTabContent.style.display = 'block';
-});
+// Dynamically create a tab for each Théma and show its threads in a Reddit-style card layout
+const themaTabs = document.getElementById('thema-tabs');
+const themaTabContents = document.getElementById('thema-tab-contents');
+let currentThemaTab = null;
 
-// Remove View Threads button from thema list rendering in JS
-// Add logic to show create-thread-section when Create Thread is clicked, and populate dropdown with thémata
-const showCreateThreadBtn = document.getElementById('show-create-thread-btn');
-const createThreadSection = document.getElementById('create-thread-section');
-const createThreadThemaSelect = document.getElementById('create-thread-thema-select');
-showCreateThreadBtn.addEventListener('click', () => {
-  createThreadSection.style.display = 'block';
-});
-// ...populate createThreadThemaSelect with thémata in your JS...
+function renderThemaTabs(themas) {
+  themaTabs.innerHTML = '';
+  themaTabContents.innerHTML = '';
+  themas.forEach(thema => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn btn-primary btn-blue';
+    btn.textContent = thema.name;
+    btn.dataset.themaId = thema.id;
+    btn.addEventListener('click', () => selectThemaTab(thema));
+    themaTabs.appendChild(btn);
+    // Create content section for this thema
+    const content = document.createElement('div');
+    content.id = `thema-content-${thema.id}`;
+    content.style.display = 'none';
+    content.innerHTML = `
+      <details class="form-container mb-12" open>
+        <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">${thema.name} <span class="ml-2 text-base font-normal text-gray-400">${thema.description || ''}</span></summary>
+        <form class="create-thread-form space-y-4 mb-8" data-thema-id="${thema.id}">
+          <div>
+            <label class="block text-text-primary text-sm font-bold mb-2">Thread Title:</label>
+            <input type="text" class="new-thread-title shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Suggestions for New Features" required>
+          </div>
+          <div>
+            <label class="block text-text-primary text-sm font-bold mb-2">Initial Comment:</label>
+            <textarea class="new-thread-initial-comment shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Share your thoughts or start the discussion." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-blue w-full">Create Thread</button>
+        </form>
+        <ul class="thread-list space-y-4" id="thread-list-${thema.id}">
+          <li class="card p-4 text-center">Loading threads...</li>
+        </ul>
+      </details>
+    `;
+    themaTabContents.appendChild(content);
+  });
+}
+function selectThemaTab(thema) {
+  // Hide all
+  Array.from(themaTabContents.children).forEach(div => div.style.display = 'none');
+  Array.from(themaTabs.children).forEach(btn => btn.classList.remove('btn-blue'));
+  // Show selected
+  document.getElementById(`thema-content-${thema.id}`).style.display = 'block';
+  themaTabs.querySelector(`[data-thema-id='${thema.id}']`).classList.add('btn-blue');
+  currentThemaTab = thema.id;
+  // TODO: Call JS to load threads for this thema into #thread-list-{thema.id}
+}
+// TODO: In your JS, after loading themas, call renderThemaTabs(themalist) and selectThemaTab(themalist[0])
 </script>
 </body>
 </html>

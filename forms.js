@@ -618,9 +618,11 @@ function renderThematas() {
   const q = query(thematasCol, orderBy("createdAt", "desc"));
 
   unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    themaList.innerHTML = '';
+    // Remove old rendering to #thema-list
+    // themaList.innerHTML = '';
     if (snapshot.empty) {
-      themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
+      // Optionally show a message in the tab area
+      renderThemaTabs([]);
       return;
     }
     const themasArr = [];
