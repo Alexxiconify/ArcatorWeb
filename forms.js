@@ -695,19 +695,34 @@ function renderGlobalThreads() {
     snapshot.forEach((doc) => {
       const thread = doc.data();
       const threadId = doc.id;
+      const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const li = document.createElement('li');
       li.classList.add('thread-item', 'card');
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
       const creatorDisplayName = thread.authorDisplayName || 'Unknown';
       li.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+        </div>
         <h3 class="text-xl font-bold text-heading-card">${thread.title || '(No Title)'}</h3>
         <p class="thread-initial-comment mt-2">${convertMentionsToHTML(thread.content || thread.initialComment || '')}</p>
-        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+        <div class="reactions-container mt-2">
+          ${(thread.reactions ? Object.entries(thread.reactions).map(([emoji, data]) => {
+            const hasReacted = data.users.includes(window.auth.currentUser?.uid);
+            return createReactionButton(emoji, data.count, hasReacted, threadId, 'thread').outerHTML;
+          }).join('') : '')}
+          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${threadId}', 'thread', event.clientX, event.clientY)">+</button>
+        </div>
         <form id="global-thread-comment-form-${threadId}" class="mt-4 space-y-2">
           <textarea id="global-thread-comment-input-${threadId}" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-16" placeholder="Add a comment..." required></textarea>
           <button type="submit" class="btn-primary btn-green w-full">Post Comment</button>
         </form>
         <ul id="global-thread-comment-list-${threadId}" class="space-y-2 mt-4"></ul>
+        <div class="thread-actions mt-4">
+          ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${(thread.content || thread.initialComment || '').replace(/'/g, "&#39;")}', '${threadId}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
+          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${threadId}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
+        </div>
       `;
       globalThreadList.appendChild(li);
       setTimeout(() => {
@@ -747,15 +762,46 @@ function renderGlobalThreadComments(threadId) {
       const comment = doc.data();
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
       const displayName = comment.authorDisplayName || 'Unknown';
+      const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const li = document.createElement('li');
       li.className = 'comment-item card';
+      // Create reactions HTML
+      const reactionsHtml = comment.reactions ? Object.entries(comment.reactions)
+        .map(([emoji, data]) => {
+          const hasReacted = data.users.includes(window.auth.currentUser?.uid);
+          return createReactionButton(emoji, data.count, hasReacted, doc.id, 'comment').outerHTML;
+        }).join('') : '';
       li.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">By ${displayName} on ${createdAt}</span>
+        </div>
         <div class="comment-content">
           <p>${convertMentionsToHTML(comment.content)}</p>
-          <p class="meta-info">By ${displayName} on ${createdAt}</p>
+        </div>
+        <div class="reactions-container mt-2">
+          ${reactionsHtml}
+          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'comment', event.clientX, event.clientY)">+</button>
+        </div>
+        <div class="comment-actions mt-2">
+          ${(canEditPost(comment, window.currentUser) ? `<button onclick=\"showEditForm('${comment.content.replace(/'/g, "&#39;")}', '${doc.id}', 'comment')\" class="edit-comment-btn btn-primary btn-blue text-xs">Edit</button>` : '')}
+          ${(canDeletePost(comment, window.currentUser) ? `<button data-comment-id=\"${doc.id}\" class=\"delete-comment-btn btn-primary btn-red text-xs ml-2\">Delete</button>` : '')}
         </div>
       `;
       commentList.appendChild(li);
+    });
+    // Add event listeners
+    commentList.querySelectorAll('.delete-comment-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const commentId = event.target.dataset.commentId;
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+        if (confirmed) {
+          // Delete comment logic
+          const commentRef = doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, commentId);
+          await deleteDoc(commentRef);
+          showMessageBox("Comment deleted successfully!", false);
+        }
+      });
     });
   });
 }
@@ -1183,7 +1229,7 @@ async function addCommentThread(themaId, title, initialComment) {
   }
 }
 
-// --- PATCH renderThreads: Use <details> for collapsible threads ---
+// --- PATCH renderThreads: Show user icon, edit/delete for all users/admins, emoji reactions ---
 function renderThreads() {
   renderThreadsFromCache(currentThemaId); // Show cached immediately
   console.log("Rendering threads. DB:", !!window.db, "currentThemaId:", currentThemaId);
@@ -1211,6 +1257,7 @@ function renderThreads() {
       threadsArr.push({ ...thread, id: doc.id });
       const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
       const creatorDisplayName = thread.authorDisplayName || 'Unknown';
+      const creatorPhotoURL = thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       const details = document.createElement('details');
       details.className = 'thread-collapsible';
       const summary = document.createElement('summary');
@@ -1218,11 +1265,21 @@ function renderThreads() {
       details.appendChild(summary);
       const inner = document.createElement('div');
       inner.innerHTML = `
-        <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
+        <div class="flex items-center mb-2">
+          <img src="${creatorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</span>
+        </div>
+        <div class="reactions-container mt-2">
+          ${(thread.reactions ? Object.entries(thread.reactions).map(([emoji, data]) => {
+            const hasReacted = data.users.includes(window.auth.currentUser?.uid);
+            return createReactionButton(emoji, data.count, hasReacted, doc.id, 'thread').outerHTML;
+          }).join('') : '')}
+          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'thread', event.clientX, event.clientY)">+</button>
+        </div>
         <div class="thread-actions mt-4">
           <button data-thread-id="${doc.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments (${thread.commentCount || 0})</button>
-          ${canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment}', '${doc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : ''}
-          ${canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : ''}
+          ${(canEditPost(thread, window.currentUser) ? `<button onclick=\"showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${doc.id}', 'thread')\" class="edit-thread-btn btn-primary btn-blue ml-2">Edit</button>` : '')}
+          ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${doc.id}" class="delete-thread-btn btn-primary btn-red ml-2">Delete</button>` : '')}
         </div>
       `;
       details.appendChild(inner);
@@ -1400,38 +1457,42 @@ function renderComments() {
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
       const displayName = commentUserProfiles[comment.createdBy] || comment.authorDisplayName || 'Unknown';
       const isEdited = comment.editedAt ? ` (edited by ${comment.editedBy})` : '';
-
+      const authorPhotoURL = comment.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
       // Create reactions HTML
       const reactionsHtml = comment.reactions ? Object.entries(comment.reactions)
         .map(([emoji, data]) => {
           const hasReacted = data.users.includes(window.auth.currentUser?.uid);
           return createReactionButton(emoji, data.count, hasReacted, doc.id, 'comment').outerHTML;
         }).join('') : '';
-
       li.innerHTML = `
+        <div class="flex items-center mb-2">
+          <img src="${authorPhotoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
+          <span class="meta-info">By ${displayName} on ${createdAt}${isEdited}</span>
+        </div>
         <div class="comment-content">
           <p>${convertMentionsToHTML(comment.content)}</p>
-          <p class="meta-info">By ${displayName} on ${createdAt}${isEdited}</p>
-          <div class="reactions-container mt-2">
-            ${reactionsHtml}
-            <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'comment', event.clientX, event.clientY)">+</button>
-          </div>
-          <div class="comment-actions mt-2">
-            ${canEditPost(comment, window.currentUser) ? `<button onclick="showEditForm('${comment.content}', '${doc.id}', 'comment')" class="edit-comment-btn btn-primary btn-blue text-xs">Edit</button>` : ''}
-            ${canDeletePost(comment, window.currentUser) ? `<button data-comment-id="${doc.id}" class="delete-comment-btn btn-primary btn-red text-xs ml-2">Delete</button>` : ''}
-          </div>
+        </div>
+        <div class="reactions-container mt-2">
+          ${reactionsHtml}
+          <button class="add-reaction-btn text-gray-500 hover:text-gray-700 text-sm" onclick="showReactionPalette('${doc.id}', 'comment', event.clientX, event.clientY)">+</button>
+        </div>
+        <div class="comment-actions mt-2">
+          ${(canEditPost(comment, window.currentUser) ? `<button onclick=\"showEditForm('${comment.content.replace(/'/g, "&#39;")}', '${doc.id}', 'comment')\" class="edit-comment-btn btn-primary btn-blue text-xs">Edit</button>` : '')}
+          ${(canDeletePost(comment, window.currentUser) ? `<button data-comment-id=\"${doc.id}\" class=\"delete-comment-btn btn-primary btn-red text-xs ml-2\">Delete</button>` : '')}
         </div>
       `;
       commentList.appendChild(li);
     });
-
     // Add event listeners
     document.querySelectorAll('.delete-comment-btn').forEach(button => {
       button.addEventListener('click', async (event) => {
-        const pageId = event.target.dataset.pageId;
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this temporary page?", "This action cannot be undone.");
+        const commentId = event.target.dataset.commentId;
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
         if (confirmed) {
-          await deleteTempPage(pageId);
+          // Delete comment logic
+          const commentRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads/${currentThreadId}/comments`, commentId);
+          await deleteDoc(commentRef);
+          showMessageBox("Comment deleted successfully!", false);
         }
       });
     });
