@@ -512,12 +512,25 @@ function renderThemaBoxes(themasArr) {
       } else {
         formHtml = `<div class="text-center text-gray-400 italic mt-4">Log in to create a thread.</div>`;
       }
+      
+      // Create header with title and admin controls on same level
+      const headerHtml = `
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
+          ${window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId) ? `
+            <div class="flex gap-2">
+              <button class="edit-thema-btn" title="Edit"><span class="material-icons text-orange-400">edit</span></button>
+              <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
       box.innerHTML = `
-        <h3 class="text-xl font-bold text-heading-card mb-2">${thema.name}</h3>
+        ${headerHtml}
         <p class="thema-description mb-4">${thema.description || ''}</p>
         <div class="thema-thread-list" id="thema-thread-list-${thema.id}">Loading threads...</div>
         ${formHtml}
-        <!-- Admin controls are appended by renderThemaAdminControls -->
       `;
       container.appendChild(box);
       loadThreadsForThema(thema.id);
@@ -541,9 +554,10 @@ function renderThemaBoxes(themasArr) {
           threadForm.reset();
         };
       }
-      renderThemaAdminControls(thema, box);
+      
+      // Admin controls for thémata
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
-        box.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description);
+        box.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
         box.querySelector('.delete-thema-btn').onclick = async () => {
           if (confirm('Delete this Théma and all its threads?')) {
             await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
@@ -647,7 +661,7 @@ function loadThreadsForThema(themaId) {
         };
         // Edit/Delete thread handlers
         if (canEdit) {
-          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment);
+          threadDiv.querySelector('.edit-thread-btn').onclick = () => openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
             if (confirm('Delete this thread?')) {
               const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
@@ -1510,54 +1524,6 @@ function enableEditInline(type, themaId, threadId, commentId, oldContent, contai
   };
 }
 
-// Add edit/delete for thema (admin/creator only)
-function renderThemaAdminControls(thema, box) {
-  if (!window.currentUser || (!window.currentUser.isAdmin && window.currentUser.uid !== thema.authorId)) return;
-  const controls = document.createElement('div');
-  controls.className = 'thema-admin-controls flex gap-2 mt-2';
-  controls.innerHTML = `
-    <button class="edit-thema-btn" title="Edit"><span class="material-icons text-orange-400">edit</span></button>
-    <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
-  `;
-  box.appendChild(controls);
-  controls.querySelector('.edit-thema-btn').onclick = () => openEditModal('thema', {themaId: thema.id}, thema.description, thema.name);
-  controls.querySelector('.delete-thema-btn').onclick = async () => {
-    if (confirm('Delete this Théma and all its threads?')) {
-      await deleteDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id));
-      box.remove();
-    }
-  };
-}
-function enableEditThemaInline(thema, box) {
-  const form = document.createElement('form');
-  form.className = 'edit-thema-form flex flex-col gap-2 mb-2';
-  form.innerHTML = `
-    <input type="text" class="edit-thema-title input" value="${thema.name}" required />
-    <textarea class="edit-thema-desc input">${thema.description || ''}</textarea>
-    <div class="flex gap-2">
-      <button type="submit" class="btn-primary btn-green">Save</button>
-      <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
-    </div>
-  `;
-  const origHtml = box.innerHTML;
-  box.innerHTML = '';
-  box.appendChild(form);
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const newName = form.querySelector('.edit-thema-title').value.trim();
-    const newDesc = form.querySelector('.edit-thema-desc').value.trim();
-    if (!newName) return;
-    await updateDoc(doc(window.db, `artifacts/${window.appId}/public/data/thematas`, thema.id), {
-      name: newName,
-      description: newDesc
-    });
-    box.innerHTML = origHtml;
-  };
-  form.querySelector('.cancel-edit').onclick = () => {
-    box.innerHTML = origHtml;
-  };
-}
-
 // --- Modal for editing threads/comments/themes ---
 let editModal = null;
 let editModalTitle = null;
@@ -1591,17 +1557,20 @@ function setupEditModal() {
       if (!newName) return;
       const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, currentEditContext.themaId);
       await updateDoc(ref, { name: newName, description: newDesc });
-    } else {
-      const descTextarea = editModal.querySelector('#edit-modal-textarea');
-      const newContent = descTextarea.value.trim();
-      let ref;
-      if (currentEditContext.type === 'thread') {
-        ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
-        await updateDoc(ref, { initialComment: newContent });
-      } else if (currentEditContext.type === 'comment') {
-        ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
-        await updateDoc(ref, { content: newContent });
-      }
+    } else if (currentEditContext.type === 'thread') {
+      const titleInput = editModal.querySelector('#edit-modal-title-input');
+      const contentTextarea = editModal.querySelector('#edit-modal-textarea');
+      const newTitle = titleInput.value.trim();
+      const newContent = contentTextarea.value.trim();
+      if (!newTitle || !newContent) return;
+      const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads`, currentEditContext.threadId);
+      await updateDoc(ref, { title: newTitle, initialComment: newContent });
+    } else if (currentEditContext.type === 'comment') {
+      const contentTextarea = editModal.querySelector('#edit-modal-textarea');
+      const newContent = contentTextarea.value.trim();
+      if (!newContent) return;
+      const ref = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${currentEditContext.themaId}/threads/${currentEditContext.threadId}/comments`, currentEditContext.commentId);
+      await updateDoc(ref, { content: newContent });
     }
     editModal.style.display = 'none';
   });
@@ -1611,7 +1580,7 @@ function setupEditModal() {
   });
 }
 
-function openEditModal(type, context, oldContent, oldName = null) {
+function openEditModal(type, context, oldContent, oldName = null, oldTitle = null) {
   setupEditModal();
   currentEditContext = { type, ...context };
   editModalTitle.textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
@@ -1621,9 +1590,14 @@ function openEditModal(type, context, oldContent, oldName = null) {
       <input id="edit-modal-name-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" value="${oldName || ''}" placeholder="Théma Name" required />
       <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4" placeholder="Description">${oldContent || ''}</textarea>
     `;
-  } else {
+  } else if (type === 'thread') {
     fieldsDiv.innerHTML = `
-      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4">${oldContent || ''}</textarea>
+      <input id="edit-modal-title-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" value="${oldTitle || ''}" placeholder="Thread Title" required />
+      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4" placeholder="Thread Content">${oldContent || ''}</textarea>
+    `;
+  } else if (type === 'comment') {
+    fieldsDiv.innerHTML = `
+      <textarea id="edit-modal-textarea" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4" placeholder="Comment Content">${oldContent || ''}</textarea>
     `;
   }
   editModal.style.display = 'flex';
