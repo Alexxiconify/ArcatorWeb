@@ -481,50 +481,70 @@ function injectNavbarStyles() {
  */
 function updateNavbarForTheme() {
   console.log('DEBUG: updateNavbarForTheme called');
-  
+
   const navbar = document.querySelector('.navbar-bg');
   if (navbar) {
     console.log('DEBUG: Found navbar element, updating...');
-    
+
     // Get the current theme's navbar color
     const computedStyle = getComputedStyle(document.documentElement);
     const navbarColor = computedStyle.getPropertyValue('--color-bg-navbar').trim();
     const navbarRgb = computedStyle.getPropertyValue('--color-bg-navbar-rgb').trim();
-    
+
     console.log('DEBUG: Navbar color:', navbarColor);
     console.log('DEBUG: Navbar RGB value:', navbarRgb);
-    
+
     // Force a reflow to ensure CSS variables are updated
     navbar.style.transition = 'none';
     navbar.offsetHeight; // Trigger reflow
     navbar.style.transition = '';
-    
-    // Directly update the navbar background if RGB value is available
-    if (navbarRgb && navbarRgb !== '') {
+
+    // Check if this is a custom theme by looking for custom theme indicators
+    const hasInlineVariables = document.documentElement.style.cssText.length > 0;
+    const currentThemeClasses = Array.from(document.documentElement.classList).filter(cls => cls.startsWith('theme-'));
+    const isCustomTheme = document.body.classList.contains('custom-theme') ||
+      document.documentElement.classList.contains('custom-theme') ||
+      navbarColor.includes('custom') ||
+      !navbarRgb || navbarRgb === '' ||
+      hasInlineVariables;
+
+    console.log('DEBUG: Is custom theme:', isCustomTheme);
+    console.log('DEBUG: Body has custom-theme class:', document.body.classList.contains('custom-theme'));
+    console.log('DEBUG: Document has custom-theme class:', document.documentElement.classList.contains('custom-theme'));
+    console.log('DEBUG: Has inline variables:', hasInlineVariables);
+    console.log('DEBUG: Current theme classes:', currentThemeClasses);
+    console.log('DEBUG: Navbar RGB value:', navbarRgb);
+
+    if (isCustomTheme && navbarRgb && navbarRgb !== '') {
+      // For custom themes, apply direct background color
       const rgbaValue = `rgba(${navbarRgb}, 0.95)`;
       navbar.style.background = rgbaValue;
-      console.log('DEBUG: Set navbar background to:', rgbaValue);
-    } else if (navbarColor && navbarColor !== '') {
-      // Fallback to solid color if RGB not available
-      navbar.style.background = navbarColor;
-      console.log('DEBUG: Set navbar background to solid color:', navbarColor);
+      console.log('DEBUG: Applied custom theme background:', rgbaValue);
+    } else {
+      // For built-in themes, remove inline styles to use CSS variables
+      navbar.style.removeProperty('background');
+      console.log('DEBUG: Removed inline background, using CSS variables for built-in theme');
     }
-    
+
     // Update mobile menu background if open
     const navbarLinks = document.getElementById('navbar-links');
     if (navbarLinks && navbarLinks.classList.contains('mobile-open')) {
       navbarLinks.style.transition = 'none';
       navbarLinks.offsetHeight; // Trigger reflow
       navbarLinks.style.transition = '';
-      
-      // Also update mobile menu background
-      if (navbarRgb && navbarRgb !== '') {
+
+      if (isCustomTheme && navbarRgb && navbarRgb !== '') {
+        // For custom themes, apply direct background color
         const mobileRgbaValue = `rgba(${navbarRgb}, 0.98)`;
         navbarLinks.style.background = mobileRgbaValue;
-        console.log('DEBUG: Set mobile menu background to:', mobileRgbaValue);
+        console.log('DEBUG: Applied custom theme mobile background:', mobileRgbaValue);
+      } else {
+        // For built-in themes, remove inline styles
+        navbarLinks.style.removeProperty('background');
+        console.log('DEBUG: Removed inline mobile background, using CSS variables');
       }
     }
-    
+
     // Force update of all navbar elements that use CSS variables
     const navbarElements = navbar.querySelectorAll('*');
     navbarElements.forEach(element => {
@@ -535,7 +555,7 @@ function updateNavbarForTheme() {
         element.style.transition = originalTransition;
       }
     });
-    
+
     console.log('DEBUG: Navbar theme update completed');
   } else {
     console.warn('DEBUG: Navbar element not found for theme update');

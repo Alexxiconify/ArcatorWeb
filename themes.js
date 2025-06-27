@@ -399,9 +399,13 @@ export function applyTheme(themeId, themeProperties) {
   // Only add theme class for built-in themes (not custom themes)
   if (themeProperties && themeProperties.isCustom) {
     // For custom themes, don't add a CSS class since they don't have predefined CSS
+    // Add a custom theme indicator to the body for navbar detection
+    document.body.classList.add('custom-theme');
     console.log(`Applying custom theme: ${themeId}`);
   } else {
     // Add new theme class for built-in themes
+    // Remove custom theme indicator
+    document.body.classList.remove('custom-theme');
     root.classList.add(`theme-${themeId}`);
     console.log(`Applying built-in theme: ${themeId}`);
   }
