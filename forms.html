@@ -267,6 +267,43 @@
       list-style: none; /* Remove default list bullets */
       padding: 0;
     }
+
+    /* DM chat bubbles */
+    .dm-bubble-in {
+      background: #23272e;
+      color: #e5e7eb;
+      border-radius: 1.2em 1.2em 1.2em 0.4em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      max-width: 80%;
+      word-break: break-word;
+    }
+    .dm-bubble-out {
+      background: #3b4252;
+      color: #e5e7eb;
+      border-radius: 1.2em 1.2em 0.4em 1.2em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+      max-width: 80%;
+      word-break: break-word;
+    }
+    #conversation-messages {
+      padding-bottom: 1em;
+    }
+    #dm-comment-form textarea {
+      background: #23272e;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      border-radius: 0.7em;
+      min-height: 2.5em;
+      resize: vertical;
+    }
+    #dm-comment-form button {
+      margin-top: 0.5em;
+      min-width: 5em;
+    }
   </style>
 </head>
 <body class="antialiased">

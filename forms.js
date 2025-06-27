@@ -1397,18 +1397,19 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
       }
       const isOwn = m.createdBy === currentUserId;
       const rowClass = isOwn ? 'flex-row-reverse text-right' : 'flex-row text-left';
-      const metaClass = isOwn ? 'justify-end' : 'justify-start';
-      const nameClass = isOwn ? 'ml-2' : 'mr-2';
+      const bubbleClass = isOwn ? 'dm-bubble-out' : 'dm-bubble-in';
       const div = document.createElement('div');
-      div.className = `message-item flex ${rowClass} items-start gap-2 p-2 mb-2 rounded`;
+      div.className = `message-item flex ${rowClass} items-end gap-2 mb-3`;
       div.innerHTML = `
         <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile">
-        <div class="flex-1 flex flex-col ${metaClass}">
-          <div class="flex items-center ${metaClass}">
-            <span class='font-semibold ${nameClass}'>${senderName}</span>
-            <span class='text-xs text-gray-400'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
+        <div class="flex-1 flex flex-col ${isOwn ? 'items-end' : 'items-start'}">
+          <div class="${bubbleClass}">
+            <div class="flex items-center gap-2 mb-1">
+              <span class='font-semibold'>${senderName}</span>
+              <span class='text-xs text-gray-400 whitespace-nowrap'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
+            </div>
+            <div>${convertMentionsToHTML(m.content)}</div>
           </div>
-          <div>${convertMentionsToHTML(m.content)}</div>
         </div>
       `;
       dmMessages.appendChild(div);
@@ -1433,7 +1434,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     }).join('');
   }
   if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : (isSelfDM ? 'Self DM' : 'Direct Message');
-  if (dmParticipants) dmParticipants.innerHTML = `Participants: ${participantPics} <span class="ml-2">${participantNames}</span>`;
+  if (dmParticipants) dmParticipants.innerHTML = `Participants: ${participantPics} <span class=\"ml-2\">${participantNames}</span>`;
   if (!document.getElementById('dm-back-btn')) {
     const backBtn = document.createElement('button');
     backBtn.id = 'dm-back-btn';
@@ -1452,8 +1453,8 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     commentForm.id = 'dm-comment-form';
     commentForm.className = 'mt-4 p-3 bg-card rounded';
     commentForm.innerHTML = `
-      <textarea id="dm-comment-input" class="w-full p-2 border rounded mb-2" placeholder="Type your message..." required></textarea>
-      <button type="submit" class="btn-primary btn-green">Send</button>
+      <textarea id=\"dm-comment-input\" class=\"w-full p-2 border rounded mb-2\" placeholder=\"Type your message...\" required></textarea>
+      <button type=\"submit\" class=\"btn-primary btn-green\">Send</button>
     `;
     commentForm.onsubmit = async (e) => {
       e.preventDefault();
