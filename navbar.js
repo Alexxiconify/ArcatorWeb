@@ -4,6 +4,7 @@
 import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
 import { applyTheme, getAvailableThemes } from './themes.js';
 import {validatePhotoURL} from './utils.js';
+import {loadNavbar, loadFooter} from './navbar.js';
 
 // Embedded CSS styles
 const navbarStyles = `
@@ -216,7 +217,7 @@ function injectNavbarStyles() {
  * Refreshes the navbar profile picture with current user data
  * This can be called when user profile is updated
  */
-export async function refreshNavbarProfilePicture() {
+export async function refreshNavbarProfilePicture(userProfile) {
   const userProfilePic = document.getElementById('navbar-user-profile-pic');
   const userSettingsLink = document.getElementById('navbar-user-settings-link');
 
@@ -226,13 +227,13 @@ export async function refreshNavbarProfilePicture() {
   }
 
   // Check if user is logged in and has profile
-  if (window.auth && window.auth.currentUser && window.currentUser) {
-    console.log('[DEBUG] Refreshing navbar profile picture for user:', window.currentUser.displayName);
+  if (window.auth && window.auth.currentUser && userProfile) {
+    console.log('[DEBUG] Refreshing navbar profile picture for user:', userProfile.displayName);
 
     try {
       // Use the enhanced validation function
       const {validateAndTestPhotoURL} = await import('./utils.js');
-      const profilePicURL = getSafePhotoURL(window.currentUser && window.currentUser.photoURL);
+      const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL);
       console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
       userProfilePic.src = profilePicURL;
 
@@ -257,7 +258,7 @@ export async function refreshNavbarProfilePicture() {
       };
 
       // Update user display name
-      const displayName = window.currentUser.displayName || window.currentUser.handle || 'User';
+      const displayName = userProfile.displayName || userProfile.handle || 'User';
       const displayNameSpan = document.getElementById('navbar-user-display-name');
       if (displayNameSpan) {
         displayNameSpan.textContent = displayName;
@@ -305,7 +306,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
         // Use the enhanced validation function
         const {validateAndTestPhotoURL} = await import('./utils.js');
-        const profilePicURL = getSafePhotoURL(window.currentUser && window.currentUser.photoURL);
+        const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL);
         console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
         userProfilePic.src = profilePicURL;
 
@@ -460,19 +461,13 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
 
 // Initialize navbar when Firebase is ready
 firebaseReadyPromise.then(() => {
-  onAuthStateChanged(auth, async (user) => {
-    // Get the user profile from Firestore if user is authenticated
+  auth.onAuthStateChanged(async (user) => {
     let userProfile = null;
     if (user) {
       userProfile = await getUserProfileFromFirestore(user.uid);
     }
-
-    // Load navbar with current user state
     await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-
-    // Apply user theme
-    const userThemePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
-    await applyUserTheme(userThemePreference, DEFAULT_THEME_NAME);
+    loadFooter('current-year-...');
   });
 });
 
@@ -504,12 +499,12 @@ export async function testProfilePicture(photoURL) {
     window.currentUser.photoURL = photoURL;
 
     // Refresh the navbar
-    await refreshNavbarProfilePicture();
+    await refreshNavbarProfilePicture(window.currentUser);
 
     // Restore original after 5 seconds
     setTimeout(async () => {
       window.currentUser.photoURL = originalPhotoURL;
-      await refreshNavbarProfilePicture();
+      await refreshNavbarProfilePicture(window.currentUser);
       console.log('[DEBUG] testProfilePicture: Restored original profile picture');
     }, 5000);
 
@@ -583,7 +578,7 @@ export async function updateProfilePicture(newPhotoURL) {
       window.currentUser.photoURL = newPhotoURL;
 
       // Refresh the navbar
-      await refreshNavbarProfilePicture();
+      await refreshNavbarProfilePicture(window.currentUser);
 
       // Show success message
       if (typeof window.showMessageBox === 'function') {

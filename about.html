@@ -244,12 +244,25 @@
 <div id="footer-placeholder"></div>
 
 <!-- Main page scripts -->
-<script type="module" src="./about.js"></script>
+<script src="about.js" type="module"></script>
 <script type="module">
-  import {loadFooter} from './navbar.js';
+  import {
+    auth,
+    getUserProfileFromFirestore,
+    firebaseReadyPromise,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME
+  } from './firebase-init.js';
+  import {loadNavbar, loadFooter} from './navbar.js';
 
-  // Load the consolidated footer
-  loadFooter('current-year-about');
+  firebaseReadyPromise.then(async () => {
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    loadFooter('current-year-about');
+  });
 </script>
 </body>
 </html>

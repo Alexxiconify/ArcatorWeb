@@ -837,10 +837,25 @@
 <!-- Main JavaScript module for this page -->
 <script type="module" src="user-main.js"></script>
 <script type="module">
-  import {loadFooter} from './navbar.js';
+  import {
+    auth,
+    getUserProfileFromFirestore,
+    firebaseReadyPromise,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME
+  } from './firebase-init.js';
+  import {loadNavbar, loadFooter} from './navbar.js';
 
-  // Load the consolidated footer
-  loadFooter('current-year');
+  firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged(async (user) => {
+      let userProfile = null;
+      if (user) {
+        userProfile = await getUserProfileFromFirestore(user.uid);
+      }
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+      loadFooter('current-year-users');
+    });
+  });
 </script>
 </body>
 </html>
