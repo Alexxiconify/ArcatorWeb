@@ -38,7 +38,12 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
       if (authUser && userProfile) { // Check both authUser and the enriched userProfile
         if (userSettingsLink) userSettingsLink.classList.remove('hidden');
         if (signinLink) signinLink.classList.add('hidden');
-        if (userProfilePic) userProfilePic.src = userProfile.photoURL || defaultProfilePic;
+        // Validate photoURL before using
+        let safePhotoURL = userProfile.photoURL;
+        if (!safePhotoURL || typeof safePhotoURL !== 'string' || !/^https?:\/\//.test(safePhotoURL)) {
+          safePhotoURL = defaultProfilePic;
+        }
+        if (userProfilePic) userProfilePic.src = safePhotoURL;
         let profileHtml = '';
         if (userProfile.displayName) profileHtml += userProfile.displayName;
         if (userProfile.handle) profileHtml += ` <span class='text-gray-400'>@${userProfile.handle}</span>`;
