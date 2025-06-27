@@ -27,12 +27,12 @@ fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
  * @returns {string}
  */
 export function replaceEmojis(text) {
+  // Manual patch for :joy:
+  text = text.replace(/:joy:/gi, '😂');
   if (!EMOJI_MAP_LOADED) {
-    // If emoji map isn't loaded yet, return original text
-    // The content will be re-rendered when the map loads
+    // If emoji map isn't loaded yet, return patched text
     return text;
   }
-  
   return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
     if (EMOJI_MAP[name]) return EMOJI_MAP[name];
     return match;

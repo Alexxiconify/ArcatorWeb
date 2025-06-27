@@ -526,16 +526,17 @@ function renderThemaBoxes(themasArr) {
         if (threadForm) {
           threadForm.onsubmit = async (e) => {
             e.preventDefault();
-            // Check if form is still connected to DOM
-            if (!document.contains(threadForm)) {
-              console.warn('Form not connected to DOM, skipping submission');
-              return;
-            }
+            if (!document.contains(threadForm)) return;
             const title = threadForm.querySelector('.thread-title-input').value.trim();
             const content = threadForm.querySelector('.thread-content-input').value.trim();
             if (!title || !content) return;
             if (!window.auth.currentUser || !window.db) return;
-            const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+            let threadsCol;
+            if (thema.id === 'global') {
+              threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
+            } else {
+              threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
+            }
             await addDoc(threadsCol, {
               title,
               initialComment: content,
@@ -543,10 +544,7 @@ function renderThemaBoxes(themasArr) {
               createdBy: window.auth.currentUser.uid,
               creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
             });
-            // Reset form only if still connected
-            if (document.contains(threadForm)) {
-              threadForm.reset();
-            }
+            if (document.contains(threadForm)) threadForm.reset();
           };
         }
       }
@@ -1938,3 +1936,32 @@ fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
     // Emoji map loaded, trigger re-render
     setTimeout(() => triggerEmojiRerender(), 100);
   });
+
+// --- GLOBAL EMOJI RERENDER PATCH ---
+function rerenderAllEmojis() {
+  // Thread titles
+  document.querySelectorAll('.thread-title').forEach(el => {
+    el.innerHTML = replaceEmojis(el.textContent);
+  });
+  // Thread initial comments
+  document.querySelectorAll('.thread-initial-comment').forEach(el => {
+    el.innerHTML = renderMarkdown(replaceEmojis(el.textContent));
+  });
+  // Comments
+  document.querySelectorAll('.comment-content').forEach(el => {
+    el.innerHTML = renderMarkdown(replaceEmojis(el.textContent));
+  });
+  // DMs
+  document.querySelectorAll('.dm-message-content').forEach(el => {
+    el.innerHTML = renderMarkdown(replaceEmojis(el.textContent));
+  });
+}
+
+// Listen for emoji map loaded event
+if (typeof document !== 'undefined') {
+  document.addEventListener('emojiMapLoaded', rerenderAllEmojis);
+  // If emoji map is already loaded, run once after DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof EMOJI_MAP_LOADED !== 'undefined' && EMOJI_MAP_LOADED) rerenderAllEmojis();
+  });
+}
