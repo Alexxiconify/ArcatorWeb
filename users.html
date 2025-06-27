@@ -345,18 +345,18 @@
             <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
           </div>
         </details>
-        <!-- Session Info -->
-        <details class="settings-card"
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-cyan-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">info</span> Session Information
-          </summary>
-          <div class="mt-4">
-            <p class="text-gray-300 text-center mb-2" id="last-login-time">Last Login: N/A</p>
-            <p class="text-gray-300 text-center" id="account-creation-time">Account Created: N/A</p>
+        <!-- Info Session Information -->
+        <div class="settings-card card" id="info-session-info">
+          <div class="card-header flex items-center gap-2 mb-2">
+            <span class="material-icons text-blue-400">info</span>
+            <span class="font-bold">Session Information</span>
           </div>
-        </details>
+          <div class="card-body">
+            <div><strong>Username:</strong> <span id="user-display-name"></span></div>
+            <div><strong>Handle:</strong> <span id="user-handle"></span></div>
+            <div><strong>Joined:</strong> <span id="user-joined-date"></span></div>
+          </div>
+        </div>
         <!-- Danger Zone -->
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
