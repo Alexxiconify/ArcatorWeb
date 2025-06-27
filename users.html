@@ -473,6 +473,112 @@
     .auth-btn-primary {
       width: 100%;
     }
+
+    .login-card {
+      max-width: 400px;
+      margin: 5vh auto 0 auto;
+      background: var(--color-bg-card, #23272e);
+      border-radius: 1.25rem;
+      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.18);
+      padding: 2.5rem 2rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .login-card h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: var(--color-heading-main, #F9FAFB);
+    }
+
+    .login-card label {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--color-text-secondary, #9CA3AF);
+    }
+
+    .login-card input[type="email"],
+    .login-card input[type="password"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--color-input-border, #4B5563);
+      background: var(--color-input-bg, #374151);
+      color: var(--color-input-text, #E5E7EB);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-card .password-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .login-card .visibility-toggle {
+      cursor: pointer;
+      color: var(--color-link, #60A5FA);
+      font-size: 1.1rem;
+      margin-left: -2.2rem;
+      margin-top: 0.2rem;
+      background: none;
+      border: none;
+      outline: none;
+    }
+
+    .login-card .auth-btn-primary {
+      width: 100%;
+      padding: 0.75rem 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      background: var(--color-button-blue-bg, #3B82F6);
+      color: var(--color-button-text, #fff);
+      border: none;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .login-card .auth-btn-primary:hover {
+      background: var(--color-button-blue-hover, #2563EB);
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .login-card .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--color-text-secondary, #9CA3AF);
+      margin: 1rem 0;
+    }
+
+    .login-card .divider::before,
+    .login-card .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--color-input-border, #4B5563);
+    }
+
+    .login-card .divider:not(:empty)::before {
+      margin-right: .75em;
+    }
+
+    .login-card .divider:not(:empty)::after {
+      margin-left: .75em;
+    }
+
+    @media (max-width: 600px) {
+      .login-card {
+        padding: 1.5rem 0.5rem;
+        border-radius: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -497,43 +603,35 @@
     </div>
 
     <!-- Sign In Section (Modernized) -->
-    <div class="auth-card shadow-2xl" id="signin-section" style="display: none;">
-      <h2 class="text-3xl font-extrabold text-heading-card text-center mb-6 flex items-center justify-center gap-2">
-        <span class="material-icons">login</span> Sign In
-      </h2>
+    <div class="login-card" id="signin-section">
+      <h2>Sign In</h2>
       <form id="signin-form">
-        <div class="auth-input-field">
-          <label for="signin-email">Email Address</label>
-          <input type="email" id="signin-email" placeholder="email@example.com">
-        </div>
-        <div class="auth-input-field relative">
-          <label for="signin-password">Password</label>
-          <input autocomplete="current-password" class="pr-10" id="signin-password" placeholder="********"
-                 type="password">
-          <button class="absolute right-2 top-8 text-text-secondary focus:outline-none" id="toggle-signin-password"
+        <label for="signin-email">Email Address</label>
+        <input autocomplete="username" id="signin-email" placeholder="email@example.com" required type="email">
+        <label for="signin-password">Password</label>
+        <div class="password-row">
+          <input id="signin-password" placeholder="********" required type="password">
+          <button class="visibility-toggle"
+                  onclick="const p=document.getElementById('signin-password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'visibility':'visibility_off';"
+                  tabindex="-1"
                   type="button">
-            <span class="material-icons">visibility</span>
+            visibility
           </button>
         </div>
-        <div class="flex items-center justify-between my-4">
-          <hr class="flex-1 border-input-border">
-          <span class="mx-2 text-text-secondary text-xs">or</span>
-          <hr class="flex-1 border-input-border">
-        </div>
-        <div class="flex flex-col gap-2 mb-6">
-          <button class="auth-btn-primary bg-blue-500 hover:bg-blue-600 flex items-center justify-center gap-2 w-full"
-                  type="submit">
-            <span class="material-icons">mail</span> Sign in with Email
-          </button>
-          <button class="auth-btn-primary bg-gray-800 hover:bg-gray-700 flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
-                  disabled
-                  type="button">
-            <span class="material-icons">account_circle</span> Social Sign-In (Coming Soon)
-          </button>
-        </div>
-        <div class="flex flex-col items-center justify-center space-y-2 text-center mt-4">
-          <a href="#" id="go-to-signup-link" class="auth-link">Don't have an account? Sign Up</a>
-          <a href="#" id="go-to-forgot-password-link" class="auth-link">Forgot Password?</a>
+        <button class="auth-btn-primary" type="submit"><span class="material-icons">mail</span> Sign in with Email
+        </button>
+        <div class="divider">or</div>
+        <button class="auth-btn-primary"
+                style="background:var(--color-bg-card,#23272e);color:var(--color-text-secondary,#9CA3AF);font-weight:600;cursor:not-allowed;"
+                type="button">
+          <span class="material-icons">account_circle</span> Social Sign-In (Coming Soon)
+        </button>
+        <div style="text-align:center;margin-top:1rem;">
+          <a href="#" id="go-to-signup-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Don't have an
+            account? Sign Up</a>
+          <br>
+          <a href="#" id="go-to-forgot-password-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Forgot
+            Password?</a>
         </div>
       </form>
     </div>
@@ -622,19 +720,24 @@
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
-            <div class="input-field">
-              <label for="current-password-input">Current Password:</label>
-              <input autocomplete="current-password" id="current-password-input" placeholder="********" type="password">
-            </div>
-            <div class="input-field">
-              <label for="new-password-input">New Password:</label>
-              <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
-            </div>
-            <div class="input-field">
-              <label for="confirm-new-password-input">Confirm New Password:</label>
-              <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********" type="password">
-            </div>
-            <button class="btn-primary btn-orange mt-2" id="change-password-btn">Change Password</button>
+            <form id="change-password-form">
+              <div class="input-field">
+                <label for="current-password-input">Current Password:</label>
+                <input autocomplete="current-password" id="current-password-input" placeholder="********"
+                       type="password">
+              </div>
+              <div class="input-field">
+                <label for="new-password-input">New Password:</label>
+                <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
+              </div>
+              <div class="input-field">
+                <label for="confirm-new-password-input">Confirm New Password:</label>
+                <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
+                       type="password">
+              </div>
+              <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
+              </button>
+            </form>
           </div>
         </details>
         <!-- Notifications -->
@@ -696,12 +799,14 @@
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Enter your password to permanently delete your account.</p>
-            <div class="input-field">
-              <label for="delete-account-password">Confirm Password:</label>
-              <input autocomplete="current-password" id="delete-account-password" placeholder="********"
-                     type="password">
-            </div>
-            <button class="btn-primary btn-red mt-2" id="delete-account-btn">Delete Account</button>
+            <form id="delete-account-form">
+              <div class="input-field">
+                <label for="delete-account-password">Confirm Password:</label>
+                <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                       type="password">
+              </div>
+              <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
+            </form>
           </div>
         </details>
       </div>

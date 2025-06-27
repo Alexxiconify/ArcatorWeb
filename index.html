@@ -376,7 +376,11 @@
     await firebaseReadyPromise;
 
     // Load navbar dynamically with correct parameters
-    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     // Set current year for footer
     document.getElementById('current-year-index').textContent = new Date().getFullYear();

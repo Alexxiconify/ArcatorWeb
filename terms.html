@@ -143,7 +143,11 @@
     setupThemesFirebase(db, auth, appId);
 
     // Load navbar dynamically
-    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Set current year for footer
     const currentYearElement = document.getElementById('current-year-terms');

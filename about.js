@@ -16,8 +16,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   console.log("about.js: Firebase ready.");
 
   // Load navbar dynamically after Firebase is ready
-  // Pass auth.currentUser, which is guaranteed to be set after firebaseReadyPromise resolves.
-  await loadNavbar(auth.currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+  // Fetch user profile for navbar
+  let userProfile = null;
+  if (auth.currentUser) {
+    userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+  }
+  await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
   console.log("about.js: Navbar loaded.");
 
   // Set current year for the footer

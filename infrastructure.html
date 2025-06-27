@@ -236,8 +236,11 @@
     await firebaseReadyPromise;
 
     // Pass the necessary Firebase instances and theme-related functions
-    // loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
-    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     document.getElementById('current-year-infra').textContent = new Date().getFullYear();
 
     // After everything is loaded and Firebase is ready, apply the user's theme
