@@ -100,11 +100,11 @@ const navbarStyles = `
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 0.05rem;
+  gap: 0.01rem;
   overflow-x: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
   -ms-overflow-style: none;
-  padding: 0.5rem;
+  padding: 0.25rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -122,8 +122,8 @@ const navbarStyles = `
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  padding: 0.15rem 0.25rem;
-  font-size: clamp(0.4rem, 0.5vw, 0.65rem);
+  padding: 0.05rem 0.18rem;
+  font-size: clamp(0.35rem, 0.45vw, 0.6rem);
   font-weight: 600;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
@@ -134,9 +134,9 @@ const navbarStyles = `
   overflow: hidden;
   background: transparent;
   border: 1px solid transparent;
-  margin: 0 0.05rem;
+  margin: 0 0.01rem;
   min-width: 0;
-  max-width: 80vw;
+  max-width: 100vw;
 }
 
 .navbar-link::before {
