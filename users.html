@@ -1012,6 +1012,12 @@
               </select>
             </div>
 
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Session Information</h4>
+            <div class="text-text-primary">
+              <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
+              <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
+            </div>
+
             <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Privacy Settings</button>
           </div>
         </details>
@@ -1037,33 +1043,7 @@
                 style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
             </div>
 
-            <h4 class="text-lg font-semibold text-heading-card mt-8 mb-3">Personalize Experience</h4>
-            <div class="settings-card mb-6" style="padding:0.5rem 1rem 0.5rem 1rem;max-width:480px;">
-              <label for="theme-select" style="font-size:1em;font-weight:500;">Theme</label>
-              <select class="w-full mb-2" id="theme-select" style="margin-bottom:0.5rem;"></select>
-              <button class="btn-primary btn-blue mb-2" id="create-custom-theme-btn"
-                      style="font-size:0.95em;padding:0.4em 1em;">Create Custom Theme
-              </button>
-              <label for="background-pattern-select" style="font-size:1em;font-weight:500;">Background Pattern</label>
-              <select class="w-full mb-2" id="background-pattern-select" style="margin-bottom:0.5rem;"></select>
-              <label for="background-opacity-range" style="font-size:1em;font-weight:500;">Background Opacity</label>
-              <input id="background-opacity-range" max="100" min="0" step="1" style="width:100%;" type="range">
-              <span id="background-opacity-value"
-                    style="font-size:0.9em;color:var(--color-text-secondary);margin-left:8px;">50%</span>
-            </div>
-
             <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
-          </div>
-        </details>
-        <!-- Accessibility -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Session Information
-          </summary>
-          <div class="mt-4 text-text-primary">
-            <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
-            <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
           </div>
         </details>
         <!-- Danger Zone -->
