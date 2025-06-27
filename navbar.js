@@ -42,6 +42,13 @@ const navbarStyles = `
   min-height: 48px;
 }
 
+.navbar-logo, .navbar-link, .navbar-user {
+  min-height: 40px;
+  line-height: 40px;
+  align-items: center;
+  display: flex;
+}
+
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -111,6 +118,8 @@ const navbarStyles = `
 }
 
 .navbar-link {
+  height: 40px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   padding: 0.15rem 0.25rem;
@@ -180,6 +189,8 @@ const navbarStyles = `
 }
 
 .navbar-user .navbar-link {
+  height: 40px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -194,8 +205,12 @@ const navbarStyles = `
 }
 
 .navbar-user .profile-pic-small {
-  margin-right: 0.5rem;
-  margin-left: 0;
+  height: 28px;
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
   align-self: center;
 }
 
