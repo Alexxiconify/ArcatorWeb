@@ -482,18 +482,28 @@ async function reloadAndApplyUserProfile() {
     document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
     document.body.style.backgroundSize = '20px 20px';
   } else if (backgroundPattern === 'grid') {
-    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '40px 40px';
+    document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '20px 20px';
   } else if (backgroundPattern === 'diagonal') {
-    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
-    document.body.style.backgroundSize = '60px 60px';
+    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0,0,0,${opacity}) 25%, transparent 25%, transparent 75%, rgba(0,0,0,${opacity}) 75%)`;
+    document.body.style.backgroundSize = '20px 20px';
   } else if (backgroundPattern === 'circles') {
-    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '30px 30px';
+    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '20px 20px';
   } else if (backgroundPattern === 'hexagons') {
-    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
-    document.body.style.backgroundSize = '40px 40px';
+    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0,0,0,${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0,0,0,${opacity}) 75%), linear-gradient(120deg, rgba(0,0,0,${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0,0,0,${opacity}) 75%)`;
+    document.body.style.backgroundSize = '20px 20px';
   }
+
+  // Load and apply keyboard shortcuts
+  if (advancedSettings.keyboardShortcutsConfig) {
+    keyboardShortcuts = {...defaultShortcuts, ...advancedSettings.keyboardShortcutsConfig};
+  } else {
+    keyboardShortcuts = {...defaultShortcuts};
+  }
+
+  // Initialize keyboard shortcuts system
+  initializeKeyboardShortcuts();
 
   console.log('DEBUG: All settings loaded and applied successfully');
 }
@@ -920,58 +930,12 @@ async function handleSavePrivacy() {
   }
 }
 
-// Handler for saving accessibility settings
-async function handleSaveAccessibility() {
-  if (!auth.currentUser) return;
-
-  // Get all accessibility checkboxes
-  const accessibilityCheckboxes = [
-    'high-contrast-checkbox',
-    'large-cursor-checkbox',
-    'focus-indicators-checkbox',
-    'colorblind-friendly-checkbox',
-    'reduced-motion-checkbox',
-    'disable-animations-checkbox',
-    'keyboard-navigation-checkbox',
-    'skip-links-checkbox',
-    'text-to-speech-checkbox',
-    'reading-guide-checkbox',
-    'syntax-highlighting-checkbox',
-    'word-spacing-checkbox'
-  ];
-
-  const accessibilitySettings = {};
-  accessibilityCheckboxes.forEach(checkboxId => {
-    const checkbox = document.getElementById(checkboxId);
-    if (checkbox) {
-      const settingKey = checkboxId.replace('-checkbox', '');
-      accessibilitySettings[settingKey] = checkbox.checked;
-    }
-  });
-
-  const updates = {
-    accessibilitySettings: accessibilitySettings
-  };
-
-  // Apply accessibility settings immediately
-  applyAccessibilitySettings(accessibilitySettings);
-
-  try {
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
-    if (success) {
-      showMessageBox('Accessibility settings saved successfully!', false);
-      await reloadAndApplyUserProfile();
-    }
-  } catch (error) {
-    console.error('Error saving accessibility settings:', error);
-    showMessageBox('Error saving accessibility settings.', true);
-  }
-}
-
 // Apply accessibility settings to the page
 function applyAccessibilitySettings(settings) {
   const root = document.documentElement;
 
+  // COMMENTED OUT: These settings don't work properly
+  /*
   if (settings.highContrast) {
     root.classList.add('high-contrast-mode');
   } else {
@@ -1030,6 +994,16 @@ function applyAccessibilitySettings(settings) {
   } else {
     root.classList.remove('colorblind-friendly');
   }
+  */
+
+  // Only apply working accessibility settings
+  if (settings.reducedMotion || settings.disableAnimations) {
+    root.style.setProperty('--animation-duration', '0.01ms');
+    root.style.setProperty('--transition-duration', '0.01ms');
+  } else {
+    root.style.removeProperty('--animation-duration');
+    root.style.removeProperty('--transition-duration');
+  }
 }
 
 // Handler for saving advanced settings
@@ -1066,6 +1040,9 @@ async function handleSaveAdvanced() {
   if (keyboardShortcutsSelect) {
     advancedSettings.keyboardShortcuts = keyboardShortcutsSelect.value;
   }
+
+  // Add keyboard shortcuts configuration
+  advancedSettings.keyboardShortcutsConfig = keyboardShortcuts;
 
   const updates = {
     advancedSettings: advancedSettings
@@ -1515,6 +1492,9 @@ window.onload = async function() {
       });
     }
 
+    // Initialize keyboard shortcuts when page loads
+    initializeKeyboardShortcuts();
+
   } catch (error) {
     console.error("user-main.js: Error during window.onload execution:", error);
     showMessageBox("An unexpected error occurred during page load.", true);
@@ -1523,3 +1503,266 @@ window.onload = async function() {
     // which is invoked once the appropriate UI section is determined.
   }
 };
+
+// Keyboard shortcuts system
+let keyboardShortcuts = {};
+let isRecordingShortcut = false;
+let currentRecordingShortcut = null;
+
+// Default keyboard shortcuts
+const defaultShortcuts = {
+  'home': 'Ctrl+H',
+  'about': 'Ctrl+A',
+  'servers': 'Ctrl+S',
+  'community': 'Ctrl+C',
+  'interests': 'Ctrl+I',
+  'games': 'Ctrl+G',
+  'forms': 'Ctrl+F',
+  'dms': 'Ctrl+D',
+  'new-dm': 'Ctrl+N',
+  'settings': 'Ctrl+U',
+  'themes': 'Ctrl+T',
+  'search': 'Ctrl+K',
+  'help': 'F1',
+  'logout': 'Ctrl+L'
+};
+
+// Page URL mappings
+const pageUrls = {
+  'home': 'index.html',
+  'about': 'about.html',
+  'servers': 'servers.html',
+  'community': 'community.html',
+  'interests': 'interests.html',
+  'games': 'games.html',
+  'forms': 'forms.html',
+  'dms': 'forms.html#dms',
+  'new-dm': 'forms.html#dms',
+  'settings': 'users.html',
+  'themes': 'themes.html',
+  'search': '#',
+  'help': '#',
+  'logout': '#'
+};
+
+// Initialize keyboard shortcuts
+function initializeKeyboardShortcuts() {
+  // Load saved shortcuts or use defaults
+  keyboardShortcuts = {...defaultShortcuts};
+
+  // Apply shortcuts
+  applyKeyboardShortcuts();
+
+  // Setup event listeners for customization
+  setupShortcutCustomization();
+}
+
+// Apply keyboard shortcuts to the page
+function applyKeyboardShortcuts() {
+  // Remove existing listeners
+  document.removeEventListener('keydown', handleKeyboardShortcut);
+
+  // Add new listener
+  document.addEventListener('keydown', handleKeyboardShortcut);
+}
+
+// Handle keyboard shortcut events
+function handleKeyboardShortcut(event) {
+  if (isRecordingShortcut) return;
+
+  const pressedKeys = getPressedKeys(event);
+  const shortcut = keyboardShortcuts[pressedKeys];
+
+  if (shortcut) {
+    event.preventDefault();
+    executeShortcut(pressedKeys);
+  }
+}
+
+// Get pressed keys as a string
+function getPressedKeys(event) {
+  const keys = [];
+
+  if (event.ctrlKey) keys.push('Ctrl');
+  if (event.altKey) keys.push('Alt');
+  if (event.shiftKey) keys.push('Shift');
+  if (event.metaKey) keys.push('Meta');
+
+  // Add the main key
+  if (event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Shift' && event.key !== 'Meta') {
+    keys.push(event.key.toUpperCase());
+  }
+
+  return keys.join('+');
+}
+
+// Execute a shortcut action
+function executeShortcut(shortcutKey) {
+  const action = Object.keys(keyboardShortcuts).find(key => keyboardShortcuts[key] === shortcutKey);
+
+  if (!action) return;
+
+  switch (action) {
+    case 'home':
+    case 'about':
+    case 'servers':
+    case 'community':
+    case 'interests':
+    case 'games':
+    case 'forms':
+    case 'settings':
+    case 'themes':
+      window.location.href = pageUrls[action];
+      break;
+
+    case 'dms':
+      window.location.href = pageUrls[action];
+      break;
+
+    case 'new-dm':
+      window.location.href = pageUrls[action];
+      break;
+
+    case 'search':
+      // Focus search input if available
+      const searchInput = document.querySelector('input[type="search"], #search-input');
+      if (searchInput) {
+        searchInput.focus();
+      }
+      break;
+
+    case 'help':
+      // Show help modal or redirect to help page
+      showMessageBox('Help: Use keyboard shortcuts to navigate quickly. Press Ctrl+K for search.', false);
+      break;
+
+    case 'logout':
+      if (auth.currentUser) {
+        auth.signOut().then(() => {
+          window.location.href = 'index.html';
+        });
+      }
+      break;
+  }
+}
+
+// Setup shortcut customization UI
+function setupShortcutCustomization() {
+  // Load current shortcuts into UI
+  Object.keys(defaultShortcuts).forEach(shortcutKey => {
+    const input = document.getElementById(`shortcut-${shortcutKey}`);
+    if (input) {
+      input.value = keyboardShortcuts[shortcutKey] || defaultShortcuts[shortcutKey];
+    }
+  });
+
+  // Setup edit buttons
+  document.querySelectorAll('.shortcut-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const shortcutKey = e.target.dataset.shortcut;
+      startRecordingShortcut(shortcutKey);
+    });
+  });
+
+  // Setup disable buttons
+  document.querySelectorAll('.shortcut-disable-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const shortcutKey = e.target.dataset.shortcut;
+      toggleShortcutDisabled(shortcutKey);
+    });
+  });
+}
+
+// Start recording a new shortcut
+function startRecordingShortcut(shortcutKey) {
+  if (isRecordingShortcut) return;
+
+  isRecordingShortcut = true;
+  currentRecordingShortcut = shortcutKey;
+
+  const input = document.getElementById(`shortcut-${shortcutKey}`);
+  if (input) {
+    input.classList.add('recording');
+    input.value = 'Press keys...';
+    input.focus();
+  }
+
+  // Add temporary listener for recording
+  document.addEventListener('keydown', recordShortcut, {once: true});
+  document.addEventListener('click', cancelRecording, {once: true});
+}
+
+// Record the pressed shortcut
+function recordShortcut(event) {
+  event.preventDefault();
+
+  const pressedKeys = getPressedKeys(event);
+
+  if (pressedKeys && currentRecordingShortcut) {
+    // Check for conflicts
+    const conflictingShortcut = Object.keys(keyboardShortcuts).find(key =>
+      keyboardShortcuts[key] === pressedKeys && key !== currentRecordingShortcut
+    );
+
+    if (conflictingShortcut) {
+      showMessageBox(`Shortcut conflict: ${pressedKeys} is already used for ${conflictingShortcut}`, true);
+      cancelRecording();
+      return;
+    }
+
+    // Update the shortcut
+    keyboardShortcuts[currentRecordingShortcut] = pressedKeys;
+
+    const input = document.getElementById(`shortcut-${currentRecordingShortcut}`);
+    if (input) {
+      input.value = pressedKeys;
+      input.classList.remove('recording');
+    }
+
+    showMessageBox(`Shortcut updated: ${currentRecordingShortcut} = ${pressedKeys}`, false);
+  }
+
+  isRecordingShortcut = false;
+  currentRecordingShortcut = null;
+}
+
+// Cancel shortcut recording
+function cancelRecording() {
+  if (!isRecordingShortcut) return;
+
+  isRecordingShortcut = false;
+
+  if (currentRecordingShortcut) {
+    const input = document.getElementById(`shortcut-${currentRecordingShortcut}`);
+    if (input) {
+      input.classList.remove('recording');
+      input.value = keyboardShortcuts[currentRecordingShortcut] || defaultShortcuts[currentRecordingShortcut];
+    }
+  }
+
+  currentRecordingShortcut = null;
+}
+
+// Toggle shortcut disabled state
+function toggleShortcutDisabled(shortcutKey) {
+  const input = document.getElementById(`shortcut-${shortcutKey}`);
+  const disableBtn = document.querySelector(`[data-shortcut="${shortcutKey}"].shortcut-disable-btn`);
+
+  if (input && disableBtn) {
+    if (input.disabled) {
+      // Enable shortcut
+      input.disabled = false;
+      input.value = keyboardShortcuts[shortcutKey] || defaultShortcuts[shortcutKey];
+      disableBtn.textContent = 'Disable';
+      disableBtn.classList.remove('disabled');
+      delete keyboardShortcuts[`${shortcutKey}_disabled`];
+    } else {
+      // Disable shortcut
+      input.disabled = true;
+      input.value = 'Disabled';
+      disableBtn.textContent = 'Enable';
+      disableBtn.classList.add('disabled');
+      keyboardShortcuts[`${shortcutKey}_disabled`] = true;
+    }
+  }
+}
