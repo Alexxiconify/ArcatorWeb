@@ -128,8 +128,10 @@
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
+<!-- Spacer to prevent navbar overlap -->
+<div style="height:64px;"></div>
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
+<section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Account</h1>
     <p class="text-xl md:text-2xl mb-8">Manage your account or sign in</p>
@@ -191,7 +193,7 @@
         <!-- Profile Info -->
         <details class="settings-card"
                  open
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem;">
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">badge</span> Profile Information
           </summary>
@@ -215,7 +217,8 @@
           </div>
         </details>
         <!-- Preferences -->
-        <details class="settings-card bg-card shadow-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-green-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">palette</span> Personalize Experience
@@ -256,7 +259,8 @@
           </div>
         </details>
         <!-- Security -->
-        <details class="settings-card bg-card shadow-xl border  p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-orange-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">lock</span> Password Management
@@ -279,7 +283,8 @@
           </div>
         </details>
         <!-- Notifications -->
-        <details class="settings-card bg-card shadow-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-yellow-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">notifications</span> Notification Preferences
@@ -300,7 +305,8 @@
           </div>
         </details>
         <!-- Accessibility -->
-        <details class="settings-card bg-card shadow-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-purple-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">accessibility</span> Accessibility Settings
@@ -319,7 +325,8 @@
           </div>
         </details>
         <!-- Session Info -->
-        <details class="settings-card bg-card shadow-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-cyan-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">info</span> Session Information
@@ -330,7 +337,8 @@
           </div>
         </details>
         <!-- Danger Zone -->
-        <details class="settings-card bg-card shadow-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <details class="settings-card"
+                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
             class="text-xl font-bold text-red-400 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">warning</span> Danger Zone
