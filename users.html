@@ -301,23 +301,91 @@
       box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.35);
     }
 
-    /* Checkbox styling */
+    /* Enhanced checkbox styling */
     .form-checkbox {
-      background: var(--color-input-bg);
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
       border: 2px solid var(--color-input-border);
       border-radius: 0.375rem;
-      color: var(--color-link);
-      transition: all 0.3s ease;
+      background: var(--color-input-bg);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+    }
+
+    .form-checkbox:hover {
+      border-color: var(--color-link);
+      transform: scale(1.05);
+      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
     }
 
     .form-checkbox:checked {
       background: var(--color-link);
       border-color: var(--color-link);
+      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
+    }
+
+    .form-checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 0.875rem;
+      font-weight: bold;
+      line-height: 1;
     }
 
     .form-checkbox:focus {
+      outline: none;
       border-color: var(--color-link);
-      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
+    }
+
+    .form-checkbox:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Checkbox container styling */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .checkbox-container:hover {
+      background: rgba(99, 179, 237, 0.05);
+    }
+
+    .checkbox-container label {
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      flex: 1;
+    }
+
+    /* Default option styling */
+    .default-option {
+      font-weight: 600;
+      color: var(--color-link);
+    }
+
+    .default-option::before {
+      content: "(Default) ";
+      font-size: 0.875rem;
+      opacity: 0.8;
     }
 
     /* Message box styling */
@@ -685,7 +753,7 @@
               <select class="w-full" id="font-size-select">
                 <option value="12px">Extra Small (12px)</option>
                 <option value="14px">Small (14px)</option>
-                <option value="16px">Medium (16px)</option>
+                <option class="default-option" value="16px">Medium (16px)</option>
                 <option value="18px">Large (18px)</option>
                 <option value="20px">Extra Large (20px)</option>
                 <option value="22px">XXL (22px)</option>
@@ -697,7 +765,7 @@
               <select class="w-full" id="heading-size-multiplier">
                 <option value="1.2">Small (1.2x)</option>
                 <option value="1.4">Medium (1.4x)</option>
-                <option value="1.6">Large (1.6x)</option>
+                <option class="default-option" value="1.6">Large (1.6x)</option>
                 <option value="1.8">Extra Large (1.8x)</option>
                 <option value="2.0">XXL (2.0x)</option>
                 <option value="2.5">XXXL (2.5x)</option>
@@ -708,7 +776,7 @@
             <div class="input-field">
               <label for="font-family-select">Font Family:</label>
               <select class="w-full" id="font-family-select">
-                <option value="Inter, sans-serif">Inter (Modern)</option>
+                <option class="default-option" value="Inter, sans-serif">Inter (Modern)</option>
                 <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
                 <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
                 <option value="Roboto, sans-serif">Roboto (Google)</option>
@@ -725,7 +793,7 @@
               <select class="w-full" id="line-height-select">
                 <option value="1.2">Tight (1.2)</option>
                 <option value="1.4">Compact (1.4)</option>
-                <option value="1.6">Normal (1.6)</option>
+                <option class="default-option" value="1.6">Normal (1.6)</option>
                 <option value="1.8">Relaxed (1.8)</option>
                 <option value="2.0">Loose (2.0)</option>
                 <option value="2.2">Very Loose (2.2)</option>
@@ -737,7 +805,7 @@
               <select class="w-full" id="letter-spacing-select">
                 <option value="-0.5px">Tight (-0.5px)</option>
                 <option value="-0.2px">Slightly Tight (-0.2px)</option>
-                <option value="0px">Normal (0px)</option>
+                <option class="default-option" value="0px">Normal (0px)</option>
                 <option value="0.5px">Slightly Loose (0.5px)</option>
                 <option value="1px">Loose (1px)</option>
                 <option value="2px">Very Loose (2px)</option>
@@ -747,7 +815,7 @@
             <div class="input-field">
               <label for="background-pattern-select">Background Pattern:</label>
               <select class="w-full" id="background-pattern-select">
-                <option value="none">None</option>
+                <option class="default-option" value="none">None</option>
                 <option value="dots">Dots</option>
                 <option value="grid">Grid</option>
                 <option value="diagonal">Diagonal Lines</option>
@@ -808,36 +876,30 @@
             <p class="text-text-secondary text-center mb-4">Manage how you receive updates and alerts.</p>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3">General Notifications</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="email-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
               <label for="email-notifications-checkbox">Receive Email Notifications</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="inapp-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
               <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
             </div>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Specific Notification Types</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="announcement-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="announcement-notifications-checkbox" type="checkbox">
               <label for="announcement-notifications-checkbox">Server Announcements</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="community-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="community-notifications-checkbox" type="checkbox">
               <label for="community-notifications-checkbox">Community Updates</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="security-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="security-notifications-checkbox" type="checkbox">
               <label for="security-notifications-checkbox">Security Alerts</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="maintenance-notifications-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="maintenance-notifications-checkbox" type="checkbox">
               <label for="maintenance-notifications-checkbox">Maintenance Notifications</label>
             </div>
 
@@ -845,7 +907,7 @@
             <div class="input-field">
               <label for="notification-frequency-select">Email Frequency:</label>
               <select class="w-full" id="notification-frequency-select">
-                <option value="immediate">Immediate</option>
+                <option class="default-option" value="immediate">Immediate</option>
                 <option value="hourly">Hourly Digest</option>
                 <option value="daily">Daily Digest</option>
                 <option value="weekly">Weekly Digest</option>
@@ -867,19 +929,16 @@
             <p class="text-text-secondary text-center mb-4">Control your privacy settings and manage your data.</p>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3">Privacy Settings</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="profile-visibility-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
               <label for="profile-visibility-checkbox">Make Profile Public</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="activity-visibility-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
               <label for="activity-visibility-checkbox">Show Activity Status</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="analytics-consent-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
               <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
             </div>
 
@@ -901,17 +960,15 @@
               </button>
             </div>
 
-            <div class="input-field mt-4">
+            <div class="input-field">
               <label for="data-retention-select">Data Retention Period:</label>
               <select class="w-full" id="data-retention-select">
                 <option value="30">30 days</option>
-                <option value="90">90 days</option>
+                <option class="default-option" value="90">90 days</option>
                 <option value="180">6 months</option>
                 <option value="365">1 year</option>
                 <option value="0">Keep indefinitely</option>
               </select>
-              <p class="text-text-secondary text-sm mt-1">How long to keep your activity data before automatic
-                deletion.</p>
             </div>
 
             <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Privacy Settings</button>
@@ -927,62 +984,58 @@
             <p class="text-text-secondary text-center mb-4">Adjust settings for improved accessibility.</p>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3">Visual Accessibility</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="high-contrast-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="high-contrast-checkbox" type="checkbox">
               <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="large-cursor-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="large-cursor-checkbox" type="checkbox">
               <label for="large-cursor-checkbox">Large Cursor</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="focus-indicators-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="focus-indicators-checkbox" type="checkbox">
               <label for="focus-indicators-checkbox">Enhanced Focus Indicators</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="colorblind-friendly-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="colorblind-friendly-checkbox" type="checkbox">
               <label for="colorblind-friendly-checkbox">Colorblind-Friendly Mode</label>
             </div>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Motion & Animation</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="reduced-motion-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
               <label for="reduced-motion-checkbox">Enable Reduced Motion</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="disable-animations-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
               <label for="disable-animations-checkbox">Disable All Animations</label>
             </div>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Navigation & Interaction</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="keyboard-navigation-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="keyboard-navigation-checkbox" type="checkbox">
               <label for="keyboard-navigation-checkbox">Enhanced Keyboard Navigation</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="skip-links-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="skip-links-checkbox" type="checkbox">
               <label for="skip-links-checkbox">Show Skip Links</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="text-to-speech-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="text-to-speech-checkbox" type="checkbox">
               <label for="text-to-speech-checkbox">Enable Text-to-Speech</label>
             </div>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Reading Aids</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="reading-guide-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="reading-guide-checkbox" type="checkbox">
               <label for="reading-guide-checkbox">Reading Guide Line</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="syntax-highlighting-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="syntax-highlighting-checkbox" type="checkbox">
               <label for="syntax-highlighting-checkbox">Enhanced Syntax Highlighting</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="word-spacing-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="word-spacing-checkbox" type="checkbox">
               <label for="word-spacing-checkbox">Increased Word Spacing</label>
             </div>
 
@@ -999,33 +1052,30 @@
             <p class="text-text-secondary text-center mb-4">Advanced customization and performance options.</p>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3">Performance Options</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="low-bandwidth-mode-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="low-bandwidth-mode-checkbox" type="checkbox">
               <label for="low-bandwidth-mode-checkbox">Low Bandwidth Mode</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="disable-images-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="disable-images-checkbox" type="checkbox">
               <label for="disable-images-checkbox">Disable Non-Essential Images</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="minimal-ui-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="minimal-ui-checkbox" type="checkbox">
               <label for="minimal-ui-checkbox">Minimal UI Mode</label>
             </div>
 
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Developer Tools</h4>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="debug-mode-checkbox" type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="debug-mode-checkbox" type="checkbox">
               <label for="debug-mode-checkbox">Enable Debug Mode</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="show-performance-metrics-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="show-performance-metrics-checkbox" type="checkbox">
               <label for="show-performance-metrics-checkbox">Show Performance Metrics</label>
             </div>
-            <div class="input-field flex items-center space-x-2">
-              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="enable-experimental-features-checkbox"
-                     type="checkbox">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="enable-experimental-features-checkbox" type="checkbox">
               <label for="enable-experimental-features-checkbox">Enable Experimental Features</label>
             </div>
 
@@ -1042,7 +1092,7 @@
             <div class="input-field">
               <label for="keyboard-shortcuts-toggle">Enable Custom Keyboard Shortcuts:</label>
               <select class="w-full" id="keyboard-shortcuts-toggle">
-                <option value="enabled">Enabled</option>
+                <option class="default-option" value="enabled">Enabled</option>
                 <option value="disabled">Disabled</option>
                 <option value="minimal">Minimal Set</option>
               </select>

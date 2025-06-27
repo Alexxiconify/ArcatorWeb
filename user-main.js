@@ -339,6 +339,8 @@ async function reloadAndApplyUserProfile() {
   const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
   if (!userProfile) return;
 
+  console.log('DEBUG: reloadAndApplyUserProfile - userProfile:', userProfile);
+
   // Apply all settings to UI controls
   if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
   if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
@@ -346,39 +348,154 @@ async function reloadAndApplyUserProfile() {
   if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = userProfile.headingSizeMultiplier || '1.6';
   if (lineHeightSelect) lineHeightSelect.value = userProfile.lineHeight || '1.6';
   if (letterSpacingSelect) letterSpacingSelect.value = userProfile.letterSpacing || '0px';
-  if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '0.2';
-  if (backgroundOpacityValue) backgroundOpacityValue.textContent = userProfile.backgroundOpacity || '0.2';
+  if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '50';
+  if (backgroundOpacityValue) backgroundOpacityValue.textContent = (userProfile.backgroundOpacity || '50') + '%';
 
-  // Apply comprehensive font scaling system
+  // Apply font scaling system
   applyFontScalingSystem(userProfile);
 
+  // Load notification settings
+  const notificationSettings = userProfile.notificationSettings || {};
+  const notificationCheckboxes = [
+    'email-notifications-checkbox',
+    'inapp-notifications-checkbox',
+    'announcement-notifications-checkbox',
+    'community-notifications-checkbox',
+    'security-notifications-checkbox',
+    'maintenance-notifications-checkbox'
+  ];
+
+  notificationCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      checkbox.checked = notificationSettings[settingKey] || false;
+    }
+  });
+
+  // Add notification frequency
+  const notificationFrequencySelect = document.getElementById('notification-frequency-select');
+  if (notificationFrequencySelect) {
+    notificationFrequencySelect.value = notificationSettings.notificationFrequency || 'immediate';
+  }
+
+  // Load privacy settings
+  const privacySettings = userProfile.privacySettings || {};
+  const privacyCheckboxes = [
+    'profile-visibility-checkbox',
+    'activity-visibility-checkbox',
+    'analytics-consent-checkbox'
+  ];
+
+  privacyCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      // Set defaults to true for profile visibility and activity status
+      if (settingKey === 'profile-visibility' || settingKey === 'activity-visibility') {
+        checkbox.checked = privacySettings[settingKey] !== undefined ? privacySettings[settingKey] : true;
+      } else {
+        checkbox.checked = privacySettings[settingKey] || false;
+      }
+    }
+  });
+
+  // Add data retention setting
+  const dataRetentionSelect = document.getElementById('data-retention-select');
+  if (dataRetentionSelect) {
+    dataRetentionSelect.value = privacySettings.dataRetention || '90';
+  }
+
+  // Load accessibility settings
+  const accessibilitySettings = userProfile.accessibilitySettings || {};
+  const accessibilityCheckboxes = [
+    'high-contrast-checkbox',
+    'large-cursor-checkbox',
+    'focus-indicators-checkbox',
+    'colorblind-friendly-checkbox',
+    'reduced-motion-checkbox',
+    'disable-animations-checkbox',
+    'keyboard-navigation-checkbox',
+    'skip-links-checkbox',
+    'text-to-speech-checkbox',
+    'reading-guide-checkbox',
+    'syntax-highlighting-checkbox',
+    'word-spacing-checkbox'
+  ];
+
+  accessibilityCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      checkbox.checked = accessibilitySettings[settingKey] || false;
+    }
+  });
+
+  // Apply accessibility settings to the page
+  applyAccessibilitySettings(accessibilitySettings);
+
+  // Load advanced settings
+  const advancedSettings = userProfile.advancedSettings || {};
+  const advancedCheckboxes = [
+    'low-bandwidth-mode-checkbox',
+    'disable-images-checkbox',
+    'minimal-ui-checkbox',
+    'debug-mode-checkbox',
+    'show-performance-metrics-checkbox',
+    'enable-experimental-features-checkbox'
+  ];
+
+  advancedCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      checkbox.checked = advancedSettings[settingKey] || false;
+    }
+  });
+
+  // Add custom CSS
+  const customCssTextarea = document.getElementById('custom-css-textarea');
+  if (customCssTextarea && advancedSettings.customCSS) {
+    customCssTextarea.value = advancedSettings.customCSS;
+  }
+
+  // Add keyboard shortcuts setting
+  const keyboardShortcutsSelect = document.getElementById('keyboard-shortcuts-toggle');
+  if (keyboardShortcutsSelect) {
+    keyboardShortcutsSelect.value = advancedSettings.keyboardShortcuts || 'enabled';
+  }
+
+  // Apply advanced settings to the page
+  applyAdvancedSettings(advancedSettings);
+  if (advancedSettings.customCSS) {
+    applyCustomCSS(advancedSettings.customCSS);
+  }
+
   // Apply background pattern with opacity
-  const opacity = (userProfile.backgroundOpacity || 10) / 100;
-  if (userProfile.backgroundPattern === 'none') {
+  const backgroundPattern = userProfile.backgroundPattern || 'none';
+  const backgroundOpacity = userProfile.backgroundOpacity || '50';
+  const opacity = backgroundOpacity / 100;
+
+  if (backgroundPattern === 'none') {
     document.body.style.backgroundImage = 'none';
-  } else if (userProfile.backgroundPattern === 'dots') {
+  } else if (backgroundPattern === 'dots') {
     document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
     document.body.style.backgroundSize = '20px 20px';
-  } else if (userProfile.backgroundPattern === 'grid') {
+  } else if (backgroundPattern === 'grid') {
     document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
     document.body.style.backgroundSize = '40px 40px';
-  } else if (userProfile.backgroundPattern === 'diagonal') {
+  } else if (backgroundPattern === 'diagonal') {
     document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
     document.body.style.backgroundSize = '60px 60px';
-  } else if (userProfile.backgroundPattern === 'circles') {
+  } else if (backgroundPattern === 'circles') {
     document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
     document.body.style.backgroundSize = '30px 30px';
-  } else if (userProfile.backgroundPattern === 'hexagons') {
+  } else if (backgroundPattern === 'hexagons') {
     document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
     document.body.style.backgroundSize = '40px 40px';
   }
 
-  // Optionally re-apply theme if changed
-  if (userProfile.themePreference) {
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userProfile.themePreference);
-    if (themeToApply) applyTheme(themeToApply.id, themeToApply);
-  }
+  console.log('DEBUG: All settings loaded and applied successfully');
 }
 
 // Comprehensive font scaling system
@@ -656,56 +773,59 @@ async function handleSaveProfile() {
 // Handler for saving preferences
 async function handleSavePreferences() {
   if (!auth.currentUser) return;
+
+  const fontSize = fontSizeSelect ? fontSizeSelect.value : '16px';
+  const fontFamily = fontFamilySelect ? fontFamilySelect.value : 'Inter, sans-serif';
+  const backgroundPattern = backgroundPatternSelect ? backgroundPatternSelect.value : 'none';
+  const headingSizeMultiplier = headingSizeMultiplierSelect ? headingSizeMultiplierSelect.value : '1.6';
+  const lineHeight = lineHeightSelect ? lineHeightSelect.value : '1.6';
+  const letterSpacing = letterSpacingSelect ? letterSpacingSelect.value : '0px';
+  const backgroundOpacity = backgroundOpacityRange ? backgroundOpacityRange.value : '50';
+
   const updates = {
-    fontSize: fontSizeSelect.value,
-    headingSizeMultiplier: headingSizeMultiplierSelect.value,
-    fontFamily: fontFamilySelect.value,
-    lineHeight: lineHeightSelect.value,
-    letterSpacing: letterSpacingSelect.value,
-    backgroundPattern: backgroundPatternSelect.value,
-    backgroundOpacity: backgroundOpacityRange.value
+    fontSize: fontSize,
+    fontFamily: fontFamily,
+    backgroundPattern: backgroundPattern,
+    headingSizeMultiplier: headingSizeMultiplier,
+    lineHeight: lineHeight,
+    letterSpacing: letterSpacing,
+    backgroundOpacity: backgroundOpacity
   };
 
-  // Immediately apply font settings to document
-  document.body.style.fontSize = updates.fontSize;
-  document.body.style.fontFamily = updates.fontFamily;
-  document.body.style.lineHeight = updates.lineHeight;
-  document.body.style.letterSpacing = updates.letterSpacing;
+  // Apply font scaling system immediately
+  const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+  const updatedProfile = {...userProfile, ...updates};
+  applyFontScalingSystem(updatedProfile);
 
-  // Apply heading size multiplier immediately
-  const baseFontSize = parseInt(updates.fontSize);
-  const headingMultiplier = parseFloat(updates.headingSizeMultiplier);
-  const headingSizes = {
-    'h1': baseFontSize * headingMultiplier * 2.5,
-    'h2': baseFontSize * headingMultiplier * 2,
-    'h3': baseFontSize * headingMultiplier * 1.75,
-    'h4': baseFontSize * headingMultiplier * 1.5,
-    'h5': baseFontSize * headingMultiplier * 1.25,
-    'h6': baseFontSize * headingMultiplier * 1.1
-  };
-
-  Object.entries(headingSizes).forEach(([tag, size]) => {
-    const elements = document.querySelectorAll(tag);
-    elements.forEach(el => {
-      el.style.fontSize = `${size}px`;
-    });
-  });
-
-  // Apply background pattern and opacity immediately
-  if (updates.backgroundPattern && updates.backgroundPattern !== 'none') {
-    document.body.classList.add(`pattern-${updates.backgroundPattern}`);
-    document.body.style.setProperty('--background-opacity', updates.backgroundOpacity);
-  } else {
-    document.body.classList.remove('pattern-dots', 'pattern-grid', 'pattern-diagonal', 'pattern-circles', 'pattern-hexagons');
+  // Apply background pattern with opacity immediately
+  const opacity = (backgroundOpacity || 50) / 100;
+  if (backgroundPattern === 'none') {
+    document.body.style.backgroundImage = 'none';
+  } else if (backgroundPattern === 'dots') {
+    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '20px 20px';
+  } else if (backgroundPattern === 'grid') {
+    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '40px 40px';
+  } else if (backgroundPattern === 'diagonal') {
+    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
+    document.body.style.backgroundSize = '60px 60px';
+  } else if (backgroundPattern === 'circles') {
+    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '30px 30px';
+  } else if (backgroundPattern === 'hexagons') {
+    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
+    document.body.style.backgroundSize = '40px 40px';
   }
 
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
-      showMessageBox('Preferences saved.', false);
+      showMessageBox('Preferences saved successfully!', false);
       await reloadAndApplyUserProfile();
     }
   } catch (error) {
+    console.error('Error saving preferences:', error);
     showMessageBox('Error saving preferences.', true);
   }
 }
@@ -713,42 +833,89 @@ async function handleSavePreferences() {
 // Handler for saving notification settings
 async function handleSaveNotifications() {
   if (!auth.currentUser) return;
+
+  // Get all notification checkboxes
+  const notificationCheckboxes = [
+    'email-notifications-checkbox',
+    'inapp-notifications-checkbox',
+    'announcement-notifications-checkbox',
+    'community-notifications-checkbox',
+    'security-notifications-checkbox',
+    'maintenance-notifications-checkbox'
+  ];
+
+  const notificationSettings = {};
+  notificationCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      notificationSettings[settingKey] = checkbox.checked;
+      console.log(`DEBUG: Saving ${settingKey}:`, checkbox.checked);
+    }
+  });
+
+  // Add notification frequency
+  const notificationFrequencySelect = document.getElementById('notification-frequency-select');
+  if (notificationFrequencySelect) {
+    notificationSettings.notificationFrequency = notificationFrequencySelect.value;
+  }
+
+  console.log('DEBUG: Saving notificationSettings to Firebase:', notificationSettings);
+
   const updates = {
-    emailNotifications: emailNotificationsCheckbox.checked,
-    inappNotifications: inappNotificationsCheckbox.checked,
-    announcementNotifications: announcementNotificationsCheckbox.checked,
-    communityNotifications: communityNotificationsCheckbox.checked,
-    securityNotifications: securityNotificationsCheckbox.checked,
-    maintenanceNotifications: maintenanceNotificationsCheckbox.checked,
-    notificationFrequency: notificationFrequencySelect.value
+    notificationSettings: notificationSettings
   };
+
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
-      showMessageBox('Notifications saved.', false);
+      showMessageBox('Notification settings saved successfully!', false);
       await reloadAndApplyUserProfile();
     }
   } catch (error) {
-    showMessageBox('Error saving notifications.', true);
+    console.error('Error saving notification settings:', error);
+    showMessageBox('Error saving notification settings.', true);
   }
 }
 
 // Handler for saving privacy settings
 async function handleSavePrivacy() {
   if (!auth.currentUser) return;
+
+  // Get all privacy checkboxes
+  const privacyCheckboxes = [
+    'profile-visibility-checkbox',
+    'activity-visibility-checkbox',
+    'analytics-consent-checkbox'
+  ];
+
+  const privacySettings = {};
+  privacyCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      privacySettings[settingKey] = checkbox.checked;
+    }
+  });
+
+  // Add data retention setting
+  const dataRetentionSelect = document.getElementById('data-retention-select');
+  if (dataRetentionSelect) {
+    privacySettings.dataRetention = dataRetentionSelect.value;
+  }
+
   const updates = {
-    profileVisibility: profileVisibilityCheckbox.checked,
-    activityVisibility: activityVisibilityCheckbox.checked,
-    analyticsConsent: analyticsConsentCheckbox.checked,
-    dataRetention: dataRetentionSelect.value
+    privacySettings: privacySettings
   };
+
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
-      showMessageBox('Privacy settings saved.', false);
+      showMessageBox('Privacy settings saved successfully!', false);
       await reloadAndApplyUserProfile();
     }
   } catch (error) {
+    console.error('Error saving privacy settings:', error);
     showMessageBox('Error saving privacy settings.', true);
   }
 }
@@ -756,28 +923,47 @@ async function handleSavePrivacy() {
 // Handler for saving accessibility settings
 async function handleSaveAccessibility() {
   if (!auth.currentUser) return;
+
+  // Get all accessibility checkboxes
+  const accessibilityCheckboxes = [
+    'high-contrast-checkbox',
+    'large-cursor-checkbox',
+    'focus-indicators-checkbox',
+    'colorblind-friendly-checkbox',
+    'reduced-motion-checkbox',
+    'disable-animations-checkbox',
+    'keyboard-navigation-checkbox',
+    'skip-links-checkbox',
+    'text-to-speech-checkbox',
+    'reading-guide-checkbox',
+    'syntax-highlighting-checkbox',
+    'word-spacing-checkbox'
+  ];
+
+  const accessibilitySettings = {};
+  accessibilityCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      accessibilitySettings[settingKey] = checkbox.checked;
+    }
+  });
+
   const updates = {
-    highContrast: highContrastCheckbox.checked,
-    largeCursor: largeCursorCheckbox.checked,
-    focusIndicators: focusIndicatorsCheckbox.checked,
-    colorblindFriendly: colorblindFriendlyCheckbox.checked,
-    reducedMotion: reducedMotionCheckbox.checked,
-    disableAnimations: disableAnimationsCheckbox.checked,
-    keyboardNavigation: keyboardNavigationCheckbox.checked,
-    skipLinks: skipLinksCheckbox.checked,
-    textToSpeech: textToSpeechCheckbox.checked,
-    readingGuide: readingGuideCheckbox.checked,
-    syntaxHighlighting: syntaxHighlightingCheckbox.checked,
-    wordSpacing: wordSpacingCheckbox.checked
+    accessibilitySettings: accessibilitySettings
   };
-  applyAccessibilitySettings(updates);
+
+  // Apply accessibility settings immediately
+  applyAccessibilitySettings(accessibilitySettings);
+
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
-      showMessageBox('Accessibility settings saved.', false);
+      showMessageBox('Accessibility settings saved successfully!', false);
       await reloadAndApplyUserProfile();
     }
   } catch (error) {
+    console.error('Error saving accessibility settings:', error);
     showMessageBox('Error saving accessibility settings.', true);
   }
 }
@@ -811,30 +997,94 @@ function applyAccessibilitySettings(settings) {
   } else {
     root.style.removeProperty('--word-spacing');
   }
+
+  if (settings.focusIndicators) {
+    root.classList.add('focus-indicators-enabled');
+  } else {
+    root.classList.remove('focus-indicators-enabled');
+  }
+
+  if (settings.skipLinks) {
+    // Add skip links functionality
+    const skipLinks = document.querySelectorAll('.skip-link');
+    skipLinks.forEach(link => link.style.display = 'block');
+  } else {
+    const skipLinks = document.querySelectorAll('.skip-link');
+    skipLinks.forEach(link => link.style.display = 'none');
+  }
+
+  if (settings.readingGuide) {
+    root.classList.add('reading-guide-enabled');
+  } else {
+    root.classList.remove('reading-guide-enabled');
+  }
+
+  if (settings.syntaxHighlighting) {
+    root.classList.add('syntax-highlighting-enabled');
+  } else {
+    root.classList.remove('syntax-highlighting-enabled');
+  }
+
+  if (settings.colorblindFriendly) {
+    root.classList.add('colorblind-friendly');
+  } else {
+    root.classList.remove('colorblind-friendly');
+  }
 }
 
 // Handler for saving advanced settings
 async function handleSaveAdvanced() {
   if (!auth.currentUser) return;
+
+  // Get all advanced checkboxes
+  const advancedCheckboxes = [
+    'low-bandwidth-mode-checkbox',
+    'disable-images-checkbox',
+    'minimal-ui-checkbox',
+    'debug-mode-checkbox',
+    'show-performance-metrics-checkbox',
+    'enable-experimental-features-checkbox'
+  ];
+
+  const advancedSettings = {};
+  advancedCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      advancedSettings[settingKey] = checkbox.checked;
+    }
+  });
+
+  // Add custom CSS
+  const customCssTextarea = document.getElementById('custom-css-textarea');
+  if (customCssTextarea) {
+    advancedSettings.customCSS = customCssTextarea.value;
+  }
+
+  // Add keyboard shortcuts setting
+  const keyboardShortcutsSelect = document.getElementById('keyboard-shortcuts-toggle');
+  if (keyboardShortcutsSelect) {
+    advancedSettings.keyboardShortcuts = keyboardShortcutsSelect.value;
+  }
+
   const updates = {
-    lowBandwidthMode: lowBandwidthModeCheckbox.checked,
-    disableImages: disableImagesCheckbox.checked,
-    minimalUi: minimalUiCheckbox.checked,
-    debugMode: debugModeCheckbox.checked,
-    showPerformanceMetrics: showPerformanceMetricsCheckbox.checked,
-    enableExperimentalFeatures: enableExperimentalFeaturesCheckbox.checked,
-    customCss: customCssTextarea.value,
-    keyboardShortcuts: keyboardShortcutsToggle.value
+    advancedSettings: advancedSettings
   };
-  if (updates.customCss) applyCustomCSS(updates.customCss);
-  applyAdvancedSettings(updates);
+
+  // Apply advanced settings immediately
+  applyAdvancedSettings(advancedSettings);
+  if (advancedSettings.customCSS) {
+    applyCustomCSS(advancedSettings.customCSS);
+  }
+
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
-      showMessageBox('Advanced settings saved.', false);
+      showMessageBox('Advanced settings saved successfully!', false);
       await reloadAndApplyUserProfile();
     }
   } catch (error) {
+    console.error('Error saving advanced settings:', error);
     showMessageBox('Error saving advanced settings.', true);
   }
 }
@@ -865,6 +1115,32 @@ function applyAdvancedSettings(settings) {
   }
 
   if (settings.lowBandwidthMode) {
+    document.body.classList.add('low-bandwidth-mode');
+  } else {
+    document.body.classList.remove('low-bandwidth-mode');
+  }
+
+  if (settings.showPerformanceMetrics) {
+    // Add performance metrics display
+    const metricsDiv = document.createElement('div');
+    metricsDiv.className = 'performance-metrics';
+    metricsDiv.innerHTML = `
+      <div class="metric">
+        <span>Load Time: ${performance.now().toFixed(2)}ms</span>
+      </div>
+      <div class="metric">
+        <span>Memory: ${(performance.memory?.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB</span>
+      </div>
+    `;
+    document.body.appendChild(metricsDiv);
+  } else {
+    const existingMetrics = document.querySelector('.performance-metrics');
+    if (existingMetrics) {
+      existingMetrics.remove();
+    }
+  }
+
+  if (settings.disableImages) {
     document.body.classList.add('low-bandwidth-mode');
   } else {
     document.body.classList.remove('low-bandwidth-mode');
@@ -1025,7 +1301,6 @@ window.onload = async function() {
         await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
         console.log("DEBUG: Navbar loaded.");
 
-
         if (userProfile) {
           console.log("DEBUG: User profile found. Populating settings UI.");
           userThemePreference = userProfile.themePreference; // Assign value here
@@ -1068,7 +1343,6 @@ window.onload = async function() {
             profilePictureUrlInput.value = userProfile.photoURL && userProfile.photoURL !== DEFAULT_PROFILE_PIC ? userProfile.photoURL : '';
           }
 
-
           // Populate session information
           if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
             const lastLoginDate = userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : new Date(userProfile.lastLoginAt);
@@ -1079,124 +1353,8 @@ window.onload = async function() {
             document.getElementById('account-creation-time').textContent = `Account Created: ${creationDate.toLocaleString()}`;
           }
 
-          // Load existing preferences for dropdowns
-          if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
-          if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
-          if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
-
-          // Load new font and typography settings
-          if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = userProfile.headingSizeMultiplier || '1.6';
-          if (lineHeightSelect) lineHeightSelect.value = userProfile.lineHeight || '1.6';
-          if (letterSpacingSelect) letterSpacingSelect.value = userProfile.letterSpacing || '0px';
-          if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '10';
-          if (backgroundOpacityValue) backgroundOpacityValue.textContent = (userProfile.backgroundOpacity || '10') + '%';
-
-          // Load notification settings
-          if (userProfile.notificationSettings) {
-            const notif = userProfile.notificationSettings;
-            if (emailNotificationsCheckbox) emailNotificationsCheckbox.checked = notif.emailNotifications || false;
-            if (inappNotificationsCheckbox) inappNotificationsCheckbox.checked = notif.inappNotifications || false;
-            if (announcementNotificationsCheckbox) announcementNotificationsCheckbox.checked = notif.announcementNotifications || false;
-            if (communityNotificationsCheckbox) communityNotificationsCheckbox.checked = notif.communityNotifications || false;
-            if (securityNotificationsCheckbox) securityNotificationsCheckbox.checked = notif.securityNotifications || false;
-            if (maintenanceNotificationsCheckbox) maintenanceNotificationsCheckbox.checked = notif.maintenanceNotifications || false;
-            if (notificationFrequencySelect) notificationFrequencySelect.value = notif.notificationFrequency || 'daily';
-          }
-
-          // Load privacy settings
-          if (userProfile.privacySettings) {
-            const privacy = userProfile.privacySettings;
-            if (profileVisibilityCheckbox) profileVisibilityCheckbox.checked = privacy.profileVisibility || false;
-            if (activityVisibilityCheckbox) activityVisibilityCheckbox.checked = privacy.activityVisibility || false;
-            if (analyticsConsentCheckbox) analyticsConsentCheckbox.checked = privacy.analyticsConsent || false;
-            if (dataRetentionSelect) dataRetentionSelect.value = privacy.dataRetention || '365';
-          }
-
-          // Load accessibility settings
-          if (userProfile.accessibilitySettings) {
-            const accessibility = userProfile.accessibilitySettings;
-            if (highContrastCheckbox) highContrastCheckbox.checked = accessibility.highContrast || false;
-            if (largeCursorCheckbox) largeCursorCheckbox.checked = accessibility.largeCursor || false;
-            if (focusIndicatorsCheckbox) focusIndicatorsCheckbox.checked = accessibility.focusIndicators || false;
-            if (colorblindFriendlyCheckbox) colorblindFriendlyCheckbox.checked = accessibility.colorblindFriendly || false;
-            if (reducedMotionCheckbox) reducedMotionCheckbox.checked = accessibility.reducedMotion || false;
-            if (disableAnimationsCheckbox) disableAnimationsCheckbox.checked = accessibility.disableAnimations || false;
-            if (keyboardNavigationCheckbox) keyboardNavigationCheckbox.checked = accessibility.keyboardNavigation || false;
-            if (skipLinksCheckbox) skipLinksCheckbox.checked = accessibility.skipLinks || false;
-            if (textToSpeechCheckbox) textToSpeechCheckbox.checked = accessibility.textToSpeech || false;
-            if (readingGuideCheckbox) readingGuideCheckbox.checked = accessibility.readingGuide || false;
-            if (syntaxHighlightingCheckbox) syntaxHighlightingCheckbox.checked = accessibility.syntaxHighlighting || false;
-            if (wordSpacingCheckbox) wordSpacingCheckbox.checked = accessibility.wordSpacing || false;
-
-            // Apply accessibility settings immediately
-            applyAccessibilitySettings(accessibility);
-          }
-
-          // Load advanced settings
-          if (userProfile.advancedSettings) {
-            const advanced = userProfile.advancedSettings;
-            if (lowBandwidthModeCheckbox) lowBandwidthModeCheckbox.checked = advanced.lowBandwidthMode || false;
-            if (disableImagesCheckbox) disableImagesCheckbox.checked = advanced.disableImages || false;
-            if (minimalUiCheckbox) minimalUiCheckbox.checked = advanced.minimalUi || false;
-            if (debugModeCheckbox) debugModeCheckbox.checked = advanced.debugMode || false;
-            if (showPerformanceMetricsCheckbox) showPerformanceMetricsCheckbox.checked = advanced.showPerformanceMetrics || false;
-            if (enableExperimentalFeaturesCheckbox) enableExperimentalFeaturesCheckbox.checked = advanced.enableExperimentalFeatures || false;
-            if (customCssTextarea) customCssTextarea.value = advanced.customCss || '';
-            if (keyboardShortcutsToggle) keyboardShortcutsToggle.value = advanced.keyboardShortcuts || 'disabled';
-
-            // Apply advanced settings immediately
-            applyAdvancedSettings(advanced);
-            if (advanced.customCss) {
-              applyCustomCSS(advanced.customCss);
-            }
-          }
-
-          // Apply loaded preferences immediately to the body
-          document.body.style.fontSize = userProfile.fontSize || '16px';
-          document.body.style.fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
-          document.body.style.lineHeight = userProfile.lineHeight || '1.6';
-          document.body.style.letterSpacing = userProfile.letterSpacing || '0px';
-
-          // Apply heading size multiplier
-          const headingMultiplier = userProfile.headingSizeMultiplier || '1.6';
-          const baseFontSize = parseInt(userProfile.fontSize || '16px');
-          const headingSizes = {
-            'h1': baseFontSize * parseFloat(headingMultiplier) * 2.5,
-            'h2': baseFontSize * parseFloat(headingMultiplier) * 2,
-            'h3': baseFontSize * parseFloat(headingMultiplier) * 1.75,
-            'h4': baseFontSize * parseFloat(headingMultiplier) * 1.5,
-            'h5': baseFontSize * parseFloat(headingMultiplier) * 1.25,
-            'h6': baseFontSize * parseFloat(headingMultiplier) * 1.1
-          };
-
-          // Apply heading sizes
-          Object.entries(headingSizes).forEach(([tag, size]) => {
-            const elements = document.querySelectorAll(tag);
-            elements.forEach(el => {
-              el.style.fontSize = `${size}px`;
-            });
-          });
-
-          // Apply background pattern with opacity
-          const opacity = (userProfile.backgroundOpacity || 10) / 100;
-          if (userProfile.backgroundPattern === 'none') {
-            document.body.style.backgroundImage = 'none';
-          } else if (userProfile.backgroundPattern === 'dots') {
-            document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
-            document.body.style.backgroundSize = '20px 20px';
-          } else if (userProfile.backgroundPattern === 'grid') {
-            document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-            document.body.style.backgroundSize = '40px 40px';
-          } else if (userProfile.backgroundPattern === 'diagonal') {
-            document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
-            document.body.style.backgroundSize = '60px 60px';
-          } else if (userProfile.backgroundPattern === 'circles') {
-            document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-            document.body.style.backgroundSize = '30px 30px';
-          } else if (userProfile.backgroundPattern === 'hexagons') {
-            document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
-            document.body.style.backgroundSize = '40px 40px';
-          }
+          // Use the centralized reloadAndApplyUserProfile function to load all settings consistently
+          await reloadAndApplyUserProfile();
 
           showSection(settingsContent); // Display the settings section
         } else {
