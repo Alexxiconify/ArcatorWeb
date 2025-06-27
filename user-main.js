@@ -896,16 +896,100 @@ window.onload = async function() {
           if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
           if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
 
+          // Load new font and typography settings
+          if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = userProfile.headingSizeMultiplier || '1.6';
+          if (lineHeightSelect) lineHeightSelect.value = userProfile.lineHeight || '1.6';
+          if (letterSpacingSelect) letterSpacingSelect.value = userProfile.letterSpacing || '0px';
+          if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '10';
+          if (backgroundOpacityValue) backgroundOpacityValue.textContent = (userProfile.backgroundOpacity || '10') + '%';
+
+          // Load notification settings
+          if (userProfile.notificationSettings) {
+            const notif = userProfile.notificationSettings;
+            if (emailNotificationsCheckbox) emailNotificationsCheckbox.checked = notif.emailNotifications || false;
+            if (inappNotificationsCheckbox) inappNotificationsCheckbox.checked = notif.inappNotifications || false;
+            if (announcementNotificationsCheckbox) announcementNotificationsCheckbox.checked = notif.announcementNotifications || false;
+            if (communityNotificationsCheckbox) communityNotificationsCheckbox.checked = notif.communityNotifications || false;
+            if (securityNotificationsCheckbox) securityNotificationsCheckbox.checked = notif.securityNotifications || false;
+            if (maintenanceNotificationsCheckbox) maintenanceNotificationsCheckbox.checked = notif.maintenanceNotifications || false;
+            if (notificationFrequencySelect) notificationFrequencySelect.value = notif.notificationFrequency || 'daily';
+          }
+
+          // Load privacy settings
+          if (userProfile.privacySettings) {
+            const privacy = userProfile.privacySettings;
+            if (profileVisibilityCheckbox) profileVisibilityCheckbox.checked = privacy.profileVisibility || false;
+            if (activityVisibilityCheckbox) activityVisibilityCheckbox.checked = privacy.activityVisibility || false;
+            if (analyticsConsentCheckbox) analyticsConsentCheckbox.checked = privacy.analyticsConsent || false;
+            if (dataRetentionSelect) dataRetentionSelect.value = privacy.dataRetention || '365';
+          }
+
+          // Load accessibility settings
+          if (userProfile.accessibilitySettings) {
+            const accessibility = userProfile.accessibilitySettings;
+            if (highContrastCheckbox) highContrastCheckbox.checked = accessibility.highContrast || false;
+            if (largeCursorCheckbox) largeCursorCheckbox.checked = accessibility.largeCursor || false;
+            if (focusIndicatorsCheckbox) focusIndicatorsCheckbox.checked = accessibility.focusIndicators || false;
+            if (colorblindFriendlyCheckbox) colorblindFriendlyCheckbox.checked = accessibility.colorblindFriendly || false;
+            if (reducedMotionCheckbox) reducedMotionCheckbox.checked = accessibility.reducedMotion || false;
+            if (disableAnimationsCheckbox) disableAnimationsCheckbox.checked = accessibility.disableAnimations || false;
+            if (keyboardNavigationCheckbox) keyboardNavigationCheckbox.checked = accessibility.keyboardNavigation || false;
+            if (skipLinksCheckbox) skipLinksCheckbox.checked = accessibility.skipLinks || false;
+            if (textToSpeechCheckbox) textToSpeechCheckbox.checked = accessibility.textToSpeech || false;
+            if (readingGuideCheckbox) readingGuideCheckbox.checked = accessibility.readingGuide || false;
+            if (syntaxHighlightingCheckbox) syntaxHighlightingCheckbox.checked = accessibility.syntaxHighlighting || false;
+            if (wordSpacingCheckbox) wordSpacingCheckbox.checked = accessibility.wordSpacing || false;
+
+            // Apply accessibility settings immediately
+            applyAccessibilitySettings(accessibility);
+          }
+
+          // Load advanced settings
+          if (userProfile.advancedSettings) {
+            const advanced = userProfile.advancedSettings;
+            if (lowBandwidthModeCheckbox) lowBandwidthModeCheckbox.checked = advanced.lowBandwidthMode || false;
+            if (disableImagesCheckbox) disableImagesCheckbox.checked = advanced.disableImages || false;
+            if (minimalUiCheckbox) minimalUiCheckbox.checked = advanced.minimalUi || false;
+            if (debugModeCheckbox) debugModeCheckbox.checked = advanced.debugMode || false;
+            if (showPerformanceMetricsCheckbox) showPerformanceMetricsCheckbox.checked = advanced.showPerformanceMetrics || false;
+            if (enableExperimentalFeaturesCheckbox) enableExperimentalFeaturesCheckbox.checked = advanced.enableExperimentalFeatures || false;
+            if (customCssTextarea) customCssTextarea.value = advanced.customCss || '';
+            if (keyboardShortcutsToggle) keyboardShortcutsToggle.value = advanced.keyboardShortcuts || 'disabled';
+
+            // Apply advanced settings immediately
+            applyAdvancedSettings(advanced);
+            if (advanced.customCss) {
+              applyCustomCSS(advanced.customCss);
+            }
+          }
+
           // Apply loaded preferences immediately to the body
           document.body.style.fontSize = userProfile.fontSize || '16px';
           document.body.style.fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
+          document.body.style.lineHeight = userProfile.lineHeight || '1.6';
+          document.body.style.letterSpacing = userProfile.letterSpacing || '0px';
+
+          // Apply heading size multiplier
+          document.documentElement.style.setProperty('--heading-size-multiplier', userProfile.headingSizeMultiplier || '1.6');
+
+          // Apply background pattern with opacity
+          const opacity = (userProfile.backgroundOpacity || 10) / 100;
           if (userProfile.backgroundPattern === 'none') {
             document.body.style.backgroundImage = 'none';
           } else if (userProfile.backgroundPattern === 'dots') {
-            document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+            document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
             document.body.style.backgroundSize = '20px 20px';
           } else if (userProfile.backgroundPattern === 'grid') {
-            document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+            document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+            document.body.style.backgroundSize = '40px 40px';
+          } else if (userProfile.backgroundPattern === 'diagonal') {
+            document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
+            document.body.style.backgroundSize = '60px 60px';
+          } else if (userProfile.backgroundPattern === 'circles') {
+            document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+            document.body.style.backgroundSize = '30px 30px';
+          } else if (userProfile.backgroundPattern === 'hexagons') {
+            document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
             document.body.style.backgroundSize = '40px 40px';
           }
 
