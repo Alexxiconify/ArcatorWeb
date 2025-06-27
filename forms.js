@@ -636,7 +636,7 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, currentThemaId)}</div>
           <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${threadDoc.id}">Add a comment</label>
@@ -1332,21 +1332,27 @@ function renderDMList() {
       const div = document.createElement('div');
       div.className = 'dm-item card flex items-center justify-between p-3 mb-2 cursor-pointer hover:bg-gray-800';
       div.onclick = () => showDMConversation(doc.id, dmData, userProfiles);
-      const otherParticipants = dmData.participants?.filter(p => p !== currentUserId) || [];
-      const participantNames = otherParticipants.map(uid => {
-        const profile = userProfiles[uid];
-        return profile?.displayName || profile?.handle || uid;
-      }).join(', ');
-      const name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : participantNames;
-      // Get profile pic for first other participant
-      const firstOtherParticipant = otherParticipants[0];
-      const profilePic = firstOtherParticipant ? (userProfiles[firstOtherParticipant]?.photoURL || window.DEFAULT_PROFILE_PIC) : window.DEFAULT_PROFILE_PIC;
+      const isSelfDM = dmData.participants?.length === 1 || (dmData.participants?.length === 2 && dmData.participants[0] === currentUserId && dmData.participants[1] === currentUserId);
+      let name, profilePic;
+      if (isSelfDM) {
+        const profile = userProfiles[currentUserId] || {};
+        name = profile.displayName || profile.handle || 'You';
+        profilePic = profile.photoURL || window.DEFAULT_PROFILE_PIC;
+      } else {
+        const otherParticipants = dmData.participants?.filter(p => p !== currentUserId) || [];
+        name = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : otherParticipants.map(uid => {
+          const profile = userProfiles[uid];
+          return profile?.displayName || profile?.handle || uid;
+        }).join(', ');
+        const firstOtherParticipant = otherParticipants[0];
+        profilePic = firstOtherParticipant ? (userProfiles[firstOtherParticipant]?.photoURL || window.DEFAULT_PROFILE_PIC) : window.DEFAULT_PROFILE_PIC;
+      }
       div.innerHTML = `
         <div class="flex items-center gap-3">
           <img src="${profilePic}" class="w-10 h-10 rounded-full object-cover border" alt="Profile">
           <div class="flex flex-col">
             <span class="font-bold text-base">${name}</span>
-            <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : 'Direct'} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
+            <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : (isSelfDM ? 'Self DM' : 'Direct')} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
           </div>
         </div>
         <span class="material-icons text-gray-500">chevron_right</span>
@@ -1367,6 +1373,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
   if (!window.auth.currentUser || !window.db || !dmId) return;
   if (!dmMessages) return;
   const currentUserId = window.auth.currentUser.uid;
+  const isSelfDM = dmData.participants?.length === 1 || (dmData.participants?.length === 2 && dmData.participants[0] === currentUserId && dmData.participants[1] === currentUserId);
   const messagesCol = collection(window.db, `artifacts/${window.appId}/users/${currentUserId}/dms/${dmId}/messages`);
   const q = query(messagesCol, orderBy("createdAt", "asc"));
   if (unsubscribeDmMessages) unsubscribeDmMessages();
@@ -1378,9 +1385,16 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     }
     snapshot.forEach(doc => {
       const m = doc.data();
-      const senderProfile = userProfiles[m.createdBy] || {};
-      const senderName = senderProfile.displayName || senderProfile.handle || m.creatorDisplayName || 'Unknown';
-      const senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
+      let senderProfile, senderName, senderPic;
+      if (isSelfDM) {
+        senderProfile = userProfiles[currentUserId] || {};
+        senderName = senderProfile.displayName || senderProfile.handle || 'You';
+        senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
+      } else {
+        senderProfile = userProfiles[m.createdBy] || {};
+        senderName = senderProfile.displayName || senderProfile.handle || m.creatorDisplayName || 'Unknown';
+        senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
+      }
       const div = document.createElement('div');
       div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded flex gap-2`;
       div.innerHTML = `
@@ -1395,13 +1409,24 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     dmMessages.scrollTop = dmMessages.scrollHeight;
   });
   // Header and back button
-  const otherParticipants = dmData.participants?.filter(p => p !== window.auth.currentUser.uid) || [];
-  const participantNames = otherParticipants.map(uid => {
-    const profile = userProfiles[uid];
-    return profile?.displayName || profile?.handle || uid;
-  }).join(', ');
-  if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : 'Direct Message';
-  if (dmParticipants) dmParticipants.textContent = `Participants: ${participantNames}`;
+  let participantNames, participantPics;
+  if (isSelfDM) {
+    const profile = userProfiles[currentUserId] || {};
+    participantNames = profile.displayName || profile.handle || 'You';
+    participantPics = `<img src="${profile.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block" alt="Profile">`;
+  } else {
+    const otherParticipants = dmData.participants?.filter(p => p !== window.auth.currentUser.uid) || [];
+    participantNames = otherParticipants.map(uid => {
+      const profile = userProfiles[uid];
+      return profile?.displayName || profile?.handle || uid;
+    }).join(', ');
+    participantPics = otherParticipants.map(uid => {
+      const profile = userProfiles[uid];
+      return `<img src="${profile?.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block mr-1" alt="Profile">`;
+    }).join('');
+  }
+  if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : (isSelfDM ? 'Self DM' : 'Direct Message');
+  if (dmParticipants) dmParticipants.innerHTML = `Participants: ${participantPics} <span class="ml-2">${participantNames}</span>`;
   if (!document.getElementById('dm-back-btn')) {
     const backBtn = document.createElement('button');
     backBtn.id = 'dm-back-btn';
