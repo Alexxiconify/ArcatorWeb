@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <!-- Theme initialization -->
@@ -109,11 +111,51 @@
 
     /* Feature card styling */
     .feature-card {
-      background-color: var(--color-bg-card); /* Use card background for feature cards */
+      background-color: var(--color-bg-card);
       color: var(--color-text-primary);
       padding: 1.5rem;
       border-radius: 0.75rem;
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Discord features table styling */
+    .discord-features-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      background-color: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .discord-features-table th, .discord-features-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--color-table-td-border);
+    }
+
+    .discord-features-table th {
+      background-color: var(--color-table-th-bg);
+      color: var(--color-table-th-text);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .discord-features-table tr:nth-child(even) {
+      background-color: var(--color-table-row-even-bg);
+    }
+
+    .discord-features-table tr:hover {
+      background-color: var(--color-input-border);
     }
   </style>
 </head>
@@ -122,20 +164,22 @@
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Join Our Vibrant Community!</h1>
-    <p class="text-xl md:text-2xl mb-8">Connect with fellow players on Discord and beyond.</p>
+    <p class="text-xl md:text-2xl mb-8">Connect with fellow players on Discord and explore our diverse community.</p>
   </div>
 </section>
 
-<!-- Main Content Section: Discord & Interests -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Discord & Community -->
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Connect & Engage</h2>
-    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6">
+    <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Connect & Engage</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
       <p>The Arcator community is at the heart of everything we do. Our Discord server is the primary hub for real-time chat, announcements, support, and connecting with other members. Whether you're looking for group activities, sharing your latest builds, or just a friendly chat, our Discord is the place to be.</p>
-      <p>Beyond Discord, we encourage members to share their diverse interests, fostering a rich and welcoming environment for everyone.</p>
+      <p>Beyond Discord, we encourage members to share their diverse interests, fostering a rich and welcoming
+        environment for everyone. Our community spans beyond Minecraft, embracing all the passions and hobbies that make
+        our members unique.</p>
     </div>
 
     <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
@@ -145,26 +189,111 @@
   </div>
 </section>
 
-<!-- Why Join Our Discord Section -->
-<section class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8">
+<!-- Discord Features Section -->
+<section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Why Join Our Discord?</h2>
+    <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Discord Features</h2>
+    <div class="max-w-4xl mx-auto">
+      <table class="discord-features-table">
+        <thead>
+        <tr>
+          <th class="py-3 px-6 text-xl">Feature</th>
+          <th class="py-3 px-6 text-xl">What You'll Find</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Community Chat</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Engage in lively discussions about Minecraft, share your builds, ask
+              questions, and connect with players from around the world.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Server Status</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Get real-time updates about server status, maintenance, and any issues. Never
+              wonder if the servers are down again!</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Voice Channels</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Join voice channels to chat while playing, coordinate group activities, or
+              just hang out with fellow community members.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Events & Announcements</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Stay informed about upcoming events, competitions, server updates, and
+              community announcements.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Help & Support</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Get help from staff and experienced players, report issues, and find answers
+              to your questions quickly.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-text-primary">Build Showcase</td>
+          <td class="py-4 px-6">
+            <p class="text-text-secondary">Share screenshots and videos of your creations, get feedback from the
+              community, and inspire others with your builds.</p>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Why Join Our Discord Section -->
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Why Join Our Discord?</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
       <div class="feature-card">
-        <h3 class="text-2xl font-bold text-blue-300 mb-4">Real-time Chat & Support</h3>
-        <p class="text-gray-300">Get instant help, chat with staff, and connect with other players who share your passion for Minecraft and more.</p>
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Real-time Chat & Support</h3>
+        <p class="text-text-secondary">Get instant help, chat with staff, and connect with other players who share your
+          passion for Minecraft and more.</p>
       </div>
       <div class="feature-card">
-        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Event Participation</h3>
-        <p class="text-gray-300">Be the first to know about upcoming server events, mini-games, building contests, and community gatherings.</p>
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Event Participation</h3>
+        <p class="text-text-secondary">Be the first to know about upcoming server events, mini-games, building contests,
+          and community gatherings.</p>
       </div>
       <div class="feature-card">
-        <h3 class="text-2xl font-bold text-green-300 mb-4">Announcements & Updates</h3>
-        <p class="text-gray-300">Stay informed with server status updates, new feature releases, and important community news directly in Discord.</p>
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Announcements & Updates</h3>
+        <p class="text-text-secondary">Stay informed with server status updates, new feature releases, and important
+          community news directly in Discord.</p>
       </div>
       <div class="feature-card">
-        <h3 class="text-2xl font-bold text-purple-300 mb-4">Share Your Creations</h3>
-        <p class="text-gray-300">Showcase your Minecraft builds, share fan art, or just hang out in voice channels with friends.</p>
+        <h3 class="text-2xl font-bold text-heading-card mb-4">Share Your Creations</h3>
+        <p class="text-text-secondary">Showcase your Minecraft builds, share fan art, or just hang out in voice channels
+          with friends.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Community Interests Preview Section -->
+<section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Discover Our Community</h2>
+    <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
+      <p>Our community extends far beyond Minecraft! Explore the diverse interests and passions of Arcator members
+        through our interactive interests table. From gaming and technology to art, music, and everything in between,
+        discover what makes our community unique.</p>
+      <p>Find like-minded players, discover new hobbies, and connect with people who share your interests. Our community
+        is built on the foundation that great friendships come from shared passions.</p>
+      <div class="mt-8">
+        <a
+          class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+          href="interests.html">Explore
+          Community Interests</a>
       </div>
     </div>
   </div>

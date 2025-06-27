@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy - Arcator.co.uk</title>
+  <title>Legal - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Theme initialization -->
-  <script src="theme-init.js" type="module"></script>
   <style>
-    /* Base styles using CSS variables */
+    /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
@@ -23,7 +23,7 @@
       color: var(--color-text-primary);
     }
 
-    /* Hero Banner styles - common for all themes, retains background image */
+    /* Hero Banner styles */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -36,6 +36,7 @@
       position: relative;
       overflow: hidden;
     }
+
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -46,40 +47,87 @@
       background: rgba(0, 0, 0, 0.5);
       z-index: 1;
     }
+
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
-    /* Theme-aware classes using CSS variables */
-    .bg-content-section { background-color: var(--color-bg-content-section); }
-
-    .text-heading-main {
-      color: var(--color-heading-main);
+    /* Tab navigation styling */
+    .legal-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--color-input-border);
     }
 
-    .text-heading-card {
-      color: var(--color-heading-card);
-    }
-    .text-text-primary { color: var(--color-text-primary); }
-
-    .text-text-secondary {
+    .tab-button {
+      padding: 1rem 2rem;
+      background: none;
+      border: none;
       color: var(--color-text-secondary);
+      font-size: 1.125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-bottom: 3px solid transparent;
     }
 
-    .bg-card {
-      background-color: var(--color-bg-card);
+    .tab-button:hover {
+      color: var(--color-text-primary);
     }
 
-    .bg-navbar-footer {
-      background-color: var(--color-bg-navbar);
-    }
-    .text-link { color: var(--color-link); }
-
-    .hover\:text-link:hover {
+    .tab-button.active {
       color: var(--color-link);
+      border-bottom-color: var(--color-link);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Legal content styling */
+    .legal-content {
+      max-width: 4xl;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .legal-content h2 {
+      color: var(--color-heading-main);
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      margin-top: 2rem;
+    }
+
+    .legal-content h3 {
+      color: var(--color-heading-card);
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .legal-content p {
+      color: var(--color-text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .legal-content ul {
+      color: var(--color-text-secondary);
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    .legal-content li {
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -87,70 +135,149 @@
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section with Background Image -->
+<!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Privacy Policy</h1>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Legal Information</h1>
+    <p class="text-xl md:text-2xl mb-8">Privacy Policy & Terms of Service</p>
   </div>
 </section>
 
-<!-- Privacy Policy Content Section -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="privacy-policy-content">
+<!-- Main Content Section -->
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold mb-6 text-heading-card">Introduction</h2>
-    <p class="mb-4 text-text-primary">Arcator.co.uk is committed to protecting your privacy. This Privacy Policy
-      explains how we collect, use, and disclose information about you when you visit our website or use our
-      services.</p>
+    <!-- Tab Navigation -->
+    <div class="legal-tabs">
+      <button class="tab-button active" onclick="showTab('privacy')">Privacy Policy</button>
+      <button class="tab-button" onclick="showTab('terms')">Terms of Service</button>
+    </div>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Information We Collect</h2>
-    <h3 class="text-2xl font-semibold mb-4 text-heading-card">Personal Information</h3>
-    <p class="mb-4 text-text-primary">We do not directly collect personally identifiable information from visitors to
-      this website unless explicitly provided (e.g., through contact forms). Any information shared on our Minecraft
-      servers or Discord server is subject to the privacy policies of those respective platforms.</p>
+    <!-- Privacy Policy Tab -->
+    <div class="tab-content active" id="privacy-tab">
+      <div class="legal-content">
+        <h2>Privacy Policy</h2>
+        <p>Last updated: December 2024</p>
 
-    <h3 class="text-2xl font-semibold mt-8 mb-4 text-heading-card">Non-Personal Information</h3>
-    <p class="mb-4 text-text-primary">We may collect non-personal information about your visit to our website, such as
-      browser type, operating system, and pages viewed. This information is used for analytical purposes to improve the
-      website experience and is not linked to any individual.</p>
+        <h3>Information We Collect</h3>
+        <p>We collect information you provide directly to us, such as when you create an account, contact us, or
+          participate in our community features.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">How We Use Information</h2>
-    <p class="mb-4 text-text-primary">The non-personal information collected is used to understand website traffic
-      patterns, improve content, and enhance user experience. We do not sell or rent any information to third
-      parties.</p>
+        <h3>How We Use Your Information</h3>
+        <ul>
+          <li>To provide and maintain our services</li>
+          <li>To communicate with you about updates and changes</li>
+          <li>To ensure the security and integrity of our platform</li>
+          <li>To improve our services and user experience</li>
+        </ul>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Cookies</h2>
-    <p class="mb-4 text-text-primary">This website may use cookies to improve your browsing experience. You can choose
-      to disable cookies through your browser settings, but this may affect the functionality of the website.</p>
+        <h3>Information Sharing</h3>
+        <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent,
+          except as described in this policy.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Third-Party Links</h2>
-    <p class="mb-4 text-text-primary">Our website may contain links to third-party websites. We are not responsible for
-      the privacy practices or content of these third-party sites. We encourage you to review the privacy policies of
-      any website you visit.</p>
+        <h3>Data Security</h3>
+        <p>We implement appropriate security measures to protect your personal information against unauthorized access,
+          alteration, disclosure, or destruction.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Changes to This Policy</h2>
-    <p class="mb-4 text-text-primary">We reserve the right to update or modify this Privacy Policy at any time. Any
-      changes will be posted on this page. Your continued use of the website after any modifications indicates your
-      acceptance of the updated policy.</p>
+        <h3>Your Rights</h3>
+        <p>You have the right to access, update, or delete your personal information. You can manage your account
+          settings through your profile page.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Contact Us</h2>
-    <p class="text-text-primary">If you have any questions about this Privacy Policy, please contact us through our
-      Discord server or other official communication channels available on Arcator.co.uk.</p>
+        <h3>Contact Us</h3>
+        <p>If you have any questions about this Privacy Policy, please contact us through our Discord server or website
+          contact forms.</p>
+      </div>
+    </div>
+
+    <!-- Terms of Service Tab -->
+    <div class="tab-content" id="terms-tab">
+      <div class="legal-content">
+        <h2>Terms of Service</h2>
+        <p>Last updated: December 2024</p>
+
+        <h3>Acceptance of Terms</h3>
+        <p>By accessing and using Arcator.co.uk, you accept and agree to be bound by the terms and provision of this
+          agreement.</p>
+
+        <h3>Use License</h3>
+        <p>Permission is granted to temporarily access the materials on Arcator.co.uk for personal, non-commercial
+          transitory viewing only.</p>
+
+        <h3>User Conduct</h3>
+        <ul>
+          <li>Respect other users and community members</li>
+          <li>Follow server rules and guidelines</li>
+          <li>Do not engage in harassment or harmful behavior</li>
+          <li>Maintain appropriate language and content</li>
+        </ul>
+
+        <h3>Account Responsibilities</h3>
+        <p>You are responsible for maintaining the confidentiality of your account and password. You agree to accept
+          responsibility for all activities that occur under your account.</p>
+
+        <h3>Content Guidelines</h3>
+        <p>Users may submit content to our platform. You retain ownership of your content but grant us a license to use,
+          modify, and distribute it in connection with our services.</p>
+
+        <h3>Prohibited Activities</h3>
+        <ul>
+          <li>Violating any applicable laws or regulations</li>
+          <li>Attempting to gain unauthorized access to our systems</li>
+          <li>Interfering with the proper functioning of our services</li>
+          <li>Sharing malicious content or software</li>
+        </ul>
+
+        <h3>Termination</h3>
+        <p>We may terminate or suspend your account and access to our services at any time, with or without cause, with
+          or without notice.</p>
+
+        <h3>Limitation of Liability</h3>
+        <p>Arcator.co.uk shall not be liable for any indirect, incidental, special, consequential, or punitive damages
+          resulting from your use of our services.</p>
+
+        <h3>Changes to Terms</h3>
+        <p>We reserve the right to modify these terms at any time. We will notify users of any material changes through
+          our website or Discord server.</p>
+
+        <h3>Contact Information</h3>
+        <p>For questions about these Terms of Service, please contact us through our Discord server or website contact
+          forms.</p>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- Footer Section -->
 <div id="footer-placeholder"></div>
 
+<!-- JavaScript for tab functionality -->
+<script>
+  function showTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+
+    // Show selected tab content
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    // Add active class to clicked button
+    event.target.classList.add('active');
+  }
+</script>
+
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
   import {initializePageWithFirebase} from './firebase-consolidated.js';
   import {loadFooter} from './navbar.js';
 
-  // Initialize the privacy page with Firebase
-  initializePageWithFirebase('Privacy', 'current-year-privacy');
+  // Initialize the legal page with Firebase
+  initializePageWithFirebase('Legal', 'current-year-legal');
 
   // Load the consolidated footer
-  loadFooter('current-year-privacy');
+  loadFooter('current-year-legal');
 </script>
 </body>
 </html>
