@@ -212,37 +212,43 @@
     <div id="settings-content" style="display: none;">
       <div class="space-y-6">
         <!-- Profile Info -->
-        <details class="settings-card"
-                 open
+        <details class="settings-card" open
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">badge</span> Profile Information
+            class="material-icons">badge</span>Profile Information
           </summary>
-          <div class="mt-4">
-            <div class="input-field">
-              <label for="display-name-input">Display Name:</label>
-              <input id="display-name-input" placeholder="Your Display Name" type="text">
+          <div class="mt-4 flex flex-col md:flex-row md:items-start md:gap-8">
+            <div class="flex-shrink-0 flex justify-center md:block mb-4 md:mb-0">
+              <img alt="Profile Picture" class="profile-pic-large w-32 h-32 rounded-full object-cover"
+                   id="profile-picture-display" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
+                   src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV">
             </div>
-            <div class="input-field">
-              <label for="handle-input">Unique Handle:</label>
-              <input id="handle-input" placeholder="@yourhandle" type="text">
-              <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+            <div class="flex-1">
+              <div class="input-field">
+                <label for="display-name-input">Display Name:</label>
+                <input id="display-name-input" placeholder="Your Display Name" type="text">
+              </div>
+              <div class="input-field">
+                <label for="handle-input">Unique Handle:</label>
+                <input id="handle-input" placeholder="@yourhandle" type="text">
+                <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+              </div>
+              <div class="input-field">
+                <label for="profile-picture-url-input">Profile Picture URL:</label>
+                <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
+                <p class="text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a direct
+                  link to an image (JPG, PNG, GIF).</p>
+              </div>
+              <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
             </div>
-            <div class="input-field">
-              <label for="profile-picture-url-input">Profile Picture URL:</label>
-              <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
-              <p class="text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a direct link
-                to an image (JPG, PNG, GIF).</p>
-            </div>
-            <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
           </div>
         </details>
         <!-- Preferences -->
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-green-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">palette</span> Personalize Experience
+            class="text-xl font-bold text-green-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            <span class="material-icons">palette</span>Personalize Experience
           </summary>
           <div class="mt-4">
             <div class="input-field">
@@ -283,8 +289,8 @@
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-orange-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">lock</span> Password Management
+            class="text-xl font-bold text-orange-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            <span class="material-icons">lock</span>Password Management
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
@@ -307,8 +313,8 @@
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-yellow-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">notifications</span> Notification Preferences
+            class="text-xl font-bold text-yellow-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            <span class="material-icons">notifications</span>Notification Preferences
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
@@ -329,8 +335,8 @@
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-purple-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">accessibility</span> Accessibility Settings
+            class="text-xl font-bold text-purple-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            <span class="material-icons">accessibility</span>Accessibility Settings
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
@@ -352,17 +358,16 @@
             <span class="font-bold">Session Information</span>
           </div>
           <div class="card-body">
-            <div><strong>Username:</strong> <span id="user-display-name"></span></div>
-            <div><strong>Handle:</strong> <span id="user-handle"></span></div>
-            <div><strong>Joined:</strong> <span id="user-joined-date"></span></div>
+            <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
+            <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
           </div>
         </div>
         <!-- Danger Zone -->
         <details class="settings-card"
                  style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-red-400 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
-            class="material-icons">warning</span> Danger Zone
+            class="text-xl font-bold text-red-400 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            <span class="material-icons">warning</span>Danger Zone
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
