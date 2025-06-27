@@ -20,6 +20,7 @@ const navbarStyles = `
   right: 0;
   z-index: 1000;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
 }
 
 .navbar-bg.scrolled {
@@ -41,8 +42,8 @@ const navbarStyles = `
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  font-size: clamp(1rem, 2vw, 1.25rem);
   font-weight: 800;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
@@ -75,10 +76,10 @@ const navbarStyles = `
 }
 
 .navbar-logo svg {
-  height: 2rem;
-  width: 2rem;
-  min-width: 1.5rem;
-  min-height: 1.5rem;
+  height: clamp(1.25rem, 3vw, 2rem);
+  width: clamp(1.25rem, 3vw, 2rem);
+  min-width: 1.25rem;
+  min-height: 1.25rem;
   color: var(--color-link, #60A5FA);
   transition: all 0.3s ease;
 }
@@ -99,17 +100,19 @@ const navbarStyles = `
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+  max-width: 100vw;
 }
 
 .navbar-links::-webkit-scrollbar {
-  display: none;
+  height: 6px;
 }
 
 .navbar-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  padding: clamp(0.5rem, 1vw, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  font-size: clamp(0.75rem, 1.2vw, 1rem);
   font-weight: 600;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
@@ -120,6 +123,8 @@ const navbarStyles = `
   overflow: hidden;
   background: transparent;
   border: 1px solid transparent;
+  min-width: 0;
+  max-width: 100vw;
 }
 
 .navbar-link::before {
@@ -148,11 +153,11 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  height: 1.75rem;
-  width: 1.75rem;
-  min-width: 1.25rem;
-  min-height: 1.25rem;
-  margin-right: 0.5rem;
+  height: clamp(1rem, 2vw, 1.75rem);
+  width: clamp(1rem, 2vw, 1.75rem);
+  min-width: 1rem;
+  min-height: 1rem;
+  margin-right: clamp(0.25rem, 0.8vw, 0.5rem);
   transition: all 0.3s ease;
 }
 
@@ -163,7 +168,7 @@ const navbarStyles = `
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(0.25rem, 0.8vw, 0.5rem);
   padding: 0.375rem;
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.05);
@@ -173,8 +178,8 @@ const navbarStyles = `
 }
 
 .profile-pic-small {
-  width: 32px;
-  height: 32px;
+  width: clamp(24px, 4vw, 32px);
+  height: clamp(24px, 4vw, 32px);
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid transparent;
@@ -347,6 +352,49 @@ const navbarStyles = `
   .profile-pic-small {
     width: 28px;
     height: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    padding: 0.25rem 0.5rem;
+  }
+  .navbar-links {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.1rem;
+    padding: 0.25rem 0;
+  }
+  .navbar-link {
+    font-size: clamp(0.7rem, 1vw, 0.9rem);
+    padding: 0.5rem 0.5rem;
+    min-width: 0;
+    max-width: 90vw;
+  }
+  .navbar-logo {
+    font-size: 1rem;
+    gap: 0.5rem;
+  }
+  .navbar-logo svg {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  .profile-pic-small {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 400px) {
+  .navbar-link span {
+    display: none;
+  }
+  .navbar-link svg {
+    margin-right: 0;
   }
 }
 
