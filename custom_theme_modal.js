@@ -10,8 +10,9 @@ import { applyTheme, getAvailableThemes, saveCustomTheme, deleteCustomTheme } fr
  * @param {HTMLElement} userThemeSelect - The main theme select element from settings.html.
  * @param {string} defaultThemeName - The ID of the default theme.
  * @param {User} currentUser - The currently authenticated Firebase user.
+ * @param {function} showCustomConfirm - Function to show custom confirmation dialogs.
  */
-export function setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, userThemeSelect, defaultThemeName, currentUser) {
+export function setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, userThemeSelect, defaultThemeName, currentUser, showCustomConfirm) {
   let currentCustomThemeId = null;
 
   // Ensure the modal HTML is added to the DOM if it's not already there
@@ -39,31 +40,86 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
   customThemeForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // Validate required fields
+    const themeName = themeNameInput.value.trim();
+    if (!themeName) {
+      showMessageBox("Theme name is required.", true);
+      return;
+    }
+
+    // Collect all color variable values
+    const variables = {};
+    const inputs = colorInputsContainer.querySelectorAll('input[type="text"]');
+    inputs.forEach(input => {
+      const varName = `--${input.id}`; // Reconstruct the CSS variable name
+      variables[varName] = input.value.trim();
+    });
+
+    // Add RGB version of navbar background for proper theming
+    if (variables['--color-bg-navbar']) {
+      const hex = variables['--color-bg-navbar'].replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      variables['--color-bg-navbar-rgb'] = `${r},${g},${b}`;
+    }
+
+    // Add font family from the main settings page to the custom theme variables
+    if (userThemeSelect && userThemeSelect.value) {
+      variables['--font-family-body'] = userThemeSelect.value;
+    }
+
     const newTheme = {
       id: currentCustomThemeId, // Will be null for new themes, or existing ID for updates
-      name: themeNameInput.value.trim(),
-      variables: {},
+      name: themeName,
+      variables: variables,
       backgroundPattern: backgroundPatternSelect.value,
       isCustom: true // Flag this as a custom theme
     };
 
-    // Collect all color variable values
-    const inputs = colorInputsContainer.querySelectorAll('input[type="text"]');
-    inputs.forEach(input => {
-      const varName = `--${input.id}`; // Reconstruct the CSS variable name
-      newTheme.variables[varName] = input.value;
-    });
+    try {
+      // Show loading state
+      const saveBtn = document.getElementById('save-custom-theme-btn');
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = 'Saving...';
+      saveBtn.disabled = true;
 
-    // Add font family from the main settings page to the custom theme variables
-    newTheme.variables['--font-family-body'] = userThemeSelect.value;
+      const success = await saveCustomTheme(newTheme);
 
+      if (success) {
+        showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
+        customThemeModal.style.display = 'none'; // Close modal
 
-    if (await saveCustomTheme(newTheme)) {
-      showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
-      customThemeModal.style.display = 'none'; // Close modal
-      populateThemeSelect(newTheme.id); // Refresh main theme select and set to new theme
-      userThemeSelect.value = newTheme.id; // Ensure the new theme is selected in the main dropdown
-      applyTheme(newTheme.id, newTheme); // Apply the newly saved/updated theme
+        // Refresh the theme list
+        await renderCustomThemeList();
+
+        // Refresh main theme select and set to new theme
+        if (populateThemeSelect) {
+          await populateThemeSelect(newTheme.id || 'custom-theme');
+        }
+
+        // Ensure the new theme is selected in the main dropdown
+        if (userThemeSelect) {
+          userThemeSelect.value = newTheme.id || 'custom-theme';
+        }
+
+        // Apply the newly saved/updated theme
+        applyTheme(newTheme.id || 'custom-theme', newTheme);
+
+        // Reset form for next use
+        customThemeForm.reset();
+        currentCustomThemeId = null;
+      } else {
+        showMessageBox("Failed to save theme. Please try again.", true);
+      }
+    } catch (error) {
+      console.error("Error saving custom theme:", error);
+      showMessageBox(`Error saving theme: ${error.message}`, true);
+    } finally {
+      // Restore button state
+      const saveBtn = document.getElementById('save-custom-theme-btn');
+      saveBtn.textContent = 'Save Custom Theme';
+      saveBtn.disabled = false;
     }
   });
 
@@ -421,11 +477,34 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
       li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
       li.style.backgroundColor = 'var(--color-bg-card)'; // Apply card background color
       li.style.color = 'var(--color-text-primary)'; // Apply primary text color
+
+      // Format creation date
+      const createdDate = theme.createdAt ? new Date(theme.createdAt.toDate ? theme.createdAt.toDate() : theme.createdAt).toLocaleDateString() : 'Unknown';
+      const authorName = theme.authorDisplayName || theme.authorEmail || 'Unknown User';
+
       li.innerHTML = `
-        <span class="font-semibold break-all md:w-3/5">${theme.name}</span>
-        <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
-          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-custom-theme-btn" data-theme-id="${theme.id}">Edit</button>
-          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-custom-theme-btn" data-theme-id="${theme.id}">Delete</button>
+        <div class="flex-1">
+          <div class="font-semibold text-lg mb-1">${theme.name}</div>
+          <div class="text-sm text-gray-400">
+            <span>Created by: ${authorName}</span>
+            <span class="mx-2">•</span>
+            <span>Created: ${createdDate}</span>
+            ${theme.updatedAt ? `<span class="mx-2">•</span><span>Updated: ${new Date(theme.updatedAt.toDate ? theme.updatedAt.toDate() : theme.updatedAt).toLocaleDateString()}</span>` : ''}
+          </div>
+        </div>
+        <div class="mt-2 md:mt-0 md:ml-4 flex gap-2">
+          <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm edit-custom-theme-btn" data-theme-id="${theme.id}">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit
+          </button>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-custom-theme-btn" data-theme-id="${theme.id}">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Delete
+          </button>
         </div>
       `;
       customThemeList.appendChild(li);
@@ -434,16 +513,19 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     // Add event listeners for edit and delete buttons
     document.querySelectorAll('.edit-custom-theme-btn').forEach(button => {
       button.addEventListener('click', (e) => {
-        const themeId = e.target.dataset.themeId;
+        const themeId = e.target.closest('button').dataset.themeId;
         loadCustomThemeForEditing(themeId);
       });
     });
 
     document.querySelectorAll('.delete-custom-theme-btn').forEach(button => {
       button.addEventListener('click', async (e) => {
-        const themeId = e.target.dataset.themeId;
-        const confirmation = await window.showCustomConfirm(
-          `Are you sure you want to delete theme "${userCustomThemes.find(t => t.id === themeId)?.name || themeId}"?`,
+        const themeId = e.target.closest('button').dataset.themeId;
+        const themeToDelete = userCustomThemes.find(t => t.id === themeId);
+        const themeName = themeToDelete?.name || themeId;
+
+        const confirmation = await showCustomConfirm(
+          `Are you sure you want to delete theme "${themeName}"?`,
           "This action cannot be undone."
         );
 

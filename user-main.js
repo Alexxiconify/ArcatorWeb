@@ -605,7 +605,8 @@ window.onload = async function() {
             populateThemeSelect,
             themeSelect,
             DEFAULT_THEME_NAME,
-            user
+            user,
+            showCustomConfirm
           );
         }
 

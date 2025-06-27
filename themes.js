@@ -14,7 +14,8 @@ import {
   deleteDoc, // Added deleteDoc import
   getDocs,
   query,
-  where
+  where,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global variables for Firebase instances
@@ -376,23 +377,51 @@ export function applyTheme(themeId, themeProperties) {
  */
 export async function saveCustomTheme(themeData) {
   if (!themesDb || !themesAuth.currentUser) {
-    showMessageBox("Not authenticated or database not ready.", true);
+    console.error("Not authenticated or database not ready for saveCustomTheme.");
     return false;
   }
 
   const customThemesCol = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
+
   try {
-    await setDoc(doc(customThemesCol), {
+    // Get user profile to include username information
+    const {getUserProfileFromFirestore} = await import('./firebase-init.js');
+    const userProfile = await getUserProfileFromFirestore(themesAuth.currentUser.uid);
+
+    // Prepare theme data with user information
+    const themeToSave = {
       ...themeData,
       authorId: themesAuth.currentUser.uid,
-      createdAt: new Date()
-    });
-    availableThemesCache = null; // Clear cache
-    showMessageBox("Custom theme saved successfully!", false);
+      authorEmail: themesAuth.currentUser.email,
+      authorDisplayName: userProfile?.displayName || themesAuth.currentUser.displayName || 'Unknown User',
+      authorHandle: userProfile?.handle || 'unknown',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isCustom: true
+    };
+
+    let docRef;
+
+    if (themeData.id) {
+      // Update existing theme
+      docRef = doc(customThemesCol, themeData.id);
+      await setDoc(docRef, {
+        ...themeToSave,
+        updatedAt: new Date()
+      }, {merge: true});
+      console.log(`Updated custom theme: ${themeData.id}`);
+    } else {
+      // Create new theme with auto-generated ID
+      docRef = await addDoc(customThemesCol, themeToSave);
+      console.log(`Created new custom theme: ${docRef.id}`);
+    }
+
+    // Clear cache to force refresh
+    availableThemesCache = null;
+
     return true;
   } catch (error) {
     console.error("Error saving custom theme:", error);
-    showMessageBox(`Error saving theme: ${error.message}`, true);
     return false;
   }
 }
