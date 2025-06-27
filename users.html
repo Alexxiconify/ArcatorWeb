@@ -985,9 +985,39 @@
             </button>
           </div>
           <div class="mt-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Theme & Appearance -->
+            <div class="col-span-2">
+              <h4 class="text-lg font-semibold text-heading-card mb-2 mt-2 border-b border-dashed border-link pb-1">
+                Theme & Appearance</h4>
+            </div>
             <div class="input-field">
               <label for="theme-select">Select Theme:</label>
               <select id="theme-select"></select>
+            </div>
+            <div class="input-field">
+              <label for="background-pattern-select">Background Pattern:</label>
+              <select class="w-full" id="background-pattern-select">
+                <option class="default-option" value="none">None</option>
+                <option value="dots">Dots</option>
+                <option value="grid">Grid</option>
+                <option value="diagonal">Diagonal Lines</option>
+                <option value="circles">Circles</option>
+                <option value="hexagons">Hexagons</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="background-opacity-range">Background Pattern Opacity:</label>
+              <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
+              <div class="flex justify-between text-xs text-text-secondary mt-1">
+                <span>0%</span>
+                <span id="background-opacity-value">10%</span>
+                <span>100%</span>
+              </div>
+            </div>
+            <!-- Typography -->
+            <div class="col-span-2">
+              <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
+                Typography</h4>
             </div>
             <div class="input-field">
               <label for="font-size-select">Base Font Size:</label>
@@ -1053,248 +1083,168 @@
               </select>
               <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
             </div>
-            <div class="input-field">
-              <label for="background-pattern-select">Background Pattern:</label>
-              <select class="w-full" id="background-pattern-select">
-                <option class="default-option" value="none">None</option>
-                <option value="dots">Dots</option>
-                <option value="grid">Grid</option>
-                <option value="diagonal">Diagonal Lines</option>
-                <option value="circles">Circles</option>
-                <option value="hexagons">Hexagons</option>
-              </select>
+            <!-- Custom Themes -->
+            <div class="col-span-2">
+              <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
+                Custom Themes</h4>
             </div>
-            <div class="input-field">
-              <label for="background-opacity-range">Background Pattern Opacity:</label>
-              <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
-              <div class="flex justify-between text-xs text-text-secondary mt-1">
-                <span>0%</span>
-                <span id="background-opacity-value">10%</span>
-                <span>100%</span>
-              </div>
+            <div class="col-span-2 flex flex-col md:flex-row gap-4">
+              <button class="btn-primary btn-purple flex-1" id="create-custom-theme-btn"
+                      style="height:2.25rem;min-height:2.25rem;">Create/Manage Custom Themes
+              </button>
+              <button class="btn-primary btn-green flex-1" id="save-preferences-btn"
+                      style="height:2.25rem;min-height:2.25rem;">Save Preferences
+              </button>
             </div>
-            <button class="btn-primary btn-green mt-2" id="save-preferences-btn"
-                    style="height:2.25rem;min-height:2.25rem;">Save Preferences
-            </button>
-
-            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"
-                style="border-bottom:1px solid var(--color-input-border);padding-bottom:0.5rem;">Custom Themes</h3>
-            <button class="btn-primary btn-purple" id="create-custom-theme-btn"
-                    style="height:2.25rem;min-height:2.25rem;">Create/Manage Custom Themes
-            </button>
-
-            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2">
-              Accessibility</h3>
+            <!-- Accessibility -->
+            <div class="col-span-2">
+              <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
+                Accessibility</h4>
+            </div>
             <div class="checkbox-container" style="margin-bottom:0.25rem;">
               <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
-              <label for="reduced-motion-checkbox">Reduced Motion <span
-                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes most transitions and animations for less motion.</span></label>
+              <label for="reduced-motion-checkbox">Reduced Motion</label>
             </div>
             <div class="checkbox-container" style="margin-bottom:0.25rem;">
               <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
-              <label for="disable-animations-checkbox">Disable Animations <span
-                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
+              <label for="disable-animations-checkbox">Disable Animations</label>
             </div>
           </div>
         </details>
 
-        <!-- Data & Notifications -->
-        <details class="settings-card equal-size"
-                 style="min-height:unset;width:100%;max-width:100%;margin-bottom:2rem;">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Data & Notifications
+        <!-- Information (Session Info + Blurb) -->
+        <details class="subsection-card" open>
+          <summary class="subsection-summary">
+            <h4 class="text-lg font-semibold text-heading-card">Information</h4>
           </summary>
-          <div class="save-btn-container" style="margin-bottom:0.5rem;">
-            <button class="save-btn-circle" id="save-privacy-btn" title="Save Settings">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </button>
-          </div>
-          <div class="mt-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="subsection-content">
+            <div class="text-text-primary mb-2">
+              <div><span id="last-login-time"></span></div>
+              <div><span id="account-creation-time"></span></div>
+            </div>
             <p class="text-text-secondary text-center mb-4">Control your privacy settings, manage your data, and
               configure notifications.</p>
+          </div>
+        </details>
 
-            <!-- Privacy Settings Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Privacy Settings</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
-                  <label for="profile-visibility-checkbox">Make Profile Public</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
-                  <label for="activity-visibility-checkbox">Show Activity Status</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
-                  <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
-                </div>
+        <!-- Privacy & Data Management Combined -->
+        <details class="subsection-card" open>
+          <summary class="subsection-summary">
+            <h4 class="text-lg font-semibold text-heading-card">Privacy & Data Management</h4>
+          </summary>
+          <div class="subsection-content">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
+              <label for="profile-visibility-checkbox">Make Profile Public</label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
+              <label for="activity-visibility-checkbox">Show Activity Status</label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
+              <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <button class="btn-primary btn-green" id="export-data-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+                Export My Data
+              </button>
+              <button class="btn-primary btn-purple" id="import-data-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+                Import Data
+              </button>
+            </div>
+            <div class="input-field mt-2">
+              <label for="data-retention-select">Data Retention Period:</label>
+              <select class="w-full" id="data-retention-select">
+                <option value="30">30 days</option>
+                <option class="default-option" value="90">90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+                <option value="0">Indefinitely</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <!-- Email & In-App Notifications Combined -->
+        <details class="subsection-card" open>
+          <summary class="subsection-summary">
+            <h4 class="text-lg font-semibold text-heading-card">Notifications</h4>
+          </summary>
+          <div class="subsection-content">
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
+              <label for="email-notifications-checkbox">Receive Email Notifications</label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
+              <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
+            </div>
+            <div class="input-field mt-2">
+              <label for="notification-frequency-select">Email Frequency:</label>
+              <select class="w-full" id="notification-frequency-select">
+                <option class="default-option" value="immediate">Immediate</option>
+                <option value="hourly">Hourly Digest</option>
+                <option value="daily">Daily Digest</option>
+                <option value="weekly">Weekly Digest</option>
+                <option value="never">Never</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <!-- Password Management Subsection -->
+        <details class="subsection-card" open>
+          <summary class="subsection-summary">
+            <h4 class="text-lg font-semibold text-heading-card">Password Management</h4>
+          </summary>
+          <div class="subsection-content">
+            <p class="text-text-secondary text-sm mb-4">You must enter your current password to change it.</p>
+            <form id="change-password-form">
+              <div class="input-field">
+                <label for="current-password-input">Current Password:</label>
+                <input autocomplete="current-password" id="current-password-input" placeholder="********"
+                       type="password">
               </div>
-            </details>
-
-            <!-- General Notifications Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">General Notifications</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
-                  <label for="email-notifications-checkbox">Receive Email Notifications</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
-                  <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
-                </div>
+              <div class="input-field">
+                <label for="new-password-input">New Password:</label>
+                <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
               </div>
-            </details>
-
-            <!-- Specific Notification Types Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Specific Notification Types</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="announcement-notifications-checkbox" type="checkbox">
-                  <label for="announcement-notifications-checkbox">Server Announcements</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="community-notifications-checkbox" type="checkbox">
-                  <label for="community-notifications-checkbox">Community Updates</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="security-notifications-checkbox" type="checkbox">
-                  <label for="security-notifications-checkbox">Security Alerts</label>
-                </div>
-                <div class="checkbox-container">
-                  <input class="form-checkbox" id="maintenance-notifications-checkbox" type="checkbox">
-                  <label for="maintenance-notifications-checkbox">Maintenance Notifications</label>
-                </div>
+              <div class="input-field">
+                <label for="confirm-new-password-input">Confirm New Password:</label>
+                <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
+                       type="password">
               </div>
-            </details>
+              <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
+              </button>
+            </form>
+          </div>
+        </details>
 
-            <!-- Notification Frequency Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Notification Frequency</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="input-field">
-                  <label for="notification-frequency-select">Email Frequency:</label>
-                  <select class="w-full" id="notification-frequency-select">
-                    <option class="default-option" value="immediate">Immediate</option>
-                    <option value="hourly">Hourly Digest</option>
-                    <option value="daily">Daily Digest</option>
-                    <option value="weekly">Weekly Digest</option>
-                    <option value="never">Never</option>
-                  </select>
-                </div>
+        <!-- Danger Zone Subsection -->
+        <details class="subsection-card danger-zone" open>
+          <summary class="subsection-summary">
+            <h4 class="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h4>
+          </summary>
+          <div class="subsection-content">
+            <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
+            <form id="delete-account-form">
+              <div class="input-field">
+                <label for="delete-account-password">Confirm Password:</label>
+                <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                       type="password">
               </div>
-            </details>
-
-            <!-- Data Management Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Data Management</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button class="btn-primary btn-green" id="export-data-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2"></path>
-                    </svg>
-                    Export My Data
-                  </button>
-                  <button class="btn-primary btn-purple" id="import-data-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2"></path>
-                    </svg>
-                    Import Data
-                  </button>
-                </div>
-
-                <div class="input-field">
-                  <label for="data-retention-select">Data Retention Period:</label>
-                  <select class="w-full" id="data-retention-select">
-                    <option value="30">30 days</option>
-                    <option class="default-option" value="90">90 days</option>
-                    <option value="180">6 months</option>
-                    <option value="365">1 year</option>
-                    <option value="0">Indefinitely</option>
-                  </select>
-                </div>
-              </div>
-            </details>
-
-            <!-- Session Information Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Session Information</h4>
-              </summary>
-              <div class="subsection-content">
-                <div class="text-text-primary">
-                  <div><span id="last-login-time"></span></div>
-                  <div><span id="account-creation-time"></span></div>
-                </div>
-              </div>
-            </details>
-
-            <!-- Password Management Subsection -->
-            <details class="subsection-card" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-heading-card">Password Management</h4>
-              </summary>
-              <div class="subsection-content">
-                <p class="text-text-secondary text-sm mb-4">You must enter your current password to change it.</p>
-                <form id="change-password-form">
-                  <div class="input-field">
-                    <label for="current-password-input">Current Password:</label>
-                    <input autocomplete="current-password" id="current-password-input" placeholder="********"
-                           type="password">
-                  </div>
-                  <div class="input-field">
-                    <label for="new-password-input">New Password:</label>
-                    <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
-                  </div>
-                  <div class="input-field">
-                    <label for="confirm-new-password-input">Confirm New Password:</label>
-                    <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
-                           type="password">
-                  </div>
-                  <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
-                  </button>
-                </form>
-              </div>
-            </details>
-
-            <!-- Danger Zone Subsection -->
-            <details class="subsection-card danger-zone" open>
-              <summary class="subsection-summary">
-                <h4 class="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h4>
-              </summary>
-              <div class="subsection-content">
-                <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
-                <form id="delete-account-form">
-                  <div class="input-field">
-                    <label for="delete-account-password">Confirm Password:</label>
-                    <input autocomplete="current-password" id="delete-account-password" placeholder="********"
-                           type="password">
-                  </div>
-                  <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
-                </form>
-              </div>
-            </details>
+              <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
+            </form>
           </div>
         </details>
       </div>
