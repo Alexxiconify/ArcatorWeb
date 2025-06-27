@@ -352,7 +352,23 @@ async function handleSaveProfile() {
         console.log("DEBUG: Firestore user profile updated.");
 
         // Immediately update UI elements
-        if (profilePictureDisplay) profilePictureDisplay.src = validatePhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
+        if (profilePictureDisplay) {
+          const finalPhotoURL = validatePhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
+          console.log("DEBUG: Final photo URL:", finalPhotoURL);
+          profilePictureDisplay.src = finalPhotoURL;
+
+          // Add error handling for image loading
+          profilePictureDisplay.onerror = function () {
+            console.log("DEBUG: Image failed to load, falling back to default");
+            this.src = DEFAULT_PROFILE_PIC;
+          };
+
+          profilePictureDisplay.onload = function () {
+            console.log("DEBUG: Image loaded successfully");
+          };
+        } else {
+          console.error("DEBUG: profilePictureDisplay element not found!");
+        }
         if (displayNameText) displayNameText.textContent = updates.displayName || 'N/A';
         if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : '';
 
@@ -447,7 +463,25 @@ window.onload = async function() {
           userThemePreference = userProfile.themePreference; // Assign value here
 
           // Update profile display elements
-          if (profilePictureDisplay) profilePictureDisplay.src = validatePhotoURL(userProfile.photoURL || user.photoURL, DEFAULT_PROFILE_PIC);
+          console.log("DEBUG: Setting profile picture. userProfile.photoURL:", userProfile.photoURL, "user.photoURL:", user.photoURL);
+          console.log("DEBUG: profilePictureDisplay element:", profilePictureDisplay);
+          if (profilePictureDisplay) {
+            const finalPhotoURL = validatePhotoURL(userProfile.photoURL || user.photoURL, DEFAULT_PROFILE_PIC);
+            console.log("DEBUG: Final photo URL:", finalPhotoURL);
+            profilePictureDisplay.src = finalPhotoURL;
+
+            // Add error handling for image loading
+            profilePictureDisplay.onerror = function () {
+              console.log("DEBUG: Image failed to load, falling back to default");
+              this.src = DEFAULT_PROFILE_PIC;
+            };
+
+            profilePictureDisplay.onload = function () {
+              console.log("DEBUG: Image loaded successfully");
+            };
+          } else {
+            console.error("DEBUG: profilePictureDisplay element not found!");
+          }
           if (displayNameText) displayNameText.textContent = userProfile.displayName || 'N/A';
           if (handleText) handleText.textContent = userProfile.handle ? `@${userProfile.handle}` : '';
           if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';

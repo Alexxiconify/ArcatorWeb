@@ -1,41 +1,237 @@
-// navbar.js - Clean, modern navbar functionality
+// navbar.js - Self-contained navbar component with embedded CSS and HTML
+// Combines navbar.css, navbar.html, and navbar.js into a single file
 
 import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
 import { applyTheme, getAvailableThemes } from './themes.js';
 
-/**
- * Loads and renders the navigation bar
- * @param {Object|null} authUser - Firebase User object or null
- * @param {Object|null} userProfile - Enriched user profile from Firestore
- * @param {string} defaultProfilePic - Default profile picture URL
- * @param {string} defaultThemeName - Default theme name
- */
-export async function loadNavbar(authUser, userProfile, defaultProfilePic, defaultThemeName) {
-  const navbarPlaceholder = document.getElementById('navbar-placeholder');
+// Embedded CSS styles
+const navbarStyles = `
+/* navbar.css - Clean, modern navbar styling */
+.navbar-bg {
+  background-color: var(--color-bg-navbar, #111827);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
 
-  if (!navbarPlaceholder) {
-    console.error('Navbar placeholder element not found');
-    return;
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 48px;
+  padding: 0 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #E5E7EB);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.navbar-logo:hover {
+  color: var(--color-link, #60A5FA);
+}
+
+.navbar-logo svg {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: var(--color-link, #60A5FA);
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.navbar-links::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #E5E7EB);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.navbar-link:hover {
+  color: var(--color-link, #60A5FA);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-link svg {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.25rem;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-pic-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.profile-pic-small:hover {
+  border-color: var(--color-link, #60A5FA);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 0.5rem;
+  }
+
+  .navbar-links {
+    gap: 0.5rem;
+  }
+
+  .navbar-link {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .navbar-link span {
+    display: none;
+  }
+
+  .navbar-link svg {
+    margin-right: 0;
+  }
+}
+`;
+
+// Embedded HTML template
+const navbarTemplate = `
+<nav class="navbar-bg">
+  <div class="navbar-container">
+    <!-- Logo and site title -->
+    <a class="navbar-logo" href="index.html">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3m0 0l-1-1h-4l-1 1m0 0h-4a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H9.75z"></path>
+      </svg>
+      <span>Arcator.co.uk</span>
+    </a>
+
+    <!-- Navigation links -->
+    <div class="navbar-links">
+      <a class="navbar-link" href="about.html">
+        <span>About</span>
+      </a>
+      <a class="navbar-link" href="servers.html">
+        <span>Servers</span>
+      </a>
+      <a class="navbar-link" href="community.html">
+        <span>Community</span>
+      </a>
+      <a class="navbar-link" href="interests.html">
+        <span>Interests</span>
+      </a>
+      <a class="navbar-link" href="games.html">
+        <span>Games</span>
+      </a>
+      <a class="navbar-link" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer" target="_blank">
+        <span>Wiki</span>
+      </a>
+      <a class="navbar-link" href="forms.html">
+        <span>Forms</span>
+      </a>
+      <a class="navbar-link" href="donations.html">
+        <span>Support</span>
+      </a>
+
+      <!-- User profile section -->
+      <div class="navbar-user">
+        <!-- User settings link (hidden by default, shown when logged in) -->
+        <a class="navbar-link hidden" href="users.html" id="navbar-user-settings-link">
+          <img alt="Profile" class="profile-pic-small"
+               id="navbar-user-profile-pic" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV">
+        </a>
+
+        <!-- Sign in link (visible by default, hidden when logged in) -->
+        <a class="navbar-link" href="users.html" id="navbar-signin-link">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+          </svg>
+          <span>Sign In</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+`;
+
+/**
+ * Injects navbar styles into the document head
+ */
+function injectNavbarStyles() {
+  if (!document.getElementById('navbar-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'navbar-styles';
+    styleElement.textContent = navbarStyles;
+    document.head.appendChild(styleElement);
+  }
+}
+
+/**
+ * Validates and sanitizes profile picture URL
+ * @param {string} photoURL - User's photo URL
+ * @param {string} defaultPic - Default profile picture URL
+ * @returns {string} Safe photo URL
+ */
+function validatePhotoURL(photoURL, defaultPic) {
+  if (!photoURL || typeof photoURL !== 'string') {
+    return defaultPic;
   }
 
   try {
-    // Load navbar HTML
-    const response = await fetch('navbar.html');
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const url = new URL(photoURL);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return defaultPic;
     }
-
-    const navbarHtml = await response.text();
-    navbarPlaceholder.innerHTML = navbarHtml;
-
-    // Update navbar state based on authentication
-    updateNavbarState(authUser, userProfile, defaultProfilePic);
-
-    console.log('Navbar loaded successfully');
-
-  } catch (error) {
-    console.error('Failed to load navbar:', error);
-    renderFallbackNavbar(navbarPlaceholder);
+    return photoURL;
+  } catch {
+    return defaultPic;
   }
 }
 
@@ -77,53 +273,6 @@ function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 }
 
 /**
- * Validates and sanitizes profile picture URL
- * @param {string} photoURL - User's photo URL
- * @param {string} defaultPic - Default profile picture URL
- * @returns {string} Safe photo URL
- */
-function validatePhotoURL(photoURL, defaultPic) {
-  if (!photoURL || typeof photoURL !== 'string') {
-    return defaultPic;
-  }
-
-  // Basic URL validation
-  try {
-    const url = new URL(photoURL);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return defaultPic;
-    }
-    return photoURL;
-  } catch {
-    return defaultPic;
-  }
-}
-
-/**
- * Renders fallback navbar when loading fails
- * @param {HTMLElement} container - Container element
- */
-function renderFallbackNavbar(container) {
-  const fallbackNavbar = `
-    <nav class="navbar-bg">
-      <div class="navbar-container">
-        <a href="index.html" class="navbar-logo">
-          <span>Arcator.co.uk</span>
-        </a>
-        <div class="navbar-links">
-          <a href="users.html" class="navbar-link">
-            <span>Sign In</span>
-          </a>
-        </div>
-      </div>
-    </nav>
-  `;
-
-  container.innerHTML = fallbackNavbar;
-  console.log('Fallback navbar rendered');
-}
-
-/**
  * Applies user theme after navbar is loaded
  * @param {string} userThemePreference - User's theme preference
  * @param {string} defaultThemeName - Default theme name
@@ -139,6 +288,45 @@ async function applyUserTheme(userThemePreference, defaultThemeName) {
     }
   } catch (error) {
     console.error('Failed to apply user theme:', error);
+  }
+}
+
+/**
+ * Loads and renders the navigation bar
+ * @param {Object|null} authUser - Firebase User object or null
+ * @param {Object|null} userProfile - Enriched user profile from Firestore
+ * @param {string} defaultProfilePic - Default profile picture URL
+ * @param {string} defaultThemeName - Default theme name
+ */
+export async function loadNavbar(authUser, userProfile, defaultProfilePic, defaultThemeName) {
+  const navbarPlaceholder = document.getElementById('navbar-placeholder');
+
+  if (!navbarPlaceholder) {
+    console.error('Navbar placeholder element not found');
+    return;
+  }
+
+  try {
+    // Inject navbar styles
+    injectNavbarStyles();
+
+    // Insert navbar HTML
+    navbarPlaceholder.innerHTML = navbarTemplate;
+
+    // Update navbar state based on authentication
+    updateNavbarState(authUser, userProfile, defaultProfilePic);
+
+    console.log('Navbar loaded successfully');
+
+  } catch (error) {
+    console.error('Failed to load navbar:', error);
+    // Fallback to simple navbar if loading fails
+    navbarPlaceholder.innerHTML = `
+      <nav style="background: var(--color-bg-navbar, #111827); padding: 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
+        <a href="index.html" style="color: var(--color-text-primary, #E5E7EB); text-decoration: none; font-weight: bold;">Arcator.co.uk</a>
+        <a href="users.html" style="color: var(--color-text-primary, #E5E7EB); text-decoration: none; margin-left: 1rem;">Sign In</a>
+      </nav>
+    `;
   }
 }
 
