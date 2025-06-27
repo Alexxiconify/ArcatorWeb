@@ -1,3 +1,5 @@
+import emojiData from 'emojibase-data/en/data.json' assert { type: 'json' };
+
 // Minimal emoji replacement utility for :emoji_name: syntax
 // Only a small subset for demo; extend as needed
 const EMOJI_MAP = {
@@ -29,8 +31,22 @@ const EMOJI_MAP = {
  * @returns {string}
  */
 export function replaceEmojis(text) {
-  return text.replace(/:([a-z0-9_]+):/gi, (match, name) => {
+  return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
     if (EMOJI_MAP[name]) return EMOJI_MAP[name];
     return match;
   });
 }
+
+let EMOJI_MAP = {};
+fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
+  .then(res => res.json())
+  .then(data => {
+    EMOJI_MAP = {};
+    data.forEach(e => {
+      if (e.shortcodes) {
+        e.shortcodes.forEach(code => {
+          EMOJI_MAP[code] = e.emoji;
+        });
+      }
+    });
+  });
