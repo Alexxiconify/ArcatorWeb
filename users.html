@@ -18,115 +18,102 @@
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    /* Basic styles for auth forms for consistency, if not in settings.css */
-    .auth-card {
-      @apply bg-gray-700 p-8 rounded-lg shadow-xl max-w-md mx-auto my-8 border border-gray-600; /* Added border */
+    body {
+      background: var(--color-body-bg, #1a202c);
+      color: var(--color-text-primary, #e2e8f0);
     }
-    .auth-input-field {
-      @apply mb-4;
+
+    .glass-card, .auth-card, .settings-card {
+      background: var(--color-card-bg, #23272e);
+      color: var(--color-text-primary, #e2e8f0);
+      border-radius: 1.25rem;
+      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
+      border: 1px solid var(--color-input-border, #2d3748);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      margin-bottom: 2rem;
     }
-    .auth-input-field label {
-      @apply block text-gray-300 text-sm font-bold mb-2;
+
+    .input-field input, .input-field select {
+      background: var(--color-input-bg, #23272e);
+      color: var(--color-text-primary, #e2e8f0);
+      border: 1px solid var(--color-input-border, #2d3748);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      transition: border 0.2s;
     }
-    .auth-input-field input[type="email"],
-    .auth-input-field input[type="password"],
-    .auth-input-field input[type="text"],
-    .auth-input-field input[type="url"] {
-      @apply shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 border-gray-600 transition duration-200 ease-in-out; /* Enhanced input styling */
+
+    .input-field input:focus, .input-field select:focus {
+      border-color: var(--color-link, #63b3ed);
+      outline: none;
     }
-    .auth-btn-primary {
-      @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out transform hover:scale-105; /* Slightly adjusted button styling */
+
+    .btn-primary {
+      background: var(--color-button-bg-primary, #4299e1);
+      color: var(--color-button-text, #fff);
+      border-radius: 0.75rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.10);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-button-hover-primary, #3182ce);
+      transform: translateY(-2px) scale(1.03);
     }
     .auth-link {
-      @apply inline-block align-baseline font-semibold text-sm text-blue-400 hover:text-blue-200 transition duration-300 ease-in-out; /* Adjusted link styling */
+      color: var(--color-link, #63b3ed);
+      transition: color 0.2s;
     }
 
-    /* Message box styling (from utils.js) */
+    .auth-link:hover {
+      color: var(--color-link-hover, #4299e1);
+    }
+
+    .settings-card summary {
+      background: none;
+      border: none;
+      padding: 1rem 0;
+      cursor: pointer;
+      font-size: 1.15rem;
+      border-radius: 0.75rem;
+      transition: background 0.2s;
+    }
+
+    .settings-card[open] summary {
+      background: rgba(99, 179, 237, 0.08);
+    }
+
+    .settings-card details > div {
+      padding: 1rem 0 0 0;
+    }
+
+    .profile-pic-large {
+      border: 3px solid var(--color-link, #63b3ed);
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.18);
+    }
     .message-box {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
+      background: var(--color-navbar-bg, #2d3748);
+      color: var(--color-text-primary, #e2e8f0);
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
     }
-
-    .message-box.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .message-box.error {
-      background-color: #dc3545;
-    }
-
-    .message-box.success {
-      background-color: #28a745;
-    }
-
-    /* Custom confirm modal styling (from utils.js) */
-    .custom-confirm-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      display: none; /* Hidden by default */
-    }
-
     .custom-confirm-modal .modal-content {
-      background-color: #2d3748;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      position: relative;
-      max-width: 400px;
-      width: 90%;
-      color: #e2e8f0;
+      background: var(--color-card-bg, #23272e);
+      color: var(--color-text-primary, #e2e8f0);
+      border-radius: 1rem;
     }
-
-    .custom-confirm-modal .close-button {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      color: #aaa;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .custom-confirm-modal .close-button:hover,
-    .custom-confirm-modal .close-button:focus {
-      color: #e2e8f0;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    /* Hero banner background image updated here */
     .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background: linear-gradient(120deg, rgba(30, 41, 59, 0.95) 60%, rgba(49, 130, 206, 0.25)), url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+      min-height: 220px;
+      border-radius: 0 0 2rem 2rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
     }
   </style>
 </head>
