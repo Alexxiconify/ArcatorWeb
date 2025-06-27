@@ -79,12 +79,11 @@ const navbarStyles = `
 }
 
 .navbar-logo svg {
-  height: clamp(1rem, 1vw, 1rem);
-  width: clamp(1rem, 1vw, 1rem);
-  min-width: 1rem;
-  min-height: 1rem;
+  height: 1em;
+  width: 1em;
+  min-width: 1em;
+  min-height: 1em;
   color: var(--color-link, #60A5FA);
-  transition: all 0.3s ease;
 }
 
 .navbar-logo:hover svg {
@@ -157,10 +156,10 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  height: clamp(0.6rem, 0.8vw, 0.9rem);
-  width: clamp(0.6rem, 0.8vw, 0.9rem);
-  min-width: 0.6rem;
-  min-height: 0.6rem;
+  height: 1em;
+  width: 1em;
+  min-width: 1em;
+  min-height: 1em;
   margin-right: clamp(0.08rem, 0.2vw, 0.15rem);
   transition: all 0.3s ease;
 }
@@ -177,43 +176,38 @@ const navbarStyles = `
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.profile-pic-small {
-  width: clamp(8px, 2vw, 18px);
-  height: clamp(8px, 2vw, 18px);
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.profile-pic-small:hover {
-  border-color: var(--color-link, #60A5FA);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+  padding: 0;
 }
 
 .navbar-user .navbar-link {
-  padding: 0.375rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.5rem;
   background: linear-gradient(135deg, var(--color-button-blue-bg, #3B82F6), var(--color-button-indigo-bg, #6366F1));
   color: var(--color-button-text, #FFFFFF);
   border: none;
   font-weight: 600;
   font-size: 0.8125rem;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  min-width: 0;
 }
 
-.navbar-user .navbar-link:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  background: linear-gradient(135deg, var(--color-button-blue-hover, #2563EB), var(--color-button-indigo-hover, #4F46E5));
+.navbar-user .profile-pic-small {
+  margin-right: 0.5rem;
+  margin-left: 0;
+  align-self: center;
 }
 
-.navbar-user .navbar-link svg {
-  margin-right: 0.375rem;
-  color: var(--color-button-text, #FFFFFF);
-  height: 1rem;
-  width: 1rem;
+.navbar-user-name {
+  font-size: clamp(0.45rem, 0.6vw, 0.65rem);
+  font-weight: 500;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  align-self: center;
 }
 
 .hidden {
@@ -379,15 +373,6 @@ const navbarStyles = `
     width: 10px;
     height: 10px;
   }
-}
-
-.navbar-user-name {
-  font-size: clamp(0.45rem, 0.6vw, 0.65rem); /* 3/4 previous size */
-  font-weight: 500;
-  max-width: 90px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 `;
