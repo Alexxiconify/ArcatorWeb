@@ -211,20 +211,32 @@ function hideLoading() {
 
 // Handler for user sign-in
 async function handleSignIn() {
-  const email = signInEmailInput.value;
+  const email = signInEmailInput.value.trim();
   const password = signInPasswordInput.value;
   if (!email || !password) {
-    showMessageBox('Please enter both email and password.', true);
+    showMessageBox("Please enter both email and password.", true);
     return;
   }
+  showLoading();
   try {
-    console.log("DEBUG: Attempting sign-in for:", email);
-    await signInWithEmailAndPassword(auth, email, password);
-    showMessageBox('Signed in successfully! Redirecting...', false);
-    // UI will update via onAuthStateChanged listener
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Success: reload page or redirect
+    window.location.reload();
   } catch (error) {
-    console.error('Sign-in error:', error);
-    showMessageBox(`Sign-in failed: ${error.message}`, true);
+    // Log full error for debugging
+    console.error("Sign-in error:", error);
+    // Show user-friendly error
+    let msg = "Sign-in failed. Please check your email and password.";
+    if (error && error.code) {
+      if (error.code === 'auth/user-not-found') msg = "No account found for this email.";
+      else if (error.code === 'auth/wrong-password') msg = "Incorrect password.";
+      else if (error.code === 'auth/invalid-email') msg = "Invalid email address.";
+      else if (error.code === 'auth/too-many-requests') msg = "Too many failed attempts. Try again later.";
+      else if (error.message) msg = error.message;
+    }
+    showMessageBox(msg, true);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -441,89 +453,42 @@ async function handleSaveProfile() {
 
 // Handler for saving preferences
 async function handleSavePreferences() {
-  const selectedFontSize = fontSizeSelect.value;
-  const selectedHeadingMultiplier = headingSizeMultiplierSelect.value;
-  const selectedFontFamily = fontFamilySelect.value;
-  const selectedLineHeight = lineHeightSelect.value;
-  const selectedLetterSpacing = letterSpacingSelect.value;
-  const selectedBackgroundPattern = backgroundPatternSelect.value;
-  const selectedBackgroundOpacity = backgroundOpacityRange.value;
-
-  // Apply font size and family to body
-  document.body.style.fontSize = selectedFontSize;
-  document.body.style.fontFamily = selectedFontFamily;
-  document.body.style.lineHeight = selectedLineHeight;
-  document.body.style.letterSpacing = selectedLetterSpacing;
-
-  // Apply heading size multiplier as CSS custom property
-  document.documentElement.style.setProperty('--heading-size-multiplier', selectedHeadingMultiplier);
-
-  // Apply background pattern with opacity
-  const opacity = selectedBackgroundOpacity / 100;
-  if (selectedBackgroundPattern === 'none') {
-    document.body.style.backgroundImage = 'none';
-  } else if (selectedBackgroundPattern === 'dots') {
-    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '20px 20px';
-  } else if (selectedBackgroundPattern === 'grid') {
-    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '40px 40px';
-  } else if (selectedBackgroundPattern === 'diagonal') {
-    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
-    document.body.style.backgroundSize = '60px 60px';
-  } else if (selectedBackgroundPattern === 'circles') {
-    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '30px 30px';
-  } else if (selectedBackgroundPattern === 'hexagons') {
-    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
-    document.body.style.backgroundSize = '40px 40px';
-  }
-
-  // Save to Firestore
-  if (auth.currentUser) {
-    try {
-      console.log("DEBUG: Saving preferences for UID:", auth.currentUser.uid);
-      const updates = {
-        fontSize: selectedFontSize,
-        headingSizeMultiplier: selectedHeadingMultiplier,
-        fontFamily: selectedFontFamily,
-        lineHeight: selectedLineHeight,
-        letterSpacing: selectedLetterSpacing,
-        backgroundPattern: selectedBackgroundPattern,
-        backgroundOpacity: selectedBackgroundOpacity
-      };
-      await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), updates, { merge: true });
-      showMessageBox('Preferences saved successfully!', false);
-      console.log("DEBUG: Preferences saved to Firestore.");
-    } catch (error) {
-      console.error("Error saving preferences:", error);
-      showMessageBox(`Failed to save preferences: ${error.message}`, true);
-    }
+  if (!auth.currentUser) return;
+  const updates = {
+    fontSize: fontSizeSelect.value,
+    headingSizeMultiplier: headingSizeMultiplierSelect.value,
+    fontFamily: fontFamilySelect.value,
+    lineHeight: lineHeightSelect.value,
+    letterSpacing: letterSpacingSelect.value,
+    backgroundPattern: backgroundPatternSelect.value,
+    backgroundOpacity: backgroundOpacityRange.value
+  };
+  try {
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) showMessageBox('Preferences saved successfully!', false);
+    else showMessageBox('Failed to save preferences.', true);
+  } catch (error) {
+    showMessageBox(`Failed to save preferences: ${error.message}`, true);
   }
 }
 
 // Handler for saving notification settings
 async function handleSaveNotifications() {
   if (!auth.currentUser) return;
-
+  const notificationSettings = {
+    emailNotifications: emailNotificationsCheckbox.checked,
+    inappNotifications: inappNotificationsCheckbox.checked,
+    announcementNotifications: announcementNotificationsCheckbox.checked,
+    communityNotifications: communityNotificationsCheckbox.checked,
+    securityNotifications: securityNotificationsCheckbox.checked,
+    maintenanceNotifications: maintenanceNotificationsCheckbox.checked,
+    notificationFrequency: notificationFrequencySelect.value
+  };
   try {
-    const notificationSettings = {
-      emailNotifications: emailNotificationsCheckbox.checked,
-      inappNotifications: inappNotificationsCheckbox.checked,
-      announcementNotifications: announcementNotificationsCheckbox.checked,
-      communityNotifications: communityNotificationsCheckbox.checked,
-      securityNotifications: securityNotificationsCheckbox.checked,
-      maintenanceNotifications: maintenanceNotificationsCheckbox.checked,
-      notificationFrequency: notificationFrequencySelect.value
-    };
-
-    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
-      notificationSettings: notificationSettings
-    }, {merge: true});
-
-    showMessageBox('Notification settings saved successfully!', false);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, {notificationSettings});
+    if (success) showMessageBox('Notification settings saved successfully!', false);
+    else showMessageBox('Failed to save notification settings.', true);
   } catch (error) {
-    console.error("Error saving notification settings:", error);
     showMessageBox(`Failed to save notification settings: ${error.message}`, true);
   }
 }
@@ -531,22 +496,17 @@ async function handleSaveNotifications() {
 // Handler for saving privacy settings
 async function handleSavePrivacy() {
   if (!auth.currentUser) return;
-
+  const privacySettings = {
+    profileVisibility: profileVisibilityCheckbox.checked,
+    activityVisibility: activityVisibilityCheckbox.checked,
+    analyticsConsent: analyticsConsentCheckbox.checked,
+    dataRetention: dataRetentionSelect.value
+  };
   try {
-    const privacySettings = {
-      profileVisibility: profileVisibilityCheckbox.checked,
-      activityVisibility: activityVisibilityCheckbox.checked,
-      analyticsConsent: analyticsConsentCheckbox.checked,
-      dataRetention: dataRetentionSelect.value
-    };
-
-    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
-      privacySettings: privacySettings
-    }, {merge: true});
-
-    showMessageBox('Privacy settings saved successfully!', false);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, {privacySettings});
+    if (success) showMessageBox('Privacy settings saved successfully!', false);
+    else showMessageBox('Failed to save privacy settings.', true);
   } catch (error) {
-    console.error("Error saving privacy settings:", error);
     showMessageBox(`Failed to save privacy settings: ${error.message}`, true);
   }
 }
@@ -554,33 +514,26 @@ async function handleSavePrivacy() {
 // Handler for saving accessibility settings
 async function handleSaveAccessibility() {
   if (!auth.currentUser) return;
-
+  const accessibilitySettings = {
+    highContrast: highContrastCheckbox.checked,
+    largeCursor: largeCursorCheckbox.checked,
+    focusIndicators: focusIndicatorsCheckbox.checked,
+    colorblindFriendly: colorblindFriendlyCheckbox.checked,
+    reducedMotion: reducedMotionCheckbox.checked,
+    disableAnimations: disableAnimationsCheckbox.checked,
+    keyboardNavigation: keyboardNavigationCheckbox.checked,
+    skipLinks: skipLinksCheckbox.checked,
+    textToSpeech: textToSpeechCheckbox.checked,
+    readingGuide: readingGuideCheckbox.checked,
+    syntaxHighlighting: syntaxHighlightingCheckbox.checked,
+    wordSpacing: wordSpacingCheckbox.checked
+  };
+  applyAccessibilitySettings(accessibilitySettings);
   try {
-    const accessibilitySettings = {
-      highContrast: highContrastCheckbox.checked,
-      largeCursor: largeCursorCheckbox.checked,
-      focusIndicators: focusIndicatorsCheckbox.checked,
-      colorblindFriendly: colorblindFriendlyCheckbox.checked,
-      reducedMotion: reducedMotionCheckbox.checked,
-      disableAnimations: disableAnimationsCheckbox.checked,
-      keyboardNavigation: keyboardNavigationCheckbox.checked,
-      skipLinks: skipLinksCheckbox.checked,
-      textToSpeech: textToSpeechCheckbox.checked,
-      readingGuide: readingGuideCheckbox.checked,
-      syntaxHighlighting: syntaxHighlightingCheckbox.checked,
-      wordSpacing: wordSpacingCheckbox.checked
-    };
-
-    // Apply accessibility settings immediately
-    applyAccessibilitySettings(accessibilitySettings);
-
-    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
-      accessibilitySettings: accessibilitySettings
-    }, {merge: true});
-
-    showMessageBox('Accessibility settings saved successfully!', false);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, {accessibilitySettings});
+    if (success) showMessageBox('Accessibility settings saved successfully!', false);
+    else showMessageBox('Failed to save accessibility settings.', true);
   } catch (error) {
-    console.error("Error saving accessibility settings:", error);
     showMessageBox(`Failed to save accessibility settings: ${error.message}`, true);
   }
 }
@@ -619,34 +572,23 @@ function applyAccessibilitySettings(settings) {
 // Handler for saving advanced settings
 async function handleSaveAdvanced() {
   if (!auth.currentUser) return;
-
+  const advancedSettings = {
+    lowBandwidthMode: lowBandwidthModeCheckbox.checked,
+    disableImages: disableImagesCheckbox.checked,
+    minimalUi: minimalUiCheckbox.checked,
+    debugMode: debugModeCheckbox.checked,
+    showPerformanceMetrics: showPerformanceMetricsCheckbox.checked,
+    enableExperimentalFeatures: enableExperimentalFeaturesCheckbox.checked,
+    customCss: customCssTextarea.value,
+    keyboardShortcuts: keyboardShortcutsToggle.value
+  };
+  if (advancedSettings.customCss) applyCustomCSS(advancedSettings.customCss);
+  applyAdvancedSettings(advancedSettings);
   try {
-    const advancedSettings = {
-      lowBandwidthMode: lowBandwidthModeCheckbox.checked,
-      disableImages: disableImagesCheckbox.checked,
-      minimalUi: minimalUiCheckbox.checked,
-      debugMode: debugModeCheckbox.checked,
-      showPerformanceMetrics: showPerformanceMetricsCheckbox.checked,
-      enableExperimentalFeatures: enableExperimentalFeaturesCheckbox.checked,
-      customCss: customCssTextarea.value,
-      keyboardShortcuts: keyboardShortcutsToggle.value
-    };
-
-    // Apply custom CSS if provided
-    if (advancedSettings.customCss) {
-      applyCustomCSS(advancedSettings.customCss);
-    }
-
-    // Apply advanced settings
-    applyAdvancedSettings(advancedSettings);
-
-    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
-      advancedSettings: advancedSettings
-    }, {merge: true});
-
-    showMessageBox('Advanced settings saved successfully!', false);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, {advancedSettings});
+    if (success) showMessageBox('Advanced settings saved successfully!', false);
+    else showMessageBox('Failed to save advanced settings.', true);
   } catch (error) {
-    console.error("Error saving advanced settings:", error);
     showMessageBox(`Failed to save advanced settings: ${error.message}`, true);
   }
 }
