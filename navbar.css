@@ -15,3 +15,14 @@
   border-radius: 9999px; /* Tailwind's rounded-full */
   object-fit: cover;
 }
+
+.navbar-bg, nav, .navbar {
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.navbar-link, .navbar-text {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.95rem;
+}

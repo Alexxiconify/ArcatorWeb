@@ -126,7 +126,7 @@
     }
   </style>
 </head>
-<body class="antialiased">
+<body>
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
@@ -139,48 +139,33 @@
 </section>
 
 <!-- Main Content Section: Interests Table -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+<section class="bg-card my-8 p-6 rounded-lg shadow-xl overflow-x-auto"
+         style="max-width: 1200px; margin-left:auto; margin-right:auto;">
   <h2 class="text-3xl font-bold text-heading-main text-center mb-4">Arcator Community Interests</h2>
   <div class="text-secondary text-center mb-2">Live, auto-updating from our <a
-    class="text-blue-400 hover:text-blue-300 underline"
+    class="text-blue-400 hover:text-blue-300"
     href="https://docs.google.com/spreadsheets/u/0/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/htmlview#" rel="noopener" target="_blank">community Google Sheet</a>.
   </div>
   <div class="flex justify-center gap-2 mb-4" id="interests-tabs"></div>
-  <div id="interests-table"></div>
+  <div id="interests-table" style="overflow-x:auto;"></div>
   <style>
     #interests-table table {
       background: var(--color-bg-card, #23272e);
       color: var(--color-text-primary, #e2e8f0);
       border-radius: 1.25rem;
-      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.18);
+      box-shadow: 0 6px 32px 0 rgba(0,0,0,0.18);
       border: 1px solid var(--color-input-border, #2d3748);
-      font-size: 0.85rem;
+      font-size: 0.72rem;
       width: 100%;
       border-collapse: collapse;
+      min-width: 900px;
+      max-width: 100%;
     }
     #interests-table th, #interests-table td {
-      padding: 0;
-      text-align: center;
-      border: 1px solid var(--color-input-border, #2d3748);
-      border-left: none;
-      border-right: none;
-      min-width: 2.5rem;
-      max-width: 8rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 0.72rem;
     }
     #interests-table th {
-      font-weight: 700;
-      background: var(--color-bg-card, #23272e);
-      color: var(--color-heading-card, #93C5FD);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      white-space: normal;
-      word-wrap: break-word;
-      min-height: 3rem;
-      vertical-align: middle;
+      font-size: 0.65rem;
     }
     #interests-table td:first-child {
       white-space: normal;
@@ -199,28 +184,25 @@
       display: inline-block;
       margin: 0 auto;
     }
-    #interests-table td {
-      font-size: 0.85rem;
-    }
-    
-    /* Alternate column colors */
+
+    /* Use theme variables for column colors */
     #interests-table th:nth-child(even),
     #interests-table td:nth-child(even) {
-      background-color: var(--color-bg-card, #23272e);
+      background-color: var(--color-table-col-even, #23272e);
     }
-    
+
     #interests-table th:nth-child(odd),
     #interests-table td:nth-child(odd) {
-      background-color: var(--color-input-bg, #4a5568);
+      background-color: var(--color-table-col-odd, #4a5568);
     }
   </style>
   <script type="module">
     // --- Sheet tab config with correct GIDs ---
     const SHEETS = [
       { name: '2025 Interests', gid: '0' },
-      { name: '2020 Interests', gid: '1322829642' },
-      { name: 'Machines', gid: '1842829822' },
-      { name: 'Donations', gid: '1818939642' }
+      {name: '2020 Interests', gid: '0'},
+      {name: 'Machines', gid: '0'},
+      {name: 'Donations', gid: '0'}
     ];
     const BASE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=';
     const tableDiv = document.getElementById('interests-table');
@@ -238,17 +220,17 @@
         return [];
       }
     }
-    
+
     function sanitizeData(data) {
       if (!data || !data.length || data.length < 2) return [];
-      
+
       try {
         // Sanitize header row
         const header = data[0].map(cell => {
           if (!cell || typeof cell !== 'string') return '';
           return cell.trim().replace(/[<>\"'&]/g, ''); // Remove HTML chars
         });
-        
+
         // Sanitize data rows
         const sanitizedRows = data.slice(1).map(row => {
           return row.map((cell, index) => {
@@ -264,7 +246,7 @@
             }
           });
         });
-        
+
         return [header, ...sanitizedRows];
       } catch (error) {
         console.error('Error sanitizing data:', error);
@@ -273,59 +255,61 @@
     }
 
     function renderTable(data) {
-      if (!data.length) { 
-        tableDiv.innerHTML = '<div class="text-center text-gray-400">No data available.</div>'; 
-        return; 
+      if (!data.length) {
+        tableDiv.innerHTML = '<div class="text-center text-gray-400">No data available.</div>';
+        return;
       }
-      
+
       // Sanitize the data first
       const sanitizedData = sanitizeData(data);
-      if (!sanitizedData.length) { 
-        tableDiv.innerHTML = '<div class="text-center text-gray-400">No valid data found.</div>'; 
-        return; 
+      if (!sanitizedData.length) {
+        tableDiv.innerHTML = '<div class="text-center text-gray-400">No valid data found.</div>';
+        return;
       }
-      
+
       try {
         let [header, ...rows] = sanitizedData;
-        
+
         // Create matrix with interest names and user data
         const interestMatrix = rows.map(row => ({
           name: row[0] || 'Unknown',
           data: row.slice(1)
         }));
-        
+
         // Filter out empty rows (all data cells empty/0)
-        const filteredMatrix = interestMatrix.filter(row => 
+        const filteredMatrix = interestMatrix.filter(row =>
           row.data.some(cell => cell && cell !== '0')
         );
-        
+
         if (filteredMatrix.length === 0) {
           tableDiv.innerHTML = '<div class="text-center text-gray-400">No interests found.</div>';
           return;
         }
-        
+
         // Build table
         let html = '<table><thead><tr>';
         html += `<th>${header[0] || 'Interest'}</th>`; // Interest name column
-        html += '<th>Total Players</th>'; // Total Players column
-        
-        // Add user columns
+
+        // Add user columns with proper capitalization
         for (let i = 1; i < header.length; i++) {
-          html += `<th>${header[i] || `User ${i}`}</th>`;
+          const playerName = header[i] || `User ${i}`;
+          // Only capitalize first letter, rest lowercase, no forced uppercase
+          const formattedName = playerName.charAt(0).toUpperCase() + playerName.slice(1).toLowerCase();
+          html += `<th>${formattedName}</th>`;
         }
-        
+
         html += '</tr></thead><tbody>';
-        
+
         filteredMatrix.forEach(row => {
           html += '<tr>';
           html += `<td>${row.name}</td>`; // Interest name
-          
+
           // Calculate total players
           const totalPlayers = row.data.reduce((count, cell) => {
             return count + (cell === '1' ? 1 : 0);
           }, 0);
           html += `<td style="font-weight:600;color:var(--color-heading-card,#93C5FD);">${totalPlayers}</td>`;
-          
+
           // Add user data cells
           row.data.forEach(cellValue => {
             if (cellValue === '1') {
@@ -334,13 +318,13 @@
               html += '<td></td>';
             }
           });
-          
+
           html += '</tr>';
         });
-        
+
         html += '</tbody></table>';
         tableDiv.innerHTML = html;
-        
+
       } catch (error) {
         console.error('Error rendering table:', error);
         tableDiv.innerHTML = '<div class="text-center text-red-400">Error displaying data.</div>';
@@ -349,15 +333,15 @@
 
     function loadSheet(idx) {
       currentTab = idx;
-      
+
       // Update tab buttons
       tabsDiv.querySelectorAll('button').forEach((btn, i) => {
         btn.classList.toggle('active', i === idx);
       });
-      
+
       // Show loading state
       tableDiv.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
-      
+
       // Fetch and process data
       fetch(BASE_CSV_URL + SHEETS[idx].gid + '&t=' + Date.now())
         .then(response => {
@@ -379,10 +363,10 @@
 
     // Initialize tabs
     function initializeTabs() {
-      tabsDiv.innerHTML = SHEETS.map((s, i) => 
+      tabsDiv.innerHTML = SHEETS.map((s, i) =>
         `<button class="px-3 py-1 rounded ${i===0?'active':''}" style="background:var(--color-input-bg,#4a5568);color:var(--color-text-primary,#e2e8f0);font-weight:600;" onclick="return false;">${s.name}</button>`
       ).join('');
-      
+
       tabsDiv.querySelectorAll('button').forEach((btn, i) => {
         btn.onclick = () => loadSheet(i);
       });

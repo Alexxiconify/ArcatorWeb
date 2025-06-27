@@ -76,7 +76,9 @@ const defaultThemes = [
       '--color-heading-main': '#F9FAFB',
       '--color-heading-card': '#93C5FD',
       '--color-settings-card-bg': '#22304a',
-      '--color-settings-card-border': '#334155'
+      '--color-settings-card-border': '#334155',
+      '--color-table-col-even': '#22304a',
+      '--color-table-col-odd': '#2d3748'
     }
   },
   {
@@ -126,7 +128,9 @@ const defaultThemes = [
       '--color-heading-main': '#1F2937',
       '--color-heading-card': '#3B82F6',
       '--color-settings-card-bg': '#f9fafb',
-      '--color-settings-card-border': '#e5e7eb'
+      '--color-settings-card-border': '#e5e7eb',
+      '--color-table-col-even': '#e3f0ff',
+      '--color-table-col-odd': '#f7fafc'
     }
   },
 ];
