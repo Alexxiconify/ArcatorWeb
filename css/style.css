@@ -252,7 +252,6 @@ textarea {
 }
 
 .emoji, .emoji-font {
-  font-family: 'TwemojiColor', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif !important;
   font-size: 1em;
   font-style: normal;
   font-weight: normal;
@@ -260,8 +259,16 @@ textarea {
   vertical-align: middle;
 }
 
-/* Apply TwemojiColor globally for emoji codepoints */
+/* Twemoji image styling */
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
+}
+
+/* Remove font-family override for emoji */
 body, .emoji, .emoji-font {
-  font-family: 'TwemojiColor', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif;
+  /* font-family removed to allow Twemoji to render as images */
 }
 

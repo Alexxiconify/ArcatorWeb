@@ -258,8 +258,8 @@ window.getAvailableThemes = async function() {
   return _allThemes;
 };
 
-// At the top, import replaceEmojis
-import { replaceEmojis, triggerEmojiRerender } from './app.js';
+// At the top, import replaceEmojis and triggerTwemojiRender
+import { replaceEmojis, triggerEmojiRerender, triggerTwemojiRender } from './app.js';
 
 // At the top of forms.js
 import { loadNavbar } from './navbar.js';
@@ -564,6 +564,8 @@ function renderThemaBoxes(themasArr) {
       }
       box.setAttribute('data-thema-id', thema.id);
     });
+    // Trigger Twemoji render after thema boxes are rendered
+    triggerTwemojiRender();
   } catch (e) {
     console.error('[DEBUG] Error in renderThemaBoxes:', e);
   }
@@ -712,6 +714,8 @@ function loadThreadsForThema(themaId) {
         threadDiv.setAttribute('data-thread-id', threadDoc.id);
       });
     });
+    // Trigger Twemoji render after threads are loaded
+    triggerTwemojiRender();
   } catch (e) {
     console.error('[DEBUG] Error in loadThreadsForThema:', e);
   }
@@ -808,6 +812,8 @@ function loadCommentsForThread(themaId, threadId) {
       }
       commentDiv.setAttribute('data-comment-id', commentDoc.id);
     });
+    // Trigger Twemoji render after comments are loaded
+    triggerTwemojiRender();
   });
 }
 
@@ -1425,6 +1431,8 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
       };
     });
     dmMessages.scrollTop = dmMessages.scrollHeight;
+    // Trigger Twemoji render after DM messages are loaded
+    triggerTwemojiRender();
   });
   // Header and back button
   let participantNames, participantPics;

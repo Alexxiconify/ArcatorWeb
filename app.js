@@ -27,14 +27,14 @@ fetch('./emojii.json')
  */
 export function replaceEmojis(text) {
   // Manual patch for :joy: and :smile:
-  text = text.replace(/:joy:/gi, '<span class="emoji">\ud83d\ude02<\/span>');
-  text = text.replace(/:smile:/gi, '<span class="emoji">\ud83d\ude04<\/span>');
+  text = text.replace(/:joy:/gi, '😂');
+  text = text.replace(/:smile:/gi, '😄');
   if (!EMOJI_MAP_LOADED) {
     // If emoji map isn't loaded yet, return patched text
     return text;
   }
   return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
-    if (EMOJI_MAP[name]) return `<span class="emoji">${EMOJI_MAP[name]}</span>`;
+    if (EMOJI_MAP[name]) return EMOJI_MAP[name];
     return match;
   });
 }
@@ -53,6 +53,7 @@ export function triggerEmojiRerender() {
 // Twemoji render helper
 export function triggerTwemojiRender() {
   if (window.twemoji) {
+    console.log('[Twemoji] Parsing document.body for emoji SVGs');
     window.twemoji.parse(document.body, {folder: 'svg', ext: '.svg'});
   }
 }
