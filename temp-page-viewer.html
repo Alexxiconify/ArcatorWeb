@@ -465,9 +465,8 @@
     // Setup themes integration using the imported function
     setupThemesFirebase(db, auth, appId);
 
-    // Load the navbar using the imported function
-    // Pass auth.currentUser for current login state and currentUser for detailed profile
-    await loadNavbar(auth.currentUser, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    // Load navbar dynamically
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Apply the initial theme based on user preference or default
     let userThemePreference = DEFAULT_THEME_NAME;

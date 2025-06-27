@@ -18,106 +18,13 @@
   <!-- Theme initialization -->
   <script src="theme-init.js" type="module"></script>
   <style>
+    /* Base styles using CSS variables */
     body {
-      background: var(--color-body-bg, #1a202c);
-      color: var(--color-text-primary, #e2e8f0);
+      background: var(--color-body-bg);
+      color: var(--color-text-primary);
     }
 
-    .bg-card {
-      background: var(--color-bg-card, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border-radius: 1.25rem;
-      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
-      border: 1px solid var(--color-input-border, #2d3748);
-    }
-
-    .text-heading-main {
-      color: var(--color-heading-main, #F9FAFB);
-    }
-
-    .text-heading-card {
-      color: var(--color-heading-card, #93C5FD);
-    }
-
-    .text-secondary {
-      color: var(--color-text-secondary, #a0aec0);
-    }
-
-    /* Message box styling (from utils.js) */
-    .message-box {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .message-box.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .message-box.error {
-      background-color: #dc3545;
-    }
-
-    .message-box.success {
-      background-color: #28a745;
-    }
-
-    /* Custom confirm modal styling (from utils.js) */
-    .custom-confirm-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      display: none; /* Hidden by default */
-    }
-
-    .custom-confirm-modal .modal-content {
-      background-color: #2d3748;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      position: relative;
-      max-width: 400px;
-      width: 90%;
-      color: #e2e8f0;
-    }
-
-    .custom-confirm-modal .close-button {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      color: #aaa;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .custom-confirm-modal .close-button:hover,
-    .custom-confirm-modal .close-button:focus {
-      color: #e2e8f0;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    /* Hero banner background image updated here */
+    /* Hero banner background image */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -131,13 +38,68 @@
       overflow: hidden;
     }
 
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Theme-aware classes using CSS variables */
+    .bg-content-section {
+      background-color: var(--color-bg-content-section);
+    }
+
+    .text-heading-main {
+      color: var(--color-heading-main);
+    }
+
+    .text-heading-card {
+      color: var(--color-heading-card);
+    }
+
+    .text-text-primary {
+      color: var(--color-text-primary);
+    }
+
+    .text-text-secondary {
+      color: var(--color-text-secondary);
+    }
+
+    .bg-card {
+      background-color: var(--color-bg-card);
+    }
+
+    .bg-navbar-footer {
+      background-color: var(--color-bg-navbar);
+    }
+
+    .text-link {
+      color: var(--color-link);
+    }
+
+    .hover\:text-link:hover {
+      color: var(--color-link);
+    }
+
     /* Collapsible header styling */
     .collapsible-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 1rem 1.5rem;
-      background-color: var(--color-table-th-bg); /* Use table header background for consistency */
+      background-color: var(--color-table-th-bg);
       color: var(--color-table-th-text);
       border-radius: 0.5rem;
       margin-bottom: 0.5rem;
@@ -146,14 +108,14 @@
     }
 
     .collapsible-header:hover {
-      background-color: var(--color-link); /* Lighten on hover */
+      background-color: var(--color-link);
     }
 
     .collapsible-header h3 {
       margin: 0;
-      font-size: 1.5rem; /* text-2xl equivalent */
-      font-weight: 700; /* font-bold equivalent */
-      color: var(--color-table-th-text); /* Ensure heading color matches */
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-table-th-text);
     }
 
     .collapsible-header svg {
@@ -163,6 +125,7 @@
     .collapsible-header svg.rotate-90 {
       transform: rotate(90deg);
     }
+
     /* Styles for content sections to save vertical space */
     .collapsible-content {
       padding: 1rem 1.5rem;
@@ -173,13 +136,13 @@
 
     /* Reduce vertical spacing for lists within collapsible sections */
     .collapsible-content ul {
-      margin-bottom: 0.5rem; /* Reduce bottom margin */
+      margin-bottom: 0.5rem;
     }
     .collapsible-content li {
-      margin-bottom: 0.25rem; /* Reduce space between list items */
+      margin-bottom: 0.25rem;
     }
 
-    /* Styles for temporary page tabs (from temp-page-viewer for consistency) */
+    /* Styles for temporary page tabs */
     .temp-page-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -246,7 +209,7 @@
   </div>
 </section>
 <!-- Admin & Dev Section Content -->
-<section id="admin-dev" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="admin-dev">
   <div class="container mx-auto px-4">
     <!-- Loading Spinner -->
     <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
@@ -254,9 +217,9 @@
     </div>
 
     <!-- Login Required Message / Redirect -->
-    <div id="login-required-message" class="text-center bg-gray-700 p-8 rounded-lg shadow-md mb-8" style="display: none;">
-      <h2 class="text-4xl font-bold text-red-400 mb-6">Access Denied</h2>
-      <p class="text-lg text-gray-300 mb-8">
+    <div class="text-center bg-card p-8 rounded-lg shadow-md mb-8" id="login-required-message" style="display: none;">
+      <h2 class="text-4xl font-bold text-heading-main mb-6">Access Denied</h2>
+      <p class="text-lg text-text-secondary mb-8">
         You must be logged in to access this page. Some sections require administrator privileges.
       </p>
       <a href="sign.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Login / Sign Up</a>
@@ -265,11 +228,11 @@
     <!-- Admin Content Section (visible only to authenticated users) -->
     <div id="admin-content" style="display: none;">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-red-400">Welcome, <span id="admin-user-display"></span>!</h2>
+        <h2 class="text-3xl font-bold text-heading-main">Welcome, <span id="admin-user-display"></span>!</h2>
         <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
       </div>
 
-      <p class="text-lg text-gray-300 mb-8">
+      <p class="text-lg text-text-secondary mb-8">
         This portal provides tools and information for managing Arcator infrastructure and development.
       </p>
 
@@ -282,8 +245,9 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="infrastructure-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <p class="text-text-secondary leading-relaxed mb-4">Monitor server health, manage deployments, and ensure
+              network stability.</p>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
               <li>Review server logs and performance metrics.</li>
               <li>Perform routine maintenance tasks.</li>
               <li>Manage user permissions on core systems.</li>
@@ -300,8 +264,9 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="dev-tools-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <p class="text-text-secondary leading-relaxed mb-4">Access development resources, manage codebases, and
+              update the Arcator Wiki.</p>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
               <li>Access the code repositories and version control.</li>
               <li>Contribute to ongoing development projects.</li>
               <li>Update and maintain the official Arcator Wiki.</li>
@@ -318,33 +283,41 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="user-management-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">View and manage registered user profiles.</p>
+            <p class="text-text-secondary leading-relaxed mb-4">View and manage registered user profiles.</p>
             <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
             <div class="overflow-x-auto">
               <table class="w-full text-left table-auto">
                 <thead>
-                <tr class="bg-gray-800">
-                  <th class="px-4 py-2">Email</th>
-                  <th class="px-4 py-2">Display Name</th>
-                  <th class="px-4 py-2">Theme</th>
-                  <th class="px-4 py-2">Actions</th>
+                <tr class="bg-table-th-bg">
+                  <th class="px-4 py-2 text-table-th-text">Email</th>
+                  <th class="px-4 py-2 text-table-th-text">Display Name</th>
+                  <th class="px-4 py-2 text-table-th-text">Theme</th>
+                  <th class="px-4 py-2 text-table-th-text">Actions</th>
                 </tr>
                 </thead>
                 <tbody id="user-list-tbody">
-                <tr><td colspan="4" class="text-center py-4 text-gray-400">No users loaded yet. Click "Load Users".</td></tr>
+                <tr>
+                  <td class="text-center py-4 text-text-secondary" colspan="4">No users loaded yet. Click "Load
+                    Users".
+                  </td>
+                </tr>
                 </tbody>
               </table>
               <div id="edit-user-modal" class="modal">
                 <div class="modal-content">
                   <span class="close-button">&times;</span>
-                  <h3 class="text-xl font-bold mb-4 text-blue-300">Edit User Profile</h3>
+                  <h3 class="text-xl font-bold mb-4 text-heading-card">Edit User Profile</h3>
                   <div class="mb-4">
-                    <label for="edit-user-display-name" class="block text-gray-300 text-sm font-bold mb-2">Display Name:</label>
-                    <input type="text" id="edit-user-display-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-user-display-name">Display
+                      Name:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-user-display-name"
+                           type="text"/>
                   </div>
                   <div class="mb-4">
-                    <label for="edit-user-theme" class="block text-gray-300 text-sm font-bold mb-2">Theme Preference:</label>
-                    <select id="edit-user-theme" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-user-theme">Theme
+                      Preference:</label>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
+                            id="edit-user-theme">
                       <option value="dark">Dark</option>
                       <option value="light">Light</option>
                       <!-- Options will be dynamically populated by populateEditUserThemeSelect -->
@@ -364,8 +337,8 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="form-management-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Overview of form submissions and structure.</p>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <p class="text-text-secondary leading-relaxed mb-4">Overview of form submissions and structure.</p>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
               <li>Review recent form submissions.</li>
               <li>Analyze form data trends.</li>
               <li>(Future: Edit form questions/fields directly)</li>
@@ -381,33 +354,44 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="temp-pages-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Create and manage temporary informational pages. Use **HTML** for advanced content styling, including collapsible sections.</p>
+            <p class="text-text-secondary leading-relaxed mb-4">Create and manage temporary informational pages. Use
+              **HTML** for advanced content styling, including collapsible sections.</p>
             <form id="create-temp-page-form" class="space-y-4">
               <div>
-                <label for="temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-                <input type="text" id="temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter page title">
+                <label class="block text-text-secondary text-sm font-bold mb-2" for="temp-page-title">Page
+                  Title:</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="temp-page-title"
+                       placeholder="Enter page title"
+                       type="text">
               </div>
               <div>
-                <label for="temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (HTML allowed):</label>
-                <textarea id="temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" placeholder="Write your page content here... Use HTML for styling!"></textarea>
+                <label class="block text-text-secondary text-sm font-bold mb-2" for="temp-page-content">Page Content
+                  (HTML allowed):</label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-32"
+                          id="temp-page-content"
+                          placeholder="Write your page content here... Use HTML for styling!"></textarea>
               </div>
               <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
             </form>
-            <h4 class="text-xl font-semibold text-gray-200 mt-6 mb-3">Existing Temporary Pages:</h4>
-            <ul id="temp-page-list" class="list-disc list-inside text-gray-300 space-y-2">
+            <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
+            <ul class="list-disc list-inside text-text-secondary space-y-2" id="temp-page-list">
               <li>No temporary pages created yet.</li>
             </ul>
             <div id="edit-temp-page-modal" class="modal">
               <div class="modal-content">
                 <span class="close-button">&times;</span>
-                <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Temporary Page</h3>
+                <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Temporary Page</h3>
                 <div class="mb-4">
-                  <label for="edit-temp-page-title" class="block text-gray-300 text-sm font-bold mb-2">Page Title:</label>
-                  <input type="text" id="edit-temp-page-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-title">Page
+                    Title:</label>
+                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-temp-page-title"
+                         type="text">
                 </div>
                 <div class="mb-4">
-                  <label for="edit-temp-page-content" class="block text-gray-300 text-sm font-bold mb-2">Page Content (HTML allowed):</label>
-                  <textarea id="edit-temp-page-content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-48"></textarea>
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-content">Page
+                    Content (HTML allowed):</label>
+                  <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-48"
+                            id="edit-temp-page-content"></textarea>
                 </div>
                 <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
               </div>
@@ -422,11 +406,15 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="important-links-content" class="collapsible-content hidden">
-            <p class="text-gray-300 leading-relaxed mb-4">Quick access to essential internal and external documentation.</p>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
-              <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Internal Documentation (Google Doc)</a></li>
-              <li><a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Arcator Official Wiki</a></li>
-              <li><a href="infrastructure.html" class="text-blue-400 hover:underline">Infrastructure Details Page</a></li>
+            <p class="text-text-secondary leading-relaxed mb-4">Quick access to essential internal and external
+              documentation.</p>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
+              <li><a class="text-link hover:underline"
+                     href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" rel="noopener noreferrer" target="_blank">Arcator Internal
+                Documentation (Google Doc)</a></li>
+              <li><a class="text-link hover:underline" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
+                     target="_blank">Arcator Official Wiki</a></li>
+              <li><a class="text-link hover:underline" href="infrastructure.html">Infrastructure Details Page</a></li>
             </ul>
           </div>
         </div>
@@ -439,24 +427,30 @@
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </div>
         <div id="roadmap-content" class="collapsible-content hidden">
-          <p class="text-lg text-center mb-8 text-gray-300">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
+          <p class="text-lg text-center mb-8 text-text-secondary">This section outlines our ongoing tasks, future plans,
+            and administrative protocols that help keep Arcator running smoothly and evolving.</p>
 
           <!-- Add New Todo Item Form -->
-          <div class="p-6 bg-gray-700 rounded-lg shadow-md mb-8">
-            <h3 class="text-2xl font-bold text-blue-300 mb-4">Add New Roadmap Task</h3>
+          <div class="p-6 bg-card rounded-lg shadow-md mb-8">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">Add New Roadmap Task</h3>
             <form id="add-todo-form" class="space-y-4">
               <div>
-                <label for="todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
-                <input type="text" id="todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter task description" required>
+                <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-task">Task:</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-task"
+                       placeholder="Enter task description"
+                       required type="text">
               </div>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label for="todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
-                  <input type="text" id="todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Assigned worker">
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-worker">Worker:</label>
+                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-worker"
+                         placeholder="Assigned worker"
+                         type="text">
                 </div>
                 <div>
-                  <label for="todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
-                  <select id="todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-priority">Priority:</label>
+                  <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
+                          id="todo-priority">
                     <option value="Very Low">Very Low</option>
                     <option value="Low">Low</option>
                     <option value="Mid">Mid</option>
@@ -465,32 +459,42 @@
                   </select>
                 </div>
                 <div>
-                  <label for="todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
-                  <input type="text" id="todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., 1 Day, N/A">
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-eta">ETA:</label>
+                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-eta"
+                         placeholder="e.g., 1 Day, N/A"
+                         type="text">
                 </div>
               </div>
               <div>
-                <label for="todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
-                <textarea id="todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Additional notes or links"></textarea>
+                <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-notes">Notes:</label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-24"
+                          id="todo-notes"
+                          placeholder="Additional notes or links"></textarea>
               </div>
               <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Add Task</button>
             </form>
             <div id="edit-todo-modal" class="modal">
               <div class="modal-content">
                 <span class="close-button">&times;</span>
-                <h3 class="text-xl font-bold mb-4 text-blue-300">Edit Roadmap Task</h3>
+                <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Roadmap Task</h3>
                 <div class="mb-4">
-                  <label for="edit-todo-task" class="block text-gray-300 text-sm font-bold mb-2">Task:</label>
-                  <input type="text" id="edit-todo-task" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-task">Task:</label>
+                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-task"
+                         required
+                         type="text">
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
-                    <label for="edit-todo-worker" class="block text-gray-300 text-sm font-bold mb-2">Worker:</label>
-                    <input type="text" id="edit-todo-worker" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="block text-text-secondary text-sm font-bold mb-2"
+                           for="edit-todo-worker">Worker:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-worker"
+                           type="text">
                   </div>
                   <div>
-                    <label for="edit-todo-priority" class="block text-gray-300 text-sm font-bold mb-2">Priority:</label>
-                    <select id="edit-todo-priority" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="block text-text-secondary text-sm font-bold mb-2"
+                           for="edit-todo-priority">Priority:</label>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
+                            id="edit-todo-priority">
                       <option value="Very Low">Very Low</option>
                       <option value="Low">Low</option>
                       <option value="Mid">Mid</option>
@@ -499,13 +503,15 @@
                     </select>
                   </div>
                   <div>
-                    <label for="edit-todo-eta" class="block text-gray-300 text-sm font-bold mb-2">ETA:</label>
-                    <input type="text" id="edit-todo-eta" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-eta">ETA:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-eta"
+                           type="text">
                   </div>
                 </div>
                 <div class="mb-4">
-                  <label for="edit-todo-notes" class="block text-gray-300 text-sm font-bold mb-2">Notes:</label>
-                  <textarea id="edit-todo-notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
+                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-notes">Notes:</label>
+                  <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-24"
+                            id="edit-todo-notes"></textarea>
                 </div>
                 <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
               </div>
@@ -526,7 +532,9 @@
               </thead>
               <tbody id="roadmap-todo-list-tbody">
               <!-- Todo items will be dynamically loaded here -->
-              <tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>
+              <tr>
+                <td class="text-center py-4 text-text-secondary" colspan="6">Loading roadmap tasks...</td>
+              </tr>
               </tbody>
             </table>
           </div>
@@ -541,13 +549,21 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="darrion-api-content" class="collapsible-content hidden">
-            <p class="text-lg leading-relaxed text-gray-300 mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-            <h4 class="text-2xl font-semibold mb-4 text-red-200">REST API Endpoints:</h4>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
-              <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-              <li><span class="font-semibold text-white">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-              <li><span class="font-semibold text-white">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-              <li><span class="font-semibold text-white">GET plugin updates</span></li>
+            <p class="text-lg leading-relaxed text-text-secondary mb-4">The Darrion API provides programmatic access to
+              various Arcator service data. This allows for external tools and integrations to fetch information about
+              our servers and services.</p>
+            <h4 class="text-2xl font-semibold mb-4 text-text-primary">REST API Endpoints:</h4>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
+              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/players</span>: Gets a list of all
+                servers and the players online.
+              </li>
+              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/players/:serverName</span>: Gets a
+                list of players on a specific gamemode.
+              </li>
+              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/services</span>: Gets the online
+                services on the machines.
+              </li>
+              <li><span class="font-semibold text-text-primary">GET plugin updates</span></li>
             </ul>
           </div>
         </div>
@@ -559,13 +575,18 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="grief-detection-content" class="collapsible-content hidden">
-            <p class="text-lg leading-relaxed text-gray-300 mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
-            <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <p class="text-lg leading-relaxed text-text-secondary mb-4">Our automated grief detection system performs
+              regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based
+              on player activity patterns.</p>
+            <ul class="list-disc list-inside text-text-secondary space-y-2">
               <li>Regular checks for griefs and automated analysis of player actions.</li>
               <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
               <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
               <!-- Added rel="noopener noreferrer" for security when opening external links -->
-              <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a href="https://github.com/Alexxiconify/AlexxAutoWarn" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:underline">GitHub Link</a>)</li>
+              <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a
+                class="text-link hover:underline" href="https://github.com/Alexxiconify/AlexxAutoWarn" rel="noopener noreferrer"
+                target="_blank">GitHub Link</a>)
+              </li>
               <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
             </ul>
           </div>
@@ -579,8 +600,10 @@
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </div>
         <div id="onfim-notifications-content" class="collapsible-content hidden">
-          <p class="text-lg leading-relaxed text-gray-300 mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-          <ul class="list-disc list-inside text-gray-300 space-y-2">
+          <p class="text-lg leading-relaxed text-text-secondary mb-4">Onfim Notifications are an automated system
+            designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick
+            responses and minimal downtime.</p>
+          <ul class="list-disc list-inside text-text-secondary space-y-2">
             <li>Warns staff on Discord when disk space is nearly full.</li>
             <li>Detects and alerts on drive corruption.</li>
             <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
@@ -601,23 +624,24 @@
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
     <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
     <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
   </div>
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
+         target="_blank">Wiki</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
     </div>
   </div>
 </footer>

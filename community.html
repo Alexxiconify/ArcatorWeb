@@ -276,7 +276,7 @@
     await firebaseReadyPromise;
 
     // Load navbar dynamically, passing the locally initialized instances
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     // Set current year for footer
     const currentYearElement = document.getElementById('current-year-community');

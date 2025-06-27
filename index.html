@@ -375,8 +375,8 @@
     // Wait for Firebase to be ready before proceeding
     await firebaseReadyPromise;
 
-    // Load navbar dynamically
-    await loadNavbar({auth, db, appId}, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+    // Load navbar dynamically with correct parameters
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     // Set current year for footer
     document.getElementById('current-year-index').textContent = new Date().getFullYear();

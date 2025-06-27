@@ -17,12 +17,12 @@
   <!-- Theme initialization -->
   <script src="theme-init.js" type="module"></script>
   <style>
-    /* Base styles */
+    /* Base styles using CSS variables */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background: var(--color-body-bg, #1a202c);
-      color: var(--color-text-primary, #e2e8f0);
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -45,57 +45,43 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1;
     }
     .hero-content {
       position: relative;
       z-index: 2;
-      color: white; /* Hero content text is hardcoded white for readability over image */
+      color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
 
-    /* Custom classes using CSS variables */
+    /* Theme-aware classes using CSS variables */
     .bg-content-section { background-color: var(--color-bg-content-section); }
 
     .text-heading-main {
-      color: var(--color-heading-main, #F9FAFB);
+      color: var(--color-heading-main);
+    }
+
+    .text-heading-card {
+      color: var(--color-heading-card);
     }
     .text-text-primary { color: var(--color-text-primary); }
 
     .text-text-secondary {
-      color: var(--color-text-secondary, #a0aec0);
+      color: var(--color-text-secondary);
     }
 
     .bg-card {
-      background: var(--color-bg-card, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border-radius: 1.25rem;
-      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
-      border: 1px solid var(--color-input-border, #2d3748);
+      background-color: var(--color-bg-card);
     }
-    .bg-navbar-footer { background-color: var(--color-bg-navbar); } /* For footer */
+
+    .bg-navbar-footer {
+      background-color: var(--color-bg-navbar);
+    }
     .text-link { color: var(--color-link); }
-    .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links, can be same as text-secondary or a different link variable */
-    .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
-    .text-heading-card-active {
-      color: var(--color-heading-card, #93C5FD);
-    }
 
-    /* for active link indication */
-    .text-heading-card {
-      color: var(--color-heading-card, #93C5FD);
-    }
-
-    /* Table specific theming */
-    .bg-table-th-bg { background-color: var(--color-table-th-bg); }
-    .text-table-th-text { color: var(--color-table-th-text); }
-    .border-table-td-border { border-color: var(--color-table-td-border); }
-    .bg-table-row-even-bg { background-color: var(--color-table-row-even-bg); }
-
-    /* Ensure text colors for table cells correctly inherit or are set */
-    table td {
-      color: var(--color-text-primary);
+    .hover\:text-link:hover {
+      color: var(--color-link);
     }
   </style>
 </head>
@@ -104,179 +90,189 @@
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Privacy Policy</h1>
   </div>
 </section>
 
 <!-- Privacy Policy Content Section -->
-<section id="privacy-policy-content" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4 text-gray-100">
-    <h2 class="text-3xl font-bold mb-6 text-blue-400">Introduction</h2>
-    <p class="mb-4">Arcator.co.uk is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and disclose information about you when you visit our website or use our services.</p>
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="privacy-policy-content">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-6 text-heading-card">Introduction</h2>
+    <p class="mb-4 text-text-primary">Arcator.co.uk is committed to protecting your privacy. This Privacy Policy
+      explains how we collect, use, and disclose information about you when you visit our website or use our
+      services.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">Information We Collect</h2>
-    <h3 class="text-2xl font-semibold mb-4 text-blue-300">Personal Information</h3>
-    <p class="mb-4">We do not directly collect personally identifiable information from visitors to this website unless explicitly provided (e.g., through contact forms). Any information shared on our Minecraft servers or Discord server is subject to the privacy policies of those respective platforms.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Information We Collect</h2>
+    <h3 class="text-2xl font-semibold mb-4 text-heading-card">Personal Information</h3>
+    <p class="mb-4 text-text-primary">We do not directly collect personally identifiable information from visitors to
+      this website unless explicitly provided (e.g., through contact forms). Any information shared on our Minecraft
+      servers or Discord server is subject to the privacy policies of those respective platforms.</p>
 
-    <h3 class="text-2xl font-semibold mt-8 mb-4 text-blue-300">Non-Personal Information</h3>
-    <p class="mb-4">We may collect non-personal information about your visit to our website, such as browser type, operating system, and pages viewed. This information is used for analytical purposes to improve the website experience and is not linked to any individual.</p>
+    <h3 class="text-2xl font-semibold mt-8 mb-4 text-heading-card">Non-Personal Information</h3>
+    <p class="mb-4 text-text-primary">We may collect non-personal information about your visit to our website, such as
+      browser type, operating system, and pages viewed. This information is used for analytical purposes to improve the
+      website experience and is not linked to any individual.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">How We Use Information</h2>
-    <p class="mb-4">The non-personal information collected is used to understand website traffic patterns, improve content, and enhance user experience. We do not sell or rent any information to third parties.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">How We Use Information</h2>
+    <p class="mb-4 text-text-primary">The non-personal information collected is used to understand website traffic
+      patterns, improve content, and enhance user experience. We do not sell or rent any information to third
+      parties.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">Cookies</h2>
-    <p class="mb-4">This website may use cookies to improve your browsing experience. You can choose to disable cookies through your browser settings, but this may affect the functionality of the website.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Cookies</h2>
+    <p class="mb-4 text-text-primary">This website may use cookies to improve your browsing experience. You can choose
+      to disable cookies through your browser settings, but this may affect the functionality of the website.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">Third-Party Links</h2>
-    <p class="mb-4">Our website may contain links to third-party websites. We are not responsible for the privacy practices or content of these third-party sites. We encourage you to review the privacy policies of any website you visit.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Third-Party Links</h2>
+    <p class="mb-4 text-text-primary">Our website may contain links to third-party websites. We are not responsible for
+      the privacy practices or content of these third-party sites. We encourage you to review the privacy policies of
+      any website you visit.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">Changes to This Policy</h2>
-    <p class="mb-4">We reserve the right to update or modify this Privacy Policy at any time. Any changes will be posted on this page. Your continued use of the website after any modifications indicates your acceptance of the updated policy.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Changes to This Policy</h2>
+    <p class="mb-4 text-text-primary">We reserve the right to update or modify this Privacy Policy at any time. Any
+      changes will be posted on this page. Your continued use of the website after any modifications indicates your
+      acceptance of the updated policy.</p>
 
-    <h2 class="text-3xl font-bold mt-8 mb-6 text-blue-400">Contact Us</h2>
-    <p>If you have any questions about this Privacy Policy, please contact us through our Discord server or other official communication channels available on Arcator.co.uk.</p>
+    <h2 class="text-3xl font-bold mt-8 mb-6 text-heading-card">Contact Us</h2>
+    <p class="text-text-primary">If you have any questions about this Privacy Policy, please contact us through our
+      Discord server or other official communication channels available on Arcator.co.uk.</p>
   </div>
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year-privacy"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out text-blue-400">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
+      <a class="hover:text-link transition duration-300 ease-in-out text-link" href="privacy.html">Privacy Policy</a>
+      <a class="hover:text-link transition duration-300 ease-in-out text-text-secondary" href="terms.html">Terms of
+        Service</a>
+      <a class="hover:text-link transition duration-300 ease-in-out text-text-secondary"
+         href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
+         target="_blank">Wiki</a>
+      <a class="hover:text-link transition duration-300 ease-in-out text-text-secondary" href="infrastructure.html">Infrastructure</a>
+      <a class="hover:text-link transition duration-300 ease-in-out text-text-secondary" href="admin_and_dev.html">Admin
+        & Dev</a>
     </div>
   </div>
 </footer>
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-// Import setupThemesFirebase from themes.js
-import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-// Import loadNavbar from navbar.js
-import { loadNavbar } from './navbar.js';
+  import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signInAnonymously,
+    signInWithCustomToken
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {setupThemesFirebase, applyTheme, getAvailableThemes} from './themes.js';
+  import {loadNavbar} from './navbar.js';
 
+  // Firebase configuration object
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
 
-// Firebase configuration object
-const firebaseConfig = {
-apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-authDomain: "arcator-web.firebaseapp.com",
-projectId: "arcator-web",
-storageBucket: "arcator-web.firebasestorage.app",
-messagingSenderId: "1033082068049",
-appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-measurementId: "G-DJXNT1L7CM"
-};
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
 
-const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  let app;
+  let auth;
+  let db;
+  let firebaseReadyPromise;
 
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+  const DEFAULT_THEME_NAME = 'dark';
 
-let app;
-let auth;
-let db;
-let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
 
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-const DEFAULT_THEME_NAME = 'dark'; // Default theme name
+  // Initialize Firebase and setup firebaseReadyPromise
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId);
 
-/**
-* Fetches user profile data from Firestore.
-* @param {string} uid - The user's UID.
-* @returns {Promise<Object|null>} - User profile data or null if not found.
-*/
-async function getUserProfileFromFirestore(uid) {
-await firebaseReadyPromise; // Ensure Firebase is initialized
-if (!db) {
-console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-return null;
-}
-const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-try {
-const docSnap = await getDoc(userDocRef);
-if (docSnap.exists()) {
-return docSnap.data();
-}
-} catch (error) {
-console.error("Error fetching user profile from Firestore:", error);
-}
-return null;
-}
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe();
 
-// Initialize Firebase and setup firebaseReadyPromise
-firebaseReadyPromise = new Promise((resolve) => {
-try {
-app = initializeApp(firebaseConfig);
-auth = getAuth(app);
-db = getFirestore(app);
-console.log("Firebase initialized successfully.");
-setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (privacy page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (privacy page) during init:", error);
+              signInAnonymously(auth)
+                .then(() => console.log("DEBUG: Signed in anonymously (privacy page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on privacy page during init:", anonError));
+            })
+            .finally(() => resolve());
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on privacy page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on privacy page during init:", anonError))
+            .finally(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase (initial block):", e);
+      resolve();
+    }
+  });
 
-// Critical: Ensure auth state is settled before resolving
-const unsubscribe = onAuthStateChanged(auth, (user) => {
-console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-unsubscribe(); // Unsubscribe after the first call
+  // Main execution logic on window load
+  window.onload = async function () {
+    await firebaseReadyPromise;
 
-// Perform initial sign-in if in Canvas and no user is already authenticated
-if (typeof __initial_auth_token !== 'undefined' && !user) {
-signInWithCustomToken(auth, __initial_auth_token)
-.then(() => console.log("DEBUG: Signed in with custom token from Canvas (infrastructure page) during init."))
-.catch((error) => {
-console.error("ERROR: Error signing in with custom token (infrastructure page) during init:", error);
-signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-.then(() => console.log("DEBUG: Signed in anonymously (infrastructure page) after custom token failure during init."))
-.catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError));
-})
-.finally(() => resolve()); // Resolve promise after token attempt
-} else if (!user && typeof __initial_auth_token === 'undefined') {
-signInAnonymously(auth)
-.then(() => console.log("DEBUG: Signed in anonymously (no custom token) on infrastructure page during init."))
-.catch((anonError) => console.error("ERROR: Error signing in anonymously on infrastructure page during init:", anonError))
-.finally(() => resolve());
-}
-else {
-resolve(); // Resolve immediately if user is already authenticated or no token to use
-}
-});
-} catch (e) {
-console.error("Error initializing Firebase (initial block):", e);
-resolve(); // Resolve immediately on error to prevent infinite loading
-}
-});
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    document.getElementById('current-year-privacy').textContent = new Date().getFullYear();
 
-
-// Main execution logic on window load
-window.onload = async function() {
-// Wait for Firebase to be ready before proceeding
-await firebaseReadyPromise;
-
-// Pass the necessary Firebase instances and theme-related functions
-// loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
-await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-document.getElementById('current-year-infra').textContent = new Date().getFullYear();
-
-// After everything is loaded and Firebase is ready, apply the user's theme
-onAuthStateChanged(auth, async (user) => {
-let userThemePreference = null;
-if (user) {
-const userProfile = await getUserProfileFromFirestore(user.uid);
-userThemePreference = userProfile?.themePreference;
-}
-// Apply the theme: user's preference, or 'dark' default
-const allThemes = await getAvailableThemes();
-const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-applyTheme(themeToApply.id, themeToApply);
-});
-};
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        userThemePreference = userProfile?.themePreference;
+      }
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
+  };
 </script>
 </body>
 </html>

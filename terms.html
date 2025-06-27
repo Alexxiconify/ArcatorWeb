@@ -142,8 +142,8 @@
     // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set
     setupThemesFirebase(db, auth, appId);
 
-    // Load navbar dynamically after Firebase is ready
-    await loadNavbar(auth.currentUser, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    // Load navbar dynamically
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Set current year for footer
     const currentYearElement = document.getElementById('current-year-terms');

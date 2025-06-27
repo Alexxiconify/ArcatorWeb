@@ -45,7 +45,7 @@
   // Main execution logic on window load
   window.onload = async function() {
     // Firebase is now initialized by firebase-init.js which is loaded first.
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     if (auth) {
       auth.onAuthStateChanged(async (user) => {

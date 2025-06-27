@@ -293,7 +293,7 @@
 
 // Pass the necessary Firebase instances and theme-related functions
 // loadNavbar no longer expects applyTheme or getAvailableThemes as direct arguments
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     const yearEl = document.getElementById('current-year-donations');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 

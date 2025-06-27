@@ -306,7 +306,7 @@
     await firebaseReadyPromise;
 
     // Load navbar dynamically
-    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
 
     // Set current year for footer
     document.getElementById('current-year-games').textContent = new Date().getFullYear();

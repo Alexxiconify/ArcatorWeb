@@ -145,11 +145,17 @@ async function applyUserTheme(userThemePreference, defaultThemeName) {
 // Initialize navbar when Firebase is ready
 firebaseReadyPromise.then(() => {
   onAuthStateChanged(auth, async (user) => {
+    // Get the user profile from Firestore if user is authenticated
+    let userProfile = null;
+    if (user) {
+      userProfile = await getUserProfileFromFirestore(user.uid);
+    }
+    
     // Load navbar with current user state
-    await loadNavbar(user, currentUser, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Apply user theme
-    const userThemePreference = currentUser?.themePreference || DEFAULT_THEME_NAME;
+    const userThemePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
     await applyUserTheme(userThemePreference, DEFAULT_THEME_NAME);
   });
 });
