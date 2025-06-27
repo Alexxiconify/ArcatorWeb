@@ -1007,69 +1007,76 @@ async function handleSavePrivacy() {
 function applyAccessibilitySettings(settings) {
   const root = document.documentElement;
 
-  // High Contrast Mode - Working implementation
+  // High Contrast Mode - Use existing theme system
   if (settings.highContrast) {
-    root.classList.add('high-contrast-mode');
-    // Apply high contrast styles
-    const style = document.createElement('style');
-    style.id = 'high-contrast-styles';
-    style.textContent = `
-      .high-contrast-mode {
-        --color-text-primary: #FFFFFF !important;
-        --color-text-secondary: #E5E7EB !important;
-        --color-bg-card: #000000 !important;
-        --color-bg-content-section: #1A1A1A !important;
-        --color-bg-navbar: #000000 !important;
-        --color-input-border: #FFFFFF !important;
-        --color-link: #FFFF00 !important;
-      }
-      .high-contrast-mode * {
-        border-color: #FFFFFF !important;
-      }
-      .high-contrast-mode input, .high-contrast-mode select, .high-contrast-mode textarea {
-        background: #000000 !important;
-        color: #FFFFFF !important;
-        border: 2px solid #FFFFFF !important;
-      }
-    `;
-    document.head.appendChild(style);
+    // Apply the existing high contrast theme
+    document.body.classList.add('theme-high-contrast');
+    // Remove any existing high contrast styles
+    const existingStyle = document.getElementById('high-contrast-styles');
+    if (existingStyle) existingStyle.remove();
   } else {
-    root.classList.remove('high-contrast-mode');
+    document.body.classList.remove('theme-high-contrast');
     const existingStyle = document.getElementById('high-contrast-styles');
     if (existingStyle) existingStyle.remove();
   }
 
-  // Large Cursor - Working implementation
+  // Large Cursor - Fixed implementation using CSS cursor property
   if (settings.largeCursor) {
-    root.style.setProperty('--cursor-size', '24px');
     const style = document.createElement('style');
     style.id = 'large-cursor-styles';
     style.textContent = `
-      [style*="--cursor-size: 24px"] * {
-        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="black" stroke-width="2"><path d="M0 0 L8 8 L6 10 L2 6 Z"/></svg>') 0 0, auto !important;
+      * {
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="white" stroke="black" stroke-width="3"><path d="M0 0 L12 12 L8 16 L4 12 Z"/></svg>') 0 0, auto !important;
+      }
+      button, a, input, select, textarea, [role="button"], [tabindex] {
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="white" stroke="black" stroke-width="3"><path d="M0 0 L12 12 L8 16 L4 12 Z"/></svg>') 0 0, pointer !important;
       }
     `;
     document.head.appendChild(style);
   } else {
-    root.style.removeProperty('--cursor-size');
     const existingStyle = document.getElementById('large-cursor-styles');
     if (existingStyle) existingStyle.remove();
   }
 
-  // Focus Indicators - Working implementation
+  // Enhanced Focus Indicators - Theme injection with proper CSS variables
   if (settings.focusIndicators) {
-    root.classList.add('focus-indicators-enabled');
     const style = document.createElement('style');
     style.id = 'focus-indicators-styles';
     style.textContent = `
-      .focus-indicators-enabled *:focus {
-        outline: 3px solid #FFFF00 !important;
+      /* Enhanced focus indicators using theme colors */
+      *:focus {
+        outline: 3px solid var(--color-link) !important;
         outline-offset: 2px !important;
-        box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important;
+        box-shadow: 0 0 0 3px rgba(var(--color-bg-navbar-rgb, 0, 0, 0), 0.3) !important;
+        border-radius: 4px !important;
       }
-      button:focus, a:focus, input:focus, select:focus, textarea:focus {
-        outline: 4px solid #FFFF00 !important;
+
+      /* Specific focus styles for interactive elements */
+      button:focus, a:focus, input:focus, select:focus, textarea:focus, [role="button"]:focus, [tabindex]:focus {
+        outline: 4px solid var(--color-link) !important;
         outline-offset: 3px !important;
+        box-shadow: 0 0 0 4px rgba(var(--color-bg-navbar-rgb, 0, 0, 0), 0.2) !important;
+        border-radius: 6px !important;
+      }
+
+      /* Focus ring for buttons with theme colors */
+      .btn-primary:focus, .bg-blue-600:focus, .bg-green-600:focus, .bg-red-600:focus, .bg-purple-600:focus, .bg-yellow-600:focus, .bg-indigo-600:focus {
+        outline: 4px solid var(--color-text-primary) !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3) !important;
+      }
+
+      /* Focus indicator for form elements */
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--color-link) !important;
+        box-shadow: 0 0 0 3px rgba(var(--color-link-rgb, 59, 130, 246), 0.2) !important;
+      }
+
+      /* Focus indicator for navigation elements */
+      .navbar-link:focus, .nav-link:focus {
+        outline: 3px solid var(--color-link) !important;
+        outline-offset: 2px !important;
+        background-color: rgba(var(--color-link-rgb, 59, 130, 246), 0.1) !important;
       }
     `;
     document.head.appendChild(style);
@@ -1091,12 +1098,14 @@ function applyAccessibilitySettings(settings) {
         position: absolute;
         top: -40px;
         left: 6px;
-        background: #000000;
-        color: #FFFFFF;
+        background: var(--color-bg-card);
+        color: var(--color-text-primary);
         padding: 8px;
         text-decoration: none;
         z-index: 10000;
         border-radius: 4px;
+        border: 2px solid var(--color-link);
+        font-weight: bold;
       `;
       document.body.insertBefore(skipLink, document.body.firstChild);
     }
@@ -1118,7 +1127,7 @@ function applyAccessibilitySettings(settings) {
         left: 50%;
         width: 2px;
         height: 100vh;
-        background: linear-gradient(to bottom, transparent, #FF0000, transparent);
+        background: linear-gradient(to bottom, transparent, var(--color-link), transparent);
         z-index: 9999;
         pointer-events: none;
         animation: reading-guide 2s ease-in-out infinite;
@@ -1140,17 +1149,17 @@ function applyAccessibilitySettings(settings) {
     style.id = 'syntax-highlighting-styles';
     style.textContent = `
       code, pre {
-        background: #1E1E1E !important;
-        color: #D4D4D4 !important;
-        border: 1px solid #3E3E3E !important;
+        background: var(--color-bg-card) !important;
+        color: var(--color-text-primary) !important;
+        border: 1px solid var(--color-input-border) !important;
         border-radius: 4px !important;
         padding: 8px !important;
       }
-      .keyword { color: #569CD6 !important; }
-      .string { color: #CE9178 !important; }
-      .comment { color: #6A9955 !important; }
-      .function { color: #DCDCAA !important; }
-      .number { color: #B5CEA8 !important; }
+      .keyword { color: var(--color-link) !important; }
+      .string { color: var(--color-button-green-bg) !important; }
+      .comment { color: var(--color-text-secondary) !important; }
+      .function { color: var(--color-button-purple-bg) !important; }
+      .number { color: var(--color-button-yellow-bg) !important; }
     `;
     document.head.appendChild(style);
   } else {
@@ -1158,24 +1167,56 @@ function applyAccessibilitySettings(settings) {
     if (existingStyle) existingStyle.remove();
   }
 
-  // Colorblind Friendly - Working implementation
+  // Colorblind Friendly Mode - Theme injection with proper color adjustments
   if (settings.colorblindFriendly) {
     const style = document.createElement('style');
     style.id = 'colorblind-friendly-styles';
     style.textContent = `
-      /* Deuteranopia (red-green color blindness) friendly colors */
+      /* Colorblind friendly theme adjustments */
       .colorblind-friendly {
-        --color-link: #0066CC !important;
+        /* Use high contrast colors that work for most colorblind users */
+        --color-link: #0066CC !important; /* Blue - distinguishable for most */
         --color-button-blue-bg: #0066CC !important;
-        --color-button-green-bg: #009900 !important;
-        --color-button-red-bg: #CC0000 !important;
-        --color-button-yellow-bg: #CC6600 !important;
+        --color-button-blue-hover: #004499 !important;
+        --color-button-green-bg: #009900 !important; /* Green - distinguishable */
+        --color-button-green-hover: #006600 !important;
+        --color-button-red-bg: #CC0000 !important; /* Red - distinguishable */
+        --color-button-red-hover: #990000 !important;
+        --color-button-yellow-bg: #CC6600 !important; /* Orange instead of yellow */
+        --color-button-yellow-hover: #993300 !important;
+        --color-button-purple-bg: #660099 !important; /* Purple - distinguishable */
+        --color-button-purple-hover: #330066 !important;
+        --color-button-orange-bg: #CC3300 !important; /* Dark orange */
+        --color-button-orange-hover: #992600 !important;
+        --color-button-indigo-bg: #0033CC !important; /* Dark blue */
+        --color-button-indigo-hover: #002299 !important;
       }
+
+      /* Add borders to buttons for better distinction */
       .colorblind-friendly button {
-        border: 2px solid #000000 !important;
+        border: 2px solid var(--color-text-primary) !important;
       }
+
+      /* Add underlines to links for better distinction */
       .colorblind-friendly a {
         text-decoration: underline !important;
+      }
+
+      /* Enhanced contrast for form elements */
+      .colorblind-friendly input, .colorblind-friendly select, .colorblind-friendly textarea {
+        border: 2px solid var(--color-text-primary) !important;
+      }
+
+      /* Enhanced table borders */
+      .colorblind-friendly table th, .colorblind-friendly table td {
+        border: 2px solid var(--color-text-primary) !important;
+      }
+
+      /* Enhanced focus indicators for colorblind users */
+      .colorblind-friendly *:focus {
+        outline: 4px solid #000000 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 4px #FFFFFF !important;
       }
     `;
     document.head.appendChild(style);

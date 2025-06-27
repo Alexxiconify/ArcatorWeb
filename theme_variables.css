@@ -57,18 +57,19 @@
 /* Dark Theme */
 .theme-dark {
   --color-body-bg: #1F2937;
-  --color-text-primary: #E5E7EB;
-  --color-text-secondary: #9CA3AF;
-  --color-link: #60A5FA;
-  --color-link-hover: #3B82F6;
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-link: #3B82F6;
+  --color-link-hover: #2563EB;
+  --color-link-rgb: 59, 130, 246;
   --color-bg-navbar: #111827;
   --color-bg-navbar-rgb: 17, 24, 39;
   --color-bg-content-section: #1F2937;
-  --color-bg-card: #2D3748;
+  --color-bg-card: #374151;
   --color-heading-main: #F9FAFB;
-  --color-heading-card: #93C5FD;
+  --color-heading-card: #60A5FA;
   --color-input-bg: #374151;
-  --color-input-text: #E5E7EB;
+  --color-input-text: #F9FAFB;
   --color-input-border: #4B5563;
   --color-placeholder: #9CA3AF;
   --color-button-text: #FFFFFF;
@@ -86,13 +87,13 @@
   --color-button-orange-hover: #EA580C;
   --color-button-indigo-bg: #6366F1;
   --color-button-indigo-hover: #4F46E5;
-  --color-table-th-bg: #1F2937;
-  --color-table-th-text: #E5E7EB;
+  --color-table-th-bg: #374151;
+  --color-table-th-text: #F9FAFB;
   --color-table-td-border: #4B5563;
-  --color-table-row-even-bg: #374151;
-  --color-modal-bg: #2D3748;
-  --color-modal-text: #E5E7EB;
-  --color-modal-input-bg: #374151;
+  --color-table-row-even-bg: #4B5563;
+  --color-modal-bg: #374151;
+  --color-modal-text: #F9FAFB;
+  --color-modal-input-bg: #4B5563;
   --color-modal-input-text: #E5E7EB;
   --color-message-box-bg-success: #4CAF50;
   --color-message-box-bg-error: #F44336;
@@ -106,6 +107,7 @@
   --color-text-secondary: #6B7280;
   --color-link: #2563EB;
   --color-link-hover: #1D4ED8;
+  --color-link-rgb: 37, 99, 235;
   --color-bg-navbar: #ffffff;
   --color-bg-navbar-rgb: 255, 255, 255;
   --color-bg-content-section: #F3F4F6;
@@ -151,6 +153,7 @@
   --color-text-secondary: #A3C7B5; /* Muted Green */
   --color-link: #34D399; /* Green Link */
   --color-link-hover: #10B981; /* Darker Green Link Hover */
+  --color-link-rgb: 52, 211, 153;
   --color-bg-navbar: #1a2e1a;
   --color-bg-navbar-rgb: 26, 46, 26;
   --color-bg-content-section: #1A3E2F; /* Dark Green Content */
@@ -196,6 +199,7 @@
   --color-text-secondary: #7ABACD; /* Muted Cyan */
   --color-link: #29B6F6; /* Bright Blue Link */
   --color-link-hover: #03A9F4; /* Darker Blue Link Hover */
+  --color-link-rgb: 41, 182, 246;
   --color-bg-navbar: #1e293b;
   --color-bg-navbar-rgb: 30, 41, 59;
   --color-bg-content-section: #0A192F; /* Deep Blue Content */
@@ -241,6 +245,7 @@
   --color-text-secondary: #F5F5F5;
   --color-link: #FFFF00; /* Yellow */
   --color-link-hover: #FFD700; /* Gold */
+  --color-link-rgb: 255, 255, 0;
   --color-bg-navbar: #000000;
   --color-bg-navbar-rgb: 0, 0, 0;
   --color-bg-content-section: #111111;
