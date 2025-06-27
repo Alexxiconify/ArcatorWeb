@@ -330,16 +330,16 @@ const navbarStyles = `
   .navbar-container {
     padding: 0 0.5rem;
   }
-  
+
   .navbar-logo {
     font-size: 1.125rem;
   }
-  
+
   .navbar-logo svg {
     height: 1.25rem;
     width: 1.25rem;
   }
-  
+
   .profile-pic-small {
     width: 28px;
     height: 28px;
@@ -472,6 +472,73 @@ function injectNavbarStyles() {
     styleElement.id = 'navbar-styles';
     styleElement.textContent = navbarStyles;
     document.head.appendChild(styleElement);
+  }
+}
+
+/**
+ * Updates navbar styles to respond to theme changes
+ * This function forces the navbar to re-evaluate CSS variables
+ */
+function updateNavbarForTheme() {
+  console.log('DEBUG: updateNavbarForTheme called');
+  
+  const navbar = document.querySelector('.navbar-bg');
+  if (navbar) {
+    console.log('DEBUG: Found navbar element, updating...');
+    
+    // Get the current theme's navbar color
+    const computedStyle = getComputedStyle(document.documentElement);
+    const navbarColor = computedStyle.getPropertyValue('--color-bg-navbar').trim();
+    const navbarRgb = computedStyle.getPropertyValue('--color-bg-navbar-rgb').trim();
+    
+    console.log('DEBUG: Navbar color:', navbarColor);
+    console.log('DEBUG: Navbar RGB value:', navbarRgb);
+    
+    // Force a reflow to ensure CSS variables are updated
+    navbar.style.transition = 'none';
+    navbar.offsetHeight; // Trigger reflow
+    navbar.style.transition = '';
+    
+    // Directly update the navbar background if RGB value is available
+    if (navbarRgb && navbarRgb !== '') {
+      const rgbaValue = `rgba(${navbarRgb}, 0.95)`;
+      navbar.style.background = rgbaValue;
+      console.log('DEBUG: Set navbar background to:', rgbaValue);
+    } else if (navbarColor && navbarColor !== '') {
+      // Fallback to solid color if RGB not available
+      navbar.style.background = navbarColor;
+      console.log('DEBUG: Set navbar background to solid color:', navbarColor);
+    }
+    
+    // Update mobile menu background if open
+    const navbarLinks = document.getElementById('navbar-links');
+    if (navbarLinks && navbarLinks.classList.contains('mobile-open')) {
+      navbarLinks.style.transition = 'none';
+      navbarLinks.offsetHeight; // Trigger reflow
+      navbarLinks.style.transition = '';
+      
+      // Also update mobile menu background
+      if (navbarRgb && navbarRgb !== '') {
+        const mobileRgbaValue = `rgba(${navbarRgb}, 0.98)`;
+        navbarLinks.style.background = mobileRgbaValue;
+        console.log('DEBUG: Set mobile menu background to:', mobileRgbaValue);
+      }
+    }
+    
+    // Force update of all navbar elements that use CSS variables
+    const navbarElements = navbar.querySelectorAll('*');
+    navbarElements.forEach(element => {
+      if (element.style.transition) {
+        const originalTransition = element.style.transition;
+        element.style.transition = 'none';
+        element.offsetHeight; // Trigger reflow
+        element.style.transition = originalTransition;
+      }
+    });
+    
+    console.log('DEBUG: Navbar theme update completed');
+  } else {
+    console.warn('DEBUG: Navbar element not found for theme update');
   }
 }
 
@@ -691,15 +758,15 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
     // Update navbar state based on authentication
     await updateNavbarState(authUser, userProfile, defaultProfilePic);
 
+    // Update navbar with current theme (in case theme is already applied)
+    setTimeout(() => {
+      updateNavbarForTheme();
+    }, 100); // Small delay to ensure DOM is ready
+
     // Listen for theme changes and update navbar
     document.addEventListener('themeChanged', () => {
       console.log('Navbar: Theme changed, updating styles...');
-      // Force a re-render of navbar styles by re-injecting them
-      const existingStyles = document.getElementById('navbar-styles');
-      if (existingStyles) {
-        existingStyles.remove();
-      }
-      injectNavbarStyles();
+      updateNavbarForTheme();
     });
 
     console.log('Modern navbar loaded successfully');
