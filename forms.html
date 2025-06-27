@@ -3,141 +3,287 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thémata & Threads - Arcator.co.uk</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts - Inter and others -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Link to theme_variables.css for centralized CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="fonts/twemoji-16.0.1/dist/twemoji.min.js"></script>
-  <!-- Theme initialization -->
-  <script src="theme-init.js" type="module"></script>
+  <title>Community Forum - Arcator.co.uk</title>
+
+  <!-- Preload critical resources -->
+  <link as="script" href="https://cdn.tailwindcss.com" rel="preload">
+  <link as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="preload">
+  <link as="style" href="theme_variables.css" rel="preload">
+
+  <!-- Critical CSS inline for faster rendering -->
   <style>
-
-    /* Ensure the HTML and Body default to dark colors immediately and override any conflicting styles */
-    html {
-      background-color: var(--color-body-bg, #1F2937) !important; /* Fallback to a dark grey */
-      color: var(--color-text-primary, #E5E7EB) !important; /* Fallback to a light grey */
+    /* Critical CSS for immediate rendering */
+    :root {
+      --color-body-bg: #1F2937;
+      --color-text-primary: #E5E7EB;
+      --color-text-secondary: #9CA3AF;
+      --color-bg-navbar: #111827;
+      --color-bg-content-section: #1F2937;
+      --color-bg-card: #2D3748;
+      --color-heading-main: #F9FAFB;
+      --color-heading-card: #93C5FD;
+      --color-link: #60A5FA;
+      --color-button-blue-bg: #3B82F6;
+      --color-button-blue-hover: #2563EB;
+      --color-button-purple-bg: #9333EA;
+      --color-button-purple-hover: #7E22CE;
+      --color-button-green-bg: #10B981;
+      --color-button-green-hover: #059669;
+      --color-button-red-bg: #EF4444;
+      --color-button-red-hover: #DC2626;
+      --color-input-bg: #374151;
+      --color-input-text: #E5E7EB;
+      --color-input-border: #4B5563;
+      --color-placeholder: #9CA3AF;
+      --color-button-text: #FFFFFF;
     }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      min-height: 100vh; /* Ensure body takes full viewport height */
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 0.375rem;
+    }
+
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Smooth transitions */
+    .transition-all {
+      transition: all 0.2s ease-in-out;
+    }
+
+    /* Modern card design */
+    .card-modern {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease-in-out;
+    }
+
+    .card-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Improved button design */
+    .btn-modern {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-modern:active {
+      transform: translateY(0);
+    }
+
+    /* Tab design */
+    .tab-container {
       display: flex;
-      flex-direction: column;
-      background-color: var(--color-body-bg, #1F2937) !important; /* Fallback to a dark grey */
-      color: var(--color-text-primary, #E5E7EB) !important; /* Fallback to a light grey */
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      padding: 0.5rem;
+      background: var(--color-bg-content-section);
+      border-radius: 0.75rem;
+      border: 1px solid var(--color-input-border);
     }
-    .hero-banner {
-      /* Replaced with a reliable placeholder URL */
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
+
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: all 0.2s ease-in-out;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text-secondary);
+    }
+
+    .tab-btn.active {
+      background: var(--color-button-blue-bg);
+      color: var(--color-button-text);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .tab-btn:not(.active):hover {
+      background: var(--color-input-bg);
+      color: var(--color-text-primary);
+    }
+
+    /* Status indicator */
+    .status-indicator {
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--color-bg-card);
+      border-radius: 0.5rem;
+      border: 1px solid var(--color-input-border);
+      margin: 1rem auto;
+      max-width: 300px;
+    }
+
+    .status-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--color-text-secondary);
+    }
+
+    .status-dot.online {
+      background: #10B981;
+    }
+
+    .status-dot.loading {
+      background: #F59E0B;
+    }
+
+    .status-dot.offline {
+      background: #6B7280;
+    }
+
+    /* Form improvements */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--color-text-primary);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.5rem;
+      background: var(--color-input-bg);
+      color: var(--color-text-primary);
+      transition: border-color 0.2s ease-in-out;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-link);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: var(--color-placeholder);
+    }
+
+    /* Collapsible sections */
+    .collapsible {
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
       overflow: hidden;
-    }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-      z-index: 1;
-    }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-    }
-    /* General styling for content sections to ensure theme consistency */
-    .content-section {
-      background-color: var(--color-bg-content-section, #1F2937);
-      color: var(--color-text-primary, #E5E7EB);
+      margin-bottom: 1rem;
     }
 
-    .card {
-      background-color: var(--color-bg-card, #2D3748);
-      color: var(--color-text-primary, #E5E7EB);
+    .collapsible-header {
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background-color 0.2s ease-in-out;
     }
 
-    .input-field input, .input-field textarea, .input-field select {
-      background-color: var(--color-input-bg, #374151);
-      color: var(--color-input-text, #E5E7EB);
-      border-color: var(--color-input-border, #4B5563);
+    .collapsible-header:hover {
+      background: var(--color-input-bg);
     }
 
-    .input-field input::placeholder, .input-field textarea::placeholder {
-      color: var(--color-placeholder, #9CA3AF);
+    .collapsible-content {
+      padding: 1.5rem;
+      background: var(--color-bg-content-section);
     }
 
-    /* Headings */
-    h1, h2, h3, h4 {
-      color: var(--color-heading-main, #F9FAFB);
+    /* Loading states */
+    .loading-spinner {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 2px solid var(--color-input-border);
+      border-radius: 50%;
+      border-top-color: var(--color-link);
+      animation: spin 1s linear infinite;
     }
 
-    /* Specific overrides for h2 within content to match terms.html fix */
-    .content-section h2 {
-      color: var(--color-heading-card, #93C5FD) !important;
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
-    /* Links */
-    a {
-      color: var(--color-link, #60A5FA);
-    }
-    a:hover {
-      color: var(--color-link-hover, #3B82F6);
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .tab-container {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .tab-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .collapsible-header {
+        padding: 0.75rem 1rem;
+      }
+
+      .collapsible-content {
+        padding: 1rem;
+      }
     }
 
-    /* Buttons */
-    .btn-primary {
-      color: var(--color-button-text, #FFFFFF);
-    }
-    .btn-blue {
-      background-color: var(--color-button-blue-bg, #3B82F6);
-    }
-    .btn-blue:hover {
-      background-color: var(--color-button-blue-hover, #2563EB);
-    }
-    .btn-green {
-      background-color: var(--color-button-green-bg, #10B981);
-    }
-    .btn-green:hover {
-      background-color: var(--color-button-green-hover, #059669);
-    }
-    .btn-purple {
-      background-color: var(--color-button-purple-bg, #9333EA);
-    }
-    .btn-purple:hover {
-      background-color: var(--color-button-purple-hover, #7E22CE);
-    }
-    .btn-red {
-      background-color: var(--color-button-red-bg, #EF4444);
-    }
-    .btn-red:hover {
-      background-color: var(--color-button-red-hover, #DC2626);
-    }
-
-    /* Message box styling (from utils.js, replicated here for consistency) */
+    /* Message box styling */
     .message-box {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: var(--color-bg-card, #333);
-      color: var(--color-text-primary, white);
+      background-color: var(--color-bg-card);
+      color: var(--color-text-primary);
       padding: 15px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -153,14 +299,14 @@
     }
 
     .message-box.error {
-      background-color: var(--color-message-box-bg-error, #dc3545);
+      background-color: var(--color-button-red-bg);
     }
 
     .message-box.success {
-      background-color: var(--color-message-box-bg-success, #28a745);
+      background-color: var(--color-button-green-bg);
     }
 
-    /* Custom confirm modal styling (from utils.js, replicated for consistency) */
+    /* Custom confirm modal styling */
     .custom-confirm-modal {
       position: fixed;
       top: 0;
@@ -172,11 +318,11 @@
       justify-content: center;
       align-items: center;
       z-index: 2000;
-      display: none; /* Hidden by default */
+      display: none;
     }
 
     .custom-confirm-modal .modal-content {
-      background-color: var(--color-modal-bg, #2d3748);
+      background-color: var(--color-bg-card);
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
@@ -184,14 +330,14 @@
       position: relative;
       max-width: 400px;
       width: 90%;
-      color: var(--color-modal-text, #e2e8f0);
+      color: var(--color-text-primary);
     }
 
     .custom-confirm-modal .close-button {
       position: absolute;
       top: 10px;
       right: 15px;
-      color: var(--color-text-secondary, #aaa);
+      color: var(--color-text-secondary);
       font-size: 28px;
       font-weight: bold;
       cursor: pointer;
@@ -199,39 +345,47 @@
 
     .custom-confirm-modal .close-button:hover,
     .custom-confirm-modal .close-button:focus {
-      color: var(--color-text-primary, #e2e8f0);
+      color: var(--color-text-primary);
       text-decoration: none;
       cursor: pointer;
     }
 
-    /* Specific styles for thémata/threads */
+    /* DM chat bubbles */
+    .dm-bubble-in {
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: 1.2em 1.2em 1.2em 0.4em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      max-width: 80%;
+      word-break: break-word;
+    }
+
+    .dm-bubble-out {
+      background: var(--color-input-bg);
+      color: var(--color-text-primary);
+      border-radius: 1.2em 1.2em 0.4em 1.2em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+      max-width: 80%;
+      word-break: break-word;
+    }
+
+    /* Thread and comment styling */
     .thema-item, .thread-item, .comment-item {
-      padding: 1rem;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-input-border);
       border-radius: 0.5rem;
+      padding: 1rem;
       margin-bottom: 0.75rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .thema-item {
-      background-color: var(--color-bg-card);
-      border: 1px solid var(--color-input-border);
-    }
-
-    .thread-item {
-      background-color: var(--color-bg-card);
-      border: 1px solid var(--color-input-border);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .comment-item {
-      background-color: var(--color-input-bg); /* Slightly different background for comments */
-      border: 1px solid var(--color-input-border);
-      padding-left: 1.5rem; /* Indent comments */
-    }
-
-    .comment-item.nested {
-      margin-left: 20px;
-      border-left: 3px solid var(--color-link);
-      padding-left: 15px;
+      background: var(--color-input-bg);
+      padding-left: 1.5rem;
     }
 
     .thema-description, .thread-initial-comment, .comment-content {
@@ -244,189 +398,197 @@
       color: var(--color-text-secondary);
       margin-top: 0.5rem;
     }
-    .meta-info a {
-      color: var(--color-text-secondary); /* Ensure links in meta info are subtle */
-      text-decoration: none;
-    }
-    .meta-info a:hover {
-      text-decoration: underline;
-    }
-
-    /* Forms styling within this page */
-    .form-container {
-      background-color: var(--color-bg-card);
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      margin-bottom: 2rem;
-    }
-
-    /* List styling for dynamic content */
-    ul#thema-list, ul#thread-list, ul#comment-list {
-      list-style: none; /* Remove default list bullets */
-      padding: 0;
-    }
-
-    /* DM chat bubbles */
-    .dm-bubble-in {
-      background: #23272e;
-      color: #e5e7eb;
-      border-radius: 1.2em 1.2em 1.2em 0.4em;
-      padding: 0.75em 1.1em;
-      margin-bottom: 0.1em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-      max-width: 80%;
-      word-break: break-word;
-    }
-    .dm-bubble-out {
-      background: #3b4252;
-      color: #e5e7eb;
-      border-radius: 1.2em 1.2em 0.4em 1.2em;
-      padding: 0.75em 1.1em;
-      margin-bottom: 0.1em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
-      max-width: 80%;
-      word-break: break-word;
-    }
-    #conversation-messages {
-      padding-bottom: 1em;
-    }
-    #dm-comment-form textarea {
-      background: #23272e;
-      color: #e5e7eb;
-      border: 1px solid #374151;
-      border-radius: 0.7em;
-      min-height: 2.5em;
-      resize: vertical;
-    }
-    #dm-comment-form button {
-      margin-top: 0.5em;
-      min-width: 5em;
-    }
-
-    .message-item.flex-row-reverse { justify-content: flex-end; }
   </style>
+
+  <!-- Non-critical resources -->
+  <link href="theme_variables.css" rel="stylesheet">
+  <link href="favicon.png" rel="icon" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="antialiased">
+
+<body>
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Arcator Community Forum</h1>
-    <p class="text-xl md:text-2xl mb-8">Discuss, collaborate, and share ideas with the Arcator community.</p>
+<!-- Hero Section -->
+<section class="hero-banner rounded-b-lg shadow-xl"
+         style="margin-top: 64px; background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png'); background-size: cover; background-position: center; min-height: 250px; display: flex; align-items: center; justify-content: center; position: relative;">
+  <div
+    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1;"></div>
+  <div class="container mx-auto px-4 text-center"
+       style="position: relative; z-index: 2; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Community Forum</h1>
+    <p class="text-xl md:text-2xl mb-8">Connect, discuss, and share with the Arcator community</p>
   </div>
 </section>
 
-<!-- Sign-in Status Indicator -->
-<div class="container mx-auto px-4 mt-4 mb-2" id="sign-in-status">
-  <div class="flex items-center justify-center">
-    <div class="flex items-center gap-2 text-sm text-gray-400" id="auth-status-indicator">
-      <div class="w-2 h-2 rounded-full bg-gray-500" id="auth-status-dot"></div>
-      <span id="auth-status-text">Checking authentication...</span>
-    </div>
+<!-- Status Indicator -->
+<div class="status-indicator" id="sign-in-status">
+  <div class="status-dot" id="auth-status-dot"></div>
+  <span class="text-sm" id="auth-status-text">Checking authentication...</span>
+</div>
+
+<!-- Main Content Container -->
+<div class="container mx-auto px-4 py-8">
+  <!-- Tab Navigation -->
+  <div class="tab-container">
+    <button class="tab-btn active" id="tab-themata-all">
+      <span>📚 Thémata</span>
+    </button>
+    <button class="tab-btn" id="tab-dms">
+      <span>💬 Direct Messages</span>
+    </button>
   </div>
-</div>
 
-<!-- Main content and loading elements for forms.js compatibility -->
-<div id="forms-content" style="display:none;"></div>
-<div id="loading-spinner" style="display:none;"></div>
-<div id="login-required-message" style="display:none;"></div>
-
-<!-- Tabs for Thémata (all), Global Threads -->
-<div class="tabs flex justify-center space-x-4 mb-8">
-  <button class="tab-btn btn-primary btn-blue rounded-lg px-6 py-3" id="tab-themata-all">Thémata</button>
-  <button class="tab-btn btn-primary btn-purple rounded-lg px-6 py-3" id="tab-dms">DMs</button>
-</div>
-
-<!-- Thémata Boxes Section (tabbed, collapsible/accordion style) -->
-<div id="thema-all-tab-content" style="display: block;">
-  <details class="form-container mb-4 w-full" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none flex items-center">
-      <span class="mr-2">&#9660;</span> Create New Théma (Subreddit)
-    </summary>
-    <form id="create-thema-form" class="space-y-4">
-      <div>
-        <label for="new-thema-name" class="block text-text-primary text-sm font-bold mb-2">Théma Name:</label>
-        <input type="text" id="new-thema-name" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., General Discussion, Game Updates" required>
+  <!-- Thémata Content -->
+  <div id="thema-all-tab-content">
+    <!-- Create New Théma -->
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <h2 class="text-xl font-bold">✨ Create New Théma</h2>
+        <span class="material-icons">expand_more</span>
       </div>
-      <div>
-        <label for="new-thema-description" class="block text-text-primary text-sm font-bold mb-2">Description:</label>
-        <textarea id="new-thema-description" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline h-24" placeholder="Briefly describe the purpose of this théma." required></textarea>
-      </div>
-      <button type="submit" id="create-thema-btn" class="btn-primary btn-blue w-full">Create Théma</button>
-    </form>
-  </details>
-  <details class="form-container mb-4 w-full" open>
-    <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none flex items-center">
-      <span class="mr-2">&#9660;</span> All Thémata
-    </summary>
-    <div id="thema-boxes" class="flex flex-col gap-4 w-full">
-      <!-- Thémata boxes will be loaded here by JavaScript -->
-      <div class="card p-4 text-center">Loading thémata...</div>
-    </div>
-  </details>
-</div>
-
-<!-- DM Section (tabbed) -->
-<div id="dm-tab-content" style="display: none;">
-  <div id="conversations-section">
-    <details id="dm-section" class="form-container mb-12" open>
-      <summary class="text-2xl font-bold text-heading-card mb-4 cursor-pointer select-none">Direct Messages</summary>
-      <div id="dm-list" class="flex flex-col gap-4 w-full">
-        <!-- DM boxes will be loaded here by JavaScript -->
-        <div class="card p-4 text-center">Loading DMs...</div>
-      </div>
-      <button id="start-conversation-btn" class="btn-primary btn-blue mt-4">Start New DM</button>
-    </details>
-  </div>
-  <div id="conversation-messages-section" class="form-container mb-12" style="display:none;">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h3 id="dm-title" class="text-2xl font-bold text-heading-card">Direct Message</h3>
-        <p id="dm-participants" class="text-sm text-gray-400">Participants: </p>
+      <div class="collapsible-content">
+        <form class="space-y-4" id="create-thema-form">
+          <div class="form-group">
+            <label class="form-label" for="new-thema-name">Théma Name</label>
+            <input class="form-input" id="new-thema-name" placeholder="e.g., General Discussion, Game Updates"
+                   required type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-thema-description">Description</label>
+            <textarea class="form-input" id="new-thema-description"
+                      placeholder="Briefly describe the purpose of this théma."
+                      required rows="4"></textarea>
+          </div>
+          <button class="btn-modern" style="background: var(--color-button-blue-bg); color: var(--color-button-text);"
+                  type="submit">
+            <span>Create Théma</span>
+          </button>
+        </form>
       </div>
     </div>
-    <div id="conversation-messages" class="space-y-4 mb-4 max-h-96 overflow-y-auto"></div>
+
+    <!-- All Thémata -->
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <h2 class="text-xl font-bold">📋 All Thémata</h2>
+        <span class="material-icons">expand_more</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="space-y-4" id="thema-boxes">
+          <!-- Loading skeleton -->
+          <div class="card-modern p-6">
+            <div class="skeleton h-6 w-1/3 mb-4"></div>
+            <div class="skeleton h-4 w-full mb-2"></div>
+            <div class="skeleton h-4 w-2/3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- DM Content -->
+  <div id="dm-tab-content" style="display: none;">
+    <div id="conversations-section">
+      <div class="collapsible">
+        <div class="collapsible-header">
+          <h2 class="text-xl font-bold">💬 Direct Messages</h2>
+          <span class="material-icons">expand_more</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="space-y-4" id="dm-list">
+            <!-- Loading skeleton -->
+            <div class="card-modern p-4">
+              <div class="skeleton h-4 w-1/2 mb-2"></div>
+              <div class="skeleton h-3 w-1/3"></div>
+            </div>
+          </div>
+          <button class="btn-modern mt-4" id="start-conversation-btn"
+                  style="background: var(--color-button-blue-bg); color: var(--color-button-text);">
+            <span>Start New DM</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-6" id="conversation-messages-section" style="display: none;">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold" id="dm-title">Direct Message</h3>
+          <p class="text-sm text-gray-400" id="dm-participants">Participants: </p>
+        </div>
+      </div>
+      <div class="space-y-4 mb-4 max-h-96 overflow-y-auto" id="conversation-messages"></div>
+    </div>
+  </div>
+
+  <!-- Dynamic Théma Thread Sections -->
+  <div id="thema-tab-contents"></div>
 </div>
 
-<!-- Dynamic Théma Thread Sections (tabbed) -->
-<div id="thema-tab-contents"></div>
-<!-- Message Box Element -->
+<!-- Message Box -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Custom Confirmation Modal (from utils.js) -->
+<!-- Custom Confirmation Modal -->
 <div id="custom-confirm-modal" class="custom-confirm-modal">
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
     <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
-    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
+    <button class="btn-modern mr-4" id="confirm-yes"
+            style="background: var(--color-button-red-bg); color: var(--color-button-text);">Yes
+    </button>
+    <button class="btn-modern" id="confirm-no"
+            style="background: var(--color-input-bg); color: var(--color-text-primary);">Cancel
+    </button>
   </div>
 </div>
 
-<!-- Footer Section -->
+<!-- Footer -->
 <div id="footer-placeholder"></div>
-<!-- Add missing main content and loading elements for forms.js compatibility -->
+
+<!-- Loading elements for forms.js compatibility -->
 <div id="forms-content" style="display:none;"></div>
 <div id="loading-spinner" style="display:none;"></div>
 <div id="login-required-message" style="display:none;"></div>
-<!-- Remove the inline <script> block at the end and replace with a single module import for forms.js -->
+
+<!-- Scripts - Load non-critical scripts asynchronously -->
+<script src="https://cdn.tailwindcss.com"></script>
 <script type="module" src="forms.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+
 <script type="module">
   import {loadFooter} from './navbar.js';
 
-  // Load the consolidated footer
-  loadFooter('current-year-forms');
+  // Initialize page
+  document.addEventListener('DOMContentLoaded', () => {
+    // Load footer
+    loadFooter('current-year-forms');
 
-  window.mainLoadingSpinner = document.getElementById('loading-spinner');
-  window.formsContentSection = document.getElementById('forms-content');
-  window.mainLoginRequiredMessage = document.getElementById('login-required-message');
+    // Set up global references for forms.js
+    window.mainLoadingSpinner = document.getElementById('loading-spinner');
+    window.formsContentSection = document.getElementById('forms-content');
+    window.mainLoginRequiredMessage = document.getElementById('login-required-message');
+
+    // Add collapsible functionality
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        const icon = header.querySelector('.material-icons');
+
+        if (content.style.display === 'none') {
+          content.style.display = 'block';
+          icon.textContent = 'expand_less';
+        } else {
+          content.style.display = 'none';
+          icon.textContent = 'expand_more';
+        }
+      });
+    });
+  });
 </script>
 </body>
 </html>

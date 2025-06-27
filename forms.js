@@ -609,9 +609,13 @@ function renderThemaBoxes(themasArr) {
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
           ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `
-            <div class="actions-right">
-              <button class="edit-thema-btn" title="Edit"></button>
-              <button class="delete-thema-btn" title="Delete"></button>
+            <div class="actions-right flex gap-2">
+              <button class="edit-thema-btn btn-modern" style="background: var(--color-button-yellow-bg); color: var(--color-button-text); padding: 0.5rem; border-radius: 0.375rem;" title="Edit Théma">
+                <span class="material-icons text-sm">edit</span>
+              </button>
+              <button class="delete-thema-btn btn-modern" style="background: var(--color-button-red-bg); color: var(--color-button-text); padding: 0.5rem; border-radius: 0.375rem;" title="Delete Théma">
+                <span class="material-icons text-sm">delete</span>
+              </button>
             </div>
           ` : ''}
         </div>
@@ -777,7 +781,16 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"></button>` : ''}
+            ${canEdit ? `
+              <div class="ml-auto flex gap-2">
+                <button class="edit-thread-btn btn-modern" style="background: var(--color-button-yellow-bg); color: var(--color-button-text); padding: 0.5rem; border-radius: 0.375rem;" title="Edit Thread">
+                  <span class="material-icons text-sm">edit</span>
+                </button>
+                <button class="delete-thread-btn btn-modern" style="background: var(--color-button-red-bg); color: var(--color-button-text); padding: 0.5rem; border-radius: 0.375rem;" title="Delete Thread">
+                  <span class="material-icons text-sm">delete</span>
+                </button>
+              </div>
+            ` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(replaceEmojis(thread.initialComment || ''))}</div>
@@ -931,7 +944,16 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"></button>` : ''}
+          ${canEdit ? `
+            <div class="ml-auto flex gap-2">
+              <button class="edit-comment-btn btn-modern" style="background: var(--color-button-yellow-bg); color: var(--color-button-text); padding: 0.375rem; border-radius: 0.375rem;" title="Edit Comment">
+                <span class="material-icons text-xs">edit</span>
+              </button>
+              <button class="delete-comment-btn btn-modern" style="background: var(--color-button-red-bg); color: var(--color-button-text); padding: 0.375rem; border-radius: 0.375rem;" title="Delete Comment">
+                <span class="material-icons text-xs">delete</span>
+              </button>
+            </div>
+          ` : ''}
         </div>
         <div class="comment-content text-sm">${renderMarkdown(replaceEmojis(comment.content))}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId)}</div>
