@@ -1694,6 +1694,12 @@ let keyboardShortcuts = {};
 let isRecordingShortcut = false;
 let currentRecordingShortcut = null;
 
+// Set of disabled shortcut names
+let disabledShortcuts = new Set();
+
+// Reverse mapping: key combination => shortcut name
+let shortcutKeyToName = {};
+
 // Default keyboard shortcuts - Updated to avoid browser/OS conflicts
 // Based on comprehensive browser shortcut analysis from https://dmcritchie.mvps.org/firefox/keyboard.htm
 const defaultShortcuts = {
@@ -1733,16 +1739,18 @@ const pageUrls = {
 
 // Initialize keyboard shortcuts
 function initializeKeyboardShortcuts() {
-  // Removed call to setupShortcutCustomization() as it is undefined and not needed
-  // All shortcut customization logic is handled here or in related handlers
-  // ... rest of the function ...
+  // Build the reverse mapping: key combination => shortcut name
+  shortcutKeyToName = {};
+  Object.entries(keyboardShortcuts).forEach(([name, combo]) => {
+    shortcutKeyToName[combo] = name;
+  });
+  applyKeyboardShortcuts();
 }
 
 // Apply keyboard shortcuts to the page
 function applyKeyboardShortcuts() {
   // Remove existing listeners
   document.removeEventListener('keydown', handleKeyboardShortcut);
-
   // Add new listener
   document.addEventListener('keydown', handleKeyboardShortcut);
 }
@@ -1750,13 +1758,11 @@ function applyKeyboardShortcuts() {
 // Handle keyboard shortcut events
 function handleKeyboardShortcut(event) {
   if (isRecordingShortcut) return;
-
   const pressedKeys = getPressedKeys(event);
-  const shortcut = keyboardShortcuts[pressedKeys];
-
-  if (shortcut) {
+  const shortcutName = shortcutKeyToName[pressedKeys];
+  if (shortcutName) {
     event.preventDefault();
-    executeShortcut(pressedKeys);
+    executeShortcut(shortcutName);
   }
 }
 
@@ -2212,11 +2218,13 @@ function setupEventListeners() {
           e.target.textContent = 'Disable';
           input.disabled = false;
           input.style.opacity = '1';
+          disabledShortcuts.delete(shortcutKey);
         } else {
           e.target.classList.add('disabled');
           e.target.textContent = 'Disabled';
           input.disabled = true;
           input.style.opacity = '0.5';
+          disabledShortcuts.add(shortcutKey);
         }
       }
     });
