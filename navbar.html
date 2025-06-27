@@ -32,27 +32,29 @@
 </head>
 <body class="bg-gray-800 text-gray-100">
 
-<nav class="navbar-bg p-4 shadow-lg w-full">
-  <div class="container mx-auto flex justify-between items-center">
+<nav class="navbar-bg px-2 py-1 shadow-lg w-full">
+  <div class="container mx-auto flex justify-between items-center min-h-0">
     <!-- Logo/Site Title -->
-    <a href="#" class="navbar-text text-2xl font-bold flex items-center gap-2">
-      <svg class="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <a class="navbar-text text-lg font-bold flex items-center gap-1 pl-1" href="#" style="min-width:0;">
+      <svg class="h-5 w-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+           xmlns="http://www.w3.org/2000/svg">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3m0 0l-1-1h-4l-1 1m0 0h-4a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H9.75z"></path>
       </svg>
-      Arcator.co.uk
+      <span style="font-size:1.1rem;">Arcator.co.uk</span>
     </a>
 
     <!-- Navigation Links and User Info -->
     <div class="flex items-center space-x-4">
-        <a href="about.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">About Us</a>
-        <a href="servers.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Servers</a>
-        <a href="community.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Community</a>
-        <a href="interests.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Interests</a>
-        <a href="games.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Games</a>
-        <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Wiki</a></li>
-        <a href="forms.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Forms</a>
-        <a href="index.html#join-us" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Join Us</a>
-        <a href="donations.html" class="text-gray-300 hover:text-gray-50 transition duration-300 ease-in-out text-lg font-medium rounded-md p-2 hover:bg-gray-800">Support Us</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="about.html">About Us</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="servers.html">Servers</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="community.html">Community</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="interests.html">Interests</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="games.html">Games</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
+         target="_blank">Wiki</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="forms.html">Forms</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="index.html#join-us">Join Us</a>
+      <a class="navbar-text navbar-link text-lg font-medium rounded-md p-2" href="donations.html">Support Us</a>
       <!--User Profile Link - Hidden by default, shown by settings.html when logged in -->
       <a id="navbar-user-settings-link" href="users.html" class="hidden items-center space-x-2 navbar-text navbar-link px-3 py-2 rounded-md font-medium">
         <img id="navbar-user-profile-pic" class="profile-pic-small" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV" alt="Profile Picture">

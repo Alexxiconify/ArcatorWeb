@@ -75,8 +75,8 @@ const defaultThemes = [
       '--color-message-box-bg-error': '#dc3545',
       '--color-heading-main': '#F9FAFB',
       '--color-heading-card': '#93C5FD',
-      '--color-settings-card-bg': '#23272e',
-      '--color-settings-card-border': '#2d3748'
+      '--color-settings-card-bg': '#22304a',
+      '--color-settings-card-border': '#334155'
     }
   },
   {

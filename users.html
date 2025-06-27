@@ -108,13 +108,34 @@
       border-radius: 1rem;
     }
     .hero-banner {
-      background: var(--color-bg-navbar, #fff);
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
       background-position: center;
-      min-height: 220px;
-      border-radius: 0 0 2rem 2rem;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
     .input-field select {
@@ -128,8 +149,8 @@
 <!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Spacer to prevent navbar overlap -->
-<div style="height:64px;"></div>
+<!-- Minimal spacer to prevent navbar overlap -->
+<div style="height: 56px;"></div>
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl">
   <div class="container mx-auto px-4 text-center hero-content">
