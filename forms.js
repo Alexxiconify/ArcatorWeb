@@ -30,6 +30,12 @@ window.GROUP_PERMISSIONS = {
 };
 window.EDIT_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+// Temporary content storage for non-logged-in users
+window.temporaryContent = {
+  threads: [],
+  comments: []
+};
+
 // Global unsubscribe functions
 let unsubscribeThematas;
 let unsubscribeThreads;
@@ -274,6 +280,10 @@ function hideMainLoading() {
 async function updateUIBasedOnAuthAndData() {
   console.log('[DEBUG] updateUIBasedOnAuthAndData called. currentUser:', window.currentUser);
   hideMainLoading();
+
+  // Update status indicator
+  updateSignInStatusIndicator();
+
   // Wait for currentUser if logged in
   let waited = false;
   if (window.auth.currentUser && !window.currentUser) {
@@ -285,6 +295,14 @@ async function updateUIBasedOnAuthAndData() {
     waited = true;
     console.log('[DEBUG] Waited for currentUser:', window.currentUser);
   }
+
+  // Check if user just signed in and has temporary content to save
+  if (window.auth.currentUser && window.currentUser && window.temporaryContent &&
+    (window.temporaryContent.threads.length > 0 || window.temporaryContent.comments.length > 0)) {
+    console.log('[DEBUG] User signed in with temporary content, saving to Firestore...');
+    await saveTemporaryContentToFirestore();
+  }
+
   // UI logic
   if (!window.auth.currentUser && !window.currentUser) {
     // Guest: show guest UI
@@ -359,6 +377,130 @@ function cacheGet(key) {
     const val = localStorage.getItem(key);
     return val ? JSON.parse(val) : null;
   } catch (e) { return null; }
+}
+
+// --- TEMPORARY CONTENT MANAGEMENT ---
+function saveTemporaryContent() {
+  cacheSet('arcator_temporary_content', window.temporaryContent);
+}
+
+function loadTemporaryContent() {
+  const saved = cacheGet('arcator_temporary_content');
+  if (saved) {
+    window.temporaryContent = saved;
+  }
+}
+
+function addTemporaryThread(themaId, title, initialComment) {
+  const tempThread = {
+    id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    themaId: themaId,
+    title: title,
+    initialComment: initialComment,
+    createdAt: new Date().toISOString(),
+    authorDisplayName: 'Guest User',
+    authorHandle: 'guest',
+    authorPhotoURL: window.DEFAULT_PROFILE_PIC,
+    commentCount: 0,
+    isTemporary: true
+  };
+  window.temporaryContent.threads.push(tempThread);
+  saveTemporaryContent();
+  return tempThread;
+}
+
+function addTemporaryComment(themaId, threadId, content) {
+  const tempComment = {
+    id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    themaId: themaId,
+    threadId: threadId,
+    content: content,
+    createdAt: new Date().toISOString(),
+    authorDisplayName: 'Guest User',
+    authorHandle: 'guest',
+    authorPhotoURL: window.DEFAULT_PROFILE_PIC,
+    isTemporary: true
+  };
+  window.temporaryContent.comments.push(tempComment);
+  saveTemporaryContent();
+  return tempComment;
+}
+
+async function saveTemporaryContentToFirestore() {
+  if (!window.auth.currentUser || !window.db) {
+    return;
+  }
+
+  const user = window.currentUser;
+  const userId = window.auth.currentUser.uid;
+
+  // Save temporary threads
+  for (const tempThread of window.temporaryContent.threads) {
+    try {
+      const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${tempThread.themaId}/threads`);
+      const mentions = parseMentions(tempThread.initialComment);
+
+      await addDoc(threadsCol, {
+        title: tempThread.title,
+        initialComment: tempThread.initialComment,
+        mentions: mentions,
+        reactions: {},
+        createdAt: serverTimestamp(),
+        authorId: userId,
+        authorDisplayName: user?.displayName || 'Anonymous',
+        authorHandle: user?.handle || '',
+        authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+        commentCount: 0,
+        lastActivity: serverTimestamp(),
+        editedAt: null,
+        editedBy: null
+      });
+
+      // Update thema thread count
+      const themaRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas`, tempThread.themaId);
+      await updateDoc(themaRef, {
+        threadCount: increment(1),
+        lastActivity: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error saving temporary thread:", error);
+    }
+  }
+
+  // Save temporary comments
+  for (const tempComment of window.temporaryContent.comments) {
+    try {
+      const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${tempComment.themaId}/threads/${tempComment.threadId}/comments`);
+      const mentions = parseMentions(tempComment.content);
+
+      await addDoc(commentsCol, {
+        content: tempComment.content,
+        mentions: mentions,
+        reactions: {},
+        createdAt: serverTimestamp(),
+        authorId: userId,
+        authorDisplayName: user?.displayName || 'Anonymous',
+        authorHandle: user?.handle || '',
+        authorPhotoURL: user?.photoURL || window.DEFAULT_PROFILE_PIC,
+        editedAt: null,
+        editedBy: null
+      });
+
+      // Update thread comment count
+      const threadRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${tempComment.themaId}/threads`, tempComment.threadId);
+      await updateDoc(threadRef, {
+        commentCount: increment(1),
+        lastActivity: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error saving temporary comment:", error);
+    }
+  }
+
+  // Clear temporary content after saving
+  window.temporaryContent = {threads: [], comments: []};
+  saveTemporaryContent();
+  showMessageBox("Your temporary content has been saved!", false);
 }
 
 // --- CACHED THREADS ---
@@ -444,8 +586,9 @@ function renderThemaBoxes(themasArr) {
       const box = document.createElement('div');
       box.className = 'thema-item card p-6 flex flex-col justify-between mb-4';
       let formHtml = '';
-      if (window.currentUser) {
-        formHtml = `
+
+      // Show forms for both logged-in and non-logged-in users
+      formHtml = `
         <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
           <div class="mb-2">
             <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
@@ -455,11 +598,11 @@ function renderThemaBoxes(themasArr) {
             <label class="block text-sm font-semibold mb-1" for="thread-content-input-${thema.id}">Body</label>
             <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
           </div>
-          <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">Create Post</button>
+          <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">
+            ${window.currentUser ? 'Create Post' : 'Create Temporary Post'}
+          </button>
+          ${!window.currentUser ? '<p class="text-xs text-gray-400 text-center mt-2">Sign in to save your posts permanently</p>' : ''}
         </form>`;
-      } else {
-        formHtml = `<div class="text-center text-gray-400 italic mt-4">Log in to create a thread.</div>`;
-      }
 
       // Create header with title and admin controls on same level
       const headerHtml = `
@@ -483,32 +626,23 @@ function renderThemaBoxes(themasArr) {
       container.appendChild(box);
       loadThreadsForThema(thema.id);
       // Thread creation handler
-      if (window.currentUser) {
-        const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
-        if (threadForm) {
-          threadForm.onsubmit = async (e) => {
-            e.preventDefault();
-            if (!document.contains(threadForm)) return;
-            const title = threadForm.querySelector('.thread-title-input').value.trim();
-            const content = threadForm.querySelector('.thread-content-input').value.trim();
-            if (!title || !content) return;
-            if (!window.auth.currentUser || !window.db) return;
-            let threadsCol;
-            if (thema.id === 'global') {
-              threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads`);
-            } else {
-              threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${thema.id}/threads`);
-            }
-            await addDoc(threadsCol, {
-              title,
-              initialComment: content,
-              createdAt: serverTimestamp(),
-              createdBy: window.auth.currentUser.uid,
-              creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
-            });
-            if (document.contains(threadForm)) threadForm.reset();
-          };
-        }
+      const threadForm = box.querySelector(`#create-thread-form-${thema.id}`);
+      if (threadForm) {
+        threadForm.onsubmit = async (e) => {
+          e.preventDefault();
+          if (!document.contains(threadForm)) return;
+          const title = threadForm.querySelector('.thread-title-input').value.trim();
+          const content = threadForm.querySelector('.thread-content-input').value.trim();
+          if (!title || !content) return;
+
+          // Use the addCommentThread function which handles both logged-in and non-logged-in users
+          await addCommentThread(thema.id, title, content);
+
+          // Clear form if it still exists
+          if (document.contains(threadForm)) {
+            threadForm.reset();
+          }
+        };
       }
 
       // Admin controls for thémata
@@ -537,15 +671,19 @@ function loadThreadsForThema(themaId) {
   if (!themaId) return; // Prevent invalid Firestore path
   try {
     const threadListDiv = document.getElementById(`thema-thread-list-${themaId}`);
-    if (!window.db || !threadListDiv) {
-      if (!window.db) console.warn('[DEBUG] DB not initialized in loadThreadsForThema.');
-      if (!threadListDiv) console.warn(`[DEBUG] threadListDiv not found for themaId ${themaId}`);
+    if (!threadListDiv) return;
+
+    // Load temporary content on first call
+    loadTemporaryContent();
+
+    if (!window.db) {
+      threadListDiv.innerHTML = '<div class="text-center text-red-400">Database not initialized.</div>';
       return;
     }
-    // Use correct path for global vs thema threads
+
     const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const q = query(threadsCol, orderBy('createdAt', 'desc'));
-    onSnapshot(q, async (snapshot) => {
+    unsubscribeThreads = onSnapshot(q, async (snapshot) => {
       // Check if we need to re-render or just update reactions
       const existingThreads = threadListDiv.querySelectorAll('.thread-item');
       const newThreads = Array.from(snapshot.docs);
@@ -573,10 +711,15 @@ function loadThreadsForThema(themaId) {
 
       // Full re-render only if threads changed (added/removed/edited)
       threadListDiv.innerHTML = '';
-      if (snapshot.empty) {
+
+      // Get temporary threads for this thema
+      const tempThreads = window.temporaryContent.threads.filter(t => t.themaId === themaId);
+
+      if (snapshot.empty && tempThreads.length === 0) {
         threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
         return;
       }
+
       const threadUids = new Set();
       snapshot.forEach(threadDoc => {
         const thread = threadDoc.data();
@@ -593,6 +736,28 @@ function loadThreadsForThema(themaId) {
           });
         }).catch(error => console.error("Error fetching user profiles for threads:", error));
       }
+
+      // Render temporary threads first (if any)
+      tempThreads.forEach(tempThread => {
+        const threadDiv = document.createElement('div');
+        threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2 border-2 border-yellow-500';
+        const createdAt = tempThread.createdAt ? new Date(tempThread.createdAt).toLocaleString() : 'N/A';
+        threadDiv.innerHTML = `
+          <div class="flex items-center gap-2 mb-1">
+            <img src="${tempThread.authorPhotoURL}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
+            <span class="font-semibold">${tempThread.authorDisplayName}</span>
+            <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
+            <span class="ml-auto text-xs text-yellow-500 font-semibold">Temporary</span>
+          </div>
+          <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${tempThread.title}</h4>
+          <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(replaceEmojis(tempThread.initialComment || ''))}</div>
+          <div class="text-xs text-yellow-500 text-center">Sign in to save this post permanently</div>
+        `;
+        threadListDiv.appendChild(threadDiv);
+        threadDiv.setAttribute('data-thread-id', tempThread.id);
+      });
+
+      // Render regular threads
       snapshot.forEach(threadDoc => {
         const thread = threadDoc.data();
         if (editingThreadId === threadDoc.id) {
@@ -621,23 +786,36 @@ function loadThreadsForThema(themaId) {
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${threadDoc.id}">Add a comment</label>
             <textarea id="comment-content-input-${threadDoc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
-            <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">Add Comment</button>
+            <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">
+              ${window.currentUser ? 'Add Comment' : 'Add Temporary Comment'}
+            </button>
+            ${!window.currentUser ? '<p class="text-xs text-gray-400 text-center mt-1">Sign in to save your comments permanently</p>' : ''}
           </form>
         `;
         threadListDiv.appendChild(threadDiv);
         loadCommentsForThread(themaId, threadDoc.id);
+
+        // Comment form handler
         const commentForm = threadDiv.querySelector(`#add-comment-form-${threadDoc.id}`);
         if (commentForm) {
           commentForm.onsubmit = async (e) => {
             e.preventDefault();
-            // Check if form is still connected to DOM
-            if (!document.contains(commentForm)) {
-              console.warn('Comment form not connected to DOM, skipping submission');
-              return;
-            }
+            if (!document.contains(commentForm)) return;
             const content = commentForm.querySelector('.comment-content-input').value.trim();
             if (!content) return;
-            if (!window.auth.currentUser || !window.db) return;
+
+            // Handle temporary comments for non-logged-in users
+            if (!window.auth.currentUser) {
+              const tempComment = addTemporaryComment(themaId, threadDoc.id, content);
+              showMessageBox("Comment added temporarily! Sign in to save it permanently.", false);
+              if (document.contains(commentForm)) {
+                commentForm.reset();
+              }
+              return;
+            }
+
+            // Handle regular comments for logged-in users
+            if (!window.db) return;
             const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadDoc.id}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadDoc.id}/comments`);
             await addDoc(commentsCol, {
               content,
@@ -645,12 +823,12 @@ function loadThreadsForThema(themaId) {
               createdBy: window.auth.currentUser.uid,
               creatorDisplayName: window.currentUser ? window.currentUser.displayName : 'Anonymous'
             });
-            // Reset form only if still connected
             if (document.contains(commentForm)) {
               commentForm.reset();
             }
           };
         }
+
         // Edit/Delete thread handlers
         if (canEdit) {
           threadDiv.querySelector('.edit-thread-btn').dataset.threadId = threadDoc.id;
@@ -881,14 +1059,31 @@ function displayThreadsForThema(themaId, themaName, themaDescription) {
  * @param {string} initialComment - The initial comment of the thread.
  */
 async function addCommentThread(themaId, title, initialComment) {
-  if (!window.auth.currentUser) {
-    showMessageBox("You must be logged in to create a thread.", true);
-    return;
-  }
   if (!window.db) {
     showMessageBox("Database or Théma not initialized.", true);
     return;
   }
+
+  // Check if user is logged in
+  if (!window.auth.currentUser) {
+    // For non-logged-in users, create temporary content
+    const tempThread = addTemporaryThread(themaId, title, initialComment);
+    showMessageBox("Thread created temporarily! Sign in to save it permanently.", false);
+
+    // Clear form inputs
+    const titleInput = document.getElementById(`thread-title-input-${themaId}`);
+    const contentInput = document.getElementById(`thread-content-input-${themaId}`);
+    if (titleInput) titleInput.value = '';
+    if (contentInput) contentInput.value = '';
+
+    // Refresh the thread list to show temporary content
+    if (window.currentThemaId === themaId) {
+      loadThreadsForThema(themaId);
+    }
+    return;
+  }
+
+  // For logged-in users, proceed with normal thread creation
   try {
     const user = window.currentUser;
     const mentions = parseMentions(initialComment);
@@ -1473,11 +1668,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (window.firebaseReadyPromise) {
       window.firebaseReadyPromise.then(() => {
         updateUIBasedOnAuthAndData();
-        checkLoginStatusAfterDelay(); // Add 10-second login check
+        startSignInChecker(); // Start continuous sign-in checker
       });
     } else {
       updateUIBasedOnAuthAndData();
-      checkLoginStatusAfterDelay(); // Add 10-second login check
+      startSignInChecker(); // Start continuous sign-in checker
     }
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
@@ -1925,3 +2120,130 @@ if (typeof document !== 'undefined') {
 function renderFlagsInText(text) {
   return replaceEmojis(text);
 }
+
+// --- INITIALIZATION ---
+// Load temporary content on page load
+document.addEventListener('DOMContentLoaded', () => {
+  loadTemporaryContent();
+  console.log('[DEBUG] Temporary content loaded:', window.temporaryContent);
+});
+
+// Clean up sign-in checker when page is unloaded
+window.addEventListener('beforeunload', () => {
+  stopSignInChecker();
+});
+
+// Clean up sign-in checker when page is hidden (tab switch, etc.)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopSignInChecker();
+  } else {
+    startSignInChecker();
+  }
+});
+
+// Add continuous sign-in checker that monitors auth state
+let signInCheckerInterval = null;
+let lastAuthState = null;
+let lastUserProfile = null;
+
+function startSignInChecker() {
+  // Clear any existing interval
+  if (signInCheckerInterval) {
+    clearInterval(signInCheckerInterval);
+  }
+
+  console.log('[DEBUG] Starting continuous sign-in checker');
+
+  // Update status immediately
+  updateSignInStatusIndicator();
+
+  signInCheckerInterval = setInterval(async () => {
+    const currentAuthState = !!window.auth.currentUser;
+    const currentUserProfile = window.currentUser;
+
+    // Check if auth state changed
+    if (currentAuthState !== lastAuthState ||
+      (currentUserProfile && !lastUserProfile) ||
+      (!currentUserProfile && lastUserProfile)) {
+
+      console.log('[DEBUG] Auth state change detected:', {
+        authState: currentAuthState,
+        userProfile: !!currentUserProfile,
+        previousAuthState: lastAuthState,
+        previousUserProfile: !!lastUserProfile
+      });
+
+      // Update last known states
+      lastAuthState = currentAuthState;
+      lastUserProfile = currentUserProfile;
+
+      // Update status indicator
+      updateSignInStatusIndicator();
+
+      // If user just signed in and has temporary content, save it
+      if (currentAuthState && currentUserProfile && window.temporaryContent &&
+        (window.temporaryContent.threads.length > 0 || window.temporaryContent.comments.length > 0)) {
+        console.log('[DEBUG] User signed in with temporary content, saving to Firestore...');
+        await saveTemporaryContentToFirestore();
+      }
+
+      // Soft refresh UI - only re-render if necessary
+      if (currentAuthState && currentUserProfile) {
+        // User is signed in and profile loaded
+        console.log('[DEBUG] User signed in, updating UI...');
+        renderThematas();
+      } else if (!currentAuthState) {
+        // User signed out
+        console.log('[DEBUG] User signed out, updating UI...');
+        renderThematas();
+      }
+    }
+  }, 2000); // Check every 2 seconds
+}
+
+function stopSignInChecker() {
+  if (signInCheckerInterval) {
+    clearInterval(signInCheckerInterval);
+    signInCheckerInterval = null;
+    console.log('[DEBUG] Sign-in checker stopped');
+  }
+}
+
+// Remove the old checkLoginStatusAfterDelay function
+// function checkLoginStatusAfterDelay() {
+//   setTimeout(() => {
+//     console.log('[DEBUG] 10-second login check. Auth state:', !!window.auth.currentUser, 'Current user:', window.currentUser);
+//     if (window.auth.currentUser && !window.currentUser) {
+//       console.log('[DEBUG] User logged in but profile not loaded, forcing UI update');
+//       updateUIBasedOnAuthAndData();
+//     }
+//   }, 10000);
+// }
+
+// Add function to update sign-in status indicator
+function updateSignInStatusIndicator() {
+  const statusDot = document.getElementById('auth-status-dot');
+  const statusText = document.getElementById('auth-status-text');
+
+  if (!statusDot || !statusText) return;
+
+  const isSignedIn = !!window.auth.currentUser;
+  const hasProfile = !!window.currentUser;
+
+  if (isSignedIn && hasProfile) {
+    // User is signed in and profile loaded
+    statusDot.className = 'w-2 h-2 rounded-full bg-green-500';
+    statusText.textContent = `Signed in as ${window.currentUser.displayName || window.currentUser.handle || 'User'}`;
+  } else if (isSignedIn && !hasProfile) {
+    // User is signed in but profile not loaded yet
+    statusDot.className = 'w-2 h-2 rounded-full bg-yellow-500';
+    statusText.textContent = 'Loading profile...';
+  } else {
+    // User is not signed in
+    statusDot.className = 'w-2 h-2 rounded-full bg-gray-500';
+    statusText.textContent = 'Not signed in - posts will be temporary';
+  }
+}
+
+// Add continuous sign-in checker that monitors auth state

@@ -318,15 +318,26 @@
     <p class="text-xl md:text-2xl mb-8">Discuss, collaborate, and share ideas with the Arcator community.</p>
   </div>
 </section>
+
+<!-- Sign-in Status Indicator -->
+<div class="container mx-auto px-4 mt-4 mb-2" id="sign-in-status">
+  <div class="flex items-center justify-center">
+    <div class="flex items-center gap-2 text-sm text-gray-400" id="auth-status-indicator">
+      <div class="w-2 h-2 rounded-full bg-gray-500" id="auth-status-dot"></div>
+      <span id="auth-status-text">Checking authentication...</span>
+    </div>
+  </div>
+</div>
+
 <!-- Main content and loading elements for forms.js compatibility -->
-<div id="forms-content" style="display:none;">[DEBUG] Main forum content placeholder</div>
-<div id="loading-spinner" style="display:none;">[DEBUG] Loading...</div>
-<div id="login-required-message" style="display:none;">[DEBUG] Please log in to use the forum.</div>
+<div id="forms-content" style="display:none;"></div>
+<div id="loading-spinner" style="display:none;"></div>
+<div id="login-required-message" style="display:none;"></div>
 
 <!-- Tabs for Thémata (all), Global Threads -->
-<div class="tabs flex space-x-4 mb-8">
-  <button id="tab-themata-all" class="tab-btn btn-primary btn-blue">Thémata</button>
-  <button id="tab-dms" class="tab-btn btn-primary btn-purple">DMs</button>
+<div class="tabs flex justify-center space-x-4 mb-8">
+  <button class="tab-btn btn-primary btn-blue rounded-lg px-6 py-3" id="tab-themata-all">Thémata</button>
+  <button class="tab-btn btn-primary btn-purple rounded-lg px-6 py-3" id="tab-dms">DMs</button>
 </div>
 
 <!-- Thémata Boxes Section (tabbed, collapsible/accordion style) -->
@@ -400,7 +411,7 @@
 <!-- Footer Section -->
 <div id="footer-placeholder"></div>
 <!-- Add missing main content and loading elements for forms.js compatibility -->
-<div id="forms-content" style="display:none;"><!-- Main forum content goes here --></div>
+<div id="forms-content" style="display:none;"></div>
 <div id="loading-spinner" style="display:none;"></div>
 <div id="login-required-message" style="display:none;"></div>
 <!-- Remove the inline <script> block at the end and replace with a single module import for forms.js -->
