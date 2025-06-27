@@ -203,7 +203,7 @@ firebaseReadyPromise.then(() => {
           uid: user.uid,
           displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
           email: user.email || null,
-          photoURL: DEFAULT_PROFILE_PIC,
+          photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
           createdAt: new Date(),
           lastLoginAt: new Date(),
           themePreference: DEFAULT_THEME_NAME,
@@ -213,7 +213,14 @@ firebaseReadyPromise.then(() => {
         await setUserProfileInFirestore(user.uid, userProfile);
       } else {
         // Update last login time and isAdmin status for existing profiles
-        await setUserProfileInFirestore(user.uid, { lastLoginAt: new Date(), isAdmin: ADMIN_UIDS.includes(user.uid) });
+        const updateData = {
+          lastLoginAt: new Date(),
+          isAdmin: ADMIN_UIDS.includes(user.uid)
+        };
+        if (!userProfile.photoURL) {
+          updateData.photoURL = DEFAULT_PROFILE_PIC;
+        }
+        await setUserProfileInFirestore(user.uid, updateData);
         userProfile.isAdmin = ADMIN_UIDS.includes(user.uid); // Ensure local object is updated
       }
       currentUser = userProfile;

@@ -145,13 +145,14 @@ export async function validateAndTestPhotoURL(photoURL, defaultPic) {
         if (window.currentUser && window.auth && window.auth.currentUser) {
           try {
             const {setUserProfileInFirestore} = await import('./firebase-init.js');
+            const newPhotoURL = convertedURL || window.DEFAULT_PROFILE_PIC;
             const success = await setUserProfileInFirestore(window.auth.currentUser.uid, {
-              photoURL: convertedURL
+              photoURL: newPhotoURL
             });
 
             if (success) {
               // Update local user object
-              window.currentUser.photoURL = convertedURL;
+              window.currentUser.photoURL = newPhotoURL;
 
               // Refresh navbar profile picture
               if (typeof window.refreshNavbarProfilePicture === 'function') {

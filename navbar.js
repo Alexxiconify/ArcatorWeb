@@ -232,12 +232,9 @@ export async function refreshNavbarProfilePicture() {
     try {
       // Use the enhanced validation function
       const {validateAndTestPhotoURL} = await import('./utils.js');
-      const profilePicURL = window.currentUser.photoURL || window.DEFAULT_PROFILE_PIC;
-      const safePhotoURL = await validateAndTestPhotoURL(profilePicURL, window.DEFAULT_PROFILE_PIC);
-
-      console.log('[DEBUG] refreshNavbarProfilePicture: Safe photoURL:', safePhotoURL);
-
-      userProfilePic.src = safePhotoURL;
+      const profilePicURL = getSafePhotoURL(window.currentUser && window.currentUser.photoURL);
+      console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
+      userProfilePic.src = profilePicURL;
 
       // Add error handling for image loading
       userProfilePic.onerror = function () {
@@ -308,11 +305,9 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
         // Use the enhanced validation function
         const {validateAndTestPhotoURL} = await import('./utils.js');
-        const safePhotoURL = await validateAndTestPhotoURL(userProfile.photoURL, defaultProfilePic);
-
-        console.log('[DEBUG] updateNavbarState: Safe photoURL:', safePhotoURL);
-
-        userProfilePic.src = safePhotoURL;
+        const profilePicURL = getSafePhotoURL(window.currentUser && window.currentUser.photoURL);
+        console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
+        userProfilePic.src = profilePicURL;
 
         // Add error handling for image loading
         userProfilePic.onerror = function () {
@@ -746,3 +741,10 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
 window.provideDiscordUrlGuidance = provideDiscordUrlGuidance;
 window.updateProfilePicture = updateProfilePicture;
 window.convertAndUpdateDiscordUrl = convertAndUpdateDiscordUrl;
+
+function getSafePhotoURL(photoURL) {
+  if (!photoURL || photoURL === 'undefined' || typeof photoURL === 'undefined') {
+    return window.DEFAULT_PROFILE_PIC;
+  }
+  return photoURL;
+}
