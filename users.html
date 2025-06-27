@@ -1025,52 +1025,38 @@
             <p class="text-text-secondary text-center mb-4">Customize accessibility features for better user
               experience.</p>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3">Visual Accessibility</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="high-contrast-checkbox" type="checkbox">
-              <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="large-cursor-checkbox" type="checkbox">
-              <label for="large-cursor-checkbox">Large Cursor</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="focus-indicators-checkbox" type="checkbox">
-              <label for="focus-indicators-checkbox">Enhanced Focus Indicators</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="colorblind-friendly-checkbox" type="checkbox">
-              <label for="colorblind-friendly-checkbox">Colorblind Friendly Mode</label>
-            </div>
-
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Motion & Animation</h4>
+            <h4 class="text-lg font-semibold text-heading-card mb-3">Accessibility</h4>
             <div class="checkbox-container">
               <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
-              <label for="reduced-motion-checkbox">Reduced Motion</label>
+              <label for="reduced-motion-checkbox">Reduced Motion <span style="font-size:0.9em;color:var(--color-text-secondary);">Removes most transitions and animations for less motion.</span></label>
             </div>
             <div class="checkbox-container">
               <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
-              <label for="disable-animations-checkbox">Disable All Animations</label>
+              <label for="disable-animations-checkbox">Disable Animations <span style="font-size:0.9em;color:var(--color-text-secondary);">Disables all non-essential animations for accessibility.</span></label>
             </div>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Navigation & Reading</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="skip-links-checkbox" type="checkbox">
-              <label for="skip-links-checkbox">Skip Links</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="reading-guide-checkbox" type="checkbox">
-              <label for="reading-guide-checkbox">Reading Guide Line</label>
-            </div>
-
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Text & Typography</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="syntax-highlighting-checkbox" type="checkbox">
-              <label for="syntax-highlighting-checkbox">Enhanced Syntax Highlighting</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="word-spacing-checkbox" type="checkbox">
-              <label for="word-spacing-checkbox">Increased Word Spacing</label>
+            <h4 class="text-lg font-semibold text-heading-card mt-8 mb-3">Keyboard Shortcuts</h4>
+            <div id="keyboard-shortcuts-section" class="settings-card mb-6">
+              <p class="text-text-secondary mb-2">Keyboard Shortcuts Help</p>
+              <div style="font-size:0.98em;line-height:1.7;">
+                <b>Navigation:</b><br>
+                Alt+Shift+H - Go to Home Page<br>
+                Alt+Shift+A - Go to About Page<br>
+                Alt+Shift+S - Go to Servers Page<br>
+                Alt+Shift+C - Go to Community Page<br>
+                Alt+Shift+I - Go to Interests Page<br>
+                Alt+Shift+G - Go to Games Page<br>
+                Alt+Shift+F - Go to Forms Page<br>
+                <br><b>Communication:</b><br>
+                Alt+Shift+D - Open Direct Messages<br>
+                Alt+Shift+N - Create New DM<br>
+                <br><b>Utilities:</b><br>
+                Alt+Shift+U - Open User Settings<br>
+                Alt+Shift+K - Open Search Dialog<br>
+                F1 - Show This Help Dialog<br>
+                Alt+Shift+L - Logout User<br>
+                <br><span style="font-size:0.9em;color:var(--color-text-secondary);">Note: These shortcuts are fixed and cannot be customized.</span>
+              </div>
             </div>
 
             <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
