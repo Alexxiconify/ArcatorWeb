@@ -583,17 +583,6 @@ function loadThreadsForThema(themaId) {
     onSnapshot(q, async (snapshot) => {
       threadListDiv.innerHTML = '';
       if (snapshot.empty) {
-        // Auto-create default global thread if admin
-        if (themaId === 'global' && window.currentUser && window.currentUser.isAdmin) {
-          await addDoc(threadsCol, {
-            title: 'Welcome to the Arcator Community Forum',
-            initialComment: 'This is the first thread in the global section. Feel free to introduce yourself or ask questions!',
-            createdAt: serverTimestamp(),
-            createdBy: window.currentUser.uid,
-            creatorDisplayName: window.currentUser.displayName || 'Admin'
-          });
-          return; // Wait for snapshot to update
-        }
         threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
         return;
       }
