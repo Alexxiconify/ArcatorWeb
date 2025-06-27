@@ -156,6 +156,25 @@ function hideLoading() {
   console.log("DEBUG: hideLoading - Spinner hidden.");
 }
 
+function validatePhotoURL(photoURL, defaultPic) {
+  console.log("DEBUG: validatePhotoURL called with:", photoURL, "default:", defaultPic);
+  if (!photoURL || typeof photoURL !== 'string') {
+    console.log("DEBUG: photoURL is invalid, returning default");
+    return defaultPic;
+  }
+  try {
+    const url = new URL(photoURL);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      console.log("DEBUG: Invalid protocol:", url.protocol);
+      return defaultPic;
+    }
+    console.log("DEBUG: photoURL is valid, returning:", photoURL);
+    return photoURL;
+  } catch (error) {
+    console.log("DEBUG: URL parsing failed:", error);
+    return defaultPic;
+  }
+}
 
 // Handler for user sign-in
 async function handleSignIn() {
@@ -333,7 +352,7 @@ async function handleSaveProfile() {
         console.log("DEBUG: Firestore user profile updated.");
 
         // Immediately update UI elements
-        if (profilePictureDisplay) profilePictureDisplay.src = updates.photoURL || DEFAULT_PROFILE_PIC;
+        if (profilePictureDisplay) profilePictureDisplay.src = validatePhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
         if (displayNameText) displayNameText.textContent = updates.displayName || 'N/A';
         if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : '';
 
@@ -428,7 +447,7 @@ window.onload = async function() {
           userThemePreference = userProfile.themePreference; // Assign value here
 
           // Update profile display elements
-          if (profilePictureDisplay) profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
+          if (profilePictureDisplay) profilePictureDisplay.src = validatePhotoURL(userProfile.photoURL || user.photoURL, DEFAULT_PROFILE_PIC);
           if (displayNameText) displayNameText.textContent = userProfile.displayName || 'N/A';
           if (handleText) handleText.textContent = userProfile.handle ? `@${userProfile.handle}` : '';
           if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
