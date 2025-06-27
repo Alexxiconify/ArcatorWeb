@@ -259,7 +259,7 @@ window.getAvailableThemes = async function() {
 };
 
 // At the top, import replaceEmojis
-import { replaceEmojis, triggerEmojiRerender } from './js/app.js';
+import { replaceEmojis, triggerEmojiRerender } from './app.js';
 
 // At the top of forms.js
 import { loadNavbar } from './navbar.js';
