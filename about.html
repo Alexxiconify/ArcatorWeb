@@ -17,12 +17,15 @@
   <!-- Theme initialization -->
   <script src="theme-init.js" type="module"></script>
   <style>
-    /* Base styles using theme variables */
+    /* Base styles, will be overridden by CSS variables from themes.js */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
       background-color: var(--color-body-bg);
       color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -31,13 +34,14 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 250px;
+      min-height: 400px; /* Increased height for visual impact */
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
     }
+
     .hero-banner::before {
       content: '';
       position: absolute;
@@ -45,49 +49,117 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
       z-index: 1;
     }
+
     .hero-content {
       position: relative;
       z-index: 2;
       color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
     /* Dynamic theme application for various elements */
-    .bg-content-section {
+    .bg-gray-800 {
       background-color: var(--color-bg-content-section) !important;
     }
-    .bg-card {
-      background-color: var(--color-bg-card) !important;
+
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* For footer */
     }
 
-    .bg-navbar {
-      background-color: var(--color-bg-navbar) !important;
-    }
-    .text-primary {
-      color: var(--color-text-primary) !important;
-    }
-    .text-secondary {
+    .text-gray-300 {
       color: var(--color-text-secondary) !important;
     }
-    .text-heading-main {
+
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important;
+    }
+
+    .text-gray-50 {
+      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
+    }
+
+    .text-red-400 {
       color: var(--color-heading-main) !important;
     }
-    .text-heading-card {
+
+    .text-blue-300 {
       color: var(--color-heading-card) !important;
     }
 
+    .text-yellow-300 {
+      color: var(--color-button-yellow-bg) !important;
+    }
+
+    .text-green-300 {
+      color: var(--color-button-green-bg) !important;
+    }
+
+    /* Feature card specific styling */
+    .feature-card {
+      background-color: var(--color-bg-card); /* Use card background for feature cards */
+      color: var(--color-text-primary);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .minecraft-ip-box {
+      background-color: var(--color-bg-ip-box);
+      border: 2px solid var(--color-border-ip-box);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .text-white { /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
+      color: white !important;
+    }
+
+    /* Buttons */
     .bg-blue-600 {
       background-color: var(--color-button-blue-bg) !important;
       color: var(--color-button-text) !important;
     }
+
     .hover\:bg-blue-700:hover {
       background-color: var(--color-button-blue-hover) !important;
     }
 
-    .hover\:text-primary:hover {
+    .bg-yellow-600 {
+      background-color: var(--color-button-yellow-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+
+    .hover\:bg-yellow-700:hover {
+      background-color: var(--color-button-yellow-hover) !important;
+    }
+
+    .bg-green-600 { /* Copy IP button */
+      background-color: var(--color-button-green-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+
+    .hover\:bg-green-700:hover {
+      background-color: var(--color-button-green-hover) !important;
+    }
+
+    .bg-indigo-600 { /* Discord button */
+      background-color: var(--color-button-indigo-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+
+    .hover\:bg-indigo-700:hover {
+      background-color: var(--color-button-indigo-hover) !important;
+    }
+
+    .hover\:text-white:hover { /* For footer links */
       color: var(--color-text-primary) !important;
     }
   </style>
@@ -150,7 +222,8 @@
       <p class="text-lg leading-relaxed text-secondary max-w-3xl mx-auto mb-8">
         The heart of Arcator is its community. Join our Discord server to chat, connect with other players, participate in discussions, and get real-time updates.
       </p>
-      <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a>
+      <a class="inline-block" href="https://discord.gg/GwArgw2" rel="noopener noreferrer" target="_blank">Join Our
+        Discord</a>
     </div>
 
     <!-- What's Happening in Our Community: -->

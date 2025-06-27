@@ -14,13 +14,15 @@
   <link rel="stylesheet" href="navbar.css">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Theme initialization -->
+  <script src="theme-init.js" type="module"></script>
   <style>
     /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background-color: var(--color-body-bg); /* Ensure body uses the variable for its own background */
-      color: var(--color-text-primary); /* Ensure body uses the variable for its default text color */
+      background: var(--color-body-bg, #1a202c);
+      color: var(--color-text-primary, #e2e8f0);
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -55,15 +57,35 @@
 
     /* Custom classes using CSS variables */
     .bg-content-section { background-color: var(--color-bg-content-section); }
-    .text-heading-main { color: var(--color-heading-main); }
+
+    .text-heading-main {
+      color: var(--color-heading-main, #F9FAFB);
+    }
     .text-text-primary { color: var(--color-text-primary); }
-    .text-text-secondary { color: var(--color-text-secondary); }
-    .bg-card { background-color: var(--color-bg-card); }
+
+    .text-text-secondary {
+      color: var(--color-text-secondary, #a0aec0);
+    }
+
+    .bg-card {
+      background: var(--color-bg-card, #23272e);
+      color: var(--color-text-primary, #e2e8f0);
+      border-radius: 1.25rem;
+      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
+      border: 1px solid var(--color-input-border, #2d3748);
+    }
     .bg-navbar-footer { background-color: var(--color-bg-navbar); } /* For footer */
     .text-link { color: var(--color-link); }
     .text-link-footer { color: var(--color-text-secondary); } /* Specific for footer links, can be same as text-secondary or a different link variable */
     .hover\:text-link:hover { color: var(--color-link); } /* General hover for links */
-    .text-heading-card-active { color: var(--color-heading-card); } /* for active link indication */
+    .text-heading-card-active {
+      color: var(--color-heading-card, #93C5FD);
+    }
+
+    /* for active link indication */
+    .text-heading-card {
+      color: var(--color-heading-card, #93C5FD);
+    }
 
     /* Table specific theming */
     .bg-table-th-bg { background-color: var(--color-table-th-bg); }
