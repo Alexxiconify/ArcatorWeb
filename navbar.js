@@ -44,12 +44,6 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
           safePhotoURL = defaultProfilePic;
         }
         if (userProfilePic) userProfilePic.src = safePhotoURL;
-        let profileHtml = '';
-        if (userProfile.displayName) profileHtml += userProfile.displayName;
-        if (userProfile.handle) profileHtml += ` <span class='text-gray-400'>@${userProfile.handle}</span>`;
-        if (userProfile.createdAt) profileHtml += `<span class='ml-2 text-xs text-gray-400'>Joined ${userProfile.createdAt.toDate ? new Date(userProfile.createdAt.toDate()).toLocaleDateString() : new Date(userProfile.createdAt).toLocaleDateString()}</span>`;
-        if (userProfile.editedAt) profileHtml += `<span class='ml-2 text-xs text-yellow-400'>(edited${userProfile.editedBy ? ' by ' + userProfile.editedBy : ''} ${userProfile.editedAt.toDate ? new Date(userProfile.editedAt.toDate()).toLocaleDateString() : new Date(userProfile.editedAt).toLocaleDateString()})</span>`;
-        if (userDisplayName) userDisplayName.innerHTML = profileHtml;
       } else {
         if (userSettingsLink) userSettingsLink.classList.add('hidden');
         if (signinLink) signinLink.classList.remove('hidden');

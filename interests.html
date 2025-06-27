@@ -195,14 +195,24 @@
     #interests-table td:nth-child(odd) {
       background-color: var(--color-table-col-odd, #4a5568);
     }
+
+    /* Hide scrollbars on table container */
+    #interests-table {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    #interests-table::-webkit-scrollbar {
+      display: none; /* WebKit browsers */
+    }
   </style>
   <script type="module">
     // --- Sheet tab config with correct GIDs ---
     const SHEETS = [
       { name: '2025 Interests', gid: '0' },
-      {name: '2020 Interests', gid: '0'},
-      {name: 'Machines', gid: '0'},
-      {name: 'Donations', gid: '0'}
+      {name: '2020 Interests', gid: '0#gid=0'},
+      {name: 'Machines', gid: '752318281#gid=752318281'},
+      {name: 'Donations', gid: '759735980#gid=759735980'}
     ];
     const BASE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=';
     const tableDiv = document.getElementById('interests-table');
