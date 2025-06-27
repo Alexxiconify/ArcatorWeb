@@ -1005,13 +1005,23 @@
                 <option value="hexagons">Hexagons</option>
               </select>
             </div>
-            <div class="input-field">
+            <div class="input-field md:col-span-1">
               <label for="background-opacity-range">Background Pattern Opacity:</label>
-              <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
-              <div class="flex justify-between text-xs text-text-secondary mt-1">
-                <span>0%</span>
-                <span id="background-opacity-value">10%</span>
-                <span>100%</span>
+              <div class="flex flex-col md:flex-row md:items-end gap-2">
+                <div class="flex-1">
+                  <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
+                  <div class="flex justify-between text-xs text-text-secondary mt-1">
+                    <span>0%</span>
+                    <span id="background-opacity-value">10%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+                <div class="flex-1 flex flex-col justify-end">
+                  <h4 class="text-md font-semibold text-heading-card mb-1 mt-0">Custom Themes</h4>
+                  <button class="btn-primary btn-purple w-full" id="create-custom-theme-btn"
+                          style="height:2.25rem;min-height:2.25rem;">Create/Manage Custom Themes
+                  </button>
+                </div>
               </div>
             </div>
             <!-- Typography -->
@@ -1082,19 +1092,6 @@
                 <option value="2px">Very Loose (2px)</option>
               </select>
               <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
-            </div>
-            <!-- Custom Themes -->
-            <div class="col-span-2">
-              <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
-                Custom Themes</h4>
-            </div>
-            <div class="col-span-2 flex flex-col md:flex-row gap-4">
-              <button class="btn-primary btn-purple flex-1" id="create-custom-theme-btn"
-                      style="height:2.25rem;min-height:2.25rem;">Create/Manage Custom Themes
-              </button>
-              <button class="btn-primary btn-green flex-1" id="save-preferences-btn"
-                      style="height:2.25rem;min-height:2.25rem;">Save Preferences
-              </button>
             </div>
             <!-- Accessibility -->
             <div class="col-span-2">
