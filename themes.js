@@ -525,10 +525,13 @@ export async function saveCustomTheme(themeData) {
     '--color-message-box-bg-error': '#EF4444'
   };
 
+  // Extract color variables from themeData - handle both direct and nested formats
+  const sourceColors = themeData.variables || themeData;
+
   // Build theme data with validation - use provided values or defaults
   const validatedColors = {};
   Object.keys(colorVariables).forEach(key => {
-    const value = themeData[key];
+    const value = sourceColors[key];
     if (value !== undefined && value !== null && value !== '') {
       validatedColors[key] = value;
     } else {
