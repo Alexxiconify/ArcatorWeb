@@ -125,9 +125,7 @@ const focusIndicatorsCheckbox = document.getElementById('focus-indicators-checkb
 const colorblindFriendlyCheckbox = document.getElementById('colorblind-friendly-checkbox');
 const reducedMotionCheckbox = document.getElementById('reduced-motion-checkbox');
 const disableAnimationsCheckbox = document.getElementById('disable-animations-checkbox');
-const keyboardNavigationCheckbox = document.getElementById('keyboard-navigation-checkbox');
 const skipLinksCheckbox = document.getElementById('skip-links-checkbox');
-const textToSpeechCheckbox = document.getElementById('text-to-speech-checkbox');
 const readingGuideCheckbox = document.getElementById('reading-guide-checkbox');
 const syntaxHighlightingCheckbox = document.getElementById('syntax-highlighting-checkbox');
 const wordSpacingCheckbox = document.getElementById('word-spacing-checkbox');
@@ -1269,9 +1267,7 @@ async function handleSaveAccessibility() {
     'colorblind-friendly-checkbox',
     'reduced-motion-checkbox',
     'disable-animations-checkbox',
-    'keyboard-navigation-checkbox',
     'skip-links-checkbox',
-    'text-to-speech-checkbox',
     'reading-guide-checkbox',
     'syntax-highlighting-checkbox',
     'word-spacing-checkbox'
