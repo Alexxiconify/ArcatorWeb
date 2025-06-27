@@ -117,50 +117,95 @@
     .settings-card {
       background: var(--color-bg-card);
       border: 1px solid var(--color-input-border);
-      border-radius: 1.25rem;
-      box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
+      border-radius: 0.75rem;
       margin-bottom: 1.5rem;
-      padding: 0;
       overflow: hidden;
       transition: all 0.3s ease;
-      break-inside: avoid;
     }
 
     .settings-card:hover {
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
     }
 
     .settings-card summary {
-      background: var(--color-table-th-bg);
-      color: var(--color-table-th-text);
-      border: none;
-      padding: 1.5rem 2rem;
-      cursor: pointer;
-      font-size: 1.25rem;
-      font-weight: 700;
-      border-radius: 1.25rem 1.25rem 0 0;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
+      padding: 1.5rem;
+      background: var(--color-bg-content-section);
+      border-bottom: 1px solid var(--color-input-border);
+      transition: background-color 0.2s ease;
     }
 
     .settings-card summary:hover {
-      background: var(--color-link);
-      color: var(--color-button-text);
+      background: var(--color-bg-navbar);
     }
 
     .settings-card[open] summary {
-      background: var(--color-link);
-      color: var(--color-button-text);
-      border-radius: 1.25rem 1.25rem 0 0;
+      border-bottom: 2px solid var(--color-link);
     }
 
-    .settings-card details > div {
-      padding: 2rem;
+    /* Subsection card styling */
+    .subsection-card {
+      background: var(--color-bg-content-section);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .subsection-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-color: var(--color-link);
+    }
+
+    .subsection-summary {
+      padding: 1rem 1.25rem;
       background: var(--color-bg-card);
+      border-bottom: 1px solid var(--color-input-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .subsection-summary:hover {
+      background: var(--color-bg-content-section);
+    }
+
+    .subsection-summary::after {
+      content: '▼';
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+      transition: transform 0.2s ease;
+    }
+
+    .subsection-card[open] .subsection-summary::after {
+      transform: rotate(180deg);
+    }
+
+    .subsection-content {
+      padding: 1.25rem;
+      background: var(--color-bg-content-section);
+    }
+
+    /* Danger zone specific styling */
+    .subsection-card.danger-zone {
+      border-color: var(--color-button-red-bg);
+      background: rgba(220, 38, 38, 0.05);
+    }
+
+    .subsection-card.danger-zone .subsection-summary {
+      background: rgba(220, 38, 38, 0.1);
+      border-bottom-color: var(--color-button-red-bg);
+    }
+
+    .subsection-card.danger-zone .subsection-summary:hover {
+      background: rgba(220, 38, 38, 0.15);
+    }
+
+    .subsection-card.danger-zone .subsection-content {
+      background: rgba(220, 38, 38, 0.05);
     }
 
     /* Dynamic settings layout */
@@ -653,138 +698,6 @@
       cursor: pointer;
     }
 
-    /* Settings card enhancements */
-    .settings-card {
-      background: var(--color-bg-card);
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.75rem;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .settings-card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
-
-    .settings-card summary {
-      padding: 1.5rem;
-      background: var(--color-bg-content-section);
-      border-bottom: 1px solid var(--color-input-border);
-      transition: background-color 0.2s ease;
-    }
-
-    .settings-card summary:hover {
-      background: var(--color-bg-navbar);
-    }
-
-    .settings-card[open] summary {
-      border-bottom: 2px solid var(--color-link);
-    }
-
-    /* Button enhancements */
-    .btn-primary {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-blue {
-      background: var(--color-button-blue-bg);
-      color: var(--color-button-text);
-    }
-
-    .btn-blue:hover {
-      background: var(--color-button-blue-hover);
-    }
-
-    .btn-green {
-      background: var(--color-button-green-bg);
-      color: var(--color-button-text);
-    }
-
-    .btn-green:hover {
-      background: var(--color-button-green-hover);
-    }
-
-    .btn-red {
-      background: var(--color-button-red-bg);
-      color: var(--color-button-text);
-    }
-
-    .btn-red:hover {
-      background: var(--color-button-red-hover);
-    }
-
-    .btn-orange {
-      background: var(--color-button-yellow-bg);
-      color: var(--color-button-text);
-    }
-
-    .btn-orange:hover {
-      background: var(--color-button-yellow-hover);
-    }
-
-    .btn-purple {
-      background: var(--color-button-purple-bg);
-      color: var(--color-button-text);
-    }
-
-    .btn-purple:hover {
-      background: var(--color-button-purple-hover);
-    }
-
-    /* Input field enhancements */
-    .input-field {
-      margin-bottom: 1.5rem;
-    }
-
-    .input-field label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
-    }
-
-    .input-field input,
-    .input-field select,
-    .input-field textarea {
-      width: 100%;
-      padding: 0.75rem;
-      background: var(--color-input-bg);
-      color: var(--color-input-text);
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-    }
-
-    .input-field input:focus,
-    .input-field select:focus,
-    .input-field textarea:focus {
-      outline: none;
-      border-color: var(--color-link);
-      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
-    }
-
-    .input-field input::placeholder,
-    .input-field textarea::placeholder {
-      color: var(--color-placeholder);
-    }
-
     /* Default option styling */
     .default-option {
       font-weight: 600;
@@ -1037,139 +950,187 @@
             <p class="text-text-secondary text-center mb-4">Control your privacy settings, manage your data, and
               configure notifications.</p>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3">Privacy Settings</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
-              <label for="profile-visibility-checkbox">Make Profile Public</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
-              <label for="activity-visibility-checkbox">Show Activity Status</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
-              <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
-            </div>
+            <!-- Privacy Settings Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Privacy Settings</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
+                  <label for="profile-visibility-checkbox">Make Profile Public</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
+                  <label for="activity-visibility-checkbox">Show Activity Status</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
+                  <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+                </div>
+              </div>
+            </details>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">General Notifications</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
-              <label for="email-notifications-checkbox">Receive Email Notifications</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
-              <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
-            </div>
+            <!-- General Notifications Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">General Notifications</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
+                  <label for="email-notifications-checkbox">Receive Email Notifications</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
+                  <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
+                </div>
+              </div>
+            </details>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Specific Notification Types</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="announcement-notifications-checkbox" type="checkbox">
-              <label for="announcement-notifications-checkbox">Server Announcements</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="community-notifications-checkbox" type="checkbox">
-              <label for="community-notifications-checkbox">Community Updates</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="security-notifications-checkbox" type="checkbox">
-              <label for="security-notifications-checkbox">Security Alerts</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="maintenance-notifications-checkbox" type="checkbox">
-              <label for="maintenance-notifications-checkbox">Maintenance Notifications</label>
-            </div>
+            <!-- Specific Notification Types Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Specific Notification Types</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="announcement-notifications-checkbox" type="checkbox">
+                  <label for="announcement-notifications-checkbox">Server Announcements</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="community-notifications-checkbox" type="checkbox">
+                  <label for="community-notifications-checkbox">Community Updates</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="security-notifications-checkbox" type="checkbox">
+                  <label for="security-notifications-checkbox">Security Alerts</label>
+                </div>
+                <div class="checkbox-container">
+                  <input class="form-checkbox" id="maintenance-notifications-checkbox" type="checkbox">
+                  <label for="maintenance-notifications-checkbox">Maintenance Notifications</label>
+                </div>
+              </div>
+            </details>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Notification Frequency</h4>
-            <div class="input-field">
-              <label for="notification-frequency-select">Email Frequency:</label>
-              <select class="w-full" id="notification-frequency-select">
-                <option class="default-option" value="immediate">Immediate</option>
-                <option value="hourly">Hourly Digest</option>
-                <option value="daily">Daily Digest</option>
-                <option value="weekly">Weekly Digest</option>
-                <option value="never">Never</option>
-              </select>
-            </div>
+            <!-- Notification Frequency Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Notification Frequency</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="input-field">
+                  <label for="notification-frequency-select">Email Frequency:</label>
+                  <select class="w-full" id="notification-frequency-select">
+                    <option class="default-option" value="immediate">Immediate</option>
+                    <option value="hourly">Hourly Digest</option>
+                    <option value="daily">Daily Digest</option>
+                    <option value="weekly">Weekly Digest</option>
+                    <option value="never">Never</option>
+                  </select>
+                </div>
+              </div>
+            </details>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Data Management</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button class="btn-primary btn-green" id="export-data-btn">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"
+            <!-- Data Management Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Data Management</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button class="btn-primary btn-green" id="export-data-btn">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        stroke-linecap="round" stroke-linejoin="round"
                         stroke-width="2"></path>
-                </svg>
-                Export My Data
-              </button>
-              <button class="btn-primary btn-purple" id="import-data-btn">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2"></path>
-                </svg>
-                Import Data
-              </button>
-            </div>
+                    </svg>
+                    Export My Data
+                  </button>
+                  <button class="btn-primary btn-purple" id="import-data-btn">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"></path>
+                    </svg>
+                    Import Data
+                  </button>
+                </div>
 
-            <div class="input-field">
-              <label for="data-retention-select">Data Retention Period:</label>
-              <select class="w-full" id="data-retention-select">
-                <option value="30">30 days</option>
-                <option class="default-option" value="90">90 days</option>
-                <option value="180">6 months</option>
-                <option value="365">1 year</option>
-                <option value="0">Keep indefinitely</option>
-              </select>
-            </div>
+                <div class="input-field">
+                  <label for="data-retention-select">Data Retention Period:</label>
+                  <select class="w-full" id="data-retention-select">
+                    <option value="30">30 days</option>
+                    <option class="default-option" value="90">90 days</option>
+                    <option value="180">6 months</option>
+                    <option value="365">1 year</option>
+                    <option value="0">Keep indefinitely</option>
+                  </select>
+                </div>
+              </div>
+            </details>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Session Information</h4>
-            <div class="text-text-primary">
-              <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
-              <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
-            </div>
+            <!-- Session Information Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Session Information</h4>
+              </summary>
+              <div class="subsection-content">
+                <div class="text-text-primary">
+                  <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
+                  <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
+                </div>
+              </div>
+            </details>
+
+            <!-- Password Management Subsection -->
+            <details class="subsection-card">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-heading-card">Password Management</h4>
+              </summary>
+              <div class="subsection-content">
+                <p class="text-text-secondary text-sm mb-4">You must enter your current password to change it.</p>
+                <form id="change-password-form">
+                  <div class="input-field">
+                    <label for="current-password-input">Current Password:</label>
+                    <input autocomplete="current-password" id="current-password-input" placeholder="********"
+                           type="password">
+                  </div>
+                  <div class="input-field">
+                    <label for="new-password-input">New Password:</label>
+                    <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
+                  </div>
+                  <div class="input-field">
+                    <label for="confirm-new-password-input">Confirm New Password:</label>
+                    <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
+                           type="password">
+                  </div>
+                  <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
+                  </button>
+                </form>
+              </div>
+            </details>
+
+            <!-- Danger Zone Subsection -->
+            <details class="subsection-card danger-zone">
+              <summary class="subsection-summary">
+                <h4 class="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h4>
+              </summary>
+              <div class="subsection-content">
+                <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
+                <form id="delete-account-form">
+                  <div class="input-field">
+                    <label for="delete-account-password">Confirm Password:</label>
+                    <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                           type="password">
+                  </div>
+                  <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
+                </form>
+              </div>
+            </details>
 
             <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Settings</button>
-          </div>
-        </details>
-
-        <!-- Password Management -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Password Management
-          </summary>
-          <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
-            <form id="change-password-form">
-              <div class="input-field">
-                <label for="current-password-input">Current Password:</label>
-                <input autocomplete="current-password" id="current-password-input" placeholder="********"
-                       type="password">
-              </div>
-              <div class="input-field">
-                <label for="new-password-input">New Password:</label>
-                <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
-              </div>
-              <div class="input-field">
-                <label for="confirm-new-password-input">Confirm New Password:</label>
-                <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
-                       type="password">
-              </div>
-              <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
-              </button>
-            </form>
-
-            <!-- Danger Zone (Moved into Password Management) -->
-            <div class="mt-8 p-4 border border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
-              <h4 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Danger Zone</h4>
-              <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
-              <form id="delete-account-form">
-                <div class="input-field">
-                  <label for="delete-account-password">Confirm Password:</label>
-                  <input autocomplete="current-password" id="delete-account-password" placeholder="********"
-                         type="password">
-                </div>
-                <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
-              </form>
-            </div>
           </div>
         </details>
       </div>
