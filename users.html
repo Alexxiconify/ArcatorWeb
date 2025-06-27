@@ -455,7 +455,7 @@
       transition: all 0.3s ease;
       min-height: 2.25rem;
       height: 2.25rem;
-      width: 50%;
+      width: 100%;
       max-width: 100%;
       box-sizing: border-box;
     }
@@ -1055,20 +1055,24 @@
                 <span>100%</span>
               </div>
             </div>
-            <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
+            <button class="btn-primary btn-green mt-2" id="save-preferences-btn"
+                    style="height:2.25rem;min-height:2.25rem;">Save Preferences
+            </button>
 
-            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2">Custom
-              Themes</h3>
-            <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
+            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"
+                style="border-bottom:1px solid var(--color-input-border);padding-bottom:0.5rem;">Custom Themes</h3>
+            <button class="btn-primary btn-purple" id="create-custom-theme-btn"
+                    style="height:2.25rem;min-height:2.25rem;">Create/Manage Custom Themes
+            </button>
 
             <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2">
               Accessibility</h3>
-            <div class="checkbox-container">
+            <div class="checkbox-container" style="margin-bottom:0.25rem;">
               <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
               <label for="reduced-motion-checkbox">Reduced Motion <span
                 style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes most transitions and animations for less motion.</span></label>
             </div>
-            <div class="checkbox-container">
+            <div class="checkbox-container" style="margin-bottom:0.25rem;">
               <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
               <label for="disable-animations-checkbox">Disable Animations <span
                 style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
