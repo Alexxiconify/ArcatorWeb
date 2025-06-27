@@ -505,8 +505,8 @@ function renderThemaBoxes(themasArr) {
           <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
           ${(window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) ? `
             <div class="actions-right">
-              <button class="edit-thema-btn" title="Edit"><span class="material-icons text-orange-400">edit</span></button>
-              <button class="delete-thema-btn" title="Delete"><span class="material-icons text-red-500">delete</span></button>
+              <button class="edit-thema-btn" title="Edit"></button>
+              <button class="delete-thema-btn" title="Delete"></button>
             </div>
           ` : ''}
         </div>
@@ -650,7 +650,7 @@ function loadThreadsForThema(themaId) {
             <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+            ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"></button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(replaceEmojis(thread.initialComment || ''))}</div>
@@ -791,7 +791,7 @@ function loadCommentsForThread(themaId, threadId) {
           <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
-          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
+          ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"></button>` : ''}
         </div>
         <div class="comment-content text-sm">${renderMarkdown(replaceEmojis(comment.content))}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId)}</div>
@@ -1389,7 +1389,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
             <div class="flex items-center gap-2 mb-1 ${isOwn ? 'justify-end' : ''}">
               <span class='font-semibold'>${senderName}</span>
               <span class='text-xs text-gray-400 whitespace-nowrap'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
-              ${canEditDelete ? `<button class="dm-edit-btn material-icons text-blue-400 text-base align-middle" title="Edit" data-id="${doc.id}">edit</button><button class="dm-delete-btn material-icons text-red-400 text-base align-middle" title="Delete" data-id="${doc.id}">delete</button>` : ''}
+              ${canEditDelete ? `<button class="dm-edit-btn" title="Edit" data-id="${doc.id}"></button><button class="dm-delete-btn" title="Delete" data-id="${doc.id}"></button>` : ''}
             </div>
             <div class="dm-message-content">${convertMentionsToHTML(replaceEmojis(m.content))}</div>
           </div>
