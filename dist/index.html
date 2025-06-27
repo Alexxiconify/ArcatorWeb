@@ -1,0 +1,256 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arcator.co.uk - Minecraft Community Since 2012</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="theme_variables.css"><link rel="stylesheet" href="navbar.css"><link rel="icon" type="image/png" href="favicon.png"><style>/* Base styles, will be overridden by CSS variables from themes.js */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 400px; /* Increased height for visual impact */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Dynamic theme application for various elements */
+    .bg-gray-800 {
+      background-color: var(--color-bg-content-section) !important;
+    }
+    .bg-gray-900 {
+      background-color: var(--color-bg-navbar) !important; /* For footer */
+    }
+    .text-gray-300 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-400 {
+      color: var(--color-text-secondary) !important;
+    }
+    .text-gray-50 {
+      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
+    }
+    .text-red-400 {
+      color: var(--color-heading-main) !important;
+    }
+    .text-blue-300 {
+      color: var(--color-heading-card) !important;
+    }
+    .text-yellow-300 {
+      color: var(--color-button-yellow-bg) !important;
+    }
+    .text-green-300 {
+      color: var(--color-button-green-bg) !important;
+    }
+
+    /* Feature card specific styling */
+    .feature-card {
+      background-color: var(--color-bg-card); /* Use card background for feature cards */
+      color: var(--color-text-primary);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
+    }
+    .minecraft-ip-box {
+      background-color: var(--color-bg-ip-box);
+      border: 2px solid var(--color-border-ip-box);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    .text-white { /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
+      color: white !important;
+    }
+
+    /* Buttons */
+    .bg-blue-600 {
+      background-color: var(--color-button-blue-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-blue-700:hover {
+      background-color: var(--color-button-blue-hover) !important;
+    }
+    .bg-yellow-600 {
+      background-color: var(--color-button-yellow-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-yellow-700:hover {
+      background-color: var(--color-button-yellow-hover) !important;
+    }
+    .bg-green-600 { /* Copy IP button */
+      background-color: var(--color-button-green-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-green-700:hover {
+      background-color: var(--color-button-green-hover) !important;
+    }
+    .bg-indigo-600 { /* Discord button */
+      background-color: var(--color-button-indigo-bg) !important;
+      color: var(--color-button-text) !important;
+    }
+    .hover\:bg-indigo-700:hover {
+      background-color: var(--color-button-indigo-hover) !important;
+    }
+    .hover\:text-white:hover { /* For footer links */
+      color: var(--color-text-primary) !important;
+    }</style><script defer="defer" src="./js/app.js"></script></head><body class="antialiased"><div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div><section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"><div class="container mx-auto px-4 text-center hero-content"><h1 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight">Arcator.co.uk</h1><p class="text-xl md:text-3xl mb-8">Your Minecraft Home Since 2012</p><div class="space-y-4 sm:space-y-0 sm:space-x-4"><a href="servers.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Explore Servers</a> <a href="community.html" class="inline-block bg-yellow-600 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Community</a></div></div></section><section id="about" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center"><div class="container mx-auto px-4"><h2 class="text-4xl font-bold text-red-400 mb-6">About Arcator.co.uk</h2><p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">Arcator is a long-standing Minecraft community, first established in 2012. We pride ourselves on providing a stable, fun, and evolving environment for players to enjoy various Minecraft experiences, from survival to creative building, all while fostering a friendly and engaged community.</p><a href="about.html" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Learn More About Us</a></div></section><section id="features" class="py-16 bg-gray-900 rounded-lg shadow-inner mx-4 my-8"><div class="container mx-auto px-4"><h2 class="text-4xl font-bold text-red-400 text-center mb-12">What We Offer</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="feature-card text-center"><h3 class="text-2xl font-bold text-blue-300 mb-4">Diverse Server Experiences</h3><p class="text-gray-300">From classic Survival Multiplayer to creative plots and unique mini-games, our servers cater to all playstyles. Find your perfect Minecraft adventure!</p><a href="servers.html" class="mt-4 inline-block text-blue-400 hover:text-blue-200 transition duration-300 ease-in-out">Explore Servers &rarr;</a></div><div class="feature-card text-center"><h3 class="text-2xl font-bold text-yellow-300 mb-4">Engaged & Friendly Community</h3><p class="text-gray-300">Join our Discord, participate in events, and connect with fellow Minecraft enthusiasts. We believe in fostering a welcoming environment for everyone.</p><a href="community.html" class="mt-4 inline-block text-yellow-400 hover:text-yellow-200 transition duration-300 ease-in-out">Join Our Discord &rarr;</a></div><div class="feature-card text-center"><h3 class="text-2xl font-bold text-green-300 mb-4">Robust & Reliable Infrastructure</h3><p class="text-gray-300">Powered by dedicated hardware and custom solutions, our servers ensure a smooth, low-lag experience with excellent uptime and data security.</p><a href="infrastructure.html" class="mt-4 inline-block text-green-400 hover:text-green-200 transition duration-300 ease-in-out">View Infrastructure &rarr;</a></div></div></div></section><section id="join-us" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center"><div class="container mx-auto px-4"><h2 class="text-4xl font-bold text-red-400 mb-6">Join Our Minecraft Community!</h2><p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">Ready to embark on your next Minecraft adventure? Connect to our server, join our Discord, and become a part of the Arcator family!</p><div class="minecraft-ip-box bg-gray-700 p-6 rounded-lg max-w-lg mx-auto shadow-xl"><p class="text-3xl font-extrabold text-green-400 mb-4">Server IP:</p><div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4"><span id="minecraft-ip" class="bg-gray-600 text-white text-2xl font-semibold px-6 py-3 rounded-md select-all">play.arcator.co.uk</span> <button id="copyIpButton" class="copy-button">Copy IP</button></div></div><div class="mt-8"><a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord</a></div></div></section><footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8"><div class="container mx-auto px-4"><p>© 2012 - <span id="current-year-index"></span> Arcator.co.uk. All rights reserved.</p><p class="mt-2">Made with ❤️ for the Minecraft Community.</p><div class="flex flex-wrap justify-center space-x-6 mt-4"><a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a> <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a> <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a> <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a> <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a></div></div></footer><script type="module">import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { loadNavbar } from './navbar.js'; // Import loadNavbar
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
+    authDomain: "arcator-web.firebaseapp.com",
+    projectId: "arcator-web",
+    storageBucket: "arcator-web.firebasestorage.app",
+    messagingSenderId: "1033082068049",
+    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
+    measurementId: "G-DJXNT1L7CM"
+  };
+
+  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+
+  let app;
+  let auth;
+  let db;
+  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
+
+  const DEFAULT_THEME = 'dark';
+  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
+
+  /**
+   * Fetches user profile data from Firestore.
+   * @param {string} uid - The user's UID.
+   * @returns {Promise<Object|null>} - User profile data or null if not found.
+   */
+  async function getUserProfileFromFirestore(uid) {
+    await firebaseReadyPromise; // Ensure Firebase is initialized
+    if (!db) {
+      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+      return null;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile from Firestore:", error);
+    }
+    return null;
+  }
+
+  // Initialize Firebase and setup firebaseReadyPromise
+  firebaseReadyPromise = new Promise((resolve) => {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully.");
+      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
+
+      // Critical: Ensure auth state is settled before resolving
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        unsubscribe(); // Unsubscribe after the first call
+
+        // Perform initial sign-in if in Canvas and no user is already authenticated
+        if (typeof __initial_auth_token !== 'undefined' && !user) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (index page) during init."))
+            .catch((error) => {
+              console.error("ERROR: Error signing in with custom token (index page) during init:", error);
+              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
+                .then(() => console.log("DEBUG: Signed in anonymously (index page) after custom token failure during init."))
+                .catch((anonError) => console.error("ERROR: Error signing in anonymously on index page during init:", anonError));
+            })
+            .finally(() => resolve()); // Resolve promise after token attempt
+        } else if (!user && typeof __initial_auth_token === 'undefined') {
+          signInAnonymously(auth)
+            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on index page during init."))
+            .catch((anonError) => console.error("ERROR: Error signing in anonymously on index page during init:", anonError))
+            .finally(() => resolve());
+        }
+        else {
+          resolve(); // Resolve immediately if user is already authenticated or no token to use
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing Firebase (initial block):", e);
+      resolve(); // Resolve immediately on error to prevent infinite loading
+    }
+  });
+
+  // Main execution logic on window load
+  window.onload = async function() {
+    // Wait for Firebase to be ready before proceeding
+    await firebaseReadyPromise;
+
+    // Load navbar dynamically
+    await loadNavbar({ auth, db, appId }, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
+
+    // Set current year for footer
+    document.getElementById('current-year-index').textContent = new Date().getFullYear();
+
+    // Function to copy IP address to clipboard
+    document.getElementById('copyIpButton').addEventListener('click', function() {
+      const ipAddress = 'play.arcator.co.uk'; // Keeping primary IP for copy button
+      const tempInput = document.createElement('input');
+      tempInput.value = ipAddress;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      // Provide feedback to the user (e.g., change button text or show a temporary message)
+      const originalText = this.textContent;
+      this.textContent = 'Copied!';
+      setTimeout(() => {
+        this.textContent = originalText;
+      }, 2000);
+      document.body.removeChild(tempInput); // Clean up the temporary input element
+    });
+
+    // After everything is loaded and Firebase is ready, apply the user's theme
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        userThemePreference = userProfile?.themePreference;
+      }
+      // Apply the theme: user's preference, or 'dark' default
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
+  };</script></body></html>
