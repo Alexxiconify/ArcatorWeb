@@ -746,167 +746,144 @@
     <!-- Collapsible Settings Sections (Account Management) -->
     <div id="settings-content" style="display: none;">
       <div class="space-y-6">
-        <!-- Profile Info -->
-        <details class="settings-card" open>
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Profile Information
-          </summary>
-          <div class="mt-4 flex flex-col md:flex-row md:items-start md:gap-8">
-            <div class="flex-shrink-0 flex justify-center md:block mb-4 md:mb-0">
-              <img alt="Profile Picture" class="profile-pic-large w-32 h-32 rounded-full object-cover"
-                   id="profile-picture-display" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
-                   src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV">
-            </div>
-            <div class="flex-1">
-              <div class="input-field">
-                <label for="display-name-input">Display Name:</label>
-                <input id="display-name-input" placeholder="Your Display Name" type="text">
+        <!-- Profile Info and Personalize Experience Side by Side -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Profile Info -->
+          <details class="settings-card" open>
+            <summary
+              class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Profile Information
+            </summary>
+            <div class="mt-4 flex flex-col md:flex-row md:items-start md:gap-8">
+              <div class="flex-shrink-0 flex justify-center md:block mb-4 md:mb-0">
+                <img alt="Profile Picture" class="profile-pic-large w-32 h-32 rounded-full object-cover"
+                     id="profile-picture-display" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
+                     src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV">
               </div>
-              <div class="input-field">
-                <label for="handle-input">Unique Handle:</label>
-                <input id="handle-input" placeholder="@yourhandle" type="text">
-                <p class="text-text-secondary text-sm mt-1">This will be your unique public identifier.</p>
-              </div>
-              <div class="input-field">
-                <label for="profile-picture-url-input">Profile Picture URL:</label>
-                <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
-                <p class="text-text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a
-                  direct link to an image (JPG, PNG, GIF).</p>
-              </div>
-              <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
-            </div>
-          </div>
-        </details>
-        <!-- Preferences -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Personalize Experience
-          </summary>
-          <div class="mt-4">
-            <div class="input-field">
-              <label for="theme-select">Select Theme:</label>
-              <select class="w-full" id="theme-select"></select>
-            </div>
-            <div class="input-field">
-              <label for="font-size-select">Base Font Size:</label>
-              <select class="w-full" id="font-size-select">
-                <option value="12px">Extra Small (12px)</option>
-                <option value="14px">Small (14px)</option>
-                <option class="default-option" value="16px">Medium (16px)</option>
-                <option value="18px">Large (18px)</option>
-                <option value="20px">Extra Large (20px)</option>
-                <option value="22px">XXL (22px)</option>
-                <option value="24px">XXXL (24px)</option>
-              </select>
-            </div>
-            <div class="input-field">
-              <label for="heading-size-multiplier">Heading Size Multiplier:</label>
-              <select class="w-full" id="heading-size-multiplier">
-                <option value="1.2">Small (1.2x)</option>
-                <option value="1.4">Medium (1.4x)</option>
-                <option class="default-option" value="1.6">Large (1.6x)</option>
-                <option value="1.8">Extra Large (1.8x)</option>
-                <option value="2.0">XXL (2.0x)</option>
-                <option value="2.5">XXXL (2.5x)</option>
-              </select>
-              <p class="text-text-secondary text-sm mt-1">Controls how much larger headings are compared to body
-                text.</p>
-            </div>
-            <div class="input-field">
-              <label for="font-family-select">Font Family:</label>
-              <select class="w-full" id="font-family-select">
-                <option class="default-option" value="Inter, sans-serif">Inter (Modern)</option>
-                <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
-                <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
-                <option value="Roboto, sans-serif">Roboto (Google)</option>
-                <option value="Lato, sans-serif">Lato (Friendly)</option>
-                <option value="Poppins, sans-serif">Poppins (Geometric)</option>
-                <option value="Source Sans Pro, sans-serif">Source Sans Pro (Professional)</option>
-                <option value="Ubuntu, sans-serif">Ubuntu (System-like)</option>
-                <option value="Merriweather, serif">Merriweather (Serif)</option>
-                <option value="Playfair Display, serif">Playfair Display (Elegant)</option>
-              </select>
-            </div>
-            <div class="input-field">
-              <label for="line-height-select">Line Height:</label>
-              <select class="w-full" id="line-height-select">
-                <option value="1.2">Tight (1.2)</option>
-                <option value="1.4">Compact (1.4)</option>
-                <option class="default-option" value="1.6">Normal (1.6)</option>
-                <option value="1.8">Relaxed (1.8)</option>
-                <option value="2.0">Loose (2.0)</option>
-                <option value="2.2">Very Loose (2.2)</option>
-              </select>
-              <p class="text-text-secondary text-sm mt-1">Controls spacing between lines of text.</p>
-            </div>
-            <div class="input-field">
-              <label for="letter-spacing-select">Letter Spacing:</label>
-              <select class="w-full" id="letter-spacing-select">
-                <option value="-0.5px">Tight (-0.5px)</option>
-                <option value="-0.2px">Slightly Tight (-0.2px)</option>
-                <option class="default-option" value="0px">Normal (0px)</option>
-                <option value="0.5px">Slightly Loose (0.5px)</option>
-                <option value="1px">Loose (1px)</option>
-                <option value="2px">Very Loose (2px)</option>
-              </select>
-              <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
-            </div>
-            <div class="input-field">
-              <label for="background-pattern-select">Background Pattern:</label>
-              <select class="w-full" id="background-pattern-select">
-                <option class="default-option" value="none">None</option>
-                <option value="dots">Dots</option>
-                <option value="grid">Grid</option>
-                <option value="diagonal">Diagonal Lines</option>
-                <option value="circles">Circles</option>
-                <option value="hexagons">Hexagons</option>
-              </select>
-            </div>
-            <div class="input-field">
-              <label for="background-opacity-range">Background Pattern Opacity:</label>
-              <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
-              <div class="flex justify-between text-xs text-text-secondary mt-1">
-                <span>0%</span>
-                <span id="background-opacity-value">10%</span>
-                <span>100%</span>
+              <div class="flex-1">
+                <div class="input-field">
+                  <label for="display-name-input">Display Name:</label>
+                  <input id="display-name-input" placeholder="Your Display Name" type="text">
+                </div>
+                <div class="input-field">
+                  <label for="handle-input">Unique Handle:</label>
+                  <input id="handle-input" placeholder="@yourhandle" type="text">
+                  <p class="text-text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+                </div>
+                <div class="input-field">
+                  <label for="profile-picture-url-input">Profile Picture URL:</label>
+                  <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
+                  <p class="text-text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a
+                    direct link to an image (JPG, PNG, GIF).</p>
+                </div>
+                <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
               </div>
             </div>
-            <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
-            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"> Custom
-              Themes</h3>
-            <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
-          </div>
-        </details>
-        <!-- Security -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Password Management
-          </summary>
-          <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
-            <form id="change-password-form">
+          </details>
+
+          <!-- Personalize Experience -->
+          <details class="settings-card">
+            <summary
+              class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Personalize Experience
+            </summary>
+            <div class="mt-4">
               <div class="input-field">
-                <label for="current-password-input">Current Password:</label>
-                <input autocomplete="current-password" id="current-password-input" placeholder="********"
-                       type="password">
+                <label for="theme-select">Select Theme:</label>
+                <select class="w-full" id="theme-select"></select>
               </div>
               <div class="input-field">
-                <label for="new-password-input">New Password:</label>
-                <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
+                <label for="font-size-select">Base Font Size:</label>
+                <select class="w-full" id="font-size-select">
+                  <option value="12px">Extra Small (12px)</option>
+                  <option value="14px">Small (14px)</option>
+                  <option class="default-option" value="16px">Medium (16px)</option>
+                  <option value="18px">Large (18px)</option>
+                  <option value="20px">Extra Large (20px)</option>
+                  <option value="22px">XXL (22px)</option>
+                  <option value="24px">XXXL (24px)</option>
+                </select>
               </div>
               <div class="input-field">
-                <label for="confirm-new-password-input">Confirm New Password:</label>
-                <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
-                       type="password">
+                <label for="heading-size-multiplier">Heading Size Multiplier:</label>
+                <select class="w-full" id="heading-size-multiplier">
+                  <option value="1.2">Small (1.2x)</option>
+                  <option value="1.4">Medium (1.4x)</option>
+                  <option class="default-option" value="1.6">Large (1.6x)</option>
+                  <option value="1.8">Extra Large (1.8x)</option>
+                  <option value="2.0">XXL (2.0x)</option>
+                  <option value="2.5">XXXL (2.5x)</option>
+                </select>
+                <p class="text-text-secondary text-sm mt-1">Controls how much larger headings are compared to body
+                  text.</p>
               </div>
-              <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
-              </button>
-            </form>
-          </div>
-        </details>
+              <div class="input-field">
+                <label for="font-family-select">Font Family:</label>
+                <select class="w-full" id="font-family-select">
+                  <option class="default-option" value="Inter, sans-serif">Inter (Modern)</option>
+                  <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
+                  <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
+                  <option value="Roboto, sans-serif">Roboto (Google)</option>
+                  <option value="Lato, sans-serif">Lato (Friendly)</option>
+                  <option value="Poppins, sans-serif">Poppins (Geometric)</option>
+                  <option value="Source Sans Pro, sans-serif">Source Sans Pro (Professional)</option>
+                  <option value="Ubuntu, sans-serif">Ubuntu (System-like)</option>
+                  <option value="Merriweather, serif">Merriweather (Serif)</option>
+                  <option value="Playfair Display, serif">Playfair Display (Elegant)</option>
+                </select>
+              </div>
+              <div class="input-field">
+                <label for="line-height-select">Line Height:</label>
+                <select class="w-full" id="line-height-select">
+                  <option value="1.2">Tight (1.2)</option>
+                  <option value="1.4">Compact (1.4)</option>
+                  <option class="default-option" value="1.6">Normal (1.6)</option>
+                  <option value="1.8">Relaxed (1.8)</option>
+                  <option value="2.0">Loose (2.0)</option>
+                  <option value="2.2">Very Loose (2.2)</option>
+                </select>
+                <p class="text-text-secondary text-sm mt-1">Controls spacing between lines of text.</p>
+              </div>
+              <div class="input-field">
+                <label for="letter-spacing-select">Letter Spacing:</label>
+                <select class="w-full" id="letter-spacing-select">
+                  <option value="-0.5px">Tight (-0.5px)</option>
+                  <option value="-0.2px">Slightly Tight (-0.2px)</option>
+                  <option class="default-option" value="0px">Normal (0px)</option>
+                  <option value="0.5px">Slightly Loose (0.5px)</option>
+                  <option value="1px">Loose (1px)</option>
+                  <option value="2px">Very Loose (2px)</option>
+                </select>
+                <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
+              </div>
+              <div class="input-field">
+                <label for="background-pattern-select">Background Pattern:</label>
+                <select class="w-full" id="background-pattern-select">
+                  <option class="default-option" value="none">None</option>
+                  <option value="dots">Dots</option>
+                  <option value="grid">Grid</option>
+                  <option value="diagonal">Diagonal Lines</option>
+                  <option value="circles">Circles</option>
+                  <option value="hexagons">Hexagons</option>
+                </select>
+              </div>
+              <div class="input-field">
+                <label for="background-opacity-range">Background Pattern Opacity:</label>
+                <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
+                <div class="flex justify-between text-xs text-text-secondary mt-1">
+                  <span>0%</span>
+                  <span id="background-opacity-value">10%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
+              <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"> Custom
+                Themes</h3>
+              <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
+            </div>
+          </details>
+        </div>
+
         <!-- Notifications -->
         <details class="settings-card">
           <summary
@@ -1021,6 +998,7 @@
             <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Privacy Settings</button>
           </div>
         </details>
+
         <!-- Accessibility -->
         <details class="settings-card">
           <summary
@@ -1046,22 +1024,47 @@
             <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
           </div>
         </details>
-        <!-- Danger Zone -->
+
+        <!-- Password Management (Moved to last) -->
         <details class="settings-card">
           <summary
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Danger Zone
+            Password Management
           </summary>
           <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">Enter your password to permanently delete your account.</p>
-            <form id="delete-account-form">
+            <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
+            <form id="change-password-form">
               <div class="input-field">
-                <label for="delete-account-password">Confirm Password:</label>
-                <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                <label for="current-password-input">Current Password:</label>
+                <input autocomplete="current-password" id="current-password-input" placeholder="********"
                        type="password">
               </div>
-              <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
+              <div class="input-field">
+                <label for="new-password-input">New Password:</label>
+                <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
+              </div>
+              <div class="input-field">
+                <label for="confirm-new-password-input">Confirm New Password:</label>
+                <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
+                       type="password">
+              </div>
+              <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
+              </button>
             </form>
+
+            <!-- Danger Zone (Moved into Password Management) -->
+            <div class="mt-8 p-4 border border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <h4 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Danger Zone</h4>
+              <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
+              <form id="delete-account-form">
+                <div class="input-field">
+                  <label for="delete-account-password">Confirm Password:</label>
+                  <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                         type="password">
+                </div>
+                <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
+              </form>
+            </div>
           </div>
         </details>
       </div>
