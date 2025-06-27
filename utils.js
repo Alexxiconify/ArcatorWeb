@@ -256,35 +256,48 @@ function initializeUtilityElements() {
  * @returns {Promise<boolean>} A promise that resolves to true if 'Yes' is clicked, false otherwise.
  */
 export function showCustomConfirm(message, submessage = '') {
+  console.log('DEBUG: showCustomConfirm called with message:', message, 'submessage:', submessage);
+  console.log('DEBUG: Modal elements - customConfirmModal:', !!customConfirmModal, 'confirmMessage:', !!confirmMessage, 'confirmYesButton:', !!confirmYesButton, 'confirmNoButton:', !!confirmNoButton, 'closeButton:', !!closeButton);
+  
   if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
     console.error("Custom confirmation modal elements not found.");
+    console.error("customConfirmModal:", customConfirmModal);
+    console.error("confirmMessage:", confirmMessage);
+    console.error("confirmYesButton:", confirmYesButton);
+    console.error("confirmNoButton:", confirmNoButton);
+    console.error("closeButton:", closeButton);
     return Promise.resolve(false);
   }
 
   confirmMessage.textContent = message;
   confirmSubmessage.textContent = submessage;
   customConfirmModal.style.display = 'flex';
+  console.log('DEBUG: Modal displayed, waiting for user response');
 
   return new Promise((resolve) => {
     resolveConfirmPromise = resolve;
 
     confirmYesButton.onclick = () => {
+      console.log('DEBUG: Yes button clicked');
       customConfirmModal.style.display = 'none';
       resolveConfirmPromise(true);
     };
 
     confirmNoButton.onclick = () => {
+      console.log('DEBUG: No button clicked');
       customConfirmModal.style.display = 'none';
       resolveConfirmPromise(false);
     };
 
     closeButton.onclick = () => {
+      console.log('DEBUG: Close button clicked');
       customConfirmModal.style.display = 'none';
       resolveConfirmPromise(false);
     };
 
     customConfirmModal.onclick = (event) => {
       if (event.target === customConfirmModal) {
+        console.log('DEBUG: Modal background clicked');
         customConfirmModal.style.display = 'none';
         resolveConfirmPromise(false);
       }

@@ -310,12 +310,26 @@ async function fetchCustomThemes() {
     const querySnapshot = await getDocs(customThemesCol);
     const customThemes = [];
     querySnapshot.forEach((doc) => {
-      customThemes.push({ id: doc.id, ...doc.data() });
+      const themeData = {id: doc.id, ...doc.data()};
+      console.log(`DEBUG: Fetched theme - ID: ${themeData.id}, Name: ${themeData.name}, isCustom: ${themeData.isCustom}`);
+
+      // Filter out themes with null or invalid IDs
+      if (!themeData.id || themeData.id === 'null' || themeData.id === null) {
+        console.error(`DEBUG: Theme with invalid ID found - Name: ${themeData.name}, ID: ${themeData.id}`);
+        return; // Skip this theme
+      }
+
+      // Ensure the theme has required fields
+      if (!themeData.name || !themeData.isCustom) {
+        console.warn(`DEBUG: Theme missing required fields - ID: ${themeData.id}, Name: ${themeData.name}, isCustom: ${themeData.isCustom}`);
+      }
+
+      customThemes.push(themeData);
     });
     console.log("DEBUG: Fetched custom themes:", customThemes.length);
     return customThemes;
   } catch (error) {
-    console.error("ERROR: Error fetching custom themes:", error);
+    console.error("Error fetching custom themes:", error);
     return [];
   }
 }
@@ -326,11 +340,48 @@ async function fetchCustomThemes() {
  * @returns {Promise<Array>} Array of all available theme objects.
  */
 export async function getAvailableThemes(forceRefresh = false) {
+  console.log(`DEBUG: getAvailableThemes called with forceRefresh=${forceRefresh}, cache exists=${!!availableThemesCache}`);
+
   if (availableThemesCache && !forceRefresh) {
+    console.log(`DEBUG: Returning cached themes (${availableThemesCache.length} total)`);
+    console.log("DEBUG: Cached themes details:", availableThemesCache.map(t => ({
+      id: t.id,
+      name: t.name,
+      isCustom: t.isCustom
+    })));
     return availableThemesCache;
   }
+
+  console.log(`DEBUG: Fetching fresh themes...`);
   const customThemes = await fetchCustomThemes();
-  availableThemesCache = [...defaultThemes, ...customThemes];
+  console.log(`DEBUG: Fetched ${customThemes.length} custom themes`);
+
+  console.log("DEBUG: Default themes:", defaultThemes.map(t => ({id: t.id, name: t.name, isCustom: t.isCustom})));
+  console.log("DEBUG: Custom themes before combining:", customThemes.map(t => ({
+    id: t.id,
+    name: t.name,
+    isCustom: t.isCustom
+  })));
+
+  // Filter out any themes with null or invalid IDs
+  const validCustomThemes = customThemes.filter(theme => {
+    if (!theme.id || theme.id === 'null' || theme.id === null) {
+      console.error(`DEBUG: Filtering out theme with invalid ID: ${theme.name} (ID: ${theme.id})`);
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`DEBUG: Valid custom themes after filtering: ${validCustomThemes.length}`);
+
+  availableThemesCache = [...defaultThemes, ...validCustomThemes];
+  console.log(`DEBUG: Updated cache with ${availableThemesCache.length} total themes`);
+  console.log("DEBUG: Final themes details:", availableThemesCache.map(t => ({
+    id: t.id,
+    name: t.name,
+    isCustom: t.isCustom
+  })));
+
   return availableThemesCache;
 }
 
@@ -345,14 +396,22 @@ export function applyTheme(themeId, themeProperties) {
   // Remove existing theme classes
   root.classList.remove('theme-dark', 'theme-light', 'theme-arcator-green', 'theme-ocean-blue', 'theme-high-contrast');
 
-  // Add new theme class
-  root.classList.add(`theme-${themeId}`);
+  // Only add theme class for built-in themes (not custom themes)
+  if (themeProperties && themeProperties.isCustom) {
+    // For custom themes, don't add a CSS class since they don't have predefined CSS
+    console.log(`Applying custom theme: ${themeId}`);
+  } else {
+    // Add new theme class for built-in themes
+    root.classList.add(`theme-${themeId}`);
+    console.log(`Applying built-in theme: ${themeId}`);
+  }
 
   // Apply CSS variables if theme properties are provided
   if (themeProperties && themeProperties.variables) {
     Object.entries(themeProperties.variables).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
+    console.log(`Applied ${Object.keys(themeProperties.variables).length} CSS variables for theme: ${themeId}`);
   }
 
   // Apply CSS variables if theme properties are provided (legacy format)
@@ -360,6 +419,29 @@ export function applyTheme(themeId, themeProperties) {
     Object.entries(themeProperties.colors).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
+    console.log(`Applied ${Object.keys(themeProperties.colors).length} legacy color variables for theme: ${themeId}`);
+  }
+
+  // Apply background pattern if specified
+  if (themeProperties && themeProperties.backgroundPattern) {
+    if (themeProperties.backgroundPattern === 'none') {
+      document.body.style.backgroundImage = 'none';
+    } else if (themeProperties.backgroundPattern === 'dots') {
+      document.body.style.backgroundImage = 'linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent)';
+      document.body.style.backgroundSize = '20px 20px';
+      document.body.style.backgroundAttachment = 'fixed';
+    } else if (themeProperties.backgroundPattern === 'grid') {
+      document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+      document.body.style.backgroundSize = '40px 40px';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
+    console.log(`Applied background pattern: ${themeProperties.backgroundPattern}`);
+  }
+
+  // Apply font family if specified
+  if (themeProperties && themeProperties.variables && themeProperties.variables['--font-family-body']) {
+    document.body.style.fontFamily = themeProperties.variables['--font-family-body'];
+    console.log(`Applied font family: ${themeProperties.variables['--font-family-body']}`);
   }
 
   // Dispatch theme change event for components that need to update
@@ -371,13 +453,13 @@ export function applyTheme(themeId, themeProperties) {
   });
   document.dispatchEvent(themeChangeEvent);
 
-  console.log(`Theme applied: ${themeId}`);
+  console.log(`Theme applied successfully: ${themeId}`);
 }
 
 /**
  * Saves a custom theme to Firestore.
  * @param {object} themeData - The theme data to save.
- * @returns {Promise<boolean>} Success status.
+ * @returns {Promise<string|boolean>} Document ID on success, false on failure.
  */
 export async function saveCustomTheme(themeData) {
   console.log('DEBUG: saveCustomTheme called with:', themeData);
@@ -403,47 +485,99 @@ export async function saveCustomTheme(themeData) {
 
   const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
 
+  // Define all required color variables with their default values
+  const colorVariables = {
+    '--color-body-bg': '#1F2937',
+    '--color-text-primary': '#E5E7EB',
+    '--color-text-secondary': '#9CA3AF',
+    '--color-bg-navbar': '#111827',
+    '--color-bg-content-section': '#374151',
+    '--color-bg-card': '#2D3748',
+    '--color-input-bg': '#374151',
+    '--color-input-text': '#E5E7EB',
+    '--color-input-border': '#4B5563',
+    '--color-placeholder': '#9CA3AF',
+    '--color-link': '#60A5FA',
+    '--color-heading-main': '#F9FAFB',
+    '--color-heading-card': '#E5E7EB',
+    '--color-button-blue-bg': '#3B82F6',
+    '--color-button-blue-hover': '#2563EB',
+    '--color-button-red-bg': '#EF4444',
+    '--color-button-red-hover': '#DC2626',
+    '--color-button-green-bg': '#10B981',
+    '--color-button-green-hover': '#059669',
+    '--color-button-purple-bg': '#8B5CF6',
+    '--color-button-purple-hover': '#7C3AED',
+    '--color-button-yellow-bg': '#F59E0B',
+    '--color-button-yellow-hover': '#D97706',
+    '--color-button-indigo-bg': '#6366F1',
+    '--color-button-indigo-hover': '#4F46E5',
+    '--color-button-text': '#FFFFFF',
+    '--color-modal-bg': '#374151',
+    '--color-modal-text': '#E5E7EB',
+    '--color-modal-input-bg': '#4B5563',
+    '--color-modal-input-text': '#E5E7EB',
+    '--color-table-th-bg': '#374151',
+    '--color-table-th-text': '#F9FAFB',
+    '--color-table-td-border': '#4B5563',
+    '--color-table-row-even-bg': '#2D3748',
+    '--color-message-box-bg-success': '#10B981',
+    '--color-message-box-bg-error': '#EF4444'
+  };
+
+  // Build theme data with validation - use provided values or defaults
+  const validatedColors = {};
+  Object.keys(colorVariables).forEach(key => {
+    const value = themeData[key];
+    if (value !== undefined && value !== null && value !== '') {
+      validatedColors[key] = value;
+    } else {
+      validatedColors[key] = colorVariables[key];
+      console.warn(`DEBUG: Using default value for ${key}: ${colorVariables[key]}`);
+    }
+  });
+
+  console.log('DEBUG: Validated colors:', validatedColors);
+
+  // Prepare theme data for saving
+  const themeToSave = {
+    name: themeData.name.trim(),
+    isCustom: true,
+    authorId: firebaseAuth.currentUser.uid,
+    authorEmail: firebaseAuth.currentUser.email,
+    authorDisplayName: firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email,
+    authorHandle: firebaseAuth.currentUser.handle || firebaseAuth.currentUser.email?.split('@')[0] || 'user',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...validatedColors // Spread the validated colors
+  };
+
   try {
-    // Get user profile to include username information
-    const {getUserProfileFromFirestore} = await import('./firebase-init.js');
-    const userProfile = await getUserProfileFromFirestore(firebaseAuth.currentUser.uid);
-    console.log('DEBUG: User profile retrieved:', userProfile);
-
-    // Prepare theme data with user information
-    const themeToSave = {
-      ...themeData,
-      name: themeData.name.trim(), // Ensure name is trimmed
-      authorId: firebaseAuth.currentUser.uid,
-      authorEmail: firebaseAuth.currentUser.email,
-      authorDisplayName: userProfile?.displayName || firebaseAuth.currentUser.displayName || 'Unknown User',
-      authorHandle: userProfile?.handle || 'unknown',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isCustom: true
-    };
-
-    console.log('DEBUG: Theme data to save:', themeToSave);
-
     let docRef;
 
-    if (themeData.id) {
+    if (themeData.id && themeData.id !== 'null' && themeData.id !== null) {
       // Update existing theme
+      console.log(`DEBUG: Updating existing theme with ID: ${themeData.id}`);
       docRef = doc(customThemesCol, themeData.id);
       await setDoc(docRef, {
         ...themeToSave,
         updatedAt: new Date()
       }, {merge: true});
       console.log(`Updated custom theme: ${themeData.id}`);
+
+      // Clear cache to force refresh
+      availableThemesCache = null;
+      return themeData.id; // Return existing ID
     } else {
       // Create new theme with auto-generated ID
+      console.log(`DEBUG: Creating new theme with auto-generated ID`);
       docRef = await addDoc(customThemesCol, themeToSave);
       console.log(`Created new custom theme: ${docRef.id}`);
+
+      // Clear cache to force refresh
+      availableThemesCache = null;
+      return docRef.id; // Return new document ID
     }
-
-    // Clear cache to force refresh
-    availableThemesCache = null;
-
-    return true;
   } catch (error) {
     console.error("Error saving custom theme:", error);
     return false;

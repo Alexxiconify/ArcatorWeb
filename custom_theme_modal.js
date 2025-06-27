@@ -99,10 +99,12 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
       saveBtn.disabled = true;
 
       console.log('DEBUG: Attempting to save custom theme:', newTheme);
-      const success = await saveCustomTheme(newTheme);
-      console.log('DEBUG: saveCustomTheme result:', success);
+      const result = await saveCustomTheme(newTheme);
+      console.log('DEBUG: saveCustomTheme result:', result);
 
-      if (success) {
+      if (result) {
+        // result is now the document ID (string) or false
+        const savedThemeId = result;
         showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
         customThemeModal.style.display = 'none'; // Close modal
 
@@ -111,16 +113,22 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
 
         // Refresh main theme select and set to new theme
         if (populateThemeSelect) {
-          await populateThemeSelect(newTheme.id || 'custom-theme');
+          await populateThemeSelect(savedThemeId);
         }
 
         // Ensure the new theme is selected in the main dropdown
         if (userThemeSelect) {
-          userThemeSelect.value = newTheme.id || 'custom-theme';
+          userThemeSelect.value = savedThemeId;
         }
 
-        // Apply the newly saved/updated theme
-        applyTheme(newTheme.id || 'custom-theme', newTheme);
+        // Get the saved theme data and apply it
+        const allThemes = await getAvailableThemes(true); // Force refresh to get the new theme
+        const savedTheme = allThemes.find(t => t.id === savedThemeId);
+        if (savedTheme) {
+          applyTheme(savedThemeId, savedTheme);
+        } else {
+          console.error('DEBUG: Could not find saved theme in available themes');
+        }
 
         // Reset form for next use
         customThemeForm.reset();
@@ -163,8 +171,8 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
               <label for="custom-theme-name" class="block text-gray-300 text-sm font-bold mb-2">
                 <span style="color: #EF4444;">*</span> Theme Name: <span class="text-gray-400 text-xs">(Required)</span>
               </label>
-              <input type="text" id="custom-theme-name" placeholder="Enter a unique name for your theme..." required 
-                     class="shadow appearance-none border rounded w-full py-3 px-4 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" 
+              <input type="text" id="custom-theme-name" placeholder="Enter a unique name for your theme..." required
+                     class="shadow appearance-none border rounded w-full py-3 px-4 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
                      style="background: var(--color-input-bg); color: var(--color-input-text); border-color: var(--color-input-border); font-size: 1.1rem;">
               <p class="text-gray-400 text-xs mt-1">Choose a descriptive name that helps you identify this theme (3-50 characters)</p>
             </div>
@@ -542,15 +550,37 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     document.querySelectorAll('.delete-custom-theme-btn').forEach(button => {
       button.addEventListener('click', async (e) => {
         const themeId = e.target.closest('button').dataset.themeId;
-        const themeToDelete = userCustomThemes.find(t => t.id === themeId);
-        const themeName = themeToDelete?.name || themeId;
+        console.log('DEBUG: Delete button clicked for theme ID:', themeId);
 
+        // Find the theme in the full list of available themes, not just user custom themes
+        const allThemes = await getAvailableThemes();
+        console.log('DEBUG: All available themes:', allThemes.map(t => ({
+          id: t.id,
+          name: t.name,
+          isCustom: t.isCustom
+        })));
+
+        const themeToDelete = allThemes.find(t => t.id === themeId);
+        console.log('DEBUG: Theme to delete found:', themeToDelete);
+
+        if (!themeToDelete) {
+          console.error(`Theme not found for deletion: ${themeId}`);
+          showMessageBox('Error: Theme not found for deletion.', true);
+          return;
+        }
+
+        const themeName = themeToDelete.name || themeToDelete.id || 'Unknown Theme';
+        console.log('DEBUG: Theme name for confirmation:', themeName);
+
+        console.log('DEBUG: About to show custom confirm for theme:', themeName);
         const confirmation = await showCustomConfirm(
           `Are you sure you want to delete theme "${themeName}"?`,
           "This action cannot be undone."
         );
+        console.log('DEBUG: Custom confirm result:', confirmation);
 
         if (confirmation) {
+          console.log('DEBUG: User confirmed deletion, calling deleteCustomTheme');
           if (await deleteCustomTheme(themeId)) {
             showMessageBox('Custom theme deleted successfully!', false);
             // After deletion, revert to default theme if the deleted one was active
@@ -558,6 +588,8 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
             userThemeSelect.value = defaultThemeName; // Update main dropdown
             applyTheme(defaultThemeName); // Apply the default theme
             renderCustomThemeList(); // Re-render the list
+          } else {
+            showMessageBox('Error deleting theme. Please try again.', true);
           }
         } else {
           showMessageBox('Theme deletion cancelled.', false);

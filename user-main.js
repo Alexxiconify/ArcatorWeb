@@ -564,10 +564,15 @@ window.onload = async function() {
           // Change event
           themeSelect.onchange = async function () {
             const selectedThemeId = themeSelect.value;
+            console.log(`DEBUG: Theme selection changed to: ${selectedThemeId}`);
+
             const themes = await getAvailableThemes();
             const selectedTheme = themes.find(t => t.id === selectedThemeId);
+
             if (selectedTheme) {
+              console.log(`DEBUG: Found theme data:`, selectedTheme);
               await applyTheme(selectedTheme.id, selectedTheme);
+
               // Save theme preference to user profile
               if (auth.currentUser) {
                 try {
@@ -579,6 +584,13 @@ window.onload = async function() {
                   console.error("Error saving theme preference:", error);
                 }
               }
+            } else {
+              console.error(`DEBUG: Theme not found for ID: ${selectedThemeId}`);
+              console.log(`DEBUG: Available themes:`, themes.map(t => ({
+                id: t.id,
+                name: t.name,
+                isCustom: t.isCustom
+              })));
             }
           };
 
