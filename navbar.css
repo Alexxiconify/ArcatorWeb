@@ -19,10 +19,23 @@
 .navbar-bg, nav, .navbar {
   white-space: nowrap;
   overflow-x: auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
 }
 
 .navbar-link, .navbar-text {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+
+.navbar-link img, .navbar-text img, .navbar-link svg, .navbar-text svg {
+  height: 22px;
+  width: 22px;
+  vertical-align: middle;
+  margin-right: 0.25rem;
 }
