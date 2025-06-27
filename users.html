@@ -131,8 +131,9 @@
     .settings-card summary {
       padding: 0.25rem 0.75rem;
       background: var(--color-bg-content-section);
-      border-bottom: 1px solid var(--color-input-border);
+      border: none;
       transition: background-color 0.2s ease;
+      margin: 0;
     }
 
     .settings-card summary:hover {
@@ -150,8 +151,8 @@
 
     /* Circular save button styling */
     .save-btn-circle {
-      width: 48px;
-      height: 48px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       border: none;
       background: var(--color-button-blue-bg);
@@ -161,15 +162,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       position: relative;
       overflow: hidden;
     }
 
     .save-btn-circle:hover {
       background: var(--color-button-blue-hover);
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     .save-btn-circle:active {
@@ -177,8 +178,8 @@
     }
 
     .save-btn-circle svg {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       transition: transform 0.3s ease;
     }
 
@@ -208,8 +209,8 @@
     .save-btn-container {
       display: flex;
       justify-content: center;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
     }
 
     /* Subsection card styling */
@@ -230,12 +231,13 @@
     .subsection-summary {
       padding: 0.375rem 0.5rem;
       background: var(--color-bg-card);
-      border-bottom: 1px solid var(--color-input-border);
+      border: none;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin: 0;
     }
 
     .subsection-summary:hover {
@@ -266,7 +268,7 @@
 
     .subsection-card.danger-zone .subsection-summary {
       background: rgba(220, 38, 38, 0.1);
-      border-bottom-color: var(--color-button-red-bg);
+      border: none;
     }
 
     .subsection-card.danger-zone .subsection-summary:hover {
