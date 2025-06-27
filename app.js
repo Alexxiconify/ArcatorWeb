@@ -76,7 +76,9 @@ let isRecordingShortcut = false;
 let currentRecordingShortcut = null;
 let disabledShortcuts = new Set();
 let shortcutKeyToName = {};
-const defaultShortcuts = {
+
+// Export defaultShortcuts so it can be used in user-main.js
+export const defaultShortcuts = {
   'home': 'Alt+Shift+H',
   'about': 'Alt+Shift+A',
   'servers': 'Alt+Shift+S',
@@ -91,6 +93,31 @@ const defaultShortcuts = {
   'help': 'F1',
   'logout': 'Alt+Shift+L'
 };
+
+// Export shortcut categories for help modal
+export const shortcutCategories = {
+  'Navigation': ['home', 'about', 'servers', 'community', 'interests', 'games', 'forms'],
+  'Communication': ['dms', 'new-dm'],
+  'Utilities': ['settings', 'search', 'help', 'logout']
+};
+
+// Export shortcut descriptions
+export const shortcutDescriptions = {
+  'home': 'Go to Home Page',
+  'about': 'Go to About Page',
+  'servers': 'Go to Servers Page',
+  'community': 'Go to Community Page',
+  'interests': 'Go to Interests Page',
+  'games': 'Go to Games Page',
+  'forms': 'Go to Forms Page',
+  'dms': 'Open Direct Messages',
+  'new-dm': 'Create New DM',
+  'settings': 'Open User Settings',
+  'search': 'Open Search Dialog',
+  'help': 'Show This Help Dialog',
+  'logout': 'Logout User'
+};
+
 const pageUrls = {
   'home': 'index.html',
   'about': 'about.html',
@@ -106,6 +133,56 @@ const pageUrls = {
   'help': '#',
   'logout': '#'
 };
+
+// Browser/system shortcuts to avoid conflicts
+const browserShortcuts = new Set([
+  'Ctrl+C', 'Ctrl+V', 'Ctrl+X', 'Ctrl+A', 'Ctrl+Z', 'Ctrl+Y', 'Ctrl+F', 'Ctrl+P', 'Ctrl+S',
+  'F5', 'F11', 'F12', 'Ctrl+R', 'Ctrl+Shift+R', 'Ctrl+Shift+I', 'Ctrl+Shift+J', 'Ctrl+Shift+C',
+  'Alt+F4', 'Alt+Tab', 'Alt+Shift+Tab', 'Ctrl+Tab', 'Ctrl+Shift+Tab', 'Ctrl+W', 'Ctrl+T',
+  'Ctrl+N', 'Ctrl+Shift+N', 'Ctrl+Shift+P', 'Ctrl+Shift+O', 'Ctrl+Shift+E', 'Ctrl+Shift+M'
+]);
+
+// Function to test if a shortcut combination is valid and doesn't conflict
+export function testShortcutCombination(combo) {
+  // Check if it's a valid combination
+  if (!combo || typeof combo !== 'string') return {valid: false, reason: 'Invalid format'};
+
+  const parts = combo.split('+');
+  if (parts.length < 2) return {valid: false, reason: 'Must include at least one modifier key'};
+
+  // Check for browser conflicts
+  if (browserShortcuts.has(combo)) {
+    return {valid: false, reason: 'Conflicts with browser shortcut'};
+  }
+
+  // Check for internal conflicts
+  const currentShortcuts = Object.values(keyboardShortcuts);
+  if (currentShortcuts.includes(combo)) {
+    return {valid: false, reason: 'Shortcut already in use'};
+  }
+
+  return {valid: true};
+}
+
+// Function to get current shortcuts for display
+export function getCurrentShortcuts() {
+  return {...keyboardShortcuts};
+}
+
+// Function to update shortcuts globally
+export function updateGlobalShortcuts(newShortcuts) {
+  keyboardShortcuts = {...newShortcuts};
+  initializeKeyboardShortcuts();
+}
+
+// Function to toggle shortcut disabled state
+export function toggleShortcutDisabled(shortcutName, disabled) {
+  if (disabled) {
+    disabledShortcuts.add(shortcutName);
+  } else {
+    disabledShortcuts.delete(shortcutName);
+  }
+}
 
 function initializeKeyboardShortcuts() {
   shortcutKeyToName = {};
@@ -443,7 +520,7 @@ function showSearchModal() {
   searchInput.select();
 }
 
-// --- GLOBAL HELP MODAL (minimal) ---
+// --- GLOBAL HELP MODAL (dynamic) ---
 let helpModalInstance = null;
 
 function showHelpModal() {
@@ -452,23 +529,52 @@ function showHelpModal() {
     helpModalInstance = null;
     return;
   }
+
   const modal = document.createElement('div');
   helpModalInstance = modal;
   modal.tabIndex = -1;
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
-  modal.innerHTML = `<div style="background:var(--color-bg-card);padding:2rem;border-radius:0.5rem;max-width:600px;max-height:80vh;overflow-y:auto;position:relative;"><button id="close-help-modal-btn" style="position:absolute;top:1rem;right:1rem;background:var(--color-button-blue-bg);color:white;padding:0.25rem 0.75rem;border:none;border-radius:0.25rem;cursor:pointer;">Close</button><h3 style="margin-bottom:1rem;color:var(--color-text-primary);">Keyboard Shortcuts Help</h3><div style="color:var(--color-text-secondary);line-height:1.6;"><p><strong>Navigation:</strong></p><ul><li>Alt+Shift+H - Home Page</li><li>Alt+Shift+A - About Page</li><li>Alt+Shift+S - Servers Page</li><li>Alt+Shift+C - Community Page</li><li>Alt+Shift+I - Interests Page</li><li>Alt+Shift+G - Games Page</li><li>Alt+Shift+F - Forms Page</li></ul><p><strong>Communication:</strong></p><ul><li>Alt+Shift+D - Direct Messages</li><li>Alt+Shift+N - New DM</li></ul><p><strong>Settings:</strong></p><ul><li>Alt+Shift+U - User Settings</li></ul><p><strong>Utilities:</strong></p><ul><li>Alt+Shift+K - Search</li><li>F1 - Help (this dialog)</li><li>Alt+Shift+L - Logout</li></ul><p><strong>Note:</strong> You can customize these shortcuts in the Advanced Settings section.</p></div></div>`;
+
+  // Generate dynamic content based on current shortcuts
+  let helpContent = '<h3 style="margin-bottom:1rem;color:var(--color-text-primary);">Keyboard Shortcuts Help</h3>';
+
+  Object.entries(shortcutCategories).forEach(([category, shortcuts]) => {
+    helpContent += `<p style="margin-top:1rem;margin-bottom:0.5rem;font-weight:bold;color:var(--color-text-primary);">${category}:</p><ul style="margin-bottom:1rem;color:var(--color-text-secondary);line-height:1.6;">`;
+
+    shortcuts.forEach(shortcutName => {
+      const combo = keyboardShortcuts[shortcutName];
+      const description = shortcutDescriptions[shortcutName];
+      const isDisabled = disabledShortcuts.has(shortcutName);
+      const status = isDisabled ? ' (Disabled)' : '';
+      const style = isDisabled ? 'text-decoration:line-through;opacity:0.6;' : '';
+
+      if (combo) {
+        helpContent += `<li style="${style}"><strong>${combo}</strong> - ${description}${status}</li>`;
+      }
+    });
+
+    helpContent += '</ul>';
+  });
+
+  helpContent += '<p style="margin-top:1rem;color:var(--color-text-secondary);font-size:0.875rem;"><strong>Note:</strong> You can customize these shortcuts in the Advanced Settings section. Press F1 again or Escape to close this dialog.</p>';
+
+  modal.innerHTML = `<div style="background:var(--color-bg-card);padding:2rem;border-radius:0.5rem;max-width:600px;max-height:80vh;overflow-y:auto;position:relative;"><button id="close-help-modal-btn" style="position:absolute;top:1rem;right:1rem;background:var(--color-button-blue-bg);color:white;padding:0.25rem 0.75rem;border:none;border-radius:0.25rem;cursor:pointer;">Close</button>${helpContent}</div>`;
+
   document.body.appendChild(modal);
   modal.focus();
+
   modal.querySelector('#close-help-modal-btn').onclick = () => {
     modal.remove();
     helpModalInstance = null;
   };
+
   modal.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'F1') {
       modal.remove();
       helpModalInstance = null;
     }
   });
+
   modal.addEventListener('focusout', (e) => {
     if (!modal.contains(e.relatedTarget)) {
       setTimeout(() => modal.focus(), 0);
