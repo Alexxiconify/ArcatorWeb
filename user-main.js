@@ -22,7 +22,8 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   updateProfile,
-  onAuthStateChanged
+  onAuthStateChanged,
+  getAuth
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 import {
@@ -591,12 +592,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       try {
-        await auth.signInWithEmailAndPassword(email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         showMessageBox('Signed in successfully', false);
-        window.location.reload();
+        document.getElementById('signin-section').style.display = 'none';
+        document.getElementById('settings-content').style.display = '';
       } catch (err) {
         showMessageBox(err.message || 'Login failed', true);
       }
     });
   }
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('signin-section').style.display = 'none';
+      document.getElementById('settings-content').style.display = '';
+    } else {
+      document.getElementById('signin-section').style.display = '';
+      document.getElementById('settings-content').style.display = 'none';
+    }
+  });
 });
