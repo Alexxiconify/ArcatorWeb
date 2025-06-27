@@ -183,6 +183,7 @@ const navbarTemplate = `
         <a class="navbar-link hidden" href="users.html" id="navbar-user-settings-link">
           <img alt="Profile" class="profile-pic-small"
                id="navbar-user-profile-pic" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV">
+          <span id="navbar-user-display-name">User</span>
         </a>
 
         <!-- Sign in link (visible by default, hidden when logged in) -->
@@ -260,7 +261,10 @@ export async function refreshNavbarProfilePicture() {
 
       // Update user display name
       const displayName = window.currentUser.displayName || window.currentUser.handle || 'User';
-      userSettingsLink.textContent = displayName;
+      const displayNameSpan = document.getElementById('navbar-user-display-name');
+      if (displayNameSpan) {
+        displayNameSpan.textContent = displayName;
+      }
 
     } catch (error) {
       console.error('[DEBUG] refreshNavbarProfilePicture: Error refreshing profile picture:', error);
@@ -269,7 +273,10 @@ export async function refreshNavbarProfilePicture() {
   } else {
     // User not logged in, use default
     userProfilePic.src = window.DEFAULT_PROFILE_PIC;
-    userSettingsLink.textContent = 'Sign In';
+    const displayNameSpan = document.getElementById('navbar-user-display-name');
+    if (displayNameSpan) {
+      displayNameSpan.textContent = 'Sign In';
+    }
   }
 }
 
@@ -336,7 +343,10 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
     // Update user display name
     if (userSettingsLink) {
       const displayName = userProfile.displayName || userProfile.handle || 'User';
-      userSettingsLink.textContent = displayName;
+      const displayNameSpan = document.getElementById('navbar-user-display-name');
+      if (displayNameSpan) {
+        displayNameSpan.textContent = displayName;
+      }
     }
   } else {
     // User is not logged in
@@ -526,13 +536,213 @@ export function provideDiscordUrlGuidance(discordURL) {
   console.log('[DEBUG] Discord URL Guidance:');
   console.log('[DEBUG] URL:', discordURL);
   console.log('[DEBUG] This is a common issue with Discord CDN URLs.');
-  console.log('[DEBUG] Possible solutions:');
-  console.log('[DEBUG] 1. The URL may have expired - Discord CDN URLs can expire');
-  console.log('[DEBUG] 2. CORS restrictions prevent loading in JavaScript');
-  console.log('[DEBUG] 3. Try uploading a new image to Discord and using the new URL');
-  console.log('[DEBUG] 4. Consider using a different image hosting service');
-  console.log('[DEBUG] 5. The URL works in browser tabs but fails in JavaScript due to security restrictions');
+  console.log('[DEBUG]');
+  console.log('[DEBUG] 🎯 RECOMMENDED SOLUTION: Convert to ImgBB');
+  console.log('[DEBUG] 1. Visit: https://imgbb.com/');
+  console.log('[DEBUG] 2. Click "Start uploading"');
+  console.log('[DEBUG] 3. Upload your Discord image file');
+  console.log('[DEBUG] 4. Copy the direct link (ends with .jpg, .png, etc.)');
+  console.log('[DEBUG] 5. Use window.updateProfilePicture(newURL) to update your profile');
+  console.log('[DEBUG]');
+  console.log('[DEBUG] Why Discord URLs break:');
+  console.log('[DEBUG] - Discord CDN URLs can expire over time');
+  console.log('[DEBUG] - CORS restrictions prevent loading in JavaScript');
+  console.log('[DEBUG] - URLs work in browser tabs but fail in JavaScript');
+  console.log('[DEBUG]');
+  console.log('[DEBUG] Quick fix commands:');
+  console.log('[DEBUG] - window.convertAndUpdateDiscordUrl("' + discordURL + '")');
+  console.log('[DEBUG] - window.updateProfilePicture("your-new-imgbb-url")');
+  console.log('[DEBUG]');
+  console.log('[DEBUG] Alternative services: Imgur, Cloudinary, Uploadcare, Postimages');
+}
+
+/**
+ * Updates the current user's profile picture URL
+ * This can be called from browser console to fix broken Discord URLs
+ * @param {string} newPhotoURL - The new photo URL to set
+ */
+export async function updateProfilePicture(newPhotoURL) {
+  console.log('[DEBUG] updateProfilePicture called with:', newPhotoURL);
+
+  if (!window.currentUser || !window.auth.currentUser) {
+    console.error('[DEBUG] No user logged in, cannot update profile picture');
+    return;
+  }
+
+  if (!newPhotoURL) {
+    console.error('[DEBUG] No photo URL provided');
+    return;
+  }
+
+  try {
+    // Update the user profile in Firestore
+    const {setUserProfileInFirestore} = await import('./firebase-init.js');
+    const success = await setUserProfileInFirestore(window.auth.currentUser.uid, {
+      photoURL: newPhotoURL
+    });
+
+    if (success) {
+      console.log('[DEBUG] Profile picture updated successfully');
+
+      // Update the local currentUser object
+      window.currentUser.photoURL = newPhotoURL;
+
+      // Refresh the navbar
+      await refreshNavbarProfilePicture();
+
+      // Show success message
+      if (typeof window.showMessageBox === 'function') {
+        window.showMessageBox('Profile picture updated successfully!', false);
+      } else {
+        console.log('[DEBUG] Profile picture updated successfully!');
+      }
+    } else {
+      console.error('[DEBUG] Failed to update profile picture in Firestore');
+    }
+  } catch (error) {
+    console.error('[DEBUG] Error updating profile picture:', error);
+  }
+}
+
+/**
+ * Converts a broken Discord URL to ImgBB and updates the user's profile
+ * @param {string} discordURL - The broken Discord URL to convert
+ */
+export async function convertAndUpdateDiscordUrl(discordURL) {
+  console.log('[DEBUG] convertAndUpdateDiscordUrl called with:', discordURL);
+
+  if (!window.currentUser || !window.auth.currentUser) {
+    console.error('[DEBUG] No user logged in, cannot convert Discord URL');
+    return;
+  }
+
+  if (!discordURL || !discordURL.includes('discordapp.com')) {
+    console.error('[DEBUG] Not a Discord URL provided');
+    return;
+  }
+
+  try {
+    // Import the conversion function
+    const {convertDiscordUrlToReliableCDN, createImageUploadHelper} = await import('./utils.js');
+
+    console.log('[DEBUG] Attempting to convert Discord URL to ImgBB...');
+
+    // Try to convert the Discord URL to ImgBB
+    const convertedURL = await convertDiscordUrlToReliableCDN(discordURL);
+
+    if (convertedURL === discordURL) {
+      console.log('[DEBUG] Discord URL conversion not needed or failed');
+      console.log('[DEBUG] Showing manual conversion options...');
+    } else {
+      console.log('[DEBUG] Discord URL converted successfully:', convertedURL);
+
+      // Automatically update the user's profile with the converted URL
+      await updateProfilePicture(convertedURL);
+      console.log('[DEBUG] Profile picture updated with converted ImgBB URL');
+      return;
+    }
+
+    // Show the user the conversion options
+    console.log('[DEBUG] Showing Discord URL conversion helper...');
+
+    // Create a modal or helper to guide the user
+    const helperId = 'discord-url-converter-helper';
+    let helperElement = document.getElementById(helperId);
+
+    if (!helperElement) {
+      helperElement = document.createElement('div');
+      helperElement.id = helperId;
+      helperElement.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        background: var(--color-bg-card);
+        border: 2px solid var(--color-input-border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        max-width: 600px;
+        width: 90%;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-height: 80vh;
+        overflow-y: auto;
+      `;
+      document.body.appendChild(helperElement);
+    }
+
+    // Create the helper content with ImgBB emphasis
+    createImageUploadHelper(helperId);
+
+    // Add a close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '×';
+    closeButton.style.cssText = `
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+    `;
+    closeButton.onclick = () => helperElement.remove();
+    helperElement.appendChild(closeButton);
+
+    // Add a manual URL input option
+    const manualInput = document.createElement('div');
+    manualInput.style.cssText = `
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-input-border);
+    `;
+    manualInput.innerHTML = `
+      <p style="margin: 0 0 0.5rem 0; color: var(--color-text-primary); font-size: 0.875rem; font-weight: 600;">
+        Or paste your new ImgBB URL directly:
+      </p>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="url" id="manual-url-input" placeholder="https://i.ibb.co/example/image.jpg"
+               style="flex: 1; padding: 0.5rem; border: 1px solid var(--color-input-border); border-radius: 0.375rem; background: var(--color-input-bg); color: var(--color-text-primary);">
+        <button id="update-url-btn"
+                style="background: var(--color-button-green-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer;">
+          Update Profile
+        </button>
+      </div>
+      <p style="margin: 0.5rem 0 0 0; color: var(--color-text-secondary); font-size: 0.75rem;">
+        Tip: ImgBB URLs typically start with "https://i.ibb.co/"
+      </p>
+    `;
+    helperElement.appendChild(manualInput);
+
+    // Add event listener for manual URL update
+    document.getElementById('update-url-btn').onclick = async () => {
+      const newURL = document.getElementById('manual-url-input').value.trim();
+      if (newURL) {
+        await updateProfilePicture(newURL);
+        helperElement.remove();
+      }
+    };
+
+    // Add event listener for Enter key
+    document.getElementById('manual-url-input').onkeypress = async (e) => {
+      if (e.key === 'Enter') {
+        const newURL = e.target.value.trim();
+        if (newURL) {
+          await updateProfilePicture(newURL);
+          helperElement.remove();
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('[DEBUG] Error converting Discord URL:', error);
+  }
 }
 
 // Make function available globally
 window.provideDiscordUrlGuidance = provideDiscordUrlGuidance;
+window.updateProfilePicture = updateProfilePicture;
+window.convertAndUpdateDiscordUrl = convertAndUpdateDiscordUrl;

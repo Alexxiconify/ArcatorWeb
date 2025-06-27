@@ -344,13 +344,19 @@ async function handleSaveProfile() {
             profilePictureDisplay.onerror = function () {
               console.log("DEBUG: Image failed to load, falling back to default");
               this.src = DEFAULT_PROFILE_PIC;
+
+              // Show helpful message if it's a Discord URL
+              const failedURL = this.src;
+              if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
+                showMessageBox("Your Discord profile picture URL appears to be broken. Consider uploading a new image or using a different hosting service.", true);
+              }
             };
 
             profilePictureDisplay.onload = function () {
               console.log("DEBUG: Image loaded successfully");
             };
           } catch (error) {
-            console.error("DEBUG: Error validating profile picture:", error);
+            console.error("DEBUG: Error setting profile picture:", error);
             profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
           }
         } else {
@@ -470,6 +476,12 @@ window.onload = async function() {
             profilePictureDisplay.onerror = function () {
               console.log("DEBUG: Image failed to load, falling back to default");
               this.src = DEFAULT_PROFILE_PIC;
+
+              // Show helpful message if it's a Discord URL
+              const failedURL = this.src;
+              if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
+                showMessageBox("Your Discord profile picture URL appears to be broken. Consider uploading a new image or using a different hosting service.", true);
+              }
             };
 
             profilePictureDisplay.onload = function () {

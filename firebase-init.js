@@ -224,7 +224,14 @@ firebaseReadyPromise.then(() => {
       // Refresh navbar profile picture if navbar is loaded
       if (typeof window.refreshNavbarProfilePicture === 'function') {
         try {
-          await window.refreshNavbarProfilePicture();
+          // Add a small delay to ensure navbar is loaded
+          setTimeout(async () => {
+            try {
+              await window.refreshNavbarProfilePicture();
+            } catch (error) {
+              console.error('[DEBUG] Error refreshing navbar profile picture after delay:', error);
+            }
+          }, 100);
         } catch (error) {
           console.error('[DEBUG] Error refreshing navbar profile picture:', error);
         }
@@ -238,7 +245,14 @@ firebaseReadyPromise.then(() => {
       // Refresh navbar profile picture if navbar is loaded
       if (typeof window.refreshNavbarProfilePicture === 'function') {
         try {
-          await window.refreshNavbarProfilePicture();
+          // Add a small delay to ensure navbar is loaded
+          setTimeout(async () => {
+            try {
+              await window.refreshNavbarProfilePicture();
+            } catch (error) {
+              console.error('[DEBUG] Error refreshing navbar profile picture after delay:', error);
+            }
+          }, 100);
         } catch (error) {
           console.error('[DEBUG] Error refreshing navbar profile picture:', error);
         }
