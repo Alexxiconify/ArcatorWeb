@@ -1907,25 +1907,251 @@ function showSearchModal() {
   `;
 
   modal.innerHTML = `
-    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; min-width: 400px;">
-      <h3 style="margin-bottom: 1rem; color: var(--color-text-primary);">Search</h3>
-      <input type="text" placeholder="Search..." style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; background: var(--color-input-bg); color: var(--color-input-text); border: 1px solid var(--color-input-border); border-radius: 0.25rem;">
-      <button onclick="this.closest('div[style*=\'fixed\']').remove()" style="background: var(--color-button-blue-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer;">Close</button>
+    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; min-width: 500px; max-width: 600px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="color: var(--color-text-primary); margin: 0;">Search</h3>
+        <button id="close-search-modal-btn" style="background: var(--color-button-blue-bg); color: white; padding: 0.25rem 0.75rem; border: none; border-radius: 0.25rem; cursor: pointer;">Close</button>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <input type="text" id="search-input-field" placeholder="Enter search term..." style="width: 100%; padding: 0.75rem; background: var(--color-input-bg); color: var(--color-input-text); border: 1px solid var(--color-input-border); border-radius: 0.25rem; font-size: 1rem;">
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <button id="find-btn" style="background: var(--color-button-blue-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 600;">Find</button>
+        <button id="find-next-btn" style="background: var(--color-button-green-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 600;">Find Next</button>
+        <button id="find-prev-btn" style="background: var(--color-button-purple-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 600;">Find Previous</button>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <label style="display: flex; align-items: center; gap: 0.25rem; color: var(--color-text-primary);">
+          <input type="checkbox" id="case-sensitive-checkbox" style="margin: 0;">
+          Case sensitive
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.25rem; color: var(--color-text-primary);">
+          <input type="checkbox" id="whole-word-checkbox" style="margin: 0;">
+          Whole word
+        </label>
+      </div>
+
+      <div id="search-results" style="color: var(--color-text-secondary); font-size: 0.875rem; min-height: 1.5rem;">
+        Enter a search term to begin
+      </div>
     </div>
   `;
 
   document.body.appendChild(modal);
 
-  // Focus the search input
-  const searchInput = modal.querySelector('input');
-  searchInput.focus();
+  // Get elements
+  const searchInput = modal.querySelector('#search-input-field');
+  const findBtn = modal.querySelector('#find-btn');
+  const findNextBtn = modal.querySelector('#find-next-btn');
+  const findPrevBtn = modal.querySelector('#find-prev-btn');
+  const closeBtn = modal.querySelector('#close-search-modal-btn');
+  const caseSensitiveCheckbox = modal.querySelector('#case-sensitive-checkbox');
+  const wholeWordCheckbox = modal.querySelector('#whole-word-checkbox');
+  const resultsDiv = modal.querySelector('#search-results');
 
-  // Close on escape
+  // Search state
+  let currentMatches = [];
+  let currentMatchIndex = -1;
+  let lastSearchTerm = '';
+
+  // Remove previous highlights
+  function clearHighlights() {
+    const highlights = document.querySelectorAll('.search-highlight');
+    highlights.forEach(el => {
+      const parent = el.parentNode;
+      parent.replaceChild(document.createTextNode(el.textContent), el);
+      parent.normalize();
+    });
+  }
+
+  // Highlight matches
+  function highlightMatches(searchTerm, caseSensitive, wholeWord) {
+    clearHighlights();
+
+    if (!searchTerm.trim()) {
+      currentMatches = [];
+      currentMatchIndex = -1;
+      resultsDiv.textContent = 'Enter a search term to begin';
+      return;
+    }
+
+    const flags = caseSensitive ? 'g' : 'gi';
+    const regex = wholeWord ? new RegExp(`\\b${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags) : new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+
+    currentMatches = [];
+
+    // Search in text nodes
+    function searchInNode(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          currentMatches.push({
+            node: node,
+            start: match.index,
+            end: match.index + match[0].length,
+            text: match[0]
+          });
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Skip script and style tags
+        if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.closest('#search-modal')) {
+          for (let child of node.childNodes) {
+            searchInNode(child);
+          }
+        }
+      }
+    }
+
+    // Search in body content
+    const bodyContent = document.querySelector('body');
+    searchInNode(bodyContent);
+
+    // Highlight matches
+    currentMatches.forEach((match, index) => {
+      const node = match.node;
+      const text = node.textContent;
+      const before = text.substring(0, match.start);
+      const after = text.substring(match.end);
+      const highlighted = text.substring(match.start, match.end);
+
+      const highlightSpan = document.createElement('span');
+      highlightSpan.className = 'search-highlight';
+      highlightSpan.textContent = highlighted;
+      highlightSpan.style.cssText = `
+        background: ${index === currentMatchIndex ? 'var(--color-button-blue-bg)' : 'var(--color-button-yellow-bg)'};
+        color: ${index === currentMatchIndex ? 'white' : 'black'};
+        padding: 2px 4px;
+        border-radius: 2px;
+        font-weight: bold;
+      `;
+
+      const fragment = document.createDocumentFragment();
+      if (before) fragment.appendChild(document.createTextNode(before));
+      fragment.appendChild(highlightSpan);
+      if (after) fragment.appendChild(document.createTextNode(after));
+
+      node.parentNode.replaceChild(fragment, node);
+    });
+
+    // Update results
+    if (currentMatches.length > 0) {
+      resultsDiv.textContent = `Found ${currentMatches.length} match${currentMatches.length > 1 ? 'es' : ''}`;
+      if (currentMatchIndex >= 0) {
+        resultsDiv.textContent += ` (${currentMatchIndex + 1} of ${currentMatches.length})`;
+      }
+    } else {
+      resultsDiv.textContent = 'No matches found';
+    }
+  }
+
+  // Scroll to current match
+  function scrollToCurrentMatch() {
+    if (currentMatchIndex >= 0 && currentMatchIndex < currentMatches.length) {
+      const highlights = document.querySelectorAll('.search-highlight');
+      if (highlights[currentMatchIndex]) {
+        highlights[currentMatchIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+  }
+
+  // Find function
+  function performFind() {
+    const searchTerm = searchInput.value;
+    const caseSensitive = caseSensitiveCheckbox.checked;
+    const wholeWord = wholeWordCheckbox.checked;
+
+    if (searchTerm !== lastSearchTerm) {
+      currentMatchIndex = -1;
+      lastSearchTerm = searchTerm;
+    }
+
+    highlightMatches(searchTerm, caseSensitive, wholeWord);
+
+    if (currentMatches.length > 0) {
+      currentMatchIndex = 0;
+      highlightMatches(searchTerm, caseSensitive, wholeWord); // Re-highlight with current match
+      scrollToCurrentMatch();
+    }
+  }
+
+  // Find next function
+  function findNext() {
+    if (currentMatches.length === 0) {
+      performFind();
+      return;
+    }
+
+    currentMatchIndex = (currentMatchIndex + 1) % currentMatches.length;
+    const searchTerm = searchInput.value;
+    const caseSensitive = caseSensitiveCheckbox.checked;
+    const wholeWord = wholeWordCheckbox.checked;
+    highlightMatches(searchTerm, caseSensitive, wholeWord);
+    scrollToCurrentMatch();
+  }
+
+  // Find previous function
+  function findPrev() {
+    if (currentMatches.length === 0) {
+      performFind();
+      return;
+    }
+
+    currentMatchIndex = currentMatchIndex <= 0 ? currentMatches.length - 1 : currentMatchIndex - 1;
+    const searchTerm = searchInput.value;
+    const caseSensitive = caseSensitiveCheckbox.checked;
+    const wholeWord = wholeWordCheckbox.checked;
+    highlightMatches(searchTerm, caseSensitive, wholeWord);
+    scrollToCurrentMatch();
+  }
+
+  // Event listeners
+  findBtn.addEventListener('click', performFind);
+  findNextBtn.addEventListener('click', findNext);
+  findPrevBtn.addEventListener('click', findPrev);
+
+  closeBtn.addEventListener('click', () => {
+    clearHighlights();
+    modal.remove();
+  });
+
+  // Keyboard shortcuts
   searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        findPrev();
+      } else {
+        findNext();
+      }
+    } else if (e.key === 'Escape') {
+      clearHighlights();
       modal.remove();
     }
   });
+
+  // Auto-search on input change
+  let searchTimeout;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      if (searchInput.value.trim()) {
+        performFind();
+      } else {
+        clearHighlights();
+        resultsDiv.textContent = 'Enter a search term to begin';
+      }
+    }, 300);
+  });
+
+  // Focus the search input
+  searchInput.focus();
+  searchInput.select();
 }
 
 // Helper function to show help modal (toggle)
