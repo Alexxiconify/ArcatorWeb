@@ -5,6 +5,7 @@
 
 // --- Global Firebase Instances and Constants ---
 import { auth, db, appId, currentUser, firebaseReadyPromise } from './firebase-init.js';
+import {showMessageBox, showCustomConfirm, parseEmojis, parseMentions} from './utils.js';
 // Ensure global access to Firebase instances
 window.auth = auth;
 window.db = db;
@@ -60,45 +61,6 @@ let confirmYesButton;
 let confirmNoButton;
 let closeButton;
 let resolveConfirmPromise;
-
-// Minimal showMessageBox implementation
-function showMessageBox(message, isError = false) {
-  if (!window.messageBox) {
-    window.messageBox = document.getElementById('message-box');
-  }
-  if (!window.messageBox) return;
-  window.messageBox.textContent = message;
-  window.messageBox.className = 'message-box ' + (isError ? 'error' : 'success') + ' show';
-  setTimeout(() => {
-    window.messageBox.className = 'message-box';
-  }, 3000);
-}
-window.showMessageBox = showMessageBox;
-
-/**
- * Displays a custom confirmation modal.
- * @param {string} message - The main confirmation message.
- * @param {string} [submessage=''] - An optional sub-message for more details.
- * @returns {Promise<boolean>} A promise that resolves to true if 'Yes' is clicked, false otherwise.
- */
-function showCustomConfirm(message, submessage = '') {
-  if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
-    console.error("Custom confirmation modal elements not found.");
-    return Promise.resolve(false);
-  }
-  confirmMessage.textContent = message;
-  confirmSubmessage.textContent = submessage;
-  customConfirmModal.style.display = 'flex';
-  return new Promise((resolve) => {
-    resolveConfirmPromise = resolve;
-    confirmYesButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(true); };
-    confirmNoButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
-    closeButton.onclick = () => { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); };
-    customConfirmModal.onclick = (event) => {
-      if (event.target === customConfirmModal) { customConfirmModal.style.display = 'none'; resolveConfirmPromise(false); }
-    };
-  });
-}
 
 /**
  * Initializes utility DOM elements.
@@ -498,7 +460,7 @@ function renderThemaBoxes(themasArr) {
       } else {
         formHtml = `<div class="text-center text-gray-400 italic mt-4">Log in to create a thread.</div>`;
       }
-      
+
       // Create header with title and admin controls on same level
       const headerHtml = `
         <div class="flex items-center justify-between mb-2">
@@ -511,7 +473,7 @@ function renderThemaBoxes(themasArr) {
           ` : ''}
         </div>
       `;
-      
+
       box.innerHTML = `
         ${headerHtml}
         <p class="thema-description mb-4">${thema.description || ''}</p>
@@ -548,7 +510,7 @@ function renderThemaBoxes(themasArr) {
           };
         }
       }
-      
+
       // Admin controls for thémata
       if (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.authorId)) {
         box.querySelector('.edit-thema-btn').dataset.themaId = thema.id;
@@ -587,11 +549,11 @@ function loadThreadsForThema(themaId) {
       // Check if we need to re-render or just update reactions
       const existingThreads = threadListDiv.querySelectorAll('.thread-item');
       const newThreads = Array.from(snapshot.docs);
-      
+
       // If same number of threads and all IDs match, only update reactions
-      if (existingThreads.length === newThreads.length && 
+      if (existingThreads.length === newThreads.length &&
           existingThreads.length > 0 &&
-          Array.from(existingThreads).every((thread, index) => 
+        Array.from(existingThreads).every((thread, index) =>
             thread.getAttribute('data-thread-id') === newThreads[index].id
           )) {
         // Only update reactions, don't re-render threads
@@ -608,7 +570,7 @@ function loadThreadsForThema(themaId) {
         });
         return;
       }
-      
+
       // Full re-render only if threads changed (added/removed/edited)
       threadListDiv.innerHTML = '';
       if (snapshot.empty) {
@@ -733,11 +695,11 @@ function loadCommentsForThread(themaId, threadId) {
     // Check if we need to re-render or just update reactions
     const existingComments = commentsDiv.querySelectorAll('.comment-item');
     const newComments = Array.from(snapshot.docs);
-    
+
     // If same number of comments and all IDs match, only update reactions
-    if (existingComments.length === newComments.length && 
+    if (existingComments.length === newComments.length &&
         existingComments.length > 0 &&
-        Array.from(existingComments).every((comment, index) => 
+      Array.from(existingComments).every((comment, index) =>
           comment.getAttribute('data-comment-id') === newComments[index].id
         )) {
       // Only update reactions, don't re-render comments
@@ -754,7 +716,7 @@ function loadCommentsForThread(themaId, threadId) {
       });
       return;
     }
-    
+
     // Full re-render only if comments changed (added/removed/edited)
     commentsDiv.innerHTML = '';
     if (snapshot.empty) {
@@ -966,21 +928,6 @@ async function addCommentThread(themaId, title, initialComment) {
 // function renderThreads() { // REMOVED: replaced with smart re-rendering in loadThreadsForThema
 
 // Enhanced utility functions
-/**
- * Parses text for @mentions and returns array of mentioned user IDs
- * @param {string} text - The text to parse
- * @returns {Array<string>} Array of mentioned user IDs
- */
-function parseMentions(text) {
-  const mentionRegex = /@(\w+)/g;
-  const mentions = [];
-  let match;
-  while ((match = mentionRegex.exec(text)) !== null) {
-    mentions.push(match[1]);
-  }
-  return mentions;
-}
-
 /**
  * Converts text with @mentions to HTML with clickable links
  * @param {string} text - The text to convert
@@ -1593,10 +1540,10 @@ function renderReactions(reactions = {}, itemType, itemId, parentId = null, them
     if (typeof data.count === 'number') count = data.count;
     else if (Array.isArray(data.users)) count = data.users.length;
     const reacted = Array.isArray(data.users) && userId && data.users.includes(userId);
-    
+
     const threadId = itemType === 'comment' ? parentId : null;
     const currentThemaId = themaId || window.currentThemaId || 'global';
-    
+
     // NO onclick - only data attributes for event delegation
     html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" data-item-type="${itemType}" data-item-id="${itemId}" data-emoji="${emoji}" data-thema-id="${currentThemaId}" data-thread-id="${threadId || ''}">${emoji} <span class='reaction-count'>${count}</span></button>`;
   });
@@ -1607,20 +1554,20 @@ function renderReactions(reactions = {}, itemType, itemId, parentId = null, them
 function setupReactionEventListeners() {
   // Remove any existing listeners
   document.removeEventListener('click', handleReactionClick);
-  
+
   // Add fresh event delegation
   document.addEventListener('click', async (e) => {
     if (e.target.classList.contains('reaction-btn')) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const btn = e.target;
       const itemType = btn.dataset.itemType;
       const itemId = btn.dataset.itemId;
       const emoji = btn.dataset.emoji;
       const themaId = btn.dataset.themaId;
       const threadId = btn.dataset.threadId;
-      
+
       await handleReactionClick(btn, itemType, itemId, emoji, themaId, threadId);
     }
   });
@@ -1689,13 +1636,13 @@ async function handleReactionClick(btn, itemType, itemId, emoji, themaId, thread
 
     // Update Firestore
     await updateDoc(itemRef, { reactions: reactions, lastActivity: serverTimestamp() });
-    
+
     // Update only this button's UI
     const countSpan = btn.querySelector('.reaction-count');
     if (countSpan) {
       countSpan.textContent = emojiReactions.count;
     }
-    
+
     if (userIndex > -1) {
       // User removed reaction
       btn.classList.remove('reacted');
@@ -1703,7 +1650,7 @@ async function handleReactionClick(btn, itemType, itemId, emoji, themaId, thread
       // User added reaction
       btn.classList.add('reacted');
     }
-    
+
   } catch (error) {
     console.error("Error handling reaction:", error);
     showMessageBox("Error updating reaction.", true);
@@ -1893,18 +1840,18 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
     }
     console.log('[DEBUG] Deleting comments from:', commentsCol.path);
     console.log('[DEBUG] Deleting thread from:', threadDoc.path);
-    
+
     const commentsSnap = await getDocs(commentsCol);
     console.log('[DEBUG] Found', commentsSnap.docs.length, 'comments to delete');
-    
+
     for (const c of commentsSnap.docs) {
       await deleteDoc(c.ref);
       console.log('[DEBUG] Deleted comment:', c.id);
     }
-    
+
     await deleteDoc(threadDoc);
     console.log('[DEBUG] Deleted thread:', threadId);
-    
+
     showMessageBox('Thread and comments deleted.', false);
   } catch (e) {
     console.error('[DEBUG] Error deleting thread/comments:', e);

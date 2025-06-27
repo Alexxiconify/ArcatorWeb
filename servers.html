@@ -10,13 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Favicon link -->
   <link href="favicon.png" rel="icon" type="image/png">
   <!-- Theme initialization -->
   <script src="theme-init.js" type="module"></script>
 
   <style>
-    /* Base styles, will be overridden by CSS variables from themes.js */
+    /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
@@ -44,7 +46,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1;
     }
     .hero-content {
@@ -54,94 +56,31 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     }
 
-    /* Dynamic theme application for various elements */
-    .bg-gray-800 {
-      background-color: var(--color-bg-content-section) !important;
-    }
-    .bg-gray-900 {
-      background-color: var(--color-bg-navbar) !important; /* For footer */
-    }
-    .text-gray-300 {
-      color: var(--color-text-secondary) !important;
-    }
-    .text-gray-400 {
-      color: var(--color-text-secondary) !important;
-    }
-    .text-gray-50 {
-      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
-    }
-    .text-red-400 {
-      color: var(--color-heading-main) !important;
-    }
-    .text-blue-300 {
-      color: var(--color-heading-card) !important;
-    }
-    .text-yellow-300 {
-      color: var(--color-button-yellow-bg) !important;
-    }
-    .text-purple-300 {
-      color: var(--color-button-purple-bg) !important;
-    }
-    .text-teal-300 {
-      color: var(--color-link) !important;
-    }
-    .text-orange-400 {
-      color: var(--color-button-yellow-hover) !important; /* Using yellow button hover for orange, or define a new variable */
-    }
-
-    /* Server card specific styling */
-    .server-card {
-      background-color: var(--color-bg-card); /* Use card background for server cards */
-      color: var(--color-text-primary);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      box-shadow: 0 10px 15px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    }
-    .server-card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 15px 20px rgba(0,0,0,0.5);
-    }
+    /* Server-specific styles */
     .minecraft-ip-box {
       background-color: var(--color-bg-ip-box);
       border: 2px solid var(--color-border-ip-box);
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
     }
-    .text-white { /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
+
+    .text-white {
       color: white !important;
     }
 
-    /* Buttons */
-    .bg-green-600 { /* Copy IP button */
-      background-color: var(--color-button-green-bg) !important;
-      color: var(--color-button-text) !important;
+    .text-teal-300 {
+      color: var(--color-link) !important;
     }
-    .hover\:bg-green-700:hover {
-      background-color: var(--color-button-green-hover) !important;
+
+    .text-orange-400 {
+      color: var(--color-button-yellow-hover) !important;
     }
-    .bg-purple-600 { /* Discover More / Infrastructure button */
-      background-color: var(--color-button-purple-bg) !important;
-      color: var(--color-button-text) !important;
+
+    .text-purple-300 {
+      color: var(--color-button-purple-bg) !important;
     }
-    .hover\:bg-purple-700:hover {
-      background-color: var(--color-button-purple-hover) !important;
-    }
-    .bg-teal-600 { /* Modded server button */
-      background-color: var(--color-button-teal-bg) !important; /* Use a new variable for teal button */
-      color: var(--color-button-text) !important;
-    }
-    .hover\:bg-teal-700:hover {
-      background-color: var(--color-button-teal-hover) !important; /* New variable for teal hover */
-    }
-    .bg-indigo-600 { /* Discord button */
-      background-color: var(--color-button-indigo-bg) !important;
-      color: var(--color-button-text) !important;
-    }
-    .hover\:bg-indigo-700:hover {
-      background-color: var(--color-button-indigo-hover) !important;
-    }
-    .hover\:text-white:hover { /* For footer links */
-      color: var(--color-text-primary) !important;
+
+    .text-teal-300 {
+      color: var(--color-link) !important;
     }
   </style>
 </head>
@@ -230,123 +169,10 @@
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js'; // Import loadNavbar
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {initializePageWithFirebase} from './firebase-consolidated.js';
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-  let app;
-  let auth;
-  let db;
-  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
-
-  const DEFAULT_THEME = 'dark';
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  async function getUserProfileFromFirestore(uid) {
-    await firebaseReadyPromise; // Ensure Firebase is initialized
-    if (!db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-    }
-    return null;
-  }
-
-  // Initialize Firebase and setup firebaseReadyPromise
-  firebaseReadyPromise = new Promise((resolve) => {
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log("Firebase initialized successfully.");
-      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
-
-      // Critical: Ensure auth state is settled before resolving
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first call
-
-        // Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (servers page) during init."))
-            .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (servers page) during init:", error);
-              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (servers page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on servers page during init:", anonError));
-            })
-            .finally(() => resolve()); // Resolve promise after token attempt
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on servers page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on servers page during init:", anonError))
-            .finally(() => resolve());
-        }
-        else {
-          resolve(); // Resolve immediately if user is already authenticated or no token to use
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing Firebase (initial block):", e);
-      resolve(); // Resolve immediately on error to prevent infinite loading
-    }
-  });
-
-  // Main execution logic on window load
-  window.onload = async function() {
-    // Wait for Firebase to be ready before proceeding
-    await firebaseReadyPromise;
-
-    // Load navbar dynamically
-    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
-
-    // Set current year for footer
-    document.getElementById('current-year-servers').textContent = new Date().getFullYear();
-
-    // After everything is loaded and Firebase is ready, apply the user's theme
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        userThemePreference = userProfile?.themePreference;
-      }
-      // Apply the theme: user's preference, or 'dark' default
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
-      applyTheme(themeToApply.id, themeToApply);
-    });
-  };
+  // Initialize the servers page with Firebase
+  initializePageWithFirebase('Servers', 'current-year-servers', true);
 
   // Function to copy IP address to clipboard
   function copyIp(ipAddress) {
@@ -360,6 +186,9 @@
     console.log('Copied IP: ' + ipAddress);
     document.body.removeChild(tempInput);
   }
+
+  // Make copyIp function globally available
+  window.copyIp = copyIp;
 </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 
 import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
 import { applyTheme, getAvailableThemes } from './themes.js';
+import {validatePhotoURL} from './utils.js';
 
 // Embedded CSS styles
 const navbarStyles = `
@@ -214,28 +215,6 @@ function injectNavbarStyles() {
 }
 
 /**
- * Validates and sanitizes profile picture URL
- * @param {string} photoURL - User's photo URL
- * @param {string} defaultPic - Default profile picture URL
- * @returns {string} Safe photo URL
- */
-function validatePhotoURL(photoURL, defaultPic) {
-  if (!photoURL || typeof photoURL !== 'string') {
-    return defaultPic;
-  }
-
-  try {
-    const url = new URL(photoURL);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return defaultPic;
-    }
-    return photoURL;
-  } catch {
-    return defaultPic;
-  }
-}
-
-/**
  * Updates navbar UI based on user authentication state
  * @param {Object|null} authUser - Firebase User object
  * @param {Object|null} userProfile - User profile from Firestore
@@ -338,7 +317,7 @@ firebaseReadyPromise.then(() => {
     if (user) {
       userProfile = await getUserProfileFromFirestore(user.uid);
     }
-    
+
     // Load navbar with current user state
     await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 

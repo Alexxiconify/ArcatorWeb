@@ -1,38 +1,29 @@
-// utils.js - Provides general utility functions
+// utils.js - Centralized utility functions for the Arcator website
 
-const messageBox = document.getElementById('message-box');
+// Message box functionality
+let messageBox;
 let messageBoxTimeout;
 
 /**
- * Displays a temporary message box at the bottom center of the screen.
+ * Shows a message box with the given message and error status.
  * @param {string} message - The message to display.
- * @param {boolean} isError - If true, styles the message as an error; otherwise, as success.
+ * @param {boolean} isError - Whether this is an error message.
  */
 export function showMessageBox(message, isError = false) {
   if (!messageBox) {
-    console.error("Message box element not found. Cannot show message.");
-    return;
+    messageBox = document.getElementById('message-box');
   }
-  // Clear any existing timeout to allow new messages to display immediately
+  if (!messageBox) return;
+
+  messageBox.textContent = message;
+  messageBox.className = 'message-box ' + (isError ? 'error' : 'success') + ' show';
+
   if (messageBoxTimeout) {
     clearTimeout(messageBoxTimeout);
   }
 
-  // Set message content and appropriate class for styling
-  messageBox.textContent = message;
-  messageBox.className = 'message-box'; // Reset classes
-  if (isError) {
-    messageBox.classList.add('error');
-  } else {
-    messageBox.classList.add('success');
-  }
-
-  // Show the message box
-  messageBox.classList.add('show');
-
-  // Hide the message box after 3 seconds
   messageBoxTimeout = setTimeout(() => {
-    messageBox.classList.remove('show');
+    messageBox.className = 'message-box';
   }, 3000);
 }
 
@@ -43,18 +34,59 @@ export function showMessageBox(message, isError = false) {
  * @returns {string} The sanitized handle.
  */
 export function sanitizeHandle(input) {
-  // Convert to lowercase and remove any characters that are not alphanumeric, dot, or underscore.
   return input.toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
 
+/**
+ * Validates a photo URL and returns a safe URL or default.
+ * @param {string} photoURL - The URL to validate.
+ * @param {string} defaultPic - The default URL to return if validation fails.
+ * @returns {string} The validated URL or default.
+ */
+export function validatePhotoURL(photoURL, defaultPic) {
+  if (!photoURL || typeof photoURL !== 'string') {
+    return defaultPic;
+  }
+  try {
+    const url = new URL(photoURL);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return defaultPic;
+    }
+    return photoURL;
+  } catch (error) {
+    return defaultPic;
+  }
+}
+
 // Custom confirmation modal elements
-const customConfirmModal = document.getElementById('custom-confirm-modal');
-const confirmMessage = document.getElementById('confirm-message');
-const confirmSubmessage = document.getElementById('confirm-submessage');
-const confirmYesButton = document.getElementById('confirm-yes');
-const confirmNoButton = document.getElementById('confirm-no');
-const closeButton = document.querySelector('.custom-confirm-modal .close-button');
-let resolveConfirmPromise; // Stores the resolve function for the confirmation promise
+let customConfirmModal;
+let confirmMessage;
+let confirmSubmessage;
+let confirmYesButton;
+let confirmNoButton;
+let closeButton;
+let resolveConfirmPromise;
+
+/**
+ * Initializes utility DOM elements.
+ */
+function initializeUtilityElements() {
+  try {
+    messageBox = document.getElementById('message-box');
+    customConfirmModal = document.getElementById('custom-confirm-modal');
+    confirmMessage = document.getElementById('confirm-message');
+    confirmSubmessage = document.getElementById('confirm-submessage');
+    confirmYesButton = document.getElementById('confirm-yes');
+    confirmNoButton = document.getElementById('confirm-no');
+    closeButton = document.querySelector('.custom-confirm-modal .close-button');
+
+    if (customConfirmModal && (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block')) {
+      customConfirmModal.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('Error in initializeUtilityElements:', e);
+  }
+}
 
 /**
  * Displays a custom confirmation modal to the user.
@@ -64,29 +96,17 @@ let resolveConfirmPromise; // Stores the resolve function for the confirmation p
  */
 export function showCustomConfirm(message, submessage = '') {
   if (!customConfirmModal || !confirmMessage || !confirmYesButton || !confirmNoButton || !closeButton) {
-    console.error("Custom confirmation modal elements not found. Cannot show confirm dialog.");
-    // Resolve immediately to prevent blocking if elements are missing
+    console.error("Custom confirmation modal elements not found.");
     return Promise.resolve(false);
   }
 
-  // Set messages
   confirmMessage.textContent = message;
   confirmSubmessage.textContent = submessage;
-
-  // Show the modal
   customConfirmModal.style.display = 'flex';
 
-  // Return a new promise that resolves when the user interacts with the modal
   return new Promise((resolve) => {
-    resolveConfirmPromise = resolve; // Store resolve function for later use
+    resolveConfirmPromise = resolve;
 
-    // Clear previous event listeners to prevent multiple firings
-    confirmYesButton.onclick = null;
-    confirmNoButton.onclick = null;
-    closeButton.onclick = null;
-    customConfirmModal.onclick = null; // Clear overlay click listener
-
-    // Set new event listeners
     confirmYesButton.onclick = () => {
       customConfirmModal.style.display = 'none';
       resolveConfirmPromise(true);
@@ -102,7 +122,6 @@ export function showCustomConfirm(message, submessage = '') {
       resolveConfirmPromise(false);
     };
 
-    // Close modal if clicking outside the modal content
     customConfirmModal.onclick = (event) => {
       if (event.target === customConfirmModal) {
         customConfirmModal.style.display = 'none';
@@ -112,16 +131,61 @@ export function showCustomConfirm(message, submessage = '') {
   });
 }
 
-// Ensure the modal is hidden on initial DOM load if it somehow became visible
-document.addEventListener('DOMContentLoaded', () => {
-  if (customConfirmModal) {
-    console.log("DEBUG-INIT: custom-confirm-modal element found.");
-    // Force hide on load to prevent flickering or incorrect display state
-    if (customConfirmModal.style.display === '' || customConfirmModal.style.display === 'block') {
-      customConfirmModal.style.display = 'none';
-      console.log("DEBUG-INIT: custom-confirm-modal forcibly hidden on script load.");
-    } else {
-      console.log("DEBUG-INIT: custom-confirm-modal is correctly hidden by default.");
+// Initialize elements when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeUtilityElements);
+} else {
+  initializeUtilityElements();
+}
+
+// Additional utility functions that are used across multiple files
+export function parseEmojis(text) {
+  // Basic emoji parsing - can be enhanced
+  return text;
+}
+
+export function parseMentions(text) {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  return mentions;
+}
+
+export async function resolveHandlesToUids(handles, db, appId) {
+  if (!db || !handles || handles.length === 0) return [];
+
+  const {
+    collection,
+    query,
+    where,
+    getDocs
+  } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+  const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+
+  const uids = [];
+  for (const handle of handles) {
+    const q = query(usersRef, where('handle', '==', handle));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      uids.push(snapshot.docs[0].id);
     }
   }
-});
+  return uids;
+}
+
+export async function getUserProfileFromFirestore(uid, db, appId) {
+  if (!db || !uid) return null;
+
+  const {doc, getDoc} = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  try {
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) return docSnap.data();
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+  }
+  return null;
+}

@@ -13,7 +13,7 @@ import {
   setUserProfileInFirestore
 } from './firebase-init.js';
 
-import { showMessageBox, sanitizeHandle, showCustomConfirm } from './utils.js';
+import {showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL} from './utils.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
 
@@ -154,26 +154,6 @@ function showLoading() {
 function hideLoading() {
   if (loadingSpinner) loadingSpinner.style.display = 'none';
   console.log("DEBUG: hideLoading - Spinner hidden.");
-}
-
-function validatePhotoURL(photoURL, defaultPic) {
-  console.log("DEBUG: validatePhotoURL called with:", photoURL, "default:", defaultPic);
-  if (!photoURL || typeof photoURL !== 'string') {
-    console.log("DEBUG: photoURL is invalid, returning default");
-    return defaultPic;
-  }
-  try {
-    const url = new URL(photoURL);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      console.log("DEBUG: Invalid protocol:", url.protocol);
-      return defaultPic;
-    }
-    console.log("DEBUG: photoURL is valid, returning:", photoURL);
-    return photoURL;
-  } catch (error) {
-    console.log("DEBUG: URL parsing failed:", error);
-    return defaultPic;
-  }
 }
 
 // Handler for user sign-in
