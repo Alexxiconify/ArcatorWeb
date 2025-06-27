@@ -74,7 +74,9 @@ const defaultThemes = [
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
       '--color-heading-main': '#F9FAFB',
-      '--color-heading-card': '#93C5FD'
+      '--color-heading-card': '#93C5FD',
+      '--color-settings-card-bg': '#23272e',
+      '--color-settings-card-border': '#2d3748'
     }
   },
   {
@@ -122,7 +124,9 @@ const defaultThemes = [
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
       '--color-heading-main': '#1F2937',
-      '--color-heading-card': '#3B82F6'
+      '--color-heading-card': '#3B82F6',
+      '--color-settings-card-bg': '#f9fafb',
+      '--color-settings-card-border': '#e5e7eb'
     }
   },
 ];
@@ -221,69 +225,5 @@ export function applyTheme(themeId, themeProperties) {
       }
       console.log(`Applied default theme: ${defaultTheme.name} (${defaultTheme.id})`);
     }
-  }
-  // No need to dynamically link CSS files for themes, as all theme properties are handled via CSS variables.
-  // This addresses the "dark:1 Failed to load resource" error if it was caused by themes.js trying to load a CSS file directly.
-}
-
-
-/**
- * Saves a custom theme to Firestore for the current user.
- * @param {string} themeId - The ID of the custom theme.
- * @param {string} themeName - The display name of the custom theme.
- * @param {object} properties - The CSS properties of the custom theme.
- * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise.
- */
-export async function saveCustomTheme(themeId, themeName, properties) {
-  await firebaseReadyPromise;
-  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
-    showMessageBox("Please log in to save custom themes.", true);
-    return false;
-  }
-
-  const userId = themesAuth.currentUser.uid;
-  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`, themeId);
-
-  try {
-    await setDoc(themeDocRef, {
-      name: themeName,
-      properties: properties,
-      createdAt: new Date(),
-      createdBy: userId
-    }, { merge: true });
-    availableThemesCache = null; // Invalidate cache
-    showMessageBox("Custom theme saved successfully!", false);
-    return true;
-  } catch (error) {
-    console.error("Error saving custom theme:", error);
-    showMessageBox(`Error saving theme: ${error.message}`, true);
-    return false;
-  }
-}
-
-/**
- * Deletes a custom theme from Firestore for the current user.
- * @param {string} themeId - The ID of the custom theme to delete.
- * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise.
- */
-export async function deleteCustomTheme(themeId) { // Exporting deleteCustomTheme
-  await firebaseReadyPromise;
-  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
-    showMessageBox("Please log in to delete custom themes.", true);
-    return false;
-  }
-
-  const userId = themesAuth.currentUser.uid;
-  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`, themeId);
-
-  try {
-    await deleteDoc(themeDocRef);
-    availableThemesCache = null; // Invalidate cache
-    showMessageBox("Custom theme deleted successfully!", false);
-    return true;
-  } catch (error) {
-    console.error("Error deleting custom theme:", error);
-    showMessageBox(`Error deleting theme: ${error.message}`, true);
-    return false;
   }
 }
