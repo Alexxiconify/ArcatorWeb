@@ -577,8 +577,8 @@ function loadThreadsForThema(themaId) {
       if (!threadListDiv) console.warn(`[DEBUG] threadListDiv not found for themaId ${themaId}`);
       return;
     }
-    // Always use /thematas/{themaId}/threads for all thémata, including 'global'
-    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    // Use correct path for global vs thema threads
+    const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const q = query(threadsCol, orderBy('createdAt', 'desc'));
     onSnapshot(q, async (snapshot) => {
       threadListDiv.innerHTML = '';
@@ -611,7 +611,7 @@ function loadThreadsForThema(themaId) {
             const userData = userDoc.data();
             userProfiles[userDoc.id] = userData;
           });
-        });
+        }).catch(error => console.error("Error fetching user profiles for threads:", error));
       }
       snapshot.forEach(threadDoc => {
         const thread = threadDoc.data();
@@ -678,14 +678,34 @@ function loadThreadsForThema(themaId) {
             openEditModal('thread', {themaId, threadId: threadDoc.id}, thread.initialComment, null, thread.title);
           };
           threadDiv.querySelector('.delete-thread-btn').onclick = async () => {
+            console.log('[DEBUG] Delete thread button clicked for:', { themaId, threadId: threadDoc.id });
             if (confirm('Delete this thread?')) {
-              const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
-              await deleteDoc(doc(threadsCol, threadDoc.id));
-              threadDiv.remove();
+              console.log('[DEBUG] User confirmed deletion');
+              try {
+                await deleteThreadAndSubcollection(themaId, threadDoc.id);
+                console.log('[DEBUG] deleteThreadAndSubcollection completed');
+              } catch (e) {
+                console.error('[DEBUG] Error in delete button handler:', e);
+                showMessageBox('Error deleting thread: ' + e.message, true);
+              }
+            } else {
+              console.log('[DEBUG] User cancelled deletion');
             }
           };
         }
         threadDiv.setAttribute('data-thread-id', threadDoc.id);
+      });
+      cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
+      document.querySelectorAll('.delete-thread-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const threadId = event.target.dataset.threadId;
+          const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
+          if (confirmed) {
+            await deleteThreadAndSubcollection(currentThemaId, threadId);
+          } else {
+            showMessageBox("Thread deletion cancelled.", false);
+          }
+        });
       });
     });
   } catch (e) {
@@ -779,8 +799,8 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
     const newTitle = editForm.querySelector('.edit-thread-title').value.trim();
     const newContent = editForm.querySelector('.edit-thread-content').value.trim();
     if (!newTitle || !newContent) return;
-    // Always use thematas/{themaId}/threads/{threadId}
-    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    // Use correct path for global vs thema threads
+    const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     await updateDoc(doc(threadsCol, threadId), {
       title: newTitle,
       initialComment: newContent
@@ -815,8 +835,8 @@ function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
     e.preventDefault();
     const newContent = editForm.querySelector('.edit-comment-content').value.trim();
     if (!newContent) return;
-    // Always use thematas/{themaId}/threads/{threadId}/comments/{commentId}
-    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+    // Use correct path for global vs thema threads
+    const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     await updateDoc(doc(commentsCol, commentId), {
       content: newContent
     });
@@ -1839,3 +1859,40 @@ document.getElementById('start-dm-form').onsubmit = async (e) => {
     renderDMList();
   }
 };
+
+/**
+ * Deletes a thread and all its comments (for Thema or global threads)
+ * @param {string} themaId - The thema ID (or 'global')
+ * @param {string} threadId - The thread ID
+ */
+async function deleteThreadAndSubcollection(themaId, threadId) {
+  console.log('[DEBUG] deleteThreadAndSubcollection called with:', { themaId, threadId });
+  try {
+    let commentsCol, threadDoc;
+    if (themaId === 'global') {
+      commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`);
+      threadDoc = doc(window.db, `artifacts/${window.appId}/public/data/threads`, threadId);
+    } else {
+      commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+      threadDoc = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, threadId);
+    }
+    console.log('[DEBUG] Deleting comments from:', commentsCol.path);
+    console.log('[DEBUG] Deleting thread from:', threadDoc.path);
+    
+    const commentsSnap = await getDocs(commentsCol);
+    console.log('[DEBUG] Found', commentsSnap.docs.length, 'comments to delete');
+    
+    for (const c of commentsSnap.docs) {
+      await deleteDoc(c.ref);
+      console.log('[DEBUG] Deleted comment:', c.id);
+    }
+    
+    await deleteDoc(threadDoc);
+    console.log('[DEBUG] Deleted thread:', threadId);
+    
+    showMessageBox('Thread and comments deleted.', false);
+  } catch (e) {
+    console.error('[DEBUG] Error deleting thread/comments:', e);
+    showMessageBox('Error deleting thread: ' + e.message, true);
+  }
+}
