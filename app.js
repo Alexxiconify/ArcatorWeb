@@ -2,15 +2,14 @@
 let EMOJI_MAP = {};
 let EMOJI_MAP_LOADED = false;
 
-fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
+fetch('./emojii.json')
   .then(res => res.json())
   .then(data => {
     EMOJI_MAP = {};
     data.forEach(e => {
-      if (e.shortcodes) {
-        e.shortcodes.forEach(code => {
-          EMOJI_MAP[code] = e.emoji;
-        });
+      if (e.emoji) {
+        // Use the emoji field directly
+        EMOJI_MAP[e.emoji] = e.emoji;
       }
     });
     EMOJI_MAP_LOADED = true;
