@@ -309,6 +309,49 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
   }
 }
 
+/**
+ * Loads the footer component into the page.
+ * @param {string} yearElementId - The ID for the current year element (e.g., 'current-year-about')
+ * @param {Array} additionalLinks - Optional array of additional link objects with href and text properties
+ */
+export async function loadFooter(yearElementId = null, additionalLinks = []) {
+  const footerPlaceholder = document.getElementById('footer-placeholder');
+  if (!footerPlaceholder) {
+    console.warn('Footer placeholder not found. Add <div id="footer-placeholder"></div> to your page.');
+    return;
+  }
+
+  // Default footer links
+  const defaultLinks = [
+    {href: 'privacy.html', text: 'Privacy Policy'},
+    {href: 'terms.html', text: 'Terms of Service'},
+    {href: 'https://wiki.arcator.co.uk/', text: 'Wiki', external: true},
+    {href: 'infrastructure.html', text: 'Infrastructure'},
+    {href: 'admin_and_dev.html', text: 'Admin & Dev'}
+  ];
+
+  // Merge default links with additional links
+  const allLinks = [...defaultLinks, ...additionalLinks];
+
+  // Generate footer HTML
+  const footerHTML = `
+    <footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
+      <div class="container mx-auto px-4">
+        <p>© 2012 - <span id="${yearElementId || 'current-year'}">${new Date().getFullYear()}</span> Arcator.co.uk. All rights reserved.</p>
+        <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
+        <div class="flex flex-wrap justify-center space-x-6 mt-4">
+          ${allLinks.map(link => {
+    const externalAttrs = link.external ? 'target="_blank" rel="noopener noreferrer"' : '';
+    return `<a href="${link.href}" ${externalAttrs} class="hover:text-link transition duration-300 ease-in-out">${link.text}</a>`;
+  }).join('')}
+        </div>
+      </div>
+    </footer>
+  `;
+
+  footerPlaceholder.innerHTML = footerHTML;
+}
+
 // Initialize navbar when Firebase is ready
 firebaseReadyPromise.then(() => {
   onAuthStateChanged(auth, async (user) => {
