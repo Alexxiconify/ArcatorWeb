@@ -921,6 +921,13 @@
               class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
               Profile Information
             </summary>
+            <div class="save-btn-container" style="margin-bottom:0.5rem;">
+              <button class="save-btn-circle" id="save-profile-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+              </button>
+            </div>
             <div class="mt-4 flex flex-col md:flex-row md:items-start md:gap-8">
               <div class="flex-shrink-0 flex justify-center md:block mb-4 md:mb-0">
                 <img alt="Profile Picture" class="profile-pic-large w-32 h-32 rounded-full object-cover"
@@ -943,11 +950,6 @@
                   <p class="text-text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a
                     direct link to an image (JPG, PNG, GIF).</p>
                 </div>
-                <button class="save-btn-circle" id="save-profile-btn">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                  </svg>
-                </button>
               </div>
             </div>
           </details>
@@ -959,6 +961,13 @@
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
             Personalize Experience
           </summary>
+          <div class="save-btn-container" style="margin-bottom:0.5rem;">
+            <button class="save-btn-circle" id="save-preferences-btn" title="Save Preferences">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
           <div class="mt-4 flex-1">
             <div class="input-field">
               <label for="theme-select">Select Theme:</label>
@@ -1066,13 +1075,6 @@
               <label for="disable-animations-checkbox">Disable Animations <span
                 style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
             </div>
-            <div class="save-btn-container">
-              <button class="save-btn-circle" id="save-accessibility-btn" title="Save Accessibility Settings">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-              </button>
-            </div>
           </div>
         </details>
 
@@ -1082,6 +1084,13 @@
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
             Data & Notifications
           </summary>
+          <div class="save-btn-container" style="margin-bottom:0.5rem;">
+            <button class="save-btn-circle" id="save-privacy-btn" title="Save Settings">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
           <div class="mt-4 flex-1">
             <p class="text-text-secondary text-center mb-4">Control your privacy settings, manage your data, and
               configure notifications.</p>
@@ -1265,13 +1274,6 @@
                 </form>
               </div>
             </details>
-            <div class="save-btn-container">
-              <button class="save-btn-circle" id="save-privacy-btn" title="Save Settings">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-              </button>
-            </div>
           </div>
         </details>
       </div>
