@@ -297,11 +297,15 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
  * @returns {Promise<Array>} Array of custom theme objects.
  */
 async function fetchCustomThemes() {
-  if (!themesDb) {
+  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
+  const firestoreDb = themesDb || db;
+  const appIdentifier = themesAppId || appId;
+
+  if (!firestoreDb) {
     console.error("Firestore DB not initialized for fetchCustomThemes.");
     return [];
   }
-  const customThemesCol = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
+  const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
   try {
     const querySnapshot = await getDocs(customThemesCol);
     const customThemes = [];
@@ -376,29 +380,49 @@ export function applyTheme(themeId, themeProperties) {
  * @returns {Promise<boolean>} Success status.
  */
 export async function saveCustomTheme(themeData) {
-  if (!themesDb || !themesAuth.currentUser) {
+  console.log('DEBUG: saveCustomTheme called with:', themeData);
+
+  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
+  const firestoreDb = themesDb || db;
+  const firebaseAuth = themesAuth || auth;
+  const appIdentifier = themesAppId || appId;
+
+  console.log('DEBUG: Firebase instances - firestoreDb:', !!firestoreDb, 'firebaseAuth:', !!firebaseAuth, 'appIdentifier:', appIdentifier);
+
+  if (!firestoreDb || !firebaseAuth.currentUser) {
     console.error("Not authenticated or database not ready for saveCustomTheme.");
+    console.error("firestoreDb:", !!firestoreDb, "firebaseAuth.currentUser:", !!firebaseAuth.currentUser);
     return false;
   }
 
-  const customThemesCol = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
+  // Validate theme name is required
+  if (!themeData.name || themeData.name.trim() === '') {
+    console.error("Theme name is required for saveCustomTheme.");
+    return false;
+  }
+
+  const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
 
   try {
     // Get user profile to include username information
     const {getUserProfileFromFirestore} = await import('./firebase-init.js');
-    const userProfile = await getUserProfileFromFirestore(themesAuth.currentUser.uid);
+    const userProfile = await getUserProfileFromFirestore(firebaseAuth.currentUser.uid);
+    console.log('DEBUG: User profile retrieved:', userProfile);
 
     // Prepare theme data with user information
     const themeToSave = {
       ...themeData,
-      authorId: themesAuth.currentUser.uid,
-      authorEmail: themesAuth.currentUser.email,
-      authorDisplayName: userProfile?.displayName || themesAuth.currentUser.displayName || 'Unknown User',
+      name: themeData.name.trim(), // Ensure name is trimmed
+      authorId: firebaseAuth.currentUser.uid,
+      authorEmail: firebaseAuth.currentUser.email,
+      authorDisplayName: userProfile?.displayName || firebaseAuth.currentUser.displayName || 'Unknown User',
       authorHandle: userProfile?.handle || 'unknown',
       createdAt: new Date(),
       updatedAt: new Date(),
       isCustom: true
     };
+
+    console.log('DEBUG: Theme data to save:', themeToSave);
 
     let docRef;
 
@@ -432,20 +456,24 @@ export async function saveCustomTheme(themeData) {
  * @returns {Promise<boolean>} Success status.
  */
 export async function deleteCustomTheme(themeId) {
-  if (!themesDb || !themesAuth.currentUser) {
-    showMessageBox("Not authenticated or database not ready.", true);
+  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
+  const firestoreDb = themesDb || db;
+  const firebaseAuth = themesAuth || auth;
+  const appIdentifier = themesAppId || appId;
+
+  if (!firestoreDb || !firebaseAuth.currentUser) {
+    console.error("Not authenticated or database not ready for deleteCustomTheme.");
     return false;
   }
 
-  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`, themeId);
+  const themeDocRef = doc(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`, themeId);
   try {
     await deleteDoc(themeDocRef);
     availableThemesCache = null; // Clear cache
-    showMessageBox("Custom theme deleted successfully!", false);
+    console.log(`Deleted custom theme: ${themeId}`);
     return true;
   } catch (error) {
     console.error("Error deleting custom theme:", error);
-    showMessageBox(`Error deleting theme: ${error.message}`, true);
     return false;
   }
 }

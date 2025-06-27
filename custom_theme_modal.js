@@ -43,7 +43,21 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     // Validate required fields
     const themeName = themeNameInput.value.trim();
     if (!themeName) {
-      showMessageBox("Theme name is required.", true);
+      showMessageBox("Theme name is required. Please enter a name for your custom theme.", true);
+      themeNameInput.focus();
+      return;
+    }
+
+    // Validate theme name length
+    if (themeName.length < 3) {
+      showMessageBox("Theme name must be at least 3 characters long.", true);
+      themeNameInput.focus();
+      return;
+    }
+
+    if (themeName.length > 50) {
+      showMessageBox("Theme name must be less than 50 characters long.", true);
+      themeNameInput.focus();
       return;
     }
 
@@ -84,7 +98,9 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
       saveBtn.textContent = 'Saving...';
       saveBtn.disabled = true;
 
+      console.log('DEBUG: Attempting to save custom theme:', newTheme);
       const success = await saveCustomTheme(newTheme);
+      console.log('DEBUG: saveCustomTheme result:', success);
 
       if (success) {
         showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
@@ -110,7 +126,7 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
         customThemeForm.reset();
         currentCustomThemeId = null;
       } else {
-        showMessageBox("Failed to save theme. Please try again.", true);
+        showMessageBox("Failed to save theme. Please check your connection and try again.", true);
       }
     } catch (error) {
       console.error("Error saving custom theme:", error);
@@ -143,9 +159,14 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
           <span class="close-button">&times;</span>
           <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Manage Custom Themes</h3>
           <form id="custom-theme-form">
-            <div class="input-field mb-4">
-              <label for="custom-theme-name" class="block text-gray-300 text-sm font-bold mb-2">Theme Name:</label>
-              <input type="text" id="custom-theme-name" placeholder="My Custom Theme" required class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" style="background: var(--color-input-bg); color: var(--color-input-text);">
+            <div class="input-field mb-6">
+              <label for="custom-theme-name" class="block text-gray-300 text-sm font-bold mb-2">
+                <span style="color: #EF4444;">*</span> Theme Name: <span class="text-gray-400 text-xs">(Required)</span>
+              </label>
+              <input type="text" id="custom-theme-name" placeholder="Enter a unique name for your theme..." required 
+                     class="shadow appearance-none border rounded w-full py-3 px-4 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" 
+                     style="background: var(--color-input-bg); color: var(--color-input-text); border-color: var(--color-input-border); font-size: 1.1rem;">
+              <p class="text-gray-400 text-xs mt-1">Choose a descriptive name that helps you identify this theme (3-50 characters)</p>
             </div>
 
             <div class="input-field mb-4">
