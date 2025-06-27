@@ -27,112 +27,252 @@ let themesAppId = appId; // Assign global appId instance
 // Cache for available themes
 let availableThemesCache = null;
 
-// Default themes (always available)
 const defaultThemes = [
   {
     id: 'dark',
     name: 'Dark Theme',
-    properties: {
-      '--color-body-bg': '#1a202c',
-      '--color-text-primary': '#e2e8f0',
-      '--color-text-secondary': '#a0aec0',
+    description: 'Default dark theme with blue accents',
+    colors: {
+      '--color-body-bg': '#1F2937',
+      '--color-text-primary': '#E5E7EB',
+      '--color-text-secondary': '#9CA3AF',
       '--color-bg-navbar': '#111827',
-      '--color-bg-content-section': '#2d3748',
-      '--color-bg-card': '#2d3748',
-      '--color-bg-ip-box': '#1a202c',
-      '--color-border-ip-box': '#4a5568',
-      '--color-link': '#63b3ed',
-      '--color-link-hover': '#90cdf4',
-      '--color-button-text': '#ffffff',
-      '--color-button-blue-bg': '#4299e1',
-      '--color-button-blue-hover': '#3182ce',
-      '--color-button-red-bg': '#e53e3e',
-      '--color-button-red-hover': '#c53030',
-      '--color-button-green-bg': '#48bb78',
-      '--color-button-green-hover': '#38a169',
-      '--color-button-purple-bg': '#805ad5',
-      '--color-button-purple-hover': '#6b46c1',
-      '--color-button-yellow-bg': '#ecc94b',
-      '--color-button-yellow-hover': '#d69e2e',
-      '--color-button-orange-bg': '#ed8936',
-      '--color-button-orange-hover': '#dd6b20',
-      '--color-button-indigo-bg': '#667eea',
-      '--color-button-indigo-hover': '#5a67d8',
-      '--color-button-teal-bg': '#319795',
-      '--color-button-teal-hover': '#2c7a7b',
-      '--color-input-bg': '#2d3748',
-      '--color-input-text': '#e2e8f0',
-      '--color-input-border': '#4a5568',
-      '--color-placeholder': '#a0aec0',
-      '--color-table-th-bg': '#2a4365',
-      '--color-table-th-text': '#e2e8f0',
-      '--color-table-td-border': '#4a5568',
-      '--color-table-row-even-bg': '#2c3748',
-      '--color-modal-bg': '#2d3748',
-      '--color-modal-text': '#e2e8f0',
-      '--color-modal-input-bg': '#1a202c',
-      '--color-message-box-bg-success': '#28a745',
-      '--color-message-box-bg-error': '#dc3545',
+      '--color-bg-card': '#2D3748',
+      '--color-bg-content-section': '#374151',
+      '--color-bg-ip-box': '#1F2937',
+      '--color-border-ip-box': '#4B5563',
+      '--color-input-bg': '#374151',
+      '--color-input-text': '#E5E7EB',
+      '--color-input-border': '#4B5563',
+      '--color-placeholder': '#9CA3AF',
+      '--color-link': '#60A5FA',
       '--color-heading-main': '#F9FAFB',
-      '--color-heading-card': '#93C5FD',
-      '--color-settings-card-bg': '#22304a',
-      '--color-settings-card-border': '#334155',
-      '--color-table-col-even': '#22304a',
-      '--color-table-col-odd': '#2d3748'
+      '--color-heading-card': '#E5E7EB',
+      '--color-button-blue-bg': '#3B82F6',
+      '--color-button-blue-hover': '#2563EB',
+      '--color-button-green-bg': '#10B981',
+      '--color-button-green-hover': '#059669',
+      '--color-button-red-bg': '#EF4444',
+      '--color-button-red-hover': '#DC2626',
+      '--color-button-purple-bg': '#8B5CF6',
+      '--color-button-purple-hover': '#7C3AED',
+      '--color-button-yellow-bg': '#F59E0B',
+      '--color-button-yellow-hover': '#D97706',
+      '--color-button-indigo-bg': '#6366F1',
+      '--color-button-indigo-hover': '#4F46E5',
+      '--color-button-text': '#FFFFFF',
+      '--color-table-th-bg': '#374151',
+      '--color-table-th-text': '#F9FAFB',
+      '--color-table-td-border': '#4B5563',
+      '--color-table-row-even-bg': '#2D3748',
+      '--color-modal-bg': '#374151',
+      '--color-modal-text': '#E5E7EB',
+      '--color-modal-input-bg': '#4B5563',
+      '--color-modal-input-text': '#E5E7EB',
+      '--color-message-box-bg-success': '#10B981',
+      '--color-message-box-bg-error': '#EF4444',
+      '--color-settings-card-bg': '#2D3748',
+      '--color-settings-card-border': '#4B5563',
+      '--color-table-col-even': '#374151',
+      '--color-table-col-odd': '#2D3748'
     }
   },
   {
     id: 'light',
     name: 'Light Theme',
-    properties: {
-      '--color-body-bg': '#f7fafc',
-      '--color-text-primary': '#2d3748',
-      '--color-text-secondary': '#4a5568',
-      '--color-bg-navbar': '#ffffff',
-      '--color-bg-content-section': '#ffffff',
-      '--color-bg-card': '#ffffff',
-      '--color-bg-ip-box': '#edf2f7',
-      '--color-border-ip-box': '#e2e8f0',
-      '--color-link': '#2b6cb0',
-      '--color-link-hover': '#3182ce',
-      '--color-button-text': '#ffffff',
-      '--color-button-blue-bg': '#3182ce',
-      '--color-button-blue-hover': '#2b6cb0',
-      '--color-button-red-bg': '#e53e3e',
-      '--color-button-red-hover': '#c53030',
-      '--color-button-green-bg': '#38a169',
-      '--color-button-green-hover': '#2f855a',
-      '--color-button-purple-bg': '#6b46c1',
-      '--color-button-purple-hover': '#553c9a',
-      '--color-button-yellow-bg': '#d69e2e',
-      '--color-button-yellow-hover': '#b7791f',
-      '--color-button-orange-bg': '#dd6b20',
-      '--color-button-orange-hover': '#c05621',
-      '--color-button-indigo-bg': '#5a67d8',
-      '--color-button-indigo-hover': '#4c51bf',
-      '--color-button-teal-bg': '#319795',
-      '--color-button-teal-hover': '#2c7a7b',
-      '--color-input-bg': '#edf2f7',
-      '--color-input-text': '#2d3748',
-      '--color-input-border': '#e2e8f0',
-      '--color-placeholder': '#a0aec0',
-      '--color-table-th-bg': '#e2e8f0',
-      '--color-table-th-text': '#2d3748',
-      '--color-table-td-border': '#edf2f7',
-      '--color-table-row-even-bg': '#f7fafc',
-      '--color-modal-bg': '#ffffff',
-      '--color-modal-text': '#2d3748',
-      '--color-modal-input-bg': '#edf2f7',
-      '--color-message-box-bg-success': '#28a745',
-      '--color-message-box-bg-error': '#dc3545',
-      '--color-heading-main': '#1F2937',
-      '--color-heading-card': '#3B82F6',
-      '--color-settings-card-bg': '#f9fafb',
-      '--color-settings-card-border': '#e5e7eb',
-      '--color-table-col-even': '#e3f0ff',
-      '--color-table-col-odd': '#f7fafc'
+    description: 'Clean light theme with dark text',
+    colors: {
+      '--color-body-bg': '#F3F4F6',
+      '--color-text-primary': '#1F2937',
+      '--color-text-secondary': '#6B7280',
+      '--color-bg-navbar': '#FFFFFF',
+      '--color-bg-card': '#FFFFFF',
+      '--color-bg-content-section': '#F9FAFB',
+      '--color-bg-ip-box': '#F3F4F6',
+      '--color-border-ip-box': '#D1D5DB',
+      '--color-input-bg': '#FFFFFF',
+      '--color-input-text': '#1F2937',
+      '--color-input-border': '#D1D5DB',
+      '--color-placeholder': '#6B7280',
+      '--color-link': '#3B82F6',
+      '--color-heading-main': '#111827',
+      '--color-heading-card': '#1F2937',
+      '--color-button-blue-bg': '#3B82F6',
+      '--color-button-blue-hover': '#2563EB',
+      '--color-button-green-bg': '#10B981',
+      '--color-button-green-hover': '#059669',
+      '--color-button-red-bg': '#EF4444',
+      '--color-button-red-hover': '#DC2626',
+      '--color-button-purple-bg': '#8B5CF6',
+      '--color-button-purple-hover': '#7C3AED',
+      '--color-button-yellow-bg': '#F59E0B',
+      '--color-button-yellow-hover': '#D97706',
+      '--color-button-indigo-bg': '#6366F1',
+      '--color-button-indigo-hover': '#4F46E5',
+      '--color-button-text': '#FFFFFF',
+      '--color-table-th-bg': '#F3F4F6',
+      '--color-table-th-text': '#374151',
+      '--color-table-td-border': '#E5E7EB',
+      '--color-table-row-even-bg': '#F9FAFB',
+      '--color-modal-bg': '#FFFFFF',
+      '--color-modal-text': '#1F2937',
+      '--color-modal-input-bg': '#F9FAFB',
+      '--color-modal-input-text': '#1F2937',
+      '--color-message-box-bg-success': '#10B981',
+      '--color-message-box-bg-error': '#EF4444',
+      '--color-settings-card-bg': '#FFFFFF',
+      '--color-settings-card-border': '#E5E7EB',
+      '--color-table-col-even': '#F3F4F6',
+      '--color-table-col-odd': '#F9FAFB'
     }
   },
+  {
+    id: 'arcator-green',
+    name: 'Arcator Green',
+    description: 'Arcator brand theme with green accents',
+    colors: {
+      '--color-body-bg': '#1a202c',
+      '--color-text-primary': '#E2E8F0',
+      '--color-text-secondary': '#94A3B8',
+      '--color-bg-navbar': '#0f1419',
+      '--color-bg-card': '#2b3b55',
+      '--color-bg-content-section': '#374151',
+      '--color-bg-ip-box': '#1a202c',
+      '--color-border-ip-box': '#4B5563',
+      '--color-input-bg': '#3b4d6b',
+      '--color-input-text': '#E2E8F0',
+      '--color-input-border': '#5a6e8f',
+      '--color-placeholder': '#94A3B8',
+      '--color-link': '#48BB78',
+      '--color-heading-main': '#F9FAFB',
+      '--color-heading-card': '#E2E8F0',
+      '--color-button-blue-bg': '#48BB78',
+      '--color-button-blue-hover': '#38A169',
+      '--color-button-green-bg': '#48BB78',
+      '--color-button-green-hover': '#38A169',
+      '--color-button-red-bg': '#F56565',
+      '--color-button-red-hover': '#E53E3E',
+      '--color-button-purple-bg': '#9F7AEA',
+      '--color-button-purple-hover': '#805AD5',
+      '--color-button-yellow-bg': '#ED8936',
+      '--color-button-yellow-hover': '#DD6B20',
+      '--color-button-indigo-bg': '#667EEA',
+      '--color-button-indigo-hover': '#5A67D8',
+      '--color-button-text': '#FFFFFF',
+      '--color-table-th-bg': '#374151',
+      '--color-table-th-text': '#F9FAFB',
+      '--color-table-td-border': '#4B5563',
+      '--color-table-row-even-bg': '#2b3b55',
+      '--color-modal-bg': '#374151',
+      '--color-modal-text': '#E2E8F0',
+      '--color-modal-input-bg': '#3b4d6b',
+      '--color-modal-input-text': '#E2E8F0',
+      '--color-message-box-bg-success': '#48BB78',
+      '--color-message-box-bg-error': '#F56565',
+      '--color-settings-card-bg': '#2b3b55',
+      '--color-settings-card-border': '#4B5563',
+      '--color-table-col-even': '#374151',
+      '--color-table-col-odd': '#2b3b55'
+    }
+  },
+  {
+    id: 'ocean-blue',
+    name: 'Ocean Blue',
+    description: 'Deep ocean theme with blue gradients',
+    colors: {
+      '--color-body-bg': '#0f172a',
+      '--color-text-primary': '#E2E8F0',
+      '--color-text-secondary': '#94A3B8',
+      '--color-bg-navbar': '#020617',
+      '--color-bg-card': '#1e293b',
+      '--color-bg-content-section': '#334155',
+      '--color-bg-ip-box': '#0f172a',
+      '--color-border-ip-box': '#475569',
+      '--color-input-bg': '#334155',
+      '--color-input-text': '#E2E8F0',
+      '--color-input-border': '#475569',
+      '--color-placeholder': '#94A3B8',
+      '--color-link': '#60A5FA',
+      '--color-heading-main': '#F9FAFB',
+      '--color-heading-card': '#E2E8F0',
+      '--color-button-blue-bg': '#3B82F6',
+      '--color-button-blue-hover': '#2563EB',
+      '--color-button-green-bg': '#10B981',
+      '--color-button-green-hover': '#059669',
+      '--color-button-red-bg': '#EF4444',
+      '--color-button-red-hover': '#DC2626',
+      '--color-button-purple-bg': '#8B5CF6',
+      '--color-button-purple-hover': '#7C3AED',
+      '--color-button-yellow-bg': '#F59E0B',
+      '--color-button-yellow-hover': '#D97706',
+      '--color-button-indigo-bg': '#6366F1',
+      '--color-button-indigo-hover': '#4F46E5',
+      '--color-button-text': '#FFFFFF',
+      '--color-table-th-bg': '#334155',
+      '--color-table-th-text': '#F9FAFB',
+      '--color-table-td-border': '#475569',
+      '--color-table-row-even-bg': '#1e293b',
+      '--color-modal-bg': '#334155',
+      '--color-modal-text': '#E2E8F0',
+      '--color-modal-input-bg': '#475569',
+      '--color-modal-input-text': '#E2E8F0',
+      '--color-message-box-bg-success': '#10B981',
+      '--color-message-box-bg-error': '#EF4444',
+      '--color-settings-card-bg': '#1e293b',
+      '--color-settings-card-border': '#475569',
+      '--color-table-col-even': '#334155',
+      '--color-table-col-odd': '#1e293b'
+    }
+  },
+  {
+    id: 'high-contrast',
+    name: 'High Contrast',
+    description: 'High contrast theme for accessibility',
+    colors: {
+      '--color-body-bg': '#000000',
+      '--color-text-primary': '#FFFFFF',
+      '--color-text-secondary': '#CCCCCC',
+      '--color-bg-navbar': '#000000',
+      '--color-bg-card': '#1a1a1a',
+      '--color-bg-content-section': '#2a2a2a',
+      '--color-bg-ip-box': '#000000',
+      '--color-border-ip-box': '#FFFFFF',
+      '--color-input-bg': '#1a1a1a',
+      '--color-input-text': '#FFFFFF',
+      '--color-input-border': '#FFFFFF',
+      '--color-placeholder': '#CCCCCC',
+      '--color-link': '#FFFF00',
+      '--color-heading-main': '#FFFFFF',
+      '--color-heading-card': '#FFFFFF',
+      '--color-button-blue-bg': '#FFFF00',
+      '--color-button-blue-hover': '#FFFF00',
+      '--color-button-green-bg': '#00FF00',
+      '--color-button-green-hover': '#00FF00',
+      '--color-button-red-bg': '#FF0000',
+      '--color-button-red-hover': '#FF0000',
+      '--color-button-purple-bg': '#FF00FF',
+      '--color-button-purple-hover': '#FF00FF',
+      '--color-button-yellow-bg': '#FFFF00',
+      '--color-button-yellow-hover': '#FFFF00',
+      '--color-button-indigo-bg': '#00FFFF',
+      '--color-button-indigo-hover': '#00FFFF',
+      '--color-button-text': '#000000',
+      '--color-table-th-bg': '#2a2a2a',
+      '--color-table-th-text': '#FFFFFF',
+      '--color-table-td-border': '#FFFFFF',
+      '--color-table-row-even-bg': '#1a1a1a',
+      '--color-modal-bg': '#2a2a2a',
+      '--color-modal-text': '#FFFFFF',
+      '--color-modal-input-bg': '#1a1a1a',
+      '--color-modal-input-text': '#FFFFFF',
+      '--color-message-box-bg-success': '#00FF00',
+      '--color-message-box-bg-error': '#FF0000',
+      '--color-settings-card-bg': '#1a1a1a',
+      '--color-settings-card-border': '#FFFFFF',
+      '--color-table-col-even': '#2a2a2a',
+      '--color-table-col-odd': '#1a1a1a'
+    }
+  }
 ];
 
 /**
@@ -152,82 +292,165 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
 }
 
 /**
- * Fetches custom themes from Firestore for the current user.
- * Themes are stored under /artifacts/{appId}/users/{userId}/custom_themes.
- * @returns {Promise<Array>} A promise that resolves to an array of custom theme objects.
+ * Fetches custom themes from Firestore.
+ * @returns {Promise<Array>} Array of custom theme objects.
  */
 async function fetchCustomThemes() {
-  await firebaseReadyPromise; // Ensure Firebase is fully initialized and 'db' is available
-  if (!themesDb || !themesAuth || !themesAuth.currentUser) {
-    console.log("Themes module: Firebase instances or current user not yet available for fetching custom themes. Returning only default themes.");
-    return []; // Return empty array if prerequisites are not met
+  if (!themesDb) {
+    console.error("Firestore DB not initialized for fetchCustomThemes.");
+    return [];
   }
-
-  const userId = themesAuth.currentUser.uid;
-  const customThemesColRef = collection(themesDb, `artifacts/${themesAppId}/users/${userId}/custom_themes`);
-  const q = query(customThemesColRef);
-
+  const customThemesCol = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
   try {
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(customThemesCol);
     const customThemes = [];
     querySnapshot.forEach((doc) => {
       customThemes.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`DEBUG: Fetched custom themes: ${customThemes.length}`);
+    console.log("DEBUG: Fetched custom themes:", customThemes.length);
     return customThemes;
   } catch (error) {
-    console.error("Error fetching custom themes from Firestore:", error);
-    showMessageBox("Error loading custom themes.", true);
+    console.error("ERROR: Error fetching custom themes:", error);
     return [];
   }
 }
 
 /**
- * Retrieves all available themes, including defaults and user-defined custom themes.
- * Uses a cache to avoid redundant Firestore reads.
- * @param {boolean} forceRefresh - If true, bypass the cache and refetch themes.
- * @returns {Promise<Array>} A promise that resolves to an array of all available theme objects.
+ * Returns all available themes (default + custom).
+ * @param {boolean} [forceRefresh=false] - Force refresh the cache.
+ * @returns {Promise<Array>} Array of all available theme objects.
  */
 export async function getAvailableThemes(forceRefresh = false) {
   if (availableThemesCache && !forceRefresh) {
-    console.log("DEBUG: Returning themes from cache.");
     return availableThemesCache;
   }
-
   const customThemes = await fetchCustomThemes();
-  const allThemes = [...defaultThemes, ...customThemes];
-  availableThemesCache = allThemes; // Update cache
-  return allThemes;
+  availableThemesCache = [...defaultThemes, ...customThemes];
+  return availableThemesCache;
 }
 
 /**
- * Applies the selected theme by setting CSS custom properties (variables) on the document's root element.
+ * Applies a theme to the document.
  * @param {string} themeId - The ID of the theme to apply.
- * @param {object} themeProperties - The object containing theme CSS properties.
+ * @param {object} [themeProperties] - Optional theme properties object.
  */
 export function applyTheme(themeId, themeProperties) {
   const root = document.documentElement;
-  // Clear any existing custom properties to prevent conflicts
-  // This is a safety measure; usually, new properties will overwrite old ones.
-  // However, if a theme removes a property, explicitly removing it ensures cleanup.
-  // Iterate over all known property names (from default themes or previously loaded custom themes)
-  // to ensure proper reset. For simplicity, we'll just apply new ones, which will overwrite.
 
-  // Apply new custom properties
-  if (themeProperties && themeProperties.properties) {
-    for (const [key, value] of Object.entries(themeProperties.properties)) {
-      root.style.setProperty(key, value);
-    }
-    console.log(`Applied theme: ${themeProperties.name} (${themeId})`);
-  } else {
-    console.warn(`Theme properties not found for theme ID: ${themeId}. Applying default theme if possible.`);
-    // Fallback to dark theme if selected theme properties are invalid
-    const defaultTheme = defaultThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    if (defaultTheme) {
-      for (const [key, value] of Object.entries(defaultTheme.properties)) {
-        root.style.setProperty(key, value);
+  // Remove existing theme classes
+  root.classList.remove('theme-dark', 'theme-light', 'theme-arcator-green', 'theme-ocean-blue', 'theme-high-contrast');
+
+  // Add new theme class
+  root.classList.add(`theme-${themeId}`);
+
+  // Apply CSS variables if theme properties are provided
+  if (themeProperties && themeProperties.colors) {
+    Object.entries(themeProperties.colors).forEach(([property, value]) => {
+      root.style.setProperty(property, value);
+    });
+  }
+
+  console.log(`Theme applied: ${themeId}`);
+}
+
+/**
+ * Saves a custom theme to Firestore.
+ * @param {object} themeData - The theme data to save.
+ * @returns {Promise<boolean>} Success status.
+ */
+export async function saveCustomTheme(themeData) {
+  if (!themesDb || !themesAuth.currentUser) {
+    showMessageBox("Not authenticated or database not ready.", true);
+    return false;
+  }
+
+  const customThemesCol = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
+  try {
+    await setDoc(doc(customThemesCol), {
+      ...themeData,
+      authorId: themesAuth.currentUser.uid,
+      createdAt: new Date()
+    });
+    availableThemesCache = null; // Clear cache
+    showMessageBox("Custom theme saved successfully!", false);
+    return true;
+  } catch (error) {
+    console.error("Error saving custom theme:", error);
+    showMessageBox(`Error saving theme: ${error.message}`, true);
+    return false;
+  }
+}
+
+/**
+ * Deletes a custom theme from Firestore.
+ * @param {string} themeId - The ID of the theme to delete.
+ * @returns {Promise<boolean>} Success status.
+ */
+export async function deleteCustomTheme(themeId) {
+  if (!themesDb || !themesAuth.currentUser) {
+    showMessageBox("Not authenticated or database not ready.", true);
+    return false;
+  }
+
+  const themeDocRef = doc(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`, themeId);
+  try {
+    await deleteDoc(themeDocRef);
+    availableThemesCache = null; // Clear cache
+    showMessageBox("Custom theme deleted successfully!", false);
+    return true;
+  } catch (error) {
+    console.error("Error deleting custom theme:", error);
+    showMessageBox(`Error deleting theme: ${error.message}`, true);
+    return false;
+  }
+}
+
+/**
+ * Initialize themes globally for all pages
+ */
+export async function initializeGlobalThemes() {
+  try {
+    // Wait for Firebase to be ready
+    await firebaseReadyPromise;
+
+    // Setup themes module
+    setupThemesFirebase();
+
+    // Get available themes
+    const themes = await getAvailableThemes();
+
+    // Determine which theme to apply
+    let themeToApply = themes.find(t => t.id === DEFAULT_THEME_NAME);
+
+    // If user is logged in, try to get their theme preference
+    if (auth.currentUser) {
+      // Import getUserProfileFromFirestore dynamically to avoid circular imports
+      const {getUserProfileFromFirestore} = await import('./firebase-init.js');
+      const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+      if (userProfile && userProfile.themePreference) {
+        const userTheme = themes.find(t => t.id === userProfile.themePreference);
+        if (userTheme) {
+          themeToApply = userTheme;
+        }
       }
-      console.log(`Applied default theme: ${defaultTheme.name} (${defaultTheme.id})`);
+    }
+
+    // Apply the theme
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Global theme applied: ${themeToApply.name}`);
+    }
+
+  } catch (error) {
+    console.error('Error initializing global themes:', error);
+    // Fallback to default theme
+    const themes = await getAvailableThemes();
+    const defaultTheme = themes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (defaultTheme) {
+      applyTheme(defaultTheme.id, defaultTheme);
     }
   }
 }
+
+// Initialize themes when the script loads
+initializeGlobalThemes();
