@@ -245,3 +245,23 @@ textarea {
   }
 }
 
+@font-face {
+  font-family: 'TwemojiColor';
+  src: url('https://cdn.jsdelivr.net/npm/twemoji-color-font@16.0.1/fonts/TwitterColorEmoji-SVGinOT.ttf') format('truetype');
+  font-display: swap;
+}
+
+.emoji, .emoji-font {
+  font-family: 'TwemojiColor', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif !important;
+  font-size: 1em;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Apply TwemojiColor globally for emoji codepoints */
+body, .emoji, .emoji-font {
+  font-family: 'TwemojiColor', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif;
+}
+

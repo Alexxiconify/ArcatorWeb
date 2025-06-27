@@ -27,14 +27,14 @@ fetch('./emojii.json')
  */
 export function replaceEmojis(text) {
   // Manual patch for :joy: and :smile:
-  text = text.replace(/:joy:/gi, '\ud83d\ude02');
-  text = text.replace(/:smile:/gi, '\ud83d\ude04');
+  text = text.replace(/:joy:/gi, '<span class="emoji">\ud83d\ude02<\/span>');
+  text = text.replace(/:smile:/gi, '<span class="emoji">\ud83d\ude04<\/span>');
   if (!EMOJI_MAP_LOADED) {
     // If emoji map isn't loaded yet, return patched text
     return text;
   }
   return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
-    if (EMOJI_MAP[name]) return EMOJI_MAP[name];
+    if (EMOJI_MAP[name]) return `<span class="emoji">${EMOJI_MAP[name]}</span>`;
     return match;
   });
 }
