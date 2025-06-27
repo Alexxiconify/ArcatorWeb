@@ -105,19 +105,7 @@
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-terms"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a> <!-- Removed text-purple-400 -->
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 
 <!-- External JavaScript modules -->
 <script type="module" src="themes.js"></script>
@@ -126,69 +114,46 @@
 <script type="module">
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
+  import {loadNavbar, loadFooter} from './navbar.js';
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+  // Main execution logic on window load
+  window.onload = async function () {
+    // Firebase is now initialized by firebase-init.js which is loaded first.
+    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-  // Main execution logic on DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', async function() {
-    // Wait for Firebase to be ready before proceeding with any Firebase-dependent operations.
-    // This ensures `auth`, `db`, and `appId` are initialized.
-    await firebaseReadyPromise;
+    // Load footer
+    loadFooter('current-year-terms');
 
-    // Initialize themes Firebase integration now that `db`, `auth`, `appId` are guaranteed to be set
-    setupThemesFirebase(db, auth, appId);
-
-    // Load navbar dynamically
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-
-    // Set current year for footer
-    const currentYearElement = document.getElementById('current-year-terms');
-    if (currentYearElement) {
-      currentYearElement.textContent = new Date().getFullYear().toString();
-    }
-
-    // After everything is loaded and Firebase is ready, apply the user's theme
-    // This onAuthStateChanged listener is still useful here to react to *any* auth state change
-    // after the initial load (e.g., user logs in/out from another tab).
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        // Use the centralized getUserProfileFromFirestore, which relies on the initialized `db`
-        // Note: Assuming getUserProfileFromFirestore is globally available or imported from firebase-init.js
-        // If not, you might need to manually fetch the user profile here using doc(db, ...)
-        // For this context, it's safer to ensure getUserProfileFromFirestore is exported by firebase-init.js
-        // and imported here, or to inline its logic.
-        // Given previous contexts, it seems to be exposed globally or imported via firebase-init.js.
-        // Let's assume it's correctly handled by firebase-init.js and its exports.
-        const userProfile = await (typeof getUserProfileFromFirestore !== 'undefined' ? getUserProfileFromFirestore(user.uid) : (async () => {
-          // Fallback if getUserProfileFromFirestore is not globally available/imported
-          if (!db) {
-            console.error("Firestore DB not initialized for fallback user profile fetch.");
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        let userThemePreference = null;
+        if (user) {
+          // Use the getUserProfileFromFirestore from firebase-init for consistency
+          const getUserProfileFromFirestore = async (uid) => {
+            if (!db) {
+              console.error("Firestore DB not initialized.");
+              return null;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+            try {
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) return docSnap.data();
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+            }
             return null;
-          }
-          const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-          try {
-            const docSnap = await getDoc(userDocRef);
-            return docSnap.exists() ? docSnap.data() : null;
-          } catch (error) {
-            console.error("Error fetching user profile from Firestore (fallback):", error);
-            return null;
-          }
-        })());
-        userThemePreference = userProfile?.themePreference;
-      }
-      // Apply the theme: user's preference, or DEFAULT_THEME_NAME
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-      applyTheme(themeToApply.id, themeToApply);
-    });
-  });
+          };
+          const userProfile = await getUserProfileFromFirestore(user.uid);
+          userThemePreference = userProfile?.themePreference;
+        }
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        applyTheme(themeToApply.id, themeToApply);
+      });
+    }
+  };
 </script>
 </body>
 </html>

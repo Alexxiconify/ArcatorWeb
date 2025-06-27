@@ -631,20 +631,7 @@
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-admin-dev"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a class="hover:text-link transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
-         target="_blank">Wiki</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 <!-- External JavaScript modules -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <!-- Ensure firebase-init.js is loaded first as its exports are used by others -->
@@ -660,14 +647,11 @@
   // The necessary imports (auth, firebaseReadyPromise, etc.) are already handled by admin_and_dev.js
   // and other linked modules. This inline script primarily focuses on setting the footer year.
 
+  import {loadFooter} from './navbar.js';
+
   document.addEventListener('DOMContentLoaded', async function() {
-    // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
-    const currentYearElement = document.getElementById('current-year-admin-dev');
-    if (currentYearElement) {
-      currentYearElement.textContent = new Date().getFullYear();
-    } else {
-      console.warn("Element with ID 'current-year-admin-dev' not found in admin_and_dev.html.");
-    }
+    // Load the consolidated footer
+    loadFooter('current-year-admin-dev');
   });
 </script>
 </body>

@@ -236,25 +236,12 @@
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-index"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a class="hover:text-white transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
-      <a class="hover:text-white transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
-      <a class="hover:text-white transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
-         target="_blank">Wiki</a>
-      <a class="hover:text-white transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
-      <a class="hover:text-white transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
   import {setupThemesFirebase, applyTheme, getAvailableThemes} from './themes.js';
-  import {loadNavbar} from './navbar.js'; // Import loadNavbar
+  import {loadNavbar, loadFooter} from './navbar.js'; // Import loadNavbar
   import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import {
     getAuth,
@@ -275,124 +262,42 @@
     measurementId: "G-DJXNT1L7CM"
   };
 
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  let app;
-  let auth;
-  let db;
-  let firebaseReadyPromise; // Promise to ensure Firebase is fully initialized and authenticated
-
-  const DEFAULT_THEME = 'dark';
-  const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default placeholder
-
-  /**
-   * Fetches user profile data from Firestore.
-   * @param {string} uid - The user's UID.
-   * @returns {Promise<Object|null>} - User profile data or null if not found.
-   */
-  async function getUserProfileFromFirestore(uid) {
-    await firebaseReadyPromise; // Ensure Firebase is initialized
-    if (!db) {
-      console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
-      return null;
-    }
-    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-    try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-    } catch (error) {
-      console.error("Error fetching user profile from Firestore:", error);
-    }
-    return null;
-  }
-
-  // Initialize Firebase and setup firebaseReadyPromise
-  firebaseReadyPromise = new Promise((resolve) => {
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log("Firebase initialized successfully.");
-      setupThemesFirebase(db, auth, appId); // Pass Firebase instances to themes.js
-
-      // Critical: Ensure auth state is settled before resolving
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
-        unsubscribe(); // Unsubscribe after the first call
-
-        // Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
-          signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas (index page) during init."))
-            .catch((error) => {
-              console.error("ERROR: Error signing in with custom token (index page) during init:", error);
-              signInAnonymously(auth) // Fallback to anonymous sign-in if custom token fails
-                .then(() => console.log("DEBUG: Signed in anonymously (index page) after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously on index page during init:", anonError));
-            })
-            .finally(() => resolve()); // Resolve promise after token attempt
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
-          signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) on index page during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously on index page during init:", anonError))
-            .finally(() => resolve());
-        } else {
-          resolve(); // Resolve immediately if user is already authenticated or no token to use
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing Firebase (initial block):", e);
-      resolve(); // Resolve immediately on error to prevent infinite loading
-    }
-  });
+  // Setup themes Firebase integration
+  setupThemesFirebase(db, auth, "arcator-web");
 
   // Main execution logic on window load
   window.onload = async function () {
-    // Wait for Firebase to be ready before proceeding
-    await firebaseReadyPromise;
+    // Load navbar
+    await loadNavbar(auth.currentUser, null, 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV', 'dark');
 
-    // Load navbar dynamically
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    // Load footer
+    loadFooter('current-year-index');
+
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        let userThemePreference = null;
+        if (user) {
+          const userDocRef = doc(db, `artifacts/arcator-web/public/data/user_profiles`, user.uid);
+          try {
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+              const userData = docSnap.data();
+              userThemePreference = userData.themePreference;
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+        }
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === 'dark');
+        applyTheme(themeToApply.id, themeToApply);
+      });
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME);
-
-    // Set current year for footer
-    document.getElementById('current-year-index').textContent = new Date().getFullYear();
-
-    // Function to copy IP address to clipboard
-    document.getElementById('copyIpButton').addEventListener('click', function () {
-      const ipAddress = 'play.arcator.co.uk'; // Keeping primary IP for copy button
-      const tempInput = document.createElement('input');
-      tempInput.value = ipAddress;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand('copy');
-      // Provide feedback to the user (e.g., change button text or show a temporary message)
-      const originalText = this.textContent;
-      this.textContent = 'Copied!';
-      setTimeout(() => {
-        this.textContent = originalText;
-      }, 2000);
-      document.body.removeChild(tempInput); // Clean up the temporary input element
-    });
-
-    // After everything is loaded and Firebase is ready, apply the user's theme
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        userThemePreference = userProfile?.themePreference;
-      }
-      // Apply the theme: user's preference, or 'dark' default
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME);
-      applyTheme(themeToApply.id, themeToApply);
-    });
   };
 </script>
 </body>

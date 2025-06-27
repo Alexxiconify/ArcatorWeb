@@ -312,31 +312,23 @@
   </div>
 </div>
 
+<!-- Footer Section (consistent with admin_and_dev.html) -->
+<div id="footer-placeholder"></div>
+
 <!-- Message Box Element -->
 <div id="message-box" class="message-box"></div>
 
-<!-- Footer Section (consistent with admin_and_dev.html) -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-auto">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-temp-page"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
-
+<!-- External JavaScript modules -->
+<script src="firebase-init.js" type="module"></script>
+<script src="themes.js" type="module"></script>
+<script src="custom_theme_modal.js" type="module"></script>
+<script src="navbar.js" type="module"></script>
 <script type="module">
-  // Import Firebase modules and other project utilities
-  // These imports assume firebase-init.js, themes.js, and navbar.js are in the same directory.
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
-  import { loadNavbar } from './navbar.js';
-  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Explicitly import Firestore methods
+  import {loadNavbar, loadFooter} from './navbar.js';
+  import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import {doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const pageDisplayTitle = document.getElementById('page-display-title');
   const pageDisplayContent = document.getElementById('page-display-content');
@@ -468,14 +460,36 @@
     // Load navbar dynamically
     await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-    // Apply the initial theme based on user preference or default
-    let userThemePreference = DEFAULT_THEME_NAME;
-    if (currentUser && currentUser.themePreference) {
-      userThemePreference = currentUser.themePreference;
+    // Load footer
+    loadFooter('current-year-temp-page');
+
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        let userThemePreference = null;
+        if (user) {
+          // Use the getUserProfileFromFirestore from firebase-init for consistency
+          const getUserProfileFromFirestore = async (uid) => {
+            if (!db) {
+              console.error("Firestore DB not initialized.");
+              return null;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+            try {
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) return docSnap.data();
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+            }
+            return null;
+          };
+          const userProfile = await getUserProfileFromFirestore(user.uid);
+          userThemePreference = userProfile?.themePreference;
+        }
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        applyTheme(themeToApply.id, themeToApply);
+      });
     }
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
 
     allTemporaryPages = await fetchAllTemporaryPages();
 
@@ -511,12 +525,6 @@
 
     // If no specific page from URL or page not found, display the first page
     displayPage(initialPage || allTemporaryPages[0]);
-
-    // Update footer year
-    const currentYearElement = document.getElementById('current-year-temp-page');
-    if (currentYearElement) {
-      currentYearElement.textContent = new Date().getFullYear();
-    }
   }
 
   // Use DOMContentLoaded to ensure all HTML elements are available before script runs

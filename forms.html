@@ -398,19 +398,7 @@
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-forms"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 <!-- Add missing main content and loading elements for forms.js compatibility -->
 <div id="forms-content" style="display:none;"><!-- Main forum content goes here --></div>
 <div id="loading-spinner" style="display:none;"></div>
@@ -419,10 +407,15 @@
 <script type="module" src="forms.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
-<script>
-window.mainLoadingSpinner = document.getElementById('loading-spinner');
-window.formsContentSection = document.getElementById('forms-content');
-window.mainLoginRequiredMessage = document.getElementById('login-required-message');
+<script type="module">
+  import {loadFooter} from './navbar.js';
+
+  // Load the consolidated footer
+  loadFooter('current-year-forms');
+
+  window.mainLoadingSpinner = document.getElementById('loading-spinner');
+  window.formsContentSection = document.getElementById('forms-content');
+  window.mainLoginRequiredMessage = document.getElementById('login-required-message');
 </script>
 </body>
 </html>

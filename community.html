@@ -171,28 +171,18 @@
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-community"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="forms.html" class="hover:text-white transition duration-300 ease-in-out">Forms</a>
-      <a href="sign.html" class="hover:text-white transition duration-300 ease-in-out">Sign In / Account</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
   import {initializePageWithFirebase} from './firebase-consolidated.js';
+  import {loadFooter} from './navbar.js';
 
   // Initialize the community page with Firebase
   initializePageWithFirebase('Community', 'current-year-community');
+
+  // Load the consolidated footer
+  loadFooter('current-year-community');
 </script>
 </body>
 </html>

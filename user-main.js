@@ -601,9 +601,6 @@ window.onload = async function() {
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', () => showMessageBox('Delete account functionality coming soon! Be careful with this one!', true));
 
-    // Set the current year in the footer
-    document.getElementById('current-year').textContent = new Date().getFullYear().toString();
-
   } catch (error) {
     console.error("user-main.js: Error during window.onload execution:", error);
     showMessageBox("An unexpected error occurred during page load.", true);

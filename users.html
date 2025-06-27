@@ -832,23 +832,15 @@
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a class="hover:text-link transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/"
-         rel="noopener noreferrer"
-         target="_blank">Wiki</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
-      <a class="hover:text-link transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 
 <!-- Main JavaScript module for this page -->
 <script type="module" src="user-main.js"></script>
+<script type="module">
+  import {loadFooter} from './navbar.js';
+
+  // Load the consolidated footer
+  loadFooter('current-year');
+</script>
 </body>
 </html>

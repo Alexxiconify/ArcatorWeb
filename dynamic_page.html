@@ -140,151 +140,18 @@
 </section>
 
 <!-- Footer Section -->
-<footer class="bg-gray-900 py-8 text-center text-gray-400 rounded-t-lg shadow-inner mt-8">
-  <div class="container mx-auto px-4">
-    <p>© 2012 - <span id="current-year-dynamic-page"></span> Arcator.co.uk. All rights reserved.</p>
-    <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
-    <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a href="privacy.html" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-      <a href="terms.html" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-      <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition duration-300 ease-in-out">Wiki</a>
-      <a href="infrastructure.html" class="hover:text-white transition duration-300 ease-in-out">Infrastructure</a>
-      <a href="admin_and_dev.html" class="hover:text-white transition duration-300 ease-in-out">Admin & Dev</a>
-    </div>
-  </div>
-</footer>
+<div id="footer-placeholder"></div>
 
 <!-- Firebase SDKs and Dynamic Page Script -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import {
-    getFirestore,
-    doc,
-    getDoc
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {initializePageWithFirebase} from './firebase-consolidated.js';
+  import {loadFooter} from './navbar.js';
 
-  // Manually provided Firebase config (replace with your actual config if needed)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.appspot.com",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
+  // Initialize the dynamic page with Firebase
+  initializePageWithFirebase('Dynamic Page', 'current-year-dynamic-page');
 
-  // Determine appId for Firestore path - prioritize Canvas provided, then project ID from firebaseConfig
-  const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-  const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
-
-  // Initialize Firebase
-  let app;
-  let db;
-  let isFirebaseInitialized = false;
-
-  if (firebaseConfig && firebaseConfig.apiKey) {
-    try {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      isFirebaseInitialized = true;
-      console.log("Firebase initialized successfully on dynamic page.");
-    } catch (e) {
-      console.error("Error initializing Firebase:", e);
-      document.getElementById('error-message').textContent = 'Error initializing Firebase. Cannot load page.';
-      document.getElementById('error-message').style.display = 'block';
-    }
-  } else {
-    console.error("Firebase config is missing or incomplete. Cannot load page.");
-    document.getElementById('error-message').textContent = 'Firebase configuration is missing. Cannot load page.';
-    document.getElementById('error-message').style.display = 'block';
-  }
-
-  // Markdown-It instance
-  const md = new markdownit();
-
-  // DOM elements for display
-  const heroPageTitle = document.getElementById('hero-page-title');
-  const pageContentDisplay = document.getElementById('page-content-display');
-  const loadingMessage = document.getElementById('loading-message');
-  const pageErrorMessage = document.getElementById('error-message');
-
-  /**
-   * Parses URL query parameters.
-   * @returns {URLSearchParams}
-   */
-  function getQueryParams() {
-    return new URLSearchParams(window.location.search);
-  }
-
-  /**
-   * Loads and renders dynamic page content from Firestore.
-   */
-  async function loadDynamicPage() {
-    loadingMessage.style.display = 'block';
-    pageErrorMessage.style.display = 'none';
-    pageContentDisplay.innerHTML = ''; // Clear previous content
-
-    const queryParams = getQueryParams();
-    const pagePath = queryParams.get('path');
-
-    if (!pagePath) {
-      heroPageTitle.textContent = "Page Not Found";
-      pageErrorMessage.textContent = "Error: No page path specified in the URL. Example: dynamic_page.html?path=your-page-name";
-      pageErrorMessage.style.display = 'block';
-      loadingMessage.style.display = 'none';
-      return;
-    }
-
-    if (!isFirebaseInitialized || !db) {
-      heroPageTitle.textContent = "Error";
-      pageErrorMessage.textContent = "Database not initialized. Cannot load page content.";
-      pageErrorMessage.style.display = 'block';
-      loadingMessage.style.display = 'none';
-      return;
-    }
-
-    const pageDocRef = doc(db, `artifacts/${appId}/public/data/dynamic_pages`, pagePath);
-
-    try {
-      const docSnap = await getDoc(pageDocRef);
-
-      if (docSnap.exists()) {
-        const pageData = docSnap.data();
-        heroPageTitle.textContent = pageData.title || 'Dynamic Page';
-        document.title = `${pageData.title || 'Dynamic Page'} - Arcator.co.uk`;
-
-        if (pageData.contentType === 'html') {
-          pageContentDisplay.innerHTML = pageData.content;
-        } else if (pageData.contentType === 'markdown') {
-          pageContentDisplay.innerHTML = md.render(pageData.content);
-        } else { // Default to plaintext
-          pageContentDisplay.textContent = pageData.content;
-        }
-      } else {
-        heroPageTitle.textContent = "Page Not Found";
-        pageContentDisplay.innerHTML = `
-          <p class="text-center text-red-400 text-xl mb-4">Sorry, the page '${pagePath}' could not be found.</p>
-          <p class="text-center text-gray-300">Please check the URL or return to the <a href="index.html" class="text-blue-400 hover:underline">homepage</a>.</p>
-          <p class="text-center text-gray-300 mt-4">If you believe this is an error, please contact an administrator or check the <a href="admin_and_dev.html" class="text-blue-400 hover:underline">Admin & Dev page</a> for adding content.</p>
-        `;
-      }
-    } catch (error) {
-      console.error("Error fetching dynamic page:", error);
-      heroPageTitle.textContent = "Error";
-      pageErrorMessage.textContent = `Error loading page: ${error.message || 'Unknown error'}`;
-      pageErrorMessage.style.display = 'block';
-    } finally {
-      loadingMessage.style.display = 'none';
-    }
-  }
-
-  // Load the page content when the script runs
-  window.onload = function() {
-    loadDynamicPage();
-    // Get current year for footer
-    document.getElementById('current-year-dynamic-page').textContent = new Date().getFullYear();
-  };
+  // Load the consolidated footer
+  loadFooter('current-year-dynamic-page');
 </script>
 </body>
 </html>
