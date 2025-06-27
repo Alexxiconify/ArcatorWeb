@@ -586,3 +586,8 @@
   padding: 0.75rem 1rem;
   font-size: 1rem;
 }
+
+.bg-card {
+  background-color: var(--color-bg-card) !important;
+  transition: background-color 0.2s;
+}
