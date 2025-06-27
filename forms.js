@@ -1395,12 +1395,19 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
         senderName = senderProfile.displayName || senderProfile.handle || m.creatorDisplayName || 'Unknown';
         senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
       }
+      const isOwn = m.createdBy === currentUserId;
+      const rowClass = isOwn ? 'flex-row-reverse text-right' : 'flex-row text-left';
+      const metaClass = isOwn ? 'justify-end' : 'justify-start';
+      const nameClass = isOwn ? 'ml-2' : 'mr-2';
       const div = document.createElement('div');
-      div.className = `message-item ${m.createdBy === currentUserId ? 'own-message' : 'other-message'} p-2 mb-2 rounded flex gap-2`;
+      div.className = `message-item flex ${rowClass} items-start gap-2 p-2 mb-2 rounded`;
       div.innerHTML = `
         <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile">
-        <div class="flex-1">
-          <div><span class='font-semibold'>${senderName}</span> <span class='text-xs text-gray-400 ml-2'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span></div>
+        <div class="flex-1 flex flex-col ${metaClass}">
+          <div class="flex items-center ${metaClass}">
+            <span class='font-semibold ${nameClass}'>${senderName}</span>
+            <span class='text-xs text-gray-400'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
+          </div>
           <div>${convertMentionsToHTML(m.content)}</div>
         </div>
       `;
