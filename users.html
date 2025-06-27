@@ -263,8 +263,7 @@
     <div id="settings-content" style="display: none;">
       <div class="space-y-6">
         <!-- Profile Info -->
-        <details class="settings-card" open
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+        <details class="settings-card" open>
           <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">badge</span>Profile Information
           </summary>
@@ -288,19 +287,16 @@
                 <label for="profile-picture-url-input">Profile Picture URL:</label>
                 <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
                 <p class="text-text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a
-                  direct
-                  link to an image (JPG, PNG, GIF).</p>
+                  direct link to an image (JPG, PNG, GIF).</p>
               </div>
               <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
             </div>
           </div>
         </details>
         <!-- Preferences -->
-        <details class="settings-card"
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
-            <span class="material-icons">palette</span>Personalize Experience
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">palette</span>Personalize Experience
           </summary>
           <div class="mt-4">
             <div class="input-field">
@@ -338,11 +334,9 @@
           </div>
         </details>
         <!-- Security -->
-        <details class="settings-card"
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
-            <span class="material-icons">lock</span>Password Management
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">lock</span>Password Management
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
@@ -362,11 +356,9 @@
           </div>
         </details>
         <!-- Notifications -->
-        <details class="settings-card"
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
-            <span class="material-icons">notifications</span>Notification Preferences
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">notifications</span>Notification Preferences
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Manage how you receive updates and alerts.</p>
@@ -384,11 +376,9 @@
           </div>
         </details>
         <!-- Accessibility -->
-        <details class="settings-card"
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
-            <span class="material-icons">accessibility</span>Accessibility Settings
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">accessibility</span>Accessibility Settings
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Adjust settings for improved accessibility.</p>
@@ -404,22 +394,19 @@
           </div>
         </details>
         <!-- Info Session Information -->
-        <div class="settings-card card" id="info-session-info">
-          <div class="card-header flex items-center gap-2 mb-2">
-            <span class="material-icons text-heading-card">info</span>
-            <span class="font-bold">Session Information</span>
-          </div>
-          <div class="card-body">
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">info</span>Session Information
+          </summary>
+          <div class="mt-4 text-text-primary">
             <div><strong>Last Login:</strong> <span id="last-login-time">N/A</span></div>
             <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
           </div>
-        </div>
+        </details>
         <!-- Danger Zone -->
-        <details class="settings-card"
-                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-          <summary
-            class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none">
-            <span class="material-icons">warning</span>Danger Zone
+        <details class="settings-card">
+          <summary class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">warning</span>Danger Zone
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Enter your password to permanently delete your account.</p>
