@@ -215,7 +215,7 @@ function injectNavbarStyles() {
  * Refreshes the navbar profile picture with current user data
  * This can be called when user profile is updated
  */
-export function refreshNavbarProfilePicture() {
+export async function refreshNavbarProfilePicture() {
   const userProfilePic = document.getElementById('navbar-user-profile-pic');
   const userSettingsLink = document.getElementById('navbar-user-settings-link');
 
@@ -228,27 +228,48 @@ export function refreshNavbarProfilePicture() {
   if (window.auth && window.auth.currentUser && window.currentUser) {
     console.log('[DEBUG] Refreshing navbar profile picture for user:', window.currentUser.displayName);
 
-    const profilePicURL = window.currentUser.photoURL || window.DEFAULT_PROFILE_PIC;
-    const safePhotoURL = validatePhotoURL(profilePicURL, window.DEFAULT_PROFILE_PIC);
+    try {
+      // Use the enhanced validation function
+      const {validateAndTestPhotoURL} = await import('./utils.js');
+      const profilePicURL = window.currentUser.photoURL || window.DEFAULT_PROFILE_PIC;
+      const safePhotoURL = await validateAndTestPhotoURL(profilePicURL, window.DEFAULT_PROFILE_PIC);
 
-    console.log('[DEBUG] Refreshed profile picture URL:', safePhotoURL);
+      console.log('[DEBUG] refreshNavbarProfilePicture: Safe photoURL:', safePhotoURL);
 
-    userProfilePic.src = safePhotoURL;
-    userProfilePic.alt = window.currentUser.displayName || 'User Profile';
+      userProfilePic.src = safePhotoURL;
 
-    // Add error handling for broken images
-    userProfilePic.onerror = function () {
-      console.warn('[DEBUG] Profile picture failed to load during refresh, using default:', safePhotoURL);
-      this.src = window.DEFAULT_PROFILE_PIC;
-      this.onerror = null; // Prevent infinite loop
-    };
+      // Add error handling for image loading
+      userProfilePic.onerror = function () {
+        const failedURL = this.src;
+        console.warn('[DEBUG] refreshNavbarProfilePicture: Profile picture failed to load:', failedURL);
 
-    // Show user settings link
-    userSettingsLink.classList.remove('hidden');
+        // Special handling for Discord URLs
+        if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
+          console.log('[DEBUG] refreshNavbarProfilePicture: Discord CDN URL failed - this is common due to CORS restrictions');
+          console.log('[DEBUG] refreshNavbarProfilePicture: The URL may work in browser tabs but fail in JavaScript');
+          provideDiscordUrlGuidance(failedURL);
+        }
+
+        this.src = window.DEFAULT_PROFILE_PIC;
+        this.onerror = null; // Prevent infinite loop
+      };
+
+      userProfilePic.onload = function () {
+        console.log('[DEBUG] refreshNavbarProfilePicture: Profile picture loaded successfully:', this.src);
+      };
+
+      // Update user display name
+      const displayName = window.currentUser.displayName || window.currentUser.handle || 'User';
+      userSettingsLink.textContent = displayName;
+
+    } catch (error) {
+      console.error('[DEBUG] refreshNavbarProfilePicture: Error refreshing profile picture:', error);
+      userProfilePic.src = window.DEFAULT_PROFILE_PIC;
+    }
   } else {
-    console.log('[DEBUG] No user logged in, hiding profile picture');
-    // Hide user settings link if no user
-    userSettingsLink.classList.add('hidden');
+    // User not logged in, use default
+    userProfilePic.src = window.DEFAULT_PROFILE_PIC;
+    userSettingsLink.textContent = 'Sign In';
   }
 }
 
@@ -258,7 +279,7 @@ export function refreshNavbarProfilePicture() {
  * @param {Object|null} userProfile - User profile from Firestore
  * @param {string} defaultProfilePic - Default profile picture URL
  */
-function updateNavbarState(authUser, userProfile, defaultProfilePic) {
+async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   const userSettingsLink = document.getElementById('navbar-user-settings-link');
   const userProfilePic = document.getElementById('navbar-user-profile-pic');
   const signinLink = document.getElementById('navbar-signin-link');
@@ -272,29 +293,50 @@ function updateNavbarState(authUser, userProfile, defaultProfilePic) {
       signinLink.classList.add('hidden');
     }
 
-    // Update profile picture with better debugging
+    // Update profile picture with enhanced validation
     if (userProfilePic) {
-      console.log('[DEBUG] Updating navbar profile picture:', {
-        userProfilePhotoURL: userProfile.photoURL,
-        defaultProfilePic: defaultProfilePic,
-        userDisplayName: userProfile.displayName
-      });
+      try {
+        console.log('[DEBUG] updateNavbarState: Setting profile picture for user:', userProfile.displayName);
+        console.log('[DEBUG] updateNavbarState: Raw photoURL:', userProfile.photoURL);
 
-      // Use photoURL directly from userProfile, with fallback to default
-      const profilePicURL = userProfile.photoURL || defaultProfilePic;
-      const safePhotoURL = validatePhotoURL(profilePicURL, defaultProfilePic);
+        // Use the enhanced validation function
+        const {validateAndTestPhotoURL} = await import('./utils.js');
+        const safePhotoURL = await validateAndTestPhotoURL(userProfile.photoURL, defaultProfilePic);
 
-      console.log('[DEBUG] Final profile picture URL:', safePhotoURL);
+        console.log('[DEBUG] updateNavbarState: Safe photoURL:', safePhotoURL);
 
-      userProfilePic.src = safePhotoURL;
-      userProfilePic.alt = userProfile.displayName || 'User Profile';
+        userProfilePic.src = safePhotoURL;
 
-      // Add error handling for broken images
-      userProfilePic.onerror = function () {
-        console.warn('[DEBUG] Profile picture failed to load, using default:', safePhotoURL);
-        this.src = defaultProfilePic;
-        this.onerror = null; // Prevent infinite loop
-      };
+        // Add error handling for image loading
+        userProfilePic.onerror = function () {
+          const failedURL = this.src;
+          console.warn('[DEBUG] updateNavbarState: Profile picture failed to load:', failedURL);
+
+          // Special handling for Discord URLs
+          if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
+            console.log('[DEBUG] updateNavbarState: Discord CDN URL failed - this is common due to CORS restrictions');
+            console.log('[DEBUG] updateNavbarState: The URL may work in browser tabs but fail in JavaScript');
+            provideDiscordUrlGuidance(failedURL);
+          }
+
+          this.src = defaultProfilePic;
+          this.onerror = null; // Prevent infinite loop
+        };
+
+        userProfilePic.onload = function () {
+          console.log('[DEBUG] updateNavbarState: Profile picture loaded successfully:', this.src);
+        };
+
+      } catch (error) {
+        console.error('[DEBUG] updateNavbarState: Error setting profile picture:', error);
+        userProfilePic.src = defaultProfilePic;
+      }
+    }
+
+    // Update user display name
+    if (userSettingsLink) {
+      const displayName = userProfile.displayName || userProfile.handle || 'User';
+      userSettingsLink.textContent = displayName;
     }
   } else {
     // User is not logged in
@@ -303,6 +345,9 @@ function updateNavbarState(authUser, userProfile, defaultProfilePic) {
     }
     if (signinLink) {
       signinLink.classList.remove('hidden');
+    }
+    if (userProfilePic) {
+      userProfilePic.src = defaultProfilePic;
     }
   }
 }
@@ -349,7 +394,7 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
     navbarPlaceholder.innerHTML = navbarTemplate;
 
     // Update navbar state based on authentication
-    updateNavbarState(authUser, userProfile, defaultProfilePic);
+    await updateNavbarState(authUser, userProfile, defaultProfilePic);
 
     console.log('Navbar loaded successfully');
 
@@ -434,7 +479,7 @@ window.refreshNavbarProfilePicture = refreshNavbarProfilePicture;
  * This can be called from browser console for testing
  * @param {string} photoURL - The photo URL to test
  */
-export function testProfilePicture(photoURL) {
+export async function testProfilePicture(photoURL) {
   console.log('[DEBUG] Testing profile picture URL:', photoURL);
 
   if (!window.currentUser) {
@@ -442,20 +487,52 @@ export function testProfilePicture(photoURL) {
     return;
   }
 
-  // Temporarily update the current user's photoURL
-  const originalPhotoURL = window.currentUser.photoURL;
-  window.currentUser.photoURL = photoURL;
+  try {
+    // Use the enhanced validation function
+    const {validateAndTestPhotoURL} = await import('./utils.js');
+    const safePhotoURL = await validateAndTestPhotoURL(photoURL, window.DEFAULT_PROFILE_PIC);
 
-  // Refresh the navbar
-  refreshNavbarProfilePicture();
+    console.log('[DEBUG] testProfilePicture: Validated URL:', safePhotoURL);
 
-  // Restore original after 5 seconds
-  setTimeout(() => {
-    window.currentUser.photoURL = originalPhotoURL;
-    refreshNavbarProfilePicture();
-    console.log('[DEBUG] Restored original profile picture');
-  }, 5000);
+    // Temporarily update the current user's photoURL
+    const originalPhotoURL = window.currentUser.photoURL;
+    window.currentUser.photoURL = photoURL;
+
+    // Refresh the navbar
+    await refreshNavbarProfilePicture();
+
+    // Restore original after 5 seconds
+    setTimeout(async () => {
+      window.currentUser.photoURL = originalPhotoURL;
+      await refreshNavbarProfilePicture();
+      console.log('[DEBUG] testProfilePicture: Restored original profile picture');
+    }, 5000);
+
+    console.log('[DEBUG] testProfilePicture: Profile picture test completed. Will restore in 5 seconds.');
+
+  } catch (error) {
+    console.error('[DEBUG] testProfilePicture: Error testing profile picture:', error);
+  }
 }
 
 // Make test function available globally
 window.testProfilePicture = testProfilePicture;
+
+/**
+ * Provides guidance for Discord CDN URL issues
+ * @param {string} discordURL - The Discord URL that's failing
+ */
+export function provideDiscordUrlGuidance(discordURL) {
+  console.log('[DEBUG] Discord URL Guidance:');
+  console.log('[DEBUG] URL:', discordURL);
+  console.log('[DEBUG] This is a common issue with Discord CDN URLs.');
+  console.log('[DEBUG] Possible solutions:');
+  console.log('[DEBUG] 1. The URL may have expired - Discord CDN URLs can expire');
+  console.log('[DEBUG] 2. CORS restrictions prevent loading in JavaScript');
+  console.log('[DEBUG] 3. Try uploading a new image to Discord and using the new URL');
+  console.log('[DEBUG] 4. Consider using a different image hosting service');
+  console.log('[DEBUG] 5. The URL works in browser tabs but fails in JavaScript due to security restrictions');
+}
+
+// Make function available globally
+window.provideDiscordUrlGuidance = provideDiscordUrlGuidance;

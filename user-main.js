@@ -333,19 +333,26 @@ async function handleSaveProfile() {
 
         // Immediately update UI elements
         if (profilePictureDisplay) {
-          const finalPhotoURL = validatePhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
-          console.log("DEBUG: Final photo URL:", finalPhotoURL);
-          profilePictureDisplay.src = finalPhotoURL;
+          try {
+            // Use the enhanced validation function
+            const {validateAndTestPhotoURL} = await import('./utils.js');
+            const finalPhotoURL = await validateAndTestPhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
+            console.log("DEBUG: Final photo URL:", finalPhotoURL);
+            profilePictureDisplay.src = finalPhotoURL;
 
-          // Add error handling for image loading
-          profilePictureDisplay.onerror = function () {
-            console.log("DEBUG: Image failed to load, falling back to default");
-            this.src = DEFAULT_PROFILE_PIC;
-          };
+            // Add error handling for image loading
+            profilePictureDisplay.onerror = function () {
+              console.log("DEBUG: Image failed to load, falling back to default");
+              this.src = DEFAULT_PROFILE_PIC;
+            };
 
-          profilePictureDisplay.onload = function () {
-            console.log("DEBUG: Image loaded successfully");
-          };
+            profilePictureDisplay.onload = function () {
+              console.log("DEBUG: Image loaded successfully");
+            };
+          } catch (error) {
+            console.error("DEBUG: Error validating profile picture:", error);
+            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
+          }
         } else {
           console.error("DEBUG: profilePictureDisplay element not found!");
         }
@@ -353,12 +360,12 @@ async function handleSaveProfile() {
         if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : '';
 
         // Refresh navbar profile picture
-        try {
-          const {refreshNavbarProfilePicture} = await import('./navbar.js');
-          refreshNavbarProfilePicture();
-          console.log("DEBUG: Navbar profile picture refreshed.");
-        } catch (error) {
-          console.warn("DEBUG: Could not refresh navbar profile picture:", error);
+        if (typeof window.refreshNavbarProfilePicture === 'function') {
+          try {
+            await window.refreshNavbarProfilePicture();
+          } catch (error) {
+            console.error("DEBUG: Error refreshing navbar profile picture:", error);
+          }
         }
 
         showMessageBox('Profile updated successfully!', false);

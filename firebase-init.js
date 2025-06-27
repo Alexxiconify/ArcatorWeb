@@ -223,7 +223,11 @@ firebaseReadyPromise.then(() => {
 
       // Refresh navbar profile picture if navbar is loaded
       if (typeof window.refreshNavbarProfilePicture === 'function') {
-        window.refreshNavbarProfilePicture();
+        try {
+          await window.refreshNavbarProfilePicture();
+        } catch (error) {
+          console.error('[DEBUG] Error refreshing navbar profile picture:', error);
+        }
       }
     } else {
       console.log("Auth State Changed: User logged out.");
@@ -233,7 +237,11 @@ firebaseReadyPromise.then(() => {
 
       // Refresh navbar profile picture if navbar is loaded
       if (typeof window.refreshNavbarProfilePicture === 'function') {
-        window.refreshNavbarProfilePicture();
+        try {
+          await window.refreshNavbarProfilePicture();
+        } catch (error) {
+          console.error('[DEBUG] Error refreshing navbar profile picture:', error);
+        }
       }
     }
     // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.

@@ -98,6 +98,66 @@ export function validatePhotoURL(photoURL, defaultPic) {
   }
 }
 
+/**
+ * Tests if a URL is accessible and returns a valid image
+ * @param {string} url - The URL to test
+ * @returns {Promise<boolean>} True if the URL is accessible
+ */
+export async function testImageURL(url) {
+  if (!url) return false;
+
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      mode: 'no-cors' // This allows testing cross-origin URLs
+    });
+
+    // For no-cors requests, we can't check the status, so we'll assume it's valid
+    // and let the browser handle the actual image loading
+    return true;
+  } catch (error) {
+    console.warn('[DEBUG] testImageURL: Failed to test URL:', url, error);
+    return false;
+  }
+}
+
+/**
+ * Validates and tests a photo URL, falling back to default if it fails
+ * @param {string} photoURL - The URL to validate and test
+ * @param {string} defaultPic - The default URL to return if validation fails
+ * @returns {Promise<string>} The validated URL or default
+ */
+export async function validateAndTestPhotoURL(photoURL, defaultPic) {
+  const validatedURL = validatePhotoURL(photoURL, defaultPic);
+
+  if (validatedURL === defaultPic) {
+    return defaultPic;
+  }
+
+  // For Discord URLs, we'll be more lenient since they often work in browser tabs
+  // but fail in JavaScript due to CORS restrictions
+  if (validatedURL.includes('discordapp.com') || validatedURL.includes('discord.com')) {
+    console.log('[DEBUG] validateAndTestPhotoURL: Discord URL detected, allowing without testing:', validatedURL);
+    // Don't test Discord URLs - let the browser handle them naturally
+    // If they fail to load, the onerror handler will catch it
+    return validatedURL;
+  }
+
+  // For other URLs, we can test them if needed
+  try {
+    const isAccessible = await testImageURL(validatedURL);
+    if (!isAccessible) {
+      console.warn('[DEBUG] validateAndTestPhotoURL: URL not accessible, using default:', validatedURL);
+      return defaultPic;
+    }
+  } catch (error) {
+    console.warn('[DEBUG] validateAndTestPhotoURL: Error testing URL, allowing anyway:', validatedURL);
+    // If testing fails, still allow the URL and let the browser handle it
+  }
+
+  return validatedURL;
+}
+
 // Custom confirmation modal elements
 let customConfirmModal;
 let confirmMessage;
