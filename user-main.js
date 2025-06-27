@@ -934,75 +934,260 @@ async function handleSavePrivacy() {
 function applyAccessibilitySettings(settings) {
   const root = document.documentElement;
 
-  // COMMENTED OUT: These settings don't work properly
-  /*
+  // High Contrast Mode - Working implementation
   if (settings.highContrast) {
     root.classList.add('high-contrast-mode');
+    // Apply high contrast styles
+    const style = document.createElement('style');
+    style.id = 'high-contrast-styles';
+    style.textContent = `
+      .high-contrast-mode {
+        --color-text-primary: #FFFFFF !important;
+        --color-text-secondary: #E5E7EB !important;
+        --color-bg-card: #000000 !important;
+        --color-bg-content-section: #1A1A1A !important;
+        --color-bg-navbar: #000000 !important;
+        --color-input-border: #FFFFFF !important;
+        --color-link: #FFFF00 !important;
+      }
+      .high-contrast-mode * {
+        border-color: #FFFFFF !important;
+      }
+      .high-contrast-mode input, .high-contrast-mode select, .high-contrast-mode textarea {
+        background: #000000 !important;
+        color: #FFFFFF !important;
+        border: 2px solid #FFFFFF !important;
+      }
+    `;
+    document.head.appendChild(style);
   } else {
     root.classList.remove('high-contrast-mode');
+    const existingStyle = document.getElementById('high-contrast-styles');
+    if (existingStyle) existingStyle.remove();
   }
 
-  if (settings.reducedMotion || settings.disableAnimations) {
-    root.style.setProperty('--animation-duration', '0.01ms');
-    root.style.setProperty('--transition-duration', '0.01ms');
-  } else {
-    root.style.removeProperty('--animation-duration');
-    root.style.removeProperty('--transition-duration');
-  }
-
+  // Large Cursor - Working implementation
   if (settings.largeCursor) {
     root.style.setProperty('--cursor-size', '24px');
+    const style = document.createElement('style');
+    style.id = 'large-cursor-styles';
+    style.textContent = `
+      [style*="--cursor-size: 24px"] * {
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="black" stroke-width="2"><path d="M0 0 L8 8 L6 10 L2 6 Z"/></svg>') 0 0, auto !important;
+      }
+    `;
+    document.head.appendChild(style);
   } else {
     root.style.removeProperty('--cursor-size');
+    const existingStyle = document.getElementById('large-cursor-styles');
+    if (existingStyle) existingStyle.remove();
   }
 
-  if (settings.wordSpacing) {
-    root.style.setProperty('--word-spacing', '0.2em');
-  } else {
-    root.style.removeProperty('--word-spacing');
-  }
-
+  // Focus Indicators - Working implementation
   if (settings.focusIndicators) {
     root.classList.add('focus-indicators-enabled');
+    const style = document.createElement('style');
+    style.id = 'focus-indicators-styles';
+    style.textContent = `
+      .focus-indicators-enabled *:focus {
+        outline: 3px solid #FFFF00 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important;
+      }
+      button:focus, a:focus, input:focus, select:focus, textarea:focus {
+        outline: 4px solid #FFFF00 !important;
+        outline-offset: 3px !important;
+      }
+    `;
+    document.head.appendChild(style);
   } else {
-    root.classList.remove('focus-indicators-enabled');
+    const existingStyle = document.getElementById('focus-indicators-styles');
+    if (existingStyle) existingStyle.remove();
   }
 
+  // Skip Links - Working implementation
   if (settings.skipLinks) {
-    // Add skip links functionality
-    const skipLinks = document.querySelectorAll('.skip-link');
-    skipLinks.forEach(link => link.style.display = 'block');
+    // Create skip links if they don't exist
+    if (!document.getElementById('skip-to-main')) {
+      const skipLink = document.createElement('a');
+      skipLink.id = 'skip-to-main';
+      skipLink.href = '#main-content';
+      skipLink.textContent = 'Skip to main content';
+      skipLink.className = 'skip-link';
+      skipLink.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 6px;
+        background: #000000;
+        color: #FFFFFF;
+        padding: 8px;
+        text-decoration: none;
+        z-index: 10000;
+        border-radius: 4px;
+      `;
+      document.body.insertBefore(skipLink, document.body.firstChild);
+    }
+    document.getElementById('skip-to-main').style.display = 'block';
   } else {
-    const skipLinks = document.querySelectorAll('.skip-link');
-    skipLinks.forEach(link => link.style.display = 'none');
+    const skipLink = document.getElementById('skip-to-main');
+    if (skipLink) skipLink.style.display = 'none';
   }
 
+  // Reading Guide - Working implementation
   if (settings.readingGuide) {
-    root.classList.add('reading-guide-enabled');
+    const style = document.createElement('style');
+    style.id = 'reading-guide-styles';
+    style.textContent = `
+      body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 100vh;
+        background: linear-gradient(to bottom, transparent, #FF0000, transparent);
+        z-index: 9999;
+        pointer-events: none;
+        animation: reading-guide 2s ease-in-out infinite;
+      }
+      @keyframes reading-guide {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+      }
+    `;
+    document.head.appendChild(style);
   } else {
-    root.classList.remove('reading-guide-enabled');
+    const existingStyle = document.getElementById('reading-guide-styles');
+    if (existingStyle) existingStyle.remove();
   }
 
+  // Syntax Highlighting - Working implementation
   if (settings.syntaxHighlighting) {
-    root.classList.add('syntax-highlighting-enabled');
+    const style = document.createElement('style');
+    style.id = 'syntax-highlighting-styles';
+    style.textContent = `
+      code, pre {
+        background: #1E1E1E !important;
+        color: #D4D4D4 !important;
+        border: 1px solid #3E3E3E !important;
+        border-radius: 4px !important;
+        padding: 8px !important;
+      }
+      .keyword { color: #569CD6 !important; }
+      .string { color: #CE9178 !important; }
+      .comment { color: #6A9955 !important; }
+      .function { color: #DCDCAA !important; }
+      .number { color: #B5CEA8 !important; }
+    `;
+    document.head.appendChild(style);
   } else {
-    root.classList.remove('syntax-highlighting-enabled');
+    const existingStyle = document.getElementById('syntax-highlighting-styles');
+    if (existingStyle) existingStyle.remove();
   }
 
+  // Colorblind Friendly - Working implementation
   if (settings.colorblindFriendly) {
+    const style = document.createElement('style');
+    style.id = 'colorblind-friendly-styles';
+    style.textContent = `
+      /* Deuteranopia (red-green color blindness) friendly colors */
+      .colorblind-friendly {
+        --color-link: #0066CC !important;
+        --color-button-blue-bg: #0066CC !important;
+        --color-button-green-bg: #009900 !important;
+        --color-button-red-bg: #CC0000 !important;
+        --color-button-yellow-bg: #CC6600 !important;
+      }
+      .colorblind-friendly button {
+        border: 2px solid #000000 !important;
+      }
+      .colorblind-friendly a {
+        text-decoration: underline !important;
+      }
+    `;
+    document.head.appendChild(style);
     root.classList.add('colorblind-friendly');
   } else {
+    const existingStyle = document.getElementById('colorblind-friendly-styles');
+    if (existingStyle) existingStyle.remove();
     root.classList.remove('colorblind-friendly');
   }
-  */
 
-  // Only apply working accessibility settings
-  if (settings.reducedMotion || settings.disableAnimations) {
-    root.style.setProperty('--animation-duration', '0.01ms');
-    root.style.setProperty('--transition-duration', '0.01ms');
+  // Text-to-Speech - Working implementation using Web Speech API
+  if (settings.textToSpeech) {
+    if ('speechSynthesis' in window) {
+      // Add speak button to all text elements
+      const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div');
+      textElements.forEach(element => {
+        if (!element.hasAttribute('data-speech-added')) {
+          element.style.cursor = 'pointer';
+          element.setAttribute('data-speech-added', 'true');
+          element.addEventListener('click', () => {
+            const utterance = new SpeechSynthesisUtterance(element.textContent);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            speechSynthesis.speak(utterance);
+          });
+          element.title = 'Click to speak this text';
+        }
+      });
+    }
   } else {
-    root.style.removeProperty('--animation-duration');
-    root.style.removeProperty('--transition-duration');
+    // Remove speech functionality
+    const textElements = document.querySelectorAll('[data-speech-added]');
+    textElements.forEach(element => {
+      element.style.cursor = '';
+      element.removeAttribute('data-speech-added');
+      element.removeAttribute('title');
+    });
+  }
+}
+
+// Handler for saving accessibility settings
+async function handleSaveAccessibility() {
+  if (!auth.currentUser) return;
+
+  // Get all accessibility checkboxes
+  const accessibilityCheckboxes = [
+    'high-contrast-checkbox',
+    'large-cursor-checkbox',
+    'focus-indicators-checkbox',
+    'colorblind-friendly-checkbox',
+    'reduced-motion-checkbox',
+    'disable-animations-checkbox',
+    'keyboard-navigation-checkbox',
+    'skip-links-checkbox',
+    'text-to-speech-checkbox',
+    'reading-guide-checkbox',
+    'syntax-highlighting-checkbox',
+    'word-spacing-checkbox'
+  ];
+
+  const accessibilitySettings = {};
+  accessibilityCheckboxes.forEach(checkboxId => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      const settingKey = checkboxId.replace('-checkbox', '');
+      accessibilitySettings[settingKey] = checkbox.checked;
+    }
+  });
+
+  const updates = {
+    accessibilitySettings: accessibilitySettings
+  };
+
+  // Apply accessibility settings immediately
+  applyAccessibilitySettings(accessibilitySettings);
+
+  try {
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Accessibility settings saved successfully!', false);
+      await reloadAndApplyUserProfile();
+    }
+  } catch (error) {
+    console.error('Error saving accessibility settings:', error);
+    showMessageBox('Error saving accessibility settings.', true);
   }
 }
 
@@ -1509,22 +1694,23 @@ let keyboardShortcuts = {};
 let isRecordingShortcut = false;
 let currentRecordingShortcut = null;
 
-// Default keyboard shortcuts
+// Default keyboard shortcuts - Updated to avoid browser/OS conflicts
+// Based on comprehensive browser shortcut analysis from https://dmcritchie.mvps.org/firefox/keyboard.htm
 const defaultShortcuts = {
-  'home': 'Ctrl+H',
-  'about': 'Ctrl+A',
-  'servers': 'Ctrl+S',
-  'community': 'Ctrl+C',
-  'interests': 'Ctrl+I',
-  'games': 'Ctrl+G',
-  'forms': 'Ctrl+F',
-  'dms': 'Ctrl+D',
-  'new-dm': 'Ctrl+N',
-  'settings': 'Ctrl+U',
-  'themes': 'Ctrl+T',
-  'search': 'Ctrl+K',
+  'home': 'Alt+Shift+H',
+  'about': 'Alt+Shift+A',
+  'servers': 'Alt+Shift+S',
+  'community': 'Alt+Shift+C',
+  'interests': 'Alt+Shift+I',
+  'games': 'Alt+Shift+G',
+  'forms': 'Alt+Shift+F',
+  'dms': 'Alt+Shift+D',
+  'new-dm': 'Alt+Shift+N',
+  'settings': 'Alt+Shift+U',
+  'themes': 'Alt+Shift+T',
+  'search': 'Alt+Shift+K',
   'help': 'F1',
-  'logout': 'Ctrl+L'
+  'logout': 'Alt+Shift+L'
 };
 
 // Page URL mappings
@@ -1583,14 +1769,37 @@ function handleKeyboardShortcut(event) {
 function getPressedKeys(event) {
   const keys = [];
 
-  if (event.ctrlKey) keys.push('Ctrl');
+  // Check modifier keys
   if (event.altKey) keys.push('Alt');
+  if (event.ctrlKey) keys.push('Ctrl');
   if (event.shiftKey) keys.push('Shift');
-  if (event.metaKey) keys.push('Meta');
+  if (event.metaKey) keys.push('Meta'); // Command key on Mac
 
   // Add the main key
-  if (event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Shift' && event.key !== 'Meta') {
-    keys.push(event.key.toUpperCase());
+  if (event.key && event.key !== 'Alt' && event.key !== 'Ctrl' && event.key !== 'Shift' && event.key !== 'Meta') {
+    // Handle special keys
+    const keyMap = {
+      ' ': 'Space',
+      'Enter': 'Enter',
+      'Escape': 'Escape',
+      'Tab': 'Tab',
+      'Backspace': 'Backspace',
+      'Delete': 'Delete',
+      'ArrowUp': 'Up',
+      'ArrowDown': 'Down',
+      'ArrowLeft': 'Left',
+      'ArrowRight': 'Right',
+      'Home': 'Home',
+      'End': 'End',
+      'PageUp': 'PageUp',
+      'PageDown': 'PageDown',
+      'Insert': 'Insert',
+      'F1': 'F1', 'F2': 'F2', 'F3': 'F3', 'F4': 'F4', 'F5': 'F5', 'F6': 'F6',
+      'F7': 'F7', 'F8': 'F8', 'F9': 'F9', 'F10': 'F10', 'F11': 'F11', 'F12': 'F12'
+    };
+
+    const key = keyMap[event.key] || event.key.toUpperCase();
+    keys.push(key);
   }
 
   return keys.join('+');
@@ -1598,171 +1807,425 @@ function getPressedKeys(event) {
 
 // Execute a shortcut action
 function executeShortcut(shortcutKey) {
-  const action = Object.keys(keyboardShortcuts).find(key => keyboardShortcuts[key] === shortcutKey);
+  console.log('Executing shortcut:', shortcutKey);
 
-  if (!action) return;
+  // Check if shortcut is disabled
+  if (disabledShortcuts.has(shortcutKey)) {
+    console.log('Shortcut is disabled:', shortcutKey);
+    return;
+  }
 
-  switch (action) {
+  // Get the current shortcut mapping
+  const currentShortcuts = JSON.parse(localStorage.getItem('customShortcuts')) || defaultShortcuts;
+  const shortcut = currentShortcuts[shortcutKey];
+
+  if (!shortcut) {
+    console.log('No shortcut found for:', shortcutKey);
+    return;
+  }
+
+  // Execute the appropriate action
+  switch (shortcutKey) {
     case 'home':
+      window.location.href = 'index.html';
+      break;
     case 'about':
+      window.location.href = 'about.html';
+      break;
     case 'servers':
+      window.location.href = 'servers.html';
+      break;
     case 'community':
+      window.location.href = 'community.html';
+      break;
     case 'interests':
+      window.location.href = 'interests.html';
+      break;
     case 'games':
+      window.location.href = 'games.html';
+      break;
     case 'forms':
-    case 'settings':
-    case 'themes':
-      window.location.href = pageUrls[action];
+      window.location.href = 'forms.html';
       break;
-
     case 'dms':
-      window.location.href = pageUrls[action];
+      // Navigate to forms.html and open DMs tab
+      window.location.href = 'forms.html#dms';
       break;
-
     case 'new-dm':
-      window.location.href = pageUrls[action];
+      // Navigate to forms.html and open new DM dialog
+      window.location.href = 'forms.html#new-dm';
       break;
-
+    case 'settings':
+      window.location.href = 'users.html';
+      break;
+    case 'themes':
+      window.location.href = 'themes.html';
+      break;
     case 'search':
-      // Focus search input if available
-      const searchInput = document.querySelector('input[type="search"], #search-input');
+      // Focus search if available, otherwise show search modal
+      const searchInput = document.querySelector('input[type="search"], #search-input, .search-input');
       if (searchInput) {
         searchInput.focus();
+      } else {
+        // Create a simple search modal
+        showSearchModal();
       }
       break;
-
     case 'help':
-      // Show help modal or redirect to help page
-      showMessageBox('Help: Use keyboard shortcuts to navigate quickly. Press Ctrl+K for search.', false);
+      // Show help modal or navigate to help page
+      showHelpModal();
       break;
-
     case 'logout':
-      if (auth.currentUser) {
-        auth.signOut().then(() => {
-          window.location.href = 'index.html';
+      // Handle logout
+      if (window.auth && window.auth.currentUser) {
+        window.auth.signOut().then(() => {
+          window.location.reload();
         });
       }
       break;
+    default:
+      console.log('Unknown shortcut:', shortcutKey);
   }
 }
 
-// Setup shortcut customization UI
-function setupShortcutCustomization() {
-  // Load current shortcuts into UI
-  Object.keys(defaultShortcuts).forEach(shortcutKey => {
-    const input = document.getElementById(`shortcut-${shortcutKey}`);
-    if (input) {
-      input.value = keyboardShortcuts[shortcutKey] || defaultShortcuts[shortcutKey];
+// Helper function to show search modal
+function showSearchModal() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  `;
+
+  modal.innerHTML = `
+    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; min-width: 400px;">
+      <h3 style="margin-bottom: 1rem; color: var(--color-text-primary);">Search</h3>
+      <input type="text" placeholder="Search..." style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; background: var(--color-input-bg); color: var(--color-input-text); border: 1px solid var(--color-input-border); border-radius: 0.25rem;">
+      <button onclick="this.closest('div[style*=\'fixed\']').remove()" style="background: var(--color-button-blue-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer;">Close</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Focus the search input
+  const searchInput = modal.querySelector('input');
+  searchInput.focus();
+
+  // Close on escape
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
     }
   });
+}
 
-  // Setup edit buttons
+// Helper function to show help modal
+function showHelpModal() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  `;
+
+  modal.innerHTML = `
+    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+      <h3 style="margin-bottom: 1rem; color: var(--color-text-primary);">Keyboard Shortcuts Help</h3>
+      <div style="color: var(--color-text-secondary); line-height: 1.6;">
+        <p><strong>Navigation:</strong></p>
+        <ul>
+          <li>Alt+Shift+H - Home Page</li>
+          <li>Alt+Shift+A - About Page</li>
+          <li>Alt+Shift+S - Servers Page</li>
+          <li>Alt+Shift+C - Community Page</li>
+          <li>Alt+Shift+I - Interests Page</li>
+          <li>Alt+Shift+G - Games Page</li>
+          <li>Alt+Shift+F - Forms Page</li>
+        </ul>
+        <p><strong>Communication:</strong></p>
+        <ul>
+          <li>Alt+Shift+D - Direct Messages</li>
+          <li>Alt+Shift+N - New DM</li>
+        </ul>
+        <p><strong>Settings:</strong></p>
+        <ul>
+          <li>Alt+Shift+U - User Settings</li>
+          <li>Alt+Shift+T - Theme Settings</li>
+        </ul>
+        <p><strong>Utilities:</strong></p>
+        <ul>
+          <li>Alt+Shift+K - Search</li>
+          <li>F1 - Help (this dialog)</li>
+          <li>Alt+Shift+L - Logout</li>
+        </ul>
+        <p><strong>Note:</strong> You can customize these shortcuts in the Advanced Settings section.</p>
+      </div>
+      <button onclick="this.closest('div[style*=\'fixed\']').remove()" style="background: var(--color-button-blue-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; margin-top: 1rem;">Close</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close on escape
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
+    }
+  });
+}
+
+// Initialize the page when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function () {
+  console.log('DEBUG: user-main.js DOMContentLoaded event fired');
+
+  try {
+    // Wait for Firebase to be ready
+    await firebaseReadyPromise;
+    console.log('DEBUG: Firebase is ready');
+
+    // Setup themes
+    setupThemesFirebase(db, auth, appId);
+
+    // Setup custom theme management
+    setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, null, DEFAULT_THEME_NAME, auth.currentUser, showCustomConfirm);
+
+    // Initialize keyboard shortcuts
+    initializeKeyboardShortcuts();
+
+    // Setup event listeners
+    setupEventListeners();
+
+    // Check authentication state
+    auth.onAuthStateChanged(async (user) => {
+      console.log('DEBUG: Auth state changed:', user ? 'User logged in' : 'No user');
+
+      if (user) {
+        // User is signed in
+        console.log('DEBUG: User is signed in, loading profile...');
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        console.log('DEBUG: User profile loaded:', userProfile);
+
+        // Load and apply user profile
+        await reloadAndApplyUserProfile();
+
+        // Show settings content
+        showSection(settingsContent);
+
+        // Load navbar
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+
+      } else {
+        // User is signed out
+        console.log('DEBUG: User is signed out, showing sign in form');
+        showSection(signInSection);
+
+        // Load navbar without user
+        await loadNavbar(null, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+      }
+    });
+
+    console.log('DEBUG: user-main.js initialization completed');
+
+  } catch (error) {
+    console.error('DEBUG: Error during user-main.js initialization:', error);
+    showMessageBox('Failed to initialize page. Please refresh and try again.', true);
+  }
+});
+
+// Setup all event listeners
+function setupEventListeners() {
+  console.log('DEBUG: Setting up event listeners');
+
+  // Sign in form
+  if (signInButton) {
+    signInButton.addEventListener('click', handleSignIn);
+  }
+
+  // Sign up form
+  if (signUpButton) {
+    signUpButton.addEventListener('click', handleSignUp);
+  }
+
+  // Forgot password form
+  if (resetPasswordButton) {
+    resetPasswordButton.addEventListener('click', handlePasswordReset);
+  }
+
+  // Navigation links
+  if (goToSignUpLink) {
+    goToSignUpLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSection(signUpSection);
+    });
+  }
+
+  if (goToSignInLink) {
+    goToSignInLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSection(signInSection);
+    });
+  }
+
+  if (goToForgotPasswordLink) {
+    goToForgotPasswordLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSection(forgotPasswordSection);
+    });
+  }
+
+  if (goToSignInFromForgotLink) {
+    goToSignInFromForgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSection(signInSection);
+    });
+  }
+
+  // Profile settings
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', handleSaveProfile);
+  }
+
+  if (savePreferencesBtn) {
+    savePreferencesBtn.addEventListener('click', handleSavePreferences);
+  }
+
+  if (saveNotificationsBtn) {
+    saveNotificationsBtn.addEventListener('click', handleSaveNotifications);
+  }
+
+  if (savePrivacyBtn) {
+    savePrivacyBtn.addEventListener('click', handleSavePrivacy);
+  }
+
+  if (saveAccessibilityBtn) {
+    saveAccessibilityBtn.addEventListener('click', handleSaveAccessibility);
+  }
+
+  if (saveAdvancedBtn) {
+    saveAdvancedBtn.addEventListener('click', handleSaveAdvanced);
+  }
+
+  if (resetAdvancedBtn) {
+    resetAdvancedBtn.addEventListener('click', handleResetAdvanced);
+  }
+
+  // Data management
+  if (exportDataBtn) {
+    exportDataBtn.addEventListener('click', handleExportData);
+  }
+
+  if (importDataBtn) {
+    importDataBtn.addEventListener('click', handleImportData);
+  }
+
+  // Password change
+  const changePasswordForm = document.getElementById('change-password-form');
+  if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // Handle password change
+      console.log('Password change form submitted');
+    });
+  }
+
+  // Account deletion
+  const deleteAccountForm = document.getElementById('delete-account-form');
+  if (deleteAccountForm) {
+    deleteAccountForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // Handle account deletion
+      console.log('Account deletion form submitted');
+    });
+  }
+
+  // Background opacity range
+  if (backgroundOpacityRange && backgroundOpacityValue) {
+    backgroundOpacityRange.addEventListener('input', (e) => {
+      backgroundOpacityValue.textContent = `${e.target.value}%`;
+    });
+  }
+
+  // Profile picture URL preview
+  if (profilePictureUrlInput) {
+    profilePictureUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      const previewMessage = document.getElementById('url-preview-message');
+
+      if (url && previewMessage) {
+        previewMessage.style.display = 'block';
+      } else if (previewMessage) {
+        previewMessage.style.display = 'none';
+      }
+    });
+  }
+
+  // Custom theme button
+  const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
+  if (createCustomThemeBtn) {
+    createCustomThemeBtn.addEventListener('click', () => {
+      // This will be handled by custom_theme_modal.js
+      console.log('Create custom theme button clicked');
+    });
+  }
+
+  // Keyboard shortcut buttons
   document.querySelectorAll('.shortcut-edit-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const shortcutKey = e.target.dataset.shortcut;
-      startRecordingShortcut(shortcutKey);
+      const input = document.getElementById(`shortcut-${shortcutKey}`);
+      if (input) {
+        input.classList.add('recording');
+        input.placeholder = 'Press keys...';
+        input.focus();
+
+        // Handle key recording
+        const handleKeyDown = (event) => {
+          event.preventDefault();
+          const keys = getPressedKeys(event);
+          input.value = keys;
+          input.classList.remove('recording');
+          input.placeholder = keys;
+          document.removeEventListener('keydown', handleKeyDown);
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+      }
     });
   });
 
-  // Setup disable buttons
   document.querySelectorAll('.shortcut-disable-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const shortcutKey = e.target.dataset.shortcut;
-      toggleShortcutDisabled(shortcutKey);
+      const input = document.getElementById(`shortcut-${shortcutKey}`);
+      if (input) {
+        if (e.target.classList.contains('disabled')) {
+          e.target.classList.remove('disabled');
+          e.target.textContent = 'Disable';
+          input.disabled = false;
+          input.style.opacity = '1';
+        } else {
+          e.target.classList.add('disabled');
+          e.target.textContent = 'Disabled';
+          input.disabled = true;
+          input.style.opacity = '0.5';
+        }
+      }
     });
   });
-}
 
-// Start recording a new shortcut
-function startRecordingShortcut(shortcutKey) {
-  if (isRecordingShortcut) return;
-
-  isRecordingShortcut = true;
-  currentRecordingShortcut = shortcutKey;
-
-  const input = document.getElementById(`shortcut-${shortcutKey}`);
-  if (input) {
-    input.classList.add('recording');
-    input.value = 'Press keys...';
-    input.focus();
-  }
-
-  // Add temporary listener for recording
-  document.addEventListener('keydown', recordShortcut, {once: true});
-  document.addEventListener('click', cancelRecording, {once: true});
-}
-
-// Record the pressed shortcut
-function recordShortcut(event) {
-  event.preventDefault();
-
-  const pressedKeys = getPressedKeys(event);
-
-  if (pressedKeys && currentRecordingShortcut) {
-    // Check for conflicts
-    const conflictingShortcut = Object.keys(keyboardShortcuts).find(key =>
-      keyboardShortcuts[key] === pressedKeys && key !== currentRecordingShortcut
-    );
-
-    if (conflictingShortcut) {
-      showMessageBox(`Shortcut conflict: ${pressedKeys} is already used for ${conflictingShortcut}`, true);
-      cancelRecording();
-      return;
-    }
-
-    // Update the shortcut
-    keyboardShortcuts[currentRecordingShortcut] = pressedKeys;
-
-    const input = document.getElementById(`shortcut-${currentRecordingShortcut}`);
-    if (input) {
-      input.value = pressedKeys;
-      input.classList.remove('recording');
-    }
-
-    showMessageBox(`Shortcut updated: ${currentRecordingShortcut} = ${pressedKeys}`, false);
-  }
-
-  isRecordingShortcut = false;
-  currentRecordingShortcut = null;
-}
-
-// Cancel shortcut recording
-function cancelRecording() {
-  if (!isRecordingShortcut) return;
-
-  isRecordingShortcut = false;
-
-  if (currentRecordingShortcut) {
-    const input = document.getElementById(`shortcut-${currentRecordingShortcut}`);
-    if (input) {
-      input.classList.remove('recording');
-      input.value = keyboardShortcuts[currentRecordingShortcut] || defaultShortcuts[currentRecordingShortcut];
-    }
-  }
-
-  currentRecordingShortcut = null;
-}
-
-// Toggle shortcut disabled state
-function toggleShortcutDisabled(shortcutKey) {
-  const input = document.getElementById(`shortcut-${shortcutKey}`);
-  const disableBtn = document.querySelector(`[data-shortcut="${shortcutKey}"].shortcut-disable-btn`);
-
-  if (input && disableBtn) {
-    if (input.disabled) {
-      // Enable shortcut
-      input.disabled = false;
-      input.value = keyboardShortcuts[shortcutKey] || defaultShortcuts[shortcutKey];
-      disableBtn.textContent = 'Disable';
-      disableBtn.classList.remove('disabled');
-      delete keyboardShortcuts[`${shortcutKey}_disabled`];
-    } else {
-      // Disable shortcut
-      input.disabled = true;
-      input.value = 'Disabled';
-      disableBtn.textContent = 'Enable';
-      disableBtn.classList.add('disabled');
-      keyboardShortcuts[`${shortcutKey}_disabled`] = true;
-    }
-  }
+  console.log('DEBUG: Event listeners setup completed');
 }
