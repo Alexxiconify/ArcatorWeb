@@ -34,7 +34,7 @@
   <h2 class="text-3xl font-bold text-heading-main text-center mb-4">Arcator Community Interests</h2>
   <div class="text-secondary text-center mb-2">Live, auto-updating from our <a
     class="text-blue-400 hover:text-blue-300 underline"
-    href="https://docs.google.com/spreadsheets/u/0/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/htmlview#" target="_blank">community Google Sheet</a>.
+    href="https://docs.google.com/spreadsheets/u/0/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/htmlview#" rel="noopener" target="_blank">community Google Sheet</a>.
   </div>
   <div class="flex justify-center gap-2 mb-4" id="interests-tabs"></div>
   <div id="interests-table"></div>
@@ -67,7 +67,6 @@
       top: 0;
       z-index: 1;
     }
-
     #interests-table td.filled {
       background: var(--color-button-bg-primary, #4299e1);
       color: var(--color-button-text, #fff);
@@ -77,7 +76,6 @@
       display: inline-block;
       margin: 0 auto;
     }
-
     #interests-table td {
       font-size: 0.85rem;
     }
@@ -100,7 +98,6 @@
       while (rows.length && rows[rows.length - 1].every(cell => !cell.trim())) rows.pop();
       return rows;
     }
-
     function sortAZ09(arr) {
       return arr.slice().sort((a, b) => {
         const aStr = a.toLowerCase();
@@ -117,33 +114,56 @@
         tableDiv.innerHTML = '<div class="text-center text-gray-400">No data.</div>';
         return;
       }
-      // Alphabetize columns (usernames) and rows (interests)
+
+      // Matrix approach: keep user-interest relationships intact
       let [header, ...rows] = data;
-      // Sort columns (except first col)
-      const colHeaders = header.slice(1);
-      const sortedColHeaders = sortAZ09(colHeaders);
-      const colMap = [0, ...sortedColHeaders.map(h => header.indexOf(h))];
-      // Sort rows by first col (interest name)
-      rows = rows.sort((a, b) => sortAZ09([a[0], b[0]])[0] === a[0] ? -1 : 1);
-      // Hide empty rows (all data cells empty/0)
-      rows = rows.filter(row => row.slice(1).some(cell => cell && cell !== '0'));
-      // Build table
+
+      // Create matrix with interest names and user data
+      const interestMatrix = rows.map(row => ({
+        name: row[0],
+        data: row.slice(1)
+      }));
+
+      // Sort interests alphabetically (A-Z, then 0-9)
+      interestMatrix.sort((a, b) => {
+        const aStr = a.name.toLowerCase();
+        const bStr = b.name.toLowerCase();
+        if (aStr === bStr) return 0;
+        if (/^[a-z]/i.test(aStr) && !/^[a-z]/i.test(bStr)) return -1;
+        if (!/^[a-z]/i.test(aStr) && /^[a-z]/i.test(bStr)) return 1;
+        return aStr.localeCompare(bStr, undefined, {numeric: true});
+      });
+
+      // Sort user columns alphabetically (A-Z, then 0-9)
+      const userHeaders = header.slice(1);
+      const sortedUserHeaders = sortAZ09(userHeaders);
+      const userIndexMap = sortedUserHeaders.map(h => header.indexOf(h));
+
+      // Filter out empty rows (all data cells empty/0)
+      const filteredMatrix = interestMatrix.filter(row =>
+        row.data.some(cell => cell && cell !== '0')
+      );
+
+      // Build table with sorted data
       let html = '<table><thead><tr>';
-      colMap.forEach(i => html += `<th>${header[i]}</th>`);
+      html += `<th>${header[0]}</th>`; // Interest name column
+      userIndexMap.forEach(i => html += `<th>${header[i]}</th>`);
       html += '</tr></thead><tbody>';
-      rows.forEach(row => {
+
+      filteredMatrix.forEach(row => {
         html += '<tr>';
-        colMap.forEach((i, j) => {
-          if (j === 0) html += `<td>${row[i]}</td>`;
-          else if (row[i] === '1') html += '<td class="filled">●</td>';
+        html += `<td>${row.name}</td>`; // Interest name
+        userIndexMap.forEach(i => {
+          const cellValue = row.data[i];
+          if (cellValue === '1') html += '<td class="filled">●</td>';
           else html += '<td></td>';
         });
         html += '</tr>';
       });
+
       html += '</tbody></table>';
       tableDiv.innerHTML = html;
     }
-
     function loadSheet(idx) {
       currentTab = idx;
       tabsDiv.querySelectorAll('button').forEach((btn, i) => {
