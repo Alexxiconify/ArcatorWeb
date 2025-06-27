@@ -16,6 +16,115 @@
   <link rel="stylesheet" href="interests.css">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: var(--color-body-bg); /* Ensure body uses the variable for its own background */
+      color: var(--color-text-primary); /* Ensure body uses the variable for its default text color */
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white; /* Hero content text is hardcoded white for readability over image */
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Custom classes using CSS variables */
+    .bg-content-section {
+      background-color: var(--color-bg-content-section);
+    }
+
+    .text-heading-main {
+      color: var(--color-heading-main);
+    }
+
+    .text-text-primary {
+      color: var(--color-text-primary);
+    }
+
+    .text-text-secondary {
+      color: var(--color-text-secondary);
+    }
+
+    .bg-card {
+      background-color: var(--color-bg-card);
+    }
+
+    .bg-navbar-footer {
+      background-color: var(--color-bg-navbar);
+    }
+
+    /* For footer */
+    .text-link {
+      color: var(--color-link);
+    }
+
+    .text-link-footer {
+      color: var(--color-text-secondary);
+    }
+
+    /* Specific for footer links, can be same as text-secondary or a different link variable */
+    .hover\:text-link:hover {
+      color: var(--color-link);
+    }
+
+    /* General hover for links */
+    .text-heading-card-active {
+      color: var(--color-heading-card);
+    }
+
+    /* for active link indication */
+
+    /* Table specific theming */
+    .bg-table-th-bg {
+      background-color: var(--color-table-th-bg);
+    }
+
+    .text-table-th-text {
+      color: var(--color-table-th-text);
+    }
+
+    .border-table-td-border {
+      border-color: var(--color-table-td-border);
+    }
+
+    .bg-table-row-even-bg {
+      background-color: var(--color-table-row-even-bg);
+    }
+
+    /* Ensure text colors for table cells correctly inherit or are set */
+    table td {
+      color: var(--color-text-primary);
+    }
+  </style>
 </head>
 <body class="antialiased">
 <!-- Navbar Placeholder -->
@@ -30,7 +139,7 @@
 </section>
 
 <!-- Main Content Section: Interests Table -->
-<section class="bg-card my-8 p-6 rounded-lg shadow-xl">
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <h2 class="text-3xl font-bold text-heading-main text-center mb-4">Arcator Community Interests</h2>
   <div class="text-secondary text-center mb-2">Live, auto-updating from our <a
     class="text-blue-400 hover:text-blue-300 underline"
@@ -115,36 +224,25 @@
         return;
       }
 
-      // Matrix approach: keep user-interest relationships intact
+      // Keep original data order - no sorting
       let [header, ...rows] = data;
 
-      // Create matrix with interest names and user data
+      // Create matrix with interest names and user data (keep original order)
       const interestMatrix = rows.map(row => ({
         name: row[0],
         data: row.slice(1)
       }));
 
-      // Sort interests alphabetically (A-Z, then 0-9)
-      interestMatrix.sort((a, b) => {
-        const aStr = a.name.toLowerCase();
-        const bStr = b.name.toLowerCase();
-        if (aStr === bStr) return 0;
-        if (/^[a-z]/i.test(aStr) && !/^[a-z]/i.test(bStr)) return -1;
-        if (!/^[a-z]/i.test(aStr) && /^[a-z]/i.test(bStr)) return 1;
-        return aStr.localeCompare(bStr, undefined, {numeric: true});
-      });
-
-      // Sort user columns alphabetically (A-Z, then 0-9)
+      // Keep original column order (no sorting)
       const userHeaders = header.slice(1);
-      const sortedUserHeaders = sortAZ09(userHeaders);
-      const userIndexMap = sortedUserHeaders.map(h => header.indexOf(h));
+      const userIndexMap = userHeaders.map((h, i) => i + 1); // Use original indices
 
       // Filter out empty rows (all data cells empty/0)
       const filteredMatrix = interestMatrix.filter(row =>
         row.data.some(cell => cell && cell !== '0')
       );
 
-      // Build table with sorted data
+      // Build table with original data order
       let html = '<table><thead><tr>';
       html += `<th>${header[0]}</th>`; // Interest name column
       userIndexMap.forEach(i => html += `<th>${header[i]}</th>`);
@@ -154,7 +252,7 @@
         html += '<tr>';
         html += `<td>${row.name}</td>`; // Interest name
         userIndexMap.forEach(i => {
-          const cellValue = row.data[i];
+          const cellValue = row.data[i - 1]; // Adjust index since we're using 1-based indices
           if (cellValue === '1') html += '<td class="filled">●</td>';
           else html += '<td></td>';
         });
