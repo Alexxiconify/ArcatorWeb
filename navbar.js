@@ -75,8 +75,10 @@ const navbarStyles = `
 }
 
 .navbar-logo svg {
-  height: 1.5rem;
-  width: 1.5rem;
+  height: 2rem;
+  width: 2rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
   color: var(--color-link, #60A5FA);
   transition: all 0.3s ease;
 }
@@ -146,8 +148,10 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.75rem;
+  width: 1.75rem;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
   margin-right: 0.5rem;
   transition: all 0.3s ease;
 }
