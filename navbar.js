@@ -187,7 +187,7 @@ const navbarStyles = `
 .navbar-user .navbar-link {
   padding: 0.375rem 0.75rem;
   background: linear-gradient(135deg, var(--color-button-blue-bg, #3B82F6), var(--color-button-indigo-bg, #6366F1));
-  color: white;
+  color: var(--color-button-text, #FFFFFF);
   border: none;
   font-weight: 600;
   font-size: 0.8125rem;
@@ -202,7 +202,7 @@ const navbarStyles = `
 
 .navbar-user .navbar-link svg {
   margin-right: 0.375rem;
-  color: white;
+  color: var(--color-button-text, #FFFFFF);
   height: 1rem;
   width: 1rem;
 }
@@ -690,6 +690,17 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
 
     // Update navbar state based on authentication
     await updateNavbarState(authUser, userProfile, defaultProfilePic);
+
+    // Listen for theme changes and update navbar
+    document.addEventListener('themeChanged', () => {
+      console.log('Navbar: Theme changed, updating styles...');
+      // Force a re-render of navbar styles by re-injecting them
+      const existingStyles = document.getElementById('navbar-styles');
+      if (existingStyles) {
+        existingStyles.remove();
+      }
+      injectNavbarStyles();
+    });
 
     console.log('Modern navbar loaded successfully');
 

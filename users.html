@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
@@ -836,5 +838,24 @@
 
 <!-- Main JavaScript module for this page -->
 <script type="module" src="user-main.js"></script>
+<script type="module">
+  import {
+    auth,
+    getUserProfileFromFirestore,
+    firebaseReadyPromise,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME
+  } from './firebase-init.js';
+  import {loadNavbar, loadFooter} from './navbar.js';
+
+  firebaseReadyPromise.then(async () => {
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    loadFooter('current-year-users');
+  });
+</script>
 </body>
 </html>

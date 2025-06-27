@@ -344,11 +344,27 @@ export function applyTheme(themeId, themeProperties) {
   root.classList.add(`theme-${themeId}`);
 
   // Apply CSS variables if theme properties are provided
+  if (themeProperties && themeProperties.variables) {
+    Object.entries(themeProperties.variables).forEach(([property, value]) => {
+      root.style.setProperty(property, value);
+    });
+  }
+
+  // Apply CSS variables if theme properties are provided (legacy format)
   if (themeProperties && themeProperties.colors) {
     Object.entries(themeProperties.colors).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
   }
+
+  // Dispatch theme change event for components that need to update
+  const themeChangeEvent = new CustomEvent('themeChanged', {
+    detail: {
+      themeId: themeId,
+      themeProperties: themeProperties
+    }
+  });
+  document.dispatchEvent(themeChangeEvent);
 
   console.log(`Theme applied: ${themeId}`);
 }

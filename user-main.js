@@ -16,6 +16,7 @@ import {
 import {showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL} from './utils.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
+import {setupCustomThemeManagement} from './custom_theme_modal.js'; // Import custom theme management
 
 import {
   createUserWithEmailAndPassword,
@@ -580,6 +581,32 @@ window.onload = async function() {
               }
             }
           };
+
+          // Setup custom theme management
+          const populateThemeSelect = async (selectedThemeId = null) => {
+            const themes = await getAvailableThemes();
+            themeSelect.innerHTML = '';
+            themes.forEach(theme => {
+              const opt = document.createElement('option');
+              opt.value = theme.id;
+              opt.textContent = theme.name;
+              themeSelect.appendChild(opt);
+            });
+            if (selectedThemeId) {
+              themeSelect.value = selectedThemeId;
+            }
+          };
+
+          setupCustomThemeManagement(
+            db,
+            auth,
+            appId,
+            showMessageBox,
+            populateThemeSelect,
+            themeSelect,
+            DEFAULT_THEME_NAME,
+            user
+          );
         }
 
       } else {

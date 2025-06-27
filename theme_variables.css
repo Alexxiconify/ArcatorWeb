@@ -7,6 +7,7 @@
   --color-link-hover: #3B82F6;
 
   --color-bg-navbar: #111827;
+  --color-bg-navbar-rgb: 17, 24, 39;
   --color-bg-content-section: #1F2937;
   --color-bg-card: #2D3748;
 
@@ -61,6 +62,7 @@
   --color-link: #60A5FA;
   --color-link-hover: #3B82F6;
   --color-bg-navbar: #111827;
+  --color-bg-navbar-rgb: 17, 24, 39;
   --color-bg-content-section: #1F2937;
   --color-bg-card: #2D3748;
   --color-heading-main: #F9FAFB;
@@ -104,7 +106,8 @@
   --color-text-secondary: #6B7280;
   --color-link: #2563EB;
   --color-link-hover: #1D4ED8;
-  --color-bg-navbar: #E5E7EB;
+  --color-bg-navbar: #ffffff;
+  --color-bg-navbar-rgb: 255, 255, 255;
   --color-bg-content-section: #F3F4F6;
   --color-bg-card: #FFFFFF;
   --color-heading-main: #111827;
@@ -148,7 +151,8 @@
   --color-text-secondary: #A3C7B5; /* Muted Green */
   --color-link: #34D399; /* Green Link */
   --color-link-hover: #10B981; /* Darker Green Link Hover */
-  --color-bg-navbar: #0D2F22; /* Very Dark Green Navbar */
+  --color-bg-navbar: #1a2e1a;
+  --color-bg-navbar-rgb: 26, 46, 26;
   --color-bg-content-section: #1A3E2F; /* Dark Green Content */
   --color-bg-card: #254D3D; /* Slightly Lighter Dark Green Card */
   --color-heading-main: #DCFCE7; /* Very Light Green Heading */
@@ -192,7 +196,8 @@
   --color-text-secondary: #7ABACD; /* Muted Cyan */
   --color-link: #29B6F6; /* Bright Blue Link */
   --color-link-hover: #03A9F4; /* Darker Blue Link Hover */
-  --color-bg-navbar: #061325; /* Very Dark Blue Navbar */
+  --color-bg-navbar: #1e293b;
+  --color-bg-navbar-rgb: 30, 41, 59;
   --color-bg-content-section: #0A192F; /* Deep Blue Content */
   --color-bg-card: #1A2F4B; /* Slightly Lighter Deep Blue Card */
   --color-heading-main: #ADD8E6; /* Light Blue Heading */
@@ -237,6 +242,7 @@
   --color-link: #FFFF00; /* Yellow */
   --color-link-hover: #FFD700; /* Gold */
   --color-bg-navbar: #000000;
+  --color-bg-navbar-rgb: 0, 0, 0;
   --color-bg-content-section: #111111;
   --color-bg-card: #333333;
   --color-heading-main: #FFFFFF;
