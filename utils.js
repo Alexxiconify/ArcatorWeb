@@ -45,15 +45,55 @@ export function sanitizeHandle(input) {
  */
 export function validatePhotoURL(photoURL, defaultPic) {
   if (!photoURL || typeof photoURL !== 'string') {
+    console.log('[DEBUG] validatePhotoURL: No photoURL provided, using default');
     return defaultPic;
   }
+
+  console.log('[DEBUG] validatePhotoURL: Validating URL:', photoURL);
+
   try {
     const url = new URL(photoURL);
+
+    // Check if it's a valid HTTP/HTTPS URL
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      console.warn('[DEBUG] validatePhotoURL: Invalid protocol:', url.protocol);
       return defaultPic;
     }
+
+    // Allow common profile picture domains
+    const allowedDomains = [
+      'cdn.discordapp.com',
+      'media.discordapp.net',
+      'images.discordapp.net',
+      'lh3.googleusercontent.com',
+      'graph.facebook.com',
+      'platform-lookaside.fbsbx.com',
+      'pbs.twimg.com',
+      'abs.twimg.com',
+      'placehold.co',
+      'via.placeholder.com',
+      'ui-avatars.com',
+      'gravatar.com',
+      'www.gravatar.com'
+    ];
+
+    const hostname = url.hostname.toLowerCase();
+    const isAllowedDomain = allowedDomains.some(domain => hostname.includes(domain));
+
+    if (!isAllowedDomain) {
+      console.warn('[DEBUG] validatePhotoURL: Domain not in allowed list:', hostname);
+      // Still allow the URL if it's HTTPS and looks like a valid image URL
+      if (url.protocol === 'https:' && (url.pathname.includes('.') || url.pathname.includes('/'))) {
+        console.log('[DEBUG] validatePhotoURL: Allowing HTTPS URL with valid path:', photoURL);
+        return photoURL;
+      }
+      return defaultPic;
+    }
+
+    console.log('[DEBUG] validatePhotoURL: URL validated successfully:', photoURL);
     return photoURL;
   } catch (error) {
+    console.error('[DEBUG] validatePhotoURL: Error parsing URL:', error);
     return defaultPic;
   }
 }

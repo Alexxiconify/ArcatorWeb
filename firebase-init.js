@@ -220,11 +220,21 @@ firebaseReadyPromise.then(() => {
       window.currentUser = userProfile; // Ensure global sync for forms.js
       // Notify UI when user/profile is ready
       if (typeof window.onUserReady === 'function') window.onUserReady();
+
+      // Refresh navbar profile picture if navbar is loaded
+      if (typeof window.refreshNavbarProfilePicture === 'function') {
+        window.refreshNavbarProfilePicture();
+      }
     } else {
       console.log("Auth State Changed: User logged out.");
       currentUser = null;
       window.currentUser = null; // Ensure global sync for forms.js
       if (typeof window.onUserReady === 'function') window.onUserReady();
+
+      // Refresh navbar profile picture if navbar is loaded
+      if (typeof window.refreshNavbarProfilePicture === 'function') {
+        window.refreshNavbarProfilePicture();
+      }
     }
     // Do NOT unsubscribe here, allowing subsequent auth state changes to be caught.
   });

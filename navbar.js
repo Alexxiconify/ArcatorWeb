@@ -212,6 +212,47 @@ function injectNavbarStyles() {
 }
 
 /**
+ * Refreshes the navbar profile picture with current user data
+ * This can be called when user profile is updated
+ */
+export function refreshNavbarProfilePicture() {
+  const userProfilePic = document.getElementById('navbar-user-profile-pic');
+  const userSettingsLink = document.getElementById('navbar-user-settings-link');
+
+  if (!userProfilePic || !userSettingsLink) {
+    console.warn('[DEBUG] Navbar profile picture elements not found');
+    return;
+  }
+
+  // Check if user is logged in and has profile
+  if (window.auth && window.auth.currentUser && window.currentUser) {
+    console.log('[DEBUG] Refreshing navbar profile picture for user:', window.currentUser.displayName);
+
+    const profilePicURL = window.currentUser.photoURL || window.DEFAULT_PROFILE_PIC;
+    const safePhotoURL = validatePhotoURL(profilePicURL, window.DEFAULT_PROFILE_PIC);
+
+    console.log('[DEBUG] Refreshed profile picture URL:', safePhotoURL);
+
+    userProfilePic.src = safePhotoURL;
+    userProfilePic.alt = window.currentUser.displayName || 'User Profile';
+
+    // Add error handling for broken images
+    userProfilePic.onerror = function () {
+      console.warn('[DEBUG] Profile picture failed to load during refresh, using default:', safePhotoURL);
+      this.src = window.DEFAULT_PROFILE_PIC;
+      this.onerror = null; // Prevent infinite loop
+    };
+
+    // Show user settings link
+    userSettingsLink.classList.remove('hidden');
+  } else {
+    console.log('[DEBUG] No user logged in, hiding profile picture');
+    // Hide user settings link if no user
+    userSettingsLink.classList.add('hidden');
+  }
+}
+
+/**
  * Updates navbar UI based on user authentication state
  * @param {Object|null} authUser - Firebase User object
  * @param {Object|null} userProfile - User profile from Firestore
@@ -231,11 +272,29 @@ function updateNavbarState(authUser, userProfile, defaultProfilePic) {
       signinLink.classList.add('hidden');
     }
 
-    // Update profile picture
+    // Update profile picture with better debugging
     if (userProfilePic) {
-      const safePhotoURL = validatePhotoURL(userProfile.photoURL, defaultProfilePic);
+      console.log('[DEBUG] Updating navbar profile picture:', {
+        userProfilePhotoURL: userProfile.photoURL,
+        defaultProfilePic: defaultProfilePic,
+        userDisplayName: userProfile.displayName
+      });
+
+      // Use photoURL directly from userProfile, with fallback to default
+      const profilePicURL = userProfile.photoURL || defaultProfilePic;
+      const safePhotoURL = validatePhotoURL(profilePicURL, defaultProfilePic);
+
+      console.log('[DEBUG] Final profile picture URL:', safePhotoURL);
+
       userProfilePic.src = safePhotoURL;
       userProfilePic.alt = userProfile.displayName || 'User Profile';
+
+      // Add error handling for broken images
+      userProfilePic.onerror = function () {
+        console.warn('[DEBUG] Profile picture failed to load, using default:', safePhotoURL);
+        this.src = defaultProfilePic;
+        this.onerror = null; // Prevent infinite loop
+      };
     }
   } else {
     // User is not logged in
@@ -366,3 +425,37 @@ firebaseReadyPromise.then(() => {
     await applyUserTheme(userThemePreference, DEFAULT_THEME_NAME);
   });
 });
+
+// Make function available globally
+window.refreshNavbarProfilePicture = refreshNavbarProfilePicture;
+
+/**
+ * Test function to manually set a profile picture URL
+ * This can be called from browser console for testing
+ * @param {string} photoURL - The photo URL to test
+ */
+export function testProfilePicture(photoURL) {
+  console.log('[DEBUG] Testing profile picture URL:', photoURL);
+
+  if (!window.currentUser) {
+    console.error('[DEBUG] No user logged in, cannot test profile picture');
+    return;
+  }
+
+  // Temporarily update the current user's photoURL
+  const originalPhotoURL = window.currentUser.photoURL;
+  window.currentUser.photoURL = photoURL;
+
+  // Refresh the navbar
+  refreshNavbarProfilePicture();
+
+  // Restore original after 5 seconds
+  setTimeout(() => {
+    window.currentUser.photoURL = originalPhotoURL;
+    refreshNavbarProfilePicture();
+    console.log('[DEBUG] Restored original profile picture');
+  }, 5000);
+}
+
+// Make test function available globally
+window.testProfilePicture = testProfilePicture;

@@ -592,11 +592,11 @@ function renderThemaBoxes(themasArr) {
         <form class="create-thread-form mt-6 mb-2 card bg-card shadow p-4 flex flex-col gap-3" id="create-thread-form-${thema.id}">
           <div class="mb-2">
             <label class="block text-sm font-semibold mb-1" for="thread-title-input-${thema.id}">Title</label>
-            <input type="text" id="thread-title-input-${thema.id}" class="thread-title-input input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" maxlength="120" placeholder="Title (e.g. What's on your mind?)" required />
+            <input type="text" id="thread-title-input-${thema.id}" class="thread-title-input form-input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" maxlength="120" placeholder="Title (e.g. What's on your mind?)" required />
           </div>
           <div class="mb-2">
             <label class="block text-sm font-semibold mb-1" for="thread-content-input-${thema.id}">Body</label>
-            <textarea id="thread-content-input-${thema.id}" class="thread-content-input input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
+            <textarea id="thread-content-input-${thema.id}" class="thread-content-input form-input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (optional, Markdown supported)" required></textarea>
           </div>
           <button type="submit" class="btn-primary btn-blue w-full py-2 text-base font-bold rounded">
             ${window.currentUser ? 'Create Post' : 'Create Temporary Post'}
@@ -727,7 +727,7 @@ function loadThreadsForThema(themaId) {
       const threadUids = new Set();
       snapshot.forEach(threadDoc => {
         const thread = threadDoc.data();
-        if (thread.createdBy) threadUids.add(thread.createdBy);
+        if (thread.authorId) threadUids.add(thread.authorId);
       });
       const userProfiles = {};
       if (threadUids.size > 0) {
@@ -748,8 +748,8 @@ function loadThreadsForThema(themaId) {
         const createdAt = tempThread.createdAt ? new Date(tempThread.createdAt).toLocaleString() : 'N/A';
         threadDiv.innerHTML = `
           <div class="flex items-center gap-2 mb-1">
-            <img src="${tempThread.authorPhotoURL}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
-            <span class="font-semibold">${tempThread.authorDisplayName}</span>
+            <img src="${tempThread.authorPhotoURL || window.DEFAULT_PROFILE_PIC}" class="w-8 h-8 rounded-full object-cover border" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">
+            <span class="font-semibold">${tempThread.authorDisplayName || 'Anonymous'}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
             <span class="ml-auto text-xs text-yellow-500 font-semibold">Temporary</span>
           </div>
@@ -771,14 +771,14 @@ function loadThreadsForThema(themaId) {
         }
         const threadDiv = document.createElement('div');
         threadDiv.className = 'thread-item card p-4 mb-3 bg-card shadow flex flex-col gap-2';
-        const user = userProfiles[thread.createdBy] || {};
-        const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
-        const displayName = user.displayName || 'Unknown';
+        const user = userProfiles[thread.authorId] || {};
+        const profilePic = user.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
+        const displayName = user.displayName || thread.authorDisplayName || 'Unknown';
         const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-        const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy);
+        const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.authorId);
         threadDiv.innerHTML = `
           <div class="flex items-center gap-2 mb-1">
-            <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile">
+            <img src="${profilePic}" class="w-8 h-8 rounded-full object-cover border" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">
             <span class="font-semibold">${displayName}</span>
             <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
             ${canEdit ? `
@@ -798,7 +798,7 @@ function loadThreadsForThema(themaId) {
           <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${threadDoc.id}">Add a comment</label>
-            <textarea id="comment-content-input-${threadDoc.id}" class="comment-content-input input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
+            <textarea id="comment-content-input-${threadDoc.id}" class="comment-content-input form-input w-full min-h-[60px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Text (Markdown supported)" required></textarea>
             <button type="submit" class="btn-primary btn-green w-full py-2 text-base font-bold rounded">
               ${window.currentUser ? 'Add Comment' : 'Add Temporary Comment'}
             </button>
@@ -934,14 +934,14 @@ function loadCommentsForThread(themaId, threadId) {
       const comment = commentDoc.data();
       const user = userProfiles[comment.createdBy] || {};
       const profilePic = user.photoURL || window.DEFAULT_PROFILE_PIC;
-      const displayName = user.displayName || 'Unknown';
+      const displayName = user.displayName || comment.creatorDisplayName || 'Unknown';
       const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
       const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy);
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment-item card p-3 mb-2 bg-card flex flex-col gap-1';
       commentDiv.innerHTML = `
         <div class="flex items-center gap-2 mb-1">
-          <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile">
+          <img src="${profilePic}" class="w-6 h-6 rounded-full object-cover border" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">
           <span class="font-semibold">${displayName}</span>
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
           ${canEdit ? `
@@ -985,8 +985,8 @@ function editThread(themaId, threadId, oldTitle, oldContent, threadDiv) {
   const editForm = document.createElement('form');
   editForm.className = 'edit-thread-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
-    <input type="text" class="edit-thread-title input" value="${oldTitle}" required />
-    <textarea class="edit-thread-content input">${oldContent}</textarea>
+    <input type="text" class="edit-thread-title form-input" value="${oldTitle}" required />
+    <textarea class="edit-thread-content form-input">${oldContent}</textarea>
     <div class="flex gap-2">
       <button type="submit" class="btn-primary btn-green">Save</button>
       <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
@@ -1024,7 +1024,7 @@ function editComment(themaId, threadId, commentId, oldContent, commentDiv) {
   const editForm = document.createElement('form');
   editForm.className = 'edit-comment-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
-    <textarea class="edit-comment-content input">${oldContent}</textarea>
+    <textarea class="edit-comment-content form-input">${oldContent}</textarea>
     <div class="flex gap-2">
       <button type="submit" class="btn-primary btn-green">Save</button>
       <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
@@ -1493,7 +1493,7 @@ function renderDMList() {
       }
       div.innerHTML = `
         <div class="flex items-center gap-3">
-          <img src="${profilePic}" class="w-10 h-10 rounded-full object-cover border" alt="Profile">
+          <img src="${profilePic}" class="w-10 h-10 rounded-full object-cover border" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">
           <div class="flex flex-col">
             <span class="font-bold text-base">${name}</span>
             <span class="text-xs text-gray-400">${dmData.type === window.DM_TYPES.GROUP ? 'Group' : (isSelfDM ? 'Self DM' : 'Direct')} • ${dmData.lastActivity ? new Date(dmData.lastActivity.toDate()).toLocaleString() : 'N/A'}</span>
@@ -1547,7 +1547,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
       const div = document.createElement('div');
       div.className = `message-item flex ${rowClass} items-end gap-2 mb-3`;
       div.innerHTML = `
-        <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile">
+        <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">
         <div class="flex-1 flex flex-col ${isOwn ? 'items-end' : 'items-start'}">
           <div class="${bubbleClass}" data-message-id="${doc.id}">
             <div class="flex items-center gap-2 mb-1 ${isOwn ? 'justify-end' : ''}">
@@ -1572,7 +1572,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
         const origText = contentDiv.textContent;
         const form = document.createElement('form');
         form.className = 'flex flex-col gap-2';
-        form.innerHTML = `<textarea class='w-full p-2 border rounded mb-2'>${origText}</textarea><div class='flex gap-2'><button type='submit' class='btn-primary btn-green'>Save</button><button type='button' class='btn-primary btn-red cancel-edit'>Cancel</button></div>`;
+        form.innerHTML = `<textarea class='form-input w-full p-2 border rounded mb-2'>${origText}</textarea><div class='flex gap-2'><button type='submit' class='btn-primary btn-green'>Save</button><button type='button' class='btn-primary btn-red cancel-edit'>Cancel</button></div>`;
         contentDiv.innerHTML = '';
         contentDiv.appendChild(form);
         form.onsubmit = async (ev) => {
@@ -1603,7 +1603,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
   if (isSelfDM) {
     const profile = userProfiles[currentUserId] || {};
     participantNames = profile.displayName || profile.handle || 'You';
-    participantPics = `<img src="${profile.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block" alt="Profile">`;
+    participantPics = `<img src="${profile.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">`;
   } else {
     const otherParticipants = dmData.participants?.filter(p => p !== window.auth.currentUser.uid) || [];
     participantNames = otherParticipants.map(uid => {
@@ -1612,7 +1612,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     }).join(', ');
     participantPics = otherParticipants.map(uid => {
       const profile = userProfiles[uid];
-      return `<img src="${profile?.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block mr-1" alt="Profile">`;
+      return `<img src="${profile?.photoURL || window.DEFAULT_PROFILE_PIC}" class="w-10 h-10 rounded-full object-cover border inline-block mr-1" alt="Profile" onerror="this.src='${window.DEFAULT_PROFILE_PIC}'">`;
     }).join('');
   }
   if (dmTitle) dmTitle.textContent = dmData.type === window.DM_TYPES.GROUP ? dmData.groupName : (isSelfDM ? 'Self DM' : 'Direct Message');
@@ -1635,16 +1635,15 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
     commentForm.id = 'dm-comment-form';
     commentForm.className = 'mt-4 p-3 bg-card rounded';
     commentForm.innerHTML = `
-      <textarea id=\"dm-comment-input\" class=\"w-full p-2 border rounded mb-2\" placeholder=\"Type your message...\" required></textarea>
+      <textarea id=\"dm-comment-input\" class=\"form-input w-full p-2 border rounded mb-2\" placeholder=\"Type your message...\" required></textarea>
       <button type=\"submit\" class=\"btn-primary btn-green\">Send</button>
     `;
     commentForm.onsubmit = async (e) => {
       e.preventDefault();
-      const input = document.getElementById('dm-comment-input');
-      const content = input.value.trim();
+      const content = document.getElementById('dm-comment-input').value.trim();
       if (!content) return;
       await sendDMMessage(dmId, content);
-      input.value = '';
+      document.getElementById('dm-comment-input').value = '';
     };
     conversationMessagesSection.appendChild(commentForm);
   }
@@ -1917,9 +1916,9 @@ function editThema(themaId, oldName, oldDescription, themaBox) {
   editForm.className = 'edit-thema-form flex flex-col gap-2 mb-2';
   editForm.innerHTML = `
     <label class="block text-sm font-semibold mb-1" for="edit-thema-title-${themaId}">Title</label>
-    <input type="text" id="edit-thema-title-${themaId}" class="edit-thema-title input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" value="${oldName}" required />
+    <input type="text" id="edit-thema-title-${themaId}" class="edit-thema-title form-input w-full text-lg font-semibold px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" value="${oldName}" required />
     <label class="block text-sm font-semibold mb-1" for="edit-thema-description-${themaId}">Description</label>
-    <textarea id="edit-thema-description-${themaId}" class="edit-thema-description input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" required>${oldDescription}</textarea>
+    <textarea id="edit-thema-description-${themaId}" class="edit-thema-description form-input w-full min-h-[80px] px-3 py-2 border rounded resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-400" required>${oldDescription}</textarea>
     <div class="flex gap-2 mt-2">
       <button type="submit" class="btn-primary btn-green">Save</button>
       <button type="button" class="btn-primary btn-red cancel-edit">Cancel</button>
@@ -1971,12 +1970,12 @@ if (!startDmModal) {
     <form id="start-dm-form" class="card p-6 flex flex-col gap-3" style="max-width:400px;margin:10vh auto;background:#23272e;">
       <h3 class="text-xl font-bold mb-2">Start New DM</h3>
       <label for="dm-user-input">Select User</label>
-      <input id="dm-user-input" list="dm-user-datalist" class="input p-2 rounded border" placeholder="Type username..." required />
+      <input id="dm-user-input" list="dm-user-datalist" class="form-input p-2 rounded border" placeholder="Type username..." required />
       <datalist id="dm-user-datalist"></datalist>
       <label for="dm-title-input">Title</label>
-      <input id="dm-title-input" class="input p-2 rounded border" placeholder="Conversation title" required />
+      <input id="dm-title-input" class="form-input p-2 rounded border" placeholder="Conversation title" required />
       <label for="dm-message-input">Message</label>
-      <textarea id="dm-message-input" class="input p-2 rounded border" placeholder="Type your message..." required></textarea>
+      <textarea id="dm-message-input" class="form-input p-2 rounded border" placeholder="Type your message..." required></textarea>
       <div class="flex gap-2 mt-2">
         <button type="submit" class="btn-primary btn-green">Send</button>
         <button type="button" id="cancel-dm-btn" class="btn-primary btn-red">Cancel</button>

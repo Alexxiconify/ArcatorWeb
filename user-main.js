@@ -352,6 +352,15 @@ async function handleSaveProfile() {
         if (displayNameText) displayNameText.textContent = updates.displayName || 'N/A';
         if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : '';
 
+        // Refresh navbar profile picture
+        try {
+          const {refreshNavbarProfilePicture} = await import('./navbar.js');
+          refreshNavbarProfilePicture();
+          console.log("DEBUG: Navbar profile picture refreshed.");
+        } catch (error) {
+          console.warn("DEBUG: Could not refresh navbar profile picture:", error);
+        }
+
         showMessageBox('Profile updated successfully!', false);
       } else {
         showMessageBox('No profile changes detected.', false);
