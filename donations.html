@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support Us - Arcator.co.uk</title>
+  <title>Discord - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
@@ -131,34 +131,66 @@
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Adjusted margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Support Arcator.co.uk</h1>
-    <p class="text-xl md:text-2xl mb-8">Your contributions help us keep the servers running!</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Join Our Discord Community</h1>
+    <p class="text-xl md:text-2xl mb-8">Connect with fellow players and stay updated!</p>
   </div>
 </section>
 
-<!-- Main Content Section: Donations -->
-<section id="donations" class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8">
+<!-- Main Content Section: Discord -->
+<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8" id="discord">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">How You Can Help</h2>
+    <h2 class="text-4xl font-bold text-red-400 text-center mb-10">Why Join Our Discord?</h2>
     <div class="max-w-3xl mx-auto text-lg leading-relaxed text-gray-300 space-y-6 text-center">
-      <p>Running and maintaining a dedicated Minecraft server network requires significant resources, including server hosting, domain names, and development tools. Your generous donations help us cover these costs and allow us to continually improve the Arcator experience for everyone.</p>
-      <p>We deeply appreciate any support you can offer. Every contribution, no matter how small, makes a big difference in keeping our community thriving.</p>
+      <p>Our Discord server is the heart of the Arcator community. It's where players connect, share experiences, get
+        help, and stay informed about everything happening on our servers.</p>
+      <p>Whether you're looking for building inspiration, want to join group activities, or just chat with fellow
+        Minecraft enthusiasts, our Discord has something for everyone.</p>
     </div>
 
     <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
       <table class="min-w-full">
         <thead>
         <tr>
-          <th class="py-3 px-6 text-xl">Donation Method</th>
-          <th class="py-3 px-6 text-xl">Details</th>
+          <th class="py-3 px-6 text-xl">Discord Features</th>
+          <th class="py-3 px-6 text-xl">What You'll Find</th>
         </tr>
         </thead>
         <tbody>
         <tr>
-          <td class="py-4 px-6 font-semibold text-white">Discord</td>
+          <td class="py-4 px-6 font-semibold text-white">Community Chat</td>
           <td class="py-4 px-6">
-            <p>Join our Discord server to learn about other ways to support us, including in-game rewards or specific contribution drives.</p>
-            <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Join Our Discord to Donate</a>
+            <p>Engage in lively discussions about Minecraft, share your builds, ask questions, and connect with players
+              from around the world.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Server Status</td>
+          <td class="py-4 px-6">
+            <p>Get real-time updates about server status, maintenance, and any issues. Never wonder if the servers are
+              down again!</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Voice Channels</td>
+          <td class="py-4 px-6">
+            <p>Join voice channels to chat while playing, coordinate group activities, or just hang out with fellow
+              community members.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Events & Announcements</td>
+          <td class="py-4 px-6">
+            <p>Stay informed about upcoming events, competitions, server updates, and community announcements.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="py-4 px-6 font-semibold text-white">Help & Support</td>
+          <td class="py-4 px-6">
+            <p>Get help from staff and experienced players, report issues, and find answers to your questions
+              quickly.</p>
+            <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full mt-6 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://discord.gg/GwArgw2" rel="noopener noreferrer"
+               target="_blank">Join
+              Our Discord</a>
           </td>
         </tr>
         </tbody>
@@ -208,7 +240,7 @@
     await loadNavbar(auth.currentUser, null, 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV', 'dark');
 
     // Load footer
-    loadFooter('current-year-donations');
+    loadFooter('current-year-discord');
 
     if (auth) {
       auth.onAuthStateChanged(async (user) => {

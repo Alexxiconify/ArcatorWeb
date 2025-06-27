@@ -170,14 +170,11 @@ const navbarTemplate = `
       <a class="navbar-link" href="games.html">
         <span>Games</span>
       </a>
-      <a class="navbar-link" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer" target="_blank">
-        <span>Wiki</span>
-      </a>
       <a class="navbar-link" href="forms.html">
         <span>Forms</span>
       </a>
       <a class="navbar-link" href="donations.html">
-        <span>Support</span>
+        <span>Discord</span>
       </a>
 
       <!-- User profile section -->
