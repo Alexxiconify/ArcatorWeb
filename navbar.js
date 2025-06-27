@@ -1,61 +1,102 @@
-// navbar.js - Self-contained navbar component with embedded CSS and HTML
+// navbar.js - Modern, self-contained navbar component with embedded CSS and HTML
 // Combines navbar.css, navbar.html, and navbar.js into a single file
 
 import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
 import { applyTheme, getAvailableThemes } from './themes.js';
 import {validatePhotoURL} from './utils.js';
 
-// Embedded CSS styles
+// Modern embedded CSS styles with glassmorphism and contemporary design
 const navbarStyles = `
-/* navbar.css - Clean, modern navbar styling */
+/* Modern navbar styling with glassmorphism and contemporary design */
 .navbar-bg {
-  background-color: var(--color-bg-navbar, #111827);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: rgba(var(--color-bg-navbar-rgb, 17, 24, 39), 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-bg.scrolled {
+  background: rgba(var(--color-bg-navbar-rgb, 17, 24, 39), 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 48px;
-  padding: 0 1rem;
-  max-width: 1200px;
+  height: 64px;
+  padding: 0 1.5rem;
+  max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-logo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.navbar-logo:hover::before {
+  left: 100%;
 }
 
 .navbar-logo:hover {
   color: var(--color-link, #60A5FA);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
 }
 
 .navbar-logo svg {
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
   color: var(--color-link, #60A5FA);
+  transition: all 0.3s ease;
+}
+
+.navbar-logo:hover svg {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.25rem;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .navbar-links::-webkit-scrollbar {
@@ -65,44 +106,102 @@ const navbarStyles = `
 .navbar-link {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.navbar-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-link, #60A5FA), var(--color-button-purple-bg, #9333EA));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 0.75rem;
+  z-index: -1;
+}
+
+.navbar-link:hover::before {
+  opacity: 0.1;
 }
 
 .navbar-link:hover {
   color: var(--color-link, #60A5FA);
-  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.2);
 }
 
 .navbar-link svg {
   height: 1.25rem;
   width: 1.25rem;
-  margin-right: 0.25rem;
+  margin-right: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.navbar-link:hover svg {
+  transform: scale(1.1);
 }
 
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .profile-pic-small {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid transparent;
-  transition: border-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-pic-small:hover {
   border-color: var(--color-link, #60A5FA);
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+}
+
+.navbar-user .navbar-link {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--color-button-blue-bg, #3B82F6), var(--color-button-indigo-bg, #6366F1));
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.navbar-user .navbar-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, var(--color-button-blue-hover, #2563EB), var(--color-button-indigo-hover, #4F46E5));
+}
+
+.navbar-user .navbar-link svg {
+  margin-right: 0.5rem;
+  color: white;
 }
 
 .hidden {
@@ -117,85 +216,252 @@ const navbarStyles = `
   align-items: center;
 }
 
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
+}
+
+.mobile-menu-btn span {
+  width: 100%;
+  height: 3px;
+  background: var(--color-text-primary, #E5E7EB);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.mobile-menu-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile responsive design */
+@media (max-width: 1024px) {
+  .navbar-container {
+    padding: 0 1rem;
+  }
+
+  .navbar-links {
+    gap: 0.125rem;
+  }
+
+  .navbar-link {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 0.75rem;
+  }
+
+  .navbar-links {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(var(--color-bg-navbar-rgb, 17, 24, 39), 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .navbar-links.mobile-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .navbar-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .navbar-link span {
+    display: inline;
+  }
+
+  .navbar-link svg {
+    margin-right: 0.75rem;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .navbar-user {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
   .navbar-container {
     padding: 0 0.5rem;
   }
 
-  .navbar-links {
-    gap: 0.5rem;
+  .navbar-logo {
+    font-size: 1.125rem;
   }
 
-  .navbar-link {
-    padding: 0.375rem 0.5rem;
-    font-size: 0.75rem;
+  .navbar-logo svg {
+    height: 1.25rem;
+    width: 1.25rem;
   }
 
-  .navbar-link span {
-    display: none;
-  }
-
-  .navbar-link svg {
-    margin-right: 0;
+  .profile-pic-small {
+    width: 36px;
+    height: 36px;
   }
 }
+
+/* Animation keyframes */
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.navbar-bg {
+  animation: slideInFromTop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-link {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.navbar-link:nth-child(1) { animation-delay: 0.1s; }
+.navbar-link:nth-child(2) { animation-delay: 0.2s; }
+.navbar-link:nth-child(3) { animation-delay: 0.3s; }
+.navbar-link:nth-child(4) { animation-delay: 0.4s; }
+.navbar-link:nth-child(5) { animation-delay: 0.5s; }
+.navbar-link:nth-child(6) { animation-delay: 0.6s; }
+.navbar-link:nth-child(7) { animation-delay: 0.7s; }
 `;
 
-// Embedded HTML template
+// Modern embedded HTML template with contemporary icons
 const navbarTemplate = `
 <nav class="navbar-bg">
   <div class="navbar-container">
-    <!-- Logo and site title -->
     <a class="navbar-logo" href="index.html">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1v-3m0 0l-1-1h-4l-1 1m0 0h-4a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H9.75z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3m0 0l-1-1h-4l-1 1m0 0h-4a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H9.75z"></path>
       </svg>
       <span>Arcator</span>
     </a>
 
-    <!-- Navigation links -->
-    <div class="navbar-links">
+    <div class="navbar-links" id="navbar-links">
       <a class="navbar-link" href="about.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
         <span>About</span>
       </a>
       <a class="navbar-link" href="servers.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+        </svg>
         <span>Servers</span>
       </a>
       <a class="navbar-link" href="community.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
         <span>Community</span>
       </a>
       <a class="navbar-link" href="interests.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
         <span>Interests</span>
       </a>
       <a class="navbar-link" href="games.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
         <span>Games</span>
       </a>
       <a class="navbar-link" href="forms.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
         <span>Forms</span>
       </a>
       <a class="navbar-link" href="donations.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+        </svg>
         <span>Discord</span>
       </a>
-
-      <!-- User profile section -->
-      <div class="navbar-user">
-        <!-- User settings link (hidden by default, shown when logged in) -->
-        <a class="navbar-link hidden" href="users.html" id="navbar-user-settings-link">
-          <img alt="Profile" class="profile-pic-small"
-               id="navbar-user-profile-pic" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV">
-          <span id="navbar-user-display-name">User</span>
-        </a>
-
-        <!-- Sign in link (visible by default, hidden when logged in) -->
-        <a class="navbar-link" href="users.html" id="navbar-signin-link">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="2"></path>
-          </svg>
-          <span>Sign In</span>
-        </a>
-      </div>
     </div>
+
+    <!-- User profile section -->
+    <div class="navbar-user">
+      <!-- User settings link (hidden by default, shown when logged in) -->
+      <a class="navbar-link hidden" href="users.html" id="navbar-user-settings-link">
+        <img alt="Profile" class="profile-pic-small"
+             id="navbar-user-profile-pic" src="https://placehold.co/32x32/1F2937/E5E7EB?text=AV">
+        <span id="navbar-user-display-name">User</span>
+      </a>
+
+      <!-- Sign in link (visible by default, hidden when logged in) -->
+      <a class="navbar-link" href="users.html" id="navbar-signin-link">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2"></path>
+        </svg>
+        <span>Sign In</span>
+      </a>
+    </div>
+
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle mobile menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </div>
 </nav>
 `;
@@ -210,6 +476,69 @@ function injectNavbarStyles() {
     styleElement.textContent = navbarStyles;
     document.head.appendChild(styleElement);
   }
+}
+
+/**
+ * Handles scroll effects for the navbar
+ */
+function setupScrollEffects() {
+  const navbar = document.querySelector('.navbar-bg');
+  if (!navbar) return;
+
+  let lastScrollTop = 0;
+
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    // Add scrolled class for background opacity
+    if (scrollTop > 10) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+
+    lastScrollTop = scrollTop;
+  });
+}
+
+/**
+ * Sets up mobile menu functionality
+ */
+function setupMobileMenu() {
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const navbarLinks = document.getElementById('navbar-links');
+
+  if (!mobileMenuBtn || !navbarLinks) return;
+
+  mobileMenuBtn.addEventListener('click', () => {
+    mobileMenuBtn.classList.toggle('active');
+    navbarLinks.classList.toggle('mobile-open');
+
+    // Prevent body scroll when menu is open
+    if (navbarLinks.classList.contains('mobile-open')) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close mobile menu when clicking on a link
+  navbarLinks.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') {
+      mobileMenuBtn.classList.remove('active');
+      navbarLinks.classList.remove('mobile-open');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!mobileMenuBtn.contains(e.target) && !navbarLinks.contains(e.target)) {
+      mobileMenuBtn.classList.remove('active');
+      navbarLinks.classList.remove('mobile-open');
+      document.body.style.overflow = '';
+    }
+  });
 }
 
 /**
@@ -356,10 +685,16 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
     // Insert navbar HTML
     navbarPlaceholder.innerHTML = navbarTemplate;
 
+    // Setup mobile menu functionality
+    setupMobileMenu();
+
+    // Setup scroll effects
+    setupScrollEffects();
+
     // Update navbar state based on authentication
     await updateNavbarState(authUser, userProfile, defaultProfilePic);
 
-    console.log('Navbar loaded successfully');
+    console.log('Modern navbar loaded successfully');
 
   } catch (error) {
     console.error('Failed to load navbar:', error);
