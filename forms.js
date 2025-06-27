@@ -597,8 +597,7 @@ function loadThreadsForThema(themaId) {
         const userQuery = query(usersRef, where('uid', 'in', Array.from(threadUids)));
         await getDocs(userQuery).then(userSnapshot => {
           userSnapshot.forEach(userDoc => {
-            const userData = userDoc.data();
-            userProfiles[userDoc.id] = userData;
+            userProfiles[userDoc.id] = userDoc.data();
           });
         }).catch(error => console.error("Error fetching user profiles for threads:", error));
       }
@@ -684,30 +683,47 @@ function loadThreadsForThema(themaId) {
         }
         threadDiv.setAttribute('data-thread-id', threadDoc.id);
       });
-      cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
-      document.querySelectorAll('.delete-thread-btn').forEach(button => {
-        button.addEventListener('click', async (event) => {
-          const threadId = event.target.dataset.threadId;
-          const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
-          if (confirmed) {
-            await deleteThreadAndSubcollection(currentThemaId, threadId);
-          } else {
-            showMessageBox("Thread deletion cancelled.", false);
-          }
-        });
-      });
     });
   } catch (e) {
     console.error('[DEBUG] Error in loadThreadsForThema:', e);
   }
 }
 
+let unsubscribeThemaComments = null;
+
 function loadCommentsForThread(themaId, threadId) {
+  if (unsubscribeThemaComments) unsubscribeThemaComments();
   const commentsDiv = document.getElementById(`thread-comments-${threadId}`);
   if (!window.db || !commentsDiv) return;
   const commentsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
   const q = query(commentsCol, orderBy('createdAt', 'asc'));
-  onSnapshot(q, async (snapshot) => {
+  unsubscribeThemaComments = onSnapshot(q, async (snapshot) => {
+    // Check if we need to re-render or just update reactions
+    const existingComments = commentsDiv.querySelectorAll('.comment-item');
+    const newComments = Array.from(snapshot.docs);
+    
+    // If same number of comments and all IDs match, only update reactions
+    if (existingComments.length === newComments.length && 
+        existingComments.length > 0 &&
+        Array.from(existingComments).every((comment, index) => 
+          comment.getAttribute('data-comment-id') === newComments[index].id
+        )) {
+      // Only update reactions, don't re-render comments
+      newComments.forEach(commentDoc => {
+        const comment = commentDoc.data();
+        const existingComment = commentsDiv.querySelector(`[data-comment-id="${commentDoc.id}"]`);
+        if (existingComment) {
+          // Update only the reactions bar
+          const reactionsBar = existingComment.querySelector('.reactions-bar');
+          if (reactionsBar) {
+            reactionsBar.innerHTML = renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId);
+          }
+        }
+      });
+      return;
+    }
+    
+    // Full re-render only if comments changed (added/removed/edited)
     commentsDiv.innerHTML = '';
     if (snapshot.empty) {
       commentsDiv.innerHTML = '<div class="text-xs text-gray-400">No comments yet.</div>';
@@ -1527,6 +1543,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('[DEBUG] DOMContentLoaded fired.');
     initializeUtilityElements();
     initializeDMElements(); // Initialize DM elements
+    setupReactionEventListeners(); // Setup reaction event delegation
     showMainLoading();
     // Attach create-thema-form handler
     const createThemaForm = document.getElementById('create-thema-form');
@@ -1552,9 +1569,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (window.firebaseReadyPromise) {
       window.firebaseReadyPromise.then(() => {
         updateUIBasedOnAuthAndData();
+        checkLoginStatusAfterDelay(); // Add 10-second login check
       });
     } else {
       updateUIBasedOnAuthAndData();
+      checkLoginStatusAfterDelay(); // Add 10-second login check
     }
   } catch (e) {
     console.error('[DEBUG] Error in DOMContentLoaded:', e);
@@ -1618,17 +1637,40 @@ function renderReactions(reactions = {}, itemType, itemId, parentId = null, them
     else if (Array.isArray(data.users)) count = data.users.length;
     const reacted = Array.isArray(data.users) && userId && data.users.includes(userId);
     
-    // Pass the correct context to handleReaction
     const threadId = itemType === 'comment' ? parentId : null;
     const currentThemaId = themaId || window.currentThemaId || 'global';
     
-    html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" type="button" onclick="handleReactionWithContext('${itemType}','${itemId}','${emoji}','${currentThemaId}','${threadId || ''}')">${emoji} <span class='reaction-count'>${count}</span></button>`;
+    // NO onclick - only data attributes for event delegation
+    html += `<button class="reaction-btn${reacted ? ' reacted' : ''}" data-item-type="${itemType}" data-item-id="${itemId}" data-emoji="${emoji}" data-thema-id="${currentThemaId}" data-thread-id="${threadId || ''}">${emoji} <span class='reaction-count'>${count}</span></button>`;
   });
   return html;
 }
 
-// Add a new function to handle reactions with context
-async function handleReactionWithContext(itemType, itemId, emoji, themaId, threadId) {
+// Remove any existing event listeners and add fresh one
+function setupReactionEventListeners() {
+  // Remove any existing listeners
+  document.removeEventListener('click', handleReactionClick);
+  
+  // Add fresh event delegation
+  document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('reaction-btn')) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const btn = e.target;
+      const itemType = btn.dataset.itemType;
+      const itemId = btn.dataset.itemId;
+      const emoji = btn.dataset.emoji;
+      const themaId = btn.dataset.themaId;
+      const threadId = btn.dataset.threadId;
+      
+      await handleReactionClick(btn, itemType, itemId, emoji, themaId, threadId);
+    }
+  });
+}
+
+// New efficient reaction handler
+async function handleReactionClick(btn, itemType, itemId, emoji, themaId, threadId) {
   if (!window.auth.currentUser || !window.db) {
     showMessageBox("You must be logged in to react.", true);
     return;
@@ -1638,14 +1680,23 @@ async function handleReactionWithContext(itemType, itemId, emoji, themaId, threa
     const userId = window.auth.currentUser.uid;
     let itemRef;
 
+    // Determine correct Firestore path
     if (itemType === 'thread') {
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, itemId);
+      if (themaId === 'global') {
+        itemRef = doc(window.db, `artifacts/${window.appId}/public/data/threads`, itemId);
+      } else {
+        itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`, itemId);
+      }
     } else if (itemType === 'comment') {
       if (!threadId) {
         console.error("No thread ID provided for comment reaction");
         return;
       }
-      itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, itemId);
+      if (themaId === 'global') {
+        itemRef = doc(window.db, `artifacts/${window.appId}/public/data/threads/${threadId}/comments`, itemId);
+      } else {
+        itemRef = doc(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, itemId);
+      }
     } else {
       console.error("Invalid item type for reaction:", itemType);
       return;
@@ -1653,7 +1704,8 @@ async function handleReactionWithContext(itemType, itemId, emoji, themaId, threa
 
     const itemDoc = await getDoc(itemRef);
     if (!itemDoc.exists()) {
-      console.error("Item not found for reaction:", itemType, itemId);
+      showMessageBox("This post was deleted or is unavailable.", true);
+      btn.disabled = true;
       return;
     }
 
@@ -1678,17 +1730,34 @@ async function handleReactionWithContext(itemType, itemId, emoji, themaId, threa
       reactions[emoji] = emojiReactions;
     }
 
+    // Update Firestore
     await updateDoc(itemRef, { reactions: reactions, lastActivity: serverTimestamp() });
-    console.log(`Reaction ${emoji} ${userIndex > -1 ? 'removed from' : 'added to'} ${itemType}`);
+    
+    // Update only this button's UI
+    const countSpan = btn.querySelector('.reaction-count');
+    if (countSpan) {
+      countSpan.textContent = emojiReactions.count;
+    }
+    
+    if (userIndex > -1) {
+      // User removed reaction
+      btn.classList.remove('reacted');
+    } else {
+      // User added reaction
+      btn.classList.add('reacted');
+    }
+    
   } catch (error) {
     console.error("Error handling reaction:", error);
     showMessageBox("Error updating reaction.", true);
   }
 }
 
-window.handleReactionWithContext = handleReactionWithContext;
-window.showReactionPalette = showReactionPalette;
-window.handleReaction = handleReaction; // Keep for backward compatibility
+// Remove the old handleReactionWithContext function and replace with a simple wrapper
+async function handleReactionWithContext(itemType, itemId, emoji, themaId, threadId) {
+  // This is now handled by the event delegation above
+  console.warn("handleReactionWithContext is deprecated. Use event delegation instead.");
+}
 
 // Replace openEditModal with inline edit logic
 function openEditModal(type, ids, content, description = '', title = '') {
@@ -1884,4 +1953,20 @@ async function deleteThreadAndSubcollection(themaId, threadId) {
     console.error('[DEBUG] Error deleting thread/comments:', e);
     showMessageBox('Error deleting thread: ' + e.message, true);
   }
+}
+
+// Global exports for backward compatibility
+window.handleReactionWithContext = handleReactionClick; // Direct reference to new function
+window.showReactionPalette = showReactionPalette;
+window.handleReaction = handleReactionClick; // Keep for backward compatibility
+
+// Add login status check after 10 seconds
+function checkLoginStatusAfterDelay() {
+  setTimeout(() => {
+    console.log('[DEBUG] 10-second login check. Auth state:', !!window.auth.currentUser, 'Current user:', window.currentUser);
+    if (window.auth.currentUser && !window.currentUser) {
+      console.log('[DEBUG] User logged in but profile not loaded, forcing UI update');
+      updateUIBasedOnAuthAndData();
+    }
+  }, 10000);
 }
