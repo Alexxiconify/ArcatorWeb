@@ -49,3 +49,11 @@ export function triggerEmojiRerender() {
     document.dispatchEvent(event);
   }
 }
+
+// Twemoji render helper
+export function triggerTwemojiRender() {
+  if (window.twemoji) {
+    window.twemoji.parse(document.body, {folder: 'svg', ext: '.svg'});
+  }
+}
+// Call after emoji/text updates
