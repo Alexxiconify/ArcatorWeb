@@ -1760,6 +1760,12 @@ function handleKeyboardShortcut(event) {
   if (isRecordingShortcut) return;
   const pressedKeys = getPressedKeys(event);
   const shortcutName = shortcutKeyToName[pressedKeys];
+  // Toggle help modal on F1
+  if (pressedKeys === 'F1') {
+    event.preventDefault();
+    showHelpModal();
+    return;
+  }
   if (shortcutName) {
     event.preventDefault();
     executeShortcut(shortcutName);
@@ -1927,9 +1933,18 @@ function showSearchModal() {
   });
 }
 
-// Helper function to show help modal
+// Helper function to show help modal (toggle)
+let helpModalInstance = null;
 function showHelpModal() {
+  // If modal is already open, close it and return
+  if (helpModalInstance) {
+    helpModalInstance.remove();
+    helpModalInstance = null;
+    return;
+  }
   const modal = document.createElement('div');
+  helpModalInstance = modal;
+  modal.tabIndex = -1;
   modal.style.cssText = `
     position: fixed;
     top: 0;
@@ -1942,9 +1957,9 @@ function showHelpModal() {
     justify-content: center;
     z-index: 10000;
   `;
-
   modal.innerHTML = `
-    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+    <div style="background: var(--color-bg-card); padding: 2rem; border-radius: 0.5rem; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative;">
+      <button id="close-help-modal-btn" style="position: absolute; top: 1rem; right: 1rem; background: var(--color-button-blue-bg); color: white; padding: 0.25rem 0.75rem; border: none; border-radius: 0.25rem; cursor: pointer;">Close</button>
       <h3 style="margin-bottom: 1rem; color: var(--color-text-primary);">Keyboard Shortcuts Help</h3>
       <div style="color: var(--color-text-secondary); line-height: 1.6;">
         <p><strong>Navigation:</strong></p>
@@ -1975,16 +1990,27 @@ function showHelpModal() {
         </ul>
         <p><strong>Note:</strong> You can customize these shortcuts in the Advanced Settings section.</p>
       </div>
-      <button onclick="this.closest('div[style*=\'fixed\']').remove()" style="background: var(--color-button-blue-bg); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; margin-top: 1rem;">Close</button>
     </div>
   `;
-
   document.body.appendChild(modal);
-
-  // Close on escape
+  // Focus for accessibility
+  modal.focus();
+  // Close on close button
+  modal.querySelector('#close-help-modal-btn').onclick = () => {
+    modal.remove();
+    helpModalInstance = null;
+  };
+  // Close on Escape
   modal.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' || e.key === 'F1') {
       modal.remove();
+      helpModalInstance = null;
+    }
+  });
+  // Trap focus inside modal
+  modal.addEventListener('focusout', (e) => {
+    if (!modal.contains(e.relatedTarget)) {
+      setTimeout(() => modal.focus(), 0);
     }
   });
 }
