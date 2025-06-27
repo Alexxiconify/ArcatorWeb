@@ -1160,35 +1160,3 @@ window.onload = async function() {
     // which is invoked once the appropriate UI section is determined.
   }
 };
-
-document.addEventListener('DOMContentLoaded', function () {
-  const signinForm = document.getElementById('signin-form');
-  if (signinForm) {
-    signinForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const email = document.getElementById('signin-email').value.trim();
-      const password = document.getElementById('signin-password').value;
-      if (!email || !password) {
-        showMessageBox('Email and password required', true);
-        return;
-      }
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessageBox('Signed in successfully', false);
-        document.getElementById('signin-section').style.display = 'none';
-        document.getElementById('settings-content').style.display = '';
-      } catch (err) {
-        showMessageBox(err.message || 'Login failed', true);
-      }
-    });
-  }
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById('signin-section').style.display = 'none';
-      document.getElementById('settings-content').style.display = '';
-    } else {
-      document.getElementById('signin-section').style.display = '';
-      document.getElementById('settings-content').style.display = 'none';
-    }
-  });
-});
