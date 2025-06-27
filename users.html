@@ -354,6 +354,10 @@
       .settings-card.equal-size {
         min-height: auto;
       }
+
+      .input-field input, .input-field select, .auth-input-field input {
+        width: 100%;
+      }
     }
 
     @media (max-width: 480px) {
@@ -449,7 +453,10 @@
       padding: 0.5rem 0.75rem;
       font-size: 1rem;
       transition: all 0.3s ease;
-      width: 100%;
+      min-height: 2.25rem;
+      height: 2.25rem;
+      width: 50%;
+      max-width: 100%;
       box-sizing: border-box;
     }
 
@@ -955,8 +962,7 @@
           <div class="mt-4 flex-1">
             <div class="input-field">
               <label for="theme-select">Select Theme:</label>
-              <select id="theme-select"
-                      style="min-width:180px;max-width:100%;width:auto;display:inline-block;"></select>
+              <select id="theme-select"></select>
             </div>
             <div class="input-field">
               <label for="font-size-select">Base Font Size:</label>
