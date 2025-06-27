@@ -20,7 +20,9 @@ const navbarStyles = `
   right: 0;
   z-index: 1000;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+  font-size: clamp(0.75rem, 1vw, 0.95rem);
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .navbar-bg.scrolled {
@@ -32,23 +34,24 @@ const navbarStyles = `
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 64px;
-  padding: 0 1.5rem;
+  height: 48px;
+  padding: 0 0.5rem;
   max-width: 1400px;
   margin: 0 auto;
   position: relative;
+  min-height: 48px;
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: clamp(0.5rem, 1vw, 0.75rem);
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  gap: clamp(0.25rem, 0.5vw, 0.5rem);
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
   font-weight: 800;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0.5rem;
+  padding: 0.25rem 0.25rem;
   border-radius: 0.75rem;
   position: relative;
   overflow: hidden;
@@ -76,8 +79,8 @@ const navbarStyles = `
 }
 
 .navbar-logo svg {
-  height: clamp(1.25rem, 3vw, 2rem);
-  width: clamp(1.25rem, 3vw, 2rem);
+  height: clamp(1rem, 2vw, 1.5rem);
+  width: clamp(1rem, 2vw, 1.5rem);
   min-width: 1.25rem;
   min-height: 1.25rem;
   color: var(--color-link, #60A5FA);
@@ -91,7 +94,7 @@ const navbarStyles = `
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.05rem;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -100,7 +103,7 @@ const navbarStyles = `
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   max-width: 100vw;
 }
 
@@ -111,8 +114,8 @@ const navbarStyles = `
 .navbar-link {
   display: flex;
   align-items: center;
-  padding: clamp(0.5rem, 1vw, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
-  font-size: clamp(0.75rem, 1.2vw, 1rem);
+  padding: 0.25rem 0.5rem;
+  font-size: clamp(0.7rem, 0.9vw, 0.95rem);
   font-weight: 600;
   color: var(--color-text-primary, #E5E7EB);
   text-decoration: none;
@@ -123,6 +126,7 @@ const navbarStyles = `
   overflow: hidden;
   background: transparent;
   border: 1px solid transparent;
+  margin: 0 0.05rem;
   min-width: 0;
   max-width: 100vw;
 }
@@ -153,11 +157,11 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  height: clamp(1rem, 2vw, 1.75rem);
-  width: clamp(1rem, 2vw, 1.75rem);
+  height: clamp(0.9rem, 1.5vw, 1.2rem);
+  width: clamp(0.9rem, 1.5vw, 1.2rem);
   min-width: 1rem;
   min-height: 1rem;
-  margin-right: clamp(0.25rem, 0.8vw, 0.5rem);
+  margin-right: clamp(0.15rem, 0.4vw, 0.3rem);
   transition: all 0.3s ease;
 }
 
@@ -168,7 +172,7 @@ const navbarStyles = `
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: clamp(0.25rem, 0.8vw, 0.5rem);
+  gap: 0.25rem;
   padding: 0.375rem;
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.05);
@@ -178,8 +182,8 @@ const navbarStyles = `
 }
 
 .profile-pic-small {
-  width: clamp(24px, 4vw, 32px);
-  height: clamp(24px, 4vw, 32px);
+  width: clamp(20px, 3vw, 28px);
+  height: clamp(20px, 3vw, 28px);
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid transparent;
@@ -360,36 +364,45 @@ const navbarStyles = `
     flex-direction: column;
     align-items: stretch;
     height: auto;
-    padding: 0.25rem 0.5rem;
+    padding: 0.1rem 0.2rem;
   }
   .navbar-links {
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
-    gap: 0.1rem;
-    padding: 0.25rem 0;
+    gap: 0.05rem;
+    padding: 0.1rem 0;
   }
   .navbar-link {
-    font-size: clamp(0.7rem, 1vw, 0.9rem);
-    padding: 0.5rem 0.5rem;
+    font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+    padding: 0.25rem 0.25rem;
     min-width: 0;
     max-width: 90vw;
   }
   .navbar-logo {
-    font-size: 1rem;
-    gap: 0.5rem;
+    font-size: 0.9rem;
+    gap: 0.25rem;
   }
   .navbar-logo svg {
-    height: 1.25rem;
-    width: 1.25rem;
+    height: 1rem;
+    width: 1rem;
   }
   .profile-pic-small {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 }
 
 @media (max-width: 400px) {
+  .navbar-link span {
+    display: none;
+  }
+  .navbar-link svg {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 900px) {
   .navbar-link span {
     display: none;
   }
