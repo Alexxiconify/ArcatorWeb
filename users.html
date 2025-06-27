@@ -149,20 +149,39 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
-    <!-- Sign In Section -->
-    <div id="signin-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-blue-400 text-center mb-6">Sign In</h2>
+    <!-- Sign In Section (Modernized) -->
+    <div class="auth-card glass-card shadow-2xl" id="signin-section" style="display: none;">
+      <h2 class="text-3xl font-extrabold text-blue-400 text-center mb-6 flex items-center justify-center gap-2">
+        <span class="material-icons">login</span> Sign In
+      </h2>
       <form id="signin-form">
         <div class="auth-input-field">
           <label for="signin-email">Email Address</label>
           <input type="email" id="signin-email" placeholder="email@example.com">
         </div>
-        <div class="auth-input-field">
+        <div class="auth-input-field relative">
           <label for="signin-password">Password</label>
-          <input type="password" id="signin-password" placeholder="********">
+          <input class="pr-10" id="signin-password" placeholder="********" type="password">
+          <button class="absolute right-2 top-8 text-gray-400 focus:outline-none" id="toggle-signin-password"
+                  type="button">
+            <span class="material-icons">visibility</span>
+          </button>
         </div>
-        <div class="mb-6">
-          <button type="button" id="signin-btn" class="auth-btn-primary">Sign In</button>
+        <div class="flex items-center justify-between my-4">
+          <hr class="flex-1 border-gray-600">
+          <span class="mx-2 text-gray-400 text-xs">or</span>
+          <hr class="flex-1 border-gray-600">
+        </div>
+        <div class="flex flex-col gap-2 mb-6">
+          <button class="auth-btn-primary bg-blue-500 hover:bg-blue-600 flex items-center justify-center gap-2"
+                  type="button">
+            <span class="material-icons">mail</span> Sign in with Email
+          </button>
+          <button class="auth-btn-primary bg-gray-800 hover:bg-gray-700 flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
+                  disabled
+                  type="button">
+            <span class="material-icons">account_circle</span> Social Sign-In (Coming Soon)
+          </button>
         </div>
         <div class="flex flex-col items-center justify-center space-y-2 text-center mt-4">
           <a href="#" id="go-to-signup-link" class="auth-link">Don't have an account? Sign Up</a>
@@ -171,204 +190,180 @@
       </form>
     </div>
 
-    <!-- Sign Up Section -->
-    <div id="signup-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-green-400 text-center mb-6">Sign Up</h2>
-      <form id="signup-form">
-        <div class="auth-input-field">
-          <label for="signup-display-name">Display Name</label>
-          <input type="text" id="signup-display-name" placeholder="Your Display Name">
-        </div>
-        <div class="auth-input-field">
-          <label for="signup-handle">Unique Handle (@)</label>
-          <input type="text" id="signup-handle" placeholder="e.g., @gamer_tag">
-          <p class="text-xs text-gray-400 mt-1">Only alphanumeric, dots, and underscores allowed.</p>
-        </div>
-        <div class="auth-input-field">
-          <label for="signup-email">Email Address</label>
-          <input type="email" id="signup-email" placeholder="email@example.com">
-        </div>
-        <div class="auth-input-field">
-          <label for="signup-password">Password</label>
-          <input type="password" id="signup-password" placeholder="********">
-        </div>
-        <div class="auth-input-field">
-          <label for="signup-confirm-password">Confirm Password</label>
-          <input type="password" id="signup-confirm-password" placeholder="********">
-        </div>
-        <div class="mb-6">
-          <button type="button" id="signup-btn" class="auth-btn-primary bg-green-600 hover:bg-green-700">Sign Up</button>
-        </div>
-        <div class="text-center">
-          <a href="#" id="go-to-signin-link" class="auth-link">Already have an account? Sign In</a>
-        </div>
-      </form>
+    <!-- Profile Summary Card (Account Management) -->
+    <div class="settings-card bg-gray-800 glass-card shadow-2xl flex flex-col items-center py-8 mb-8"
+         id="profile-summary"
+         style="display: none;">
+      <img alt="Profile Picture"
+           class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large border-4 border-blue-400"
+           id="profile-picture-display" onerror="this.onerror=null; this.src=DEFAULT_PROFILE_PIC;"
+           src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV">
+      <h3 class="text-2xl font-bold text-blue-200 mb-1 flex items-center gap-2" id="display-name-text">
+        <span class="material-icons">person</span> Loading...
+      </h3>
+      <p class="text-blue-400 text-lg mb-1" id="handle-text">@loading</p>
+      <p class="text-gray-400 text-sm mb-2" id="email-text">Loading...</p>
+      <div class="flex gap-4 mt-2">
+        <button class="btn-primary btn-blue flex items-center gap-1" id="edit-profile-btn"><span class="material-icons">edit</span>
+          Edit
+        </button>
+        <button class="btn-primary btn-red flex items-center gap-1" id="signout-btn"><span
+          class="material-icons">logout</span> Sign Out
+        </button>
+      </div>
     </div>
 
-    <!-- Forgot Password Section -->
-    <div id="forgot-password-section" class="auth-card" style="display: none;">
-      <h2 class="text-3xl font-bold text-orange-400 text-center mb-6">Reset Password</h2>
-      <form id="forgot-password-form">
-        <div class="auth-input-field">
-          <label for="forgot-password-email">Email Address</label>
-          <input type="email" id="forgot-password-email" placeholder="email@example.com">
-        </div>
-        <div class="mb-6">
-          <button type="button" id="reset-password-btn" class="auth-btn-primary bg-orange-600 hover:bg-orange-700">Send Reset Email</button>
-        </div>
-        <div class="text-center">
-          <a href="#" id="go-to-signin-from-forgot-link" class="auth-link">Back to Sign In</a>
-        </div>
-      </form>
-    </div>
-
-    <!-- Settings Content Section -->
+    <!-- Collapsible Settings Sections (Account Management) -->
     <div id="settings-content" style="display: none;">
-      <h2 class="text-4xl font-bold text-blue-400 text-center mb-10">Manage Your Profile & Preferences</h2>
-
-      <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
-        <!-- Profile Picture and Display Name Card -->
-        <div class="settings-card bg-gray-700 shadow-xl">
-          <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Profile Information</h3>
-          <div class="flex flex-col items-center mb-6">
-            <!-- Added onerror to fallback to DEFAULT_PROFILE_PIC from firebase-init.js -->
-            <img id="profile-picture-display" class="w-32 h-32 rounded-full object-cover mb-4 profile-pic-large"
-                 src="https://placehold.co/128x128/1F2937/E5E7EB?text=AV"
-                 alt="Profile Picture"
-                 onerror="this.onerror=null; this.src=DEFAULT_PROFILE_PIC;">
-            <p id="display-name-text" class="text-gray-200 text-2xl font-semibold">Loading...</p>
-            <p id="handle-text" class="text-gray-400 text-lg">Loading...</p> <!-- New handle display -->
-            <p id="email-text" class="text-gray-400 text-sm">Loading...</p>
+      <div class="space-y-6">
+        <!-- Profile Info -->
+        <details class="settings-card bg-gray-700 shadow-xl" open>
+          <summary class="text-xl font-bold text-blue-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">badge</span> Profile Information
+          </summary>
+          <div class="mt-4">
+            <div class="input-field">
+              <label for="display-name-input">Display Name:</label>
+              <input id="display-name-input" placeholder="Your Display Name" type="text">
+            </div>
+            <div class="input-field">
+              <label for="handle-input">Unique Handle:</label>
+              <input id="handle-input" placeholder="@yourhandle" type="text">
+              <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+            </div>
+            <div class="input-field">
+              <label for="profile-picture-url-input">Profile Picture URL:</label>
+              <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
+              <p class="text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a direct link
+                to an image (JPG, PNG, GIF).</p>
+            </div>
+            <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
           </div>
-
-          <div class="input-field">
-            <label for="display-name-input">Display Name:</label>
-            <input type="text" id="display-name-input" placeholder="Your Display Name">
+        </details>
+        <!-- Preferences -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-green-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">palette</span> Personalize Experience
+          </summary>
+          <div class="mt-4">
+            <div class="input-field">
+              <label for="theme-select">Select Theme:</label>
+              <select id="theme-select"></select>
+            </div>
+            <div class="input-field">
+              <label for="font-size-select">Base Font Size:</label>
+              <select id="font-size-select">
+                <option value="14px">Small (14px)</option>
+                <option value="16px">Medium (16px)</option>
+                <option value="18px">Large (18px)</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="font-family-select">Font Family:</label>
+              <select id="font-family-select">
+                <option value="Inter, sans-serif">Inter</option>
+                <option value="Roboto Mono, monospace">Roboto Mono</option>
+                <option value="Open Sans, sans-serif">Open Sans</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="background-pattern-select">Background Pattern:</label>
+              <select id="background-pattern-select">
+                <option value="none">None</option>
+                <option value="dots">Dots</option>
+                <option value="grid">Grid</option>
+              </select>
+            </div>
+            <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
+            <h3 class="text-lg font-bold text-blue-300 mb-2 mt-8 text-center flex items-center gap-2"><span
+              class="material-icons">brush</span> Custom Themes</h3>
+            <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
           </div>
-
-          <div class="input-field">
-            <label for="handle-input">Unique Handle:</label>
-            <input type="text" id="handle-input" placeholder="@yourhandle">
-            <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+        </details>
+        <!-- Security -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-orange-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">lock</span> Password Management
+          </summary>
+          <div class="mt-4">
+            <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
+            <div class="input-field">
+              <label for="current-password-input">Current Password:</label>
+              <input id="current-password-input" placeholder="********" type="password">
+            </div>
+            <div class="input-field">
+              <label for="new-password-input">New Password:</label>
+              <input id="new-password-input" placeholder="********" type="password">
+            </div>
+            <div class="input-field">
+              <label for="confirm-new-password-input">Confirm New Password:</label>
+              <input id="confirm-new-password-input" placeholder="********" type="password">
+            </div>
+            <button class="btn-primary btn-orange mt-2" id="change-password-btn">Change Password</button>
           </div>
-
-          <div class="input-field">
-            <label for="profile-picture-url-input">Profile Picture URL:</label>
-            <input type="url" id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg">
-            <p id="url-preview-message" class="text-secondary text-sm mt-1" style="display: none;">Enter a direct link to an image (JPG, PNG, GIF).</p>
+        </details>
+        <!-- Notifications -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-yellow-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">notifications</span> Notification Preferences
+          </summary>
+          <div class="mt-4">
+            <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="email-notifications-checkbox"
+                     type="checkbox">
+              <label for="email-notifications-checkbox">Receive Email Notifications</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="inapp-notifications-checkbox"
+                     type="checkbox">
+              <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
+            </div>
+            <button class="btn-primary btn-blue mt-4" id="save-notifications-btn">Save Notification Settings</button>
           </div>
-
-          <button id="save-profile-btn" class="btn-primary btn-blue">Save Profile Changes</button>
-        </div>
-
-        <!-- Theme and Font Preferences Card -->
-        <div class="settings-card bg-gray-700 shadow-xl">
-          <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Personalize Experience</h3>
-
-          <div class="input-field">
-            <label for="theme-select">Select Theme:</label>
-            <select id="theme-select"></select>
+        </details>
+        <!-- Accessibility -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-purple-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">accessibility</span> Accessibility Settings
+          </summary>
+          <div class="mt-4">
+            <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="high-contrast-checkbox" type="checkbox">
+              <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="reduced-motion-checkbox" type="checkbox">
+              <label for="reduced-motion-checkbox">Enable Reduced Motion</label>
+            </div>
+            <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
           </div>
-
-          <div class="input-field">
-            <label for="font-size-select">Base Font Size:</label>
-            <select id="font-size-select">
-              <option value="14px">Small (14px)</option>
-              <option value="16px">Medium (16px)</option>
-              <option value="18px">Large (18px)</option>
-            </select>
+        </details>
+        <!-- Session Info -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-cyan-300 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">info</span> Session Information
+          </summary>
+          <div class="mt-4">
+            <p class="text-gray-300 text-center mb-2" id="last-login-time">Last Login: N/A</p>
+            <p class="text-gray-300 text-center" id="account-creation-time">Account Created: N/A</p>
           </div>
-
-          <div class="input-field">
-            <label for="font-family-select">Font Family:</label>
-            <select id="font-family-select">
-              <option value="Inter, sans-serif">Inter</option>
-              <option value="Roboto Mono, monospace">Roboto Mono</option>
-              <option value="Open Sans, sans-serif">Open Sans</option>
-            </select>
+        </details>
+        <!-- Danger Zone -->
+        <details class="settings-card bg-gray-700 shadow-xl">
+          <summary class="text-xl font-bold text-red-400 flex items-center gap-2 cursor-pointer select-none"><span
+            class="material-icons">warning</span> Danger Zone
+          </summary>
+          <div class="mt-4">
+            <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
+            <div class="input-field">
+              <label for="delete-account-password">Confirm Password:</label>
+              <input id="delete-account-password" placeholder="********" type="password">
+            </div>
+            <button class="btn-primary btn-red mt-2" id="delete-account-btn">Delete Account</button>
           </div>
-
-          <div class="input-field">
-            <label for="background-pattern-select">Background Pattern:</label>
-            <select id="background-pattern-select">
-              <option value="none">None</option>
-              <option value="dots">Dots</option>
-              <option value="grid">Grid</option>
-            </select>
-          </div>
-
-          <button id="save-preferences-btn" class="btn-primary btn-green">Save Preferences</button>
-
-          <h3 class="text-2xl font-bold text-blue-300 mb-6 mt-8 text-center">Custom Themes</h3>
-          <button id="create-custom-theme-btn" class="btn-primary btn-purple">Create/Manage Custom Themes</button>
-        </div>
-      </div>
-
-      <!-- Password Management Card -->
-      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Password Management</h3>
-        <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
-        <div class="input-field">
-          <label for="current-password-input">Current Password:</label>
-          <input type="password" id="current-password-input" placeholder="********">
-        </div>
-        <div class="input-field">
-          <label for="new-password-input">New Password:</label>
-          <input type="password" id="new-password-input" placeholder="********">
-        </div>
-        <div class="input-field">
-          <label for="confirm-new-password-input">Confirm New Password:</label>
-          <input type="password" id="confirm-new-password-input" placeholder="********">
-        </div>
-        <button id="change-password-btn" class="btn-primary btn-orange">Change Password</button>
-      </div>
-
-      <!-- Notification Preferences Card -->
-      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Notification Preferences</h3>
-        <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
-        <div class="input-field flex items-center space-x-2">
-          <input type="checkbox" id="email-notifications-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-          <label for="email-notifications-checkbox">Receive Email Notifications</label>
-        </div>
-        <div class="input-field flex items-center space-x-2">
-          <input type="checkbox" id="inapp-notifications-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-          <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
-        </div>
-        <button id="save-notifications-btn" class="btn-primary btn-blue mt-4">Save Notification Settings</button>
-      </div>
-
-      <!-- Accessibility Settings Card -->
-      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Accessibility Settings</h3>
-        <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
-        <div class="input-field flex items-center space-x-2">
-          <input type="checkbox" id="high-contrast-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-          <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
-        </div>
-        <div class="input-field flex items-center space-x-2">
-          <input type="checkbox" id="reduced-motion-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-          <label for="reduced-motion-checkbox">Enable Reduced Motion</label>
-        </div>
-        <button id="save-accessibility-btn" class="btn-primary btn-blue mt-4">Save Accessibility Settings</button>
-      </div>
-
-      <!-- Session Information Card -->
-      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Session Information</h3>
-        <p id="last-login-time" class="text-gray-300 text-center mb-2">Last Login: N/A</p>
-        <p id="account-creation-time" class="text-gray-300 text-center">Account Created: N/A</p>
-      </div>
-
-      <!-- Delete Account Card -->
-      <div class="settings-card bg-gray-700 shadow-xl mx-auto mt-8">
-        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Danger Zone</h3>
-        <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
-        <div class="input-field">
-          <label for="delete-account-password">Confirm Password:</label>
-          <input type="password" id="delete-account-password" placeholder="********">
-        </div>
-        <button id="delete-account-btn" class="btn-primary btn-red">Delete Account</button>
+        </details>
       </div>
     </div>
 
