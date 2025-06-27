@@ -581,6 +581,32 @@ function loadThreadsForThema(themaId) {
     const threadsCol = (themaId === 'global') ? collection(window.db, `artifacts/${window.appId}/public/data/threads`) : collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
     const q = query(threadsCol, orderBy('createdAt', 'desc'));
     onSnapshot(q, async (snapshot) => {
+      // Check if we need to re-render or just update reactions
+      const existingThreads = threadListDiv.querySelectorAll('.thread-item');
+      const newThreads = Array.from(snapshot.docs);
+      
+      // If same number of threads and all IDs match, only update reactions
+      if (existingThreads.length === newThreads.length && 
+          existingThreads.length > 0 &&
+          Array.from(existingThreads).every((thread, index) => 
+            thread.getAttribute('data-thread-id') === newThreads[index].id
+          )) {
+        // Only update reactions, don't re-render threads
+        newThreads.forEach(threadDoc => {
+          const thread = threadDoc.data();
+          const existingThread = threadListDiv.querySelector(`[data-thread-id="${threadDoc.id}"]`);
+          if (existingThread) {
+            // Update only the reactions bar
+            const reactionsBar = existingThread.querySelector('.reactions-bar');
+            if (reactionsBar) {
+              reactionsBar.innerHTML = renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId);
+            }
+          }
+        });
+        return;
+      }
+      
+      // Full re-render only if threads changed (added/removed/edited)
       threadListDiv.innerHTML = '';
       if (snapshot.empty) {
         threadListDiv.innerHTML = '<div class="text-center text-gray-400">No threads yet.</div>';
@@ -597,7 +623,8 @@ function loadThreadsForThema(themaId) {
         const userQuery = query(usersRef, where('uid', 'in', Array.from(threadUids)));
         await getDocs(userQuery).then(userSnapshot => {
           userSnapshot.forEach(userDoc => {
-            userProfiles[userDoc.id] = userDoc.data();
+            const userData = userDoc.data();
+            userProfiles[userDoc.id] = userData;
           });
         }).catch(error => console.error("Error fetching user profiles for threads:", error));
       }
@@ -624,7 +651,7 @@ function loadThreadsForThema(themaId) {
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
           <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, currentThemaId)}</div>
+          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId)}</div>
           <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
             <label class="block text-sm font-semibold mb-1" for="comment-content-input-${threadDoc.id}">Add a comment</label>
@@ -874,8 +901,8 @@ function displayThreadsForThema(themaId, themaName, themaDescription) {
   if (commentsSection) commentsSection.style.display = 'none';
   // Optionally, scroll to threads section for better UX
   threadsSection.scrollIntoView({ behavior: 'smooth' });
-  // Render threads for this thema
-  renderThreads();
+  // Render threads for this thema - REMOVED: using loadThreadsForThema instead
+  // renderThreads();
 }
 
 /**
@@ -929,86 +956,7 @@ async function addCommentThread(themaId, title, initialComment) {
 }
 
 // --- PATCH renderThreads: Show user icon, edit/delete for all users/admins, emoji reactions ---
-function renderThreads() {
-  if (unsubscribeThreads) unsubscribeThreads();
-  if (!window.db || !currentThemaId) {
-    threadList.innerHTML = '<li class="card p-4 text-center text-red-400">Select a Théma to view threads.</li>';
-    return;
-  }
-  const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${currentThemaId}/threads`);
-  const q = query(threadsCol, orderBy("createdAt", "desc"));
-  unsubscribeThreads = onSnapshot(q, async (snapshot) => {
-    threadList.innerHTML = '';
-    if (snapshot.empty) {
-      threadList.innerHTML = '<li class="card p-4 text-center">No threads yet. Be the first to start one!</li>';
-      return;
-    }
-    const threadsArr = [];
-    const authorUids = new Set();
-    snapshot.forEach((threadDoc) => {
-      const thread = threadDoc.data();
-      if (thread.authorId) authorUids.add(thread.authorId);
-      threadsArr.push({ ...thread, id: threadDoc.id });
-    });
-    // Fetch user profiles for all unique authorIds
-    const userProfiles = {};
-    if (authorUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const userQuery = query(usersRef, where('uid', 'in', Array.from(authorUids)));
-      await getDocs(userQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          userProfiles[userDoc.id] = userDoc.data();
-        });
-      }).catch(error => console.error("Error fetching user profiles for threads:", error));
-    }
-    snapshot.forEach((threadDoc) => {
-      const thread = threadDoc.data();
-      const userProfile = userProfiles[thread.authorId] || {};
-      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      const editedInfo = thread.editedAt ? ` (edited${thread.editedBy ? ' by ' + thread.editedBy : ''} ${thread.editedAt.toDate ? new Date(thread.editedAt.toDate()).toLocaleString() : ''})` : '';
-      const displayName = userProfile.displayName || thread.authorDisplayName || 'Unknown';
-      const handle = userProfile.handle ? `@${userProfile.handle}` : (thread.authorHandle ? `@${thread.authorHandle}` : '');
-      const photoURL = userProfile.photoURL || thread.authorPhotoURL || window.DEFAULT_PROFILE_PIC;
-      const commentCount = thread.commentCount || 0;
-      const li = document.createElement('li');
-      li.className = 'thread-item card flex flex-col mb-4 p-4';
-      li.innerHTML = `
-        <div class="flex items-center mb-2">
-          <img src="${photoURL}" alt="User Icon" class="w-8 h-8 rounded-full mr-2 object-cover">
-          <span class="font-bold">${displayName}</span>
-          <span class="text-gray-400 ml-2">${handle}</span>
-          <span class="meta-info ml-4">${createdAt}${editedInfo}</span>
-        </div>
-        <h3 class="text-xl font-bold text-heading-card mb-1">${thread.title}</h3>
-        <p class="thread-initial-comment mb-2">${renderMarkdown(thread.initialComment || '')}</p>
-        <div class="flex items-center mb-2">
-          <span class="text-sm text-gray-400 mr-4">${commentCount} comments</span>
-          <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, currentThemaId)}</div>
-          <div class="thread-actions actions-right ml-auto">
-            ${(canEditPost(thread, window.currentUser) ? `<button onclick="showEditForm('${thread.initialComment.replace(/'/g, "&#39;")}', '${threadDoc.id}', 'thread')" class="edit-thread-btn btn-primary btn-blue ml-2" title="Edit"><span class="material-icons">edit</span></button>` : '')}
-            ${(canDeletePost(thread, window.currentUser) ? `<button data-thread-id="${threadDoc.id}" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : '')}
-          </div>
-        </div>
-        <div class="add-comment-section mt-2">${getAddCommentFormHtml(threadDoc.id)}</div>
-        <ul class="comment-list space-y-4 mt-2" id="comment-list-${threadDoc.id}"></ul>
-      `;
-      threadList.appendChild(li);
-      renderCommentsForThread(threadDoc.id, currentThemaId);
-    });
-    cacheSet('arcator_threads_cache_' + currentThemaId, threadsArr);
-    document.querySelectorAll('.delete-thread-btn').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        const threadId = event.target.dataset.threadId;
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
-        if (confirmed) {
-          await deleteThreadAndSubcollection(currentThemaId, threadId);
-        } else {
-          showMessageBox("Thread deletion cancelled.", false);
-        }
-      });
-    });
-  });
-}
+// function renderThreads() { // REMOVED: replaced with smart re-rendering in loadThreadsForThema
 
 // Enhanced utility functions
 /**
