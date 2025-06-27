@@ -333,6 +333,208 @@ async function handlePasswordReset() {
   }
 }
 
+// Helper to reload and apply user profile after save
+async function reloadAndApplyUserProfile() {
+  if (!auth.currentUser) return;
+  const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+  if (!userProfile) return;
+
+  // Apply all settings to UI controls
+  if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
+  if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
+  if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
+  if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = userProfile.headingSizeMultiplier || '1.6';
+  if (lineHeightSelect) lineHeightSelect.value = userProfile.lineHeight || '1.6';
+  if (letterSpacingSelect) letterSpacingSelect.value = userProfile.letterSpacing || '0px';
+  if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '0.2';
+  if (backgroundOpacityValue) backgroundOpacityValue.textContent = userProfile.backgroundOpacity || '0.2';
+
+  // Apply comprehensive font scaling system
+  applyFontScalingSystem(userProfile);
+
+  // Apply background pattern with opacity
+  const opacity = (userProfile.backgroundOpacity || 10) / 100;
+  if (userProfile.backgroundPattern === 'none') {
+    document.body.style.backgroundImage = 'none';
+  } else if (userProfile.backgroundPattern === 'dots') {
+    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '20px 20px';
+  } else if (userProfile.backgroundPattern === 'grid') {
+    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '40px 40px';
+  } else if (userProfile.backgroundPattern === 'diagonal') {
+    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
+    document.body.style.backgroundSize = '60px 60px';
+  } else if (userProfile.backgroundPattern === 'circles') {
+    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '30px 30px';
+  } else if (userProfile.backgroundPattern === 'hexagons') {
+    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
+    document.body.style.backgroundSize = '40px 40px';
+  }
+
+  // Optionally re-apply theme if changed
+  if (userProfile.themePreference) {
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userProfile.themePreference);
+    if (themeToApply) applyTheme(themeToApply.id, themeToApply);
+  }
+}
+
+// Comprehensive font scaling system
+function applyFontScalingSystem(userProfile) {
+  const baseFontSize = parseInt(userProfile.fontSize || '16px');
+  const headingMultiplier = parseFloat(userProfile.headingSizeMultiplier || '1.6');
+  const fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
+  const lineHeight = userProfile.lineHeight || '1.6';
+  const letterSpacing = userProfile.letterSpacing || '0px';
+
+  // Set base font properties on body
+  document.body.style.fontSize = `${baseFontSize}px`;
+  document.body.style.fontFamily = fontFamily;
+  document.body.style.lineHeight = lineHeight;
+  document.body.style.letterSpacing = letterSpacing;
+
+  // Define font size multipliers for different elements
+  const fontMultipliers = {
+    // Headings
+    'h1': baseFontSize * headingMultiplier * 2.5,
+    'h2': baseFontSize * headingMultiplier * 2.0,
+    'h3': baseFontSize * headingMultiplier * 1.75,
+    'h4': baseFontSize * headingMultiplier * 1.5,
+    'h5': baseFontSize * headingMultiplier * 1.25,
+    'h6': baseFontSize * headingMultiplier * 1.1,
+
+    // Navigation and UI elements
+    '.navbar-link': baseFontSize * 0.875,
+    '.navbar-logo': baseFontSize * 1.25,
+    '.btn-primary': baseFontSize * 0.875,
+    '.btn-secondary': baseFontSize * 0.875,
+    '.card-title': baseFontSize * 1.125,
+    '.card-subtitle': baseFontSize * 0.875,
+
+    // Form elements
+    'input, select, textarea': baseFontSize * 0.875,
+    'label': baseFontSize * 0.875,
+    '.form-label': baseFontSize * 0.875,
+    '.form-text': baseFontSize * 0.75,
+    '.form-error': baseFontSize * 0.75,
+
+    // Content elements
+    'p': baseFontSize * 1.0,
+    'span': baseFontSize * 1.0,
+    'div': baseFontSize * 1.0,
+    'a': baseFontSize * 1.0,
+    'li': baseFontSize * 1.0,
+    'td, th': baseFontSize * 0.875,
+
+    // Small text elements
+    '.text-sm': baseFontSize * 0.75,
+    '.text-xs': baseFontSize * 0.625,
+    '.caption': baseFontSize * 0.75,
+    '.meta': baseFontSize * 0.75,
+    '.timestamp': baseFontSize * 0.75,
+
+    // Large text elements
+    '.text-lg': baseFontSize * 1.125,
+    '.text-xl': baseFontSize * 1.25,
+    '.text-2xl': baseFontSize * 1.5,
+    '.text-3xl': baseFontSize * 1.875,
+    '.text-4xl': baseFontSize * 2.25,
+
+    // Special elements
+    '.hero-title': baseFontSize * headingMultiplier * 3.0,
+    '.hero-subtitle': baseFontSize * headingMultiplier * 1.5,
+    '.section-title': baseFontSize * headingMultiplier * 1.75,
+    '.subsection-title': baseFontSize * headingMultiplier * 1.25,
+    '.modal-title': baseFontSize * headingMultiplier * 1.5,
+    '.modal-content': baseFontSize * 0.875,
+
+    // Code and technical elements
+    'code': baseFontSize * 0.875,
+    'pre': baseFontSize * 0.875,
+    '.code-block': baseFontSize * 0.875,
+    '.inline-code': baseFontSize * 0.875,
+
+    // Alert and notification elements
+    '.alert': baseFontSize * 0.875,
+    '.notification': baseFontSize * 0.875,
+    '.message-box': baseFontSize * 0.875,
+    '.tooltip': baseFontSize * 0.75,
+
+    // Footer and sidebar elements
+    'footer': baseFontSize * 0.875,
+    '.footer-text': baseFontSize * 0.875,
+    '.sidebar': baseFontSize * 0.875,
+    '.sidebar-title': baseFontSize * 1.0,
+
+    // Utility classes
+    '.text-primary': baseFontSize * 1.0,
+    '.text-secondary': baseFontSize * 0.875,
+    '.text-muted': baseFontSize * 0.75,
+    '.text-emphasis': baseFontSize * 1.125,
+    '.text-deemphasized': baseFontSize * 0.875
+  };
+
+  // Apply font sizes to all elements
+  Object.entries(fontMultipliers).forEach(([selector, fontSize]) => {
+    const elements = document.querySelectorAll(selector);
+    elements.forEach(el => {
+      el.style.fontSize = `${fontSize}px`;
+      el.style.fontFamily = fontFamily;
+      el.style.lineHeight = lineHeight;
+      el.style.letterSpacing = letterSpacing;
+    });
+  });
+
+  // Apply to specific Tailwind classes that might be used
+  const tailwindClasses = {
+    '.text-sm': baseFontSize * 0.875,
+    '.text-base': baseFontSize * 1.0,
+    '.text-lg': baseFontSize * 1.125,
+    '.text-xl': baseFontSize * 1.25,
+    '.text-2xl': baseFontSize * 1.5,
+    '.text-3xl': baseFontSize * 1.875,
+    '.text-4xl': baseFontSize * 2.25,
+    '.text-5xl': baseFontSize * 3.0,
+    '.text-6xl': baseFontSize * 3.75,
+    '.text-xs': baseFontSize * 0.75
+  };
+
+  Object.entries(tailwindClasses).forEach(([className, fontSize]) => {
+    const elements = document.querySelectorAll(className);
+    elements.forEach(el => {
+      el.style.fontSize = `${fontSize}px`;
+    });
+  });
+
+  // Set CSS custom properties for use in CSS
+  document.documentElement.style.setProperty('--base-font-size', `${baseFontSize}px`);
+  document.documentElement.style.setProperty('--font-size-sm', `${baseFontSize * 0.875}px`);
+  document.documentElement.style.setProperty('--font-size-base', `${baseFontSize}px`);
+  document.documentElement.style.setProperty('--font-size-lg', `${baseFontSize * 1.125}px`);
+  document.documentElement.style.setProperty('--font-size-xl', `${baseFontSize * 1.25}px`);
+  document.documentElement.style.setProperty('--font-size-2xl', `${baseFontSize * 1.5}px`);
+  document.documentElement.style.setProperty('--font-size-3xl', `${baseFontSize * 1.875}px`);
+  document.documentElement.style.setProperty('--font-size-4xl', `${baseFontSize * 2.25}px`);
+  document.documentElement.style.setProperty('--font-size-5xl', `${baseFontSize * 3.0}px`);
+  document.documentElement.style.setProperty('--font-size-6xl', `${baseFontSize * 3.75}px`);
+  document.documentElement.style.setProperty('--font-size-xs', `${baseFontSize * 0.75}px`);
+
+  // Set heading-specific custom properties
+  document.documentElement.style.setProperty('--heading-1-size', `${baseFontSize * headingMultiplier * 2.5}px`);
+  document.documentElement.style.setProperty('--heading-2-size', `${baseFontSize * headingMultiplier * 2.0}px`);
+  document.documentElement.style.setProperty('--heading-3-size', `${baseFontSize * headingMultiplier * 1.75}px`);
+  document.documentElement.style.setProperty('--heading-4-size', `${baseFontSize * headingMultiplier * 1.5}px`);
+  document.documentElement.style.setProperty('--heading-5-size', `${baseFontSize * headingMultiplier * 1.25}px`);
+  document.documentElement.style.setProperty('--heading-6-size', `${baseFontSize * headingMultiplier * 1.1}px`);
+
+  // Set other typography properties
+  document.documentElement.style.setProperty('--line-height', lineHeight);
+  document.documentElement.style.setProperty('--letter-spacing', letterSpacing);
+  document.documentElement.style.setProperty('--font-family', fontFamily);
+}
+
 // Handler for saving profile changes
 async function handleSaveProfile() {
   const newDisplayName = displayNameInput.value.trim();
@@ -463,19 +665,55 @@ async function handleSavePreferences() {
     backgroundPattern: backgroundPatternSelect.value,
     backgroundOpacity: backgroundOpacityRange.value
   };
+
+  // Immediately apply font settings to document
+  document.body.style.fontSize = updates.fontSize;
+  document.body.style.fontFamily = updates.fontFamily;
+  document.body.style.lineHeight = updates.lineHeight;
+  document.body.style.letterSpacing = updates.letterSpacing;
+
+  // Apply heading size multiplier immediately
+  const baseFontSize = parseInt(updates.fontSize);
+  const headingMultiplier = parseFloat(updates.headingSizeMultiplier);
+  const headingSizes = {
+    'h1': baseFontSize * headingMultiplier * 2.5,
+    'h2': baseFontSize * headingMultiplier * 2,
+    'h3': baseFontSize * headingMultiplier * 1.75,
+    'h4': baseFontSize * headingMultiplier * 1.5,
+    'h5': baseFontSize * headingMultiplier * 1.25,
+    'h6': baseFontSize * headingMultiplier * 1.1
+  };
+
+  Object.entries(headingSizes).forEach(([tag, size]) => {
+    const elements = document.querySelectorAll(tag);
+    elements.forEach(el => {
+      el.style.fontSize = `${size}px`;
+    });
+  });
+
+  // Apply background pattern and opacity immediately
+  if (updates.backgroundPattern && updates.backgroundPattern !== 'none') {
+    document.body.classList.add(`pattern-${updates.backgroundPattern}`);
+    document.body.style.setProperty('--background-opacity', updates.backgroundOpacity);
+  } else {
+    document.body.classList.remove('pattern-dots', 'pattern-grid', 'pattern-diagonal', 'pattern-circles', 'pattern-hexagons');
+  }
+
   try {
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
-    if (success) showMessageBox('Preferences saved successfully!', false);
-    else showMessageBox('Failed to save preferences.', true);
+    if (success) {
+      showMessageBox('Preferences saved.', false);
+      await reloadAndApplyUserProfile();
+    }
   } catch (error) {
-    showMessageBox(`Failed to save preferences: ${error.message}`, true);
+    showMessageBox('Error saving preferences.', true);
   }
 }
 
 // Handler for saving notification settings
 async function handleSaveNotifications() {
   if (!auth.currentUser) return;
-  const notificationSettings = {
+  const updates = {
     emailNotifications: emailNotificationsCheckbox.checked,
     inappNotifications: inappNotificationsCheckbox.checked,
     announcementNotifications: announcementNotificationsCheckbox.checked,
@@ -485,36 +723,40 @@ async function handleSaveNotifications() {
     notificationFrequency: notificationFrequencySelect.value
   };
   try {
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, {notificationSettings});
-    if (success) showMessageBox('Notification settings saved successfully!', false);
-    else showMessageBox('Failed to save notification settings.', true);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Notifications saved.', false);
+      await reloadAndApplyUserProfile();
+    }
   } catch (error) {
-    showMessageBox(`Failed to save notification settings: ${error.message}`, true);
+    showMessageBox('Error saving notifications.', true);
   }
 }
 
 // Handler for saving privacy settings
 async function handleSavePrivacy() {
   if (!auth.currentUser) return;
-  const privacySettings = {
+  const updates = {
     profileVisibility: profileVisibilityCheckbox.checked,
     activityVisibility: activityVisibilityCheckbox.checked,
     analyticsConsent: analyticsConsentCheckbox.checked,
     dataRetention: dataRetentionSelect.value
   };
   try {
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, {privacySettings});
-    if (success) showMessageBox('Privacy settings saved successfully!', false);
-    else showMessageBox('Failed to save privacy settings.', true);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Privacy settings saved.', false);
+      await reloadAndApplyUserProfile();
+    }
   } catch (error) {
-    showMessageBox(`Failed to save privacy settings: ${error.message}`, true);
+    showMessageBox('Error saving privacy settings.', true);
   }
 }
 
 // Handler for saving accessibility settings
 async function handleSaveAccessibility() {
   if (!auth.currentUser) return;
-  const accessibilitySettings = {
+  const updates = {
     highContrast: highContrastCheckbox.checked,
     largeCursor: largeCursorCheckbox.checked,
     focusIndicators: focusIndicatorsCheckbox.checked,
@@ -528,13 +770,15 @@ async function handleSaveAccessibility() {
     syntaxHighlighting: syntaxHighlightingCheckbox.checked,
     wordSpacing: wordSpacingCheckbox.checked
   };
-  applyAccessibilitySettings(accessibilitySettings);
+  applyAccessibilitySettings(updates);
   try {
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, {accessibilitySettings});
-    if (success) showMessageBox('Accessibility settings saved successfully!', false);
-    else showMessageBox('Failed to save accessibility settings.', true);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Accessibility settings saved.', false);
+      await reloadAndApplyUserProfile();
+    }
   } catch (error) {
-    showMessageBox(`Failed to save accessibility settings: ${error.message}`, true);
+    showMessageBox('Error saving accessibility settings.', true);
   }
 }
 
@@ -572,7 +816,7 @@ function applyAccessibilitySettings(settings) {
 // Handler for saving advanced settings
 async function handleSaveAdvanced() {
   if (!auth.currentUser) return;
-  const advancedSettings = {
+  const updates = {
     lowBandwidthMode: lowBandwidthModeCheckbox.checked,
     disableImages: disableImagesCheckbox.checked,
     minimalUi: minimalUiCheckbox.checked,
@@ -582,14 +826,16 @@ async function handleSaveAdvanced() {
     customCss: customCssTextarea.value,
     keyboardShortcuts: keyboardShortcutsToggle.value
   };
-  if (advancedSettings.customCss) applyCustomCSS(advancedSettings.customCss);
-  applyAdvancedSettings(advancedSettings);
+  if (updates.customCss) applyCustomCSS(updates.customCss);
+  applyAdvancedSettings(updates);
   try {
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, {advancedSettings});
-    if (success) showMessageBox('Advanced settings saved successfully!', false);
-    else showMessageBox('Failed to save advanced settings.', true);
+    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Advanced settings saved.', false);
+      await reloadAndApplyUserProfile();
+    }
   } catch (error) {
-    showMessageBox(`Failed to save advanced settings: ${error.message}`, true);
+    showMessageBox('Error saving advanced settings.', true);
   }
 }
 
@@ -912,7 +1158,24 @@ window.onload = async function() {
           document.body.style.letterSpacing = userProfile.letterSpacing || '0px';
 
           // Apply heading size multiplier
-          document.documentElement.style.setProperty('--heading-size-multiplier', userProfile.headingSizeMultiplier || '1.6');
+          const headingMultiplier = userProfile.headingSizeMultiplier || '1.6';
+          const baseFontSize = parseInt(userProfile.fontSize || '16px');
+          const headingSizes = {
+            'h1': baseFontSize * parseFloat(headingMultiplier) * 2.5,
+            'h2': baseFontSize * parseFloat(headingMultiplier) * 2,
+            'h3': baseFontSize * parseFloat(headingMultiplier) * 1.75,
+            'h4': baseFontSize * parseFloat(headingMultiplier) * 1.5,
+            'h5': baseFontSize * parseFloat(headingMultiplier) * 1.25,
+            'h6': baseFontSize * parseFloat(headingMultiplier) * 1.1
+          };
+
+          // Apply heading sizes
+          Object.entries(headingSizes).forEach(([tag, size]) => {
+            const elements = document.querySelectorAll(tag);
+            elements.forEach(el => {
+              el.style.fontSize = `${size}px`;
+            });
+          });
 
           // Apply background pattern with opacity
           const opacity = (userProfile.backgroundOpacity || 10) / 100;
