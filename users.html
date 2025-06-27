@@ -12,101 +12,18 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Add any specific CSS for sign-in/up forms if not already covered by settings.css -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <!-- Theme initialization -->
   <script src="theme-init.js" type="module"></script>
   <style>
+    /* Base styles using CSS variables */
     body {
-      background: var(--color-body-bg, #1a202c);
-      color: var(--color-text-primary, #e2e8f0);
+      background: var(--color-body-bg);
+      color: var(--color-text-primary);
     }
 
-    .glass-card, .auth-card, .settings-card {
-      background: var(--color-card-bg, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border-radius: 1.25rem;
-      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
-      border: 1px solid var(--color-input-border, #2d3748);
-      backdrop-filter: blur(8px) saturate(120%);
-      -webkit-backdrop-filter: blur(8px) saturate(120%);
-      margin-bottom: 2rem;
-    }
-
-    .input-field input, .input-field select {
-      background: var(--color-input-bg, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border: 1px solid var(--color-input-border, #2d3748);
-      border-radius: 0.5rem;
-      padding: 0.75rem 1rem;
-      margin-top: 0.25rem;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-      transition: border 0.2s;
-    }
-
-    .input-field input:focus, .input-field select:focus {
-      border-color: var(--color-link, #63b3ed);
-      outline: none;
-    }
-
-    .btn-primary {
-      background: var(--color-button-bg-primary, #4299e1);
-      color: var(--color-button-text, #fff);
-      border-radius: 0.75rem;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.10);
-    }
-
-    .btn-primary:hover {
-      background: var(--color-button-hover-primary, #3182ce);
-      transform: translateY(-2px) scale(1.03);
-    }
-    .auth-link {
-      color: var(--color-link, #63b3ed);
-      transition: color 0.2s;
-    }
-
-    .auth-link:hover {
-      color: var(--color-link-hover, #4299e1);
-    }
-
-    .settings-card summary {
-      background: none;
-      border: none;
-      padding: 1rem 0;
-      cursor: pointer;
-      font-size: 1.15rem;
-      border-radius: 0.75rem;
-      transition: background 0.2s;
-    }
-
-    .settings-card[open] summary {
-      background: rgba(99, 179, 237, 0.08);
-    }
-
-    .settings-card details > div {
-      padding: 1rem 0 0 0;
-    }
-
-    .profile-pic-large {
-      border: 3px solid var(--color-link, #63b3ed);
-      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.18);
-    }
-    .message-box {
-      background: var(--color-navbar-bg, #2d3748);
-      color: var(--color-text-primary, #e2e8f0);
-      border-radius: 0.75rem;
-      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
-    }
-    .custom-confirm-modal .modal-content {
-      background: var(--color-card-bg, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border-radius: 1rem;
-    }
+    /* Hero banner background image */
     .hero-banner {
       background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
       background-size: cover;
@@ -138,6 +55,140 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
+    /* Theme-aware classes using CSS variables */
+    .bg-content-section {
+      background-color: var(--color-bg-content-section);
+    }
+
+    .text-heading-main {
+      color: var(--color-heading-main);
+    }
+
+    .text-heading-card {
+      color: var(--color-heading-card);
+    }
+
+    .text-text-primary {
+      color: var(--color-text-primary);
+    }
+
+    .text-text-secondary {
+      color: var(--color-text-secondary);
+    }
+
+    .bg-card {
+      background-color: var(--color-bg-card);
+    }
+
+    .bg-navbar-footer {
+      background-color: var(--color-bg-navbar);
+    }
+
+    .text-link {
+      color: var(--color-link);
+    }
+
+    .hover\:text-link:hover {
+      color: var(--color-link);
+    }
+
+    /* Card styling */
+    .glass-card, .auth-card, .settings-card {
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: 1.25rem;
+      box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
+      border: 1px solid var(--color-input-border);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      margin-bottom: 2rem;
+    }
+
+    /* Input field styling */
+    .input-field input, .input-field select {
+      background: var(--color-input-bg);
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      transition: border 0.2s;
+    }
+
+    .input-field input:focus, .input-field select:focus {
+      border-color: var(--color-link);
+      outline: none;
+    }
+
+    /* Button styling */
+    .btn-primary {
+      background: var(--color-button-blue-bg);
+      color: var(--color-button-text);
+      border-radius: 0.75rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.10);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-button-blue-hover);
+      transform: translateY(-2px) scale(1.03);
+    }
+
+    /* Link styling */
+    .auth-link {
+      color: var(--color-link);
+      transition: color 0.2s;
+    }
+
+    .auth-link:hover {
+      color: var(--color-link);
+    }
+
+    /* Settings card styling */
+    .settings-card summary {
+      background: none;
+      border: none;
+      padding: 1rem 0;
+      cursor: pointer;
+      font-size: 1.15rem;
+      border-radius: 0.75rem;
+      transition: background 0.2s;
+    }
+
+    .settings-card[open] summary {
+      background: rgba(99, 179, 237, 0.08);
+    }
+
+    .settings-card details > div {
+      padding: 1rem 0 0 0;
+    }
+
+    /* Profile picture styling */
+    .profile-pic-large {
+      border: 3px solid var(--color-link);
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    /* Message box styling */
+    .message-box {
+      background: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    /* Modal styling */
+    .custom-confirm-modal .modal-content {
+      background: var(--color-modal-bg);
+      color: var(--color-modal-text);
+      border-radius: 1rem;
+    }
+
+    /* Select styling */
     .input-field select {
       width: 100%;
       min-width: 0;
@@ -168,7 +219,7 @@
 
     <!-- Sign In Section (Modernized) -->
     <div class="auth-card shadow-2xl" id="signin-section" style="display: none;">
-      <h2 class="text-3xl font-extrabold text-blue-400 text-center mb-6 flex items-center justify-center gap-2">
+      <h2 class="text-3xl font-extrabold text-heading-card text-center mb-6 flex items-center justify-center gap-2">
         <span class="material-icons">login</span> Sign In
       </h2>
       <form id="signin-form">
@@ -180,15 +231,15 @@
           <label for="signin-password">Password</label>
           <input autocomplete="current-password" class="pr-10" id="signin-password" placeholder="********"
                  type="password">
-          <button class="absolute right-2 top-8 text-gray-400 focus:outline-none" id="toggle-signin-password"
+          <button class="absolute right-2 top-8 text-text-secondary focus:outline-none" id="toggle-signin-password"
                   type="button">
             <span class="material-icons">visibility</span>
           </button>
         </div>
         <div class="flex items-center justify-between my-4">
-          <hr class="flex-1 border-gray-600">
-          <span class="mx-2 text-gray-400 text-xs">or</span>
-          <hr class="flex-1 border-gray-600">
+          <hr class="flex-1 border-input-border">
+          <span class="mx-2 text-text-secondary text-xs">or</span>
+          <hr class="flex-1 border-input-border">
         </div>
         <div class="flex flex-col gap-2 mb-6">
           <button class="auth-btn-primary bg-blue-500 hover:bg-blue-600 flex items-center justify-center gap-2"
@@ -213,7 +264,7 @@
       <div class="space-y-6">
         <!-- Profile Info -->
         <details class="settings-card" open
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">badge</span>Profile Information
           </summary>
@@ -231,12 +282,13 @@
               <div class="input-field">
                 <label for="handle-input">Unique Handle:</label>
                 <input id="handle-input" placeholder="@yourhandle" type="text">
-                <p class="text-secondary text-sm mt-1">This will be your unique public identifier.</p>
+                <p class="text-text-secondary text-sm mt-1">This will be your unique public identifier.</p>
               </div>
               <div class="input-field">
                 <label for="profile-picture-url-input">Profile Picture URL:</label>
                 <input id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg" type="url">
-                <p class="text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a direct
+                <p class="text-text-secondary text-sm mt-1" id="url-preview-message" style="display: none;">Enter a
+                  direct
                   link to an image (JPG, PNG, GIF).</p>
               </div>
               <button class="btn-primary btn-blue mt-2" id="save-profile-btn">Save Profile Changes</button>
@@ -245,9 +297,9 @@
         </details>
         <!-- Preferences -->
         <details class="settings-card"
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-green-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
             <span class="material-icons">palette</span>Personalize Experience
           </summary>
           <div class="mt-4">
@@ -280,20 +332,20 @@
               </select>
             </div>
             <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
-            <h3 class="text-lg font-bold text-blue-300 mb-2 mt-8 text-center flex items-center gap-2"><span
+            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"><span
               class="material-icons">brush</span> Custom Themes</h3>
             <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
           </div>
         </details>
         <!-- Security -->
         <details class="settings-card"
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-orange-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
             <span class="material-icons">lock</span>Password Management
           </summary>
           <div class="mt-4">
-            <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
+            <p class="text-text-secondary text-center mb-4">You must enter your current password to change it.</p>
             <div class="input-field">
               <label for="current-password-input">Current Password:</label>
               <input autocomplete="current-password" id="current-password-input" placeholder="********" type="password">
@@ -311,13 +363,13 @@
         </details>
         <!-- Notifications -->
         <details class="settings-card"
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-yellow-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
             <span class="material-icons">notifications</span>Notification Preferences
           </summary>
           <div class="mt-4">
-            <p class="text-gray-300 text-center mb-4">Manage how you receive updates and alerts.</p>
+            <p class="text-text-secondary text-center mb-4">Manage how you receive updates and alerts.</p>
             <div class="input-field flex items-center space-x-2">
               <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="email-notifications-checkbox"
                      type="checkbox">
@@ -333,13 +385,13 @@
         </details>
         <!-- Accessibility -->
         <details class="settings-card"
-                 style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-purple-300 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none">
             <span class="material-icons">accessibility</span>Accessibility Settings
           </summary>
           <div class="mt-4">
-            <p class="text-gray-300 text-center mb-4">Adjust settings for improved accessibility.</p>
+            <p class="text-text-secondary text-center mb-4">Adjust settings for improved accessibility.</p>
             <div class="input-field flex items-center space-x-2">
               <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="high-contrast-checkbox" type="checkbox">
               <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
@@ -354,7 +406,7 @@
         <!-- Info Session Information -->
         <div class="settings-card card" id="info-session-info">
           <div class="card-header flex items-center gap-2 mb-2">
-            <span class="material-icons text-blue-400">info</span>
+            <span class="material-icons text-heading-card">info</span>
             <span class="font-bold">Session Information</span>
           </div>
           <div class="card-body">
@@ -364,14 +416,13 @@
         </div>
         <!-- Danger Zone -->
         <details class="settings-card"
-                 tyle="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
-        style="background: var(--color-settings-card-bg); border: 1px solid var(--color-settings-card-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
+                 style="background: var(--color-bg-card); border: 1px solid var(--color-input-border); border-radius: 1.25rem; box-shadow: 0 6px 32px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10); margin-bottom: 2rem; padding: 1.5rem;">
           <summary
-            class="text-xl font-bold text-red-400 text-heading-card flex items-center gap-2 cursor-pointer select-none">
+            class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none">
             <span class="material-icons">warning</span>Danger Zone
           </summary>
           <div class="mt-4">
-            <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
+            <p class="text-text-secondary text-center mb-4">Enter your password to permanently delete your account.</p>
             <div class="input-field">
               <label for="delete-account-password">Confirm Password:</label>
               <input autocomplete="current-password" id="delete-account-password" placeholder="********"
@@ -384,8 +435,9 @@
     </div>
 
     <!-- Message for unauthenticated users (fallback, if not using auth forms) -->
-    <div id="login-required-message" class="text-center text-gray-300 text-xl py-12" style="display: none;">
-      <p>Please <a href="#" id="link-to-signin" class="text-blue-500 hover:underline">sign in</a> to view and manage your settings.</p>
+    <div class="text-center text-text-secondary text-xl py-12" id="login-required-message" style="display: none;">
+      <p>Please <a class="text-link hover:underline" href="#" id="link-to-signin">sign in</a> to view and manage your
+        settings.</p>
     </div>
 
   </div>
@@ -399,25 +451,25 @@
   <div class="modal-content">
     <span class="close-button">&times;</span>
     <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+    <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
     <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
     <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
   </div>
 </div>
 
 <!-- Footer Section -->
-<footer class="bg-navbar py-8 text-center text-secondary rounded-t-lg shadow-inner mt-8">
+<footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
   <div class="container mx-auto px-4">
     <p>© 2012 - <span id="current-year"></span> Arcator.co.uk. All rights reserved.</p>
     <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
     <div class="flex flex-wrap justify-center space-x-6 mt-4">
-      <a class="hover:text-primary transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
-      <a class="hover:text-primary transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
-      <a class="hover:text-primary transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/"
+      <a class="hover:text-link transition duration-300 ease-in-out" href="privacy.html">Privacy Policy</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="terms.html">Terms of Service</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="https://wiki.arcator.co.uk/"
          rel="noopener noreferrer"
          target="_blank">Wiki</a>
-      <a class="hover:text-primary transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
-      <a class="hover:text-primary transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="infrastructure.html">Infrastructure</a>
+      <a class="hover:text-link transition duration-300 ease-in-out" href="admin_and_dev.html">Admin & Dev</a>
     </div>
   </div>
 </footer>
