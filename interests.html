@@ -32,7 +32,10 @@
 <!-- Main Content Section: Interests Table -->
 <section class="bg-card my-8 p-6 rounded-lg shadow-xl">
   <h2 class="text-3xl font-bold text-heading-main text-center mb-4">Arcator Community Interests</h2>
-  <div class="text-secondary text-center mb-2">Live, auto-updating from our community Google Sheet.</div>
+  <div class="text-secondary text-center mb-2">Live, auto-updating from our <a
+    class="text-blue-400 hover:text-blue-300 underline"
+    href="https://docs.google.com/spreadsheets/u/0/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/htmlview#" target="_blank">community Google Sheet</a>.
+  </div>
   <div class="flex justify-center gap-2 mb-4" id="interests-tabs"></div>
   <div id="interests-table"></div>
   <style>
@@ -46,128 +49,119 @@
       width: 100%;
       border-collapse: collapse;
     }
-
     #interests-table th, #interests-table td {
-      padding: 0.15rem 0.3rem;
-      border-bottom: 1px solid var(--color-input-border, #2d3748);
-      text-align: left;
-      font-weight: 400;
+      padding: 0;
+      text-align: center;
+      border: 1px solid var(--color-input-border, #2d3748);
+      min-width: 2.5rem;
+      max-width: 8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
     #interests-table th {
-      color: var(--color-heading-card, #93C5FD);
       font-weight: 700;
       background: var(--color-bg-card, #23272e);
+      color: var(--color-heading-card, #93C5FD);
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
-    #interests-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .interest-dot {
-      display: inline-block;
-      width: 1em;
-      height: 1em;
+    #interests-table td.filled {
+      background: var(--color-button-bg-primary, #4299e1);
+      color: var(--color-button-text, #fff);
       border-radius: 50%;
-      background: var(--color-link, #63b3ed);
+      width: 1.2em;
+      height: 1.2em;
+      display: inline-block;
       margin: 0 auto;
     }
 
-    .tab-btn {
-      background: var(--color-bg-card, #23272e);
-      color: var(--color-text-primary, #e2e8f0);
-      border: 1px solid var(--color-input-border, #2d3748);
-      border-radius: 0.5rem 0.5rem 0 0;
-      padding: 0.4rem 1.2rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      outline: none;
-    }
-
-    .tab-btn.active, .tab-btn:focus {
-      background: var(--color-link, #63b3ed);
-      color: #fff;
-      border-bottom: 2px solid var(--color-heading-card, #93C5FD);
-      z-index: 2;
+    #interests-table td {
+      font-size: 0.85rem;
     }
   </style>
   <script type="module">
-    // Sheet GIDs for each tab
+    // --- Sheet tab config with correct GIDs ---
     const SHEETS = [
       {name: '2025 Interests', gid: '0'},
       {name: '2020 Interests', gid: '1322829642'},
       {name: 'Machines', gid: '1842829822'},
       {name: 'Donations', gid: '1818939642'}
     ];
-    const BASE_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=';
+    const BASE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=';
     const tableDiv = document.getElementById('interests-table');
     const tabsDiv = document.getElementById('interests-tabs');
-
+    let currentTab = 0;
     function parseCSV(text) {
-      // Minimal CSV parser (no quoted fields)
-      return text.trim().split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
+      const rows = text.split(/\r?\n/).map(row => row.split(','));
+      // Remove trailing empty rows
+      while (rows.length && rows[rows.length - 1].every(cell => !cell.trim())) rows.pop();
+      return rows;
     }
 
-    function renderTable(data) {
-      if (!data || !data.length) return;
-      // Hide rows where all data cells (except first col) are empty or 0
-      const filtered = [data[0]];
-      for (let i = 1; i < data.length; ++i) {
-        const row = data[i];
-        if (row.slice(1).some(cell => cell && cell !== '0')) filtered.push(row);
-      }
-      let html = '<div class="overflow-x-auto"><table>';
-      // Header
-      html += '<thead><tr>';
-      filtered[0].forEach(cell => {
-        html += `<th>${cell}</th>`;
+    function sortAZ09(arr) {
+      return arr.slice().sort((a, b) => {
+        const aStr = a.toLowerCase();
+        const bStr = b.toLowerCase();
+        if (aStr === bStr) return 0;
+        // A-Z first, then 0-9
+        if (/^[a-z]/i.test(aStr) && !/^[a-z]/i.test(bStr)) return -1;
+        if (!/^[a-z]/i.test(aStr) && /^[a-z]/i.test(bStr)) return 1;
+        return aStr.localeCompare(bStr, undefined, {numeric: true});
       });
+    }
+    function renderTable(data) {
+      if (!data.length) {
+        tableDiv.innerHTML = '<div class="text-center text-gray-400">No data.</div>';
+        return;
+      }
+      // Alphabetize columns (usernames) and rows (interests)
+      let [header, ...rows] = data;
+      // Sort columns (except first col)
+      const colHeaders = header.slice(1);
+      const sortedColHeaders = sortAZ09(colHeaders);
+      const colMap = [0, ...sortedColHeaders.map(h => header.indexOf(h))];
+      // Sort rows by first col (interest name)
+      rows = rows.sort((a, b) => sortAZ09([a[0], b[0]])[0] === a[0] ? -1 : 1);
+      // Hide empty rows (all data cells empty/0)
+      rows = rows.filter(row => row.slice(1).some(cell => cell && cell !== '0'));
+      // Build table
+      let html = '<table><thead><tr>';
+      colMap.forEach(i => html += `<th>${header[i]}</th>`);
       html += '</tr></thead><tbody>';
-      // Rows
-      for (let i = 1; i < filtered.length; ++i) {
+      rows.forEach(row => {
         html += '<tr>';
-        filtered[i].forEach((cell, idx) => {
-          if (idx === 0) {
-            html += `<td>${cell}</td>`;
-          } else if (cell === '1') {
-            html += `<td style='text-align:center;'><span class='interest-dot'></span></td>`;
-          } else if (!cell || cell === '0') {
-            html += '<td></td>';
-          } else {
-            html += `<td>${cell}</td>`;
-          }
+        colMap.forEach((i, j) => {
+          if (j === 0) html += `<td>${row[i]}</td>`;
+          else if (row[i] === '1') html += '<td class="filled">●</td>';
+          else html += '<td></td>';
         });
         html += '</tr>';
-      }
-      html += '</tbody></table></div>';
+      });
+      html += '</tbody></table>';
       tableDiv.innerHTML = html;
     }
 
-    function setActiveTab(idx) {
-      tabsDiv.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    function loadSheet(idx) {
+      currentTab = idx;
+      tabsDiv.querySelectorAll('button').forEach((btn, i) => {
         btn.classList.toggle('active', i === idx);
       });
-    }
-
-    function loadSheet(idx) {
-      setActiveTab(idx);
-      tableDiv.innerHTML = '<div class="text-secondary text-center py-4">Loading...</div>';
-      fetch(BASE_URL + SHEETS[idx].gid)
-        .then(r => r.ok ? r.text() : Promise.reject('Failed to fetch sheet'))
+      tableDiv.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
+      fetch(BASE_CSV_URL + SHEETS[idx].gid)
+        .then(r => r.text())
         .then(parseCSV)
         .then(renderTable)
-        .catch(e => {
-          tableDiv.innerHTML = `<div class='text-red-400'>Failed to load interests data.</div>`;
+        .catch(() => {
+          tableDiv.innerHTML = '<div class="text-center text-red-400">Failed to load data.</div>';
         });
     }
-
     // Render tabs
-    tabsDiv.innerHTML = SHEETS.map((s, i) => `<button class='tab-btn${i === 0 ? ' active' : ''}' data-idx='${i}'>${s.name}</button>`).join('');
-    tabsDiv.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.onclick = () => loadSheet(Number(btn.dataset.idx));
-    });
-    // Load default (2025 Interests)
+    tabsDiv.innerHTML = SHEETS.map((s, i) => `<button class="px-3 py-1 rounded ${i === 0 ? 'active' : ''}" style="background:var(--color-input-bg,#4a5568);color:var(--color-text-primary,#e2e8f0);font-weight:600;" onclick="return false;">${s.name}</button>`).join('');
+    tabsDiv.querySelectorAll('button').forEach((btn, i) => btn.onclick = () => loadSheet(i));
+    // Initial load
     loadSheet(0);
   </script>
 </section>
