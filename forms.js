@@ -1396,23 +1396,59 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
         senderPic = senderProfile.photoURL || window.DEFAULT_PROFILE_PIC;
       }
       const isOwn = m.createdBy === currentUserId;
-      const rowClass = isOwn ? 'flex-row-reverse text-right' : 'flex-row text-left';
+      const isAdmin = window.currentUser?.isAdmin;
+      const canEditDelete = isOwn || isAdmin;
+      const rowClass = isOwn ? 'flex-row-reverse justify-end text-right' : 'flex-row justify-start text-left';
       const bubbleClass = isOwn ? 'dm-bubble-out' : 'dm-bubble-in';
       const div = document.createElement('div');
       div.className = `message-item flex ${rowClass} items-end gap-2 mb-3`;
       div.innerHTML = `
         <img src="${senderPic}" class="w-8 h-8 rounded-full object-cover border flex-shrink-0" alt="Profile">
         <div class="flex-1 flex flex-col ${isOwn ? 'items-end' : 'items-start'}">
-          <div class="${bubbleClass}">
-            <div class="flex items-center gap-2 mb-1">
+          <div class="${bubbleClass}" data-message-id="${doc.id}">
+            <div class="flex items-center gap-2 mb-1 ${isOwn ? 'justify-end' : ''}">
               <span class='font-semibold'>${senderName}</span>
               <span class='text-xs text-gray-400 whitespace-nowrap'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
+              ${canEditDelete ? `<button class="dm-edit-btn material-icons text-blue-400 text-base align-middle" title="Edit" data-id="${doc.id}">edit</button><button class="dm-delete-btn material-icons text-red-400 text-base align-middle" title="Delete" data-id="${doc.id}">delete</button>` : ''}
             </div>
-            <div>${convertMentionsToHTML(m.content)}</div>
+            <div class="dm-message-content">${convertMentionsToHTML(m.content)}</div>
           </div>
         </div>
       `;
       dmMessages.appendChild(div);
+    });
+    // Edit handler
+    dmMessages.querySelectorAll('.dm-edit-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const msgId = btn.getAttribute('data-id');
+        const bubble = btn.closest('.dm-bubble-in, .dm-bubble-out');
+        const contentDiv = bubble.querySelector('.dm-message-content');
+        const origContent = contentDiv.innerHTML;
+        const origText = contentDiv.textContent;
+        const form = document.createElement('form');
+        form.className = 'flex flex-col gap-2';
+        form.innerHTML = `<textarea class='w-full p-2 border rounded mb-2'>${origText}</textarea><div class='flex gap-2'><button type='submit' class='btn-primary btn-green'>Save</button><button type='button' class='btn-primary btn-red cancel-edit'>Cancel</button></div>`;
+        contentDiv.innerHTML = '';
+        contentDiv.appendChild(form);
+        form.onsubmit = async (ev) => {
+          ev.preventDefault();
+          const newText = form.querySelector('textarea').value.trim();
+          if (!newText) return;
+          await updateDoc(doc(messagesCol, msgId), { content: newText });
+        };
+        form.querySelector('.cancel-edit').onclick = () => { contentDiv.innerHTML = origContent; };
+      };
+    });
+    // Delete handler
+    dmMessages.querySelectorAll('.dm-delete-btn').forEach(btn => {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        const msgId = btn.getAttribute('data-id');
+        if (confirm('Delete this message?')) {
+          await deleteDoc(doc(messagesCol, msgId));
+        }
+      };
     });
     dmMessages.scrollTop = dmMessages.scrollHeight;
   });
