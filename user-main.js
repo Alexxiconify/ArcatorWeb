@@ -1713,7 +1713,6 @@ const defaultShortcuts = {
   'dms': 'Alt+Shift+D',
   'new-dm': 'Alt+Shift+N',
   'settings': 'Alt+Shift+U',
-  'themes': 'Alt+Shift+T',
   'search': 'Alt+Shift+K',
   'help': 'F1',
   'logout': 'Alt+Shift+L'
@@ -1731,7 +1730,6 @@ const pageUrls = {
   'dms': 'forms.html#dms',
   'new-dm': 'forms.html#dms',
   'settings': 'users.html',
-  'themes': 'themes.html',
   'search': '#',
   'help': '#',
   'logout': '#'
@@ -1864,9 +1862,6 @@ function executeShortcut(shortcutKey) {
       break;
     case 'settings':
       window.location.href = 'users.html';
-      break;
-    case 'themes':
-      window.location.href = 'themes.html';
       break;
     case 'search':
       // Focus search if available, otherwise show search modal
