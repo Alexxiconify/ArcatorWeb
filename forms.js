@@ -411,8 +411,8 @@ function renderThreadsFromCache(themaId) {
         const createdAt = thread.createdAt ? new Date(thread.createdAt).toLocaleString() : 'N/A';
         const creatorDisplayName = thread.authorDisplayName || 'Unknown';
         li.innerHTML = `
-          <h3 class="text-xl font-bold text-heading-card">${thread.title}</h3>
-          <p class="thread-initial-comment mt-2">${thread.initialComment}</p>
+          <h3 class="text-xl font-bold text-heading-card">${replaceEmojis(thread.title)}</h3>
+          <p class="thread-initial-comment mt-2">${replaceEmojis(thread.initialComment)}</p>
           <p class="meta-info">Started by ${creatorDisplayName} on ${createdAt}</p>
           <button data-thread-id="${thread.id}" data-thread-title="${thread.title}" data-thread-initial-comment="${thread.initialComment}" class="view-comments-btn btn-primary btn-green">View Comments</button>
         `;
