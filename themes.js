@@ -39,6 +39,8 @@ const defaultThemes = [
       '--color-bg-navbar': '#111827',
       '--color-bg-content-section': '#2d3748',
       '--color-bg-card': '#2d3748',
+      '--color-bg-ip-box': '#1a202c',
+      '--color-border-ip-box': '#4a5568',
       '--color-link': '#63b3ed',
       '--color-link-hover': '#90cdf4',
       '--color-button-text': '#ffffff',
@@ -56,6 +58,8 @@ const defaultThemes = [
       '--color-button-orange-hover': '#dd6b20',
       '--color-button-indigo-bg': '#667eea',
       '--color-button-indigo-hover': '#5a67d8',
+      '--color-button-teal-bg': '#319795',
+      '--color-button-teal-hover': '#2c7a7b',
       '--color-input-bg': '#2d3748',
       '--color-input-text': '#e2e8f0',
       '--color-input-border': '#4a5568',
@@ -69,8 +73,8 @@ const defaultThemes = [
       '--color-modal-input-bg': '#1a202c',
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
-      '--color-heading-main': '#F9FAFB', // Changed from red-equivalent to inviting light color
-      '--color-heading-card': '#93C5FD' // Changed from blue-300 equivalent to inviting light blue
+      '--color-heading-main': '#F9FAFB',
+      '--color-heading-card': '#93C5FD'
     }
   },
   {
@@ -83,6 +87,8 @@ const defaultThemes = [
       '--color-bg-navbar': '#ffffff',
       '--color-bg-content-section': '#ffffff',
       '--color-bg-card': '#ffffff',
+      '--color-bg-ip-box': '#edf2f7',
+      '--color-border-ip-box': '#e2e8f0',
       '--color-link': '#2b6cb0',
       '--color-link-hover': '#3182ce',
       '--color-button-text': '#ffffff',
@@ -100,6 +106,8 @@ const defaultThemes = [
       '--color-button-orange-hover': '#c05621',
       '--color-button-indigo-bg': '#5a67d8',
       '--color-button-indigo-hover': '#4c51bf',
+      '--color-button-teal-bg': '#319795',
+      '--color-button-teal-hover': '#2c7a7b',
       '--color-input-bg': '#edf2f7',
       '--color-input-text': '#2d3748',
       '--color-input-border': '#e2e8f0',
@@ -113,8 +121,8 @@ const defaultThemes = [
       '--color-modal-input-bg': '#edf2f7',
       '--color-message-box-bg-success': '#28a745',
       '--color-message-box-bg-error': '#dc3545',
-      '--color-heading-main': '#1F2937', // Changed from red-equivalent to inviting dark grey/black
-      '--color-heading-card': '#3B82F6' // Changed from blue-300 equivalent to inviting blue
+      '--color-heading-main': '#1F2937',
+      '--color-heading-card': '#3B82F6'
     }
   },
 ];

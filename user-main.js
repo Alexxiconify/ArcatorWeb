@@ -482,6 +482,44 @@ window.onload = async function() {
         applyTheme(themeToApply.id, themeToApply);
         console.log("DEBUG: Theme applied.");
 
+        // Populate theme select (moved inside the authenticated user block)
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect) {
+          themeSelect.innerHTML = '';
+          allThemes.forEach(theme => {
+            const opt = document.createElement('option');
+            opt.value = theme.id;
+            opt.textContent = theme.name;
+            themeSelect.appendChild(opt);
+          });
+          // Set current theme as selected
+          if (userProfile && userProfile.themePreference) {
+            themeSelect.value = userProfile.themePreference;
+          } else {
+            themeSelect.value = DEFAULT_THEME_NAME;
+          }
+          // Change event
+          themeSelect.onchange = async function () {
+            const selectedThemeId = themeSelect.value;
+            const themes = await getAvailableThemes();
+            const selectedTheme = themes.find(t => t.id === selectedThemeId);
+            if (selectedTheme) {
+              await applyTheme(selectedTheme.id, selectedTheme);
+              // Save theme preference to user profile
+              if (auth.currentUser) {
+                try {
+                  await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+                    themePreference: selectedThemeId
+                  }, {merge: true});
+                  console.log("Theme preference saved to user profile.");
+                } catch (error) {
+                  console.error("Error saving theme preference:", error);
+                }
+              }
+            }
+          };
+        }
+
       } else {
         // User is signed out or anonymous. Display the sign-in form.
         console.log("user-main.js: User logged out or anonymous. Showing sign-in section.");

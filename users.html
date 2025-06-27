@@ -12,11 +12,11 @@
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to navbar.css for consistent styling -->
   <link rel="stylesheet" href="navbar.css">
-  <!-- Link to settings.css for page-specific styling -->
-  <link rel="stylesheet" href="settings.css">
   <!-- Add any specific CSS for sign-in/up forms if not already covered by settings.css -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Theme initialization -->
+  <script src="theme-init.js" type="module"></script>
   <style>
     body {
       background: var(--color-body-bg, #1a202c);
@@ -154,7 +154,8 @@
         </div>
         <div class="auth-input-field relative">
           <label for="signin-password">Password</label>
-          <input class="pr-10" id="signin-password" placeholder="********" type="password">
+          <input autocomplete="current-password" class="pr-10" id="signin-password" placeholder="********"
+                 type="password">
           <button class="absolute right-2 top-8 text-gray-400 focus:outline-none" id="toggle-signin-password"
                   type="button">
             <span class="material-icons">visibility</span>
@@ -210,8 +211,8 @@
     <div id="settings-content" style="display: none;">
       <div class="space-y-6">
         <!-- Profile Info -->
-        <details class="settings-card bg-gray-700 shadow-xl" open>
-          <summary class="text-xl font-bold text-blue-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl" open>
+          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">badge</span> Profile Information
           </summary>
           <div class="mt-4">
@@ -234,8 +235,9 @@
           </div>
         </details>
         <!-- Preferences -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-green-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-green-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">palette</span> Personalize Experience
           </summary>
           <div class="mt-4">
@@ -245,7 +247,7 @@
             </div>
             <div class="input-field">
               <label for="font-size-select">Base Font Size:</label>
-              <select id="font-size-select">
+              <select class="w-full" id="font-size-select">
                 <option value="14px">Small (14px)</option>
                 <option value="16px">Medium (16px)</option>
                 <option value="18px">Large (18px)</option>
@@ -253,7 +255,7 @@
             </div>
             <div class="input-field">
               <label for="font-family-select">Font Family:</label>
-              <select id="font-family-select">
+              <select class="w-full" id="font-family-select">
                 <option value="Inter, sans-serif">Inter</option>
                 <option value="Roboto Mono, monospace">Roboto Mono</option>
                 <option value="Open Sans, sans-serif">Open Sans</option>
@@ -261,7 +263,7 @@
             </div>
             <div class="input-field">
               <label for="background-pattern-select">Background Pattern:</label>
-              <select id="background-pattern-select">
+              <select class="w-full" id="background-pattern-select">
                 <option value="none">None</option>
                 <option value="dots">Dots</option>
                 <option value="grid">Grid</option>
@@ -274,30 +276,32 @@
           </div>
         </details>
         <!-- Security -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-orange-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-orange-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">lock</span> Password Management
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">You must enter your current password to change it.</p>
             <div class="input-field">
               <label for="current-password-input">Current Password:</label>
-              <input id="current-password-input" placeholder="********" type="password">
+              <input autocomplete="current-password" id="current-password-input" placeholder="********" type="password">
             </div>
             <div class="input-field">
               <label for="new-password-input">New Password:</label>
-              <input id="new-password-input" placeholder="********" type="password">
+              <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
             </div>
             <div class="input-field">
               <label for="confirm-new-password-input">Confirm New Password:</label>
-              <input id="confirm-new-password-input" placeholder="********" type="password">
+              <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********" type="password">
             </div>
             <button class="btn-primary btn-orange mt-2" id="change-password-btn">Change Password</button>
           </div>
         </details>
         <!-- Notifications -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-yellow-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-yellow-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">notifications</span> Notification Preferences
           </summary>
           <div class="mt-4">
@@ -316,8 +320,9 @@
           </div>
         </details>
         <!-- Accessibility -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-purple-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-purple-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">accessibility</span> Accessibility Settings
           </summary>
           <div class="mt-4">
@@ -334,8 +339,9 @@
           </div>
         </details>
         <!-- Session Info -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-cyan-300 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-cyan-300 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">info</span> Session Information
           </summary>
           <div class="mt-4">
@@ -344,15 +350,17 @@
           </div>
         </details>
         <!-- Danger Zone -->
-        <details class="settings-card bg-gray-700 shadow-xl">
-          <summary class="text-xl font-bold text-red-400 flex items-center gap-2 cursor-pointer select-none"><span
+        <details class="settings-card bg-card shadow-xl">
+          <summary
+            class="text-xl font-bold text-red-400 text-heading-card flex items-center gap-2 cursor-pointer select-none"><span
             class="material-icons">warning</span> Danger Zone
           </summary>
           <div class="mt-4">
             <p class="text-gray-300 text-center mb-4">Enter your password to permanently delete your account.</p>
             <div class="input-field">
               <label for="delete-account-password">Confirm Password:</label>
-              <input id="delete-account-password" placeholder="********" type="password">
+              <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                     type="password">
             </div>
             <button class="btn-primary btn-red mt-2" id="delete-account-btn">Delete Account</button>
           </div>
