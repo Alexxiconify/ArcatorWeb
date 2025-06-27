@@ -1006,22 +1006,52 @@
               </div>
             </div>
             <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
-            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"> Custom
+
+            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2">Custom
               Themes</h3>
             <button class="btn-primary btn-purple" id="create-custom-theme-btn">Create/Manage Custom Themes</button>
+
+            <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2">
+              Accessibility</h3>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
+              <label for="reduced-motion-checkbox">Reduced Motion <span
+                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes most transitions and animations for less motion.</span></label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
+              <label for="disable-animations-checkbox">Disable Animations <span
+                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
+            </div>
+            <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
           </div>
         </details>
 
-        <!-- Notifications -->
+        <!-- Data & Notifications -->
         <details class="settings-card">
           <summary
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Notification Preferences
+            Data & Notifications
           </summary>
           <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">Manage how you receive updates and alerts.</p>
+            <p class="text-text-secondary text-center mb-4">Control your privacy settings, manage your data, and
+              configure notifications.</p>
 
-            <h4 class="text-lg font-semibold text-heading-card mb-3">General Notifications</h4>
+            <h4 class="text-lg font-semibold text-heading-card mb-3">Privacy Settings</h4>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
+              <label for="profile-visibility-checkbox">Make Profile Public</label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
+              <label for="activity-visibility-checkbox">Show Activity Status</label>
+            </div>
+            <div class="checkbox-container">
+              <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
+              <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">General Notifications</h4>
             <div class="checkbox-container">
               <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
               <label for="email-notifications-checkbox">Receive Email Notifications</label>
@@ -1061,33 +1091,6 @@
               </select>
             </div>
 
-            <button class="btn-primary btn-blue mt-4" id="save-notifications-btn">Save Notification Settings</button>
-          </div>
-        </details>
-
-        <!-- Privacy & Data -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Privacy & Data Management
-          </summary>
-          <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">Control your privacy settings and manage your data.</p>
-
-            <h4 class="text-lg font-semibold text-heading-card mb-3">Privacy Settings</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
-              <label for="profile-visibility-checkbox">Make Profile Public</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
-              <label for="activity-visibility-checkbox">Show Activity Status</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
-              <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
-            </div>
-
             <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Data Management</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button class="btn-primary btn-green" id="export-data-btn">
@@ -1123,37 +1126,11 @@
               <div><strong>Account Created:</strong> <span id="account-creation-time">N/A</span></div>
             </div>
 
-            <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Privacy Settings</button>
+            <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Settings</button>
           </div>
         </details>
 
-        <!-- Accessibility -->
-        <details class="settings-card">
-          <summary
-            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Accessibility Settings
-          </summary>
-          <div class="mt-4">
-            <p class="text-text-secondary text-center mb-4">Customize accessibility features for better user
-              experience.</p>
-
-            <h4 class="text-lg font-semibold text-heading-card mb-3">Accessibility</h4>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
-              <label for="reduced-motion-checkbox">Reduced Motion <span
-                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes most transitions and animations for less motion.</span></label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
-              <label for="disable-animations-checkbox">Disable Animations <span
-                style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
-            </div>
-
-            <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
-          </div>
-        </details>
-
-        <!-- Password Management (Moved to last) -->
+        <!-- Password Management -->
         <details class="settings-card">
           <summary
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
