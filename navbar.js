@@ -4,7 +4,6 @@
 import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
 import { applyTheme, getAvailableThemes } from './themes.js';
 import {validatePhotoURL} from './utils.js';
-import {loadNavbar, loadFooter} from './navbar.js';
 
 // Embedded CSS styles
 const navbarStyles = `
@@ -217,65 +216,23 @@ function injectNavbarStyles() {
  * Refreshes the navbar profile picture with current user data
  * This can be called when user profile is updated
  */
-export async function refreshNavbarProfilePicture(userProfile) {
+export function refreshNavbarProfilePicture(userProfile) {
   const userProfilePic = document.getElementById('navbar-user-profile-pic');
   const userSettingsLink = document.getElementById('navbar-user-settings-link');
-
-  if (!userProfilePic || !userSettingsLink) {
-    console.warn('[DEBUG] Navbar profile picture elements not found');
-    return;
-  }
-
-  // Check if user is logged in and has profile
-  if (window.auth && window.auth.currentUser && userProfile) {
-    console.log('[DEBUG] Refreshing navbar profile picture for user:', userProfile.displayName);
-
-    try {
-      // Use the enhanced validation function
-      const {validateAndTestPhotoURL} = await import('./utils.js');
-      const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL);
-      console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
-      userProfilePic.src = profilePicURL;
-
-      // Add error handling for image loading
-      userProfilePic.onerror = function () {
-        const failedURL = this.src;
-        console.warn('[DEBUG] refreshNavbarProfilePicture: Profile picture failed to load:', failedURL);
-
-        // Special handling for Discord URLs
-        if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
-          console.log('[DEBUG] refreshNavbarProfilePicture: Discord CDN URL failed - this is common due to CORS restrictions');
-          console.log('[DEBUG] refreshNavbarProfilePicture: The URL may work in browser tabs but fail in JavaScript');
-          provideDiscordUrlGuidance(failedURL);
-        }
-
-        this.src = window.DEFAULT_PROFILE_PIC;
-        this.onerror = null; // Prevent infinite loop
-      };
-
-      userProfilePic.onload = function () {
-        console.log('[DEBUG] refreshNavbarProfilePicture: Profile picture loaded successfully:', this.src);
-      };
-
-      // Update user display name
-      const displayName = userProfile.displayName || userProfile.handle || 'User';
-      const displayNameSpan = document.getElementById('navbar-user-display-name');
-      if (displayNameSpan) {
-        displayNameSpan.textContent = displayName;
-      }
-
-    } catch (error) {
-      console.error('[DEBUG] refreshNavbarProfilePicture: Error refreshing profile picture:', error);
-      userProfilePic.src = window.DEFAULT_PROFILE_PIC;
-    }
-  } else {
-    // User not logged in, use default
-    userProfilePic.src = window.DEFAULT_PROFILE_PIC;
-    const displayNameSpan = document.getElementById('navbar-user-display-name');
-    if (displayNameSpan) {
-      displayNameSpan.textContent = 'Sign In';
-    }
-  }
+  if (!userProfilePic || !userSettingsLink) return;
+  if (!userProfile) return;
+  const profilePicURL = getSafePhotoURL(userProfile.photoURL, DEFAULT_PROFILE_PIC);
+  userProfilePic.src = profilePicURL;
+  userProfilePic.onload = function () {
+    // Success, do nothing
+  };
+  userProfilePic.onerror = function () {
+    this.src = DEFAULT_PROFILE_PIC;
+    this.onerror = null;
+  };
+  const displayName = userProfile.displayName || userProfile.handle || 'User';
+  const displayNameSpan = document.getElementById('navbar-user-display-name');
+  if (displayNameSpan) displayNameSpan.textContent = displayName;
 }
 
 /**
@@ -306,7 +263,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
         // Use the enhanced validation function
         const {validateAndTestPhotoURL} = await import('./utils.js');
-        const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL);
+        const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL, defaultProfilePic);
         console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
         userProfilePic.src = profilePicURL;
 
@@ -737,9 +694,10 @@ window.provideDiscordUrlGuidance = provideDiscordUrlGuidance;
 window.updateProfilePicture = updateProfilePicture;
 window.convertAndUpdateDiscordUrl = convertAndUpdateDiscordUrl;
 
-function getSafePhotoURL(photoURL) {
-  if (!photoURL || photoURL === 'undefined' || typeof photoURL === 'undefined') {
-    return window.DEFAULT_PROFILE_PIC;
+function getSafePhotoURL(photoURL, defaultProfilePic = null) {
+  const fallback = defaultProfilePic || window.DEFAULT_PROFILE_PIC || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+  if (!photoURL || photoURL === '' || photoURL === 'undefined' || typeof photoURL !== 'string') {
+    return fallback;
   }
   return photoURL;
 }
