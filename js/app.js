@@ -1,5 +1,7 @@
 // Load full emoji map from emojibase
 let EMOJI_MAP = {};
+let EMOJI_MAP_LOADED = false;
+
 fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
   .then(res => res.json())
   .then(data => {
@@ -11,6 +13,12 @@ fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
         });
       }
     });
+    EMOJI_MAP_LOADED = true;
+    console.log('Emoji map loaded with', Object.keys(EMOJI_MAP).length, 'emojis');
+  })
+  .catch(error => {
+    console.error('Failed to load emoji map:', error);
+    EMOJI_MAP_LOADED = true; // Mark as loaded even on error to prevent infinite waiting
   });
 
 /**
@@ -19,8 +27,25 @@ fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
  * @returns {string}
  */
 export function replaceEmojis(text) {
+  if (!EMOJI_MAP_LOADED) {
+    // If emoji map isn't loaded yet, return original text
+    // The content will be re-rendered when the map loads
+    return text;
+  }
+  
   return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
     if (EMOJI_MAP[name]) return EMOJI_MAP[name];
     return match;
   });
+}
+
+/**
+ * Force re-render of content when emoji map loads
+ */
+export function triggerEmojiRerender() {
+  if (EMOJI_MAP_LOADED) {
+    // Trigger a re-render of visible content
+    const event = new CustomEvent('emojiMapLoaded');
+    document.dispatchEvent(event);
+  }
 }

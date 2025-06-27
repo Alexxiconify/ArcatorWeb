@@ -259,7 +259,7 @@ window.getAvailableThemes = async function() {
 };
 
 // At the top, import replaceEmojis
-import { replaceEmojis } from './js/app.js';
+import { replaceEmojis, triggerEmojiRerender } from './js/app.js';
 
 // At the top of forms.js
 import { loadNavbar } from './navbar.js';
@@ -1921,3 +1921,20 @@ function checkLoginStatusAfterDelay() {
     }
   }, 10000);
 }
+
+// Add event listener for emoji map loading
+document.addEventListener('emojiMapLoaded', () => {
+  console.log('Emoji map loaded, re-rendering content...');
+  // Re-render current content with emojis
+  if (window.currentThemaId) {
+    loadThreadsForThema(window.currentThemaId);
+  }
+});
+
+// Call triggerEmojiRerender when emoji map loads
+fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
+  .then(res => res.json())
+  .then(data => {
+    // Emoji map loaded, trigger re-render
+    setTimeout(() => triggerEmojiRerender(), 100);
+  });
