@@ -115,6 +115,12 @@
       border-radius: 0 0 2rem 2rem;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
     }
+
+    .input-field select {
+      width: 100%;
+      min-width: 0;
+      display: block;
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -235,7 +241,7 @@
           <div class="mt-4">
             <div class="input-field">
               <label for="theme-select">Select Theme:</label>
-              <select id="theme-select"></select>
+              <select class="w-full" id="theme-select"></select>
             </div>
             <div class="input-field">
               <label for="font-size-select">Base Font Size:</label>
