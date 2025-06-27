@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
@@ -56,43 +58,6 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
-    /* Dynamic theme application for various elements */
-    .bg-gray-800 {
-      background-color: var(--color-bg-content-section) !important;
-    }
-
-    .bg-gray-900 {
-      background-color: var(--color-bg-navbar) !important; /* For footer */
-    }
-
-    .text-gray-300 {
-      color: var(--color-text-secondary) !important;
-    }
-
-    .text-gray-400 {
-      color: var(--color-text-secondary) !important;
-    }
-
-    .text-gray-50 {
-      color: var(--color-text-primary) !important; /* For logo/site title in navbar */
-    }
-
-    .text-red-400 {
-      color: var(--color-heading-main) !important;
-    }
-
-    .text-blue-300 {
-      color: var(--color-heading-card) !important;
-    }
-
-    .text-yellow-300 {
-      color: var(--color-button-yellow-bg) !important;
-    }
-
-    .text-green-300 {
-      color: var(--color-button-green-bg) !important;
-    }
-
     /* Feature card specific styling */
     .feature-card {
       background-color: var(--color-bg-card); /* Use card background for feature cards */
@@ -118,45 +83,44 @@
       color: white !important;
     }
 
-    /* Buttons */
-    .bg-blue-600 {
-      background-color: var(--color-button-blue-bg) !important;
-      color: var(--color-button-text) !important;
+    /* Content section styling */
+    .content-section {
+      background-color: var(--color-bg-content-section);
+      border-radius: 0.75rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin: 2rem 1rem;
     }
 
-    .hover\:bg-blue-700:hover {
-      background-color: var(--color-button-blue-hover) !important;
+    .content-card {
+      background-color: var(--color-bg-card);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease-in-out;
     }
 
-    .bg-yellow-600 {
-      background-color: var(--color-button-yellow-bg) !important;
-      color: var(--color-button-text) !important;
+    .content-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
     }
 
-    .hover\:bg-yellow-700:hover {
-      background-color: var(--color-button-yellow-hover) !important;
+    /* List styling */
+    .feature-list {
+      list-style-type: disc;
+      list-style-position: inside;
+      color: var(--color-text-secondary);
     }
 
-    .bg-green-600 { /* Copy IP button */
-      background-color: var(--color-button-green-bg) !important;
-      color: var(--color-button-text) !important;
+    .feature-list li {
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
     }
 
-    .hover\:bg-green-700:hover {
-      background-color: var(--color-button-green-hover) !important;
-    }
-
-    .bg-indigo-600 { /* Discord button */
-      background-color: var(--color-button-indigo-bg) !important;
-      color: var(--color-button-text) !important;
-    }
-
-    .hover\:bg-indigo-700:hover {
-      background-color: var(--color-button-indigo-hover) !important;
-    }
-
-    .hover\:text-white:hover { /* For footer links */
-      color: var(--color-text-primary) !important;
+    .feature-list .highlight {
+      color: var(--color-text-primary);
+      font-weight: 600;
     }
   </style>
 </head>
@@ -173,13 +137,16 @@
 </section>
 
 <!-- Main Content Section -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+<section class="content-section">
   <div class="container mx-auto px-4">
     <!-- Our Story & Mission -->
     <div class="mb-12">
       <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Our Story & Mission</h2>
-      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-secondary space-y-6">
-        <p>Arcator.co.uk began its journey in <span class="font-semibold text-primary">October 2012</span>, born from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the standard game.</p>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
+        <p>Arcator.co.uk began its journey in <span class="font-semibold text-text-primary">October 2012</span>, born
+          from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What
+          started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the
+          standard game.</p>
         <p>Our mission is simple: to provide a long-lasting, fun, and safe environment for Minecraft players of all ages and backgrounds. We believe in fostering a community where creativity flourishes, friendships are made, and every player feels welcome and valued. We are committed to continuous improvement, adapting to the evolving landscape of Minecraft while upholding the core values that have defined us for over a decade.</p>
         <p>Over the years, we've hosted countless adventures, witnessed incredible builds, and built a dedicated global community. We are passionate about Minecraft and even more passionate about the community we've built together.</p>
       </div>
@@ -190,50 +157,69 @@
       <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Core Values</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
         <!-- Value Card 1 -->
-        <div class="bg-card p-6 rounded-lg shadow-md">
+        <div class="content-card">
           <h3 class="text-2xl font-bold text-heading-card mb-3">Community First</h3>
-          <p class="text-secondary">We prioritize a welcoming and inclusive atmosphere where every player feels respected and heard. Community is the foundation that drives our development.</p>
+          <p class="text-text-secondary">We prioritize a welcoming and inclusive atmosphere where every player feels
+            respected and heard. Community is the foundation that drives our development.</p>
         </div>
         <!-- Value Card 2 -->
-        <div class="bg-card p-6 rounded-lg shadow-md">
+        <div class="content-card">
           <h3 class="text-2xl font-bold text-heading-card mb-3">Innovation & Fun</h3>
-          <p class="text-secondary">We constantly explore new ways to enhance the Minecraft experience, introducing fresh content, challenges, and features to keep things exciting for our players.</p>
+          <p class="text-text-secondary">We constantly explore new ways to enhance the Minecraft experience, introducing
+            fresh content, challenges, and features to keep things exciting for our players.</p>
         </div>
         <!-- Value Card 3 -->
-        <div class="bg-card p-6 rounded-lg shadow-md">
+        <div class="content-card">
           <h3 class="text-2xl font-bold text-heading-card mb-3">Stability & Reliability</h3>
-          <p class="text-secondary">Our robust infrastructure and dedicated administration ensure a smooth, low-lag gameplay experience with high uptime and secure data.</p>
+          <p class="text-text-secondary">Our robust infrastructure and dedicated administration ensure a smooth, low-lag
+            gameplay experience with high uptime and secure data.</p>
         </div>
         <!-- Value Card 4 -->
-        <div class="bg-card p-6 rounded-lg shadow-md">
+        <div class="content-card">
           <h3 class="text-2xl font-bold text-heading-card mb-3">Transparency & Communication</h3>
-          <p class="text-secondary">We believe in open communication with our community, sharing insights into server development, plans, and decisions that affect our players.</p>
+          <p class="text-text-secondary">We believe in open communication with our community, sharing insights into
+            server development, plans, and decisions that affect our players.</p>
         </div>
       </div>
     </div>
 
     <!-- Join Our Thriving Community! -->
-    <div class="text-center">
+    <div class="text-center mb-12">
       <h2 class="text-4xl font-bold text-heading-main mb-6">Join Our Thriving Community!</h2>
-      <p class="text-lg leading-relaxed text-secondary max-w-3xl mx-auto mb-8">
+      <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
         The heart of Arcator is its community. Join our Discord server to chat, connect with other players, participate in discussions, and get real-time updates.
       </p>
-      <a class="inline-block" href="https://discord.gg/GwArgw2" rel="noopener noreferrer" target="_blank">Join Our
-        Discord</a>
+      <a
+        class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+        href="https://discord.gg/GwArgw2" rel="noopener noreferrer" target="_blank">Join Our Discord</a>
     </div>
 
     <!-- What's Happening in Our Community: -->
     <div class="mt-12">
       <h2 class="text-4xl font-bold text-heading-main text-center mb-10">What's Happening in Our Community:</h2>
-      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-secondary space-y-4">
-        <ul class="list-disc list-inside space-y-2">
-          <li><span class="font-semibold text-primary">**Regular Events**</span> From building competitions to mini-game tournaments, there's always something happening!</li>
-          <li><span class="font-semibold text-primary">**Active Voice Chat**</span> Hangout, connect with other members in our Discord voice channels for lively discussions and gaming sessions.</li>
-          <li><span class="font-semibold text-primary">**Community Suggestions**</span> We actively listen to player feedback and implement suggestions to improve the server.</li>
-          <li><span class="font-semibold text-primary">**Collaborative Builds**</span> Participate in large-scale community projects and leave your mark on the Arcator world.</li>
-          <li><span class="font-semibold text-primary">**Creative Cinematography**</span> Utilize footage from the Arcator YouTube channel, showcasing players' creations in cinematic masterpieces.</li>
-          <li><span class="font-semibold text-primary">**Historical Cartography**</span> Explore the world's history in 1:1,000 scale, historical maps.</li>
-          <li><span class="font-semibold text-primary">**Lore Building**</span> Provide ready-to-use documents to aid in the creation of unique histories for settlements.</li>
+      <div class="max-w-4xl mx-auto">
+        <ul class="feature-list space-y-2">
+          <li><span class="highlight">**Regular Events**</span> From building competitions to mini-game tournaments,
+            there's always something happening!
+          </li>
+          <li><span class="highlight">**Active Voice Chat**</span> Hangout, connect with other members in our Discord
+            voice channels for lively discussions and gaming sessions.
+          </li>
+          <li><span class="highlight">**Community Suggestions**</span> We actively listen to player feedback and
+            implement suggestions to improve the server.
+          </li>
+          <li><span class="highlight">**Collaborative Builds**</span> Participate in large-scale community projects and
+            leave your mark on the Arcator world.
+          </li>
+          <li><span class="highlight">**Creative Cinematography**</span> Utilize footage from the Arcator YouTube
+            channel, showcasing players' creations in cinematic masterpieces.
+          </li>
+          <li><span class="highlight">**Historical Cartography**</span> Explore the world's history in 1:1,000 scale,
+            historical maps.
+          </li>
+          <li><span class="highlight">**Lore Building**</span> Provide ready-to-use documents to aid in the creation of
+            unique histories for settlements.
+          </li>
         </ul>
       </div>
     </div>
