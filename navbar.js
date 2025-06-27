@@ -159,9 +159,9 @@ const navbarStyles = `
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 1rem;
+  gap: 0.5rem;
+  padding: 0.375rem;
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -169,39 +169,42 @@ const navbarStyles = `
 }
 
 .profile-pic-small {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .profile-pic-small:hover {
   border-color: var(--color-link, #60A5FA);
-  transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
 }
 
 .navbar-user .navbar-link {
-  padding: 0.5rem 1rem;
+  padding: 0.375rem 0.75rem;
   background: linear-gradient(135deg, var(--color-button-blue-bg, #3B82F6), var(--color-button-indigo-bg, #6366F1));
   color: white;
   border: none;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  font-size: 0.8125rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .navbar-user .navbar-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   background: linear-gradient(135deg, var(--color-button-blue-hover, #2563EB), var(--color-button-indigo-hover, #4F46E5));
 }
 
 .navbar-user .navbar-link svg {
-  margin-right: 0.5rem;
+  margin-right: 0.375rem;
   color: white;
+  height: 1rem;
+  width: 1rem;
 }
 
 .hidden {
@@ -327,19 +330,19 @@ const navbarStyles = `
   .navbar-container {
     padding: 0 0.5rem;
   }
-
+  
   .navbar-logo {
     font-size: 1.125rem;
   }
-
+  
   .navbar-logo svg {
     height: 1.25rem;
     width: 1.25rem;
   }
-
+  
   .profile-pic-small {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
   }
 }
 
