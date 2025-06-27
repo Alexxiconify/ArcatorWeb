@@ -1965,3 +1965,8 @@ if (typeof document !== 'undefined') {
     if (typeof EMOJI_MAP_LOADED !== 'undefined' && EMOJI_MAP_LOADED) rerenderAllEmojis();
   });
 }
+
+// --- PATCH: Ensure all flag shortcodes are rendered as emoji ---
+function renderFlagsInText(text) {
+  return replaceEmojis(text);
+}

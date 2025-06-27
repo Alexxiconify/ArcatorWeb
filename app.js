@@ -6,10 +6,10 @@ fetch('./emojii.json')
   .then(res => res.json())
   .then(data => {
     EMOJI_MAP = {};
+    // Use the 'name' field as the key for shortcode lookup
     data.forEach(e => {
-      if (e.emoji) {
-        // Use the emoji field directly
-        EMOJI_MAP[e.emoji] = e.emoji;
+      if (e.emoji && e.name) {
+        EMOJI_MAP[e.name] = e.emoji;
       }
     });
     EMOJI_MAP_LOADED = true;
@@ -27,8 +27,8 @@ fetch('./emojii.json')
  */
 export function replaceEmojis(text) {
   // Manual patch for :joy: and :smile:
-  text = text.replace(/:joy:/gi, '😂');
-  text = text.replace(/:smile:/gi, '😄');
+  text = text.replace(/:joy:/gi, '\ud83d\ude02');
+  text = text.replace(/:smile:/gi, '\ud83d\ude04');
   if (!EMOJI_MAP_LOADED) {
     // If emoji map isn't loaded yet, return patched text
     return text;
