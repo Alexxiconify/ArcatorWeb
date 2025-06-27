@@ -180,4 +180,10 @@
       }
 // Apply the theme: user's preference, or 'dark' default
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
+  };
+</script>
+</body>
+</html>
