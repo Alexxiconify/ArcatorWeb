@@ -81,6 +81,58 @@ const fontSizeSelect = document.getElementById('font-size-select');
 const fontFamilySelect = document.getElementById('font-family-select');
 const backgroundPatternSelect = document.getElementById('background-pattern-select');
 
+// New font and typography controls
+const headingSizeMultiplierSelect = document.getElementById('heading-size-multiplier');
+const lineHeightSelect = document.getElementById('line-height-select');
+const letterSpacingSelect = document.getElementById('letter-spacing-select');
+const backgroundOpacityRange = document.getElementById('background-opacity-range');
+const backgroundOpacityValue = document.getElementById('background-opacity-value');
+
+// Notification settings
+const emailNotificationsCheckbox = document.getElementById('email-notifications-checkbox');
+const inappNotificationsCheckbox = document.getElementById('inapp-notifications-checkbox');
+const announcementNotificationsCheckbox = document.getElementById('announcement-notifications-checkbox');
+const communityNotificationsCheckbox = document.getElementById('community-notifications-checkbox');
+const securityNotificationsCheckbox = document.getElementById('security-notifications-checkbox');
+const maintenanceNotificationsCheckbox = document.getElementById('maintenance-notifications-checkbox');
+const notificationFrequencySelect = document.getElementById('notification-frequency-select');
+const saveNotificationsBtn = document.getElementById('save-notifications-btn');
+
+// Privacy settings
+const profileVisibilityCheckbox = document.getElementById('profile-visibility-checkbox');
+const activityVisibilityCheckbox = document.getElementById('activity-visibility-checkbox');
+const analyticsConsentCheckbox = document.getElementById('analytics-consent-checkbox');
+const dataRetentionSelect = document.getElementById('data-retention-select');
+const exportDataBtn = document.getElementById('export-data-btn');
+const importDataBtn = document.getElementById('import-data-btn');
+const savePrivacyBtn = document.getElementById('save-privacy-btn');
+
+// Accessibility settings
+const highContrastCheckbox = document.getElementById('high-contrast-checkbox');
+const largeCursorCheckbox = document.getElementById('large-cursor-checkbox');
+const focusIndicatorsCheckbox = document.getElementById('focus-indicators-checkbox');
+const colorblindFriendlyCheckbox = document.getElementById('colorblind-friendly-checkbox');
+const reducedMotionCheckbox = document.getElementById('reduced-motion-checkbox');
+const disableAnimationsCheckbox = document.getElementById('disable-animations-checkbox');
+const keyboardNavigationCheckbox = document.getElementById('keyboard-navigation-checkbox');
+const skipLinksCheckbox = document.getElementById('skip-links-checkbox');
+const textToSpeechCheckbox = document.getElementById('text-to-speech-checkbox');
+const readingGuideCheckbox = document.getElementById('reading-guide-checkbox');
+const syntaxHighlightingCheckbox = document.getElementById('syntax-highlighting-checkbox');
+const wordSpacingCheckbox = document.getElementById('word-spacing-checkbox');
+const saveAccessibilityBtn = document.getElementById('save-accessibility-btn');
+
+// Advanced settings
+const lowBandwidthModeCheckbox = document.getElementById('low-bandwidth-mode-checkbox');
+const disableImagesCheckbox = document.getElementById('disable-images-checkbox');
+const minimalUiCheckbox = document.getElementById('minimal-ui-checkbox');
+const debugModeCheckbox = document.getElementById('debug-mode-checkbox');
+const showPerformanceMetricsCheckbox = document.getElementById('show-performance-metrics-checkbox');
+const enableExperimentalFeaturesCheckbox = document.getElementById('enable-experimental-features-checkbox');
+const customCssTextarea = document.getElementById('custom-css-textarea');
+const keyboardShortcutsToggle = document.getElementById('keyboard-shortcuts-toggle');
+const saveAdvancedBtn = document.getElementById('save-advanced-btn');
+const resetAdvancedBtn = document.getElementById('reset-advanced-btn');
 
 /**
  * Shows a specific section and hides others within the main content area.
@@ -390,32 +442,55 @@ async function handleSaveProfile() {
 // Handler for saving preferences
 async function handleSavePreferences() {
   const selectedFontSize = fontSizeSelect.value;
+  const selectedHeadingMultiplier = headingSizeMultiplierSelect.value;
   const selectedFontFamily = fontFamilySelect.value;
+  const selectedLineHeight = lineHeightSelect.value;
+  const selectedLetterSpacing = letterSpacingSelect.value;
   const selectedBackgroundPattern = backgroundPatternSelect.value;
+  const selectedBackgroundOpacity = backgroundOpacityRange.value;
 
   // Apply font size and family to body
   document.body.style.fontSize = selectedFontSize;
   document.body.style.fontFamily = selectedFontFamily;
+  document.body.style.lineHeight = selectedLineHeight;
+  document.body.style.letterSpacing = selectedLetterSpacing;
 
-  // Apply background pattern
+  // Apply heading size multiplier as CSS custom property
+  document.documentElement.style.setProperty('--heading-size-multiplier', selectedHeadingMultiplier);
+
+  // Apply background pattern with opacity
+  const opacity = selectedBackgroundOpacity / 100;
   if (selectedBackgroundPattern === 'none') {
     document.body.style.backgroundImage = 'none';
   } else if (selectedBackgroundPattern === 'dots') {
-    document.body.style.backgroundImage = 'linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px)';
+    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
     document.body.style.backgroundSize = '20px 20px';
   } else if (selectedBackgroundPattern === 'grid') {
-    document.body.style.backgroundImage = 'linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)';
+    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '40px 40px';
+  } else if (selectedBackgroundPattern === 'diagonal') {
+    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
+    document.body.style.backgroundSize = '60px 60px';
+  } else if (selectedBackgroundPattern === 'circles') {
+    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
+    document.body.style.backgroundSize = '30px 30px';
+  } else if (selectedBackgroundPattern === 'hexagons') {
+    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
     document.body.style.backgroundSize = '40px 40px';
   }
 
   // Save to Firestore
   if (auth.currentUser) {
     try {
-      console.log("DEBUG: Saving preferences for UID:", auth.currentUser.uid, "updates:", { selectedFontSize, selectedFontFamily, selectedBackgroundPattern });
+      console.log("DEBUG: Saving preferences for UID:", auth.currentUser.uid);
       const updates = {
         fontSize: selectedFontSize,
+        headingSizeMultiplier: selectedHeadingMultiplier,
         fontFamily: selectedFontFamily,
-        backgroundPattern: selectedBackgroundPattern
+        lineHeight: selectedLineHeight,
+        letterSpacing: selectedLetterSpacing,
+        backgroundPattern: selectedBackgroundPattern,
+        backgroundOpacity: selectedBackgroundOpacity
       };
       await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), updates, { merge: true });
       showMessageBox('Preferences saved successfully!', false);
@@ -424,6 +499,308 @@ async function handleSavePreferences() {
       console.error("Error saving preferences:", error);
       showMessageBox(`Failed to save preferences: ${error.message}`, true);
     }
+  }
+}
+
+// Handler for saving notification settings
+async function handleSaveNotifications() {
+  if (!auth.currentUser) return;
+
+  try {
+    const notificationSettings = {
+      emailNotifications: emailNotificationsCheckbox.checked,
+      inappNotifications: inappNotificationsCheckbox.checked,
+      announcementNotifications: announcementNotificationsCheckbox.checked,
+      communityNotifications: communityNotificationsCheckbox.checked,
+      securityNotifications: securityNotificationsCheckbox.checked,
+      maintenanceNotifications: maintenanceNotificationsCheckbox.checked,
+      notificationFrequency: notificationFrequencySelect.value
+    };
+
+    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+      notificationSettings: notificationSettings
+    }, {merge: true});
+
+    showMessageBox('Notification settings saved successfully!', false);
+  } catch (error) {
+    console.error("Error saving notification settings:", error);
+    showMessageBox(`Failed to save notification settings: ${error.message}`, true);
+  }
+}
+
+// Handler for saving privacy settings
+async function handleSavePrivacy() {
+  if (!auth.currentUser) return;
+
+  try {
+    const privacySettings = {
+      profileVisibility: profileVisibilityCheckbox.checked,
+      activityVisibility: activityVisibilityCheckbox.checked,
+      analyticsConsent: analyticsConsentCheckbox.checked,
+      dataRetention: dataRetentionSelect.value
+    };
+
+    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+      privacySettings: privacySettings
+    }, {merge: true});
+
+    showMessageBox('Privacy settings saved successfully!', false);
+  } catch (error) {
+    console.error("Error saving privacy settings:", error);
+    showMessageBox(`Failed to save privacy settings: ${error.message}`, true);
+  }
+}
+
+// Handler for saving accessibility settings
+async function handleSaveAccessibility() {
+  if (!auth.currentUser) return;
+
+  try {
+    const accessibilitySettings = {
+      highContrast: highContrastCheckbox.checked,
+      largeCursor: largeCursorCheckbox.checked,
+      focusIndicators: focusIndicatorsCheckbox.checked,
+      colorblindFriendly: colorblindFriendlyCheckbox.checked,
+      reducedMotion: reducedMotionCheckbox.checked,
+      disableAnimations: disableAnimationsCheckbox.checked,
+      keyboardNavigation: keyboardNavigationCheckbox.checked,
+      skipLinks: skipLinksCheckbox.checked,
+      textToSpeech: textToSpeechCheckbox.checked,
+      readingGuide: readingGuideCheckbox.checked,
+      syntaxHighlighting: syntaxHighlightingCheckbox.checked,
+      wordSpacing: wordSpacingCheckbox.checked
+    };
+
+    // Apply accessibility settings immediately
+    applyAccessibilitySettings(accessibilitySettings);
+
+    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+      accessibilitySettings: accessibilitySettings
+    }, {merge: true});
+
+    showMessageBox('Accessibility settings saved successfully!', false);
+  } catch (error) {
+    console.error("Error saving accessibility settings:", error);
+    showMessageBox(`Failed to save accessibility settings: ${error.message}`, true);
+  }
+}
+
+// Apply accessibility settings to the page
+function applyAccessibilitySettings(settings) {
+  const root = document.documentElement;
+
+  if (settings.highContrast) {
+    root.classList.add('high-contrast-mode');
+  } else {
+    root.classList.remove('high-contrast-mode');
+  }
+
+  if (settings.reducedMotion || settings.disableAnimations) {
+    root.style.setProperty('--animation-duration', '0.01ms');
+    root.style.setProperty('--transition-duration', '0.01ms');
+  } else {
+    root.style.removeProperty('--animation-duration');
+    root.style.removeProperty('--transition-duration');
+  }
+
+  if (settings.largeCursor) {
+    root.style.setProperty('--cursor-size', '24px');
+  } else {
+    root.style.removeProperty('--cursor-size');
+  }
+
+  if (settings.wordSpacing) {
+    root.style.setProperty('--word-spacing', '0.2em');
+  } else {
+    root.style.removeProperty('--word-spacing');
+  }
+}
+
+// Handler for saving advanced settings
+async function handleSaveAdvanced() {
+  if (!auth.currentUser) return;
+
+  try {
+    const advancedSettings = {
+      lowBandwidthMode: lowBandwidthModeCheckbox.checked,
+      disableImages: disableImagesCheckbox.checked,
+      minimalUi: minimalUiCheckbox.checked,
+      debugMode: debugModeCheckbox.checked,
+      showPerformanceMetrics: showPerformanceMetricsCheckbox.checked,
+      enableExperimentalFeatures: enableExperimentalFeaturesCheckbox.checked,
+      customCss: customCssTextarea.value,
+      keyboardShortcuts: keyboardShortcutsToggle.value
+    };
+
+    // Apply custom CSS if provided
+    if (advancedSettings.customCss) {
+      applyCustomCSS(advancedSettings.customCss);
+    }
+
+    // Apply advanced settings
+    applyAdvancedSettings(advancedSettings);
+
+    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+      advancedSettings: advancedSettings
+    }, {merge: true});
+
+    showMessageBox('Advanced settings saved successfully!', false);
+  } catch (error) {
+    console.error("Error saving advanced settings:", error);
+    showMessageBox(`Failed to save advanced settings: ${error.message}`, true);
+  }
+}
+
+// Apply custom CSS
+function applyCustomCSS(css) {
+  let customStyleElement = document.getElementById('custom-user-css');
+  if (!customStyleElement) {
+    customStyleElement = document.createElement('style');
+    customStyleElement.id = 'custom-user-css';
+    document.head.appendChild(customStyleElement);
+  }
+  customStyleElement.textContent = css;
+}
+
+// Apply advanced settings
+function applyAdvancedSettings(settings) {
+  if (settings.debugMode) {
+    document.body.classList.add('debug-mode');
+  } else {
+    document.body.classList.remove('debug-mode');
+  }
+
+  if (settings.minimalUi) {
+    document.body.classList.add('minimal-ui');
+  } else {
+    document.body.classList.remove('minimal-ui');
+  }
+
+  if (settings.lowBandwidthMode) {
+    document.body.classList.add('low-bandwidth-mode');
+  } else {
+    document.body.classList.remove('low-bandwidth-mode');
+  }
+}
+
+// Handler for exporting user data
+async function handleExportData() {
+  if (!auth.currentUser) return;
+
+  try {
+    const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      userProfile: userProfile,
+      settings: {
+        preferences: {
+          fontSize: userProfile.fontSize,
+          fontFamily: userProfile.fontFamily,
+          lineHeight: userProfile.lineHeight,
+          letterSpacing: userProfile.letterSpacing,
+          backgroundPattern: userProfile.backgroundPattern,
+          backgroundOpacity: userProfile.backgroundOpacity
+        },
+        notifications: userProfile.notificationSettings,
+        privacy: userProfile.privacySettings,
+        accessibility: userProfile.accessibilitySettings,
+        advanced: userProfile.advancedSettings
+      }
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `arcator-user-data-${auth.currentUser.uid}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showMessageBox('Data exported successfully!', false);
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    showMessageBox(`Failed to export data: ${error.message}`, true);
+  }
+}
+
+// Handler for importing user data
+async function handleImportData() {
+  if (!auth.currentUser) return;
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importData = JSON.parse(text);
+
+      if (importData.userProfile && importData.settings) {
+        // Import settings
+        await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+          ...importData.userProfile,
+          ...importData.settings
+        }, {merge: true});
+
+        showMessageBox('Data imported successfully! Please refresh the page to see changes.', false);
+      } else {
+        showMessageBox('Invalid data format. Please use a valid export file.', true);
+      }
+    } catch (error) {
+      console.error("Error importing data:", error);
+      showMessageBox(`Failed to import data: ${error.message}`, true);
+    }
+  };
+  input.click();
+}
+
+// Handler for resetting advanced settings
+async function handleResetAdvanced() {
+  const confirmed = await showCustomConfirm(
+    'Reset Advanced Settings',
+    'This will reset all advanced settings to their default values. This action cannot be undone.'
+  );
+
+  if (!confirmed) return;
+
+  try {
+    // Reset checkboxes
+    lowBandwidthModeCheckbox.checked = false;
+    disableImagesCheckbox.checked = false;
+    minimalUiCheckbox.checked = false;
+    debugModeCheckbox.checked = false;
+    showPerformanceMetricsCheckbox.checked = false;
+    enableExperimentalFeaturesCheckbox.checked = false;
+
+    // Reset textarea
+    customCssTextarea.value = '';
+
+    // Reset select
+    keyboardShortcutsToggle.value = 'disabled';
+
+    // Remove custom CSS
+    const customStyleElement = document.getElementById('custom-user-css');
+    if (customStyleElement) {
+      customStyleElement.remove();
+    }
+
+    // Remove applied classes
+    document.body.classList.remove('debug-mode', 'minimal-ui', 'low-bandwidth-mode');
+
+    // Save reset settings
+    await handleSaveAdvanced();
+
+    showMessageBox('Advanced settings reset to defaults!', false);
+  } catch (error) {
+    console.error("Error resetting advanced settings:", error);
+    showMessageBox(`Failed to reset settings: ${error.message}`, true);
   }
 }
 
@@ -661,13 +1038,35 @@ window.onload = async function() {
     if (changePasswordBtn) changePasswordBtn.addEventListener('click', () => showMessageBox('Change Password functionality coming soon!', false));
 
     const saveNotificationsBtn = document.getElementById('save-notifications-btn');
-    if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', () => showMessageBox('Notification settings saving functionality coming soon!', false));
+    if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', handleSaveNotifications);
 
     const saveAccessibilityBtn = document.getElementById('save-accessibility-btn');
-    if (saveAccessibilityBtn) saveAccessibilityBtn.addEventListener('click', () => showMessageBox('Accessibility settings saving functionality coming soon!', false));
+    if (saveAccessibilityBtn) saveAccessibilityBtn.addEventListener('click', handleSaveAccessibility);
 
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', () => showMessageBox('Delete account functionality coming soon! Be careful with this one!', true));
+
+    // New event listeners for enhanced settings
+    if (savePrivacyBtn) savePrivacyBtn.addEventListener('click', handleSavePrivacy);
+    if (exportDataBtn) exportDataBtn.addEventListener('click', handleExportData);
+    if (importDataBtn) importDataBtn.addEventListener('click', handleImportData);
+    if (saveAdvancedBtn) saveAdvancedBtn.addEventListener('click', handleSaveAdvanced);
+    if (resetAdvancedBtn) resetAdvancedBtn.addEventListener('click', handleResetAdvanced);
+
+    // Background opacity range slider
+    if (backgroundOpacityRange && backgroundOpacityValue) {
+      backgroundOpacityRange.addEventListener('input', function () {
+        backgroundOpacityValue.textContent = this.value + '%';
+      });
+    }
+
+    // Custom theme management
+    const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
+    if (createCustomThemeBtn) {
+      createCustomThemeBtn.addEventListener('click', () => {
+        setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, themeSelect, DEFAULT_THEME_NAME, userProfile, showCustomConfirm);
+      });
+    }
 
   } catch (error) {
     console.error("user-main.js: Error during window.onload execution:", error);

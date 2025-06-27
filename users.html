@@ -683,18 +683,66 @@
             <div class="input-field">
               <label for="font-size-select">Base Font Size:</label>
               <select class="w-full" id="font-size-select">
+                <option value="12px">Extra Small (12px)</option>
                 <option value="14px">Small (14px)</option>
                 <option value="16px">Medium (16px)</option>
                 <option value="18px">Large (18px)</option>
+                <option value="20px">Extra Large (20px)</option>
+                <option value="22px">XXL (22px)</option>
+                <option value="24px">XXXL (24px)</option>
               </select>
+            </div>
+            <div class="input-field">
+              <label for="heading-size-multiplier">Heading Size Multiplier:</label>
+              <select class="w-full" id="heading-size-multiplier">
+                <option value="1.2">Small (1.2x)</option>
+                <option value="1.4">Medium (1.4x)</option>
+                <option value="1.6">Large (1.6x)</option>
+                <option value="1.8">Extra Large (1.8x)</option>
+                <option value="2.0">XXL (2.0x)</option>
+                <option value="2.5">XXXL (2.5x)</option>
+              </select>
+              <p class="text-text-secondary text-sm mt-1">Controls how much larger headings are compared to body
+                text.</p>
             </div>
             <div class="input-field">
               <label for="font-family-select">Font Family:</label>
               <select class="w-full" id="font-family-select">
-                <option value="Inter, sans-serif">Inter</option>
-                <option value="Roboto Mono, monospace">Roboto Mono</option>
-                <option value="Open Sans, sans-serif">Open Sans</option>
+                <option value="Inter, sans-serif">Inter (Modern)</option>
+                <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
+                <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
+                <option value="Roboto, sans-serif">Roboto (Google)</option>
+                <option value="Lato, sans-serif">Lato (Friendly)</option>
+                <option value="Poppins, sans-serif">Poppins (Geometric)</option>
+                <option value="Source Sans Pro, sans-serif">Source Sans Pro (Professional)</option>
+                <option value="Ubuntu, sans-serif">Ubuntu (System-like)</option>
+                <option value="Merriweather, serif">Merriweather (Serif)</option>
+                <option value="Playfair Display, serif">Playfair Display (Elegant)</option>
               </select>
+            </div>
+            <div class="input-field">
+              <label for="line-height-select">Line Height:</label>
+              <select class="w-full" id="line-height-select">
+                <option value="1.2">Tight (1.2)</option>
+                <option value="1.4">Compact (1.4)</option>
+                <option value="1.6">Normal (1.6)</option>
+                <option value="1.8">Relaxed (1.8)</option>
+                <option value="2.0">Loose (2.0)</option>
+                <option value="2.2">Very Loose (2.2)</option>
+              </select>
+              <p class="text-text-secondary text-sm mt-1">Controls spacing between lines of text.</p>
+            </div>
+            <div class="input-field">
+              <label for="letter-spacing-select">Letter Spacing:</label>
+              <select class="w-full" id="letter-spacing-select">
+                <option value="-0.5px">Tight (-0.5px)</option>
+                <option value="-0.2px">Slightly Tight (-0.2px)</option>
+                <option value="0px">Normal (0px)</option>
+                <option value="0.5px">Slightly Loose (0.5px)</option>
+                <option value="1px">Loose (1px)</option>
+                <option value="2px">Very Loose (2px)</option>
+              </select>
+              <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
             </div>
             <div class="input-field">
               <label for="background-pattern-select">Background Pattern:</label>
@@ -702,7 +750,19 @@
                 <option value="none">None</option>
                 <option value="dots">Dots</option>
                 <option value="grid">Grid</option>
+                <option value="diagonal">Diagonal Lines</option>
+                <option value="circles">Circles</option>
+                <option value="hexagons">Hexagons</option>
               </select>
+            </div>
+            <div class="input-field">
+              <label for="background-opacity-range">Background Pattern Opacity:</label>
+              <input class="w-full" id="background-opacity-range" max="100" min="0" type="range" value="10">
+              <div class="flex justify-between text-xs text-text-secondary mt-1">
+                <span>0%</span>
+                <span id="background-opacity-value">10%</span>
+                <span>100%</span>
+              </div>
             </div>
             <button class="btn-primary btn-green mt-2" id="save-preferences-btn">Save Preferences</button>
             <h3 class="text-lg font-bold text-heading-card mb-2 mt-8 text-center flex items-center gap-2"> Custom
@@ -746,6 +806,8 @@
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Manage how you receive updates and alerts.</p>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3">General Notifications</h4>
             <div class="input-field flex items-center space-x-2">
               <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="email-notifications-checkbox"
                      type="checkbox">
@@ -756,7 +818,103 @@
                      type="checkbox">
               <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
             </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Specific Notification Types</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="announcement-notifications-checkbox"
+                     type="checkbox">
+              <label for="announcement-notifications-checkbox">Server Announcements</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="community-notifications-checkbox"
+                     type="checkbox">
+              <label for="community-notifications-checkbox">Community Updates</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="security-notifications-checkbox"
+                     type="checkbox">
+              <label for="security-notifications-checkbox">Security Alerts</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="maintenance-notifications-checkbox"
+                     type="checkbox">
+              <label for="maintenance-notifications-checkbox">Maintenance Notifications</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Notification Frequency</h4>
+            <div class="input-field">
+              <label for="notification-frequency-select">Email Frequency:</label>
+              <select class="w-full" id="notification-frequency-select">
+                <option value="immediate">Immediate</option>
+                <option value="hourly">Hourly Digest</option>
+                <option value="daily">Daily Digest</option>
+                <option value="weekly">Weekly Digest</option>
+                <option value="never">Never</option>
+              </select>
+            </div>
+
             <button class="btn-primary btn-blue mt-4" id="save-notifications-btn">Save Notification Settings</button>
+          </div>
+        </details>
+
+        <!-- Privacy & Data -->
+        <details class="settings-card">
+          <summary
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+            Privacy & Data Management
+          </summary>
+          <div class="mt-4">
+            <p class="text-text-secondary text-center mb-4">Control your privacy settings and manage your data.</p>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3">Privacy Settings</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="profile-visibility-checkbox"
+                     type="checkbox">
+              <label for="profile-visibility-checkbox">Make Profile Public</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="activity-visibility-checkbox"
+                     type="checkbox">
+              <label for="activity-visibility-checkbox">Show Activity Status</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="analytics-consent-checkbox"
+                     type="checkbox">
+              <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Data Management</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button class="btn-primary btn-green" id="export-data-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"></path>
+                </svg>
+                Export My Data
+              </button>
+              <button class="btn-primary btn-purple" id="import-data-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"></path>
+                </svg>
+                Import Data
+              </button>
+            </div>
+
+            <div class="input-field mt-4">
+              <label for="data-retention-select">Data Retention Period:</label>
+              <select class="w-full" id="data-retention-select">
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+                <option value="0">Keep indefinitely</option>
+              </select>
+              <p class="text-text-secondary text-sm mt-1">How long to keep your activity data before automatic
+                deletion.</p>
+            </div>
+
+            <button class="btn-primary btn-blue mt-4" id="save-privacy-btn">Save Privacy Settings</button>
           </div>
         </details>
         <!-- Accessibility -->
@@ -767,17 +925,134 @@
           </summary>
           <div class="mt-4">
             <p class="text-text-secondary text-center mb-4">Adjust settings for improved accessibility.</p>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3">Visual Accessibility</h4>
             <div class="input-field flex items-center space-x-2">
               <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="high-contrast-checkbox" type="checkbox">
               <label for="high-contrast-checkbox">Enable High Contrast Mode</label>
             </div>
             <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="large-cursor-checkbox" type="checkbox">
+              <label for="large-cursor-checkbox">Large Cursor</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="focus-indicators-checkbox" type="checkbox">
+              <label for="focus-indicators-checkbox">Enhanced Focus Indicators</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="colorblind-friendly-checkbox"
+                     type="checkbox">
+              <label for="colorblind-friendly-checkbox">Colorblind-Friendly Mode</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Motion & Animation</h4>
+            <div class="input-field flex items-center space-x-2">
               <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="reduced-motion-checkbox" type="checkbox">
               <label for="reduced-motion-checkbox">Enable Reduced Motion</label>
             </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="disable-animations-checkbox"
+                     type="checkbox">
+              <label for="disable-animations-checkbox">Disable All Animations</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Navigation & Interaction</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="keyboard-navigation-checkbox"
+                     type="checkbox">
+              <label for="keyboard-navigation-checkbox">Enhanced Keyboard Navigation</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="skip-links-checkbox" type="checkbox">
+              <label for="skip-links-checkbox">Show Skip Links</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="text-to-speech-checkbox" type="checkbox">
+              <label for="text-to-speech-checkbox">Enable Text-to-Speech</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Reading Aids</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="reading-guide-checkbox" type="checkbox">
+              <label for="reading-guide-checkbox">Reading Guide Line</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="syntax-highlighting-checkbox"
+                     type="checkbox">
+              <label for="syntax-highlighting-checkbox">Enhanced Syntax Highlighting</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="word-spacing-checkbox" type="checkbox">
+              <label for="word-spacing-checkbox">Increased Word Spacing</label>
+            </div>
+
             <button class="btn-primary btn-blue mt-4" id="save-accessibility-btn">Save Accessibility Settings</button>
           </div>
         </details>
+        <!-- Advanced Settings -->
+        <details class="settings-card">
+          <summary
+            class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+            Advanced Settings
+          </summary>
+          <div class="mt-4">
+            <p class="text-text-secondary text-center mb-4">Advanced customization and performance options.</p>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3">Performance Options</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="low-bandwidth-mode-checkbox"
+                     type="checkbox">
+              <label for="low-bandwidth-mode-checkbox">Low Bandwidth Mode</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="disable-images-checkbox" type="checkbox">
+              <label for="disable-images-checkbox">Disable Non-Essential Images</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="minimal-ui-checkbox" type="checkbox">
+              <label for="minimal-ui-checkbox">Minimal UI Mode</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Developer Tools</h4>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="debug-mode-checkbox" type="checkbox">
+              <label for="debug-mode-checkbox">Enable Debug Mode</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="show-performance-metrics-checkbox"
+                     type="checkbox">
+              <label for="show-performance-metrics-checkbox">Show Performance Metrics</label>
+            </div>
+            <div class="input-field flex items-center space-x-2">
+              <input class="form-checkbox h-5 w-5 text-blue-600 rounded" id="enable-experimental-features-checkbox"
+                     type="checkbox">
+              <label for="enable-experimental-features-checkbox">Enable Experimental Features</label>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Custom CSS</h4>
+            <div class="input-field">
+              <label for="custom-css-textarea">Custom CSS (Advanced Users):</label>
+              <textarea class="w-full" id="custom-css-textarea" placeholder="/* Add your custom CSS here */"
+                        rows="6"></textarea>
+              <p class="text-text-secondary text-sm mt-1">Add custom CSS to further customize the appearance. Use with
+                caution.</p>
+            </div>
+
+            <h4 class="text-lg font-semibold text-heading-card mb-3 mt-6">Keyboard Shortcuts</h4>
+            <div class="input-field">
+              <label for="keyboard-shortcuts-toggle">Enable Custom Keyboard Shortcuts:</label>
+              <select class="w-full" id="keyboard-shortcuts-toggle">
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+                <option value="minimal">Minimal Set</option>
+              </select>
+            </div>
+
+            <button class="btn-primary btn-blue mt-4" id="save-advanced-btn">Save Advanced Settings</button>
+            <button class="btn-primary btn-orange mt-2 ml-2" id="reset-advanced-btn">Reset to Defaults</button>
+          </div>
+        </details>
+
         <!-- Info Session Information -->
         <details class="settings-card">
           <summary
