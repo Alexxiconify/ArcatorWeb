@@ -913,9 +913,8 @@
 
     <!-- Collapsible Settings Sections (Account Management) -->
     <div id="settings-content" style="display: none;">
-      <div class="settings-grid">
-        <!-- Profile Info and Personalize Experience Side by Side -->
-        <div class="settings-card" style="grid-column: span 2;">
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
           <details open>
             <summary
               class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
@@ -956,7 +955,7 @@
         </div>
 
         <!-- Personalize Experience -->
-        <details class="settings-card">
+        <details class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
           <summary
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
             Personalize Experience
@@ -1079,7 +1078,8 @@
         </details>
 
         <!-- Data & Notifications -->
-        <details class="settings-card equal-size" style="min-height:unset;">
+        <details class="settings-card equal-size"
+                 style="min-height:unset;width:100%;max-width:100%;margin-bottom:2rem;">
           <summary
             class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
             Data & Notifications
