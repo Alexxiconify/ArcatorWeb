@@ -258,6 +258,9 @@ window.getAvailableThemes = async function() {
   return _allThemes;
 };
 
+// At the top, import replaceEmojis
+import { replaceEmojis } from './js/app.js';
+
 // At the top of forms.js
 import { loadNavbar } from './navbar.js';
 
@@ -650,7 +653,7 @@ function loadThreadsForThema(themaId) {
             ${canEdit ? `<button class="edit-thread-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-thread-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
           </div>
           <h4 class="thread-title text-2xl font-extrabold text-heading-card mb-1">${thread.title}</h4>
-          <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(thread.initialComment || '')}</div>
+          <div class="thread-initial-comment text-sm text-gray-300 mb-2">${renderMarkdown(replaceEmojis(thread.initialComment || ''))}</div>
           <div class="reactions-bar flex gap-2 mb-2">${renderReactions(thread.reactions || {}, 'thread', threadDoc.id, null, themaId)}</div>
           <div class="thread-comments" id="thread-comments-${threadDoc.id}">Loading comments...</div>
           <form class="add-comment-form mt-2 card bg-card shadow p-3 flex flex-col gap-2" id="add-comment-form-${threadDoc.id}">
@@ -788,7 +791,7 @@ function loadCommentsForThread(themaId, threadId) {
           <span class="ml-2 text-xs text-gray-400">${createdAt}</span>
           ${canEdit ? `<button class="edit-comment-btn ml-auto mr-1" title="Edit"><span class="material-icons text-orange-400">edit</span></button><button type="button" class="delete-comment-btn btn-primary btn-red ml-2" title="Delete"><span class="material-icons">delete</span></button>` : ''}
         </div>
-        <div class="comment-content text-sm">${renderMarkdown(comment.content)}</div>
+        <div class="comment-content text-sm">${renderMarkdown(replaceEmojis(comment.content))}</div>
         <div class="reactions-bar flex gap-2 mt-1">${renderReactions(comment.reactions || {}, 'comment', commentDoc.id, threadId, themaId)}</div>
       `;
       commentsDiv.appendChild(commentDiv);
@@ -1384,7 +1387,7 @@ function renderDMMessages(dmId, dmData, userProfiles = {}) {
               <span class='text-xs text-gray-400 whitespace-nowrap'>${m.createdAt ? new Date(m.createdAt.toDate()).toLocaleString() : ''}</span>
               ${canEditDelete ? `<button class="dm-edit-btn material-icons text-blue-400 text-base align-middle" title="Edit" data-id="${doc.id}">edit</button><button class="dm-delete-btn material-icons text-red-400 text-base align-middle" title="Delete" data-id="${doc.id}">delete</button>` : ''}
             </div>
-            <div class="dm-message-content">${convertMentionsToHTML(m.content)}</div>
+            <div class="dm-message-content">${convertMentionsToHTML(replaceEmojis(m.content))}</div>
           </div>
         </div>
       `;
