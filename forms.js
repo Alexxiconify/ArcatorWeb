@@ -1941,7 +1941,7 @@ fetch('https://cdn.jsdelivr.net/npm/emojibase-data/en/data.json')
 function rerenderAllEmojis() {
   // Thread titles
   document.querySelectorAll('.thread-title').forEach(el => {
-    el.innerHTML = replaceEmojis(el.textContent);
+    el.textContent = replaceEmojis(el.innerText || el.textContent);
   });
   // Thread initial comments
   document.querySelectorAll('.thread-initial-comment').forEach(el => {
