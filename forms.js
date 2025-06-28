@@ -157,8 +157,8 @@ async function loadThreadsForThema(themaId) {
       <div class="create-thread-section mb-4">
         <h4 class="text-lg font-bold mb-2">Create New Thread</h4>
         <form class="create-thread-form space-y-2" data-thema-id="${themaId}">
-          <input type="text" class="form-input" placeholder="Thread title" required>
-          <textarea class="form-input" placeholder="Initial comment" rows="3" required></textarea>
+          <input type="text" class="${inputClass}" placeholder="Thread title" required>
+          <textarea class="${textareaClass}" placeholder="Initial comment" rows="3" required></textarea>
           <button type="submit" class="btn-primary btn-blue">Create Thread</button>
         </form>
       </div>
@@ -180,7 +180,7 @@ async function loadThreadsForThema(themaId) {
         }
         const photoURL = userProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
         threadsHtml.push(`
-          <div class="thread-item card p-3" data-thread-id="${threadDoc.id}">
+          <div class="thread-item ${cardClass} p-3" data-thread-id="${threadDoc.id}">
             <div class="thread-header flex items-center gap-3">
               <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2">
               <div>
@@ -263,8 +263,8 @@ async function loadCommentsForThread(themaId, threadId) {
         }
         const photoURL = userProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
         commentsHtml.push(`
-          <div class="comment-item p-2 bg-gray-50 rounded" data-comment-id="${commentDoc.id}">
-            <div class="comment-header flex items-center gap-3">
+          <div class="${commentClass}" data-comment-id="${commentDoc.id}">
+            <div class="${commentHeaderClass}">
               <img src="${photoURL}" alt="User" class="w-7 h-7 rounded-full object-cover mr-2">
               <div>
                 <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || 'Anonymous')}</span>
@@ -301,7 +301,7 @@ async function loadCommentsForThread(themaId, threadId) {
     commentsHtml.push(`
       <div class="add-comment-section mt-3">
         <form class="add-comment-form space-y-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
-          <textarea class="form-input text-sm" placeholder="Add a comment..." rows="2" required></textarea>
+          <textarea class="${textareaClass} text-sm" placeholder="Add a comment..." rows="2" required></textarea>
           <button type="submit" class="btn-primary btn-blue text-sm">Add Comment</button>
         </form>
       </div>
@@ -551,10 +551,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize thematas
   renderThematas();
 });
-
-// --- PATCH: THEME-AWARE CLASSES ---
-// Replace bg-gray-50 etc. with bg-card, text-text-primary, etc. in comment/thread rendering
-// --- PATCH: INLINE EDIT ---
 async function handleEditThread(themaId, threadId, oldTitle, oldComment) {
   const threadDiv = document.querySelector(`[data-thread-id="${threadId}"]`);
   if (!threadDiv) return;
@@ -610,7 +606,12 @@ async function handleReaction(type, themaId, threadId, commentId = null) {
   if (commentId) await loadCommentsForThread(themaId, threadId);
   else await loadThreadsForThema(themaId);
 }
-// PATCH: update renderThreads and renderComments to use theme classes, show reactions, and wire up edit/reaction events
-// PATCH: In renderThreads and renderComments, use bg-card, text-text-primary, etc. and wire up edit/reaction
-// PATCH: In setupThreadEventListeners and setupCommentEventListeners, wire up edit and reaction events
-// PATCH END
+const inputClass = 'form-input bg-card text-text-primary border-none rounded w-full';
+const textareaClass = 'form-input bg-card text-text-primary border-none rounded w-full';
+const cardClass = 'bg-card text-text-primary border border-input-border rounded-lg shadow';
+const commentClass = 'comment-item p-2 ' + cardClass + ' mt-2';
+
+// PATCH: THEME-AWARE COMMENT HEADER & FORM INPUTS
+// Remove border from comment-header, apply same theme classes to .form-input
+const threadHeaderClass = 'thread-header flex items-center gap-3 bg-card text-text-primary';
+const commentHeaderClass = threadHeaderClass;
