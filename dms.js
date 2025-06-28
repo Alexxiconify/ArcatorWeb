@@ -961,7 +961,7 @@ export async function sendMessage(content) {
   const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedChatId}/messages`);
   const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedChatId);
 
-  // Get current user's profile data to embed in the message
+  // Get current user's complete profile data to embed in the message
   let userProfile = null;
   try {
     userProfile = await getUserProfileFromFirestore(currentUser.uid);
@@ -969,19 +969,22 @@ export async function sendMessage(content) {
     console.warn("Could not fetch user profile for message:", error);
   }
 
+  // Use the most reliable source for each field
+  const senderProfile = {
+    uid: currentUser.uid,
+    handle: currentUser.handle,
+    displayName: userProfile?.displayName || currentUser.displayName || currentUser.handle || 'Unknown User',
+    photoURL: userProfile?.photoURL || currentUser.photoURL || DEFAULT_PROFILE_PIC,
+    username: userProfile?.displayName || currentUser.displayName || currentUser.handle || 'Unknown User'
+  };
+
   const messageData = {
     createdBy: currentUser.uid,
-    creatorDisplayName: currentUser.displayName || currentUser.handle || 'Unknown User',
+    creatorDisplayName: senderProfile.displayName,
     content: content,
     createdAt: serverTimestamp(),
-    // Embed sender profile data in the message
-    senderProfile: {
-      uid: currentUser.uid,
-      handle: currentUser.handle,
-      displayName: currentUser.displayName || currentUser.handle || 'Unknown User',
-      photoURL: currentUser.photoURL || (userProfile?.photoURL) || DEFAULT_PROFILE_PIC,
-      username: currentUser.displayName || currentUser.handle || 'Unknown User'
-    }
+    // Embed complete sender profile data in the message
+    senderProfile: senderProfile
   };
 
   try {
