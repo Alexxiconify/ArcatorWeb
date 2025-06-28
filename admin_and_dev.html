@@ -704,172 +704,184 @@
 
 <!-- Edit User Modal -->
 <div id="edit-user-modal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
-    <span class="close-button">&times;</span>
-    <h3 class="text-xl font-bold mb-4 text-heading-card">Edit User Profile</h3>
+  <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-2xl font-bold text-heading-card">Edit User Profile</h3>
+      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
+    </div>
     
-    <!-- Basic Information Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Basic Information</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="input-field">
-          <label for="edit-user-display-name">Display Name:</label>
-          <input id="edit-user-display-name" type="text" placeholder="User's display name"/>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-handle">Handle:</label>
-          <input id="edit-user-handle" type="text" placeholder="@userhandle"/>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-email">Email Address:</label>
-          <input id="edit-user-email" type="email" placeholder="user@example.com"/>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-photo-url">Profile Picture URL:</label>
-          <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg"/>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-discord-url">Discord URL:</label>
-          <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..."/>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-github-url">GitHub URL:</label>
-          <input id="edit-user-github-url" type="url" placeholder="https://github.com/username"/>
+    <form id="edit-user-form" class="space-y-6">
+      <!-- Basic Information Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Basic Information</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-field">
+            <label for="edit-user-display-name">Display Name:</label>
+            <input id="edit-user-display-name" type="text" placeholder="User's display name"/>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-handle">Handle:</label>
+            <input id="edit-user-handle" type="text" placeholder="@userhandle"/>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-email">Email Address:</label>
+            <input id="edit-user-email" type="email" placeholder="user@example.com"/>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-photo-url">Profile Picture URL:</label>
+            <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg"/>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-discord-url">Discord URL:</label>
+            <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..."/>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-github-url">GitHub URL:</label>
+            <input id="edit-user-github-url" type="url" placeholder="https://github.com/username"/>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Preferences Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Preferences</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="input-field">
-          <label for="edit-user-theme">Theme Preference:</label>
-          <select id="edit-user-theme">
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-            <option value="arcator-green">Arcator Green</option>
-            <option value="ocean-blue">Ocean Blue</option>
-            <option value="high-contrast">High Contrast</option>
-          </select>
-        </div>
-        <div class="input-field">
-          <label for="edit-user-font-scaling">Font Scaling:</label>
-          <select id="edit-user-font-scaling">
-            <option value="normal">Normal</option>
-            <option value="large">Large</option>
-            <option value="extra-large">Extra Large</option>
-          </select>
+      <!-- Preferences Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Preferences</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-field">
+            <label for="edit-user-theme">Theme Preference:</label>
+            <select id="edit-user-theme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="arcator-green">Arcator Green</option>
+              <option value="ocean-blue">Ocean Blue</option>
+              <option value="high-contrast">High Contrast</option>
+            </select>
+          </div>
+          <div class="input-field">
+            <label for="edit-user-font-scaling">Font Scaling:</label>
+            <select id="edit-user-font-scaling">
+              <option value="normal">Normal</option>
+              <option value="large">Large</option>
+              <option value="extra-large">Extra Large</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Notification Settings Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Notification Settings</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="input-field">
-          <label for="edit-user-notification-frequency">Notification Frequency:</label>
-          <select id="edit-user-notification-frequency">
-            <option value="immediate">Immediate</option>
-            <option value="hourly">Hourly</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="disabled">Disabled</option>
-          </select>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-email-notifications" class="form-checkbox">
-          <label for="edit-user-email-notifications">Email Notifications</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-discord-notifications" class="form-checkbox">
-          <label for="edit-user-discord-notifications">Discord Notifications</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-push-notifications" class="form-checkbox">
-          <label for="edit-user-push-notifications">Push Notifications</label>
+      <!-- Notification Settings Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Notification Settings</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-field">
+            <label for="edit-user-notification-frequency">Notification Frequency:</label>
+            <select id="edit-user-notification-frequency">
+              <option value="immediate">Immediate</option>
+              <option value="hourly">Hourly</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          <div class="space-y-3">
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-email-notifications" class="form-checkbox">
+              <label for="edit-user-email-notifications">Email Notifications</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-discord-notifications" class="form-checkbox">
+              <label for="edit-user-discord-notifications">Discord Notifications</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-push-notifications" class="form-checkbox">
+              <label for="edit-user-push-notifications">Push Notifications</label>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Privacy Settings Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Privacy Settings</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="input-field">
-          <label for="edit-user-data-retention">Data Retention (days):</label>
-          <select id="edit-user-data-retention">
-            <option value="30">30 days</option>
-            <option value="90">90 days</option>
-            <option value="365">1 year</option>
-            <option value="0">Indefinite</option>
-          </select>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-profile-visible" class="form-checkbox">
-          <label for="edit-user-profile-visible">Profile Visible to Others</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-activity-tracking" class="form-checkbox">
-          <label for="edit-user-activity-tracking">Allow Activity Tracking</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-third-party-sharing" class="form-checkbox">
-          <label for="edit-user-third-party-sharing">Allow Third-party Data Sharing</label>
+      <!-- Privacy Settings Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Privacy Settings</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-field">
+            <label for="edit-user-data-retention">Data Retention (days):</label>
+            <select id="edit-user-data-retention">
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+              <option value="365">1 year</option>
+              <option value="0">Indefinite</option>
+            </select>
+          </div>
+          <div class="space-y-3">
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-profile-visible" class="form-checkbox">
+              <label for="edit-user-profile-visible">Profile Visible to Others</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-activity-tracking" class="form-checkbox">
+              <label for="edit-user-activity-tracking">Allow Activity Tracking</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-third-party-sharing" class="form-checkbox">
+              <label for="edit-user-third-party-sharing">Allow Third-party Data Sharing</label>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Accessibility Settings Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Accessibility Settings</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-high-contrast" class="form-checkbox">
-          <label for="edit-user-high-contrast">High Contrast Mode</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-reduced-motion" class="form-checkbox">
-          <label for="edit-user-reduced-motion">Reduced Motion</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-screen-reader" class="form-checkbox">
-          <label for="edit-user-screen-reader">Screen Reader Support</label>
-        </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-focus-indicators" class="form-checkbox">
-          <label for="edit-user-focus-indicators">Enhanced Focus Indicators</label>
+      <!-- Accessibility Settings Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Accessibility Settings</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-high-contrast" class="form-checkbox">
+              <label for="edit-user-high-contrast">High Contrast Mode</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-reduced-motion" class="form-checkbox">
+              <label for="edit-user-reduced-motion">Reduced Motion</label>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-screen-reader" class="form-checkbox">
+              <label for="edit-user-screen-reader">Screen Reader Support</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="edit-user-focus-indicators" class="form-checkbox">
+              <label for="edit-user-focus-indicators">Enhanced Focus Indicators</label>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Advanced Settings Section -->
-    <div class="mb-6">
-      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Advanced Settings</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="input-field">
-          <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
-          <select id="edit-user-keyboard-shortcuts">
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
+      <!-- Advanced Settings Section -->
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Advanced Settings</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-field">
+            <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
+            <select id="edit-user-keyboard-shortcuts">
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="edit-user-debug-mode" class="form-checkbox">
+            <label for="edit-user-debug-mode">Debug Mode</label>
+          </div>
         </div>
-        <div class="checkbox-container">
-          <input type="checkbox" id="edit-user-debug-mode" class="form-checkbox">
-          <label for="edit-user-debug-mode">Debug Mode</label>
+        <div class="mt-4">
+          <label for="edit-user-custom-css" class="block text-text-secondary text-sm font-bold mb-2">Custom CSS:</label>
+          <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
         </div>
       </div>
-      <div class="mt-4">
-        <label for="edit-user-custom-css" class="block text-text-secondary text-sm font-bold mb-2">Custom CSS:</label>
-        <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
-      </div>
-    </div>
 
-    <div class="flex justify-end space-x-4">
-      <button id="save-user-changes-btn" class="btn-primary btn-blue">Save Changes</button>
-      <button id="cancel-user-changes-btn" class="btn-primary btn-red">Cancel</button>
-    </div>
+      <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
+        <button type="button" id="cancel-user-changes-btn" class="btn-primary btn-red">Cancel</button>
+        <button type="submit" id="save-user-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+      </div>
+    </form>
   </div>
 </div>
 </body>

@@ -33,9 +33,6 @@ import { showMessageBox, showCustomConfirm } from './utils.js'; // Import messag
 const loadingSpinner = document.getElementById('loading-spinner');
 const loginRequiredMessage = document.getElementById('login-required-message');
 const adminContent = document.getElementById('admin-content');
-const logoutBtn = document.getElementById('logout-btn');
-const adminUserDisplay = document.getElementById('admin-user-display');
-
 
 // User Management DOM elements
 const loadUsersBtn = document.getElementById('load-users-btn');
@@ -588,50 +585,62 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
       adminContent.style.display = 'block';
     }
 
-    // Update admin user display
-    const adminUserDisplay = document.getElementById('admin-user-display');
-    if (adminUserDisplay) {
-      adminUserDisplay.textContent = user.displayName || user.email || 'Admin User';
-    }
+    // Update admin sections visibility based on user role
+    const userProfile = await getUserProfileFromFirestore(user.uid);
+    const userRole = userProfile?.role || 'user';
 
-    // Show all sections for authenticated users
-    const sections = [
-      'infrastructure-section',
-      'dev-tools-section',
-      'user-management-section',
-      'email-management-section',
-      'form-management-section',
-      'temp-pages-section',
-      'important-links-section',
-      'roadmap-section',
-      'darrion-api-section',
-      'grief-detection-section',
-      'onfim-notifications-section'
-    ];
+    console.log("DEBUG: User role:", userRole);
 
-    sections.forEach(sectionId => {
-      const section = document.getElementById(sectionId);
-      if (section) {
-        section.style.display = 'block';
+    // Show/hide sections based on role
+    const infrastructureSection = document.getElementById('infrastructure-section');
+    const devToolsSection = document.getElementById('dev-tools-section');
+    const userManagementSection = document.getElementById('user-management-section');
+    const emailManagementSection = document.getElementById('email-management-section');
+    const formManagementSection = document.getElementById('form-management-section');
+    const tempPagesSection = document.getElementById('temp-pages-section');
+    const importantLinksSection = document.getElementById('important-links-section');
+    const roadmapSection = document.getElementById('roadmap-section');
+    const darrionApiSection = document.getElementById('darrion-api-section');
+    const griefDetectionSection = document.getElementById('grief-detection-section');
+    const onfimNotificationsSection = document.getElementById('onfim-notifications-section');
+
+    if (userRole === 'admin' || userRole === 'developer') {
+      infrastructureSection?.style.setProperty('display', 'block');
+      devToolsSection?.style.setProperty('display', 'block');
+      userManagementSection?.style.setProperty('display', 'block');
+      emailManagementSection?.style.setProperty('display', 'block');
+      formManagementSection?.style.setProperty('display', 'block');
+      tempPagesSection?.style.setProperty('display', 'block');
+      importantLinksSection?.style.setProperty('display', 'block');
+      roadmapSection?.style.setProperty('display', 'block');
+      darrionApiSection?.style.setProperty('display', 'block');
+      griefDetectionSection?.style.setProperty('display', 'block');
+      onfimNotificationsSection?.style.setProperty('display', 'block');
+
+      // Auto-load users when admin content is shown
+      if (usersData.length === 0) {
+        await loadUsers();
       }
-    });
-
-    // Load initial data
-    try {
-      await Promise.all([
-        fetchAllTempPages(),
-        fetchAllTodoItems(),
-        loadEmailHistory(),
-        populateEmailRecipients(),
-        loadUsers() // Automatically load users when admin content is shown
-      ]);
-    } catch (error) {
-      console.error("Error loading initial admin data:", error);
-      showMessageBox("Some data failed to load. Please refresh the page.", true);
+    } else {
+      // For regular users, show limited sections
+      infrastructureSection?.style.setProperty('display', 'none');
+      devToolsSection?.style.setProperty('display', 'none');
+      userManagementSection?.style.setProperty('display', 'none');
+      emailManagementSection?.style.setProperty('display', 'none');
+      formManagementSection?.style.setProperty('display', 'none');
+      tempPagesSection?.style.setProperty('display', 'none');
+      importantLinksSection?.style.setProperty('display', 'none');
+      roadmapSection?.style.setProperty('display', 'none');
+      darrionApiSection?.style.setProperty('display', 'none');
+      griefDetectionSection?.style.setProperty('display', 'none');
+      onfimNotificationsSection?.style.setProperty('display', 'none');
     }
 
     // Setup collapsible sections
     setupCollapsibleSections();
+
+    // Setup other event listeners
+    setupEventListeners();
 
   } else {
     console.log("DEBUG: No user authenticated, showing login required message");
@@ -1160,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const closeButton = modal?.querySelector('.close-button');
   const saveButton = document.getElementById('save-user-changes-btn');
   const cancelButton = document.getElementById('cancel-user-changes-btn');
+  const editForm = document.getElementById('edit-user-form');
 
   // Close modal when clicking the X button
   closeButton?.addEventListener('click', function() {
@@ -1175,57 +1185,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  // Save changes
-  saveButton?.addEventListener('click', async function() {
-    if (!currentEditingUser) {
-      showMessageBox("No user selected for editing.", true);
-      return;
-    }
-
-    try {
-      const updatedData = {
-        displayName: document.getElementById('edit-user-display-name').value,
-        handle: document.getElementById('edit-user-handle').value,
-        email: document.getElementById('edit-user-email').value,
-        photoURL: document.getElementById('edit-user-photo-url').value,
-        discordURL: document.getElementById('edit-user-discord-url').value,
-        githubURL: document.getElementById('edit-user-github-url').value,
-        themePreference: document.getElementById('edit-user-theme').value,
-        fontScaling: document.getElementById('edit-user-font-scaling').value,
-        notificationFrequency: document.getElementById('edit-user-notification-frequency').value,
-        emailNotifications: document.getElementById('edit-user-email-notifications').checked,
-        discordNotifications: document.getElementById('edit-user-discord-notifications').checked,
-        pushNotifications: document.getElementById('edit-user-push-notifications').checked,
-        dataRetention: document.getElementById('edit-user-data-retention').value,
-        profileVisible: document.getElementById('edit-user-profile-visible').checked,
-        activityTracking: document.getElementById('edit-user-activity-tracking').checked,
-        thirdPartySharing: document.getElementById('edit-user-third-party-sharing').checked,
-        highContrast: document.getElementById('edit-user-high-contrast').checked,
-        reducedMotion: document.getElementById('edit-user-reduced-motion').checked,
-        screenReader: document.getElementById('edit-user-screen-reader').checked,
-        focusIndicators: document.getElementById('edit-user-focus-indicators').checked,
-        keyboardShortcuts: document.getElementById('edit-user-keyboard-shortcuts').value,
-        debugMode: document.getElementById('edit-user-debug-mode').checked,
-        customCSS: document.getElementById('edit-user-custom-css').value,
-        lastUpdated: new Date().toISOString()
-      };
-
-      const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentEditingUser.uid);
-      await updateDoc(userDocRef, updatedData);
-
-      showMessageBox("User profile updated successfully!", false);
-      modal.style.display = 'none';
-      currentEditingUser = null;
-      
-      // Reload the user list to show updated data
-      await loadUsers();
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      showMessageBox("Error updating user profile: " + error.message, true);
-    }
+  // Handle form submission
+  editForm?.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    await saveUserChanges();
   });
 
-  // Cancel changes
+  // Cancel button
   cancelButton?.addEventListener('click', function() {
     modal.style.display = 'none';
     currentEditingUser = null;
@@ -1292,4 +1258,70 @@ function setupCollapsibleSections() {
       }
     });
   });
+}
+
+// Save user changes function
+async function saveUserChanges() {
+  if (!currentEditingUser) {
+    showMessageBox("No user selected for editing.", true);
+    return;
+  }
+
+  try {
+    const updatedData = {
+      displayName: document.getElementById('edit-user-display-name').value,
+      handle: document.getElementById('edit-user-handle').value,
+      email: document.getElementById('edit-user-email').value,
+      photoURL: document.getElementById('edit-user-photo-url').value,
+      discordURL: document.getElementById('edit-user-discord-url').value,
+      githubURL: document.getElementById('edit-user-github-url').value,
+      themePreference: document.getElementById('edit-user-theme').value,
+      fontScaling: document.getElementById('edit-user-font-scaling').value,
+      notificationFrequency: document.getElementById('edit-user-notification-frequency').value,
+      emailNotifications: document.getElementById('edit-user-email-notifications').checked,
+      discordNotifications: document.getElementById('edit-user-discord-notifications').checked,
+      pushNotifications: document.getElementById('edit-user-push-notifications').checked,
+      dataRetention: document.getElementById('edit-user-data-retention').value,
+      profileVisible: document.getElementById('edit-user-profile-visible').checked,
+      activityTracking: document.getElementById('edit-user-activity-tracking').checked,
+      thirdPartySharing: document.getElementById('edit-user-third-party-sharing').checked,
+      highContrast: document.getElementById('edit-user-high-contrast').checked,
+      reducedMotion: document.getElementById('edit-user-reduced-motion').checked,
+      screenReader: document.getElementById('edit-user-screen-reader').checked,
+      focusIndicators: document.getElementById('edit-user-focus-indicators').checked,
+      keyboardShortcuts: document.getElementById('edit-user-keyboard-shortcuts').value,
+      debugMode: document.getElementById('edit-user-debug-mode').checked,
+      customCSS: document.getElementById('edit-user-custom-css').value,
+      lastUpdated: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentEditingUser.uid);
+    await updateDoc(userDocRef, updatedData);
+
+    showMessageBox("User profile updated successfully!", false);
+    modal.style.display = 'none';
+    currentEditingUser = null;
+    
+    // Reload the user list to show updated data
+    await loadUsers();
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    showMessageBox("Error updating user profile: " + error.message, true);
+  }
+}
+
+// Setup event listeners for other admin functionality
+function setupEventListeners() {
+  // Load initial data for admin sections
+  try {
+    Promise.all([
+      fetchAllTempPages(),
+      fetchAllTodoItems(),
+      loadEmailHistory(),
+      populateEmailRecipients()
+    ]);
+  } catch (error) {
+    console.error("Error loading initial admin data:", error);
+    showMessageBox("Some data failed to load. Please refresh the page.", true);
+  }
 }
