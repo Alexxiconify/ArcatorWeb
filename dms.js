@@ -609,6 +609,7 @@ export async function selectConversation(convId, conversationData) {
     return;
   }
 
+  console.log("[DEBUG] selectConversation called with:", { convId, conversationData });
   selectedConversationId = convId;
 
   // Update conversation header
@@ -616,6 +617,13 @@ export async function selectConversation(convId, conversationData) {
   const conversationSubtitleEl = document.getElementById('conversation-subtitle');
   const conversationAvatarEl = document.getElementById('conversation-avatar');
   const deleteConversationBtn = document.getElementById('delete-conversation-btn');
+
+  console.log("[DEBUG] Found DOM elements:", {
+    conversationTitleEl: !!conversationTitleEl,
+    conversationSubtitleEl: !!conversationSubtitleEl,
+    conversationAvatarEl: !!conversationAvatarEl,
+    deleteConversationBtn: !!deleteConversationBtn
+  });
 
   // Default values
   let displayName = 'Unknown Conversation';
@@ -649,7 +657,7 @@ export async function selectConversation(convId, conversationData) {
             avatarUrl = DEFAULT_PROFILE_PIC;
           }
         } else {
-          // Self-DM
+          // Self-DM: always show the chat interface inline
           displayName = currentUser.displayName || currentUser.handle || 'You';
           subtitle = currentUser.handle ? `@${currentUser.handle}` : 'Your personal chat';
           avatarUrl = currentUser.photoURL || DEFAULT_PROFILE_PIC;
@@ -662,6 +670,9 @@ export async function selectConversation(convId, conversationData) {
     avatarUrl = DEFAULT_PROFILE_PIC;
   }
 
+  console.log("[DEBUG] Conversation info:", { displayName, subtitle, avatarUrl });
+
+  // Always show the chat interface, even for self-DMs
   if (conversationTitleEl) conversationTitleEl.textContent = displayName;
   if (conversationSubtitleEl) conversationSubtitleEl.textContent = subtitle;
   if (conversationAvatarEl) {
@@ -681,12 +692,29 @@ export async function selectConversation(convId, conversationData) {
   const messagesPanel = document.getElementById('messages-panel');
   const messageInputArea = document.getElementById('message-input-area');
 
-  if (conversationsPanel) conversationsPanel.classList.add('hidden');
-  if (messagesPanel) messagesPanel.classList.remove('hidden');
-  if (messageInputArea) messageInputArea.classList.remove('hidden');
+  console.log("[DEBUG] Found panel elements:", {
+    conversationsPanel: !!conversationsPanel,
+    messagesPanel: !!messagesPanel,
+    messageInputArea: !!messageInputArea
+  });
+
+  if (conversationsPanel) {
+    conversationsPanel.classList.add('hidden');
+    console.log("[DEBUG] Hidden conversations panel");
+  }
+  if (messagesPanel) {
+    messagesPanel.classList.remove('hidden');
+    console.log("[DEBUG] Showed messages panel");
+  }
+  if (messageInputArea) {
+    messageInputArea.classList.remove('hidden');
+    console.log("[DEBUG] Showed message input area");
+  }
 
   // Load and render messages
+  console.log("[DEBUG] Loading messages for conversation:", convId);
   await loadMessagesForConversation(convId);
+  console.log("[DEBUG] selectConversation completed");
 }
 
 /**
