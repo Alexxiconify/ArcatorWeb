@@ -1053,27 +1053,66 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: var(--color-bg-card);
-  border: 1px solid var(--color-input-border);
-  border-radius: 1rem;
+  border: 2px solid var(--color-input-border);
+  border-radius: 1.5rem;
   margin: 0.25rem;
   font-size: 0.875rem;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.recipient-bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-link, #60A5FA), var(--color-button-purple-bg, #9333EA));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 1.5rem;
+  z-index: -1;
 }
 
 .recipient-bubble:hover {
   background: var(--color-input-border);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+  border-color: var(--color-link);
+}
+
+.recipient-bubble:hover::before {
+  opacity: 0.05;
 }
 
 .recipient-bubble .recipient-avatar {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  border-width: 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recipient-bubble:hover .recipient-avatar {
+  border-color: var(--color-link);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
 }
 
 .recipient-bubble .recipient-handle {
   color: var(--color-text-primary);
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.recipient-bubble:hover .recipient-handle {
+  color: var(--color-link);
 }
 
 .recipient-bubble .remove-recipient {
@@ -1087,11 +1126,16 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: bold;
 }
 
 .recipient-bubble .remove-recipient:hover {
-  background: var(--color-input-border);
-  color: var(--color-text-primary);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  transform: scale(1.1);
 }
 
 .recipients-container {
@@ -1125,45 +1169,94 @@
   right: 0;
   background: var(--color-bg-card);
   border: 1px solid var(--color-input-border);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   max-height: 200px;
   overflow-y: auto;
   z-index: 10;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .handle-suggestion {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease-in-out;
+  border-radius: 0.5rem;
+  margin: 0.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.handle-suggestion::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-link, #60A5FA), var(--color-button-purple-bg, #9333EA));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 0.5rem;
+  z-index: -1;
 }
 
 .handle-suggestion:hover {
   background: var(--color-input-border);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+}
+
+.handle-suggestion:hover::before {
+  opacity: 0.05;
 }
 
 .handle-suggestion .suggestion-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--color-input-border);
+  background: var(--color-bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+.handle-suggestion:hover .suggestion-avatar {
+  border-color: var(--color-link);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.25);
 }
 
 .handle-suggestion .suggestion-info {
   flex: 1;
+  min-width: 0;
 }
 
 .handle-suggestion .suggestion-name {
   font-weight: 600;
   color: var(--color-text-primary);
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.handle-suggestion:hover .suggestion-name {
+  color: var(--color-link);
 }
 
 .handle-suggestion .suggestion-handle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
+  margin-top: 0.125rem;
 }
 
 /* Input field with suggestions */
@@ -1205,50 +1298,94 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   border: 2px solid transparent;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   background: var(--color-bg-card);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-link, #60A5FA), var(--color-button-purple-bg, #9333EA));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 1rem;
+  z-index: -1;
 }
 
 .user-card:hover {
   border-color: var(--color-link);
   background: var(--color-input-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+}
+
+.user-card:hover::before {
+  opacity: 0.05;
 }
 
 .user-card.selected {
   border-color: #0078d4;
   background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+  transform: translateY(-1px);
+}
+
+.user-card.selected::before {
+  opacity: 0;
 }
 
 .user-card .user-avatar {
-  width: 2rem;
-  height: 2rem;
-  max-width: 2rem;
-  max-height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--color-input-border);
+  border: 2px solid var(--color-input-border);
+  background: var(--color-bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
 }
 
-.user-card .user-name {
-  font-weight: 500;
-  font-size: 1rem;
-  color: var(--color-text-primary);
+.user-card:hover .user-avatar {
+  border-color: var(--color-link);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.25);
 }
 
 .user-card.selected .user-avatar {
-  width: 2rem;
-  height: 2rem;
-  max-width: 2rem;
-  max-height: 2rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--color-link);
+  border-color: rgba(255, 255, 255, 0.3);
   background: var(--color-bg-navbar);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.user-card .user-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: color 0.2s ease;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-card.selected .user-name {
+  color: white;
+  font-weight: 700;
 }
 
 .input-valid {
@@ -1275,9 +1412,39 @@
 .conversation-avatar {
   width: 2rem;
   height: 2rem;
-  max-width: 2rem;
-  max-height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--color-input-border);
+  border: 2px solid var(--color-input-border);
+  background: var(--color-bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Specific sizing overrides for different contexts */
+.user-card .user-avatar,
+.handle-suggestion .suggestion-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+.recipient-bubble .recipient-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  border-width: 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.conversation-avatar {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
 }
