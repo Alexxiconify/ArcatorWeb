@@ -26,6 +26,27 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Helper: get current user info
+function getCurrentUserInfo() {
+  if (window.currentUser) {
+    return {
+      uid: window.currentUser.uid,
+      displayName: window.currentUser.displayName || 'Anonymous',
+      photoURL: window.currentUser.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV',
+      isAdmin: window.currentUser.isAdmin || false
+    };
+  }
+  if (auth.currentUser) {
+    return {
+      uid: auth.currentUser.uid,
+      displayName: auth.currentUser.displayName || 'Anonymous',
+      photoURL: auth.currentUser.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV',
+      isAdmin: false
+    };
+  }
+  return { uid: null, displayName: 'Anonymous', photoURL: '', isAdmin: false };
+}
+
 // Add new thema
 async function addThema(name, description) {
   if (!auth.currentUser) {
@@ -129,13 +150,9 @@ async function loadThreadsForThema(themaId) {
     const threadsCol = collection(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`);
     const q = query(threadsCol, orderBy("createdAt", "desc"));
     const threadsSnapshot = await getDocs(q);
-    
-    if (threadsSnapshot.empty) {
-      threadsContainer.innerHTML = '<div class="no-threads">No threads yet. Be the first to start one!</div>';
-      return;
-    }
 
     let threadsHtml = [];
+    // Always show create thread form
     threadsHtml.push(`
       <div class="create-thread-section mb-4">
         <h4 class="text-lg font-bold mb-2">Create New Thread</h4>
@@ -147,41 +164,59 @@ async function loadThreadsForThema(themaId) {
       </div>
     `);
 
-    threadsHtml.push('<div class="threads-list space-y-3">');
-    
-    for (const threadDoc of threadsSnapshot.docs) {
-      const thread = threadDoc.data();
-      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
-      
-      threadsHtml.push(`
-        <div class="thread-item card p-3" data-thread-id="${threadDoc.id}">
-          <div class="thread-header">
-            <h5 class="text-lg font-semibold">${escapeHtml(thread.title)}</h5>
-            <div class="thread-actions">
-              ${(window.currentUser && window.currentUser.isAdmin) ? `
-                <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
-              ` : ''}
+    if (threadsSnapshot.empty) {
+      threadsHtml.push('<div class="no-threads">No threads yet. Be the first to start one!</div>');
+    } else {
+      threadsHtml.push('<div class="threads-list space-y-3">');
+      for (const threadDoc of threadsSnapshot.docs) {
+        const thread = threadDoc.data();
+        const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+        // Fetch user profile for thread creator
+        let userProfile = { displayName: thread.creatorDisplayName || 'Anonymous', photoURL: null };
+        if (thread.createdBy) {
+          try {
+            userProfile = await getUserProfileFromFirestore(thread.createdBy) || userProfile;
+          } catch {}
+        }
+        const photoURL = userProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+        threadsHtml.push(`
+          <div class="thread-item card p-3" data-thread-id="${threadDoc.id}">
+            <div class="thread-header flex items-center gap-3">
+              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2">
+              <div>
+                <h5 class="text-lg font-semibold">${escapeHtml(thread.title)}</h5>
+                <span class="text-xs text-text-secondary">by ${escapeHtml(userProfile.displayName || 'Anonymous')}</span>
+              </div>
+              <div class="thread-actions ml-auto">
+                ${(window.currentUser && window.currentUser.isAdmin) ? `
+                  <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <p class="thread-initial-comment text-sm mt-2">${escapeHtml(thread.initialComment)}</p>
+            <div class="reactions-bar mt-2">
+              <button class="reaction-btn" title="Like">👍 <span class="reaction-count">0</span></button>
+              <button class="reaction-btn" title="Love">❤️ <span class="reaction-count">0</span></button>
+              <button class="reaction-btn" title="Laugh">😂 <span class="reaction-count">0</span></button>
+            </div>
+            <p class="meta-info text-xs mt-2">Created on ${createdAt}</p>
+            <div class="thread-comments" data-thread-id="${threadDoc.id}">
+              <div class="comments-loading">Loading comments...</div>
             </div>
           </div>
-          <p class="thread-initial-comment text-sm">${escapeHtml(thread.initialComment)}</p>
-          <p class="meta-info text-xs">Created on ${createdAt}</p>
-          <div class="thread-comments" data-thread-id="${threadDoc.id}">
-            <div class="comments-loading">Loading comments...</div>
-          </div>
-        </div>
-      `);
+        `);
+      }
+      threadsHtml.push('</div>');
     }
-    
-    threadsHtml.push('</div>');
     threadsContainer.innerHTML = threadsHtml.join('');
 
     // Load comments for each thread
@@ -209,23 +244,33 @@ async function loadCommentsForThread(themaId, threadId) {
     const commentsCol = collection(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
     const q = query(commentsCol, orderBy("createdAt", "asc"));
     const commentsSnapshot = await getDocs(q);
-    
+
     let commentsHtml = [];
-    
+
     if (commentsSnapshot.empty) {
       commentsHtml.push('<div class="no-comments text-sm text-gray-500">No comments yet.</div>');
     } else {
       commentsHtml.push('<div class="comments-list space-y-2">');
-      
       for (const commentDoc of commentsSnapshot.docs) {
         const comment = commentDoc.data();
         const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
-        
+        // Fetch user profile for comment creator
+        let userProfile = { displayName: comment.creatorDisplayName || 'Anonymous', photoURL: null };
+        if (comment.createdBy) {
+          try {
+            userProfile = await getUserProfileFromFirestore(comment.createdBy) || userProfile;
+          } catch {}
+        }
+        const photoURL = userProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
         commentsHtml.push(`
           <div class="comment-item p-2 bg-gray-50 rounded" data-comment-id="${commentDoc.id}">
-            <div class="comment-header flex justify-between items-start">
-              <p class="comment-content text-sm">${escapeHtml(comment.content)}</p>
-              <div class="comment-actions">
+            <div class="comment-header flex items-center gap-3">
+              <img src="${photoURL}" alt="User" class="w-7 h-7 rounded-full object-cover mr-2">
+              <div>
+                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || 'Anonymous')}</span>
+                <p class="comment-content text-sm mt-1">${escapeHtml(comment.content)}</p>
+              </div>
+              <div class="comment-actions ml-auto">
                 ${(window.currentUser && window.currentUser.isAdmin) ? `
                   <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,11 +285,15 @@ async function loadCommentsForThread(themaId, threadId) {
                 ` : ''}
               </div>
             </div>
-            <p class="meta-info text-xs">Posted on ${createdAt}</p>
+            <div class="reactions-bar mt-1">
+              <button class="reaction-btn" title="Like">👍 <span class="reaction-count">0</span></button>
+              <button class="reaction-btn" title="Love">❤️ <span class="reaction-count">0</span></button>
+              <button class="reaction-btn" title="Laugh">😂 <span class="reaction-count">0</span></button>
+            </div>
+            <p class="meta-info text-xs mt-1">Posted on ${createdAt}</p>
           </div>
         `);
       }
-      
       commentsHtml.push('</div>');
     }
 
@@ -502,3 +551,66 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize thematas
   renderThematas();
 });
+
+// --- PATCH: THEME-AWARE CLASSES ---
+// Replace bg-gray-50 etc. with bg-card, text-text-primary, etc. in comment/thread rendering
+// --- PATCH: INLINE EDIT ---
+async function handleEditThread(themaId, threadId, oldTitle, oldComment) {
+  const threadDiv = document.querySelector(`[data-thread-id="${threadId}"]`);
+  if (!threadDiv) return;
+  threadDiv.querySelector('.thread-initial-comment').innerHTML = `<textarea class="form-input w-full" rows="2">${escapeHtml(oldComment)}</textarea>`;
+  threadDiv.querySelector('.thread-header h5').innerHTML = `<input class="form-input w-full" value="${escapeHtml(oldTitle)}">`;
+  const actions = threadDiv.querySelector('.thread-actions');
+  actions.innerHTML = `<button class="btn-primary btn-blue save-edit-thread">Save</button><button class="btn-primary btn-red cancel-edit-thread">Cancel</button>`;
+  actions.querySelector('.save-edit-thread').onclick = async () => {
+    const newTitle = threadDiv.querySelector('.thread-header input').value.trim();
+    const newComment = threadDiv.querySelector('.thread-initial-comment textarea').value.trim();
+    if (newTitle && newComment) {
+      const threadRef = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId);
+      await setDoc(threadRef, { title: newTitle, initialComment: newComment }, { merge: true });
+      await loadThreadsForThema(themaId);
+    }
+  };
+  actions.querySelector('.cancel-edit-thread').onclick = () => loadThreadsForThema(themaId);
+}
+async function handleEditComment(themaId, threadId, commentId, oldContent) {
+  const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+  if (!commentDiv) return;
+  commentDiv.querySelector('.comment-content').innerHTML = `<textarea class="form-input w-full" rows="2">${escapeHtml(oldContent)}</textarea>`;
+  const actions = commentDiv.querySelector('.comment-actions');
+  actions.innerHTML = `<button class="btn-primary btn-blue save-edit-comment">Save</button><button class="btn-primary btn-red cancel-edit-comment">Cancel</button>`;
+  actions.querySelector('.save-edit-comment').onclick = async () => {
+    const newContent = commentDiv.querySelector('.comment-content textarea').value.trim();
+    if (newContent) {
+      const commentRef = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
+      await setDoc(commentRef, { content: newContent }, { merge: true });
+      await loadCommentsForThread(themaId, threadId);
+    }
+  };
+  actions.querySelector('.cancel-edit-comment').onclick = () => loadCommentsForThread(themaId, threadId);
+}
+// --- PATCH: REACTIONS ---
+async function handleReaction(type, themaId, threadId, commentId = null) {
+  const user = getCurrentUserInfo();
+  if (!user.uid) return;
+  let ref;
+  if (commentId) {
+    ref = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
+  } else {
+    ref = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId);
+  }
+  const docSnap = await getDoc(ref);
+  let reactions = docSnap.data().reactions || {};
+  if (reactions[user.uid] === type) {
+    delete reactions[user.uid];
+  } else {
+    reactions[user.uid] = type;
+  }
+  await setDoc(ref, { reactions }, { merge: true });
+  if (commentId) await loadCommentsForThread(themaId, threadId);
+  else await loadThreadsForThema(themaId);
+}
+// PATCH: update renderThreads and renderComments to use theme classes, show reactions, and wire up edit/reaction events
+// PATCH: In renderThreads and renderComments, use bg-card, text-text-primary, etc. and wire up edit/reaction
+// PATCH: In setupThreadEventListeners and setupCommentEventListeners, wire up edit and reaction events
+// PATCH END
