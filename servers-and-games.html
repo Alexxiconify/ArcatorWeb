@@ -19,9 +19,9 @@
     /* Base styles */
     body {
       font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
       background-color: var(--color-body-bg);
       color: var(--color-text-primary);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -155,6 +155,11 @@
       .tab-button.active {
         border-bottom-color: transparent;
       }
+    }
+
+    .main-section, .games-section, .content-section {
+      background-color: var(--color-bg-content-section);
+      color: var(--color-text-primary);
     }
   </style>
 </head>
@@ -363,7 +368,6 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
     loadFooter('current-year-servers-and-games');
-    
     // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();

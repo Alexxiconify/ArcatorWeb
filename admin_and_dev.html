@@ -17,9 +17,9 @@
     /* Base styles using CSS variables */
     body {
       font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
       background-color: var(--color-body-bg);
       color: var(--color-text-primary);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     /* Hero banner background image */
@@ -137,6 +137,11 @@
 
     .temp-page-tab-button.active {
       font-weight: 600;
+    }
+
+    .main-section, .admin-section, .content-section {
+      background-color: var(--color-bg-content-section);
+      color: var(--color-text-primary);
     }
   </style>
 </head>
@@ -618,13 +623,13 @@
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
     loadFooter('current-year-admin-dev');
     
     // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
       console.log(`Admin page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
