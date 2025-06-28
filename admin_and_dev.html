@@ -286,20 +286,19 @@
             <p class="text-text-secondary leading-relaxed mb-4">View and manage registered user profiles.</p>
             <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
             <div class="overflow-x-auto">
-              <table class="w-full text-left table-auto">
+              <table class="w-full text-left table-auto text-xs">
                 <thead>
                 <tr class="bg-table-th-bg">
-                  <th class="px-4 py-2 text-table-th-text">UID</th>
-                  <th class="px-4 py-2 text-table-th-text">Display Name</th>
-                  <th class="px-4 py-2 text-table-th-text">Email</th>
-                  <th class="px-4 py-2 text-table-th-text">Theme</th>
-                  <th class="px-4 py-2 text-table-th-text">Handle</th>
-                  <th class="px-4 py-2 text-table-th-text">Actions</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
                 </tr>
                 </thead>
                 <tbody id="user-list-tbody">
                 <tr>
-                  <td class="text-center py-4 text-text-secondary" colspan="6">No users loaded yet. Click "Load
+                  <td class="text-center py-4 text-text-secondary text-xs" colspan="5">No users loaded yet. Click "Load
                     Users".
                   </td>
                 </tr>
@@ -711,7 +710,7 @@
 </script>
 
 <!-- Edit User Modal -->
-<div id="edit-user-modal" class="modal">
+<div id="edit-user-modal" class="modal" style="display: none;">
   <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
     <span class="close-button">&times;</span>
     <h3 class="text-xl font-bold mb-4 text-heading-card">Edit User Profile</h3>

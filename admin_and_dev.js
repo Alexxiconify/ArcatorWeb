@@ -155,95 +155,85 @@ function toggleSection(headerElement, contentElement) {
   }
 }
 
+// Global variables for user management
+let usersData = [];
+let currentEditingUser = null;
+
+async function loadUsers() {
+  if (!db) {
+    console.error("Firestore DB not initialized for loadUsers.");
+    showMessageBox("Database not ready.", true);
+    return;
+  }
+
+  try {
+    const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    const querySnapshot = await getDocs(usersRef);
+    usersData = [];
+    querySnapshot.forEach(doc => {
+      usersData.push({ uid: doc.id, ...doc.data() });
+    });
+
+    await renderUserList();
+    showMessageBox(`Loaded ${usersData.length} users successfully!`, false);
+  } catch (error) {
+    console.error("Error loading users:", error);
+    showMessageBox("Error loading users: " + error.message, true);
+  }
+}
+
 /**
  * Renders the list of users in the table.
  */
 async function renderUserList() {
-  if (!db) {
-    console.error("Firestore DB not initialized for renderUserList.");
-    userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-400">Database not ready.</td></tr>';
-    return;
-  }
-  userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
-  // Assuming fetchAllUserProfiles is implemented elsewhere or is a direct Firestore call
-  const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-  const querySnapshot = await getDocs(usersRef);
-  const users = [];
-  querySnapshot.forEach(doc => {
-    users.push({ id: doc.id, ...doc.data() });
-  });
-
-  userListTbody.innerHTML = '';
-  if (users.length === 0) {
-    userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
-    return;
-  }
-
-  users.forEach(user => {
-    const row = userListTbody.insertRow();
-    // Apply theme-aware classes to the table rows/cells for consistency
-    row.classList.add('text-text-primary'); // Apply primary text color
-    row.innerHTML = `
-      <td class="px-4 py-2 break-all border-b border-table-td-border">${user.id}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${user.displayName || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME_NAME}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${user.handle || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
-      </td>
+  const tbody = document.getElementById('user-list-tbody');
+  
+  if (!usersData || usersData.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td class="text-center py-4 text-text-secondary text-xs" colspan="5">No users found.</td>
+      </tr>
     `;
-  });
+    return;
+  }
 
-  document.querySelectorAll('.edit-user-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      console.log("DEBUG: Edit User button clicked.");
-      const uid = event.target.dataset.uid;
-      console.log(`DEBUG: Edit User - UID: ${uid}`);
-      
-      // Fetch the complete user profile data
-      const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-      try {
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          openEditUserModal(uid, userData);
-        } else {
-          showMessageBox("User profile not found.", true);
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        showMessageBox("Error fetching user profile.", true);
-      }
-    });
-  });
-
-  document.querySelectorAll('.delete-user-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      console.log("DEBUG: Delete User button clicked.");
-      const uid = event.target.dataset.uid;
-      
-      // Show confirmation dialog with more details
-      const confirmed = await showCustomConfirm(
-        `Are you sure you want to delete the user profile for UID: ${uid}?`,
-        "This action will permanently delete the user's profile data including all settings, preferences, and customizations. This will NOT delete the Firebase Authentication account. This action cannot be undone."
-      );
-      
-      if (confirmed) {
-        const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-        try {
-          await deleteDoc(userDocRef);
-          showMessageBox(`User profile ${uid} deleted successfully!`, false);
-          renderUserList();
-        } catch (error) {
-          console.error("Error deleting user profile:", error);
-          showMessageBox(`Error deleting user profile ${uid}. ${error.message}`, true);
-        }
-      } else {
-        showMessageBox("Deletion cancelled.", false);
-      }
-    });
-  });
+  tbody.innerHTML = usersData.map(user => {
+    const displayName = user.displayName || 'N/A';
+    const email = user.email || 'N/A';
+    const theme = user.themePreference || 'dark';
+    const handle = user.handle || 'N/A';
+    
+    return `
+      <tr class="hover:bg-table-row-even-bg transition-colors">
+        <td class="px-2 py-1 text-text-primary text-xs font-mono">${user.uid.substring(0, 8)}...</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(displayName)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(email)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(theme)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
+          <div class="flex space-x-1">
+            <button 
+              onclick="openEditUserModal('${user.uid}', ${JSON.stringify(user).replace(/"/g, '&quot;')})"
+              class="text-blue-400 hover:text-blue-300 transition-colors"
+              title="Edit User"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button 
+              onclick="deleteUserProfile('${user.uid}', '${escapeHtml(displayName)}')"
+              class="text-red-400 hover:text-red-300 transition-colors"
+              title="Delete Profile"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 /**
@@ -252,52 +242,45 @@ async function renderUserList() {
  * @param {Object} userData - The complete user profile data.
  */
 function openEditUserModal(uid, userData) {
-  currentEditingUserUid = uid;
+  console.log("DEBUG: Opening edit modal for user:", uid, userData);
   
-  // Basic Information
-  editUserDisplayNameInput.value = userData.displayName || '';
-  editUserHandleInput.value = userData.handle || '';
-  editUserEmailInput.value = userData.email || '';
-  editUserPhotoUrlInput.value = userData.photoURL || '';
-  editUserDiscordUrlInput.value = userData.discordURL || '';
-  editUserGithubUrlInput.value = userData.githubURL || '';
+  // Store the current user being edited
+  currentEditingUser = { uid, ...userData };
   
-  // Preferences
-  editUserThemeSelect.value = userData.themePreference || DEFAULT_THEME_NAME;
-  editUserFontScalingSelect.value = userData.fontScaling || 'normal';
+  // Populate form fields
+  document.getElementById('edit-user-display-name').value = userData.displayName || '';
+  document.getElementById('edit-user-handle').value = userData.handle || '';
+  document.getElementById('edit-user-email').value = userData.email || '';
+  document.getElementById('edit-user-photo-url').value = userData.photoURL || '';
+  document.getElementById('edit-user-discord-url').value = userData.discordURL || '';
+  document.getElementById('edit-user-github-url').value = userData.githubURL || '';
   
-  // Notification Settings
-  const notificationSettings = userData.notificationSettings || {};
-  editUserNotificationFrequencySelect.value = notificationSettings.notificationFrequency || 'immediate';
-  editUserEmailNotificationsCheckbox.checked = notificationSettings.emailNotifications || false;
-  editUserDiscordNotificationsCheckbox.checked = notificationSettings.discordNotifications || false;
-  editUserPushNotificationsCheckbox.checked = notificationSettings.pushNotifications || false;
+  // Populate theme select
+  populateEditUserThemeSelect(userData.themePreference);
   
-  // Privacy Settings
-  const privacySettings = userData.privacySettings || {};
-  editUserDataRetentionSelect.value = privacySettings.dataRetention || '90';
-  editUserProfileVisibleCheckbox.checked = privacySettings.profileVisible !== undefined ? privacySettings.profileVisible : true;
-  editUserActivityTrackingCheckbox.checked = privacySettings.activityTracking || false;
-  editUserThirdPartySharingCheckbox.checked = privacySettings.thirdPartySharing || false;
+  // Populate other fields
+  document.getElementById('edit-user-font-scaling').value = userData.fontScaling || 'normal';
+  document.getElementById('edit-user-notification-frequency').value = userData.notificationFrequency || 'immediate';
+  document.getElementById('edit-user-email-notifications').checked = userData.emailNotifications || false;
+  document.getElementById('edit-user-discord-notifications').checked = userData.discordNotifications || false;
+  document.getElementById('edit-user-push-notifications').checked = userData.pushNotifications || false;
+  document.getElementById('edit-user-data-retention').value = userData.dataRetention || '365';
+  document.getElementById('edit-user-profile-visible').checked = userData.profileVisible !== false;
+  document.getElementById('edit-user-activity-tracking').checked = userData.activityTracking !== false;
+  document.getElementById('edit-user-third-party-sharing').checked = userData.thirdPartySharing || false;
+  document.getElementById('edit-user-high-contrast').checked = userData.highContrast || false;
+  document.getElementById('edit-user-reduced-motion').checked = userData.reducedMotion || false;
+  document.getElementById('edit-user-screen-reader').checked = userData.screenReader || false;
+  document.getElementById('edit-user-focus-indicators').checked = userData.focusIndicators || false;
+  document.getElementById('edit-user-keyboard-shortcuts').value = userData.keyboardShortcuts || 'enabled';
+  document.getElementById('edit-user-debug-mode').checked = userData.debugMode || false;
+  document.getElementById('edit-user-custom-css').value = userData.customCSS || '';
   
-  // Accessibility Settings
-  const accessibilitySettings = userData.accessibilitySettings || {};
-  editUserHighContrastCheckbox.checked = accessibilitySettings.highContrast || false;
-  editUserReducedMotionCheckbox.checked = accessibilitySettings.reducedMotion || false;
-  editUserScreenReaderCheckbox.checked = accessibilitySettings.screenReader || false;
-  editUserFocusIndicatorsCheckbox.checked = accessibilitySettings.focusIndicators || false;
-  
-  // Advanced Settings
-  const advancedSettings = userData.advancedSettings || {};
-  editUserKeyboardShortcutsSelect.value = advancedSettings.keyboardShortcuts || 'enabled';
-  editUserDebugModeCheckbox.checked = advancedSettings.debugMode || false;
-  editUserCustomCssTextarea.value = advancedSettings.customCSS || '';
-  
-  // Populate theme dropdown with available themes
-  populateEditUserThemeSelect(userData.themePreference || DEFAULT_THEME_NAME);
-  
-  editUserModal.style.display = 'flex';
-  console.log("DEBUG: User Edit Modal opened with data:", userData);
+  // Show the modal
+  const modal = document.getElementById('edit-user-modal');
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
 }
 
 /**
@@ -1090,7 +1073,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  loadUsersBtn?.addEventListener('click', renderUserList);
+  // Load Users button event listener
+  loadUsersBtn?.addEventListener('click', async function() {
+    console.log("DEBUG: Load Users button clicked");
+    await loadUsers();
+  });
 
 
   createTempPageForm?.addEventListener('submit', async (event) => {
@@ -1202,4 +1189,117 @@ document.addEventListener('DOMContentLoaded', async function() {
       });
     }
   });
+
+  // Setup modal event listeners
+  const modal = document.getElementById('edit-user-modal');
+  const closeButton = modal?.querySelector('.close-button');
+  const saveButton = document.getElementById('save-user-changes-btn');
+  const cancelButton = document.getElementById('cancel-user-changes-btn');
+
+  // Close modal when clicking the X button
+  closeButton?.addEventListener('click', function() {
+    modal.style.display = 'none';
+    currentEditingUser = null;
+  });
+
+  // Close modal when clicking outside the modal content
+  modal?.addEventListener('click', function(event) {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+      currentEditingUser = null;
+    }
+  });
+
+  // Save changes
+  saveButton?.addEventListener('click', async function() {
+    if (!currentEditingUser) {
+      showMessageBox("No user selected for editing.", true);
+      return;
+    }
+
+    try {
+      const updatedData = {
+        displayName: document.getElementById('edit-user-display-name').value,
+        handle: document.getElementById('edit-user-handle').value,
+        email: document.getElementById('edit-user-email').value,
+        photoURL: document.getElementById('edit-user-photo-url').value,
+        discordURL: document.getElementById('edit-user-discord-url').value,
+        githubURL: document.getElementById('edit-user-github-url').value,
+        themePreference: document.getElementById('edit-user-theme').value,
+        fontScaling: document.getElementById('edit-user-font-scaling').value,
+        notificationFrequency: document.getElementById('edit-user-notification-frequency').value,
+        emailNotifications: document.getElementById('edit-user-email-notifications').checked,
+        discordNotifications: document.getElementById('edit-user-discord-notifications').checked,
+        pushNotifications: document.getElementById('edit-user-push-notifications').checked,
+        dataRetention: document.getElementById('edit-user-data-retention').value,
+        profileVisible: document.getElementById('edit-user-profile-visible').checked,
+        activityTracking: document.getElementById('edit-user-activity-tracking').checked,
+        thirdPartySharing: document.getElementById('edit-user-third-party-sharing').checked,
+        highContrast: document.getElementById('edit-user-high-contrast').checked,
+        reducedMotion: document.getElementById('edit-user-reduced-motion').checked,
+        screenReader: document.getElementById('edit-user-screen-reader').checked,
+        focusIndicators: document.getElementById('edit-user-focus-indicators').checked,
+        keyboardShortcuts: document.getElementById('edit-user-keyboard-shortcuts').value,
+        debugMode: document.getElementById('edit-user-debug-mode').checked,
+        customCSS: document.getElementById('edit-user-custom-css').value,
+        lastUpdated: new Date().toISOString()
+      };
+
+      const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentEditingUser.uid);
+      await updateDoc(userDocRef, updatedData);
+
+      showMessageBox("User profile updated successfully!", false);
+      modal.style.display = 'none';
+      currentEditingUser = null;
+      
+      // Reload the user list to show updated data
+      await loadUsers();
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      showMessageBox("Error updating user profile: " + error.message, true);
+    }
+  });
+
+  // Cancel changes
+  cancelButton?.addEventListener('click', function() {
+    modal.style.display = 'none';
+    currentEditingUser = null;
+  });
 });
+
+// Utility function to escape HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Global function for delete user profile
+window.deleteUserProfile = async function(uid, displayName) {
+  console.log("DEBUG: Delete User button clicked for:", uid);
+  
+  // Show confirmation dialog with more details
+  const confirmed = await showCustomConfirm(
+    `Are you sure you want to delete the user profile for ${displayName}?`,
+    "This action will permanently delete the user's profile data including all settings, preferences, and customizations. This will NOT delete the Firebase Authentication account. This action cannot be undone."
+  );
+  
+  if (confirmed) {
+    const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+    try {
+      await deleteDoc(userDocRef);
+      showMessageBox(`User profile ${displayName} deleted successfully!`, false);
+      await loadUsers(); // Reload the user list
+    } catch (error) {
+      console.error("Error deleting user profile:", error);
+      showMessageBox(`Error deleting user profile ${displayName}. ${error.message}`, true);
+    }
+  } else {
+    showMessageBox("Deletion cancelled.", false);
+  }
+};
+
+// Global function for opening edit modal
+window.openEditUserModal = function(uid, userData) {
+  openEditUserModal(uid, userData);
+};
