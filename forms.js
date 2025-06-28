@@ -685,23 +685,6 @@ async function setupDmEventListeners() {
     });
   }
   
-  // Chat type switching
-  const chatTypeSelect = document.getElementById('new-chat-type');
-  if (chatTypeSelect) {
-    chatTypeSelect.addEventListener('change', () => {
-      const privateFields = document.getElementById('private-chat-fields');
-      const groupFields = document.getElementById('group-chat-fields');
-      
-      if (chatTypeSelect.value === 'private') {
-        privateFields.classList.remove('hidden');
-        groupFields.classList.add('hidden');
-      } else {
-        privateFields.classList.add('hidden');
-        groupFields.classList.remove('hidden');
-      }
-    });
-  }
-  
   // Back to chats button
   const backBtn = document.getElementById('back-to-chats-btn');
   if (backBtn) {
@@ -709,6 +692,20 @@ async function setupDmEventListeners() {
       updateDmUiForNoConversationSelected();
     });
   }
+  
+  // Click outside suggestions to hide them
+  document.addEventListener('click', (event) => {
+    const privateSuggestions = document.getElementById('private-chat-suggestions');
+    const groupSuggestions = document.getElementById('group-chat-suggestions');
+    
+    if (privateSuggestions && !event.target.closest('.recipient-input-container')) {
+      privateSuggestions.style.display = 'none';
+    }
+    
+    if (groupSuggestions && !event.target.closest('.recipient-input-container')) {
+      groupSuggestions.style.display = 'none';
+    }
+  });
 }
 
 function showDmTab() {

@@ -578,8 +578,12 @@
             <div id="private-chat-fields" class="space-y-4">
               <div class="form-group">
                 <label class="form-label" for="private-chat-recipient">Recipient Handle</label>
-                <input id="private-chat-recipient" class="form-input bg-card text-text-primary border-none rounded w-full" 
-                       placeholder="@username" list="user-handles-list">
+                <div class="recipient-input-container">
+                  <select id="private-chat-recipient" class="form-input bg-card text-text-primary border-none rounded w-full">
+                    <option value="">Select a user…</option>
+                  </select>
+                </div>
+                <div id="private-chat-recipients" class="recipients-container empty"></div>
               </div>
             </div>
             
@@ -592,8 +596,12 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="group-chat-participants">Participants</label>
-                <textarea id="group-chat-participants" class="form-input bg-card text-text-primary border-none rounded w-full" 
-                          placeholder="@user1, @user2, @user3" rows="3"></textarea>
+                <div class="recipient-input-container">
+                  <input id="group-chat-participants" class="form-input bg-card text-text-primary border-none rounded w-full" 
+                         placeholder="@user1, @user2, @user3" list="user-handles-list">
+                  <div id="group-chat-suggestions" class="handle-suggestions" style="display: none;"></div>
+                </div>
+                <div id="group-chat-recipients" class="recipients-container empty"></div>
               </div>
             </div>
             

@@ -1044,3 +1044,144 @@
   color: var(--color-text-secondary) !important;
   opacity: 0.7;
 }
+
+/* Recipient handle bubble styling */
+.recipient-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-input-border);
+  border-radius: 1rem;
+  margin: 0.25rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.recipient-bubble:hover {
+  background: var(--color-input-border);
+}
+
+.recipient-bubble .recipient-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.recipient-bubble .recipient-handle {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.recipient-bubble .remove-recipient {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.recipient-bubble .remove-recipient:hover {
+  background: var(--color-input-border);
+  color: var(--color-text-primary);
+}
+
+.recipients-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  min-height: 2rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  background: var(--color-input-bg);
+}
+
+.recipients-container.empty {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.recipients-container.empty::before {
+  content: "No recipients selected";
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* User handle suggestions */
+.handle-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.handle-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.handle-suggestion:hover {
+  background: var(--color-input-border);
+}
+
+.handle-suggestion .suggestion-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.handle-suggestion .suggestion-info {
+  flex: 1;
+}
+
+.handle-suggestion .suggestion-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.handle-suggestion .suggestion-handle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Input field with suggestions */
+.recipient-input-container {
+  position: relative;
+}
+
+.recipient-input-container input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 0.875rem;
+}
+
+.recipient-input-container input:focus {
+  outline: none;
+  border-color: var(--color-link);
+  box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+}

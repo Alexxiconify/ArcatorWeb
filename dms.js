@@ -42,10 +42,238 @@ let unsubscribeCurrentMessages = null;
 let allConversations = []; // Array to hold fetched conversations for sorting
 let currentSortOption = 'lastMessageAt_desc'; // Default sort for conversations list
 let currentMessages = [];
+let allUserProfiles = []; // Store all user profiles for suggestions
+let selectedRecipients = new Map(); // Store selected recipients with their profiles
 
 const DEFAULT_PROFILE_PIC = 'https://placehold.co/40x40/1F2937/E5E7EB?text=AV';
 
 // --- DM FUNCTIONS ---
+
+/**
+ * Initialize the DM system
+ */
+export async function initializeDmSystem() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    console.warn("No current user for DM system initialization");
+    return;
+  }
+  
+  console.log("Initializing DM system for user:", currentUser.uid);
+  
+  // Load all user profiles for suggestions
+  await loadAllUserProfiles();
+  
+  // Set up real-time listeners for conversations
+  await setupConversationsListener();
+  
+  // Populate user handles for autocomplete
+  await populateUserHandlesDatalist();
+  
+  // Set up recipient input handlers
+  setupRecipientInputHandlers();
+}
+
+/**
+ * Load all user profiles for suggestions
+ */
+async function loadAllUserProfiles() {
+  if (!db) return;
+  
+  try {
+    const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    const querySnapshot = await getDocs(userProfilesRef);
+    allUserProfiles = [];
+    
+    querySnapshot.forEach(docSnap => {
+      const profile = docSnap.data();
+      if (profile.handle) {
+        allUserProfiles.push({
+          uid: docSnap.id,
+          handle: profile.handle,
+          displayName: profile.displayName || profile.handle,
+          photoURL: profile.photoURL || DEFAULT_PROFILE_PIC
+        });
+      }
+    });
+    
+    console.log("Loaded", allUserProfiles.length, "user profiles for suggestions");
+  } catch (error) {
+    console.error("Error loading user profiles:", error);
+  }
+}
+
+/**
+ * Set up recipient input handlers for suggestions
+ */
+function setupRecipientInputHandlers() {
+  const privateInput = document.getElementById('private-chat-recipient');
+  const groupInput = document.getElementById('group-chat-participants');
+  
+  if (privateInput) {
+    privateInput.addEventListener('input', (e) => handleRecipientInput(e, 'private'));
+    privateInput.addEventListener('keydown', (e) => handleRecipientKeydown(e, 'private'));
+  }
+  
+  if (groupInput) {
+    groupInput.addEventListener('input', (e) => handleRecipientInput(e, 'group'));
+    groupInput.addEventListener('keydown', (e) => handleRecipientKeydown(e, 'group'));
+  }
+}
+
+/**
+ * Handle recipient input for suggestions
+ */
+function handleRecipientInput(event, type) {
+  const input = event.target;
+  const value = input.value.trim();
+  const suggestionsContainer = document.getElementById(`${type}-chat-suggestions`);
+  
+  if (!suggestionsContainer) return;
+  
+  // Clear suggestions if input is empty
+  if (!value || value.length < 1) {
+    suggestionsContainer.style.display = 'none';
+    return;
+  }
+  
+  // Filter user profiles based on input
+  const searchTerm = value.startsWith('@') ? value.substring(1) : value;
+  const filteredProfiles = allUserProfiles.filter(profile => 
+    profile.handle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    profile.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 5); // Limit to 5 suggestions
+  
+  if (filteredProfiles.length === 0) {
+    suggestionsContainer.style.display = 'none';
+    return;
+  }
+  
+  // Show suggestions
+  suggestionsContainer.innerHTML = filteredProfiles.map(profile => `
+    <div class="handle-suggestion" data-handle="${profile.handle}" data-uid="${profile.uid}">
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="suggestion-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <div class="suggestion-info">
+        <div class="suggestion-name">${escapeHtml(profile.displayName)}</div>
+        <div class="suggestion-handle">@${escapeHtml(profile.handle)}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  suggestionsContainer.style.display = 'block';
+  
+  // Add click handlers to suggestions
+  suggestionsContainer.querySelectorAll('.handle-suggestion').forEach(suggestion => {
+    suggestion.addEventListener('click', () => {
+      const handle = suggestion.dataset.handle;
+      const uid = suggestion.dataset.uid;
+      const profile = allUserProfiles.find(p => p.uid === uid);
+      
+      if (profile) {
+        addRecipient(type, profile);
+        input.value = '';
+        suggestionsContainer.style.display = 'none';
+      }
+    });
+  });
+}
+
+/**
+ * Handle recipient input keydown events
+ */
+function handleRecipientKeydown(event, type) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    const input = event.target;
+    const value = input.value.trim();
+    
+    if (value) {
+      // Try to find user by handle
+      const searchTerm = value.startsWith('@') ? value.substring(1) : value;
+      const profile = allUserProfiles.find(p => 
+        p.handle.toLowerCase() === searchTerm.toLowerCase()
+      );
+      
+      if (profile) {
+        addRecipient(type, profile);
+        input.value = '';
+        document.getElementById(`${type}-chat-suggestions`).style.display = 'none';
+      } else {
+        showMessageBox(`User @${searchTerm} not found. Please select from suggestions.`, true);
+      }
+    }
+  }
+}
+
+/**
+ * Add a recipient to the selected recipients
+ */
+function addRecipient(type, profile) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return;
+  
+  // Don't add self as recipient
+  if (profile.uid === currentUser.uid) {
+    showMessageBox("You cannot add yourself as a recipient.", true);
+    return;
+  }
+  
+  // Check if already added
+  if (selectedRecipients.has(profile.uid)) {
+    showMessageBox(`@${profile.handle} is already added.`, true);
+    return;
+  }
+  
+  selectedRecipients.set(profile.uid, profile);
+  renderRecipients(type);
+}
+
+/**
+ * Remove a recipient from selected recipients
+ */
+function removeRecipient(type, uid) {
+  selectedRecipients.delete(uid);
+  renderRecipients(type);
+}
+
+/**
+ * Make removeRecipient globally accessible
+ */
+window.removeRecipient = removeRecipient;
+
+/**
+ * Render selected recipients as bubbles
+ */
+function renderRecipients(type) {
+  const container = document.getElementById(`${type}-chat-recipients`);
+  if (!container) return;
+  
+  if (selectedRecipients.size === 0) {
+    container.innerHTML = '';
+    container.classList.add('empty');
+    return;
+  }
+  
+  container.classList.remove('empty');
+  container.innerHTML = Array.from(selectedRecipients.values()).map(profile => `
+    <div class="recipient-bubble" data-uid="${profile.uid}">
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="recipient-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <span class="recipient-handle">@${escapeHtml(profile.handle)}</span>
+      <button class="remove-recipient" data-type="${type}" data-uid="${profile.uid}" title="Remove recipient">
+        ×
+      </button>
+    </div>
+  `).join('');
+  
+  // Add event listeners to remove buttons
+  container.querySelectorAll('.remove-recipient').forEach(button => {
+    button.addEventListener('click', (event) => {
+      const type = event.target.dataset.type;
+      const uid = event.target.dataset.uid;
+      removeRecipient(type, uid);
+    });
+  });
+}
 
 /**
  * Creates a new conversation (private or group chat) in Firestore.
@@ -64,13 +292,26 @@ export async function createConversation(type, participantHandles, groupName = '
     return;
   }
 
-  // Sanitize and ensure current user is always included in participants for *all* chats
-  const uniqueParticipantHandles = new Set(
-    participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h))
-  );
-  uniqueParticipantHandles.add(currentUser.handle); // Add current user's handle
+  // Use selected recipients if available, otherwise fall back to participantHandles
+  let participantUids = [];
+  
+  if (selectedRecipients.size > 0) {
+    // Use selected recipients
+    participantUids = Array.from(selectedRecipients.keys());
+  } else {
+    // Fall back to old method with handle resolution
+    const uniqueParticipantHandles = new Set(
+      participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h))
+    );
+    uniqueParticipantHandles.add(currentUser.handle);
+    
+    participantUids = await resolveHandlesToUids(Array.from(uniqueParticipantHandles));
+  }
 
-  const participantUids = await resolveHandlesToUids(Array.from(uniqueParticipantHandles));
+  // Add current user to participants
+  if (!participantUids.includes(currentUser.uid)) {
+    participantUids.push(currentUser.uid);
+  }
 
   if (participantUids.length === 0) {
     showMessageBox("Please provide at least one valid participant handle.", true);
@@ -125,13 +366,10 @@ export async function createConversation(type, participantHandles, groupName = '
   try {
     const newConvRef = await addDoc(conversationsCol, conversationData);
     showMessageBox(`New ${type} chat created successfully!`, false);
-    createConversationForm.reset();
-    privateChatFields.classList.remove('hidden'); // Reset UI
-    groupChatFields.classList.add('hidden');
-    privateChatRecipientInput.value = '';
-    groupChatNameInput.value = '';
-    groupChatParticipantsInput.value = '';
-
+    
+    // Clear form and selected recipients
+    clearCreateConversationForm();
+    
     // Automatically select the new conversation
     const newConvSnap = await getDoc(newConvRef);
     if (newConvSnap.exists()) {
@@ -142,6 +380,31 @@ export async function createConversation(type, participantHandles, groupName = '
     console.error("Error creating conversation:", error);
     showMessageBox(`Error creating chat: ${error.message}`, true);
   }
+}
+
+/**
+ * Clear the create conversation form
+ */
+function clearCreateConversationForm() {
+  const createForm = document.getElementById('create-conversation-form');
+  if (createForm) {
+    createForm.reset();
+  }
+  
+  // Clear selected recipients
+  selectedRecipients.clear();
+  renderRecipients('private');
+  renderRecipients('group');
+  
+  // Hide suggestions
+  document.getElementById('private-chat-suggestions').style.display = 'none';
+  document.getElementById('group-chat-suggestions').style.display = 'none';
+  
+  // Reset UI
+  const privateFields = document.getElementById('private-chat-fields');
+  const groupFields = document.getElementById('group-chat-fields');
+  if (privateFields) privateFields.classList.remove('hidden');
+  if (groupFields) groupFields.classList.add('hidden');
 }
 
 /**
@@ -522,25 +785,6 @@ export async function deleteMessage(messageId) {
 }
 
 /**
- * Initialize the DM system
- */
-export async function initializeDmSystem() {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    console.warn("No current user for DM system initialization");
-    return;
-  }
-  
-  console.log("Initializing DM system for user:", currentUser.uid);
-  
-  // Set up real-time listeners for conversations
-  await setupConversationsListener();
-  
-  // Populate user handles for autocomplete
-  await populateUserHandlesDatalist();
-}
-
-/**
  * Set up real-time listener for conversations
  */
 async function setupConversationsListener() {
@@ -717,38 +961,22 @@ export async function handleCreateConversation(event) {
   event.preventDefault();
   
   const typeSelect = document.getElementById('new-chat-type');
-  const recipientInput = document.getElementById('private-chat-recipient');
   const groupNameInput = document.getElementById('group-chat-name');
-  const participantsInput = document.getElementById('group-chat-participants');
   
   const type = typeSelect?.value || 'private';
-  let participantHandles = [];
   let groupName = '';
   
-  if (type === 'private') {
-    const recipient = recipientInput?.value?.trim();
-    if (recipient) {
-      participantHandles = [recipient];
-    }
-  } else if (type === 'group') {
+  if (type === 'group') {
     groupName = groupNameInput?.value?.trim() || '';
-    const participants = participantsInput?.value?.trim();
-    if (participants) {
-      participantHandles = participants.split(',').map(p => p.trim()).filter(p => p);
-    }
   }
   
-  if (participantHandles.length === 0 && type === 'group') {
-    showMessageBox("Please enter at least one participant for group chat.", true);
+  // Check if we have selected recipients
+  if (selectedRecipients.size === 0) {
+    showMessageBox("Please select at least one recipient for the chat.", true);
     return;
   }
   
-  await createConversation(type, participantHandles, groupName);
-  
-  // Clear form
-  if (recipientInput) recipientInput.value = '';
-  if (groupNameInput) groupNameInput.value = '';
-  if (participantsInput) participantsInput.value = '';
+  await createConversation(type, [], groupName);
 }
 
 export async function handleSendMessage(event) {
@@ -809,6 +1037,28 @@ export function attachDmEventListeners() {
   const deleteBtn = document.getElementById('delete-conversation-btn');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', handleDeleteConversationClick);
+  }
+  
+  // Chat type switching
+  const chatTypeSelect = document.getElementById('new-chat-type');
+  if (chatTypeSelect) {
+    chatTypeSelect.addEventListener('change', () => {
+      const privateFields = document.getElementById('private-chat-fields');
+      const groupFields = document.getElementById('group-chat-fields');
+      
+      // Clear selected recipients when switching types
+      selectedRecipients.clear();
+      renderRecipients('private');
+      renderRecipients('group');
+      
+      if (chatTypeSelect.value === 'private') {
+        privateFields.classList.remove('hidden');
+        groupFields.classList.add('hidden');
+      } else {
+        privateFields.classList.add('hidden');
+        groupFields.classList.remove('hidden');
+      }
+    });
   }
   
   // Conversation items (handled in renderConversationsList)
