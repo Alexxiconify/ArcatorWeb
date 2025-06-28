@@ -16,10 +16,10 @@ import {
   unsubscribeConversationsListListener,
   unsubscribeCurrentMessagesListener,
   attachDmEventListeners,
-  handleCreateConversation,
   initializeDmSystem,
   loadConversations,
-  updateDmUiForNoConversationSelected
+  updateDmUiForNoConversationSelected,
+  createConversation
 } from './dms.js';
 
 // Import Firebase functions
@@ -757,6 +757,32 @@ async function setupDmEventListeners() {
       groupSuggestions.style.display = 'none';
     }
   });
+}
+
+// Local handleCreateConversation function that updates input fields
+async function handleCreateConversation(event) {
+  event.preventDefault();
+  
+  const typeSelect = document.getElementById('new-chat-type');
+  const groupNameInput = document.getElementById('group-chat-name');
+  const groupImageInput = document.getElementById('group-chat-image');
+  
+  const type = typeSelect?.value || 'private';
+  let groupName = '';
+  let groupImage = '';
+  
+  if (type === 'group') {
+    groupName = groupNameInput?.value?.trim() || '';
+    groupImage = groupImageInput?.value?.trim() || '';
+  }
+  
+  // Check if we have selected recipients
+  if (selectedRecipients.size === 0) {
+    showMessageBox("Please select at least one recipient for the chat.", true);
+    return;
+  }
+  
+  await createConversation(type, [], groupName, groupImage);
 }
 
 // Make handleReaction globally accessible

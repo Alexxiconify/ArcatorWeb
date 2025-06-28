@@ -239,11 +239,20 @@
 }
 
 .message-bubble .message-timestamp {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 400;
   margin-top: 0.1rem;
   font-family: inherit;
+}
+
+.message-bubble .message-timestamp .text-blue-400 {
+  color: #3b82f6 !important;
+  font-size: 0.7em;
+  margin-left: 0.25em;
 }
 
 /* Teams-style conversation items */
@@ -330,6 +339,102 @@
 
 .conversation-item.active .conversation-time {
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* Conversation table rows */
+.conversation-row {
+  transition: all 0.2s ease-in-out;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+.conversation-row:hover {
+  background: var(--color-input-border);
+}
+
+.conversation-row.active {
+  background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  color: white;
+}
+
+.conversation-row.active td {
+  color: white;
+}
+
+.conversation-row.active .text-text-secondary {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.conversation-row td {
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.conversation-row td:hover {
+  background: var(--color-input-border);
+}
+
+/* Conversation table styling */
+#conversations-list table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg-card);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+#conversations-list thead {
+  background: var(--color-input-border);
+}
+
+#conversations-list th {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  text-align: left;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+#conversations-list th:last-child {
+  text-align: right;
+}
+
+#conversations-list tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Edit and Delete conversation buttons */
+.edit-conversation-btn,
+.delete-conversation-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+}
+
+.edit-conversation-btn:hover {
+  background: var(--color-input-border);
+  transform: scale(1.1);
+}
+
+.delete-conversation-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+.conversation-row.active .edit-conversation-btn:hover,
+.conversation-row.active .delete-conversation-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* DM Panel Layout - Teams style */
@@ -438,6 +543,35 @@
   color: #ef4444;
 }
 
+/* Edit Message Button - Teams style */
+.edit-message-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.message-bubble:hover .edit-message-btn {
+  opacity: 1;
+}
+
+.edit-message-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+/* Message actions container */
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 /* Teams-style conversation header */
 #selected-conversation-header {
   display: flex;
@@ -458,8 +592,9 @@
 
 #selected-conversation-header .conversation-title > div {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
   flex-wrap: wrap;
 }
 
@@ -506,6 +641,100 @@
   padding: 1rem;
   background: var(--color-bg-card);
   border-radius: 0 0 0.5rem 0.5rem;
+  border: 1px solid var(--color-input-border);
+}
+
+/* Message table styling */
+.message-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg-card);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--color-input-border);
+}
+
+.message-table thead {
+  background: var(--color-input-border);
+}
+
+.message-table th {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  text-align: left;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+.message-table tbody tr {
+  border-bottom: 1px solid var(--color-input-border);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.message-table tbody tr:hover {
+  background: var(--color-input-border);
+}
+
+.message-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.message-table td {
+  padding: 0.75rem 0.5rem;
+  vertical-align: top;
+}
+
+/* Message author styling - username and profile on same line */
+.message-author {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.message-author img {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-input-border);
+  flex-shrink: 0;
+}
+
+.message-author span {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Message content styling */
+.message-content {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+/* Message timestamp styling */
+.message-timestamp {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  margin-top: 0.1rem;
+  font-family: inherit;
+}
+
+.message-timestamp .text-blue-400 {
+  color: #3b82f6 !important;
+  font-size: 0.7em;
+  margin-left: 0.25em;
 }
 
 /* Responsive DM Layout */
@@ -1135,6 +1364,35 @@
   opacity: 0.05;
 }
 
+.recipient-bubble .recipient-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-right: 0.25rem;
+}
+
+.recipient-bubble .recipient-handle {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.recipient-bubble .remove-recipient {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-left: 0.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.recipient-bubble .remove-recipient:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 .recipient-bubble .recipient-avatar {
   width: 1.5rem !important;
   height: 1.5rem !important;
@@ -1297,11 +1555,20 @@
 }
 
 .message-bubble .message-timestamp {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 400;
   margin-top: 0.1rem;
   font-family: inherit;
+}
+
+.message-bubble .message-timestamp .text-blue-400 {
+  color: #3b82f6 !important;
+  font-size: 0.7em;
+  margin-left: 0.25em;
 }
 
 /* Server message styling */
@@ -1462,4 +1729,78 @@
 .server-message .server-icon {
   margin-right: 0.25rem;
   opacity: 0.7;
+}
+
+/* User card table rows for recipient selection */
+.user-card-row {
+  transition: all 0.2s ease-in-out;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+.user-card-row:hover {
+  background: var(--color-input-border);
+}
+
+.user-card-row.selected {
+  background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  color: white;
+}
+
+.user-card-row.selected td {
+  color: white;
+}
+
+.user-card-row.selected .text-text-secondary {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.user-card-row td {
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.user-card-row td:hover {
+  background: var(--color-input-border);
+}
+
+/* User card table styling */
+#private-chat-recipient-list table,
+#group-chat-recipient-list table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg-card);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+#private-chat-recipient-list thead,
+#group-chat-recipient-list thead {
+  background: var(--color-input-border);
+}
+
+#private-chat-recipient-list th,
+#group-chat-recipient-list th {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  text-align: left;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+#private-chat-recipient-list tbody tr:last-child,
+#group-chat-recipient-list tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Update user list scrollable container for table */
+.user-list-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  padding: 0;
+  margin-bottom: 0.4rem;
 }

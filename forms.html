@@ -586,6 +586,18 @@
             <!-- Private Chat Fields -->
             <div id="private-chat-fields" class="space-y-4">
               <div class="form-group">
+                <label class="form-label" for="private-chat-name">Conversation Name (optional)</label>
+                <input id="private-chat-name" class="form-input bg-card text-text-primary border-none rounded w-full" 
+                       placeholder="Enter conversation name">
+                <p class="text-xs text-text-secondary mt-1">Leave empty to use recipient's name</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="private-chat-image">Conversation Image URL (optional)</label>
+                <input id="private-chat-image" class="form-input bg-card text-text-primary border-none rounded w-full" 
+                       placeholder="https://example.com/conversation-image.png">
+                <p class="text-xs text-text-secondary mt-1">Leave empty to use recipient's avatar</p>
+              </div>
+              <div class="form-group">
                 <label class="form-label" for="private-chat-recipient">Recipient</label>
                 <div id="private-chat-recipient-list" class="user-list-scrollable"></div>
                 <div class="recipient-input-container">
@@ -603,6 +615,12 @@
                 <label class="form-label" for="group-chat-name">Group Name</label>
                 <input id="group-chat-name" class="form-input bg-card text-text-primary border-none rounded w-full" 
                        placeholder="Enter group name">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="group-chat-image">Group Image URL (optional)</label>
+                <input id="group-chat-image" class="form-input bg-card text-text-primary border-none rounded w-full" 
+                       placeholder="https://example.com/group-image.png">
+                <p class="text-xs text-text-secondary mt-1">Leave empty to use default group icon</p>
               </div>
               <div class="form-group">
                 <label class="form-label" for="group-chat-participants">Participants</label>

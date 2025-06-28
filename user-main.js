@@ -49,6 +49,71 @@ import {
   setDoc // Added setDoc for saving preferences
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Random name and handle generation
+const RANDOM_NAMES = [
+  'Alex', 'Jordan', 'Casey', 'Riley', 'Quinn', 'Avery', 'Morgan', 'Taylor', 'Blake', 'Cameron',
+  'Dakota', 'Emery', 'Finley', 'Gray', 'Harper', 'Indigo', 'Jules', 'Kai', 'Lane', 'Mason',
+  'Nova', 'Ocean', 'Parker', 'River', 'Sage', 'Teagan', 'Unity', 'Vale', 'Winter', 'Xander',
+  'Yuki', 'Zara', 'Atlas', 'Breeze', 'Cedar', 'Dawn', 'Echo', 'Flame', 'Grove', 'Haven',
+  'Iris', 'Jade', 'Kestrel', 'Luna', 'Moss', 'Nyx', 'Orion', 'Phoenix', 'Quill', 'Raven',
+  'Storm', 'Thunder', 'Vega', 'Willow', 'Zen', 'Aurora', 'Blaze', 'Crystal', 'Dusk', 'Ember',
+  'Frost', 'Glow', 'Haze', 'Ink', 'Jazz', 'Karma', 'Lux', 'Mist', 'Nebula', 'Opal',
+  'Prism', 'Quartz', 'Radiant', 'Shadow', 'Tide', 'Umbra', 'Vapor', 'Whisper', 'Xenon', 'Yara',
+  'Zephyr', 'Aero', 'Bolt', 'Cipher', 'Delta', 'Echo', 'Flux', 'Gamma', 'Helix', 'Ion',
+  'Jet', 'Kilo', 'Laser', 'Mega', 'Nano', 'Omega', 'Pulse', 'Quantum', 'Rocket', 'Sonic',
+  'Titan', 'Ultra', 'Void', 'Wave', 'Xen', 'Yankee', 'Zulu', 'Alpha', 'Bravo', 'Charlie'
+];
+
+const RANDOM_ADJECTIVES = [
+  'Swift', 'Bright', 'Clever', 'Daring', 'Eager', 'Fierce', 'Gentle', 'Happy', 'Intense', 'Joyful',
+  'Kind', 'Lively', 'Mighty', 'Noble', 'Optimistic', 'Peaceful', 'Quick', 'Radiant', 'Strong', 'Tender',
+  'Unique', 'Vibrant', 'Warm', 'Xenial', 'Youthful', 'Zealous', 'Adventurous', 'Bold', 'Creative', 'Dynamic',
+  'Energetic', 'Fearless', 'Genuine', 'Harmonious', 'Innovative', 'Jubilant', 'Knowledgeable', 'Luminous', 'Magnificent', 'Natural',
+  'Outstanding', 'Passionate', 'Quirky', 'Resilient', 'Spirited', 'Tenacious', 'Unstoppable', 'Versatile', 'Wondrous', 'Xenodochial',
+  'Yearning', 'Zestful', 'Ambitious', 'Brilliant', 'Charismatic', 'Dedicated', 'Enthusiastic', 'Focused', 'Grateful', 'Hopeful',
+  'Inspiring', 'Jovial', 'Keen', 'Loving', 'Motivated', 'Nurturing', 'Open', 'Patient', 'Qualified', 'Reliable',
+  'Sincere', 'Trustworthy', 'Understanding', 'Valuable', 'Wise', 'Xenial', 'Young', 'Zealous', 'Authentic', 'Balanced',
+  'Compassionate', 'Determined', 'Empathetic', 'Faithful', 'Generous', 'Honest', 'Imaginative', 'Just', 'Kindhearted', 'Loyal'
+];
+
+/**
+ * Generate a random name and handle for new users
+ */
+function generateRandomNameAndHandle() {
+  const randomName = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
+  const randomAdjective = RANDOM_ADJECTIVES[Math.floor(Math.random() * RANDOM_ADJECTIVES.length)];
+  const randomNumber = Math.floor(Math.random() * 999) + 1;
+  
+  const displayName = `${randomAdjective} ${randomName}`;
+  const handle = `${randomAdjective.toLowerCase()}${randomName.toLowerCase()}${randomNumber}`;
+  
+  return { displayName, handle };
+}
+
+/**
+ * Generate a colored profile picture with the first letter
+ */
+function generateColoredProfilePic(displayName) {
+  const firstLetter = displayName.charAt(0).toUpperCase();
+  
+  // Generate similar colors for text and background
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = Math.floor(Math.random() * 30) + 60; // 60-90%
+  const lightness = Math.floor(Math.random() * 20) + 30; // 30-50%
+  
+  const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  const textColor = `hsl(${hue}, ${saturation}%, ${lightness > 40 ? 10 : 90}%)`; // Dark or light text based on background
+  
+  const svg = `
+    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="${bgColor}" rx="100"/>
+      <text x="100" y="120" font-family="Arial, sans-serif" font-size="80" font-weight="bold" 
+            text-anchor="middle" fill="${textColor}">${firstLetter}</text>
+    </svg>
+  `;
+  
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
 
 // --- DOM Elements --
 // Auth sections
@@ -262,8 +327,8 @@ async function handleSignUp() {
   const rawHandle = signUpHandleInput.value.trim();
   const handle = sanitizeHandle(rawHandle); // Sanitize the handle
 
-  if (!email || !password || !confirmPassword || !displayName || !rawHandle) {
-    showMessageBox('Please fill in all fields.', true);
+  if (!email || !password || !confirmPassword) {
+    showMessageBox('Please fill in all required fields.', true);
     return;
   }
   if (password.length < 6) {
@@ -274,20 +339,43 @@ async function handleSignUp() {
     showMessageBox('Passwords do not match.', true);
     return;
   }
-  if (handle.length < 3) {
-    showMessageBox('Handle must be at least 3 characters.', true);
-    return;
-  }
-  if (handle !== rawHandle.toLowerCase().replace(/[^a-z0-9_.]/g, '') && rawHandle !== '') {
-    showMessageBox('Handle contains invalid characters. Use only alphanumeric, dots, and underscores.', true);
-    return;
-  }
 
   try {
-    console.log("DEBUG: Checking handle uniqueness for:", handle);
+    // Generate random name and handle if not provided
+    let finalDisplayName = displayName;
+    let finalHandle = handle;
+    let profilePicUrl = DEFAULT_PROFILE_PIC;
+    
+    if (!finalDisplayName) {
+      const randomData = generateRandomNameAndHandle();
+      finalDisplayName = randomData.displayName;
+      finalHandle = randomData.handle;
+      profilePicUrl = generateColoredProfilePic(finalDisplayName);
+    } else if (!finalHandle) {
+      // If display name is provided but no handle, generate handle from display name
+      finalHandle = sanitizeHandle(finalDisplayName.toLowerCase().replace(/\s+/g, ''));
+      if (finalHandle.length < 3) {
+        finalHandle = finalHandle + Math.floor(Math.random() * 999) + 1;
+      }
+      profilePicUrl = generateColoredProfilePic(finalDisplayName);
+    } else {
+      // Both provided, generate colored profile pic
+      profilePicUrl = generateColoredProfilePic(finalDisplayName);
+    }
+    
+    if (finalHandle.length < 3) {
+      showMessageBox('Handle must be at least 3 characters.', true);
+      return;
+    }
+    if (finalHandle !== rawHandle.toLowerCase().replace(/[^a-z0-9_.]/g, '') && rawHandle !== '') {
+      showMessageBox('Handle contains invalid characters. Use only alphanumeric, dots, and underscores.', true);
+      return;
+    }
+
+    console.log("DEBUG: Checking handle uniqueness for:", finalHandle);
     // Check for handle uniqueness before creating user
     const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-    const q = query(usersRef, where('handle', '==', handle));
+    const q = query(usersRef, where('handle', '==', finalHandle));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       showMessageBox('This handle is already taken. Please choose another.', true);
@@ -299,23 +387,23 @@ async function handleSignUp() {
     const user = userCredential.user;
     console.log("DEBUG: Firebase user created:", user.uid);
 
-    // Ensure photoURL is DEFAULT_PROFILE_PIC on signup
+    // Use generated profile picture
     await updateProfile(user, {
-      displayName: displayName,
-      photoURL: DEFAULT_PROFILE_PIC // Always use default on signup
+      displayName: finalDisplayName,
+      photoURL: profilePicUrl
     });
     console.log("DEBUG: User profile updated in Firebase Auth.");
 
     const userProfileData = {
       uid: user.uid,
-      displayName: displayName,
+      displayName: finalDisplayName,
       email: email,
-      photoURL: DEFAULT_PROFILE_PIC, // Ensure photoURL is DEFAULT_PROFILE_PIC in Firestore data
+      photoURL: profilePicUrl,
       createdAt: new Date(),
       lastLoginAt: new Date(),
       themePreference: DEFAULT_THEME_NAME,
       isAdmin: false, // Default to not admin
-      handle: handle // Store the sanitized handle
+      handle: finalHandle // Store the sanitized handle
     };
     await setUserProfileInFirestore(user.uid, userProfileData);
     console.log("DEBUG: User profile saved to Firestore.");
@@ -362,12 +450,18 @@ async function handleGoogleSignIn() {
 
     // Check if this is a new user
     if (result._tokenResponse?.isNewUser) {
+      // Generate random name and handle for new Google user
+      const randomData = generateRandomNameAndHandle();
+      const displayName = result.user.displayName || randomData.displayName;
+      const handle = randomData.handle;
+      const profilePicUrl = result.user.photoURL || generateColoredProfilePic(displayName);
+      
       // Create user profile for new Google user
       const userProfile = {
-        displayName: result.user.displayName || '',
+        displayName: displayName,
         email: result.user.email || '',
-        photoURL: result.user.photoURL || DEFAULT_PROFILE_PIC,
-        handle: '',
+        photoURL: profilePicUrl,
+        handle: handle,
         themePreference: DEFAULT_THEME_NAME,
         createdAt: new Date(),
         lastLogin: new Date(),
@@ -375,7 +469,7 @@ async function handleGoogleSignIn() {
       };
 
       await setUserProfileInFirestore(result.user.uid, userProfile);
-      showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
+      showMessageBox(`Welcome to Arcator.co.uk! Your account has been created with the name "${displayName}" and handle "@${handle}".`);
     } else {
       showMessageBox('Welcome back!');
     }
@@ -402,12 +496,18 @@ async function handleGitHubSignIn() {
 
     // Check if this is a new user
     if (result._tokenResponse?.isNewUser) {
+      // Generate random name and handle for new GitHub user
+      const randomData = generateRandomNameAndHandle();
+      const displayName = result.user.displayName || randomData.displayName;
+      const handle = randomData.handle;
+      const profilePicUrl = result.user.photoURL || generateColoredProfilePic(displayName);
+      
       // Create user profile for new GitHub user
       const userProfile = {
-        displayName: result.user.displayName || '',
+        displayName: displayName,
         email: result.user.email || '',
-        photoURL: result.user.photoURL || DEFAULT_PROFILE_PIC,
-        handle: '',
+        photoURL: profilePicUrl,
+        handle: handle,
         themePreference: DEFAULT_THEME_NAME,
         createdAt: new Date(),
         lastLogin: new Date(),
@@ -415,7 +515,7 @@ async function handleGitHubSignIn() {
       };
 
       await setUserProfileInFirestore(result.user.uid, userProfile);
-      showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
+      showMessageBox(`Welcome to Arcator.co.uk! Your account has been created with the name "${displayName}" and handle "@${handle}".`);
     } else {
       showMessageBox('Welcome back!');
     }
