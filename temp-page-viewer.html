@@ -457,38 +457,25 @@
     // Setup themes integration using the imported function
     setupThemesFirebase(db, auth, appId);
 
+    // Get user profile and apply theme
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    
     // Load navbar dynamically
-    await loadNavbar(auth.currentUser, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Load footer
     loadFooter('current-year-temp-page');
-
-    if (auth) {
-      auth.onAuthStateChanged(async (user) => {
-        let userThemePreference = null;
-        if (user) {
-          // Use the getUserProfileFromFirestore from firebase-init for consistency
-          const getUserProfileFromFirestore = async (uid) => {
-            if (!db) {
-              console.error("Firestore DB not initialized.");
-              return null;
-            }
-            const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-            try {
-              const docSnap = await getDoc(userDocRef);
-              if (docSnap.exists()) return docSnap.data();
-            } catch (error) {
-              console.error("Error fetching user profile:", error);
-            }
-            return null;
-          };
-          const userProfile = await getUserProfileFromFirestore(user.uid);
-          userThemePreference = userProfile?.themePreference;
-        }
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        applyTheme(themeToApply.id, themeToApply);
-      });
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
     }
 
     allTemporaryPages = await fetchAllTemporaryPages();

@@ -212,63 +212,33 @@
 <!-- Firebase SDKs and Main Script -->
 <script src="app.js" type="module"></script>
 <script type="module">
-  import {setupThemesFirebase, applyTheme, getAvailableThemes} from './themes.js';
-  import {loadNavbar, loadFooter} from './navbar.js'; // Import loadNavbar
-  import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import {
-    getAuth,
-    onAuthStateChanged,
-    signInWithCustomToken,
-    signInAnonymously
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  // Setup themes Firebase integration
-  setupThemesFirebase(db, auth, "arcator-web");
+  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+  import { loadNavbar, loadFooter } from './navbar.js';
+  import { getAvailableThemes, applyTheme } from './themes.js';
 
   // Main execution logic on window load
   window.onload = async function () {
+    await firebaseReadyPromise;
+    
+    // Get user profile and apply theme
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    
     // Load navbar
-    await loadNavbar(auth.currentUser, null, 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV', 'dark');
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
     // Load footer
     loadFooter('current-year-index');
-
-    if (auth) {
-      auth.onAuthStateChanged(async (user) => {
-        let userThemePreference = null;
-        if (user) {
-          const userDocRef = doc(db, `artifacts/arcator-web/public/data/user_profiles`, user.uid);
-          try {
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-              const userData = docSnap.data();
-              userThemePreference = userData.themePreference;
-            }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-          }
-        }
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === 'dark');
-        applyTheme(themeToApply.id, themeToApply);
-      });
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Index page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
     }
   };
 </script>
