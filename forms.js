@@ -1131,4 +1131,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
   console.log("Add Comment form listener attached.");
+
+  // DM tab logic
+  const dmTabBtn = document.getElementById('tab-dms');
+  const dmTabContent = document.getElementById('dm-tab-content');
+
+  if (dmTabBtn && dmTabContent) {
+    dmTabBtn.addEventListener('click', () => {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      // Remove active from all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      // Show DM content
+      dmTabContent.style.display = 'block';
+      dmTabBtn.classList.add('active');
+    });
+  }
+
+  const allThematasTabBtn = document.getElementById('tab-themata');
+  if (allThematasTabBtn) {
+    allThematasTabBtn.addEventListener('click', () => {
+      renderThematas();
+    });
+  }
 });
