@@ -900,6 +900,8 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
       updateNavbarForTheme();
     });
 
+    styleNavbarItemsUniformly();
+
   } catch (error) {
     navbarPlaceholder.innerHTML = `
       <nav style="background: var(--color-bg-navbar, #111827); padding: 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
@@ -1273,4 +1275,20 @@ function getSafePhotoURL(photoURL, defaultProfilePic = null) {
     return fallback;
   }
   return photoURL;
+}
+
+// PATCH: Uniform navbar item sizing
+function styleNavbarItemsUniformly() {
+  const navItems = document.querySelectorAll('.navbar-link, .navbar-logo, .navbar-profile');
+  navItems.forEach(item => {
+    item.style.height = '2.5rem';
+    item.style.minWidth = '2.5rem';
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.justifyContent = 'center';
+    item.style.fontSize = '1rem';
+    item.style.fontWeight = '500';
+    item.style.borderRadius = '1.25rem';
+    item.style.padding = '0 0.75rem';
+  });
 }
