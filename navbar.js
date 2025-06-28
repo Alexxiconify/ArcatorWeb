@@ -937,7 +937,7 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
   const footerHTML = `
     <footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
       <div class="container mx-auto px-4">
-        <p>© 2012 - <span id="${yearElementId || 'current-year'}">${new Date().getFullYear()}</span> Arcator.co.uk. All rights reserved.</p>
+        <p>© 2010 - <span id="${yearElementId || 'current-year'}">${new Date().getFullYear()}</span> Arcator.co.uk. All rights reserved.</p>
         <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
         <div class="flex flex-wrap justify-center space-x-6 mt-4">
           ${allLinks.map(link => {
