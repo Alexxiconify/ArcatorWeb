@@ -217,7 +217,7 @@
 </section>
 
 <!-- Main Content Section -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+<section id="legal-main-content" class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200">
   <div class="container mx-auto px-4">
     <!-- Tab Navigation -->
     <div class="tab-container">
@@ -362,28 +362,25 @@
     event.target.classList.add('active');
   };
 
-  firebaseReadyPromise.then(async () => {
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
-    loadFooter('current-year-legal');
-
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-    }
-
-    setTimeout(async () => {
-      if (typeof window.forceRefreshNavbarState === 'function') {
-        await window.forceRefreshNavbarState();
+  firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged(async (user) => {
+      let userProfile = null;
+      if (user) {
+        userProfile = await getUserProfileFromFirestore(user.uid);
       }
-    }, 500);
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+      loadFooter('current-year-legal');
+
+      // Apply user's theme preference
+      const userThemePreference = userProfile?.themePreference;
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
+      if (themeToApply) {
+        applyTheme(themeToApply.id, themeToApply);
+        document.getElementById('legal-main-content').classList.remove('opacity-0');
+        console.log(`Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+      }
+    });
   });
 </script>
 </body>
