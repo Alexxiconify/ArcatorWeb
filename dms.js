@@ -597,6 +597,8 @@ export function renderConversationsList() {
 
 /**
  * Selects a conversation, loads its messages, and updates the right panel UI.
+ * Handles self-DMs, group DMs, and missing user profiles gracefully.
+ * Always renders inline, never crashes.
  * @param {string} convId - The ID of the conversation to select.
  * @param {object} conversationData - The conversation object data.
  */
@@ -608,74 +610,81 @@ export async function selectConversation(convId, conversationData) {
   }
 
   selectedConversationId = convId;
-  
+
   // Update conversation header
   const conversationTitleEl = document.getElementById('conversation-title');
   const conversationSubtitleEl = document.getElementById('conversation-subtitle');
   const conversationAvatarEl = document.getElementById('conversation-avatar');
   const deleteConversationBtn = document.getElementById('delete-conversation-btn');
-  
-  if (conversationData) {
-    let displayName = 'Unknown Conversation';
-    let subtitle = 'Loading...';
-    let avatarUrl = DEFAULT_PROFILE_PIC;
-    
-    if (conversationData.type === 'group') {
-      displayName = conversationData.name || 'Unnamed Group';
-      subtitle = `${conversationData.participants?.length || 0} members`;
-      avatarUrl = 'https://placehold.co/40x40/1F2937/E5E7EB?text=GC'; // Group chat icon
-    } else {
-      // Private chat - find the other participant
-      const otherUid = conversationData.participants?.find(uid => uid !== currentUser.uid);
-      if (otherUid) {
-        try {
-          const otherProfile = await getUserProfileFromFirestore(otherUid);
-          if (otherProfile) {
-            displayName = otherProfile.displayName || otherProfile.handle || 'Unknown User';
-            subtitle = otherProfile.handle ? `@${otherProfile.handle}` : 'User';
-            avatarUrl = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
-          } else {
+
+  // Default values
+  let displayName = 'Unknown Conversation';
+  let subtitle = 'Loading...';
+  let avatarUrl = DEFAULT_PROFILE_PIC;
+
+  try {
+    if (conversationData) {
+      if (conversationData.type === 'group') {
+        displayName = conversationData.name || 'Unnamed Group';
+        subtitle = `${conversationData.participants?.length || 0} members`;
+        avatarUrl = 'https://placehold.co/40x40/1F2937/E5E7EB?text=GC';
+      } else {
+        // Private chat - find the other participant
+        const otherUid = conversationData.participants?.find(uid => uid !== currentUser.uid);
+        if (otherUid) {
+          try {
+            const otherProfile = await getUserProfileFromFirestore(otherUid);
+            if (otherProfile) {
+              displayName = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+              subtitle = otherProfile.handle ? `@${otherProfile.handle}` : 'User';
+              avatarUrl = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
+            } else {
+              displayName = 'Unknown User';
+              subtitle = 'User not found';
+              avatarUrl = DEFAULT_PROFILE_PIC;
+            }
+          } catch (error) {
             displayName = 'Unknown User';
-            subtitle = 'User not found';
+            subtitle = 'Error loading profile';
             avatarUrl = DEFAULT_PROFILE_PIC;
           }
-        } catch (error) {
-          console.warn("Could not fetch other user's profile:", error);
-          displayName = 'Unknown User';
-          subtitle = 'Error loading profile';
-          avatarUrl = DEFAULT_PROFILE_PIC;
+        } else {
+          // Self-DM
+          displayName = currentUser.displayName || currentUser.handle || 'You';
+          subtitle = currentUser.handle ? `@${currentUser.handle}` : 'Your personal chat';
+          avatarUrl = currentUser.photoURL || DEFAULT_PROFILE_PIC;
         }
-      } else {
-        displayName = 'Self Chat';
-        subtitle = 'Your personal chat';
-        avatarUrl = currentUser.photoURL || DEFAULT_PROFILE_PIC;
       }
     }
-    
-    if (conversationTitleEl) conversationTitleEl.textContent = displayName;
-    if (conversationSubtitleEl) conversationSubtitleEl.textContent = subtitle;
-    if (conversationAvatarEl) {
-      conversationAvatarEl.src = avatarUrl;
-      conversationAvatarEl.alt = displayName;
-      conversationAvatarEl.onerror = () => { conversationAvatarEl.src = DEFAULT_PROFILE_PIC; };
-    }
-    
-    // Show delete button for conversations the user can delete
-    if (deleteConversationBtn) {
-      deleteConversationBtn.style.display = 'block';
-      deleteConversationBtn.dataset.conversationId = convId;
-    }
+  } catch (error) {
+    displayName = 'Unknown Conversation';
+    subtitle = 'Error loading conversation';
+    avatarUrl = DEFAULT_PROFILE_PIC;
   }
-  
+
+  if (conversationTitleEl) conversationTitleEl.textContent = displayName;
+  if (conversationSubtitleEl) conversationSubtitleEl.textContent = subtitle;
+  if (conversationAvatarEl) {
+    conversationAvatarEl.src = avatarUrl;
+    conversationAvatarEl.alt = displayName;
+    conversationAvatarEl.onerror = () => { conversationAvatarEl.src = DEFAULT_PROFILE_PIC; };
+  }
+
+  // Show delete button for conversations the user can delete
+  if (deleteConversationBtn) {
+    deleteConversationBtn.style.display = 'block';
+    deleteConversationBtn.dataset.conversationId = convId;
+  }
+
   // Update UI to show messages panel
   const conversationsPanel = document.getElementById('conversations-panel');
   const messagesPanel = document.getElementById('messages-panel');
   const messageInputArea = document.getElementById('message-input-area');
-  
+
   if (conversationsPanel) conversationsPanel.classList.add('hidden');
   if (messagesPanel) messagesPanel.classList.remove('hidden');
   if (messageInputArea) messageInputArea.classList.remove('hidden');
-  
+
   // Load and render messages
   await loadMessagesForConversation(convId);
 }
@@ -716,36 +725,37 @@ export function updateDmUiForNoConversationSelected() {
 
 /**
  * Renders messages for a specific conversation in real-time.
+ * Always renders inline, never crashes, even if data is missing.
  * @param {string} convId - The ID of the conversation whose messages to render.
  */
 async function renderConversationMessages(convId) {
   const messagesContainer = document.getElementById('conversation-messages-container');
   const noMessagesEl = document.getElementById('no-messages-message');
-  
+
   if (!messagesContainer) return;
-  
+
   if (!currentMessages || currentMessages.length === 0) {
     messagesContainer.innerHTML = '';
-    noMessagesEl.style.display = 'block';
+    if (noMessagesEl) noMessagesEl.style.display = 'block';
     return;
   }
-  
-  noMessagesEl.style.display = 'none';
-  
+
+  if (noMessagesEl) noMessagesEl.style.display = 'none';
+
   const currentUser = await getCurrentUser();
   if (!currentUser) return;
-  
+
   messagesContainer.innerHTML = currentMessages.map(message => {
     const isOwnMessage = message.senderId === currentUser.uid;
-    const messageTime = message.timestamp ? 
-      new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+    const messageTime = message.timestamp ?
+      new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
       '';
-    
-    // Get sender info
+
+    // Get sender info, fallback if missing
     const senderProfile = message.senderProfile || {};
     const senderName = senderProfile.displayName || senderProfile.handle || 'Unknown User';
     const senderAvatar = senderProfile.photoURL || DEFAULT_PROFILE_PIC;
-    
+
     return `
       <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}">
         ${!isOwnMessage ? `
@@ -768,10 +778,10 @@ async function renderConversationMessages(convId) {
       </div>
     `;
   }).join('');
-  
+
   // Scroll to bottom
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
+
   // Add delete message event listeners
   messagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
     btn.addEventListener('click', handleDeleteMessage);
