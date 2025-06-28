@@ -1095,8 +1095,12 @@
   min-height: 1.5rem;
   max-width: 1.5rem;
   max-height: 1.5rem;
-  border-width: 1px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--color-input-border);
+  background: var(--color-bg-card);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
 }
 
 .recipient-bubble:hover .recipient-avatar {
@@ -1438,8 +1442,12 @@
   min-height: 1.5rem;
   max-width: 1.5rem;
   max-height: 1.5rem;
-  border-width: 1px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--color-input-border);
+  background: var(--color-bg-card);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
 }
 
 .conversation-avatar {
