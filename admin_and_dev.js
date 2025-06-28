@@ -128,6 +128,15 @@ const griefDetectionContent = document.getElementById('grief-detection-content')
 const onfimNotificationsHeader = document.getElementById('onfim-notifications-header');
 const onfimNotificationsContent = document.getElementById('onfim-notifications-content');
 
+// Email Management DOM elements
+const emailToSelect = document.getElementById('email-to-select');
+const emailTemplateSelect = document.getElementById('email-template-select');
+const emailSubjectInput = document.getElementById('email-subject');
+const emailContentTextarea = document.getElementById('email-content');
+const emailHtmlFormatCheckbox = document.getElementById('email-html-format');
+const emailComposeForm = document.getElementById('email-compose-form');
+const previewEmailBtn = document.getElementById('preview-email-btn');
+const emailHistoryTbody = document.getElementById('email-history-tbody');
 
 // EasyMDE instances (No longer using EasyMDE for temporary pages - it will be HTML editor)
 // let easyMDECreate;
@@ -585,65 +594,47 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
       adminContent.style.display = 'block';
     }
 
-    // Update admin sections visibility based on user role
-    const userProfile = await getUserProfileFromFirestore(user.uid);
-    const userRole = userProfile?.role || 'user';
+    // Update admin sections visibility
+    const sections = [
+      'infrastructure-section',
+      'dev-tools-section', 
+      'user-management-section',
+      'email-management-section',
+      'form-management-section',
+      'temp-pages-section',
+      'important-links-section',
+      'roadmap-section',
+      'darrion-api-section',
+      'grief-detection-section',
+      'onfim-notifications-section'
+    ];
 
-    console.log("DEBUG: User role:", userRole);
-
-    // Show/hide sections based on role
-    const infrastructureSection = document.getElementById('infrastructure-section');
-    const devToolsSection = document.getElementById('dev-tools-section');
-    const userManagementSection = document.getElementById('user-management-section');
-    const emailManagementSection = document.getElementById('email-management-section');
-    const formManagementSection = document.getElementById('form-management-section');
-    const tempPagesSection = document.getElementById('temp-pages-section');
-    const importantLinksSection = document.getElementById('important-links-section');
-    const roadmapSection = document.getElementById('roadmap-section');
-    const darrionApiSection = document.getElementById('darrion-api-section');
-    const griefDetectionSection = document.getElementById('grief-detection-section');
-    const onfimNotificationsSection = document.getElementById('onfim-notifications-section');
-
-    if (userRole === 'admin' || userRole === 'developer') {
-      infrastructureSection?.style.setProperty('display', 'block');
-      devToolsSection?.style.setProperty('display', 'block');
-      userManagementSection?.style.setProperty('display', 'block');
-      emailManagementSection?.style.setProperty('display', 'block');
-      formManagementSection?.style.setProperty('display', 'block');
-      tempPagesSection?.style.setProperty('display', 'block');
-      importantLinksSection?.style.setProperty('display', 'block');
-      roadmapSection?.style.setProperty('display', 'block');
-      darrionApiSection?.style.setProperty('display', 'block');
-      griefDetectionSection?.style.setProperty('display', 'block');
-      onfimNotificationsSection?.style.setProperty('display', 'block');
-
-      // Auto-load users when admin content is shown
-      if (usersData.length === 0) {
-        await loadUsers();
+    sections.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.style.display = 'block';
       }
-    } else {
-      // For regular users, show limited sections
-      infrastructureSection?.style.setProperty('display', 'none');
-      devToolsSection?.style.setProperty('display', 'none');
-      userManagementSection?.style.setProperty('display', 'none');
-      emailManagementSection?.style.setProperty('display', 'none');
-      formManagementSection?.style.setProperty('display', 'none');
-      tempPagesSection?.style.setProperty('display', 'none');
-      importantLinksSection?.style.setProperty('display', 'none');
-      roadmapSection?.style.setProperty('display', 'none');
-      darrionApiSection?.style.setProperty('display', 'none');
-      griefDetectionSection?.style.setProperty('display', 'none');
-      onfimNotificationsSection?.style.setProperty('display', 'none');
-    }
+    });
 
     // Setup collapsible sections
     setupCollapsibleSections();
 
-    // Setup other event listeners
+    // Load initial data
     setupEventListeners();
 
+    // Auto-load users when user management section is expanded
+    const userManagementHeader = document.getElementById('user-management-header');
+    if (userManagementHeader) {
+      userManagementHeader.addEventListener('click', async function() {
+        const content = this.nextElementSibling;
+        if (content.classList.contains('hidden') && usersData.length === 0) {
+          await loadUsers();
+        }
+      });
+    }
+
   } else {
-    console.log("DEBUG: No user authenticated, showing login required message");
+    console.log("DEBUG: User is not authenticated, showing login required message");
     if (adminContent) {
       adminContent.style.display = 'none';
     }

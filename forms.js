@@ -484,7 +484,7 @@ const mainLoginRequiredMessage = document.getElementById('login-required-message
 const createThemaForm = document.getElementById('create-thema-form');
 const newThemaNameInput = document.getElementById('new-thema-name');
 const newThemaDescriptionInput = document.getElementById('new-thema-description');
-const themaList = document.getElementById('thema-list');
+const themaList = document.getElementById('thema-boxes');
 
 const threadsSection = document.getElementById('threads-section');
 const backToThematasBtn = document.getElementById('back-to-thematas-btn');

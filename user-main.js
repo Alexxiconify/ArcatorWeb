@@ -13,10 +13,10 @@ import {
   setUserProfileInFirestore
 } from './firebase-init.js';
 
-import {showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL} from './utils.js';
+import { showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL } from './utils.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
-import {setupCustomThemeManagement} from './custom_theme_modal.js'; // Import custom theme management
+import { setupCustomThemeManagement } from './custom_theme_modal.js'; // Import custom theme management
 
 // Import global shortcut functions from app.js
 import {
@@ -363,7 +363,7 @@ async function handleGoogleSignIn() {
     showLoading();
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
-    
+
     // Check if this is a new user
     if (result._tokenResponse?.isNewUser) {
       // Create user profile for new Google user
@@ -377,7 +377,7 @@ async function handleGoogleSignIn() {
         lastLogin: new Date(),
         provider: 'google'
       };
-      
+
       await setUserProfileInFirestore(result.user.uid, userProfile);
       showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
     } else {
@@ -403,7 +403,7 @@ async function handleGitHubSignIn() {
     showLoading();
     const provider = new GithubAuthProvider();
     const result = await signInWithPopup(auth, provider);
-    
+
     // Check if this is a new user
     if (result._tokenResponse?.isNewUser) {
       // Create user profile for new GitHub user
@@ -417,7 +417,7 @@ async function handleGitHubSignIn() {
         lastLogin: new Date(),
         provider: 'github'
       };
-      
+
       await setUserProfileInFirestore(result.user.uid, userProfile);
       showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
     } else {
@@ -599,9 +599,9 @@ async function reloadAndApplyUserProfile() {
 
   // Load and apply keyboard shortcuts
   if (advancedSettings.keyboardShortcutsConfig) {
-    updateGlobalShortcuts({...defaultShortcuts, ...advancedSettings.keyboardShortcutsConfig});
+    updateGlobalShortcuts({ ...defaultShortcuts, ...advancedSettings.keyboardShortcutsConfig });
   } else {
-    updateGlobalShortcuts({...defaultShortcuts});
+    updateGlobalShortcuts({ ...defaultShortcuts });
   }
 
   // Load disabled shortcuts
@@ -856,7 +856,7 @@ async function handleSaveProfile() {
 
   try {
     showLoading();
-    
+
     // Update Firebase Auth profile
     await updateProfile(auth.currentUser, {
       displayName: displayName,
@@ -883,6 +883,11 @@ async function handleSaveProfile() {
     }
 
     showMessageBox('Profile updated successfully!');
+    // Auto-hide success message after 2 seconds
+    setTimeout(() => {
+      const messageBox = document.getElementById('message-box');
+      if (messageBox) messageBox.style.display = 'none';
+    }, 2000);
   } catch (error) {
     console.error('Error updating profile:', error);
     showMessageBox('Failed to update profile. Please try again.', true);
@@ -915,7 +920,7 @@ async function handleSavePreferences() {
 
   // Apply font scaling system immediately
   const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-  const updatedProfile = {...userProfile, ...updates};
+  const updatedProfile = { ...userProfile, ...updates };
   applyFontScalingSystem(updatedProfile);
 
   // Apply background pattern with opacity immediately
@@ -940,10 +945,21 @@ async function handleSavePreferences() {
   }
 
   try {
+    showMessageBox('Saving preferences...', false);
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
       showMessageBox('Preferences saved successfully!', false);
-      await reloadAndApplyUserProfile();
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+      // Update background opacity display immediately
+      if (backgroundOpacityValue) {
+        backgroundOpacityValue.textContent = backgroundOpacity + '%';
+      }
+    } else {
+      showMessageBox('Failed to save preferences. Please try again.', true);
     }
   } catch (error) {
     console.error('Error saving preferences:', error);
@@ -988,10 +1004,17 @@ async function handleSaveNotifications() {
   };
 
   try {
+    showMessageBox('Saving notification settings...', false);
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
       showMessageBox('Notification settings saved successfully!', false);
-      await reloadAndApplyUserProfile();
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+    } else {
+      showMessageBox('Failed to save notification settings. Please try again.', true);
     }
   } catch (error) {
     console.error('Error saving notification settings:', error);
@@ -1030,10 +1053,17 @@ async function handleSavePrivacy() {
   };
 
   try {
+    showMessageBox('Saving privacy settings...', false);
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
       showMessageBox('Privacy settings saved successfully!', false);
-      await reloadAndApplyUserProfile();
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+    } else {
+      showMessageBox('Failed to save privacy settings. Please try again.', true);
     }
   } catch (error) {
     console.error('Error saving privacy settings:', error);
@@ -1229,7 +1259,9 @@ async function handleSaveAccessibility() {
     'colorblind-friendly-checkbox',
     'reduced-motion-checkbox',
     'disable-animations-checkbox',
+    'keyboard-navigation-checkbox',
     'skip-links-checkbox',
+    'text-to-speech-checkbox',
     'reading-guide-checkbox',
     'syntax-highlighting-checkbox',
     'word-spacing-checkbox'
@@ -1252,10 +1284,17 @@ async function handleSaveAccessibility() {
   applyAccessibilitySettings(accessibilitySettings);
 
   try {
+    showMessageBox('Saving accessibility settings...', false);
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
       showMessageBox('Accessibility settings saved successfully!', false);
-      await reloadAndApplyUserProfile();
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+    } else {
+      showMessageBox('Failed to save accessibility settings. Please try again.', true);
     }
   } catch (error) {
     console.error('Error saving accessibility settings:', error);
@@ -1289,7 +1328,7 @@ async function handleSaveAdvanced() {
   // Add custom CSS
   const customCssTextarea = document.getElementById('custom-css-textarea');
   if (customCssTextarea) {
-    advancedSettings.customCSS = customCssTextarea.value;
+    advancedSettings.customCSS = customCssTextarea.value.trim();
   }
 
   // Add keyboard shortcuts setting
@@ -1298,13 +1337,19 @@ async function handleSaveAdvanced() {
     advancedSettings.keyboardShortcuts = keyboardShortcutsSelect.value;
   }
 
-  // Add keyboard shortcuts configuration from global state
+  // Save keyboard shortcuts configuration
   const currentShortcuts = getCurrentShortcuts();
   advancedSettings.keyboardShortcutsConfig = currentShortcuts;
 
-  // Add disabled shortcuts list
-  const disabledShortcutsList = Array.from(disabledShortcuts);
-  advancedSettings.disabledShortcuts = disabledShortcutsList;
+  // Get disabled shortcuts
+  const disabledShortcuts = [];
+  document.querySelectorAll('.shortcut-disable-btn.disabled').forEach(btn => {
+    const shortcutName = btn.getAttribute('data-shortcut');
+    if (shortcutName) {
+      disabledShortcuts.push(shortcutName);
+    }
+  });
+  advancedSettings.disabledShortcuts = disabledShortcuts;
 
   const updates = {
     advancedSettings: advancedSettings
@@ -1317,10 +1362,17 @@ async function handleSaveAdvanced() {
   }
 
   try {
+    showMessageBox('Saving advanced settings...', false);
     const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
     if (success) {
       showMessageBox('Advanced settings saved successfully!', false);
-      await reloadAndApplyUserProfile();
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+    } else {
+      showMessageBox('Failed to save advanced settings. Please try again.', true);
     }
   } catch (error) {
     console.error('Error saving advanced settings:', error);
@@ -1412,7 +1464,7 @@ async function handleExportData() {
     };
 
     const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
 
     const link = document.createElement('a');
@@ -1450,7 +1502,7 @@ async function handleImportData() {
         await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
           ...importData.userProfile,
           ...importData.settings
-        }, {merge: true});
+        }, { merge: true });
 
         showMessageBox('Data imported successfully! Please refresh the page to see changes.', false);
       } else {
@@ -1508,7 +1560,7 @@ async function handleResetAdvanced() {
 }
 
 // Main execution logic when the window loads
-window.onload = async function() {
+window.onload = async function () {
   console.log("user-main.js: window.onload fired.");
   showLoading(); // Show spinner initially
 
@@ -1639,7 +1691,7 @@ window.onload = async function() {
                 try {
                   await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
                     themePreference: selectedThemeId
-                  }, {merge: true});
+                  }, { merge: true });
                   console.log("Theme preference saved to user profile.");
                 } catch (error) {
                   console.error("Error saving theme preference:", error);

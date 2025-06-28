@@ -31,6 +31,8 @@
       --color-button-green-hover: #059669;
       --color-button-red-bg: #EF4444;
       --color-button-red-hover: #DC2626;
+      --color-button-gray-bg: #6B7280;
+      --color-button-gray-hover: #4B5563;
       --color-input-bg: #374151;
       --color-input-text: #E5E7EB;
       --color-input-border: #4B5563;
@@ -444,7 +446,7 @@
   <!-- Thémata Content -->
   <div id="thema-all-tab-content">
     <!-- Create New Théma -->
-    <div class="collapsible">
+    <div id="create-thema-section" class="collapsible">
       <div class="collapsible-header">
         <h2 class="text-xl font-bold">✨ Create New Théma</h2>
         <span class="material-icons">expand_more</span>
@@ -526,6 +528,85 @@
 
   <!-- Dynamic Théma Thread Sections -->
   <div id="thema-tab-contents"></div>
+  
+  <!-- Threads Section (hidden by default) -->
+  <div id="threads-section" style="display: none;">
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <h2 class="text-xl font-bold" id="current-thema-title">Théma: Loading...</h2>
+        <span class="material-icons">expand_less</span>
+      </div>
+      <div class="collapsible-content">
+        <p class="text-text-secondary mb-4" id="current-thema-description">Loading description...</p>
+        
+        <!-- Create New Thread -->
+        <div class="card-modern p-4 mb-4">
+          <h3 class="text-lg font-bold mb-4">Create New Thread</h3>
+          <form id="create-thread-form" class="space-y-4">
+            <div class="form-group">
+              <label class="form-label" for="new-thread-title">Thread Title</label>
+              <input class="form-input" id="new-thread-title" placeholder="Enter thread title" required type="text">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-thread-initial-comment">Initial Comment</label>
+              <textarea class="form-input" id="new-thread-initial-comment" placeholder="Start the discussion..." required rows="4"></textarea>
+            </div>
+            <button class="btn-modern" style="background: var(--color-button-blue-bg); color: var(--color-button-text);" type="submit">
+              <span>Create Thread</span>
+            </button>
+          </form>
+        </div>
+        
+        <!-- Threads List -->
+        <div class="space-y-4" id="thread-list">
+          <!-- Threads will be loaded here -->
+        </div>
+        
+        <button class="btn-modern mt-4" id="back-to-thematas-btn" style="background: var(--color-button-gray-bg); color: var(--color-button-text);">
+          <span>← Back to Thémata</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Comments Section (hidden by default) -->
+  <div id="comments-section" style="display: none;">
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <h2 class="text-xl font-bold" id="current-thread-title">Thread: Loading...</h2>
+        <span class="material-icons">expand_less</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="card-modern p-4 mb-4">
+          <h3 class="text-lg font-bold mb-2">Initial Comment</h3>
+          <p class="text-text-secondary" id="current-thread-initial-comment">Loading initial comment...</p>
+        </div>
+        
+        <!-- Add Comment -->
+        <div class="card-modern p-4 mb-4">
+          <h3 class="text-lg font-bold mb-4">Add Comment</h3>
+          <form id="add-comment-form" class="space-y-4">
+            <div class="form-group">
+              <label class="form-label" for="new-comment-content">Your Comment</label>
+              <textarea class="form-input" id="new-comment-content" placeholder="Share your thoughts..." required rows="4"></textarea>
+            </div>
+            <button class="btn-modern" style="background: var(--color-button-blue-bg); color: var(--color-button-text);" type="submit">
+              <span>Add Comment</span>
+            </button>
+          </form>
+        </div>
+        
+        <!-- Comments List -->
+        <div class="space-y-4" id="comment-list">
+          <!-- Comments will be loaded here -->
+        </div>
+        
+        <button class="btn-modern mt-4" id="back-to-threads-btn" style="background: var(--color-button-gray-bg); color: var(--color-button-text);">
+          <span>← Back to Threads</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Message Box -->
@@ -562,6 +643,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 
 <script type="module">
+  import { loadFooter } from './navbar.js';
+  
   // Initialize page
   document.addEventListener('DOMContentLoaded', () => {
     // Load footer
