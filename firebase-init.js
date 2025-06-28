@@ -256,3 +256,34 @@ firebaseReadyPromise.then(() => {
 
 // Explicitly export onAuthStateChanged from firebase/auth for use in other modules
 export { onAuthStateChanged };
+
+// Get current user with profile information
+export async function getCurrentUser() {
+  const user = auth.currentUser;
+  if (!user) {
+    return null;
+  }
+
+  try {
+    const userProfile = await getUserProfileFromFirestore(user.uid);
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: userProfile?.displayName || user.displayName || 'Anonymous',
+      photoURL: userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC,
+      handle: userProfile?.handle || null,
+      isAdmin: userProfile?.isAdmin || false,
+      ...userProfile
+    };
+  } catch (error) {
+    console.error("Error getting current user profile:", error);
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || 'Anonymous',
+      photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+      handle: null,
+      isAdmin: false
+    };
+  }
+}
