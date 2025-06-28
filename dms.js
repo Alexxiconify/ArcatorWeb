@@ -148,7 +148,7 @@ function renderUserCardList(type) {
     card.className = 'user-card' + (isSelected ? ' selected' : '');
     card.dataset.uid = profile.uid;
     card.innerHTML = `
-      <img src="${profile.photoURL}" alt="${profile.displayName}" class="user-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
       <span class="user-name">${escapeHtml(profile.usernameLabel)}</span>
     `;
     card.onclick = () => {
@@ -242,7 +242,7 @@ function handleRecipientInput(event, type) {
   }
   suggestionsContainer.innerHTML = filteredProfiles.map(profile => `
     <div class="handle-suggestion" data-uid="${profile.uid}">
-      <img src="${profile.photoURL}" alt="${profile.displayName}" class="suggestion-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
       <div class="suggestion-info">
         <div class="suggestion-name">${escapeHtml(profile.usernameLabel)}</div>
       </div>
@@ -346,7 +346,7 @@ function renderRecipients(type) {
   container.classList.remove('empty');
   container.innerHTML = Array.from(selectedRecipients.values()).map(profile => `
     <div class="recipient-bubble" data-uid="${profile.uid}">
-      <img src="${profile.photoURL}" alt="${profile.displayName}" class="recipient-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
       <span class="recipient-handle">@${escapeHtml(profile.handle)}</span>
       <button class="remove-recipient" data-type="${type}" data-uid="${profile.uid}" title="Remove recipient">
         ×
@@ -572,7 +572,7 @@ export function renderConversationsList() {
       
       return `
         <div class="conversation-item ${isActive ? 'active' : ''}" data-conversation-id="${conv.id}">
-          <img src="${avatarUrl}" alt="${displayName}" class="conversation-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+          <img src="${avatarUrl}" alt="${displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
           <div class="conversation-info">
             <div class="conversation-name">${escapeHtml(displayName)}</div>
             <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
@@ -750,7 +750,7 @@ async function renderConversationMessages(convId) {
       <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}">
         ${!isOwnMessage ? `
           <div class="message-author">
-            <img src="${senderAvatar}" alt="${senderName}" class="w-4 h-4 rounded-full" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+            <img src="${senderAvatar}" alt="${senderName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
             <span>${escapeHtml(senderName)}</span>
           </div>
         ` : ''}
