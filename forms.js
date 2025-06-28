@@ -15,7 +15,11 @@ import {
   populateUserHandlesDatalist,
   unsubscribeConversationsListListener,
   unsubscribeCurrentMessagesListener,
-  attachDmEventListeners
+  attachDmEventListeners,
+  handleCreateConversation,
+  initializeDmSystem,
+  loadConversations,
+  updateDmUiForNoConversationSelected
 } from './dms.js';
 
 // Import Firebase functions
@@ -540,9 +544,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     dmTabBtn.classList.add('active');
     
     // Initialize DM functionality when tab is opened
-    renderConversationsList();
-    populateUserHandlesDatalist();
-    attachDmEventListeners();
+    initializeDmTab();
   });
 
   const allThematasTabBtn = document.getElementById('tab-themata-all');
@@ -691,6 +693,14 @@ async function setupDmEventListeners() {
     backBtn.addEventListener('click', () => {
       updateDmUiForNoConversationSelected();
     });
+  }
+  
+  // Create conversation form - ensure it's properly connected
+  const createForm = document.getElementById('create-conversation-form');
+  if (createForm) {
+    // Remove any existing listeners to prevent duplicates
+    createForm.removeEventListener('submit', handleCreateConversation);
+    createForm.addEventListener('submit', handleCreateConversation);
   }
   
   // Click outside suggestions to hide them

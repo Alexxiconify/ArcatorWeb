@@ -58,49 +58,115 @@ export async function initializeDmSystem() {
     console.warn("No current user for DM system initialization");
     return;
   }
-  
-  console.log("Initializing DM system for user:", currentUser.uid);
-  
+  // Always clear recipients and UI on init
+  selectedRecipients.clear();
+  renderRecipients('private');
+  renderRecipients('group');
+  renderUserCardList('private');
+  renderUserCardList('group');
   // Load all user profiles for suggestions
   await loadAllUserProfiles();
-  
+  // Populate private chat recipient <select> with user handles and avatars
+  await populatePrivateChatRecipientSelect();
   // Set up real-time listeners for conversations
   await setupConversationsListener();
-  
   // Populate user handles for autocomplete
   await populateUserHandlesDatalist();
-  
   // Set up recipient input handlers
   setupRecipientInputHandlers();
 }
 
 /**
- * Load all user profiles for suggestions
+ * Load all user profiles for suggestions (username primary, handle fallback)
  */
 async function loadAllUserProfiles() {
   if (!db) return;
-  
   try {
-    const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    const userProfilesRef = collection(db, `artifacts/arcator-web/public/data/user_profiles`);
     const querySnapshot = await getDocs(userProfilesRef);
     allUserProfiles = [];
-    
+    const usernameCount = {};
+    // First pass: count usernames
     querySnapshot.forEach(docSnap => {
       const profile = docSnap.data();
-      if (profile.handle) {
+      if (profile.displayName) {
+        const uname = profile.displayName.trim().toLowerCase();
+        usernameCount[uname] = (usernameCount[uname] || 0) + 1;
+      }
+    });
+    // Second pass: build profile list with username/handle
+    querySnapshot.forEach(docSnap => {
+      const profile = docSnap.data();
+      if (profile.handle && profile.displayName) {
+        const uname = profile.displayName.trim();
+        const unameKey = uname.toLowerCase();
+        const showHandle = usernameCount[unameKey] > 1;
         allUserProfiles.push({
           uid: docSnap.id,
           handle: profile.handle,
-          displayName: profile.displayName || profile.handle,
-          photoURL: profile.photoURL || DEFAULT_PROFILE_PIC
+          displayName: uname,
+          photoURL: profile.photoURL || DEFAULT_PROFILE_PIC,
+          usernameLabel: showHandle ? `${uname} (@${profile.handle})` : uname
         });
       }
     });
-    
-    console.log("Loaded", allUserProfiles.length, "user profiles for suggestions");
+    console.log("Loaded", allUserProfiles.length, "user profiles for suggestions (username primary)");
+    renderUserCardList('private');
+    renderUserCardList('group');
   } catch (error) {
     console.error("Error loading user profiles:", error);
   }
+}
+
+/**
+ * Render user cards for recipient selection (private or group)
+ */
+function renderUserCardList(type) {
+  const listId = type === 'private' ? 'private-chat-recipient-list' : 'group-chat-recipient-list';
+  const list = document.getElementById(listId);
+  
+  if (!list) {
+    console.warn(`User list container not found: ${listId}`);
+    return;
+  }
+  
+  list.innerHTML = '';
+  allUserProfiles.forEach(profile => {
+    const isSelected = selectedRecipients.has(profile.uid);
+    const card = document.createElement('div');
+    card.className = 'user-card' + (isSelected ? ' selected' : '');
+    card.dataset.uid = profile.uid;
+    card.innerHTML = `
+      <img src="${profile.photoURL}" alt="${profile.displayName}" class="user-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <span class="user-name">${escapeHtml(profile.usernameLabel)}</span>
+    `;
+    card.onclick = () => {
+      if (type === 'private') {
+        selectedRecipients.clear();
+        selectedRecipients.set(profile.uid, profile);
+      } else {
+        if (selectedRecipients.has(profile.uid)) {
+          selectedRecipients.delete(profile.uid);
+        } else {
+          selectedRecipients.set(profile.uid, profile);
+        }
+      }
+      renderUserCardList(type);
+      renderRecipients(type);
+    };
+    list.appendChild(card);
+  });
+}
+
+/**
+ * Call renderUserCardList after loading profiles
+ */
+async function populatePrivateChatRecipientSelect() {
+  renderUserCardList('private');
+}
+
+async function populateGroupChatRecipientSelect() {
+  renderUserCardList('group');
 }
 
 /**
@@ -128,50 +194,58 @@ function handleRecipientInput(event, type) {
   const input = event.target;
   const value = input.value.trim();
   const suggestionsContainer = document.getElementById(`${type}-chat-suggestions`);
-  
   if (!suggestionsContainer) return;
-  
-  // Clear suggestions if input is empty
   if (!value || value.length < 1) {
     suggestionsContainer.style.display = 'none';
+    input.classList.remove('input-valid', 'input-invalid');
     return;
   }
-  
-  // Filter user profiles based on input
-  const searchTerm = value.startsWith('@') ? value.substring(1) : value;
-  const filteredProfiles = allUserProfiles.filter(profile => 
-    profile.handle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-  ).slice(0, 5); // Limit to 5 suggestions
-  
+  // Validate input: green if valid, red if not
+  const searchTerm = value.replace(/^@/, '').toLowerCase();
+  let valid = false;
+  for (const profile of allUserProfiles) {
+    if (
+      profile.usernameLabel.toLowerCase() === searchTerm ||
+      profile.displayName.trim().toLowerCase() === searchTerm ||
+      profile.handle.toLowerCase() === searchTerm
+    ) {
+      valid = true;
+      break;
+    }
+  }
+  input.classList.toggle('input-valid', valid);
+  input.classList.toggle('input-invalid', !valid);
+  // Suggestions logic
+  const filteredProfiles = allUserProfiles.filter(profile => {
+    const uname = profile.displayName.trim().toLowerCase();
+    const handle = profile.handle.toLowerCase();
+    return (
+      uname.includes(searchTerm) ||
+      handle.includes(searchTerm) ||
+      profile.usernameLabel.toLowerCase().includes(searchTerm)
+    );
+  }).slice(0, 5);
   if (filteredProfiles.length === 0) {
     suggestionsContainer.style.display = 'none';
     return;
   }
-  
-  // Show suggestions
   suggestionsContainer.innerHTML = filteredProfiles.map(profile => `
-    <div class="handle-suggestion" data-handle="${profile.handle}" data-uid="${profile.uid}">
+    <div class="handle-suggestion" data-uid="${profile.uid}">
       <img src="${profile.photoURL}" alt="${profile.displayName}" class="suggestion-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
       <div class="suggestion-info">
-        <div class="suggestion-name">${escapeHtml(profile.displayName)}</div>
-        <div class="suggestion-handle">@${escapeHtml(profile.handle)}</div>
+        <div class="suggestion-name">${escapeHtml(profile.usernameLabel)}</div>
       </div>
     </div>
   `).join('');
-  
   suggestionsContainer.style.display = 'block';
-  
-  // Add click handlers to suggestions
   suggestionsContainer.querySelectorAll('.handle-suggestion').forEach(suggestion => {
     suggestion.addEventListener('click', () => {
-      const handle = suggestion.dataset.handle;
       const uid = suggestion.dataset.uid;
       const profile = allUserProfiles.find(p => p.uid === uid);
-      
       if (profile) {
         addRecipient(type, profile);
         input.value = '';
+        input.classList.remove('input-valid', 'input-invalid');
         suggestionsContainer.style.display = 'none';
       }
     });
@@ -186,20 +260,24 @@ function handleRecipientKeydown(event, type) {
     event.preventDefault();
     const input = event.target;
     const value = input.value.trim();
-    
     if (value) {
-      // Try to find user by handle
-      const searchTerm = value.startsWith('@') ? value.substring(1) : value;
-      const profile = allUserProfiles.find(p => 
-        p.handle.toLowerCase() === searchTerm.toLowerCase()
-      );
-      
+      // Try to find user by usernameLabel (username primary, handle fallback)
+      const searchTerm = value.replace(/^@/, '').toLowerCase();
+      let profile = allUserProfiles.find(p => p.usernameLabel.toLowerCase() === searchTerm);
+      if (!profile) {
+        // Try by displayName
+        profile = allUserProfiles.find(p => p.displayName.trim().toLowerCase() === searchTerm);
+      }
+      if (!profile) {
+        // Try by handle
+        profile = allUserProfiles.find(p => p.handle.toLowerCase() === searchTerm);
+      }
       if (profile) {
         addRecipient(type, profile);
         input.value = '';
         document.getElementById(`${type}-chat-suggestions`).style.display = 'none';
       } else {
-        showMessageBox(`User @${searchTerm} not found. Please select from suggestions.`, true);
+        showMessageBox(`User not found. Please select from suggestions.`, true);
       }
     }
   }
@@ -332,7 +410,7 @@ export async function createConversation(type, participantHandles, groupName = '
   }
 
   // Use the correct path structure for conversations
-  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
+  const conversationsCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`);
 
   // For private chats, check if a conversation already exists between these specific users
   if (type === 'private') {
@@ -366,6 +444,7 @@ export async function createConversation(type, participantHandles, groupName = '
   try {
     const newConvRef = await addDoc(conversationsCol, conversationData);
     showMessageBox(`New ${type} chat created successfully!`, false);
+    console.log(`[DM] Success: Created ${type} chat (id: ${newConvRef.id})`);
     
     // Clear form and selected recipients
     clearCreateConversationForm();
@@ -377,7 +456,7 @@ export async function createConversation(type, participantHandles, groupName = '
     }
 
   } catch (error) {
-    console.error("Error creating conversation:", error);
+    console.error(`[DM] Failed to create ${type} chat:`, error);
     showMessageBox(`Error creating chat: ${error.message}`, true);
   }
 }
@@ -387,20 +466,14 @@ export async function createConversation(type, participantHandles, groupName = '
  */
 function clearCreateConversationForm() {
   const createForm = document.getElementById('create-conversation-form');
-  if (createForm) {
-    createForm.reset();
-  }
-  
-  // Clear selected recipients
+  if (createForm) createForm.reset();
   selectedRecipients.clear();
   renderRecipients('private');
   renderRecipients('group');
-  
-  // Hide suggestions
+  renderUserCardList('private');
+  renderUserCardList('group');
   document.getElementById('private-chat-suggestions').style.display = 'none';
   document.getElementById('group-chat-suggestions').style.display = 'none';
-  
-  // Reset UI
   const privateFields = document.getElementById('private-chat-fields');
   const groupFields = document.getElementById('group-chat-fields');
   if (privateFields) privateFields.classList.remove('hidden');
@@ -431,23 +504,20 @@ export function renderConversationsList() {
   
   const sortedConversations = [...allConversations].sort((a, b) => {
     const getDisplayNameForSorting = (conv) => {
-      if (conv.type === 'group') {
-        return conv.name || 'Unnamed Group';
-      } else {
-        return conv.name || 'Unknown User';
-      }
+      if (conv.type === 'group') return conv.name || 'Unnamed Group';
+      else return conv.name || conv.otherUsername || 'Unknown User';
     };
     
     let aVal, bVal;
     
     switch (sortField) {
       case 'lastMessageAt':
-        aVal = conv.lastMessageAt || conv.createdAt || 0;
-        bVal = conv.lastMessageAt || conv.createdAt || 0;
+        aVal = a.lastMessageAt || a.createdAt || 0;
+        bVal = b.lastMessageAt || b.createdAt || 0;
         break;
       case 'createdAt':
-        aVal = conv.createdAt || 0;
-        bVal = conv.createdAt || 0;
+        aVal = a.createdAt || 0;
+        bVal = b.createdAt || 0;
         break;
       case 'otherUsername':
         aVal = getDisplayNameForSorting(a).toLowerCase();
@@ -458,8 +528,8 @@ export function renderConversationsList() {
         bVal = (b.name || 'Unnamed Group').toLowerCase();
         break;
       default:
-        aVal = conv.lastMessageAt || conv.createdAt || 0;
-        bVal = conv.lastMessageAt || conv.createdAt || 0;
+        aVal = a.lastMessageAt || a.createdAt || 0;
+        bVal = b.lastMessageAt || b.createdAt || 0;
     }
     
     if (sortDirection === 'desc') {
@@ -471,7 +541,7 @@ export function renderConversationsList() {
   
   conversationsListEl.innerHTML = sortedConversations.map(conv => {
     const isActive = selectedConversationId === conv.id;
-    const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || 'Unknown User');
+    const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || conv.otherUsername || 'Unknown User');
     const lastMessagePreview = conv.lastMessageContent ? 
       (conv.lastMessageContent.length > 30 ? conv.lastMessageContent.substring(0, 30) + '...' : conv.lastMessageContent) : 
       'No messages yet';
@@ -482,7 +552,7 @@ export function renderConversationsList() {
     
     // Get avatar - use first participant's avatar for group chats, or other user's avatar for private chats
     const avatarUrl = conv.type === 'group' ? 
-      (conv.participants.map(uid => getUserProfileFromFirestore(uid)?.photoURL).find(url => url) || DEFAULT_PROFILE_PIC) : 
+      (conv.participants?.map(uid => getUserProfileFromFirestore(uid)?.photoURL).find(url => url) || DEFAULT_PROFILE_PIC) : 
       (conv.otherUserAvatar || DEFAULT_PROFILE_PIC);
     
     return `
@@ -532,7 +602,7 @@ export async function selectConversation(convId, conversationData) {
     let avatarUrl = DEFAULT_PROFILE_PIC;
     
     if (conversationData.type === 'group') {
-      displayName = conversationData.groupName || 'Unnamed Group';
+      displayName = conversationData.name || 'Unnamed Group';
       subtitle = `${conversationData.participants?.length || 0} members`;
       avatarUrl = 'https://placehold.co/40x40/1F2937/E5E7EB?text=GC'; // Group chat icon
     } else {
@@ -541,11 +611,20 @@ export async function selectConversation(convId, conversationData) {
       if (otherUid) {
         try {
           const otherProfile = await getUserProfileFromFirestore(otherUid);
-          displayName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
-          subtitle = otherProfile?.handle ? `@${otherProfile.handle}` : 'User';
-          avatarUrl = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+          if (otherProfile) {
+            displayName = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+            subtitle = otherProfile.handle ? `@${otherProfile.handle}` : 'User';
+            avatarUrl = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
+          } else {
+            displayName = 'Unknown User';
+            subtitle = 'User not found';
+            avatarUrl = DEFAULT_PROFILE_PIC;
+          }
         } catch (error) {
           console.warn("Could not fetch other user's profile:", error);
+          displayName = 'Unknown User';
+          subtitle = 'Error loading profile';
+          avatarUrl = DEFAULT_PROFILE_PIC;
         }
       } else {
         displayName = 'Self Chat';
@@ -701,8 +780,8 @@ export async function sendMessage(content) {
   }
 
   // Use the correct path structure for messages
-  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
-  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, selectedConversationId);
+  const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
+  const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedConversationId);
 
   const messageData = {
     createdBy: currentUser.uid, // Use createdBy instead of senderId
@@ -750,16 +829,16 @@ export async function deleteMessage(messageId) {
   }
 
   // Use the correct path structure for messages
-  const messageDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`, messageId);
+  const messageDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedConversationId}/messages`, messageId);
   try {
     await deleteDoc(messageDocRef);
     showMessageBox("Message deleted!", false);
 
     // Re-evaluate last message in conversation if the deleted one was the last
-    const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
+    const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
     const q = query(messagesCol, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q); // Use getDocs instead of onSnapshot for a one-time fetch here
-    const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, selectedConversationId);
+    const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedConversationId);
 
     if (!snapshot.empty) {
       const lastMsg = snapshot.docs[0].data();
@@ -795,8 +874,8 @@ async function setupConversationsListener() {
     unsubscribeConversationsList();
   }
   
-  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
-  const q = query(conversationsCol, where('participants', 'array-contains', currentUser.uid));
+  const conversationsCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`);
+  const q = query(conversationsCol, orderBy("lastMessageAt", "desc"));
   
   unsubscribeConversationsList = onSnapshot(q, async (snapshot) => {
     allConversations = [];
@@ -809,7 +888,9 @@ async function setupConversationsListener() {
     const profilesToFetch = new Set();
     snapshot.forEach(doc => {
       const conv = doc.data();
-      conv.participants.forEach(uid => profilesToFetch.add(uid));
+      if (conv.participants) {
+        conv.participants.forEach(uid => profilesToFetch.add(uid));
+      }
       allConversations.push({ id: doc.id, ...conv });
     });
     
@@ -829,15 +910,27 @@ async function setupConversationsListener() {
     // Enhance conversations with profile data
     allConversations.forEach(conv => {
       if (conv.type === 'private') {
-        const otherUid = conv.participants.find(uid => uid !== currentUser.uid);
+        const otherUid = conv.participants?.find(uid => uid !== currentUser.uid);
         if (otherUid) {
           const otherProfile = fetchedProfiles.get(otherUid);
-          conv.otherUsername = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
-          conv.otherUserAvatar = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+          if (otherProfile) {
+            conv.otherUsername = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+            conv.otherUserAvatar = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
+            conv.name = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+          } else {
+            conv.otherUsername = 'Unknown User';
+            conv.otherUserAvatar = DEFAULT_PROFILE_PIC;
+            conv.name = 'Unknown User';
+          }
+        } else {
+          conv.otherUsername = 'Self Chat';
+          conv.otherUserAvatar = currentUser.photoURL || DEFAULT_PROFILE_PIC;
+          conv.name = 'Self Chat';
         }
       }
     });
     
+    console.log("Enhanced conversations with profile data:", allConversations);
     renderConversationsList();
   }, (error) => {
     console.error("Error fetching conversations:", error);
@@ -856,7 +949,7 @@ async function loadMessagesForConversation(convId) {
     unsubscribeCurrentMessages();
   }
   
-  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${convId}/messages`);
+  const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${convId}/messages`);
   const q = query(messagesCol, orderBy("createdAt", "asc"));
   
   unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
@@ -914,24 +1007,32 @@ export async function loadConversations() {
  */
 export async function populateUserHandlesDatalist() {
   if (!db) return;
-  
   const userHandlesDatalist = document.getElementById('user-handles-list');
   if (!userHandlesDatalist) return;
-  
   userHandlesDatalist.innerHTML = '';
-  
-  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+  const userProfilesRef = collection(db, `artifacts/arcator-web/public/data/user_profiles`);
   try {
     const querySnapshot = await getDocs(userProfilesRef);
+    const usernameCount = {};
     querySnapshot.forEach(docSnap => {
       const profile = docSnap.data();
-      if (profile.handle) {
+      if (profile.displayName) {
+        const uname = profile.displayName.trim().toLowerCase();
+        usernameCount[uname] = (usernameCount[uname] || 0) + 1;
+      }
+    });
+    querySnapshot.forEach(docSnap => {
+      const profile = docSnap.data();
+      if (profile.handle && profile.displayName) {
+        const uname = profile.displayName.trim();
+        const unameKey = uname.toLowerCase();
+        const showHandle = usernameCount[unameKey] > 1;
         const option = document.createElement('option');
-        option.value = `@${profile.handle}`;
+        option.value = showHandle ? `${uname} (@${profile.handle})` : uname;
         userHandlesDatalist.appendChild(option);
       }
     });
-    console.log("User handles datalist populated.");
+    console.log("User handles datalist populated (username primary, handle fallback)");
   } catch (error) {
     console.error("Error fetching user handles for datalist:", error);
   }
@@ -1010,10 +1111,21 @@ export async function handleDeleteConversationClick(event) {
 }
 
 function handleSelectConversationClick(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
   const convId = event.currentTarget.dataset.conversationId;
+  if (!convId) {
+    console.error("No conversation ID found in click event");
+    return;
+  }
+  
   const conversation = allConversations.find(c => c.id === convId);
   if (conversation) {
+    console.log("Selecting conversation:", convId, conversation);
     selectConversation(convId, conversation);
+  } else {
+    console.error("Conversation not found in allConversations:", convId);
   }
 }
 
@@ -1045,12 +1157,11 @@ export function attachDmEventListeners() {
     chatTypeSelect.addEventListener('change', () => {
       const privateFields = document.getElementById('private-chat-fields');
       const groupFields = document.getElementById('group-chat-fields');
-      
-      // Clear selected recipients when switching types
       selectedRecipients.clear();
       renderRecipients('private');
       renderRecipients('group');
-      
+      renderUserCardList('private');
+      renderUserCardList('group');
       if (chatTypeSelect.value === 'private') {
         privateFields.classList.remove('hidden');
         groupFields.classList.add('hidden');
@@ -1061,8 +1172,15 @@ export function attachDmEventListeners() {
     });
   }
   
+  // Back button for conversations
+  const backBtn = document.getElementById('back-to-chats-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      updateDmUiForNoConversationSelected();
+    });
+  }
+  
   // Conversation items (handled in renderConversationsList)
-  // Back button (handled in forms.js)
 }
 
 /**
@@ -1090,7 +1208,7 @@ export async function deleteConversation(convId) {
   }
 
   // Use the correct path structure
-  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, convId);
+  const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, convId);
   const messagesColRef = collection(conversationDocRef, 'messages');
 
   try {

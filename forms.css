@@ -261,8 +261,8 @@
 }
 
 .conversation-item .conversation-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-input-border);
@@ -440,10 +440,11 @@
 }
 
 #selected-conversation-header .conversation-title img {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   border: 2px solid var(--color-input-border);
+  object-fit: cover;
 }
 
 #back-to-chats-btn {
@@ -1064,8 +1065,8 @@
 }
 
 .recipient-bubble .recipient-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -1145,8 +1146,8 @@
 }
 
 .handle-suggestion .suggestion-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -1184,4 +1185,90 @@
   outline: none;
   border-color: var(--color-link);
   box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+}
+
+/* User list for DM recipient selection */
+.user-list-scrollable {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  background: var(--color-bg-card);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.user-card:hover {
+  border-color: var(--color-link);
+  background: var(--color-input-border);
+}
+
+.user-card.selected {
+  border-color: #0078d4;
+  background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  color: white;
+}
+
+.user-card .user-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-input-border);
+}
+
+.user-card .user-name {
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+}
+
+.user-card.selected .user-name {
+  color: white;
+}
+
+.input-valid {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 2px #22c55e33;
+}
+.input-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px #ef444433;
+}
+
+/* Message author avatar */
+.message-bubble .message-author img {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Consistent avatar sizing for DM user cards, recipient bubbles, and conversation avatars */
+.user-avatar,
+.suggestion-avatar,
+.recipient-avatar,
+.conversation-avatar {
+  width: 2rem;
+  height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-input-border);
 }
