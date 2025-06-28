@@ -160,7 +160,7 @@
     }
     
     // Load navbar
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
 
     // Load footer
     loadFooter('current-year-index');
@@ -168,7 +168,7 @@
     // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
       console.log(`[Page name]: Applied theme ${themeToApply.id} (${themeToApply.name})`);

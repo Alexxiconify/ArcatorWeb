@@ -19,9 +19,6 @@
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
     }
 
     /* Hero Banner styles - common for all themes, retains background image */
@@ -518,13 +515,13 @@
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
     loadFooter('current-year-about');
     
     // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
       console.log(`About page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
