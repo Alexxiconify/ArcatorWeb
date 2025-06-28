@@ -81,8 +81,8 @@ export async function createConversation(type, participantHandles, groupName = '
     return;
   }
 
-
-  const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
+  // Use the correct path structure for conversations
+  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
 
   // For private chats, check if a conversation already exists between these specific users
   if (type === 'private') {
@@ -100,7 +100,6 @@ export async function createConversation(type, participantHandles, groupName = '
       return;
     }
   }
-
 
   const conversationData = {
     type: type,
@@ -158,8 +157,8 @@ export function renderConversationsList() {
   conversationsPanel.classList.remove('hidden');
   messagesPanel.classList.add('hidden');
 
-
-  const conversationsCol = collection(db, `artifacts/${appId}/public/data/conversations`);
+  // Use the correct path structure for conversations
+  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
   // Query for conversations where the current user is a participant.
   // This query requires a composite index: 'participants' (array) + 'lastMessageAt' (desc)
   const q = query(
@@ -234,7 +233,6 @@ export function renderConversationsList() {
           return (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0);
       }
     });
-
 
     conversationsList.innerHTML = '';
     allConversations.forEach(conv => {
@@ -343,25 +341,17 @@ export async function selectConversation(convId, conversationData) {
 }
 
 /**
- * Clears the right DM panel when no conversation is selected (or when the selected one is deleted).
- * Also returns to the conversations list view.
+ * Updates the UI when no conversation is selected.
  */
 export function updateDmUiForNoConversationSelected() {
   selectedConversationId = null;
-  if (unsubscribeCurrentMessages) {
-    unsubscribeCurrentMessages();
-    unsubscribeCurrentMessages = null;
-  }
-  conversationTitleHeader.textContent = 'Select a Conversation';
-  deleteConversationBtn.classList.add('hidden');
-  messageInputArea.classList.add('hidden');
-  conversationMessagesContainer.innerHTML = '';
-  noMessagesMessage.style.display = 'block'; // Show "No messages..." message
-  document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active')); // Deactivate all list items
-
-  // --- UI Update: Show Conversations Panel, Hide Messages Panel ---
   conversationsPanel.classList.remove('hidden');
   messagesPanel.classList.add('hidden');
+  messageInputArea.classList.add('hidden');
+  noMessagesMessage.style.display = 'block';
+  conversationMessagesContainer.innerHTML = '';
+  conversationTitleHeader.textContent = 'Select a conversation';
+  deleteConversationBtn.classList.add('hidden');
 }
 
 /**
@@ -374,7 +364,9 @@ function renderConversationMessages(convId) {
     return;
   }
 
-  const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${convId}/messages`);
+  const currentUser = getCurrentUser();
+  // Use the correct path structure for messages
+  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${convId}/messages`);
   const q = query(messagesCol, orderBy("createdAt", "desc")); // Order by creation time (newest first)
 
   unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
@@ -388,7 +380,7 @@ function renderConversationMessages(convId) {
 
     const profilesToFetch = new Set();
     snapshot.forEach(msgDoc => {
-      profilesToFetch.add(msgDoc.data().senderId);
+      profilesToFetch.add(msgDoc.data().createdBy); // Use createdBy instead of senderId
     });
 
     const fetchedProfiles = new Map();
@@ -401,13 +393,12 @@ function renderConversationMessages(convId) {
 
     // Process and render messages in reverse order for "bottom-up" chat display
     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse(); // Reverse for display
-    const currentUser = getCurrentUser();
 
     for (const msg of messages) {
-      const isSentByMe = msg.senderId === currentUser.uid;
-      const senderProfile = fetchedProfiles.get(msg.senderId) || {};
-      const senderDisplayName = senderProfile.displayName || msg.senderDisplayName || 'Unknown User';
-      const senderPhotoURL = senderProfile.photoURL || msg.senderPhotoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+      const isSentByMe = msg.createdBy === currentUser.uid; // Use createdBy instead of senderId
+      const senderProfile = fetchedProfiles.get(msg.createdBy) || {};
+      const senderDisplayName = senderProfile.displayName || msg.creatorDisplayName || 'Unknown User';
+      const senderPhotoURL = senderProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
 
       const messageElement = document.createElement('div');
       messageElement.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
@@ -421,7 +412,7 @@ function renderConversationMessages(convId) {
                 <p class="text-gray-100 mt-1">${await parseMentions(parseEmojis(msg.content))}</p>
                 <div class="flex items-center mt-1 text-gray-300">
                     <span class="message-timestamp flex-grow">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${currentUser && currentUser.uid === msg.senderId ? `
+                    ${currentUser && currentUser.uid === msg.createdBy ? `
                         <button class="delete-message-btn text-red-300 hover:text-red-400 ml-2 text-sm" data-message-id="${msg.id}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -430,7 +421,7 @@ function renderConversationMessages(convId) {
             `;
       conversationMessagesContainer.appendChild(messageElement);
     }
-    conversationMessagesContainer.scrollTop = conversationMessagesContainer.scrollHeight; // Scroll to bottom
+    conversationMessagesContainer.scrollTop = conversationMessagesContainer.scrollHeight;
 
     // Re-attach delete message listeners
     conversationMessagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
@@ -463,14 +454,13 @@ export async function sendMessage(content) {
     return;
   }
 
-  const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`);
-  const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, selectedConversationId);
+  // Use the correct path structure for messages
+  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
+  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, selectedConversationId);
 
   const messageData = {
-    senderId: currentUser.uid,
-    senderHandle: currentUser.handle,
-    senderDisplayName: currentUser.displayName,
-    senderPhotoURL: currentUser.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV',
+    createdBy: currentUser.uid, // Use createdBy instead of senderId
+    creatorDisplayName: currentUser.displayName,
     content: content,
     createdAt: serverTimestamp(),
   };
@@ -513,24 +503,25 @@ export async function deleteMessage(messageId) {
     return;
   }
 
-  const messageDocRef = doc(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`, messageId);
+  // Use the correct path structure for messages
+  const messageDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`, messageId);
   try {
     await deleteDoc(messageDocRef);
     showMessageBox("Message deleted!", false);
 
     // Re-evaluate last message in conversation if the deleted one was the last
-    const messagesCol = collection(db, `artifacts/${appId}/public/data/conversations/${selectedConversationId}/messages`);
+    const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
     const q = query(messagesCol, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q); // Use getDocs instead of onSnapshot for a one-time fetch here
-    const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, selectedConversationId);
+    const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, selectedConversationId);
 
     if (!snapshot.empty) {
       const lastMsg = snapshot.docs[0].data();
       await updateDoc(conversationDocRef, {
         lastMessageAt: lastMsg.createdAt,
         lastMessageContent: lastMsg.content,
-        lastMessageSenderHandle: lastMsg.senderHandle,
-        lastMessageSenderId: lastMsg.senderId,
+        lastMessageSenderHandle: currentUser.handle,
+        lastMessageSenderId: currentUser.uid,
       });
     } else {
       await updateDoc(conversationDocRef, {
@@ -546,7 +537,6 @@ export async function deleteMessage(messageId) {
     showMessageBox(`Error deleting message: ${error.message}`, true);
   }
 }
-
 
 /**
  * Deletes an entire conversation and all its messages.
@@ -572,7 +562,8 @@ export async function deleteConversation(convId) {
     return;
   }
 
-  const conversationDocRef = doc(db, `artifacts/${appId}/public/data/conversations`, convId);
+  // Use the correct path structure
+  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, convId);
   const messagesColRef = collection(conversationDocRef, 'messages');
 
   try {
@@ -592,7 +583,6 @@ export async function deleteConversation(convId) {
     showMessageBox(`Error deleting conversation: ${error.message}`, true);
   }
 }
-
 
 /**
  * Fetches all user handles from Firestore and populates the datalist for recipient suggestions.
@@ -645,33 +635,37 @@ export function unsubscribeCurrentMessagesListener() {
 
 export async function handleCreateConversation(event) {
   event.preventDefault();
-  const chatType = newChatTypeSelect.value;
+  const type = newChatTypeSelect.value;
   let participantHandles = [];
   let groupName = '';
 
-  if (chatType === 'private') {
-    const recipientHandle = privateChatRecipientInput.value.trim();
-    if (recipientHandle) {
-      participantHandles.push(recipientHandle);
+  if (type === 'private') {
+    const recipient = privateChatRecipientInput.value.trim();
+    if (recipient) {
+      participantHandles = [recipient];
     }
-  } else { // 'group'
+  } else if (type === 'group') {
     groupName = groupChatNameInput.value.trim();
-    const handlesText = groupChatParticipantsInput.value.trim();
-    if (handlesText) {
-      participantHandles = handlesText.split(',').map(h => h.trim());
+    const participants = groupChatParticipantsInput.value.trim();
+    if (participants) {
+      participantHandles = participants.split(',').map(p => p.trim()).filter(p => p);
     }
   }
-  await createConversation(chatType, participantHandles, groupName);
+
+  if (participantHandles.length === 0 && type === 'group') {
+    showMessageBox("Please enter at least one participant for group chat.", true);
+    return;
+  }
+
+  await createConversation(type, participantHandles, groupName);
 }
 
 export async function handleSendMessage(event) {
   event.preventDefault();
   const content = messageContentInput.value.trim();
-  if (!content) {
-    showMessageBox("Message cannot be empty.", true);
-    return;
+  if (content) {
+    await sendMessage(content);
   }
-  await sendMessage(content);
 }
 
 export async function handleDeleteMessage(event) {
@@ -687,27 +681,48 @@ export async function handleDeleteMessage(event) {
 
 export async function handleDeleteConversationClick(event) {
   event.preventDefault();
-  const convId = event.target.dataset.conversationId;
+  const convId = event.target.dataset.conversationId || event.target.closest('#delete-conversation-btn')?.dataset.conversationId;
   if (convId) {
     await deleteConversation(convId);
+  } else {
+    console.error("No conversation ID for deletion.");
+    showMessageBox("Could not delete conversation. No conversation selected.", true);
   }
 }
 
 function handleSelectConversationClick(event) {
   const convId = event.currentTarget.dataset.conversationId;
-  const selectedConv = allConversations.find(conv => conv.id === convId);
-  if (selectedConv) {
-    selectConversation(convId, selectedConv);
+  const conversation = allConversations.find(c => c.id === convId);
+  if (conversation) {
+    selectConversation(convId, conversation);
   }
 }
 
 export function attachDmEventListeners() {
+  if (createConversationForm) {
+    createConversationForm.addEventListener('submit', handleCreateConversation);
+  }
+
+  if (sendMessageForm) {
+    sendMessageForm.addEventListener('submit', handleSendMessage);
+  }
+
+  if (deleteConversationBtn) {
+    deleteConversationBtn.addEventListener('click', handleDeleteConversationClick);
+  }
+
+  if (backToChatsBtn) {
+    backToChatsBtn.addEventListener('click', () => {
+      updateDmUiForNoConversationSelected();
+    });
+  }
+
   if (newChatTypeSelect) {
-    newChatTypeSelect.addEventListener('change', (event) => {
-      if (event.target.value === 'private') {
+    newChatTypeSelect.addEventListener('change', () => {
+      if (newChatTypeSelect.value === 'private') {
         privateChatFields.classList.remove('hidden');
         groupChatFields.classList.add('hidden');
-      } else {
+      } else if (newChatTypeSelect.value === 'group') {
         privateChatFields.classList.add('hidden');
         groupChatFields.classList.remove('hidden');
       }
@@ -715,22 +730,10 @@ export function attachDmEventListeners() {
   }
 
   if (sortConversationsBySelect) {
-    sortConversationsBySelect.addEventListener('change', (event) => {
-      currentSortOption = event.target.value;
-      renderConversationsList(); // Re-render with new sort order
+    sortConversationsBySelect.addEventListener('change', () => {
+      currentSortOption = sortConversationsBySelect.value;
+      renderConversationsList(); // Re-render with new sort
     });
   }
-
-  if (createConversationForm) {
-    createConversationForm.addEventListener('submit', handleCreateConversation);
-  }
-  if (sendMessageForm) {
-    sendMessageForm.addEventListener('submit', handleSendMessage);
-  }
-  if (deleteConversationBtn) {
-    deleteConversationBtn.addEventListener('click', handleDeleteConversationClick);
-  }
-  if (backToChatsBtn) {
-    backToChatsBtn.addEventListener('click', updateDmUiForNoConversationSelected);
-  }
 }
+

@@ -5,6 +5,19 @@ import { auth, db, appId, getUserProfileFromFirestore, setUserProfileInFirestore
 import { showMessageBox, showCustomConfirm } from './utils.js';
 import { loadFooter } from './navbar.js';
 
+// Import DM functionality
+import { 
+  renderConversationsList, 
+  selectConversation, 
+  sendMessage, 
+  deleteMessage, 
+  deleteConversation,
+  populateUserHandlesDatalist,
+  unsubscribeConversationsListListener,
+  unsubscribeCurrentMessagesListener,
+  attachDmEventListeners
+} from './dms.js';
+
 // Import Firebase functions
 import {
   doc, getDoc, setDoc, deleteDoc, collection, query, orderBy, addDoc,
@@ -16,6 +29,11 @@ const createThemaForm = document.getElementById('create-thema-form');
 const newThemaNameInput = document.getElementById('new-thema-name');
 const newThemaDescriptionInput = document.getElementById('new-thema-description');
 const themaList = document.getElementById('thema-boxes');
+
+// DM elements
+const dmTabBtn = document.getElementById('tab-dms');
+const dmTabContent = document.getElementById('dm-tab-content');
+const themataTabContent = document.getElementById('thema-all-tab-content');
 
 let unsubscribeThematas = null;
 
@@ -512,15 +530,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   });
 
   // Tab navigation
-  const dmTabBtn = document.getElementById('tab-dms');
-  const dmTabContent = document.getElementById('dm-tab-content');
-  const themataTabContent = document.getElementById('thema-all-tab-content');
-
   dmTabBtn?.addEventListener('click', () => {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     dmTabContent.style.display = 'block';
     dmTabBtn.classList.add('active');
+    
+    // Initialize DM functionality when tab is opened
+    renderConversationsList();
+    populateUserHandlesDatalist();
+    attachDmEventListeners();
   });
 
   const allThematasTabBtn = document.getElementById('tab-themata-all');
@@ -551,6 +570,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize thematas
   renderThematas();
 });
+
 async function handleEditThread(themaId, threadId, oldTitle, oldComment) {
   const threadDiv = document.querySelector(`[data-thread-id="${threadId}"]`);
   if (!threadDiv) return;
@@ -569,6 +589,7 @@ async function handleEditThread(themaId, threadId, oldTitle, oldComment) {
   };
   actions.querySelector('.cancel-edit-thread').onclick = () => loadThreadsForThema(themaId);
 }
+
 async function handleEditComment(themaId, threadId, commentId, oldContent) {
   const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
   if (!commentDiv) return;
@@ -585,6 +606,7 @@ async function handleEditComment(themaId, threadId, commentId, oldContent) {
   };
   actions.querySelector('.cancel-edit-comment').onclick = () => loadCommentsForThread(themaId, threadId);
 }
+
 // --- PATCH: REACTIONS ---
 async function handleReaction(type, themaId, threadId, commentId = null) {
   const user = getCurrentUserInfo();
@@ -606,6 +628,7 @@ async function handleReaction(type, themaId, threadId, commentId = null) {
   if (commentId) await loadCommentsForThread(themaId, threadId);
   else await loadThreadsForThema(themaId);
 }
+
 const inputClass = 'form-input bg-card text-text-primary border-none rounded w-full';
 const textareaClass = 'form-input bg-card text-text-primary border-none rounded w-full';
 const cardClass = 'bg-card text-text-primary border border-input-border rounded-lg shadow';
