@@ -34,7 +34,9 @@ let unsubscribeConversationsList = null;
 let unsubscribeCurrentMessages = null;
 let allConversations = []; // Array to hold fetched conversations for sorting
 let currentSortOption = 'lastMessageAt_desc'; // Default sort for conversations list
+let currentMessages = [];
 
+const DEFAULT_PROFILE_PIC = 'https://placehold.co/40x40/1F2937/E5E7EB?text=AV';
 
 // --- DM FUNCTIONS ---
 
@@ -490,4 +492,298 @@ export async function deleteMessage(messageId) {
     console.error("Error deleting message:", error);
     showMessageBox(`Error deleting message: ${error.message}`, true);
   }
+}
+
+/**
+ * Initialize the DM system
+ */
+export async function initializeDmSystem() {
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    console.warn("No current user for DM system initialization");
+    return;
+  }
+  
+  console.log("Initializing DM system for user:", currentUser.uid);
+  
+  // Set up real-time listeners for conversations
+  await setupConversationsListener();
+  
+  // Populate user handles for autocomplete
+  await populateUserHandlesDatalist();
+}
+
+/**
+ * Set up real-time listener for conversations
+ */
+async function setupConversationsListener() {
+  const currentUser = getCurrentUser();
+  if (!currentUser || !db) return;
+  
+  if (unsubscribeConversationsList) {
+    unsubscribeConversationsList();
+  }
+  
+  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
+  const q = query(conversationsCol, where('participants', 'array-contains', currentUser.uid));
+  
+  unsubscribeConversationsList = onSnapshot(q, async (snapshot) => {
+    allConversations = [];
+    
+    if (snapshot.empty) {
+      renderConversationsList();
+      return;
+    }
+    
+    const profilesToFetch = new Set();
+    snapshot.forEach(doc => {
+      const conv = doc.data();
+      conv.participants.forEach(uid => profilesToFetch.add(uid));
+      allConversations.push({ id: doc.id, ...conv });
+    });
+    
+    // Fetch user profiles for display names and avatars
+    const fetchedProfiles = new Map();
+    for (const uid of profilesToFetch) {
+      try {
+        const profile = await getUserProfileFromFirestore(uid);
+        if (profile) {
+          fetchedProfiles.set(uid, profile);
+        }
+      } catch (error) {
+        console.warn("Could not fetch profile for user:", uid, error);
+      }
+    }
+    
+    // Enhance conversations with profile data
+    allConversations.forEach(conv => {
+      if (conv.type === 'private') {
+        const otherUid = conv.participants.find(uid => uid !== currentUser.uid);
+        if (otherUid) {
+          const otherProfile = fetchedProfiles.get(otherUid);
+          conv.otherUsername = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+          conv.otherUserAvatar = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+        }
+      }
+    });
+    
+    renderConversationsList();
+  }, (error) => {
+    console.error("Error fetching conversations:", error);
+    showMessageBox(`Error loading conversations: ${error.message}`, true);
+  });
+}
+
+/**
+ * Load messages for a specific conversation
+ */
+async function loadMessagesForConversation(convId) {
+  const currentUser = getCurrentUser();
+  if (!currentUser || !convId || !db) return;
+  
+  if (unsubscribeCurrentMessages) {
+    unsubscribeCurrentMessages();
+  }
+  
+  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${convId}/messages`);
+  const q = query(messagesCol, orderBy("createdAt", "asc"));
+  
+  unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
+    currentMessages = [];
+    
+    if (snapshot.empty) {
+      renderConversationMessages(convId);
+      return;
+    }
+    
+    const profilesToFetch = new Set();
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      profilesToFetch.add(msg.createdBy);
+      currentMessages.push({ id: doc.id, ...msg });
+    });
+    
+    // Fetch sender profiles
+    const fetchedProfiles = new Map();
+    for (const uid of profilesToFetch) {
+      try {
+        const profile = await getUserProfileFromFirestore(uid);
+        if (profile) {
+          fetchedProfiles.set(uid, profile);
+        }
+      } catch (error) {
+        console.warn("Could not fetch profile for message sender:", uid, error);
+      }
+    }
+    
+    // Enhance messages with sender profile data
+    currentMessages.forEach(msg => {
+      const senderProfile = fetchedProfiles.get(msg.createdBy);
+      msg.senderProfile = senderProfile || {};
+      msg.senderId = msg.createdBy;
+      msg.timestamp = msg.createdAt?.toDate?.() || msg.createdAt || new Date();
+    });
+    
+    renderConversationMessages(convId);
+  }, (error) => {
+    console.error("Error fetching messages:", error);
+    showMessageBox(`Error loading messages: ${error.message}`, true);
+  });
+}
+
+/**
+ * Load conversations (alias for setupConversationsListener)
+ */
+export async function loadConversations() {
+  await setupConversationsListener();
+}
+
+/**
+ * Populate user handles datalist for autocomplete
+ */
+export async function populateUserHandlesDatalist() {
+  if (!db) return;
+  
+  const userHandlesDatalist = document.getElementById('user-handles-list');
+  if (!userHandlesDatalist) return;
+  
+  userHandlesDatalist.innerHTML = '';
+  
+  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+  try {
+    const querySnapshot = await getDocs(userProfilesRef);
+    querySnapshot.forEach(docSnap => {
+      const profile = docSnap.data();
+      if (profile.handle) {
+        const option = document.createElement('option');
+        option.value = `@${profile.handle}`;
+        userHandlesDatalist.appendChild(option);
+      }
+    });
+    console.log("User handles datalist populated.");
+  } catch (error) {
+    console.error("Error fetching user handles for datalist:", error);
+  }
+}
+
+/**
+ * Unsubscribe from listeners
+ */
+export function unsubscribeConversationsListListener() {
+  if (unsubscribeConversationsList) {
+    unsubscribeConversationsList();
+    unsubscribeConversationsList = null;
+  }
+}
+
+export function unsubscribeCurrentMessagesListener() {
+  if (unsubscribeCurrentMessages) {
+    unsubscribeCurrentMessages();
+    unsubscribeCurrentMessages = null;
+  }
+}
+
+/**
+ * Event handlers
+ */
+export async function handleCreateConversation(event) {
+  event.preventDefault();
+  
+  const typeSelect = document.getElementById('new-chat-type');
+  const recipientInput = document.getElementById('private-chat-recipient');
+  const groupNameInput = document.getElementById('group-chat-name');
+  const participantsInput = document.getElementById('group-chat-participants');
+  
+  const type = typeSelect?.value || 'private';
+  let participantHandles = [];
+  let groupName = '';
+  
+  if (type === 'private') {
+    const recipient = recipientInput?.value?.trim();
+    if (recipient) {
+      participantHandles = [recipient];
+    }
+  } else if (type === 'group') {
+    groupName = groupNameInput?.value?.trim() || '';
+    const participants = participantsInput?.value?.trim();
+    if (participants) {
+      participantHandles = participants.split(',').map(p => p.trim()).filter(p => p);
+    }
+  }
+  
+  if (participantHandles.length === 0 && type === 'group') {
+    showMessageBox("Please enter at least one participant for group chat.", true);
+    return;
+  }
+  
+  await createConversation(type, participantHandles, groupName);
+  
+  // Clear form
+  if (recipientInput) recipientInput.value = '';
+  if (groupNameInput) groupNameInput.value = '';
+  if (participantsInput) participantsInput.value = '';
+}
+
+export async function handleSendMessage(event) {
+  event.preventDefault();
+  
+  const messageInput = document.getElementById('message-content-input');
+  const content = messageInput?.value?.trim();
+  
+  if (content && selectedConversationId) {
+    await sendMessage(content);
+    if (messageInput) messageInput.value = '';
+  }
+}
+
+export async function handleDeleteMessage(event) {
+  event.preventDefault();
+  
+  const messageId = event.target.dataset.messageId;
+  if (selectedConversationId && messageId) {
+    await deleteMessage(messageId);
+  }
+}
+
+export async function handleDeleteConversationClick(event) {
+  event.preventDefault();
+  
+  const convId = event.target.dataset.conversationId;
+  if (convId) {
+    await deleteConversation(convId);
+  }
+}
+
+function handleSelectConversationClick(event) {
+  const convId = event.currentTarget.dataset.conversationId;
+  const conversation = allConversations.find(c => c.id === convId);
+  if (conversation) {
+    selectConversation(convId, conversation);
+  }
+}
+
+/**
+ * Attach all DM event listeners
+ */
+export function attachDmEventListeners() {
+  // Create conversation form
+  const createForm = document.getElementById('create-conversation-form');
+  if (createForm) {
+    createForm.addEventListener('submit', handleCreateConversation);
+  }
+  
+  // Send message form
+  const sendForm = document.getElementById('send-message-form');
+  if (sendForm) {
+    sendForm.addEventListener('submit', handleSendMessage);
+  }
+  
+  // Delete conversation button
+  const deleteBtn = document.getElementById('delete-conversation-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', handleDeleteConversationClick);
+  }
+  
+  // Conversation items (handled in renderConversationsList)
+  // Back button (handled in forms.js)
 }
