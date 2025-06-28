@@ -1818,20 +1818,20 @@ async function renderConversationMessages(convId) {
       <div class="flex ${align} mb-2">
         <div class="flex flex-col max-w-full w-fit">
           <div class="${bubbleClass} ${shadow} px-4 py-2 rounded-2xl relative min-w-[120px] max-w-full">
-            <div class="message-content text-base">${renderContent(message.content)}</div>
-            <div class="flex items-center gap-1 mt-2">
+            <div class="flex items-center gap-1 mb-1">
               <img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-5 h-5 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
               <span class="text-[11px] text-text-secondary">${escapeHtml(senderName)}</span>
             </div>
+            <div class="message-content text-base">${renderContent(message.content)}</div>
           </div>
-          <div class="flex items-center gap-2 mt-1 text-xs text-text-secondary ${isOwn ? 'justify-end' : ""}">
+          <div class="flex items-center gap-2 mt-1 text-xs text-text-secondary ${isOwn ? 'justify-end' : ''}">
             <span>${sentTime}</span>
-            ${updatedTime && updatedTime !== sentTime ? `<span class="text-blue-400">Updated: ${updatedTime}</span>` : ""}
+            ${updatedTime && updatedTime !== sentTime ? `<span class="text-blue-400">Updated: ${updatedTime}</span>` : ''}
             ${editedIndicator}
             ${isOwn ? `
               <button class="edit-message-btn ml-2" data-message-id="${message.id}" title="Edit">✏️</button>
               <button class="delete-message-btn ml-1" data-message-id="${message.id}" title="Delete">🗑️</button>
-            ` : ""}
+            ` : ''}
           </div>
         </div>
       </div>
