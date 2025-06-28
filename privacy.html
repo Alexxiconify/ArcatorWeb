@@ -130,10 +130,13 @@
         font-size: 1.1rem;
         transition: all 0.3s;
         border-bottom: 3px solid transparent;
+        background-color: var(--color-bg-card);
+        color: var(--color-text-primary);
       }
     
       .tab-button.active {
         border-bottom-color: var(--color-link);
+        background-color: var(--color-bg-content-section);
       }
     
       .tab-content {
@@ -142,6 +145,44 @@
     
       .tab-content.active {
         display: block;
+      }
+    
+      /* Legal content styling */
+      .legal-content {
+        color: var(--color-text-primary);
+      }
+
+      .legal-content h2 {
+        color: var(--color-heading-main);
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+      }
+
+      .legal-content h3 {
+        color: var(--color-heading-card);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      .legal-content p {
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+      }
+
+      .legal-content ul {
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+      }
+
+      .legal-content li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
       }
     
       @media (max-width: 768px) {
@@ -179,7 +220,7 @@
 <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
   <div class="container mx-auto px-4">
     <!-- Tab Navigation -->
-    <div class="legal-tabs">
+    <div class="tab-container">
       <button class="tab-button active" onclick="showTab('privacy')">Privacy Policy</button>
       <button class="tab-button" onclick="showTab('terms')">Terms of Service</button>
     </div>
@@ -319,11 +360,6 @@
     tabButtons.forEach(button => button.classList.remove('active'));
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');
-
-    // Load interests data when census tab is shown
-    if (tabName === 'census' && interestsData.length === 0) {
-      loadInterestsData();
-    }
   };
 
   firebaseReadyPromise.then(async () => {
@@ -334,7 +370,7 @@
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
     loadFooter('current-year-legal');
 
-    // Apply user's theme preference (fix: always use userProfile.themePreference if present)
+    // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
     const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
@@ -349,231 +385,6 @@
       }
     }, 500);
   });
-
-  // Community Interests Table Functionality
-  let interestsData = [];
-  let filteredData = [];
-  let currentSort = { column: 'interest', direction: 'asc' };
-
-  // Load interests data from JSON file
-  async function loadInterestsData() {
-    const loadingEl = document.getElementById('interests-loading');
-    const errorEl = document.getElementById('interests-error');
-    const tableContainer = document.getElementById('interests-table-container');
-
-    try {
-      loadingEl.classList.remove('hidden');
-      errorEl.classList.add('hidden');
-      tableContainer.classList.add('hidden');
-
-      console.log('[DEBUG] Loading census data from JSON file...');
-
-      // Fetch from local JSON file
-      const response = await fetch('census-data.json');
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch census data: ${response.status}`);
-      }
-
-      const jsonData = await response.json();
-      console.log('[DEBUG] Successfully loaded census data:', jsonData.data.length, 'items');
-
-      interestsData = jsonData.data;
-
-    } catch (error) {
-      console.warn('[DEBUG] Using fallback census data due to error:', error);
-      console.log('[DEBUG] Error details:', error.message);
-
-      // Use fallback data if available
-      interestsData = [];
-    }
-
-    // Initialize the table
-    initializeInterestsTable();
-  }
-
-  // Initialize the interests table
-  function initializeInterestsTable() {
-    const loadingEl = document.getElementById('interests-loading');
-    const tableContainer = document.getElementById('interests-table-container');
-
-    loadingEl.classList.add('hidden');
-    tableContainer.classList.remove('hidden');
-
-    // Populate category filter
-    populateCategoryFilter();
-
-    // Render initial table
-    renderInterestsTable();
-
-    // Setup event listeners
-    setupInterestsEventListeners();
-  }
-
-  // Populate category filter dropdown
-  function populateCategoryFilter() {
-    const categories = [...new Set(interestsData.map(item => item.category))].sort();
-    const filterEl = document.getElementById('interests-category-filter');
-
-    filterEl.innerHTML = '<option value="">All Categories</option>';
-    categories.forEach(category => {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = category;
-      filterEl.appendChild(option);
-    });
-  }
-
-  // Render the interests table
-  function renderInterestsTable() {
-    const tbody = document.getElementById('interests-table-body');
-    const countEl = document.getElementById('interests-count');
-    const noResultsEl = document.getElementById('interests-no-results');
-
-    if (filteredData.length === 0) {
-      tbody.innerHTML = '';
-      noResultsEl.classList.remove('hidden');
-      countEl.textContent = '0';
-      return;
-    }
-
-    noResultsEl.classList.add('hidden');
-    countEl.textContent = filteredData.length;
-
-    tbody.innerHTML = filteredData.map(item => {
-      // Create member count badge with color coding
-      const getMemberBadgeClass = (count) => {
-        if (count >= 5) return 'bg-green-100 text-green-800';
-        if (count >= 3) return 'bg-blue-100 text-blue-800';
-        if (count >= 1) return 'bg-yellow-100 text-yellow-800';
-        return 'bg-gray-100 text-gray-800';
-      };
-
-      const memberBadgeClass = getMemberBadgeClass(item.members);
-
-      return `
-        <tr class="hover:bg-table-row-even-bg transition-colors">
-          <td class="px-6 py-4 text-text-primary font-medium">${escapeHtml(item.interest)}</td>
-          <td class="px-6 py-4">
-            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              ${escapeHtml(item.category)}
-            </span>
-          </td>
-          <td class="px-6 py-4">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${memberBadgeClass}">
-              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-              </svg>
-              ${item.members || '0'}
-            </span>
-          </td>
-          <td class="px-6 py-4 text-text-secondary">${escapeHtml(item.description || '')}</td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // Setup event listeners for search and filtering
-  function setupInterestsEventListeners() {
-    const searchEl = document.getElementById('interests-search');
-    const categoryFilterEl = document.getElementById('interests-category-filter');
-    const retryBtn = document.getElementById('retry-interests-btn');
-
-    // Search functionality
-    searchEl.addEventListener('input', debounce(() => {
-      applyFilters();
-    }, 300));
-
-    // Category filter
-    categoryFilterEl.addEventListener('change', () => {
-      applyFilters();
-    });
-
-    // Retry button
-    retryBtn.addEventListener('click', () => {
-      console.log('[DEBUG] Retry button clicked, reloading census data...');
-      // Clear existing data and reload
-      interestsData = [];
-      filteredData = [];
-      loadInterestsData();
-    });
-  }
-
-  // Apply search and filter
-  function applyFilters() {
-    const searchTerm = document.getElementById('interests-search').value.toLowerCase();
-    const categoryFilter = document.getElementById('interests-category-filter').value;
-
-    filteredData = interestsData.filter(item => {
-      const matchesSearch = !searchTerm ||
-        item.interest.toLowerCase().includes(searchTerm) ||
-        item.description.toLowerCase().includes(searchTerm) ||
-        item.category.toLowerCase().includes(searchTerm);
-
-      const matchesCategory = !categoryFilter || item.category === categoryFilter;
-
-      return matchesSearch && matchesCategory;
-    });
-
-    // Apply current sort
-    sortData(currentSort.column, currentSort.direction);
-    renderInterestsTable();
-  }
-
-  // Sort table data
-  function sortData(column, direction) {
-    filteredData.sort((a, b) => {
-      let aVal = a[column] || '';
-      let bVal = b[column] || '';
-
-      // Handle numeric values
-      if (column === 'members') {
-        aVal = parseInt(aVal) || 0;
-        bVal = parseInt(bVal) || 0;
-      } else {
-        aVal = aVal.toString().toLowerCase();
-        bVal = bVal.toString().toLowerCase();
-      }
-
-      if (direction === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-  }
-
-  // Global sort function for table headers
-  window.sortTable = function (column) {
-    if (currentSort.column === column) {
-      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-      currentSort.column = column;
-      currentSort.direction = 'asc';
-    }
-
-    sortData(currentSort.column, currentSort.direction);
-    renderInterestsTable();
-  };
-
-  // Utility functions
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
 </script>
 </body>
 </html>
