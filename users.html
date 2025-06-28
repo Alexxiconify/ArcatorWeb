@@ -1548,25 +1548,23 @@
   import { loadNavbar, loadFooter } from './navbar.js';
   import { getAvailableThemes, applyTheme } from './themes.js';
 
-  // Main execution logic on window load
-  window.onload = async function() {
-    await firebaseReadyPromise;
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
-    loadFooter('current-year-users');
-    
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-    }
-  };
+  firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged(async (user) => {
+      let userProfile = null;
+      if (user) {
+        userProfile = await getUserProfileFromFirestore(user.uid);
+      }
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+      loadFooter('current-year-users');
+      const userThemePreference = userProfile?.themePreference;
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
+      if (themeToApply) {
+        applyTheme(themeToApply.id, themeToApply);
+        console.log(`[Users]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+      }
+    });
+  });
 </script>
 
 </body>

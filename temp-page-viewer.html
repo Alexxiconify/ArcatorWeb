@@ -8,8 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables for theming -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to navbar.css for consistent navbar styling -->
-  <link rel="stylesheet" href="navbar.css">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
   <!-- Markdown renderer (Marked.js) - Keep this for potential future use or if any content might still be markdown -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -294,7 +294,7 @@
   import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
   import {loadNavbar, loadFooter} from './navbar.js';
   import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const pageDisplayTitle = document.getElementById('page-display-title');
   const pageDisplayContent = document.getElementById('page-display-content');

@@ -10,8 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
   <link href="theme_variables.css" rel="stylesheet">
-  <!-- Link to navbar.css for navbar specific styling -->
-  <link href="navbar.css" rel="stylesheet">
+  <!-- Link to common.css for shared styles -->
+  <link href="common.css" rel="stylesheet">
 
   <style>
     /* Base styles, will be overridden by CSS variables from themes.js */
@@ -99,36 +99,36 @@
 </section>
 
 <!-- About Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center" id="about">
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center" id="about">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 mb-6">About Arcator.co.uk</h2>
-    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
+    <h2 class="text-4xl font-bold text-heading-main mb-6">About Arcator.co.uk</h2>
+    <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
       Arcator is a Minecraft community established in 2010. We provide a stable, fun environment for players to enjoy
       various Minecraft experiences while fostering a friendly community.
     </p>
 
-    <h3 class="text-2xl font-bold text-blue-300 mb-4">Diverse Server Experiences</h3>
-    <p class="text-gray-300">From survival to creative building and mini-games, our servers cater to all playstyles.</p>
+    <h3 class="text-2xl font-bold text-heading-card mb-4">Diverse Server Experiences</h3>
+    <p class="text-text-secondary">From survival to creative building and mini-games, our servers cater to all playstyles.</p>
   </div>
   <div class="container mx-auto px-4">
-    <h3 class="text-2xl font-bold text-green-300 mb-4">Robust & Reliable Infrastructure</h3>
-    <p class="text-gray-300">Powered by dedicated hardware, our servers ensure smooth, low-lag gameplay with excellent
+    <h3 class="text-2xl font-bold text-heading-card mb-4">Robust & Reliable Infrastructure</h3>
+    <p class="text-text-secondary">Powered by dedicated hardware, our servers ensure smooth, low-lag gameplay with excellent
       uptime.</p>
   </div>
   <div class="container mx-auto px-4">
-    <h3 class="text-2xl font-bold text-yellow-300 mb-4">Engaged & Friendly Community</h3>
-    <p class="text-gray-300">Join our Discord, participate in events, and connect with fellow Minecraft enthusiasts.</p>
+    <h3 class="text-2xl font-bold text-heading-card mb-4">Engaged & Friendly Community</h3>
+    <p class="text-text-secondary">Join our Discord, participate in events, and connect with fellow Minecraft enthusiasts.</p>
   </div>
 </section>
 
 <!-- Join Us Section -->
-<section class="py-16 bg-gray-800 rounded-lg shadow-inner mx-4 my-8 text-center" id="join-us">
+<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center" id="join-us">
   <div class="container mx-auto px-4">
-    <h2 class="text-4xl font-bold text-red-400 mb-6">Join Minecraft Server!</h2>
-    <p class="text-lg leading-relaxed text-gray-300 max-w-3xl mx-auto mb-8">
+    <h2 class="text-4xl font-bold text-heading-main mb-6">Join Minecraft Server!</h2>
+    <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
       Ready to start your Minecraft adventure?
     </p>
-    <div class="minecraft-ip-box bg-gray-700 p-6 rounded-lg max-w-lg mx-auto shadow-xl">
+    <div class="minecraft-ip-box bg-card p-6 rounded-lg max-w-lg mx-auto shadow-xl">
       <p class="text-3xl font-extrabold text-green-400 mb-4">Server IP:</p>
       <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
         <span class="bg-gray-600 text-white text-2xl font-semibold px-6 py-3 rounded-md select-all" id="minecraft-ip">arcator.co.uk</span>
@@ -148,31 +148,23 @@
   import { loadNavbar, loadFooter } from './navbar.js';
   import { getAvailableThemes, applyTheme } from './themes.js';
 
-  // Main execution logic on window load
-  window.onload = async function () {
-    await firebaseReadyPromise;
-    
-    // Get user profile and apply theme
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-    
-    // Load navbar
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
-
-    // Load footer
-    loadFooter('current-year-index');
-    
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`[Page name]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-    }
-  };
+  firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged(async (user) => {
+      let userProfile = null;
+      if (user) {
+        userProfile = await getUserProfileFromFirestore(user.uid);
+      }
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+      loadFooter('current-year-index');
+      const userThemePreference = userProfile?.themePreference;
+      const allThemes = await getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
+      if (themeToApply) {
+        applyTheme(themeToApply.id, themeToApply);
+        console.log(`[Index]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+      }
+    });
+  });
 </script>
 </body>
 </html>
