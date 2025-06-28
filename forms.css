@@ -1089,147 +1089,18 @@
 }
 
 .recipient-bubble .recipient-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
-  min-width: 1.5rem;
-  min-height: 1.5rem;
-  max-width: 1.5rem;
-  max-height: 1.5rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-bg-card);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s;
-}
-
-.recipient-bubble:hover .recipient-avatar {
-  border-color: var(--color-link);
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
-}
-
-.recipient-bubble .recipient-handle {
-  color: var(--color-text-primary);
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.recipient-bubble:hover .recipient-handle {
-  color: var(--color-link);
-}
-
-.recipient-bubble .remove-recipient {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: 0.125rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  width: 1.25rem;
-  height: 1.25rem;
-  font-size: 0.875rem;
-  font-weight: bold;
-}
-
-.recipient-bubble .remove-recipient:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  transform: scale(1.1);
-}
-
-.recipients-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  min-height: 2rem;
-  padding: 0.5rem;
-  border: 1px solid var(--color-input-border);
-  border-radius: 0.5rem;
-  background: var(--color-input-bg);
-}
-
-.recipients-container.empty {
-  border-style: dashed;
-  opacity: 0.7;
-}
-
-.recipients-container.empty::before {
-  content: "No recipients selected";
-  color: var(--color-text-secondary);
-  font-style: italic;
-}
-
-/* User handle suggestions */
-.handle-suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-input-border);
-  border-radius: 0.75rem;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.handle-suggestion {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border-radius: 0.5rem;
-  margin: 0.25rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.handle-suggestion::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, var(--color-link, #60A5FA), var(--color-button-purple-bg, #9333EA));
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  border-radius: 0.5rem;
-  z-index: -1;
-}
-
-.handle-suggestion:hover {
-  background: var(--color-input-border);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
-}
-
-.handle-suggestion:hover::before {
-  opacity: 0.05;
-}
-
-.handle-suggestion .suggestion-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--color-input-border);
-  background: var(--color-bg-card);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease-in-out;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem !important;
+  min-height: 1.5rem !important;
+  max-width: 1.5rem !important;
+  max-height: 1.5rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid var(--color-input-border) !important;
+  background: var(--color-bg-card) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
 .handle-suggestion:hover .suggestion-avatar {
@@ -1351,10 +1222,10 @@
 }
 
 .user-card .user-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-input-border);
@@ -1436,18 +1307,18 @@
 }
 
 .recipient-bubble .recipient-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
-  min-width: 1.5rem;
-  min-height: 1.5rem;
-  max-width: 1.5rem;
-  max-height: 1.5rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-bg-card);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem !important;
+  min-height: 1.5rem !important;
+  max-width: 1.5rem !important;
+  max-height: 1.5rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid var(--color-input-border) !important;
+  background: var(--color-bg-card) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
 .conversation-avatar {
