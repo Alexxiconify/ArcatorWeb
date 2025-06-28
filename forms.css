@@ -1225,8 +1225,10 @@
 }
 
 .user-card .user-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--color-input-border);
@@ -1238,8 +1240,15 @@
   color: var(--color-text-primary);
 }
 
-.user-card.selected .user-name {
-  color: white;
+.user-card.selected .user-avatar {
+  width: 2rem;
+  height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-link);
+  background: var(--color-bg-navbar);
 }
 
 .input-valid {

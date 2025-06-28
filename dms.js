@@ -58,22 +58,33 @@ export async function initializeDmSystem() {
     console.warn("No current user for DM system initialization");
     return;
   }
-  // Always clear recipients and UI on init
-  selectedRecipients.clear();
-  renderRecipients('private');
-  renderRecipients('group');
-  renderUserCardList('private');
-  renderUserCardList('group');
-  // Load all user profiles for suggestions
-  await loadAllUserProfiles();
-  // Populate private chat recipient <select> with user handles and avatars
-  await populatePrivateChatRecipientSelect();
-  // Set up real-time listeners for conversations
-  await setupConversationsListener();
-  // Populate user handles for autocomplete
-  await populateUserHandlesDatalist();
-  // Set up recipient input handlers
-  setupRecipientInputHandlers();
+  
+  console.log("Initializing DM system for user:", currentUser.uid);
+  
+  try {
+    // Always clear recipients and UI on init
+    selectedRecipients.clear();
+    renderRecipients('private');
+    renderRecipients('group');
+    renderUserCardList('private');
+    renderUserCardList('group');
+    
+    // Load all user profiles for suggestions
+    await loadAllUserProfiles();
+    
+    // Set up real-time listeners for conversations
+    await setupConversationsListener();
+    
+    // Populate user handles for autocomplete
+    await populateUserHandlesDatalist();
+    
+    // Set up recipient input handlers
+    setupRecipientInputHandlers();
+    
+    console.log("DM system initialized successfully");
+  } catch (error) {
+    console.error("Error initializing DM system:", error);
+  }
 }
 
 /**
@@ -490,90 +501,98 @@ export function renderConversationsList() {
   
   if (!conversationsListEl) return;
   
-  if (allConversations.length === 0) {
+  if (!allConversations || allConversations.length === 0) {
     conversationsListEl.innerHTML = '';
-    noConversationsEl.style.display = 'block';
+    if (noConversationsEl) noConversationsEl.style.display = 'block';
     return;
   }
   
-  noConversationsEl.style.display = 'none';
+  if (noConversationsEl) noConversationsEl.style.display = 'none';
   
-  // Sort conversations based on current sort option
-  const sortBy = document.getElementById('sort-conversations-by')?.value || 'lastMessageAt_desc';
-  const [sortField, sortDirection] = sortBy.split('_');
-  
-  const sortedConversations = [...allConversations].sort((a, b) => {
-    const getDisplayNameForSorting = (conv) => {
-      if (conv.type === 'group') return conv.name || 'Unnamed Group';
-      else return conv.name || conv.otherUsername || 'Unknown User';
-    };
+  try {
+    // Sort conversations based on current sort option
+    const sortBy = document.getElementById('sort-conversations-by')?.value || 'lastMessageAt_desc';
+    const [sortField, sortDirection] = sortBy.split('_');
     
-    let aVal, bVal;
+    const sortedConversations = [...allConversations].sort((a, b) => {
+      const getDisplayNameForSorting = (conv) => {
+        if (conv.type === 'group') {
+          return conv.name || 'Unnamed Group';
+        } else {
+          return conv.name || conv.otherUsername || 'Unknown User';
+        }
+      };
+      
+      let aVal, bVal;
+      
+      switch (sortField) {
+        case 'lastMessageAt':
+          aVal = a.lastMessageAt?.toDate?.() || a.lastMessageAt || a.createdAt?.toDate?.() || a.createdAt || 0;
+          bVal = b.lastMessageAt?.toDate?.() || b.lastMessageAt || b.createdAt?.toDate?.() || b.createdAt || 0;
+          break;
+        case 'createdAt':
+          aVal = a.createdAt?.toDate?.() || a.createdAt || 0;
+          bVal = b.createdAt?.toDate?.() || b.createdAt || 0;
+          break;
+        case 'otherUsername':
+          aVal = getDisplayNameForSorting(a).toLowerCase();
+          bVal = getDisplayNameForSorting(b).toLowerCase();
+          break;
+        case 'groupName':
+          aVal = (a.name || 'Unnamed Group').toLowerCase();
+          bVal = (b.name || 'Unnamed Group').toLowerCase();
+          break;
+        default:
+          aVal = a.lastMessageAt?.toDate?.() || a.lastMessageAt || a.createdAt?.toDate?.() || a.createdAt || 0;
+          bVal = b.lastMessageAt?.toDate?.() || b.lastMessageAt || b.createdAt?.toDate?.() || b.createdAt || 0;
+      }
+      
+      if (sortDirection === 'desc') {
+        return aVal > bVal ? -1 : 1;
+      } else {
+        return aVal < bVal ? -1 : 1;
+      }
+    });
     
-    switch (sortField) {
-      case 'lastMessageAt':
-        aVal = a.lastMessageAt || a.createdAt || 0;
-        bVal = b.lastMessageAt || b.createdAt || 0;
-        break;
-      case 'createdAt':
-        aVal = a.createdAt || 0;
-        bVal = b.createdAt || 0;
-        break;
-      case 'otherUsername':
-        aVal = getDisplayNameForSorting(a).toLowerCase();
-        bVal = getDisplayNameForSorting(b).toLowerCase();
-        break;
-      case 'groupName':
-        aVal = (a.name || 'Unnamed Group').toLowerCase();
-        bVal = (b.name || 'Unnamed Group').toLowerCase();
-        break;
-      default:
-        aVal = a.lastMessageAt || a.createdAt || 0;
-        bVal = b.lastMessageAt || b.createdAt || 0;
-    }
-    
-    if (sortDirection === 'desc') {
-      return aVal > bVal ? -1 : 1;
-    } else {
-      return aVal < bVal ? -1 : 1;
-    }
-  });
-  
-  conversationsListEl.innerHTML = sortedConversations.map(conv => {
-    const isActive = selectedConversationId === conv.id;
-    const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || conv.otherUsername || 'Unknown User');
-    const lastMessagePreview = conv.lastMessageContent ? 
-      (conv.lastMessageContent.length > 30 ? conv.lastMessageContent.substring(0, 30) + '...' : conv.lastMessageContent) : 
-      'No messages yet';
-    
-    const lastMessageTime = conv.lastMessageAt ? 
-      new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
-      '';
-    
-    // Get avatar - use first participant's avatar for group chats, or other user's avatar for private chats
-    const avatarUrl = conv.type === 'group' ? 
-      (conv.participants?.map(uid => getUserProfileFromFirestore(uid)?.photoURL).find(url => url) || DEFAULT_PROFILE_PIC) : 
-      (conv.otherUserAvatar || DEFAULT_PROFILE_PIC);
-    
-    return `
-      <div class="conversation-item ${isActive ? 'active' : ''}" data-conversation-id="${conv.id}">
-        <img src="${avatarUrl}" alt="${displayName}" class="conversation-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-        <div class="conversation-info">
-          <div class="conversation-name">${escapeHtml(displayName)}</div>
-          <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
+    conversationsListEl.innerHTML = sortedConversations.map(conv => {
+      const isActive = selectedConversationId === conv.id;
+      const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || conv.otherUsername || 'Unknown User');
+      const lastMessagePreview = conv.lastMessageContent ? 
+        (conv.lastMessageContent.length > 30 ? conv.lastMessageContent.substring(0, 30) + '...' : conv.lastMessageContent) : 
+        'No messages yet';
+      
+      const lastMessageTime = conv.lastMessageAt ? 
+        new Date(conv.lastMessageAt.toDate?.() || conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+        '';
+      
+      // Get avatar - use first participant's avatar for group chats, or other user's avatar for private chats
+      const avatarUrl = conv.type === 'group' ? 
+        (conv.participants?.map(uid => getUserProfileFromFirestore(uid)?.photoURL).find(url => url) || DEFAULT_PROFILE_PIC) : 
+        (conv.otherUserAvatar || DEFAULT_PROFILE_PIC);
+      
+      return `
+        <div class="conversation-item ${isActive ? 'active' : ''}" data-conversation-id="${conv.id}">
+          <img src="${avatarUrl}" alt="${displayName}" class="conversation-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+          <div class="conversation-info">
+            <div class="conversation-name">${escapeHtml(displayName)}</div>
+            <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
+          </div>
+          <div class="conversation-meta">
+            <div class="conversation-time">${lastMessageTime}</div>
+            ${conv.type === 'group' ? '<div class="text-xs opacity-60">👥</div>' : ''}
+          </div>
         </div>
-        <div class="conversation-meta">
-          <div class="conversation-time">${lastMessageTime}</div>
-          ${conv.type === 'group' ? '<div class="text-xs opacity-60">👥</div>' : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  // Add click event listeners
-  conversationsListEl.querySelectorAll('.conversation-item').forEach(item => {
-    item.addEventListener('click', handleSelectConversationClick);
-  });
+      `;
+    }).join('');
+    
+    // Add click event listeners
+    conversationsListEl.querySelectorAll('.conversation-item').forEach(item => {
+      item.addEventListener('click', handleSelectConversationClick);
+    });
+  } catch (error) {
+    console.error("Error rendering conversations list:", error);
+    conversationsListEl.innerHTML = '<div class="error">Error loading conversations</div>';
+  }
 }
 
 /**
@@ -878,60 +897,64 @@ async function setupConversationsListener() {
   const q = query(conversationsCol, orderBy("lastMessageAt", "desc"));
   
   unsubscribeConversationsList = onSnapshot(q, async (snapshot) => {
-    allConversations = [];
-    
-    if (snapshot.empty) {
-      renderConversationsList();
-      return;
-    }
-    
-    const profilesToFetch = new Set();
-    snapshot.forEach(doc => {
-      const conv = doc.data();
-      if (conv.participants) {
-        conv.participants.forEach(uid => profilesToFetch.add(uid));
+    try {
+      allConversations = [];
+      
+      if (snapshot.empty) {
+        renderConversationsList();
+        return;
       }
-      allConversations.push({ id: doc.id, ...conv });
-    });
-    
-    // Fetch user profiles for display names and avatars
-    const fetchedProfiles = new Map();
-    for (const uid of profilesToFetch) {
-      try {
-        const profile = await getUserProfileFromFirestore(uid);
-        if (profile) {
-          fetchedProfiles.set(uid, profile);
+      
+      const profilesToFetch = new Set();
+      snapshot.forEach(doc => {
+        const conv = doc.data();
+        if (conv.participants) {
+          conv.participants.forEach(uid => profilesToFetch.add(uid));
         }
-      } catch (error) {
-        console.warn("Could not fetch profile for user:", uid, error);
-      }
-    }
-    
-    // Enhance conversations with profile data
-    allConversations.forEach(conv => {
-      if (conv.type === 'private') {
-        const otherUid = conv.participants?.find(uid => uid !== currentUser.uid);
-        if (otherUid) {
-          const otherProfile = fetchedProfiles.get(otherUid);
-          if (otherProfile) {
-            conv.otherUsername = otherProfile.displayName || otherProfile.handle || 'Unknown User';
-            conv.otherUserAvatar = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
-            conv.name = otherProfile.displayName || otherProfile.handle || 'Unknown User';
-          } else {
-            conv.otherUsername = 'Unknown User';
-            conv.otherUserAvatar = DEFAULT_PROFILE_PIC;
-            conv.name = 'Unknown User';
+        allConversations.push({ id: doc.id, ...conv });
+      });
+      
+      // Fetch user profiles for display names and avatars
+      const fetchedProfiles = new Map();
+      for (const uid of profilesToFetch) {
+        try {
+          const profile = await getUserProfileFromFirestore(uid);
+          if (profile) {
+            fetchedProfiles.set(uid, profile);
           }
-        } else {
-          conv.otherUsername = 'Self Chat';
-          conv.otherUserAvatar = currentUser.photoURL || DEFAULT_PROFILE_PIC;
-          conv.name = 'Self Chat';
+        } catch (error) {
+          console.warn("Could not fetch profile for user:", uid, error);
         }
       }
-    });
-    
-    console.log("Enhanced conversations with profile data:", allConversations);
-    renderConversationsList();
+      
+      // Enhance conversations with profile data
+      allConversations.forEach(conv => {
+        if (conv.type === 'private') {
+          const otherUid = conv.participants?.find(uid => uid !== currentUser.uid);
+          if (otherUid) {
+            const otherProfile = fetchedProfiles.get(otherUid);
+            if (otherProfile) {
+              conv.otherUsername = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+              conv.otherUserAvatar = otherProfile.photoURL || DEFAULT_PROFILE_PIC;
+              conv.name = otherProfile.displayName || otherProfile.handle || 'Unknown User';
+            } else {
+              conv.otherUsername = 'Unknown User';
+              conv.otherUserAvatar = DEFAULT_PROFILE_PIC;
+              conv.name = 'Unknown User';
+            }
+          } else {
+            conv.otherUsername = 'Self Chat';
+            conv.otherUserAvatar = currentUser.photoURL || DEFAULT_PROFILE_PIC;
+            conv.name = 'Self Chat';
+          }
+        }
+      });
+      
+      console.log("Enhanced conversations with profile data:", allConversations);
+      renderConversationsList();
+    } catch (error) {
+      console.error("Error processing conversations:", error);
+    }
   }, (error) => {
     console.error("Error fetching conversations:", error);
     showMessageBox(`Error loading conversations: ${error.message}`, true);

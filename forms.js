@@ -537,14 +537,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   });
 
   // Tab navigation
-  dmTabBtn?.addEventListener('click', () => {
+  dmTabBtn?.addEventListener('click', async () => {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     dmTabContent.style.display = 'block';
     dmTabBtn.classList.add('active');
     
     // Initialize DM functionality when tab is opened
-    initializeDmTab();
+    await initializeDmTab();
   });
 
   const allThematasTabBtn = document.getElementById('tab-themata-all');
@@ -645,36 +645,23 @@ const commentHeaderClass = threadHeaderClass;
 async function initializeDmTab() {
   console.log('Initializing DM tab...');
   
-  // Initialize DM functionality
-  await initializeDmSystem();
-  
-  // Set up event listeners for DM tab
-  setupDmEventListeners();
-  
-  // Load initial conversations
-  await loadConversations();
-  
-  console.log('DM tab initialized successfully');
+  try {
+    // Initialize DM functionality
+    await initializeDmSystem();
+    
+    // Set up event listeners for DM tab
+    setupDmEventListeners();
+    
+    // Load initial conversations
+    await loadConversations();
+    
+    console.log('DM tab initialized successfully');
+  } catch (error) {
+    console.error('Error initializing DM tab:', error);
+  }
 }
 
 async function setupDmEventListeners() {
-  // Tab switching
-  const dmTab = document.getElementById('tab-dms');
-  const themataTab = document.getElementById('tab-themata-all');
-  
-  if (dmTab) {
-    dmTab.addEventListener('click', () => {
-      showDmTab();
-      initializeDmTab();
-    });
-  }
-  
-  if (themataTab) {
-    themataTab.addEventListener('click', () => {
-      showThemataTab();
-    });
-  }
-  
   // DM-specific event listeners
   attachDmEventListeners();
   
@@ -716,50 +703,4 @@ async function setupDmEventListeners() {
       groupSuggestions.style.display = 'none';
     }
   });
-}
-
-function showDmTab() {
-  // Hide all tab contents
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.style.display = 'none';
-  });
-  
-  // Show DM tab content
-  const dmContent = document.getElementById('dm-tab-content');
-  if (dmContent) {
-    dmContent.style.display = 'block';
-  }
-  
-  // Update tab button states
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  const dmTab = document.getElementById('tab-dms');
-  if (dmTab) {
-    dmTab.classList.add('active');
-  }
-}
-
-function showThemataTab() {
-  // Hide all tab contents
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.style.display = 'none';
-  });
-  
-  // Show themata tab content
-  const themataContent = document.getElementById('thema-all-tab-content');
-  if (themataContent) {
-    themataContent.style.display = 'block';
-  }
-  
-  // Update tab button states
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  const themataTab = document.getElementById('tab-themata-all');
-  if (themataTab) {
-    themataTab.classList.add('active');
-  }
 }
