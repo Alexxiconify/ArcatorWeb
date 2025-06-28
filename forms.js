@@ -611,90 +611,270 @@ async function addThema(name, description) {
 
 // Renders thémata from Firestore in real-time.
 function renderThematas() {
-  console.log("Rendering thematas. DB:", !!window.db);
-  if (unsubscribeThematas) {
-    unsubscribeThematas();
-    console.log("Unsubscribed from previous thémata listener.");
-  }
+  if (unsubscribeThematas) unsubscribeThematas();
   if (!window.db) {
     themaList.innerHTML = '<li class="card p-4 text-center text-red-400">Database not initialized. Cannot load thémata.</li>';
     return;
   }
-
   const thematasCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas`);
   const q = query(thematasCol, orderBy("createdAt", "desc"));
-
   unsubscribeThematas = onSnapshot(q, async (snapshot) => {
-    console.log("onSnapshot callback fired for thematas. Changes:", snapshot.docChanges().length);
     themaList.innerHTML = '';
     if (snapshot.empty) {
-      themaList.innerHTML = '<li class="card p-4 text-center">No thémata found. Be the first to create one!</li>';
+      themaList.innerHTML = '<li class="thema-item text-center text-text-secondary">No thémata found.</li>';
+      return;
+    }
+    snapshot.forEach(docSnap => {
+      const thema = docSnap.data();
+      const themaId = docSnap.id;
+      const li = document.createElement('li');
+      li.className = 'thema-item mb-6 p-4 bg-card rounded-lg shadow';
+      const header = document.createElement('div');
+      header.className = 'flex items-center justify-between mb-2';
+      const titleBox = document.createElement('div');
+      titleBox.innerHTML = `<span class="font-bold text-lg">${escapeHtml(thema.name)}</span><div class="thema-description text-text-secondary text-sm">${escapeHtml(thema.description)}</div>`;
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center gap-2';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-themata-btn text-blue-400 hover:text-blue-300 p-1';
+      editBtn.title = 'Edit Themata';
+      editBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+      editBtn.onclick = () => openEditThemaModal(themaId, thema);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-themata-btn text-red-400 hover:text-red-300 p-1';
+      delBtn.title = 'Delete Themata';
+      delBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+      delBtn.onclick = () => deleteThemaAndSubcollections(themaId);
+      actions.append(editBtn, delBtn);
+      header.append(titleBox, actions);
+      li.append(header);
+      const threadsDiv = document.createElement('div');
+      threadsDiv.id = `threads-for-${themaId}`;
+      threadsDiv.className = 'mt-2';
+      li.append(threadsDiv);
+      themaList.appendChild(li);
+      loadThreadsForThema(themaId);
+    });
+  });
+}
+
+// Load threads for a specific thema and display them inline
+async function loadThreadsForThema(themaId) {
+  if (!window.db) return;
+
+  const threadsContainer = document.querySelector(`[data-thema-id="${themaId}"]`);
+  if (!threadsContainer) return;
+
+  try {
+    const threadsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads`);
+    const q = query(threadsCol, orderBy("createdAt", "desc"));
+    
+    const threadsSnapshot = await getDocs(q);
+    
+    if (threadsSnapshot.empty) {
+      threadsContainer.innerHTML = '<div class="no-threads">No threads yet. Be the first to start one!</div>';
       return;
     }
 
-    const createdByUids = new Set();
-    snapshot.forEach(doc => {
-      const thema = doc.data();
-      if (thema.createdBy) {
-        createdByUids.add(thema.createdBy);
-      }
-    });
+    const threadsHtml = [];
+    threadsHtml.push('<div class="create-thread-section mb-4">');
+    threadsHtml.push('<h4 class="text-lg font-bold mb-2">Create New Thread</h4>');
+    threadsHtml.push('<form class="create-thread-form space-y-2">');
+    threadsHtml.push('<input type="text" class="form-input" placeholder="Thread title" required>');
+    threadsHtml.push('<textarea class="form-input" placeholder="Initial comment" rows="3" required></textarea>');
+    threadsHtml.push('<button type="submit" class="btn-primary btn-blue">Create Thread</button>');
+    threadsHtml.push('</form>');
+    threadsHtml.push('</div>');
 
-    const userProfiles = {};
-    if (createdByUids.size > 0) {
-      const usersRef = collection(window.db, `artifacts/${window.appId}/public/data/user_profiles`);
-      const userQuery = query(usersRef, where('uid', 'in', Array.from(createdByUids)));
-      await getDocs(userQuery).then(userSnapshot => {
-        userSnapshot.forEach(userDoc => {
-          const userData = userDoc.data();
-          userProfiles[userDoc.id] = userData.displayName || 'Unknown User';
-        });
-      }).catch(error => console.error("Error fetching user profiles for thematas:", error));
+    threadsHtml.push('<div class="threads-list space-y-3">');
+    
+    for (const threadDoc of threadsSnapshot.docs) {
+      const thread = threadDoc.data();
+      const createdAt = thread.createdAt ? new Date(thread.createdAt.toDate()).toLocaleString() : 'N/A';
+      
+      threadsHtml.push(`
+        <div class="thread-item card p-3" data-thread-id="${threadDoc.id}">
+          <div class="thread-header">
+            <h5 class="text-lg font-semibold">${thread.title}</h5>
+            <div class="thread-actions">
+              ${(window.currentUser && window.currentUser.isAdmin) ? `
+                <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <p class="thread-initial-comment text-sm">${thread.initialComment}</p>
+          <p class="meta-info text-xs">Created on ${createdAt}</p>
+          <div class="thread-comments" data-thread-id="${threadDoc.id}">
+            <div class="comments-loading">Loading comments...</div>
+          </div>
+        </div>
+      `);
+    }
+    
+    threadsHtml.push('</div>');
+    threadsContainer.innerHTML = threadsHtml.join('');
+
+    // Load comments for each thread
+    for (const threadDoc of threadsSnapshot.docs) {
+      await loadCommentsForThread(themaId, threadDoc.id);
     }
 
-    snapshot.forEach((doc) => {
-      const thema = doc.data();
-      const li = document.createElement('li');
-      li.classList.add('thema-item', 'card');
-      const createdAt = thema.createdAt ? new Date(thema.createdAt.toDate()).toLocaleString() : 'N/A';
-      const creatorDisplayName = userProfiles[thema.createdBy] || thema.creatorDisplayName || 'Unknown';
-
-      li.innerHTML = `
-            <h3 class="text-xl font-bold text-heading-card">${thema.name}</h3>
-            <p class="thema-description mt-2">${thema.description}</p>
-            <p class="meta-info">Created by ${creatorDisplayName} on ${createdAt}</p>
-            <button data-thema-id="${doc.id}" data-thema-name="${thema.name}" data-thema-description="${thema.description}" class="view-threads-btn btn-primary btn-blue mt-4">View Threads</button>
-            ${(window.currentUser && window.currentUser.isAdmin) ? `<button data-thema-id="${doc.id}" class="delete-thema-btn btn-primary btn-red ml-2 mt-4">Delete</button>` : ''}
-        `;
-      themaList.appendChild(li);
-    });
-
-    document.querySelectorAll('.view-threads-btn').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const themaId = event.target.dataset.themaId;
-        const themaName = event.target.dataset.themaName;
-        const themaDescription = event.target.dataset.themaDescription;
-        console.log(`View Threads clicked for themaId: ${themaId}`);
-        displayThreadsForThema(themaId, themaName, themaDescription);
-      });
-    });
-
-    document.querySelectorAll('.delete-thema-btn').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        const themaId = event.target.dataset.themaId;
-        console.log(`Delete Théma clicked for themaId: ${themaId}`);
-        const confirmed = await showCustomConfirm("Are you sure you want to delete this théma?", "All threads and comments within it will also be deleted.");
-        if (confirmed) {
-          await deleteThemaAndSubcollections(themaId);
-        } else {
-          showMessageBox("Théma deletion cancelled.", false);
+    // Add event listeners for create thread forms
+    threadsContainer.querySelectorAll('.create-thread-form').forEach(form => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const titleInput = form.querySelector('input[type="text"]');
+        const commentInput = form.querySelector('textarea');
+        
+        if (titleInput.value.trim() && commentInput.value.trim()) {
+          await addCommentThread(themaId, titleInput.value.trim(), commentInput.value.trim());
+          titleInput.value = '';
+          commentInput.value = '';
         }
       });
     });
-  }, (error) => {
-    console.error("Error fetching thémata:", error);
-    themaList.innerHTML = `<li class="card p-4 text-center text-red-400">Error loading thémata: ${error.message}</li>`;
-  });
+
+    // Add event listeners for thread actions
+    threadsContainer.querySelectorAll('.edit-thread-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const threadId = event.target.closest('.thread-item').dataset.threadId;
+        console.log(`Edit Thread clicked for threadId: ${threadId}`);
+        // TODO: Implement edit thread functionality
+        showMessageBox("Edit functionality coming soon!", false);
+      });
+    });
+
+    threadsContainer.querySelectorAll('.delete-thread-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const threadId = event.target.closest('.thread-item').dataset.threadId;
+        console.log(`Delete Thread clicked for threadId: ${threadId}`);
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this thread?", "All comments within it will also be deleted.");
+        if (confirmed) {
+          await deleteThreadAndSubcollection(themaId, threadId);
+        } else {
+          showMessageBox("Thread deletion cancelled.", false);
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("Error loading threads for thema:", themaId, error);
+    threadsContainer.innerHTML = '<div class="error">Error loading threads</div>';
+  }
+}
+
+// Load comments for a specific thread and display them inline
+async function loadCommentsForThread(themaId, threadId) {
+  if (!window.db) return;
+
+  const commentsContainer = document.querySelector(`[data-thread-id="${threadId}"] .thread-comments`);
+  if (!commentsContainer) return;
+
+  try {
+    const commentsCol = collection(window.db, `artifacts/${window.appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`);
+    const q = query(commentsCol, orderBy("createdAt", "asc"));
+    
+    const commentsSnapshot = await getDocs(q);
+    
+    let commentsHtml = [];
+    
+    if (commentsSnapshot.empty) {
+      commentsHtml.push('<div class="no-comments text-sm text-gray-500">No comments yet.</div>');
+    } else {
+      commentsHtml.push('<div class="comments-list space-y-2">');
+      
+      for (const commentDoc of commentsSnapshot.docs) {
+        const comment = commentDoc.data();
+        const createdAt = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'N/A';
+        
+        commentsHtml.push(`
+          <div class="comment-item p-2 bg-gray-50 rounded" data-comment-id="${commentDoc.id}">
+            <div class="comment-header flex justify-between items-start">
+              <p class="comment-content text-sm">${comment.content}</p>
+              <div class="comment-actions">
+                ${(window.currentUser && window.currentUser.isAdmin) ? `
+                  <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <p class="meta-info text-xs">Posted on ${createdAt}</p>
+          </div>
+        `);
+      }
+      
+      commentsHtml.push('</div>');
+    }
+
+    // Add comment form
+    commentsHtml.push(`
+      <div class="add-comment-section mt-3">
+        <form class="add-comment-form space-y-2">
+          <textarea class="form-input text-sm" placeholder="Add a comment..." rows="2" required></textarea>
+          <button type="submit" class="btn-primary btn-blue text-sm">Add Comment</button>
+        </form>
+      </div>
+    `);
+
+    commentsContainer.innerHTML = commentsHtml.join('');
+
+    // Add event listeners for add comment forms
+    commentsContainer.querySelectorAll('.add-comment-form').forEach(form => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const commentInput = form.querySelector('textarea');
+        
+        if (commentInput.value.trim()) {
+          await addComment(themaId, threadId, commentInput.value.trim());
+          commentInput.value = '';
+        }
+      });
+    });
+
+    // Add event listeners for comment actions
+    commentsContainer.querySelectorAll('.edit-comment-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const commentId = event.target.closest('.comment-item').dataset.commentId;
+        console.log(`Edit Comment clicked for commentId: ${commentId}`);
+        // TODO: Implement edit comment functionality
+        showMessageBox("Edit functionality coming soon!", false);
+      });
+    });
+
+    commentsContainer.querySelectorAll('.delete-comment-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const commentId = event.target.closest('.comment-item').dataset.commentId;
+        console.log(`Delete Comment clicked for commentId: ${commentId}`);
+        const confirmed = await showCustomConfirm("Are you sure you want to delete this comment?", "This action cannot be undone.");
+        if (confirmed) {
+          await deleteComment(themaId, threadId, commentId);
+        } else {
+          showMessageBox("Comment deletion cancelled.", false);
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("Error loading comments for thread:", threadId, error);
+    commentsContainer.innerHTML = '<div class="error text-sm">Error loading comments</div>';
+  }
 }
 
 // Deletes a thema and all its subcollections (threads, comments).
@@ -723,20 +903,8 @@ async function deleteThemaAndSubcollections(themaId) {
 
 // Displays threads for a selected thema.
 function displayThreadsForThema(themaId, themaName, themaDescription) {
-  currentThemaId = themaId;
-  currentThemaTitle.textContent = `Théma: ${themaName}`;
-  currentThemaDescription.textContent = themaDescription;
-
-  document.getElementById('create-thema-section').style.display = 'none';
-  themaList.style.display = 'none';
-  document.querySelector('#main-content > h2').style.display = 'none';
-  document.querySelector('#main-content > h3').style.display = 'none';
-
-  threadsSection.style.display = 'block';
-  commentsSection.style.display = 'none';
-
-  console.log(`Displaying threads for thema: ${themaId}`);
-  renderThreads();
+  // This function is no longer needed as threads are now loaded inline
+  console.log("displayThreadsForThema is deprecated - threads are now loaded inline");
 }
 
 // Adds a new comment thread to Firestore.
@@ -1007,6 +1175,11 @@ async function deleteComment(themaId, threadId, commentId) {
   }
 }
 
+// Minimal edit modal for themata
+function openEditThemaModal(themaId, thema) {
+  // TODO: Implement modal for editing themata (minimal placeholder)
+  alert(`Edit Themata: ${thema.name}`);
+}
 
 // --- Event Listeners and Initial Load ---
 document.addEventListener('DOMContentLoaded', async function() {
@@ -1135,6 +1308,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // DM tab logic
   const dmTabBtn = document.getElementById('tab-dms');
   const dmTabContent = document.getElementById('dm-tab-content');
+  const themataTabContent = document.getElementById('thema-all-tab-content');
 
   if (dmTabBtn && dmTabContent) {
     dmTabBtn.addEventListener('click', () => {
@@ -1149,8 +1323,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   const allThematasTabBtn = document.getElementById('tab-themata-all');
-  if (allThematasTabBtn) {
+  if (allThematasTabBtn && themataTabContent) {
     allThematasTabBtn.addEventListener('click', () => {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      // Remove active from all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      // Show themata content
+      themataTabContent.style.display = 'block';
+      allThematasTabBtn.classList.add('active');
+      // Re-render thematas to refresh the Reddit-style layout
       renderThematas();
     });
   }

@@ -591,3 +591,49 @@
   background-color: var(--color-bg-card) !important;
   transition: background-color 0.2s;
 }
+
+/* --- Forum Themata UI Tweaks --- */
+.thema-item {
+  list-style: none !important;
+  margin-bottom: 2rem;
+  background: var(--color-bg-card);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+  padding: 1.5rem;
+}
+.thema-item .font-bold {
+  font-size: 1.2rem;
+}
+.thema-item .thema-description {
+  margin-top: 0.25rem;
+  color: var(--color-text-secondary);
+}
+.thema-item .flex.items-center {
+  gap: 0.5rem;
+}
+.thema-item .edit-themata-btn, .thema-item .delete-themata-btn {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s;
+}
+.thema-item .edit-themata-btn:hover {
+  background: rgba(59,130,246,0.08);
+}
+.thema-item .delete-themata-btn:hover {
+  background: rgba(239,68,68,0.08);
+}
+.thema-item svg {
+  display: block;
+}
+/* Remove stray bullets */
+#thema-boxes, .thema-list, .thema-item {
+  list-style: none !important;
+  padding-left: 0 !important;
+}
