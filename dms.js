@@ -1787,8 +1787,14 @@ async function renderConversationMessages(convId) {
   const currentUser = await getCurrentUser();
   if (!currentUser) return;
 
+  // Helper: render content with emoji and line breaks
+  function renderContent(text) {
+    // parseMentions returns an array, not a string. Only use parseEmojis and .replace here.
+    return escapeHtml(parseEmojis(text)).replace(/\n/g, '<br>');
+  }
+
   messagesContainer.innerHTML = currentMessages.map(message => {
-    // Server messages
+    // Server/system messages
     if (message.isServerMessage) {
       return `
         <div class="server-message">
@@ -1798,6 +1804,7 @@ async function renderConversationMessages(convId) {
       `;
     }
     const isOwnMessage = message.createdBy === currentUser.uid;
+    const isGroup = (Array.isArray(message.participants) && message.participants.length > 2) || false;
     let senderName, senderAvatar;
     if (message.senderProfile) {
       senderName = message.senderProfile.displayName || message.senderProfile.username || 'Unknown User';
@@ -1818,19 +1825,22 @@ async function renderConversationMessages(convId) {
       const editedDate = message.editedAt.toDate ? message.editedAt.toDate() : message.editedAt;
       updatedTime = new Date(editedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-    const editedIndicator = message.isEdited ? ' (edited)' : '';
+    const editedIndicator = message.isEdited ? ' <span class="text-xs text-blue-400">(edited)</span>' : '';
     const receivedBubbleStyle = isOwnMessage ? '' : 'background: var(--color-dm-bubble-received, #23272e); color: var(--color-text-primary, #e5e7eb);';
+    // Always show sender for group, for DMs only show if not own message
+    const showSender = isOwnMessage ? false : true;
     return `
-      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}" style="${receivedBubbleStyle}">
+      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'} fade-in" style="${receivedBubbleStyle}">
+        ${showSender ? `
         <div class="message-author">
           <img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
           <span class="font-medium">${escapeHtml(senderName)}</span>
-        </div>
+        </div>` : ''}
         <div class="message-content">
-          ${escapeHtml(message.content)}
+          ${renderContent(message.content)}
         </div>
         <div class="message-timestamp flex items-center gap-2">
-          <span>Sent: ${sentTime}</span>
+          <span>${sentTime}</span>
           ${updatedTime && updatedTime !== sentTime ? `<span class="text-xs text-blue-400">Updated: ${updatedTime}</span>` : ''}
           ${editedIndicator}
           ${isOwnMessage ? `
@@ -1851,8 +1861,6 @@ async function renderConversationMessages(convId) {
   messagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
     btn.addEventListener('click', handleDeleteMessage);
   });
-
-  // Add edit message event listeners
   messagesContainer.querySelectorAll('.edit-message-btn').forEach(btn => {
     btn.addEventListener('click', (event) => {
       const messageId = event.target.dataset.messageId;
@@ -1861,8 +1869,6 @@ async function renderConversationMessages(convId) {
       }
     });
   });
-
-  console.log("[DEBUG] renderConversationMessages: Completed");
 }
 
 /**
