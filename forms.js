@@ -610,8 +610,5 @@ const inputClass = 'form-input bg-card text-text-primary border-none rounded w-f
 const textareaClass = 'form-input bg-card text-text-primary border-none rounded w-full';
 const cardClass = 'bg-card text-text-primary border border-input-border rounded-lg shadow';
 const commentClass = 'comment-item p-2 ' + cardClass + ' mt-2';
-
-// PATCH: THEME-AWARE COMMENT HEADER & FORM INPUTS
-// Remove border from comment-header, apply same theme classes to .form-input
 const threadHeaderClass = 'thread-header flex items-center gap-3 bg-card text-text-primary';
 const commentHeaderClass = threadHeaderClass;

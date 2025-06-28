@@ -161,20 +161,6 @@
       margin-bottom: 0.5rem;
     }
 
-    .form-input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      transition: border-color 0.2s ease-in-out;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--color-link);
-      box-shadow: 0 0 0 3px;
-    }
-
     /* Collapsible sections */
     .collapsible {
       border: 1px solid var(--color-input-border);
@@ -539,14 +525,12 @@
         <form class="space-y-4" id="create-thema-form">
           <div class="form-group">
             <label class="form-label" for="new-thema-name">Théma Name</label>
-            <input class="form-input" id="new-thema-name" placeholder="e.g., General Discussion, Game Updates"
+            <input class="form-input bg-card text-text-primary border-none rounded w-full" id="new-thema-name" placeholder="Theme title"
                    required type="text">
           </div>
           <div class="form-group">
             <label class="form-label" for="new-thema-description">Description</label>
-            <textarea class="form-input" id="new-thema-description"
-                      placeholder="Briefly describe the purpose of this théma."
-                      required rows="4"></textarea>
+            <textarea class="form-input bg-card text-text-primary border-none rounded w-full" id="new-thema-description" placeholder="Briefly describe this théma."></textarea>
           </div>
           <button class="btn-modern" type="submit">
             <span>Create Théma</span>
