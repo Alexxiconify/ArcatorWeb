@@ -925,6 +925,7 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
   // Default footer links
   const defaultLinks = [
     {href: 'privacy.html', text: 'Legal'},
+    {href: 'temp-page-viewer.html', text: 'Pages'},
     {href: 'https://wiki.arcator.co.uk/', text: 'Wiki', external: true},
     {href: 'https://ssmp.arcator.co.uk/', text: 'SSMP', external: true},
     {href: 'https://hub.arcator.co.uk/#creative', text: 'Hub', external: true}

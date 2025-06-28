@@ -258,14 +258,29 @@
 
 <!-- Firebase SDKs and Main Script -->
 <script type="module">
-  import {initializePageWithFirebase} from './firebase-consolidated.js';
-  import {loadFooter} from './navbar.js';
+  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+  import { loadNavbar, loadFooter } from './navbar.js';
+  import { getAvailableThemes, applyTheme } from './themes.js';
 
-  // Initialize the legal page with Firebase
-  initializePageWithFirebase('Legal', 'current-year-legal');
-
-  // Load the consolidated footer
-  loadFooter('current-year-legal');
+  // Main execution logic on window load
+  window.onload = async function() {
+    await firebaseReadyPromise;
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    loadFooter('current-year-legal');
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
+  };
 </script>
 </body>
 </html>

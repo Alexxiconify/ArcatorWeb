@@ -171,7 +171,7 @@
     const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
-      console.log(`Index page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+      console.log(`[Page name]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
     }
   };
 </script>

@@ -497,6 +497,7 @@
     DEFAULT_THEME_NAME
   } from './firebase-init.js';
   import {loadNavbar, loadFooter} from './navbar.js';
+  import { getAvailableThemes, applyTheme } from './themes.js';
 
   window.showTab = function (tabName) {
     const tabContents = document.querySelectorAll('.tab-content');
@@ -570,7 +571,9 @@
       console.warn('[DEBUG] Using fallback census data due to error:', error);
       console.log('[DEBUG] Error details:', error.message);
 
-    
+      // Use fallback data if available
+      interestsData = [];
+    }
 
     // Initialize the table
     initializeInterestsTable();
