@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Us - Arcator.co.uk</title>
+  <title>About - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter -->
@@ -122,6 +122,66 @@
       color: var(--color-text-primary);
       font-weight: 600;
     }
+
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--color-input-border);
+    }
+
+    .tab-button {
+      background: var(--color-bg-card);
+      color: var(--color-text-secondary);
+      border: none;
+      padding: 1rem 2rem;
+      margin: 0 0.5rem;
+      border-radius: 0.75rem 0.75rem 0 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-button:hover {
+      background: var(--color-bg-content-section);
+      color: var(--color-text-primary);
+    }
+
+    .tab-button.active {
+      background: var(--color-bg-content-section);
+      color: var(--color-text-primary);
+      border-bottom-color: var(--color-link);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .tab-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .tab-button {
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .tab-button.active {
+        border-bottom-color: transparent;
+        background: var(--color-link);
+        color: var(--color-button-text);
+      }
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -132,126 +192,326 @@
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">About Arcator.co.uk</h1>
-    <p class="text-xl md:text-2xl mb-8">Our Journey, Mission, and Community Values</p>
+    <p class="text-xl md:text-2xl mb-8">Our Journey, Community, and Interests</p>
   </div>
 </section>
 
 <!-- Main Content Section -->
-<section class="content-section">
-  <div class="container mx-auto px-4">
-    <!-- Our Story & Mission -->
-    <div class="mb-12">
-      <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Our Story & Mission</h2>
-      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
-        <p>Arcator.co.uk began its journey in <span class="font-semibold text-text-primary">October 2012</span>, born
-          from a passion for Minecraft and a desire to create a stable, engaging, and friendly online community. What
-          started as a small venture quickly grew into a vibrant hub for players seeking unique experiences beyond the
-          standard game.</p>
-        <p>Our mission is simple: to provide a long-lasting, fun, and safe environment for Minecraft players of all ages and backgrounds. We believe in fostering a community where creativity flourishes, friendships are made, and every player feels welcome and valued. We are committed to continuous improvement, adapting to the evolving landscape of Minecraft while upholding the core values that have defined us for over a decade.</p>
-        <p>Over the years, we've hosted countless adventures, witnessed incredible builds, and built a dedicated global community. We are passionate about Minecraft and even more passionate about the community we've built together.</p>
-      </div>
-    </div>
-
-    <!-- Our Core Values -->
-    <div class="mb-12">
-      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Core Values</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        <!-- Value Card 1 -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">Community First</h3>
-          <p class="text-text-secondary">We prioritize a welcoming and inclusive atmosphere where every player feels
-            respected and heard. Community is the foundation that drives our development.</p>
-        </div>
-        <!-- Value Card 2 -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">Innovation & Fun</h3>
-          <p class="text-text-secondary">We constantly explore new ways to enhance the Minecraft experience, introducing
-            fresh content, challenges, and features to keep things exciting for our players.</p>
-        </div>
-        <!-- Value Card 3 -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">Stability & Reliability</h3>
-          <p class="text-text-secondary">Our robust infrastructure and dedicated administration ensure a smooth, low-lag
-            gameplay experience with high uptime and secure data.</p>
-        </div>
-        <!-- Value Card 4 -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">Transparency & Communication</h3>
-          <p class="text-text-secondary">We believe in open communication with our community, sharing insights into
-            server development, plans, and decisions that affect our players.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Join Our Thriving Community! -->
-    <div class="text-center mb-12">
-      <h2 class="text-4xl font-bold text-heading-main mb-6">Join Our Thriving Community!</h2>
-      <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
-        The heart of Arcator is its vibrant community of passionate Minecraft players. Join our Discord server to connect with fellow builders, participate in exciting discussions, get real-time updates, and be part of a welcoming community that shares your love for creativity and adventure.
-      </p>
-      <a
-        class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-        href="https://discord.gg/GwArgw2" rel="noopener noreferrer" target="_blank">Join Our Discord</a>
-    </div>
-
-    <!-- What's Happening in Our Community: -->
-    <div class="mt-12">
-      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">What's Happening in Our Community:</h2>
-      <div class="max-w-4xl mx-auto">
-        <ul class="feature-list space-y-2">
-          <li><span class="highlight">Regular Events</span> From building competitions to mini-game tournaments,
-            there's always something exciting happening! Join our seasonal events and showcase your skills.
-          </li>
-          <li><span class="highlight">Active Voice Chat</span> Connect with other members in our Discord
-            voice channels for lively discussions, gaming sessions, and real-time collaboration on projects.
-          </li>
-          <li><span class="highlight">Community Feedback</span> We actively listen to player suggestions and
-            implement improvements based on community input. Your voice matters in shaping our server's future.
-          </li>
-          <li><span class="highlight">Collaborative Builds</span> Participate in large-scale community projects and
-            leave your mark on the Arcator world. Work together to create amazing structures and landscapes.
-          </li>
-          <li><span class="highlight">Creative Cinematography</span> Showcase your creations through our YouTube
-            channel, featuring cinematic masterpieces that highlight the incredible builds and adventures.
-          </li>
-          <li><span class="highlight">Historical Cartography</span> Explore our world's rich history through detailed
-            1:1,000 scale maps documenting the evolution of settlements and landmarks over time.
-          </li>
-          <li><span class="highlight">Lore Building</span> Contribute to our server's rich storytelling with
-            ready-to-use documents and tools for creating unique histories for your settlements and characters.
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- External Services -->
-    <div class="mt-12">
-      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Services & Platforms</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        <!-- SSMP Service -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">SSMP Platform</h3>
-          <p class="text-text-secondary mb-4">Our dedicated server management and monitoring platform that ensures
-            optimal performance and reliability for all our services.</p>
-          <a class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer"
-             target="_blank">
-            Visit SSMP
-          </a>
-        </div>
-        <!-- Hub Service -->
-        <div class="content-card">
-          <h3 class="text-2xl font-bold text-heading-card mb-3">Creative Hub</h3>
-          <p class="text-text-secondary mb-4">A centralized platform for showcasing community creations, sharing
-            resources, and fostering collaboration among builders and creators.</p>
-          <a class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer"
-             target="_blank">
-            Explore Hub
-          </a>
-        </div>
-      </div>
-    </div>
+<div class="container mx-auto px-4 mt-8">
+  <div class="tab-container">
+    <button class="tab-button active" onclick="showTab('about')">About</button>
+    <button class="tab-button" onclick="showTab('community')">Community</button>
+    <button class="tab-button" onclick="showTab('interests')">Interests</button>
   </div>
-</section>
+</div>
+
+<div class="tab-content active" id="about-tab">
+  <!-- About content from original about.html -->
+  <section class="content-section">
+    <div class="container mx-auto px-4">
+      <!-- Our Story & Mission -->
+      <div class="mb-12">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-8">Our Story & Mission</h2>
+        <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
+          <p>Arcator.co.uk began in <span class="font-semibold text-text-primary">October 2012</span> from a passion for
+            Minecraft and a desire to create a stable, engaging community. What started as a small venture grew into a
+            vibrant hub for players seeking unique experiences.</p>
+          <p>Our mission is to provide a long-lasting, fun, and safe environment for Minecraft players of all ages. We
+            foster creativity, friendships, and continuous improvement while upholding the core values that have defined
+            us for over a decade.</p>
+        </div>
+      </div>
+
+      <!-- Our Core Values -->
+      <div class="mb-12">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Core Values</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">Community First</h3>
+            <p class="text-text-secondary">Welcoming and inclusive atmosphere where every player feels respected and
+              heard.</p>
+          </div>
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">Innovation & Fun</h3>
+            <p class="text-text-secondary">Constantly explore new ways to enhance the Minecraft experience with fresh
+              content and features.</p>
+          </div>
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">Stability & Reliability</h3>
+            <p class="text-text-secondary">Robust infrastructure ensuring smooth, low-lag gameplay with high uptime and
+              secure data.</p>
+          </div>
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">Transparency & Communication</h3>
+            <p class="text-text-secondary">Open communication sharing insights into server development and community
+              decisions.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Highlights -->
+      <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold text-heading-main mb-6">Join Our Thriving Community!</h2>
+        <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
+          Connect with fellow builders, participate in events, and be part of a welcoming community that shares your
+          love for creativity and adventure.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+          <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://discord.gg/GwArgw2" rel="noopener noreferrer"
+             target="_blank">Join
+            Our Discord</a>
+          <a class="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+             href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer"
+             target="_blank">View
+            Community Interests</a>
+        </div>
+      </div>
+
+      <!-- Key Features -->
+      <div class="mt-12">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">What We Offer</h2>
+        <div class="max-w-4xl mx-auto">
+          <ul class="feature-list space-y-2">
+            <li><span class="highlight">Regular Events</span> Building competitions, mini-game tournaments, and seasonal
+              activities
+            </li>
+            <li><span class="highlight">Active Voice Chat</span> Real-time discussions, gaming sessions, and
+              collaboration
+            </li>
+            <li><span class="highlight">Community Feedback</span> Your voice matters in shaping our server's future</li>
+            <li><span class="highlight">Collaborative Builds</span> Large-scale community projects and shared creations
+            </li>
+            <li><span class="highlight">Creative Showcase</span> YouTube channel featuring cinematic builds and
+              adventures
+            </li>
+            <li><span class="highlight">Historical Maps</span> Detailed 1:1,000 scale maps documenting world evolution
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- External Services -->
+      <div class="mt-12">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Platforms</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">SSMP Platform</h3>
+            <p class="text-text-secondary mb-4">Server management and monitoring platform ensuring optimal
+              performance.</p>
+            <a
+              class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer" target="_blank">Visit SSMP</a>
+          </div>
+          <div class="content-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-3">Creative Hub</h3>
+            <p class="text-text-secondary mb-4">Centralized platform for showcasing community creations and
+              collaboration.</p>
+            <a
+              class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer" target="_blank">Explore Hub</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="tab-content" id="community-tab">
+  <!-- Community content from original community.html -->
+  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Connect & Engage</h2>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
+        <p>Our Discord server is the primary hub for real-time chat, announcements, support, and connecting with other
+          members. Whether you're looking for group activities, sharing your latest builds, or just a friendly chat, our
+          Discord is the place to be.</p>
+        <p>Beyond Discord, we encourage members to share their diverse interests, fostering a rich and welcoming
+          environment for everyone.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+        <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://discord.gg/GwArgw2" rel="noopener noreferrer"
+           target="_blank">Join
+          Our Discord</a>
+        <a class="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+           href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer"
+           target="_blank">View
+          Community Interests</a>
+      </div>
+    </div>
+  </section>
+  <section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Discord Features</h2>
+      <div class="max-w-4xl mx-auto">
+        <table class="discord-features-table">
+          <thead>
+          <tr>
+            <th class="py-3 px-6 text-xl">Feature</th>
+            <th class="py-3 px-6 text-xl">What You'll Find</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Community Chat</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Engage in lively discussions about Minecraft, share
+              your builds, ask questions, and connect with players from around the world.</p></td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Server Status</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Get real-time updates about server status, maintenance,
+              and any issues.</p></td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Voice Channels</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Join voice channels to chat while playing, coordinate
+              group activities, or just hang out with fellow community members.</p></td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Events & Announcements</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Stay informed about upcoming events, competitions,
+              server updates, and community announcements.</p></td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Help & Support</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Get help from staff and experienced players, report
+              issues, and find answers to your questions quickly.</p></td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-semibold text-text-primary">Build Showcase</td>
+            <td class="py-4 px-6"><p class="text-text-secondary">Share screenshots and videos of your creations, get
+              feedback from the community, and inspire others with your builds.</p></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Why Join Our Discord?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+        <div class="feature-card"><h3 class="text-2xl font-bold text-heading-card mb-4">Real-time Chat & Support</h3>
+          <p class="text-text-secondary">Get instant help, chat with staff, and connect with other players who share
+            your passion for Minecraft and more.</p></div>
+        <div class="feature-card"><h3 class="text-2xl font-bold text-heading-card mb-4">Event Participation</h3>
+          <p class="text-text-secondary">Be the first to know about upcoming server events, mini-games, building
+            contests, and community gatherings.</p></div>
+        <div class="feature-card"><h3 class="text-2xl font-bold text-heading-card mb-4">Announcements & Updates</h3>
+          <p class="text-text-secondary">Stay informed with server status updates, new feature releases, and important
+            community news directly in Discord.</p></div>
+        <div class="feature-card"><h3 class="text-2xl font-bold text-heading-card mb-4">Share Your Creations</h3>
+          <p class="text-text-secondary">Showcase your Minecraft builds, share fan art, or just hang out in voice
+            channels with friends.</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="tab-content" id="interests-tab">
+  <!-- Interests content with Google Sheets data table -->
+  <section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Discover Our Community</h2>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
+        <p>Our community extends far beyond Minecraft! Explore the diverse interests and passions of Arcator members
+          through our interactive interests table. From gaming and technology to art, music, and everything in between,
+          discover what makes our community unique.</p>
+        <p>Find like-minded players, discover new hobbies, and connect with people who share your interests. Our
+          community is built on the foundation that great friendships come from shared passions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community Interests Table Section -->
+  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-heading-main text-center mb-8">Community Interests</h2>
+
+      <!-- Loading State -->
+      <div class="flex justify-center items-center py-12" id="interests-loading">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+        <span class="ml-4 text-text-secondary">Loading community interests...</span>
+      </div>
+
+      <!-- Error State -->
+      <div class="hidden text-center py-12" id="interests-error">
+        <div class="text-red-400 text-xl mb-4">⚠️ Unable to load interests data</div>
+        <p class="text-text-secondary mb-4">We're having trouble loading the community interests. Please try again
+          later.</p>
+        <button class="btn-primary btn-blue" id="retry-interests-btn">Retry Loading</button>
+      </div>
+
+      <!-- Table Container -->
+      <div class="hidden" id="interests-table-container">
+        <!-- Search and Filter Controls -->
+        <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div class="flex flex-col sm:flex-row gap-4 items-center">
+            <div class="relative">
+              <input class="pl-10 pr-4 py-2 border border-input-border rounded-lg bg-input-bg text-input-text focus:border-link focus:outline-none" id="interests-search" placeholder="Search interests..."
+                     type="text">
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" fill="none"
+                   stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2"></path>
+              </svg>
+            </div>
+            <select class="px-4 py-2 border border-input-border rounded-lg bg-input-bg text-input-text focus:border-link focus:outline-none"
+                    id="interests-category-filter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="text-text-secondary text-sm">
+            <span id="interests-count">0</span> interests found
+          </div>
+        </div>
+
+        <!-- Interests Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full bg-card border border-input-border rounded-lg overflow-hidden" id="interests-table">
+            <thead class="bg-table-th-bg">
+            <tr>
+              <th class="px-6 py-4 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80"
+                  onclick="sortTable('interest')">
+                Interest
+                <svg class="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"></path>
+                </svg>
+              </th>
+              <th class="px-6 py-4 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80"
+                  onclick="sortTable('category')">
+                Category
+                <svg class="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"></path>
+                </svg>
+              </th>
+              <th class="px-6 py-4 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80"
+                  onclick="sortTable('members')">
+                Members
+                <svg class="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"></path>
+                </svg>
+              </th>
+              <th class="px-6 py-4 text-left text-table-th-text font-semibold">Description</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-table-td-border" id="interests-table-body">
+            <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- No Results Message -->
+        <div class="hidden text-center py-12" id="interests-no-results">
+          <div class="text-text-secondary text-xl mb-4">🔍 No interests found</div>
+          <p class="text-text-secondary">Try adjusting your search terms or filters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 
 <!-- Footer Section -->
 <div id="footer-placeholder"></div>
@@ -269,6 +529,15 @@
   } from './firebase-init.js';
   import {loadNavbar, loadFooter} from './navbar.js';
 
+  window.showTab = function (tabName) {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+  };
+
   firebaseReadyPromise.then(async () => {
     let userProfile = null;
     if (auth.currentUser) {
@@ -276,7 +545,433 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-about');
+    setTimeout(async () => {
+      if (typeof window.forceRefreshNavbarState === 'function') {
+        await window.forceRefreshNavbarState();
+      }
+    }, 500);
   });
+
+  // Community Interests Table Functionality
+  let interestsData = [];
+  let filteredData = [];
+  let currentSort = {column: 'interest', direction: 'asc'};
+
+  // Google Sheets configuration
+  const GOOGLE_SHEETS_CONFIG = {
+    // Arcator Interests Google Sheets URL
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/gviz/tq?tqx=out:csv',
+    // Fallback data if Google Sheets is not available
+    fallbackData: [
+      {
+        interest: 'Minecraft Building',
+        category: 'Gaming',
+        members: 45,
+        description: 'Creative building and redstone engineering'
+      },
+      {
+        interest: 'Programming',
+        category: 'Technology',
+        members: 23,
+        description: 'Software development and coding projects'
+      },
+      {
+        interest: 'Digital Art',
+        category: 'Creative',
+        members: 18,
+        description: 'Digital painting, pixel art, and graphic design'
+      },
+      {
+        interest: 'Music Production',
+        category: 'Creative',
+        members: 12,
+        description: 'Creating and sharing original music'
+      },
+      {
+        interest: 'Server Administration',
+        category: 'Technology',
+        members: 8,
+        description: 'Managing servers and infrastructure'
+      },
+      {
+        interest: 'Writing & Storytelling',
+        category: 'Creative',
+        members: 15,
+        description: 'Creative writing and world-building'
+      },
+      {interest: 'Photography', category: 'Creative', members: 10, description: 'Capturing moments and landscapes'},
+      {
+        interest: 'Game Development',
+        category: 'Technology',
+        members: 7,
+        description: 'Creating games and interactive experiences'
+      },
+      {interest: '3D Modeling', category: 'Creative', members: 9, description: '3D design and modeling projects'},
+      {
+        interest: 'Web Development',
+        category: 'Technology',
+        members: 14,
+        description: 'Building websites and web applications'
+      }
+    ]
+  };
+
+  // Load interests data from Google Sheets or fallback
+  async function loadInterestsData() {
+    const loadingEl = document.getElementById('interests-loading');
+    const errorEl = document.getElementById('interests-error');
+    const tableContainer = document.getElementById('interests-table-container');
+
+    try {
+      loadingEl.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      tableContainer.classList.add('hidden');
+
+      // Try to fetch from Google Sheets with CORS proxy
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+      const sheetUrl = GOOGLE_SHEETS_CONFIG.sheetUrl;
+
+      console.log('[DEBUG] Attempting to fetch interests data from:', sheetUrl);
+
+      const response = await fetch(proxyUrl + sheetUrl, {
+        headers: {
+          'Origin': window.location.origin
+        }
+      });
+
+      if (response.ok) {
+        const csvText = await response.text();
+        console.log('[DEBUG] Successfully fetched CSV data, length:', csvText.length);
+        interestsData = parseCSV(csvText);
+        console.log('[DEBUG] Parsed interests data:', interestsData.length, 'items');
+      } else {
+        throw new Error(`Failed to fetch from Google Sheets: ${response.status}`);
+      }
+    } catch (error) {
+      console.warn('[DEBUG] Using fallback interests data due to error:', error);
+      console.log('[DEBUG] Error details:', error.message);
+
+      // Use fallback data
+      interestsData = GOOGLE_SHEETS_CONFIG.fallbackData;
+
+      // Show a subtle warning that we're using fallback data
+      const warningEl = document.createElement('div');
+      warningEl.className = 'text-yellow-400 text-sm text-center mb-4';
+      warningEl.innerHTML = '⚠️ Using sample data (Google Sheets temporarily unavailable)';
+      const tableContainer = document.getElementById('interests-table-container');
+      if (tableContainer) {
+        tableContainer.insertBefore(warningEl, tableContainer.firstChild);
+      }
+    }
+
+    // Initialize the table
+    initializeInterestsTable();
+  }
+
+  // Parse CSV data from Google Sheets
+  function parseCSV(csvText) {
+    const lines = csvText.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+
+    return lines.slice(1).map(line => {
+      const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header.toLowerCase()] = values[index] || '';
+      });
+
+      // Extract interest name and total players
+      const interestName = row['games / interests'] || row['interest'] || '';
+      const totalPlayers = parseInt(row['total players']) || 0;
+
+      // Count individual members who have this interest (marked with "1")
+      let memberCount = 0;
+      const memberColumns = headers.filter(h =>
+        h !== 'games / interests' &&
+        h !== 'interest' &&
+        h !== 'total players' &&
+        h.trim() !== ''
+      );
+
+      memberColumns.forEach(memberCol => {
+        const memberValue = row[memberCol.toLowerCase()];
+        if (memberValue === '1' || memberValue === '1.0') {
+          memberCount++;
+        }
+      });
+
+      // Use the higher count between total players and actual member count
+      const finalCount = Math.max(totalPlayers, memberCount);
+
+      return {
+        interest: interestName,
+        category: getInterestCategory(interestName),
+        members: finalCount,
+        description: getInterestDescription(interestName),
+        totalPlayers: totalPlayers,
+        memberCount: memberCount
+      };
+    }).filter(row => row.interest && row.interest !== '' && row.interest !== 'Games / Interests');
+  }
+
+  // Helper function to categorize interests
+  function getInterestCategory(interestName) {
+    const gamingKeywords = ['minecraft', 'terraria', 'gta', 'counter-strike', 'overwatch', 'rocket league', 'valorant', 'roblox', 'bloons', 'geometry dash', 'risk', 'apex', 'stardew', 'halo', 'tf', 'space engineers', 'hypixel', 'geoguessr', 'scp', 'risk of rain', 'chess', 'destiny', 'battlefield', 'fortnite', 'call of duty', 'borderlands', 'ark', 'runescape'];
+    const techKeywords = ['development', 'programming', 'coding', 'software', 'web', 'server', 'admin'];
+    const creativeKeywords = ['anime', 'art', 'music', 'writing', 'photography', '3d', 'modeling', 'design'];
+
+    const lowerInterest = interestName.toLowerCase();
+
+    if (gamingKeywords.some(keyword => lowerInterest.includes(keyword))) {
+      return 'Gaming';
+    } else if (techKeywords.some(keyword => lowerInterest.includes(keyword))) {
+      return 'Technology';
+    } else if (creativeKeywords.some(keyword => lowerInterest.includes(keyword))) {
+      return 'Creative';
+    } else {
+      return 'Other';
+    }
+  }
+
+  // Helper function to generate descriptions for interests
+  function getInterestDescription(interestName) {
+    const descriptions = {
+      'Among Us': 'Social deduction game where players work together to identify impostors',
+      'Terraria': '2D sandbox adventure game with building, combat, and exploration',
+      'GTA V / FiveM': 'Open-world action game with roleplay servers',
+      'Counter-Strike: Global Offensive': 'Competitive tactical first-person shooter',
+      'Survival MC': 'Minecraft survival multiplayer with economy and community',
+      'Tom Clancy\'s Rainbow Six: Siege': 'Tactical team-based shooter with destructible environments',
+      'Creative MC': 'Minecraft creative mode for building and design',
+      'Overwatch': 'Team-based hero shooter with diverse characters',
+      'Rocket League': 'Soccer with rocket-powered cars',
+      'Anime': 'Japanese animation and manga culture',
+      'Valorant': 'Tactical hero shooter with unique abilities',
+      'Development / Programming': 'Software development and coding projects',
+      'Garry\'s Mod': 'Sandbox physics game with extensive modding',
+      'League of Legends': 'Multiplayer online battle arena (MOBA)',
+      'Unturned': 'Zombie survival game with crafting and base building',
+      'Roblox': 'Game creation platform and social gaming',
+      'Bloons TD6': 'Tower defense strategy game',
+      'Rubik\'s Cube': 'Puzzle solving and speedcubing',
+      'Geometry Dash': 'Rhythm-based action platformer',
+      'Risk (Global Domination)': 'Strategic board game of world conquest',
+      'Apex Legends': 'Battle royale hero shooter',
+      'Stardew Valley': 'Farming simulation and life simulation game',
+      'Halo Master Chief': 'Sci-fi first-person shooter series',
+      'TF 2': 'Team Fortress 2 - class-based multiplayer shooter',
+      'Space Engineers': 'Space simulation with building and survival',
+      'Hypixel': 'Popular Minecraft mini-games server',
+      'Geoguessr': 'Geography-based puzzle game',
+      'SCP': 'Horror fiction and gaming community',
+      'Counter-Strike: Source': 'Classic tactical shooter',
+      'Risk of Rain 2': 'Roguelike third-person shooter',
+      'Chess': 'Strategic board game',
+      'Destiny 2': 'Online multiplayer first-person shooter',
+      'Battlefield 4': 'Military first-person shooter',
+      'Fortnite': 'Battle royale game with building mechanics',
+      'Call of Duty': 'Military first-person shooter series',
+      'Borderlands 2': 'Looter shooter with RPG elements',
+      'Ark Survival: Evolved': 'Dinosaur survival game',
+      'Runescape': 'MMORPG with fantasy setting'
+    };
+
+    return descriptions[interestName] || `Community interest in ${interestName}`;
+  }
+
+  // Initialize the interests table
+  function initializeInterestsTable() {
+    const loadingEl = document.getElementById('interests-loading');
+    const tableContainer = document.getElementById('interests-table-container');
+
+    loadingEl.classList.add('hidden');
+    tableContainer.classList.remove('hidden');
+
+    // Populate category filter
+    populateCategoryFilter();
+
+    // Render initial table
+    renderInterestsTable();
+
+    // Setup event listeners
+    setupInterestsEventListeners();
+  }
+
+  // Populate category filter dropdown
+  function populateCategoryFilter() {
+    const categories = [...new Set(interestsData.map(item => item.category))].sort();
+    const filterEl = document.getElementById('interests-category-filter');
+
+    filterEl.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      filterEl.appendChild(option);
+    });
+  }
+
+  // Render the interests table
+  function renderInterestsTable() {
+    const tbody = document.getElementById('interests-table-body');
+    const countEl = document.getElementById('interests-count');
+    const noResultsEl = document.getElementById('interests-no-results');
+
+    if (filteredData.length === 0) {
+      tbody.innerHTML = '';
+      noResultsEl.classList.remove('hidden');
+      countEl.textContent = '0';
+      return;
+    }
+
+    noResultsEl.classList.add('hidden');
+    countEl.textContent = filteredData.length;
+
+    tbody.innerHTML = filteredData.map(item => {
+      // Create member count badge with color coding
+      const getMemberBadgeClass = (count) => {
+        if (count >= 5) return 'bg-green-100 text-green-800';
+        if (count >= 3) return 'bg-blue-100 text-blue-800';
+        if (count >= 1) return 'bg-yellow-100 text-yellow-800';
+        return 'bg-gray-100 text-gray-800';
+      };
+
+      const memberBadgeClass = getMemberBadgeClass(item.members);
+
+      return `
+        <tr class="hover:bg-table-row-even-bg transition-colors">
+          <td class="px-6 py-4 text-text-primary font-medium">${escapeHtml(item.interest)}</td>
+          <td class="px-6 py-4">
+            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+              ${escapeHtml(item.category)}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${memberBadgeClass}">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              </svg>
+              ${item.members || '0'}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-text-secondary">${escapeHtml(item.description || '')}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Setup event listeners for search and filtering
+  function setupInterestsEventListeners() {
+    const searchEl = document.getElementById('interests-search');
+    const categoryFilterEl = document.getElementById('interests-category-filter');
+    const retryBtn = document.getElementById('retry-interests-btn');
+
+    // Search functionality
+    searchEl.addEventListener('input', debounce(() => {
+      applyFilters();
+    }, 300));
+
+    // Category filter
+    categoryFilterEl.addEventListener('change', () => {
+      applyFilters();
+    });
+
+    // Retry button
+    retryBtn.addEventListener('click', () => {
+      loadInterestsData();
+    });
+  }
+
+  // Apply search and filter
+  function applyFilters() {
+    const searchTerm = document.getElementById('interests-search').value.toLowerCase();
+    const categoryFilter = document.getElementById('interests-category-filter').value;
+
+    filteredData = interestsData.filter(item => {
+      const matchesSearch = !searchTerm ||
+        item.interest.toLowerCase().includes(searchTerm) ||
+        item.description.toLowerCase().includes(searchTerm) ||
+        item.category.toLowerCase().includes(searchTerm);
+
+      const matchesCategory = !categoryFilter || item.category === categoryFilter;
+
+      return matchesSearch && matchesCategory;
+    });
+
+    // Apply current sort
+    sortData(currentSort.column, currentSort.direction);
+    renderInterestsTable();
+  }
+
+  // Sort table data
+  function sortData(column, direction) {
+    filteredData.sort((a, b) => {
+      let aVal = a[column] || '';
+      let bVal = b[column] || '';
+
+      // Handle numeric values
+      if (column === 'members') {
+        aVal = parseInt(aVal) || 0;
+        bVal = parseInt(bVal) || 0;
+      } else {
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
+      }
+
+      if (direction === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+  }
+
+  // Global sort function for table headers
+  window.sortTable = function (column) {
+    if (currentSort.column === column) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = column;
+      currentSort.direction = 'asc';
+    }
+
+    sortData(currentSort.column, currentSort.direction);
+    renderInterestsTable();
+  };
+
+  // Utility functions
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Load interests data when the interests tab is shown
+  window.showTab = function (tabName) {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+
+    // Load interests data when interests tab is shown
+    if (tabName === 'interests' && interestsData.length === 0) {
+      loadInterestsData();
+    }
+  };
 </script>
 </body>
 </html>

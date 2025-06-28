@@ -559,7 +559,7 @@ const navbarTemplate = `
         </svg>
         <span>About</span>
       </a>
-      <a class="navbar-link" href="games.html">
+      <a class="navbar-link" href="servers-and-games.html">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
         </svg>
@@ -986,9 +986,7 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
     {href: 'privacy.html', text: 'Legal'},
     {href: 'https://wiki.arcator.co.uk/', text: 'Wiki', external: true},
     {href: 'https://ssmp.arcator.co.uk/', text: 'SSMP', external: true},
-    {href: 'https://hub.arcator.co.uk/#creative', text: 'Hub', external: true},
-    {href: 'infrastructure.html', text: 'Infrastructure'},
-    {href: 'admin_and_dev.html', text: 'Admin & Dev'}
+    {href: 'https://hub.arcator.co.uk/#creative', text: 'Hub', external: true}
   ];
 
   // Merge default links with additional links
