@@ -1789,34 +1789,20 @@ async function renderConversationMessages(convId) {
 
   // Helper: render content with emoji and line breaks
   function renderContent(text) {
-    // parseMentions returns an array, not a string. Only use parseEmojis and .replace here.
     return escapeHtml(parseEmojis(text)).replace(/\n/g, '<br>');
   }
 
   messagesContainer.innerHTML = currentMessages.map(message => {
-    // Server/system messages
     if (message.isServerMessage) {
       return `
-        <div class="server-message">
-          <span class="server-icon">🔧</span>
-          ${escapeHtml(message.content)}
-        </div>
+        <div class="server-message text-center text-xs py-2 text-text-secondary">🔧 ${escapeHtml(message.content)}</div>
       `;
     }
-    const isOwnMessage = message.createdBy === currentUser.uid;
+    const isOwn = message.createdBy === currentUser.uid;
     const isGroup = (Array.isArray(message.participants) && message.participants.length > 2) || false;
-    let senderName, senderAvatar;
-    if (message.senderProfile) {
-      senderName = message.senderProfile.displayName || message.senderProfile.username || 'Unknown User';
-      senderAvatar = message.senderProfile.photoURL || DEFAULT_PROFILE_PIC;
-    } else {
-      senderName = message.creatorDisplayName || 'Unknown User';
-      senderAvatar = DEFAULT_PROFILE_PIC;
-    }
-    // Sent and updated times
-    const sentTime = message.timestamp ?
-      new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
-      (message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
+    let senderName = message.senderProfile?.displayName || message.creatorDisplayName || 'Unknown';
+    let senderAvatar = message.senderProfile?.photoURL || DEFAULT_PROFILE_PIC;
+    const sentTime = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
     let updatedTime = '';
     if (message.updatedAt) {
       const updatedDate = message.updatedAt.toDate ? message.updatedAt.toDate() : message.updatedAt;
@@ -1826,33 +1812,28 @@ async function renderConversationMessages(convId) {
       updatedTime = new Date(editedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     const editedIndicator = message.isEdited ? ' <span class="text-xs text-blue-400">(edited)</span>' : '';
-    const receivedBubbleStyle = isOwnMessage ? '' : 'background: var(--color-dm-bubble-received, #23272e); color: var(--color-text-primary, #e5e7eb);';
-    // Always show sender for group, for DMs only show if not own message
-    const showSender = isOwnMessage ? false : true;
+    // Bubble alignment and style
+    const align = isOwn ? 'justify-end' : 'justify-start';
+    const bubbleClass = isOwn ? 'dm-bubble-out bg-blue-600 text-white ml-auto' : 'dm-bubble-in bg-card text-text-primary mr-auto';
+    const shadow = 'shadow-md';
+    // Sender info for group/received
+    const showSender = !isOwn && (isGroup || true);
     return `
-      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'} fade-in" style="${receivedBubbleStyle}">
-        ${showSender ? `
-        <div class="message-author">
-          <img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-          <span class="font-medium">${escapeHtml(senderName)}</span>
-        </div>` : ''}
-        <div class="message-content">
-          ${renderContent(message.content)}
-        </div>
-        <div class="message-timestamp flex items-center gap-2">
-          <span>${sentTime}</span>
-          ${updatedTime && updatedTime !== sentTime ? `<span class="text-xs text-blue-400">Updated: ${updatedTime}</span>` : ''}
-          ${editedIndicator}
-          ${isOwnMessage ? `
-            <div class="message-actions">
-              <button class="edit-message-btn mr-2" data-message-id="${message.id}" title="Edit message">
-                ✏️
-              </button>
-              <button class="delete-message-btn" data-message-id="${message.id}" title="Delete message">
-                🗑️
-              </button>
-            </div>
-          ` : ''}
+      <div class="flex ${align} mb-2">
+        ${!isOwn ? `<div class="flex flex-col items-center mr-2"><img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-8 h-8 rounded-full object-cover mb-1 shadow-sm" onerror="this.src='${DEFAULT_PROFILE_PIC}'"><span class="text-xs text-text-secondary">${escapeHtml(senderName)}</span></div>` : ''}
+        <div class="flex flex-col max-w-[75%]">
+          <div class="${bubbleClass} ${shadow} px-4 py-2 rounded-2xl relative">
+            <div class="message-content text-base">${renderContent(message.content)}</div>
+          </div>
+          <div class="flex items-center gap-2 mt-1 text-xs text-text-secondary ${isOwn ? 'justify-end' : ''}">
+            <span>${sentTime}</span>
+            ${updatedTime && updatedTime !== sentTime ? `<span class="text-blue-400">Updated: ${updatedTime}</span>` : ''}
+            ${editedIndicator}
+            ${isOwn ? `
+              <button class="edit-message-btn ml-2" data-message-id="${message.id}" title="Edit">✏️</button>
+              <button class="delete-message-btn ml-1" data-message-id="${message.id}" title="Delete">🗑️</button>
+            ` : ''}
+          </div>
         </div>
       </div>
     `;
@@ -1864,9 +1845,7 @@ async function renderConversationMessages(convId) {
   messagesContainer.querySelectorAll('.edit-message-btn').forEach(btn => {
     btn.addEventListener('click', (event) => {
       const messageId = event.target.dataset.messageId;
-      if (messageId) {
-        openEditMessageModal(messageId);
-      }
+      if (messageId) openEditMessageModal(messageId);
     });
   });
 }
