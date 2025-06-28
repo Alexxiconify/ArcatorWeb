@@ -1250,20 +1250,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateAdminUI(user);
   });
 
-
-  // Event Listener for Logout Button
-  logoutBtn?.addEventListener('click', async () => {
-    showMessageBox("", false);
-    try {
-      await auth.signOut();
-      console.log("DEBUG: User signed out from admin & dev page.");
-      window.location.href = 'index.html';
-    } catch (error) {
-      console.error("ERROR: Logout failed:", error);
-      showMessageBox("Logout failed. Please try again. Error: " + (error.message || "Unknown error"), true);
-    }
-  });
-
   // Create Temp Page form event listener
   createTempPageForm?.addEventListener('submit', async (event) => {
     event.preventDefault();

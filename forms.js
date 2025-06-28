@@ -1148,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  const allThematasTabBtn = document.getElementById('tab-themata');
+  const allThematasTabBtn = document.getElementById('tab-themata-all');
   if (allThematasTabBtn) {
     allThematasTabBtn.addEventListener('click', () => {
       renderThematas();
