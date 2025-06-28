@@ -589,5 +589,5 @@ export async function initializeGlobalThemes() {
   }
 }
 
-// Initialize themes when the script loads
-initializeGlobalThemes();
+// Don't automatically initialize themes when script loads
+// Let individual pages call this explicitly if needed

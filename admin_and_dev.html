@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin & Dev - Arcator.co.uk</title>
+  <title>Admin - Arcator.co.uk</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter and others -->
@@ -199,12 +199,11 @@
 <!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Administration & Development
-    </h1>
+    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Admin</h1>
     <p id="hero-subtitle" class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
   </div>
 </section>
-<!-- Admin & Dev Section Content -->
+<!-- Admin Section Content -->
 <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="admin-dev">
   <div class="container mx-auto px-4">
     <!-- Loading Spinner -->
@@ -661,17 +660,22 @@
 <script type="module" src="custom_theme_modal.js"></script>
 <script type="module" src="admin_and_dev.js"></script>
 <script type="module">
-  // This inline script is for the specific admin_and_dev.html page's initialization
-  // and interacts with the globally exported Firebase instances and utility functions.
+  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+  import { loadNavbar, loadFooter } from './navbar.js';
+  import { getAvailableThemes, applyTheme } from './themes.js';
 
-  // The necessary imports (auth, firebaseReadyPromise, etc.) are already handled by admin_and_dev.js
-  // and other linked modules. This inline script primarily focuses on setting the footer year.
-
-  import {loadFooter} from './navbar.js';
-
-  document.addEventListener('DOMContentLoaded', async function() {
-    // Load the consolidated footer
+  window.addEventListener('DOMContentLoaded', async () => {
+    await firebaseReadyPromise;
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-admin-dev');
+    let userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, themeToApply);
   });
 </script>
 

@@ -539,6 +539,16 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-about');
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`About page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
+    
     setTimeout(async () => {
       if (typeof window.forceRefreshNavbarState === 'function') {
         await window.forceRefreshNavbarState();

@@ -801,33 +801,27 @@
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 
 <script type="module">
-  import { loadFooter } from './navbar.js';
-  
-  // Initialize page
-  document.addEventListener('DOMContentLoaded', () => {
-    // Load footer
+  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+  import { loadNavbar, loadFooter } from './navbar.js';
+  import { getAvailableThemes, applyTheme } from './themes.js';
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await firebaseReadyPromise;
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-forms');
-
-    // Set up global references for forms.js
-    window.mainLoadingSpinner = document.getElementById('loading-spinner');
-    window.formsContentSection = document.getElementById('forms-content');
-    window.mainLoginRequiredMessage = document.getElementById('login-required-message');
-
-    // Add collapsible functionality
-    document.querySelectorAll('.collapsible-header').forEach(header => {
-      header.addEventListener('click', () => {
-        const content = header.nextElementSibling;
-        const icon = header.querySelector('.material-icons');
-
-        if (content.style.display === 'none') {
-          content.style.display = 'block';
-          icon.textContent = 'expand_less';
-        } else {
-          content.style.display = 'none';
-          icon.textContent = 'expand_more';
-        }
-      });
-    });
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Forms page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
   });
 </script>
 </body>

@@ -1,4 +1,4 @@
-// admin_and_dev.js: Handles Admin & Dev page functionality.
+// admin_and_dev.js: Handles Admin page functionality.
 /* global EasyMDE */ // Declare EasyMDE as a global variable
 
 // Import Firebase instances and user functions from the centralized init file

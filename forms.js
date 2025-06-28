@@ -2,7 +2,7 @@
 
 // Import existing modules
 import { auth, db, appId, getUserProfileFromFirestore, setUserProfileInFirestore } from './firebase-init.js';
-import { showMessageBox, showCustomConfirm, escapeHtml } from './utils.js';
+import { showMessageBox, showCustomConfirm } from './utils.js';
 import { loadFooter } from './navbar.js';
 
 // Import Firebase functions
@@ -18,6 +18,13 @@ const newThemaDescriptionInput = document.getElementById('new-thema-description'
 const themaList = document.getElementById('thema-boxes');
 
 let unsubscribeThematas = null;
+
+// Utility: escape HTML for safe rendering
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 // Add new thema
 async function addThema(name, description) {
