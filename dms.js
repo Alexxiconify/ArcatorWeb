@@ -344,6 +344,9 @@ function renderRecipients(type) {
   }
   
   container.classList.remove('empty');
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.gap = '0.5rem';
   container.innerHTML = Array.from(selectedRecipients.values()).map(profile => `
     <div class="recipient-bubble" data-uid="${profile.uid}">
       <img src="${profile.photoURL}" alt="${profile.displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
@@ -391,10 +394,7 @@ export async function createConversation(type, participantHandles, groupName = '
     // Fall back to old method with handle resolution
     const uniqueParticipantHandles = new Set(
       participantHandles.map(h => sanitizeHandle(h.startsWith('@') ? h.substring(1) : h))
-    );
-    uniqueParticipantHandles.add(currentUser.handle);
-    
-    participantUids = await resolveHandlesToUids(Array.from(uniqueParticipantHandles));
+    );    uniqueParticipantHandles.add(currentUser.handle);    participantUids = await resolveHandlesToUids(Array.from(uniqueParticipantHandles));
   }
 
   // Add current user to participants
@@ -657,6 +657,13 @@ export function renderConversationsList() {
       });
     });
     
+    // Auto-select first conversation if none is currently selected
+    if (!selectedConversationId && sortedConversations.length > 0) {
+      const firstConversation = sortedConversations[0];
+      console.log("Auto-selecting first conversation from render:", firstConversation.id);
+      selectConversation(firstConversation.id, firstConversation);
+    }
+    
   } catch (error) {
     console.error("Error rendering conversations list:", error);
     conversationsListEl.innerHTML = '<div class="error">Error loading conversations</div>';
@@ -860,20 +867,32 @@ async function renderConversationMessages(convId) {
       `;
     }
 
-    const isOwnMessage = message.senderId === currentUser.uid;
+    const isOwnMessage = message.createdBy === currentUser.uid;
+    
+    // Use embedded sender profile data if available, otherwise fallback to message fields
+    let senderName, senderAvatar;
+    
+    if (message.senderProfile) {
+      // Use embedded profile data
+      senderName = message.senderProfile.displayName || message.senderProfile.username || 'Unknown User';
+      senderAvatar = message.senderProfile.photoURL || DEFAULT_PROFILE_PIC;
+    } else {
+      // Fallback to message fields
+      senderName = message.creatorDisplayName || 'Unknown User';
+      senderAvatar = DEFAULT_PROFILE_PIC;
+    }
+    
     const messageTime = message.timestamp ?
       new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
-      '';
+      (message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
 
-    // Get sender info, fallback if missing
-    const senderProfile = message.senderProfile || {};
-    const senderName = senderProfile.displayName || senderProfile.handle || 'Unknown User';
-    const senderAvatar = senderProfile.photoURL || DEFAULT_PROFILE_PIC;
+    // Use theme variable for received bubble color
+    const receivedBubbleStyle = isOwnMessage ? '' : 'background: var(--color-dm-bubble-received, #23272e); color: var(--color-text-primary, #e5e7eb);';
 
     return `
-      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}">
+      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}" style="${receivedBubbleStyle}">
         <div class="message-author">
-          <img src="${senderAvatar}" alt="${senderName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+          <img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
           <span>${escapeHtml(senderName)}</span>
         </div>
         <div class="message-content">
@@ -942,11 +961,27 @@ export async function sendMessage(content) {
   const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedChatId}/messages`);
   const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedChatId);
 
+  // Get current user's profile data to embed in the message
+  let userProfile = null;
+  try {
+    userProfile = await getUserProfileFromFirestore(currentUser.uid);
+  } catch (error) {
+    console.warn("Could not fetch user profile for message:", error);
+  }
+
   const messageData = {
-    createdBy: currentUser.uid, // Use createdBy instead of senderId
-    creatorDisplayName: currentUser.displayName,
+    createdBy: currentUser.uid,
+    creatorDisplayName: currentUser.displayName || currentUser.handle || 'Unknown User',
     content: content,
     createdAt: serverTimestamp(),
+    // Embed sender profile data in the message
+    senderProfile: {
+      uid: currentUser.uid,
+      handle: currentUser.handle,
+      displayName: currentUser.displayName || currentUser.handle || 'Unknown User',
+      photoURL: currentUser.photoURL || (userProfile?.photoURL) || DEFAULT_PROFILE_PIC,
+      username: currentUser.displayName || currentUser.handle || 'Unknown User'
+    }
   };
 
   try {
@@ -1102,6 +1137,13 @@ async function setupConversationsListener() {
       
       console.log("Enhanced conversations with profile data:", allConversations);
       renderConversationsList();
+      
+      // Auto-select the first conversation if none is currently selected
+      if (!selectedConversationId && allConversations.length > 0) {
+        const firstConversation = allConversations[0];
+        console.log("Auto-selecting first conversation:", firstConversation.id);
+        selectConversation(firstConversation.id, firstConversation);
+      }
     } catch (error) {
       console.error("Error processing conversations:", error);
     }
@@ -1151,37 +1193,16 @@ async function loadMessagesForConversation(convId) {
       return;
     }
     
-    const profilesToFetch = new Set();
     snapshot.forEach(doc => {
       const msg = doc.data();
-      profilesToFetch.add(msg.createdBy);
-      currentMessages.push({ id: doc.id, ...msg });
+      currentMessages.push({ 
+        id: doc.id, 
+        ...msg,
+        timestamp: msg.createdAt?.toDate?.() || msg.createdAt || new Date()
+      });
     });
     
-    console.log("[DEBUG] Found", currentMessages.length, "messages, fetching", profilesToFetch.size, "profiles");
-    
-    // Fetch sender profiles
-    const fetchedProfiles = new Map();
-    for (const uid of profilesToFetch) {
-      try {
-        const profile = await getUserProfileFromFirestore(uid);
-        if (profile) {
-          fetchedProfiles.set(uid, profile);
-        }
-      } catch (error) {
-        console.warn("Could not fetch profile for message sender:", uid, error);
-      }
-    }
-    
-    // Enhance messages with sender profile data
-    currentMessages.forEach(msg => {
-      const senderProfile = fetchedProfiles.get(msg.createdBy);
-      msg.senderProfile = senderProfile || {};
-      msg.senderId = msg.createdBy;
-      msg.timestamp = msg.createdAt?.toDate?.() || msg.createdAt || new Date();
-    });
-    
-    console.log("[DEBUG] Enhanced messages with profiles, rendering", currentMessages.length, "messages");
+    console.log("[DEBUG] Loaded", currentMessages.length, "messages with embedded profile data");
     await renderConversationMessages(convId);
   }, (error) => {
     console.error("Error fetching messages:", error);

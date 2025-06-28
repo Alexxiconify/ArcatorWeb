@@ -1084,20 +1084,30 @@
 }
 
 /* Recipient handle bubble styling */
+.recipients-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  align-items: center;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .recipient-bubble {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: var(--color-bg-card);
   border: 2px solid var(--color-input-border);
   border-radius: 1.5rem;
-  margin: 0.25rem;
   font-size: 0.875rem;
   transition: all 0.2s ease-in-out;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+  margin: 0 !important;
+  white-space: nowrap;
 }
 
 .recipient-bubble::before {
@@ -1195,30 +1205,30 @@
 /* User list for DM recipient selection - Matrix layout */
 .user-list-scrollable {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.4rem;
   overflow-x: auto;
   overflow-y: visible;
-  max-height: none;
+  max-height: 180px;
   background: var(--color-input-bg);
   border: 1px solid var(--color-input-border);
   border-radius: 0.5rem;
-  padding: 0.5rem 0.25rem 0.5rem 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.2rem 0.4rem 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .user-card {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.7rem;
+  gap: 0.3rem;
+  padding: 0.3rem 0.5rem;
   border: 2px solid transparent;
   border-radius: 0.75rem;
   background: var(--color-bg-card);
   cursor: pointer;
   transition: all 0.2s;
   min-width: 0;
-  max-width: 220px;
+  max-width: 180px;
   overflow: hidden;
   justify-content: flex-start;
   box-sizing: border-box;
