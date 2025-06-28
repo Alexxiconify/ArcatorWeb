@@ -1336,3 +1336,146 @@
   margin-right: 0.5rem;
   opacity: 0.7;
 }
+
+/* Inline message bubbles for conversations */
+.message-bubble-inline {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  max-width: 100%;
+  word-wrap: break-word;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.message-bubble-inline.sent {
+  background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 0.25rem;
+  margin-right: 0.25rem;
+  max-width: 80%;
+}
+
+.message-bubble-inline.received {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-input-border);
+  margin-right: auto;
+  border-bottom-left-radius: 0.25rem;
+  margin-left: 0.25rem;
+  max-width: 80%;
+}
+
+.message-bubble-inline .message-content {
+  line-height: 1.3;
+  margin-bottom: 0.125rem;
+}
+
+.message-bubble-inline .message-timestamp {
+  font-size: 0.625rem;
+  opacity: 0.7;
+  margin-top: 0.125rem;
+  display: block;
+}
+
+/* Updated conversation item layout */
+.conversation-item {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-input-border);
+  margin-bottom: 0.5rem;
+  background: var(--color-bg-card);
+  transition: all 0.2s ease-in-out;
+}
+
+.conversation-item:hover {
+  background: var(--color-input-border);
+  border-color: var(--color-link);
+  transform: translateX(2px);
+}
+
+.conversation-item.active {
+  background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  color: white;
+  border-color: #0078d4;
+}
+
+.conversation-item .conversation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.conversation-item .conversation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-item .conversation-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conversation-item .conversation-preview {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conversation-item.active .conversation-preview {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.conversation-item .conversation-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.conversation-item .conversation-time {
+  font-size: 0.625rem;
+  color: var(--color-text-secondary);
+}
+
+.conversation-item.active .conversation-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.conversation-item .conversation-messages {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-input-border);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.conversation-item.active .conversation-messages {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Server message styling for inline */
+.server-message {
+  text-align: center;
+  margin: 0.5rem 0;
+  padding: 0.25rem;
+  background: var(--color-input-border);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.server-message .server-icon {
+  margin-right: 0.25rem;
+  opacity: 0.7;
+}

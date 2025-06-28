@@ -455,14 +455,40 @@ export async function createConversation(type, participantHandles, groupName = '
   try {
     const newConvRef = await addDoc(conversationsCol, conversationData);
     
-    // Add initial server message
+    // Add initial server message with proper formatting
     const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${newConvRef.id}/messages`);
+    
+    // Get recipient names for the message
+    let recipientNames = [];
+    if (selectedRecipients.size > 0) {
+      recipientNames = Array.from(selectedRecipients.values()).map(profile => 
+        profile.displayName || profile.handle || 'Unknown User'
+      );
+    }
+    
+    const currentTime = new Date().toLocaleString();
+    let serverMessageContent = '';
+    
+    if (type === 'private') {
+      if (recipientNames.length > 0) {
+        serverMessageContent = `@${currentUser.handle} created chat with ${recipientNames.join(', ')} started ${currentTime}`;
+      } else {
+        serverMessageContent = `@${currentUser.handle} created self chat started ${currentTime}`;
+      }
+    } else {
+      // Group chat
+      const groupName = groupName.trim() || 'Unnamed Group';
+      if (recipientNames.length > 0) {
+        serverMessageContent = `@${currentUser.handle} created group "${groupName}" with ${recipientNames.join(', ')} started ${currentTime}`;
+      } else {
+        serverMessageContent = `@${currentUser.handle} created group "${groupName}" started ${currentTime}`;
+      }
+    }
+    
     const serverMessageData = {
       createdBy: 'system',
       creatorDisplayName: 'System',
-      content: type === 'private' ? 
-        `Chat started by @${currentUser.handle} on ${new Date().toLocaleDateString()}` :
-        `Group chat "${groupName.trim() || 'Unnamed Group'}" created by @${currentUser.handle} on ${new Date().toLocaleDateString()}`,
+      content: serverMessageContent,
       createdAt: serverTimestamp(),
       isServerMessage: true
     };
@@ -508,17 +534,21 @@ function clearCreateConversationForm() {
 
 /**
  * Renders the list of conversations for the current user.
- * Subscribes to real-time updates.
+ * Subscribes to real-time updates and shows messages inline.
  */
 export function renderConversationsList() {
   const conversationsListEl = document.getElementById('conversations-list');
   const noConversationsEl = document.getElementById('no-conversations-message');
+  const chatDropdownEl = document.getElementById('selected-chat-dropdown');
   
   if (!conversationsListEl) return;
   
   if (!allConversations || allConversations.length === 0) {
     conversationsListEl.innerHTML = '';
     if (noConversationsEl) noConversationsEl.style.display = 'block';
+    if (chatDropdownEl) {
+      chatDropdownEl.innerHTML = '<option value="">Select a conversation...</option>';
+    }
     return;
   }
   
@@ -569,6 +599,20 @@ export function renderConversationsList() {
       }
     });
     
+    // Update chat dropdown
+    if (chatDropdownEl) {
+      chatDropdownEl.innerHTML = '<option value="">Select a conversation...</option>' +
+        sortedConversations.map(conv => {
+          const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || conv.otherUsername || 'Unknown User');
+          return `<option value="${conv.id}">${escapeHtml(displayName)}</option>`;
+        }).join('');
+      
+      // Set selected value if there's a current conversation
+      if (selectedConversationId) {
+        chatDropdownEl.value = selectedConversationId;
+      }
+    }
+    
     conversationsListEl.innerHTML = sortedConversations.map(conv => {
       const isActive = selectedConversationId === conv.id;
       const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || conv.otherUsername || 'Unknown User');
@@ -587,23 +631,32 @@ export function renderConversationsList() {
       
       return `
         <div class="conversation-item ${isActive ? 'active' : ''}" data-conversation-id="${conv.id}">
-          <img src="${avatarUrl}" alt="${displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-          <div class="conversation-info">
-            <div class="conversation-name">${escapeHtml(displayName)}</div>
-            <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
-          </div>
-          <div class="conversation-meta">
-            <div class="conversation-time">${lastMessageTime}</div>
-            ${conv.type === 'group' ? '<div class="text-xs opacity-60">👥</div>' : ''}
+          <div class="conversation-header">
+            <img src="${avatarUrl}" alt="${displayName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+            <div class="conversation-info">
+              <div class="conversation-name">${escapeHtml(displayName)}</div>
+              <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
+            </div>
+            <div class="conversation-meta">
+              <div class="conversation-time">${lastMessageTime}</div>
+              ${conv.type === 'group' ? '<div class="text-xs opacity-60">👥</div>' : ''}
+            </div>
           </div>
         </div>
       `;
     }).join('');
     
-    // Add click event listeners
+    // Add click handlers to conversation items
     conversationsListEl.querySelectorAll('.conversation-item').forEach(item => {
-      item.addEventListener('click', handleSelectConversationClick);
+      item.addEventListener('click', () => {
+        const convId = item.dataset.conversationId;
+        const conversation = allConversations.find(c => c.id === convId);
+        if (conversation) {
+          selectConversation(convId, conversation);
+        }
+      });
     });
+    
   } catch (error) {
     console.error("Error rendering conversations list:", error);
     conversationsListEl.innerHTML = '<div class="error">Error loading conversations</div>';
@@ -626,6 +679,12 @@ export async function selectConversation(convId, conversationData) {
 
   console.log("[DEBUG] selectConversation called with:", { convId, conversationData });
   selectedConversationId = convId;
+
+  // Update chat dropdown to reflect the selected conversation
+  const chatDropdown = document.getElementById('selected-chat-dropdown');
+  if (chatDropdown) {
+    chatDropdown.value = convId;
+  }
 
   // Update conversation header
   const conversationTitleEl = document.getElementById('conversation-title');
@@ -707,28 +766,14 @@ export async function selectConversation(convId, conversationData) {
     deleteConversationBtn.dataset.conversationId = convId;
   }
 
-  // Update UI to show messages panel
-  const conversationsPanel = document.getElementById('conversations-panel');
-  const messagesPanel = document.getElementById('messages-panel');
-  const messageInputArea = document.getElementById('message-input-area');
-
-  console.log("[DEBUG] Found panel elements:", {
-    conversationsPanel: !!conversationsPanel,
-    messagesPanel: !!messagesPanel,
-    messageInputArea: !!messageInputArea
+  // Update active conversation styling
+  document.querySelectorAll('.conversation-item').forEach(item => {
+    item.classList.remove('active');
   });
-
-  if (conversationsPanel) {
-    conversationsPanel.classList.add('hidden');
-    console.log("[DEBUG] Hidden conversations panel");
-  }
-  if (messagesPanel) {
-    messagesPanel.classList.remove('hidden');
-    console.log("[DEBUG] Showed messages panel");
-  }
-  if (messageInputArea) {
-    messageInputArea.classList.remove('hidden');
-    console.log("[DEBUG] Showed message input area");
+  
+  const activeConversationItem = document.querySelector(`[data-conversation-id="${convId}"]`);
+  if (activeConversationItem) {
+    activeConversationItem.classList.add('active');
   }
 
   // Load and render messages
@@ -743,14 +788,11 @@ export async function selectConversation(convId, conversationData) {
 export function updateDmUiForNoConversationSelected() {
   selectedConversationId = null;
   
-  // Update UI to show conversations panel
-  const conversationsPanel = document.getElementById('conversations-panel');
-  const messagesPanel = document.getElementById('messages-panel');
-  const messageInputArea = document.getElementById('message-input-area');
-  
-  if (conversationsPanel) conversationsPanel.classList.remove('hidden');
-  if (messagesPanel) messagesPanel.classList.add('hidden');
-  if (messageInputArea) messageInputArea.classList.add('hidden');
+  // Update chat dropdown to show no selection
+  const chatDropdown = document.getElementById('selected-chat-dropdown');
+  if (chatDropdown) {
+    chatDropdown.value = '';
+  }
   
   // Clear active conversation styling
   document.querySelectorAll('.conversation-item').forEach(item => {
@@ -882,9 +924,25 @@ export async function sendMessage(content) {
     return;
   }
 
+  // Get the selected conversation from the dropdown
+  const chatDropdown = document.getElementById('selected-chat-dropdown');
+  const selectedChatId = chatDropdown?.value;
+  
+  if (!selectedChatId) {
+    showMessageBox("Please select a conversation to send the message to.", true);
+    return;
+  }
+
+  // Find the selected conversation
+  const targetConversation = allConversations.find(conv => conv.id === selectedChatId);
+  if (!targetConversation) {
+    showMessageBox("Selected conversation not found. Please try again.", true);
+    return;
+  }
+
   // Use the correct path structure for messages
-  const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedConversationId}/messages`);
-  const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedConversationId);
+  const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${selectedChatId}/messages`);
+  const conversationDocRef = doc(db, `artifacts/arcator-web/users/${currentUser.uid}/dms`, selectedChatId);
 
   const messageData = {
     createdBy: currentUser.uid, // Use createdBy instead of senderId
@@ -902,8 +960,18 @@ export async function sendMessage(content) {
       lastMessageSenderHandle: currentUser.handle,
       lastMessageSenderId: currentUser.uid,
     });
-    messageContentInput.value = '';
+    
+    // Clear the input
+    const messageInput = document.getElementById('message-content-input');
+    if (messageInput) messageInput.value = '';
+    
     showMessageBox("Message sent!", false);
+    
+    // If the selected conversation is not currently displayed, select it
+    if (selectedConversationId !== selectedChatId) {
+      selectConversation(selectedChatId, targetConversation);
+    }
+    
   } catch (error) {
     console.error("Error sending message:", error);
     showMessageBox(`Error sending message: ${error.message}`, true);
@@ -1271,6 +1339,22 @@ export function attachDmEventListeners() {
   const sendForm = document.getElementById('send-message-form');
   if (sendForm) {
     sendForm.addEventListener('submit', handleSendMessage);
+  }
+  
+  // Chat dropdown selection
+  const chatDropdown = document.getElementById('selected-chat-dropdown');
+  if (chatDropdown) {
+    chatDropdown.addEventListener('change', (event) => {
+      const selectedChatId = event.target.value;
+      if (selectedChatId) {
+        const conversation = allConversations.find(c => c.id === selectedChatId);
+        if (conversation) {
+          selectConversation(selectedChatId, conversation);
+        }
+      } else {
+        updateDmUiForNoConversationSelected();
+      }
+    });
   }
   
   // Delete conversation button

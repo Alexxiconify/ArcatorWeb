@@ -229,9 +229,7 @@ async function loadThreadsForThema(themaId) {
             </div>
             <p class="thread-initial-comment text-sm mt-2">${escapeHtml(thread.initialComment)}</p>
             <div class="reactions-bar mt-2">
-              <button class="reaction-btn" title="Like">👍 <span class="reaction-count">0</span></button>
-              <button class="reaction-btn" title="Love">❤️ <span class="reaction-count">0</span></button>
-              <button class="reaction-btn" title="Laugh">😂 <span class="reaction-count">0</span></button>
+              ${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}
             </div>
             <p class="meta-info text-xs mt-2">Created on ${createdAt}</p>
             <div class="thread-comments" data-thread-id="${threadDoc.id}">
@@ -311,9 +309,7 @@ async function loadCommentsForThread(themaId, threadId) {
               </div>
             </div>
             <div class="reactions-bar mt-1">
-              <button class="reaction-btn" title="Like">👍 <span class="reaction-count">0</span></button>
-              <button class="reaction-btn" title="Love">❤️ <span class="reaction-count">0</span></button>
-              <button class="reaction-btn" title="Laugh">😂 <span class="reaction-count">0</span></button>
+              ${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}
             </div>
             <p class="meta-info text-xs mt-1">Posted on ${createdAt}</p>
           </div>
@@ -616,22 +612,80 @@ async function handleEditComment(themaId, threadId, commentId, oldContent) {
 async function handleReaction(type, themaId, threadId, commentId = null) {
   const user = getCurrentUserInfo();
   if (!user.uid) return;
+  
   let ref;
   if (commentId) {
     ref = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId);
   } else {
     ref = doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId);
   }
+  
   const docSnap = await getDoc(ref);
   let reactions = docSnap.data().reactions || {};
+  
+  // Toggle reaction: if user already has this reaction, remove it; otherwise add it
   if (reactions[user.uid] === type) {
     delete reactions[user.uid];
   } else {
+    // Remove any existing reaction from this user first (one reaction per user)
+    delete reactions[user.uid];
     reactions[user.uid] = type;
   }
+  
   await setDoc(ref, { reactions }, { merge: true });
-  if (commentId) await loadCommentsForThread(themaId, threadId);
-  else await loadThreadsForThema(themaId);
+  
+  // Reload the appropriate content to update reaction counts
+  if (commentId) {
+    await loadCommentsForThread(themaId, threadId);
+  } else {
+    await loadThreadsForThema(themaId);
+  }
+}
+
+// Helper function to count reactions by type
+function countReactionsByType(reactions) {
+  const counts = { '👍': 0, '❤️': 0, '😂': 0 };
+  if (!reactions) return counts;
+  
+  Object.values(reactions).forEach(type => {
+    if (counts.hasOwnProperty(type)) {
+      counts[type]++;
+    }
+  });
+  return counts;
+}
+
+// Helper function to check if current user has reacted
+function getUserReaction(reactions, userId) {
+  if (!reactions || !userId) return null;
+  return reactions[userId] || null;
+}
+
+// Helper function to render reaction buttons with counts and user state
+function renderReactionButtons(reactions, themaId, threadId, commentId = null) {
+  const user = getCurrentUserInfo();
+  const counts = countReactionsByType(reactions);
+  const userReaction = getUserReaction(reactions, user.uid);
+  
+  const reactionTypes = [
+    { type: '👍', label: 'Like' },
+    { type: '❤️', label: 'Love' },
+    { type: '😂', label: 'Laugh' }
+  ];
+  
+  return reactionTypes.map(({ type, label }) => {
+    const count = counts[type] || 0;
+    const isUserReacted = userReaction === type;
+    const buttonClass = isUserReacted ? 'reaction-btn reacted' : 'reaction-btn';
+    
+    return `
+      <button class="${buttonClass}" 
+              onclick="handleReaction('${type}', '${themaId}', '${threadId}'${commentId ? `, '${commentId}'` : ''})" 
+              title="${label}">
+        ${type} <span class="reaction-count">${count}</span>
+      </button>
+    `;
+  }).join('');
 }
 
 const inputClass = 'form-input bg-card text-text-primary border-none rounded w-full';
@@ -704,3 +758,6 @@ async function setupDmEventListeners() {
     }
   });
 }
+
+// Make handleReaction globally accessible
+window.handleReaction = handleReaction;
