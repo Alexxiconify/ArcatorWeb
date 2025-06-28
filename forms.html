@@ -623,48 +623,52 @@
             <!-- Conversations will be loaded here -->
           </div>
           
-          <div id="no-conversations-message" class="text-center text-text-secondary py-8" style="display: none;">
-            <p>No conversations yet.</p>
-            <p class="text-sm">Create a new chat to get started!</p>
+          <div id="no-conversations-message" class="teams-empty-state" style="display: none;">
+            <div class="empty-icon">💬</div>
+            <h3>No conversations yet</h3>
+            <p>Create a new chat to get started!</p>
           </div>
         </div>
       </div>
       
       <!-- Messages Panel (Right side) -->
       <div id="messages-panel" class="lg:col-span-2 hidden">
-        <div class="card-modern p-4">
+        <div class="card-modern p-0 overflow-hidden">
           <!-- Conversation Header -->
-          <div id="selected-conversation-header" class="flex items-center justify-between mb-4 pb-4 border-b border-input-border">
-            <div class="flex items-center">
+          <div id="selected-conversation-header">
+            <div class="conversation-title">
               <button id="back-to-chats-btn" class="btn-modern mr-3">
-                <span>← Back</span>
+                <span>←</span>
               </button>
+              <img id="conversation-avatar" src="" alt="Avatar" class="conversation-avatar">
               <div>
                 <h3 id="conversation-title" class="text-lg font-bold">Select a conversation</h3>
+                <p id="conversation-subtitle" class="text-sm text-text-secondary">Start chatting</p>
               </div>
             </div>
             <button id="delete-conversation-btn" class="btn-modern hidden">
-              <span>Delete Chat</span>
+              <span>🗑️</span>
             </button>
           </div>
           
           <!-- Messages Container -->
-          <div id="conversation-messages-container" class="space-y-4 mb-4 max-h-96 overflow-y-auto">
+          <div id="conversation-messages-container">
             <!-- Messages will be loaded here -->
           </div>
           
-          <div id="no-messages-message" class="text-center text-text-secondary py-8">
-            <p>No messages yet.</p>
-            <p class="text-sm">Start the conversation!</p>
+          <div id="no-messages-message" class="teams-empty-state">
+            <div class="empty-icon">💭</div>
+            <h3>No messages yet</h3>
+            <p>Start the conversation!</p>
           </div>
           
           <!-- Message Input -->
           <div id="message-input-area" class="hidden">
-            <form id="send-message-form" class="flex gap-2">
+            <form id="send-message-form">
               <input id="message-content-input" class="form-input bg-card text-text-primary border-none rounded flex-1" 
                      placeholder="Type your message..." required>
               <button type="submit" class="btn-modern">
-                <span>Send</span>
+                <span>➤</span>
               </button>
             </form>
           </div>

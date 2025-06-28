@@ -37,6 +37,9 @@ const themataTabContent = document.getElementById('thema-all-tab-content');
 
 let unsubscribeThematas = null;
 
+// DM Tab Functionality
+let currentSortOption = 'lastMessageAt_desc';
+
 // Utility: escape HTML for safe rendering
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -635,3 +638,121 @@ const cardClass = 'bg-card text-text-primary border border-input-border rounded-
 const commentClass = 'comment-item p-2 ' + cardClass + ' mt-2';
 const threadHeaderClass = 'thread-header flex items-center gap-3 bg-card text-text-primary';
 const commentHeaderClass = threadHeaderClass;
+
+// DM Tab Functionality
+async function initializeDmTab() {
+  console.log('Initializing DM tab...');
+  
+  // Initialize DM functionality
+  await initializeDmSystem();
+  
+  // Set up event listeners for DM tab
+  setupDmEventListeners();
+  
+  // Load initial conversations
+  await loadConversations();
+  
+  console.log('DM tab initialized successfully');
+}
+
+async function setupDmEventListeners() {
+  // Tab switching
+  const dmTab = document.getElementById('tab-dms');
+  const themataTab = document.getElementById('tab-themata-all');
+  
+  if (dmTab) {
+    dmTab.addEventListener('click', () => {
+      showDmTab();
+      initializeDmTab();
+    });
+  }
+  
+  if (themataTab) {
+    themataTab.addEventListener('click', () => {
+      showThemataTab();
+    });
+  }
+  
+  // DM-specific event listeners
+  attachDmEventListeners();
+  
+  // Sort conversations
+  const sortSelect = document.getElementById('sort-conversations-by');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      currentSortOption = sortSelect.value;
+      renderConversationsList();
+    });
+  }
+  
+  // Chat type switching
+  const chatTypeSelect = document.getElementById('new-chat-type');
+  if (chatTypeSelect) {
+    chatTypeSelect.addEventListener('change', () => {
+      const privateFields = document.getElementById('private-chat-fields');
+      const groupFields = document.getElementById('group-chat-fields');
+      
+      if (chatTypeSelect.value === 'private') {
+        privateFields.classList.remove('hidden');
+        groupFields.classList.add('hidden');
+      } else {
+        privateFields.classList.add('hidden');
+        groupFields.classList.remove('hidden');
+      }
+    });
+  }
+  
+  // Back to chats button
+  const backBtn = document.getElementById('back-to-chats-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      updateDmUiForNoConversationSelected();
+    });
+  }
+}
+
+function showDmTab() {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.style.display = 'none';
+  });
+  
+  // Show DM tab content
+  const dmContent = document.getElementById('dm-tab-content');
+  if (dmContent) {
+    dmContent.style.display = 'block';
+  }
+  
+  // Update tab button states
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  const dmTab = document.getElementById('tab-dms');
+  if (dmTab) {
+    dmTab.classList.add('active');
+  }
+}
+
+function showThemataTab() {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.style.display = 'none';
+  });
+  
+  // Show themata tab content
+  const themataContent = document.getElementById('thema-all-tab-content');
+  if (themataContent) {
+    themataContent.style.display = 'block';
+  }
+  
+  // Update tab button states
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  const themataTab = document.getElementById('tab-themata-all');
+  if (themataTab) {
+    themataTab.classList.add('active');
+  }
+}

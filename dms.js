@@ -140,156 +140,97 @@ export async function createConversation(type, participantHandles, groupName = '
  * Subscribes to real-time updates.
  */
 export function renderConversationsList() {
-  const currentUser = getCurrentUser();
-  if (!db || !conversationsList || !currentUser) {
-    console.warn("DB, conversationsList, or currentUser not ready for conversations rendering.");
-    if (conversationsList) conversationsList.innerHTML = '<p class="text-gray-400 text-center">Please log in to view conversations.</p>';
-    if (noConversationsMessage) noConversationsMessage.style.display = 'none';
+  const conversationsListEl = document.getElementById('conversations-list');
+  const noConversationsEl = document.getElementById('no-conversations-message');
+  
+  if (!conversationsListEl) return;
+  
+  if (allConversations.length === 0) {
+    conversationsListEl.innerHTML = '';
+    noConversationsEl.style.display = 'block';
     return;
   }
-
-  if (unsubscribeConversationsList) {
-    unsubscribeConversationsList();
-    unsubscribeConversationsList = null;
-  }
-
-  // Explicitly set initial panel visibility when DM tab is opened
-  conversationsPanel.classList.remove('hidden');
-  messagesPanel.classList.add('hidden');
-
-  // Use the correct path structure for conversations
-  const conversationsCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms`);
-  // Query for conversations where the current user is a participant.
-  // This query requires a composite index: 'participants' (array) + 'lastMessageAt' (desc)
-  const q = query(
-    conversationsCol,
-    where('participants', 'array-contains', currentUser.uid)
-    // orderBy is not used here to avoid additional composite indexes
-    // Sorting will be done client-side after fetching all conversations for the user
-  );
-
-  unsubscribeConversationsList = onSnapshot(q, async (snapshot) => {
-    allConversations = []; // Reset for each snapshot
-    if (snapshot.empty) {
-      noConversationsMessage.style.display = 'block';
-      conversationsList.innerHTML = '';
-      updateDmUiForNoConversationSelected(); // Clear right panel if no conversations
-      return;
+  
+  noConversationsEl.style.display = 'none';
+  
+  // Sort conversations based on current sort option
+  const sortBy = document.getElementById('sort-conversations-by')?.value || 'lastMessageAt_desc';
+  const [sortField, sortDirection] = sortBy.split('_');
+  
+  const sortedConversations = [...allConversations].sort((a, b) => {
+    const getDisplayNameForSorting = (conv) => {
+      if (conv.type === 'group') {
+        return conv.name || 'Unnamed Group';
+      } else {
+        return conv.name || 'Unknown User';
+      }
+    };
+    
+    let aVal, bVal;
+    
+    switch (sortField) {
+      case 'lastMessageAt':
+        aVal = conv.lastMessageAt || conv.createdAt || 0;
+        bVal = conv.lastMessageAt || conv.createdAt || 0;
+        break;
+      case 'createdAt':
+        aVal = conv.createdAt || 0;
+        bVal = conv.createdAt || 0;
+        break;
+      case 'otherUsername':
+        aVal = getDisplayNameForSorting(a).toLowerCase();
+        bVal = getDisplayNameForSorting(b).toLowerCase();
+        break;
+      case 'groupName':
+        aVal = (a.name || 'Unnamed Group').toLowerCase();
+        bVal = (b.name || 'Unnamed Group').toLowerCase();
+        break;
+      default:
+        aVal = conv.lastMessageAt || conv.createdAt || 0;
+        bVal = conv.lastMessageAt || conv.createdAt || 0;
+    }
+    
+    if (sortDirection === 'desc') {
+      return aVal > bVal ? -1 : 1;
     } else {
-      noConversationsMessage.style.display = 'none';
+      return aVal < bVal ? -1 : 1;
     }
-
-    const profilesToFetch = new Set();
-    snapshot.forEach(doc => {
-      const conv = doc.data();
-      conv.participants.forEach(uid => profilesToFetch.add(uid));
-      allConversations.push({ id: doc.id, ...conv });
-    });
-
-    const fetchedProfiles = new Map();
-    for (const uid of profilesToFetch) {
-      const profile = await getUserProfileFromFirestore(uid);
-      if (profile) {
-        fetchedProfiles.set(uid, profile);
-      }
-    }
-
-    // Apply sorting based on currentSortOption
-    allConversations.sort((a, b) => {
-      const getDisplayNameForSorting = (conv) => {
-        if (conv.type === 'group') return conv.name || 'Unnamed Group';
-        // For private chat, find the other participant's handle
-        const otherUid = conv.participants.find(uid => uid !== currentUser.uid);
-        // If otherUid is undefined (e.g., self-DM), use current user's handle
-        if (!otherUid) return "Self Chat";
-        const otherProfile = fetchedProfiles.get(otherUid);
-        return otherProfile?.handle || otherProfile?.displayName || 'Unknown User';
-      };
-
-      switch (currentSortOption) {
-        case 'lastMessageAt_desc':
-          return (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0);
-        case 'createdAt_desc':
-          return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
-        case 'createdAt_asc':
-          return (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0);
-        case 'otherUsername_asc':
-          const nameA_asc = getDisplayNameForSorting(a);
-          const nameB_asc = getDisplayNameForSorting(b);
-          return nameA_asc.localeCompare(nameB_asc);
-        case 'otherUsername_desc':
-          const nameA_desc = getDisplayNameForSorting(a);
-          const nameB_desc = getDisplayNameForSorting(b);
-          return nameB_desc.localeCompare(nameA_desc);
-        case 'groupName_asc':
-          const groupA_asc = a.type === 'group' ? a.name || 'Unnamed Group' : '';
-          const groupB_asc = b.type === 'group' ? b.name || 'Unnamed Group' : '';
-          return groupA_asc.localeCompare(groupB_asc);
-        case 'groupName_desc':
-          const groupA_desc = a.type === 'group' ? a.name || 'Unnamed Group' : '';
-          const groupB_desc = b.type === 'group' ? b.name || 'Unnamed Group' : '';
-          return groupB_desc.localeCompare(groupA_desc);
-        default:
-          return (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0);
-      }
-    });
-
-    conversationsList.innerHTML = '';
-    allConversations.forEach(conv => {
-      let chatName = conv.name;
-      let displayPhoto = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'; // Default avatar
-      let lastMessageSnippet = conv.lastMessageContent || 'No messages yet.';
-      if (lastMessageSnippet.length > 50) lastMessageSnippet = lastMessageSnippet.substring(0, 47) + '...';
-
-      if (conv.type === 'private') {
-        const otherParticipantUid = conv.participants.find(uid => uid !== currentUser.uid);
-        if (!otherParticipantUid) { // Self-DM case
-          chatName = "Self Chat";
-          displayPhoto = currentUser.photoURL || displayPhoto; // Use user's own photo
-        } else {
-          const otherProfile = fetchedProfiles.get(otherParticipantUid);
-          chatName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
-          displayPhoto = otherProfile?.photoURL || displayPhoto;
-        }
-      } else { // Group chat
-        chatName = conv.name || `Group Chat (${conv.participants.length} members)`;
-        displayPhoto = 'https://placehold.co/32x32/1F2937/E5E7EB?text=GC'; // Generic Group Chat icon
-      }
-
-      const conversationItem = document.createElement('div');
-      conversationItem.className = `conversation-item flex items-center p-3 rounded-lg cursor-pointer ${selectedConversationId === conv.id ? 'active' : ''}`;
-      conversationItem.dataset.conversationId = conv.id;
-      conversationItem.innerHTML = `
-                <img src="${displayPhoto}" alt="User" class="w-10 h-10 rounded-full mr-3 object-cover">
-                <div class="flex-grow">
-                    <p class="font-semibold text-gray-200">${chatName}</p>
-                    <p class="text-sm text-gray-400">${lastMessageSnippet}</p>
-                </div>
-            `;
-      conversationsList.appendChild(conversationItem);
-    });
-
-    // Re-attach click listeners for conversation items
-    conversationsList.querySelectorAll('.conversation-item').forEach(item => {
-      item.removeEventListener('click', handleSelectConversationClick); // Prevent duplicates
-      item.addEventListener('click', handleSelectConversationClick);
-    });
-
-    // If a conversation was previously selected and is still in the list, re-select it
-    if (selectedConversationId && !allConversations.some(c => c.id === selectedConversationId)) {
-      updateDmUiForNoConversationSelected(); // If selected conversation no longer exists, clear selection
-    } else if (selectedConversationId) {
-      const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${selectedConversationId}"]`);
-      if (activeItem) {
-        document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
-        activeItem.classList.add('active');
-      }
-    }
-  }, (error) => {
-    console.error("Error fetching conversations:", error);
-    showMessageBox(`Error loading conversations: ${error.message}`, true);
-    conversationsList.innerHTML = `<p class="text-red-500 text-center">Error loading conversations.</p>`;
-    noConversationsMessage.style.display = 'none';
+  });
+  
+  conversationsListEl.innerHTML = sortedConversations.map(conv => {
+    const isActive = selectedConversationId === conv.id;
+    const displayName = conv.type === 'group' ? (conv.name || 'Unnamed Group') : (conv.name || 'Unknown User');
+    const lastMessagePreview = conv.lastMessageContent ? 
+      (conv.lastMessageContent.length > 30 ? conv.lastMessageContent.substring(0, 30) + '...' : conv.lastMessageContent) : 
+      'No messages yet';
+    
+    const lastMessageTime = conv.lastMessageAt ? 
+      new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+      '';
+    
+    // Get avatar - use first participant's avatar for group chats, or other user's avatar for private chats
+    const avatarUrl = conv.type === 'group' ? 
+      (conv.participants.map(uid => getUserProfileFromFirestore(uid)?.photoURL).find(url => url) || DEFAULT_PROFILE_PIC) : 
+      (conv.otherUserAvatar || DEFAULT_PROFILE_PIC);
+    
+    return `
+      <div class="conversation-item ${isActive ? 'active' : ''}" data-conversation-id="${conv.id}">
+        <img src="${avatarUrl}" alt="${displayName}" class="conversation-avatar" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+        <div class="conversation-info">
+          <div class="conversation-name">${escapeHtml(displayName)}</div>
+          <div class="conversation-preview">${escapeHtml(lastMessagePreview)}</div>
+        </div>
+        <div class="conversation-meta">
+          <div class="conversation-time">${lastMessageTime}</div>
+          ${conv.type === 'group' ? '<div class="text-xs opacity-60">👥</div>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Add click event listeners
+  conversationsListEl.querySelectorAll('.conversation-item').forEach(item => {
+    item.addEventListener('click', handleSelectConversationClick);
   });
 }
 
@@ -299,45 +240,74 @@ export function renderConversationsList() {
  * @param {object} conversationData - The conversation object data.
  */
 export async function selectConversation(convId, conversationData) {
-  selectedConversationId = convId;
-  if (unsubscribeCurrentMessages) {
-    unsubscribeCurrentMessages(); // Unsubscribe from previous messages listener
-  }
-
-  // --- UI Update: Show Messages Panel, Hide Conversations Panel ---
-  conversationsPanel.classList.add('hidden');
-  messagesPanel.classList.remove('hidden');
-
-  // Update UI for active conversation item
-  document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
-  const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${convId}"]`);
-  if (activeItem) {
-    activeItem.classList.add('active');
-  }
-
-  // Update header
-  let displayTitle = conversationData.name;
   const currentUser = getCurrentUser();
-  if (conversationData.type === 'private') {
-    const otherParticipantUid = conversationData.participants.find(uid => uid !== currentUser.uid);
-    if (!otherParticipantUid) { // Self-DM case
-      displayTitle = "Self Chat";
-    } else {
-      const otherProfile = await getUserProfileFromFirestore(otherParticipantUid);
-      displayTitle = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
-    }
-  } else {
-    displayTitle = conversationData.name || `Group Chat (${conversationData.participants.length} members)`;
+  if (!currentUser || !convId) {
+    console.error("No current user or conversation ID for selection.");
+    return;
   }
-  conversationTitleHeader.textContent = displayTitle;
-  deleteConversationBtn.classList.remove('hidden');
-  deleteConversationBtn.dataset.conversationId = convId; // Set ID for deletion
 
-  messageInputArea.classList.remove('hidden');
-  noMessagesMessage.style.display = 'none';
-  conversationMessagesContainer.innerHTML = ''; // Clear previous messages
-
-  renderConversationMessages(convId);
+  selectedConversationId = convId;
+  
+  // Update conversation header
+  const conversationTitleEl = document.getElementById('conversation-title');
+  const conversationSubtitleEl = document.getElementById('conversation-subtitle');
+  const conversationAvatarEl = document.getElementById('conversation-avatar');
+  const deleteConversationBtn = document.getElementById('delete-conversation-btn');
+  
+  if (conversationData) {
+    let displayName = 'Unknown Conversation';
+    let subtitle = 'Loading...';
+    let avatarUrl = DEFAULT_PROFILE_PIC;
+    
+    if (conversationData.type === 'group') {
+      displayName = conversationData.groupName || 'Unnamed Group';
+      subtitle = `${conversationData.participants?.length || 0} members`;
+      avatarUrl = 'https://placehold.co/40x40/1F2937/E5E7EB?text=GC'; // Group chat icon
+    } else {
+      // Private chat - find the other participant
+      const otherUid = conversationData.participants?.find(uid => uid !== currentUser.uid);
+      if (otherUid) {
+        try {
+          const otherProfile = await getUserProfileFromFirestore(otherUid);
+          displayName = otherProfile?.displayName || otherProfile?.handle || 'Unknown User';
+          subtitle = otherProfile?.handle ? `@${otherProfile.handle}` : 'User';
+          avatarUrl = otherProfile?.photoURL || DEFAULT_PROFILE_PIC;
+        } catch (error) {
+          console.warn("Could not fetch other user's profile:", error);
+        }
+      } else {
+        displayName = 'Self Chat';
+        subtitle = 'Your personal chat';
+        avatarUrl = currentUser.photoURL || DEFAULT_PROFILE_PIC;
+      }
+    }
+    
+    if (conversationTitleEl) conversationTitleEl.textContent = displayName;
+    if (conversationSubtitleEl) conversationSubtitleEl.textContent = subtitle;
+    if (conversationAvatarEl) {
+      conversationAvatarEl.src = avatarUrl;
+      conversationAvatarEl.alt = displayName;
+      conversationAvatarEl.onerror = () => { conversationAvatarEl.src = DEFAULT_PROFILE_PIC; };
+    }
+    
+    // Show delete button for conversations the user can delete
+    if (deleteConversationBtn) {
+      deleteConversationBtn.style.display = 'block';
+      deleteConversationBtn.dataset.conversationId = convId;
+    }
+  }
+  
+  // Update UI to show messages panel
+  const conversationsPanel = document.getElementById('conversations-panel');
+  const messagesPanel = document.getElementById('messages-panel');
+  const messageInputArea = document.getElementById('message-input-area');
+  
+  if (conversationsPanel) conversationsPanel.classList.add('hidden');
+  if (messagesPanel) messagesPanel.classList.remove('hidden');
+  if (messageInputArea) messageInputArea.classList.remove('hidden');
+  
+  // Load and render messages
+  await loadMessagesForConversation(convId);
 }
 
 /**
@@ -359,78 +329,62 @@ export function updateDmUiForNoConversationSelected() {
  * @param {string} convId - The ID of the conversation whose messages to render.
  */
 function renderConversationMessages(convId) {
-  if (!db || !conversationMessagesContainer || !convId) {
-    console.error("DB, conversationMessagesContainer, or convId not ready for messages rendering.");
+  const messagesContainer = document.getElementById('conversation-messages-container');
+  const noMessagesEl = document.getElementById('no-messages-message');
+  
+  if (!messagesContainer) return;
+  
+  if (!currentMessages || currentMessages.length === 0) {
+    messagesContainer.innerHTML = '';
+    noMessagesEl.style.display = 'block';
     return;
   }
-
+  
+  noMessagesEl.style.display = 'none';
+  
   const currentUser = getCurrentUser();
-  // Use the correct path structure for messages
-  const messagesCol = collection(db, `artifacts/${appId}/users/${currentUser.uid}/dms/${convId}/messages`);
-  const q = query(messagesCol, orderBy("createdAt", "desc")); // Order by creation time (newest first)
-
-  unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
-    conversationMessagesContainer.innerHTML = ''; // Clear messages before re-rendering
-    if (snapshot.empty) {
-      noMessagesMessage.style.display = 'block';
-      return;
-    } else {
-      noMessagesMessage.style.display = 'none';
-    }
-
-    const profilesToFetch = new Set();
-    snapshot.forEach(msgDoc => {
-      profilesToFetch.add(msgDoc.data().createdBy); // Use createdBy instead of senderId
-    });
-
-    const fetchedProfiles = new Map();
-    for (const uid of profilesToFetch) {
-      const profile = await getUserProfileFromFirestore(uid);
-      if (profile) {
-        fetchedProfiles.set(uid, profile);
-      }
-    }
-
-    // Process and render messages in reverse order for "bottom-up" chat display
-    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse(); // Reverse for display
-
-    for (const msg of messages) {
-      const isSentByMe = msg.createdBy === currentUser.uid; // Use createdBy instead of senderId
-      const senderProfile = fetchedProfiles.get(msg.createdBy) || {};
-      const senderDisplayName = senderProfile.displayName || msg.creatorDisplayName || 'Unknown User';
-      const senderPhotoURL = senderProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-
-      const messageElement = document.createElement('div');
-      messageElement.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
-      messageElement.dataset.messageId = msg.id; // Store message ID for deletion
-      messageElement.innerHTML = `
-                <div class="flex items-center ${isSentByMe ? 'justify-end' : 'justify-start'}">
-                    ${!isSentByMe ? `<img src="${senderPhotoURL}" alt="${senderDisplayName}" class="w-6 h-6 rounded-full mr-2 object-cover">` : ''}
-                    <span class="message-author">${isSentByMe ? 'You' : senderDisplayName}</span>
-                    ${isSentByMe ? `<img src="${senderPhotoURL}" alt="You" class="w-6 h-6 rounded-full ml-2 object-cover">` : ''}
-                </div>
-                <p class="text-gray-100 mt-1">${await parseMentions(parseEmojis(msg.content))}</p>
-                <div class="flex items-center mt-1 text-gray-300">
-                    <span class="message-timestamp flex-grow">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${currentUser && currentUser.uid === msg.createdBy ? `
-                        <button class="delete-message-btn text-red-300 hover:text-red-400 ml-2 text-sm" data-message-id="${msg.id}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-      conversationMessagesContainer.appendChild(messageElement);
-    }
-    conversationMessagesContainer.scrollTop = conversationMessagesContainer.scrollHeight;
-
-    // Re-attach delete message listeners
-    conversationMessagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
-      btn.removeEventListener('click', handleDeleteMessage);
-      btn.addEventListener('click', handleDeleteMessage);
-    });
-  }, (error) => {
-    console.error("Error fetching messages:", error);
-    conversationMessagesContainer.innerHTML = `<p class="text-red-500 text-center">Error loading messages: ${error.message}</p>`;
+  if (!currentUser) return;
+  
+  messagesContainer.innerHTML = currentMessages.map(message => {
+    const isOwnMessage = message.senderId === currentUser.uid;
+    const messageTime = message.timestamp ? 
+      new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+      '';
+    
+    // Get sender info
+    const senderProfile = message.senderProfile || {};
+    const senderName = senderProfile.displayName || senderProfile.handle || 'Unknown User';
+    const senderAvatar = senderProfile.photoURL || DEFAULT_PROFILE_PIC;
+    
+    return `
+      <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}">
+        ${!isOwnMessage ? `
+          <div class="message-author">
+            <img src="${senderAvatar}" alt="${senderName}" class="w-4 h-4 rounded-full" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+            <span>${escapeHtml(senderName)}</span>
+          </div>
+        ` : ''}
+        <div class="message-content">
+          ${escapeHtml(message.content)}
+        </div>
+        <div class="message-timestamp">
+          ${messageTime}
+          ${isOwnMessage ? `
+            <button class="delete-message-btn ml-2" data-message-id="${message.id}" title="Delete message">
+              🗑️
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  
+  // Add delete message event listeners
+  messagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
+    btn.addEventListener('click', handleDeleteMessage);
   });
 }
 
@@ -537,203 +491,3 @@ export async function deleteMessage(messageId) {
     showMessageBox(`Error deleting message: ${error.message}`, true);
   }
 }
-
-/**
- * Deletes an entire conversation and all its messages.
- * @param {string} convId - The ID of the conversation to delete.
- */
-export async function deleteConversation(convId) {
-  const currentUser = getCurrentUser();
-  if (!currentUser || !currentUser.uid) {
-    showMessageBox("You must be logged in to delete a conversation.", true);
-    return;
-  }
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot delete conversation.", true);
-    return;
-  }
-
-  const confirmation = await showCustomConfirm(
-    "Are you sure you want to delete this entire chat?",
-    "This will delete the conversation and all its messages for everyone. This action cannot be undone."
-  );
-  if (!confirmation) {
-    showMessageBox("Conversation deletion cancelled.", false);
-    return;
-  }
-
-  // Use the correct path structure
-  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, convId);
-  const messagesColRef = collection(conversationDocRef, 'messages');
-
-  try {
-    const messagesSnapshot = await getDocs(messagesColRef);
-    const batch = writeBatch(db);
-    messagesSnapshot.docs.forEach((msgDoc) => {
-      batch.delete(msgDoc.ref);
-    });
-    await batch.commit();
-
-    await deleteDoc(conversationDocRef);
-
-    showMessageBox("Conversation deleted successfully!", false);
-    updateDmUiForNoConversationSelected(); // Clear the right panel and go back to list
-  } catch (error) {
-    console.error("Error deleting conversation:", error);
-    showMessageBox(`Error deleting conversation: ${error.message}`, true);
-  }
-}
-
-/**
- * Fetches all user handles from Firestore and populates the datalist for recipient suggestions.
- */
-export async function populateUserHandlesDatalist() {
-  if (!db || !userHandlesDatalist) {
-    console.warn("Firestore DB or userHandlesDatalist not ready for populating handles.");
-    return;
-  }
-  userHandlesDatalist.innerHTML = ''; // Clear existing options
-
-  const userProfilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-  try {
-    const querySnapshot = await getDocs(userProfilesRef);
-    querySnapshot.forEach(docSnap => {
-      const profile = docSnap.data();
-      if (profile.handle) {
-        const option = document.createElement('option');
-        option.value = `@${profile.handle}`; // Add '@' prefix for display
-        userHandlesDatalist.appendChild(option);
-      }
-    });
-    console.log("User handles datalist populated.");
-  } catch (error) {
-    console.error("Error fetching user handles for datalist:", error);
-  }
-}
-
-/**
- * Unsubscribes the current conversations list listener.
- */
-export function unsubscribeConversationsListListener() {
-  if (unsubscribeConversationsList) {
-    unsubscribeConversationsList();
-    unsubscribeConversationsList = null;
-  }
-}
-
-/**
- * Unsubscribes the current messages listener.
- */
-export function unsubscribeCurrentMessagesListener() {
-  if (unsubscribeCurrentMessages) {
-    unsubscribeCurrentMessages();
-    unsubscribeCurrentMessages = null;
-  }
-}
-
-// --- Event Handlers (exported for forms.js to attach) ---
-
-export async function handleCreateConversation(event) {
-  event.preventDefault();
-  const type = newChatTypeSelect.value;
-  let participantHandles = [];
-  let groupName = '';
-
-  if (type === 'private') {
-    const recipient = privateChatRecipientInput.value.trim();
-    if (recipient) {
-      participantHandles = [recipient];
-    }
-  } else if (type === 'group') {
-    groupName = groupChatNameInput.value.trim();
-    const participants = groupChatParticipantsInput.value.trim();
-    if (participants) {
-      participantHandles = participants.split(',').map(p => p.trim()).filter(p => p);
-    }
-  }
-
-  if (participantHandles.length === 0 && type === 'group') {
-    showMessageBox("Please enter at least one participant for group chat.", true);
-    return;
-  }
-
-  await createConversation(type, participantHandles, groupName);
-}
-
-export async function handleSendMessage(event) {
-  event.preventDefault();
-  const content = messageContentInput.value.trim();
-  if (content) {
-    await sendMessage(content);
-  }
-}
-
-export async function handleDeleteMessage(event) {
-  event.preventDefault();
-  const messageId = event.target.dataset.messageId || event.target.closest('.delete-message-btn')?.dataset.messageId;
-  if (selectedConversationId && messageId) {
-    await deleteMessage(messageId);
-  } else {
-    console.error("No selected conversation or message ID for deletion.");
-    showMessageBox("Could not delete message. No active conversation or message selected.", true);
-  }
-}
-
-export async function handleDeleteConversationClick(event) {
-  event.preventDefault();
-  const convId = event.target.dataset.conversationId || event.target.closest('#delete-conversation-btn')?.dataset.conversationId;
-  if (convId) {
-    await deleteConversation(convId);
-  } else {
-    console.error("No conversation ID for deletion.");
-    showMessageBox("Could not delete conversation. No conversation selected.", true);
-  }
-}
-
-function handleSelectConversationClick(event) {
-  const convId = event.currentTarget.dataset.conversationId;
-  const conversation = allConversations.find(c => c.id === convId);
-  if (conversation) {
-    selectConversation(convId, conversation);
-  }
-}
-
-export function attachDmEventListeners() {
-  if (createConversationForm) {
-    createConversationForm.addEventListener('submit', handleCreateConversation);
-  }
-
-  if (sendMessageForm) {
-    sendMessageForm.addEventListener('submit', handleSendMessage);
-  }
-
-  if (deleteConversationBtn) {
-    deleteConversationBtn.addEventListener('click', handleDeleteConversationClick);
-  }
-
-  if (backToChatsBtn) {
-    backToChatsBtn.addEventListener('click', () => {
-      updateDmUiForNoConversationSelected();
-    });
-  }
-
-  if (newChatTypeSelect) {
-    newChatTypeSelect.addEventListener('change', () => {
-      if (newChatTypeSelect.value === 'private') {
-        privateChatFields.classList.remove('hidden');
-        groupChatFields.classList.add('hidden');
-      } else if (newChatTypeSelect.value === 'group') {
-        privateChatFields.classList.add('hidden');
-        groupChatFields.classList.remove('hidden');
-      }
-    });
-  }
-
-  if (sortConversationsBySelect) {
-    sortConversationsBySelect.addEventListener('change', () => {
-      currentSortOption = sortConversationsBySelect.value;
-      renderConversationsList(); // Re-render with new sort
-    });
-  }
-}
-
