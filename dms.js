@@ -454,6 +454,21 @@ export async function createConversation(type, participantHandles, groupName = '
 
   try {
     const newConvRef = await addDoc(conversationsCol, conversationData);
+    
+    // Add initial server message
+    const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${newConvRef.id}/messages`);
+    const serverMessageData = {
+      createdBy: 'system',
+      creatorDisplayName: 'System',
+      content: type === 'private' ? 
+        `Chat started by @${currentUser.handle} on ${new Date().toLocaleDateString()}` :
+        `Group chat "${groupName.trim() || 'Unnamed Group'}" created by @${currentUser.handle} on ${new Date().toLocaleDateString()}`,
+      createdAt: serverTimestamp(),
+      isServerMessage: true
+    };
+    
+    await addDoc(messagesCol, serverMessageData);
+    
     showMessageBox(`New ${type} chat created successfully!`, false);
     console.log(`[DM] Success: Created ${type} chat (id: ${newConvRef.id})`);
     
@@ -673,8 +688,13 @@ export async function selectConversation(convId, conversationData) {
   console.log("[DEBUG] Conversation info:", { displayName, subtitle, avatarUrl });
 
   // Always show the chat interface, even for self-DMs
-  if (conversationTitleEl) conversationTitleEl.textContent = displayName;
-  if (conversationSubtitleEl) conversationSubtitleEl.textContent = subtitle;
+  if (conversationTitleEl) {
+    conversationTitleEl.innerHTML = `
+      <img src="${avatarUrl}" alt="${displayName}" class="w-8 h-8 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+      <span>${escapeHtml(displayName)}</span>
+      <span class="text-sm text-text-secondary">${escapeHtml(subtitle)}</span>
+    `;
+  }
   if (conversationAvatarEl) {
     conversationAvatarEl.src = avatarUrl;
     conversationAvatarEl.alt = displayName;
@@ -760,20 +780,44 @@ async function renderConversationMessages(convId) {
   const messagesContainer = document.getElementById('conversation-messages-container');
   const noMessagesEl = document.getElementById('no-messages-message');
 
-  if (!messagesContainer) return;
+  console.log("[DEBUG] renderConversationMessages: Starting for convId:", convId);
+  console.log("[DEBUG] Found DOM elements:", {
+    messagesContainer: !!messagesContainer,
+    noMessagesEl: !!noMessagesEl
+  });
+
+  if (!messagesContainer) {
+    console.error("[DEBUG] messagesContainer not found!");
+    return;
+  }
 
   if (!currentMessages || currentMessages.length === 0) {
+    console.log("[DEBUG] No messages to render, showing empty state");
     messagesContainer.innerHTML = '';
     if (noMessagesEl) noMessagesEl.style.display = 'block';
     return;
   }
 
+  console.log("[DEBUG] Rendering", currentMessages.length, "messages");
   if (noMessagesEl) noMessagesEl.style.display = 'none';
 
   const currentUser = await getCurrentUser();
-  if (!currentUser) return;
+  if (!currentUser) {
+    console.error("[DEBUG] No current user for message rendering");
+    return;
+  }
 
   messagesContainer.innerHTML = currentMessages.map(message => {
+    // Handle server messages
+    if (message.isServerMessage) {
+      return `
+        <div class="server-message">
+          <span class="server-icon">🔧</span>
+          ${escapeHtml(message.content)}
+        </div>
+      `;
+    }
+
     const isOwnMessage = message.senderId === currentUser.uid;
     const messageTime = message.timestamp ?
       new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
@@ -814,6 +858,8 @@ async function renderConversationMessages(convId) {
   messagesContainer.querySelectorAll('.delete-message-btn').forEach(btn => {
     btn.addEventListener('click', handleDeleteMessage);
   });
+
+  console.log("[DEBUG] renderConversationMessages: Completed");
 }
 
 /**
@@ -1004,19 +1050,37 @@ async function setupConversationsListener() {
  */
 async function loadMessagesForConversation(convId) {
   const currentUser = await getCurrentUser();
-  if (!currentUser || !convId || !db) return;
+  if (!currentUser || !convId || !db) {
+    console.log("[DEBUG] loadMessagesForConversation: Missing requirements", { 
+      hasCurrentUser: !!currentUser, 
+      hasConvId: !!convId, 
+      hasDb: !!db 
+    });
+    return;
+  }
+  
+  console.log("[DEBUG] loadMessagesForConversation: Starting for convId:", convId);
   
   if (unsubscribeCurrentMessages) {
     unsubscribeCurrentMessages();
+    console.log("[DEBUG] Unsubscribed from previous messages listener");
   }
   
   const messagesCol = collection(db, `artifacts/arcator-web/users/${currentUser.uid}/dms/${convId}/messages`);
   const q = query(messagesCol, orderBy("createdAt", "asc"));
   
+  console.log("[DEBUG] Setting up messages listener for path:", `artifacts/arcator-web/users/${currentUser.uid}/dms/${convId}/messages`);
+  
   unsubscribeCurrentMessages = onSnapshot(q, async (snapshot) => {
+    console.log("[DEBUG] Messages snapshot received:", { 
+      empty: snapshot.empty, 
+      size: snapshot.size 
+    });
+    
     currentMessages = [];
     
     if (snapshot.empty) {
+      console.log("[DEBUG] No messages found, rendering empty state");
       await renderConversationMessages(convId);
       return;
     }
@@ -1027,6 +1091,8 @@ async function loadMessagesForConversation(convId) {
       profilesToFetch.add(msg.createdBy);
       currentMessages.push({ id: doc.id, ...msg });
     });
+    
+    console.log("[DEBUG] Found", currentMessages.length, "messages, fetching", profilesToFetch.size, "profiles");
     
     // Fetch sender profiles
     const fetchedProfiles = new Map();
@@ -1049,6 +1115,7 @@ async function loadMessagesForConversation(convId) {
       msg.timestamp = msg.createdAt?.toDate?.() || msg.createdAt || new Date();
     });
     
+    console.log("[DEBUG] Enhanced messages with profiles, rendering", currentMessages.length, "messages");
     await renderConversationMessages(convId);
   }, (error) => {
     console.error("Error fetching messages:", error);
