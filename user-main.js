@@ -437,6 +437,12 @@ async function reloadAndApplyUserProfile() {
   const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
   if (!userProfile) return;
 
+  // --- Apply theme preference ---
+  const allThemes = await getAvailableThemes();
+  const themeId = userProfile.themePreference || DEFAULT_THEME_NAME;
+  const themeToApply = allThemes.find(t => t.id === themeId) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+  applyTheme(themeToApply.id, themeToApply); // Minimal: always apply user or default theme
+
   // Populate profile input fields
   if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
   if (handleInput) handleInput.value = userProfile.handle || '';
