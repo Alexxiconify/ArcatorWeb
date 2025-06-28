@@ -137,16 +137,13 @@ export async function initializePageWithFirebase(pageName, yearElementId = null,
     }
 
     // Apply theme
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        const userProfile = await getUserProfileFromFirestore(user.uid);
-        userThemePreference = userProfile?.themePreference;
-      }
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
-    });
+      console.log(`${pageName}: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
 
     console.log(`${pageName}: Page initialization complete.`);
   };
