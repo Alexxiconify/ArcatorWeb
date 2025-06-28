@@ -998,20 +998,59 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      position: relative;
+    }
+
+    .login-card .password-row input[type="password"],
+    .login-card .password-row input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      padding-right: 3rem;
+      border-radius: 0.75rem;
+      border: 1.5px solid var(--color-input-border);
+      background: var(--color-input-bg);
+      color: var(--color-input-text);
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .login-card .password-row input:focus {
+      border-color: var(--color-link);
+      outline: none;
     }
 
     .login-card .visibility-toggle {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
       background: none;
       border: none;
-      color: var(--color-link);
-      font-size: 1.1rem;
+      color: var(--color-text-secondary);
       cursor: pointer;
-      padding: 0 0.25rem;
-      transition: color 0.2s;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
     }
 
     .login-card .visibility-toggle:hover {
-      color: var(--color-button-blue-hover);
+      color: var(--color-link);
+      background: rgba(96, 165, 250, 0.1);
+    }
+
+    .login-card .visibility-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      transition: transform 0.2s ease;
+    }
+
+    .login-card .visibility-toggle:hover svg {
+      transform: scale(1.1);
     }
 
     @media (max-width: 480px) {
@@ -1057,10 +1096,14 @@
         <div class="password-row">
           <input id="signin-password" placeholder="********" required type="password">
           <button class="visibility-toggle"
-                  onclick="const p=document.getElementById('signin-password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'visibility':'visibility_off';"
+                  aria-label="Toggle password visibility"
                   tabindex="-1"
+                  onclick="togglePasswordVisibility('signin-password', this)"
                   type="button">
-            visibility
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
           </button>
         </div>
         <button class="auth-btn-primary" id="signin-btn" type="submit"> Sign in with Email

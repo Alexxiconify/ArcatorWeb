@@ -272,7 +272,156 @@ const navbarStyles = `
   transform: rotate(-45deg) translate(6px, -6px);
 }
 
-/* Mobile responsive design */
+/* Large screen responsive design (2K, 4K) */
+@media (min-width: 1920px) {
+  .navbar-container {
+    height: 64px;
+    min-height: 64px;
+    padding: 0 1rem;
+  }
+
+  .navbar-logo, .navbar-link, .navbar-user {
+    min-height: 56px;
+    line-height: 56px;
+  }
+
+  .navbar-logo {
+    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    gap: clamp(0.25rem, 0.4vw, 0.5rem);
+    padding: 0.25rem 0.25rem;
+  }
+
+  .navbar-logo svg {
+    height: 1.2em;
+    width: 1.2em;
+    min-width: 1.2em;
+    min-height: 1.2em;
+  }
+
+  .navbar-links {
+    gap: 0.125rem;
+    padding: 0.375rem;
+  }
+
+  .navbar-link {
+    height: 56px;
+    padding: 0.125rem 0.25rem;
+    font-size: clamp(0.6rem, 0.7vw, 0.85rem);
+    margin: 0 0.125rem;
+  }
+
+  .navbar-link svg {
+    height: 1.1em;
+    width: 1.1em;
+    min-width: 1.1em;
+    min-height: 1.1em;
+    margin-right: clamp(0.125rem, 0.25vw, 0.25rem);
+  }
+
+  .navbar-user .navbar-link {
+    height: 56px;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    font-size: 1rem;
+    gap: 0.75rem;
+  }
+
+  .navbar-user .profile-pic-small {
+    height: 40px;
+    width: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .navbar-user-name {
+    font-size: clamp(0.7rem, 0.8vw, 0.9rem);
+    max-width: 120px;
+  }
+
+  .mobile-menu-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mobile-menu-btn span {
+    height: 4px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .navbar-container {
+    height: 80px;
+    min-height: 80px;
+    padding: 0 1.5rem;
+  }
+
+  .navbar-logo, .navbar-link, .navbar-user {
+    min-height: 72px;
+    line-height: 72px;
+  }
+
+  .navbar-logo {
+    font-size: clamp(1.2rem, 1.4vw, 1.5rem);
+    gap: clamp(0.375rem, 0.5vw, 0.625rem);
+    padding: 0.375rem 0.375rem;
+  }
+
+  .navbar-logo svg {
+    height: 1.4em;
+    width: 1.4em;
+    min-width: 1.4em;
+    min-height: 1.4em;
+  }
+
+  .navbar-links {
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .navbar-link {
+    height: 72px;
+    padding: 0.25rem 0.375rem;
+    font-size: clamp(0.8rem, 0.9vw, 1.1rem);
+    margin: 0 0.25rem;
+  }
+
+  .navbar-link svg {
+    height: 1.3em;
+    width: 1.3em;
+    min-width: 1.3em;
+    min-height: 1.3em;
+    margin-right: clamp(0.25rem, 0.375vw, 0.375rem);
+  }
+
+  .navbar-user .navbar-link {
+    height: 72px;
+    padding: 0.75rem 1.25rem 0.75rem 1rem;
+    font-size: 1.2rem;
+    gap: 1rem;
+  }
+
+  .navbar-user .profile-pic-small {
+    height: 52px;
+    width: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .navbar-user-name {
+    font-size: clamp(0.9rem, 1vw, 1.1rem);
+    max-width: 150px;
+  }
+
+  .mobile-menu-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .mobile-menu-btn span {
+    height: 5px;
+  }
+}
+
+/* Medium screen responsive design */
 @media (max-width: 1024px) {
   .navbar-container {
     padding: 0 1rem;
