@@ -672,10 +672,15 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-admin-dev');
-    let userThemePreference = userProfile?.themePreference;
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
     const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Admin page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
   });
 </script>
 

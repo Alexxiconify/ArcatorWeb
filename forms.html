@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community Forum - Arcator.co.uk</title>
-
-  <!-- Preload critical resources -->
-  <link as="script" href="https://cdn.tailwindcss.com" rel="preload">
-  <link as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="preload">
-  <link as="style" href="theme_variables.css" rel="preload">
-
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Link to theme_variables.css for centralized CSS variables -->
+  <link href="theme_variables.css" rel="stylesheet">
+  <!-- Link to navbar.css for navbar specific styling -->
+  <link href="navbar.css" rel="stylesheet">
   <!-- Critical CSS inline for faster rendering -->
   <style>
     /* Critical CSS for immediate rendering */
@@ -686,7 +688,7 @@
 
   <!-- Dynamic Théma Thread Sections -->
   <div id="thema-tab-contents"></div>
-  
+
   <!-- Threads Section (hidden by default) -->
   <div id="threads-section" class="tab-content" style="display: none;">
     <div class="collapsible">
@@ -696,7 +698,7 @@
       </div>
       <div class="collapsible-content">
         <p class="text-text-secondary mb-4" id="current-thema-description">Loading description...</p>
-        
+
         <!-- Create New Thread -->
         <div class="card-modern p-4 mb-4">
           <h3 class="text-lg font-bold mb-4">Create New Thread</h3>
@@ -714,19 +716,19 @@
             </button>
           </form>
         </div>
-        
+
         <!-- Threads List -->
         <div class="space-y-4" id="thread-list">
           <!-- Threads will be loaded here -->
         </div>
-        
+
         <button class="btn-modern mt-4" id="back-to-thematas-btn" style="background: var(--color-button-gray-bg); color: var(--color-button-text);">
           <span>← Back to Thémata</span>
         </button>
       </div>
     </div>
   </div>
-  
+
   <!-- Comments Section (hidden by default) -->
   <div id="comments-section" class="tab-content" style="display: none;">
     <div class="collapsible">
@@ -739,7 +741,7 @@
           <h3 class="text-lg font-bold mb-2">Initial Comment</h3>
           <p class="text-text-secondary" id="current-thread-initial-comment">Loading initial comment...</p>
         </div>
-        
+
         <!-- Add Comment -->
         <div class="card-modern p-4 mb-4">
           <h3 class="text-lg font-bold mb-4">Add Comment</h3>
@@ -753,12 +755,12 @@
             </button>
           </form>
         </div>
-        
+
         <!-- Comments List -->
         <div class="space-y-4" id="comment-list">
           <!-- Comments will be loaded here -->
         </div>
-        
+
         <button class="btn-modern mt-4" id="back-to-threads-btn" style="background: var(--color-button-gray-bg); color: var(--color-button-text);">
           <span>← Back to Threads</span>
         </button>
@@ -813,7 +815,7 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-forms');
-    
+
     // Apply user's theme preference
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
