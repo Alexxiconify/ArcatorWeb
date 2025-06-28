@@ -570,106 +570,77 @@ async function deleteTempPage(id) {
  * @param {Object|null} user - The Firebase User object or null.
  */
 const updateAdminUI = async (user) => { // Changed to const arrow function
-  loadingSpinner.style.display = 'none'; // Hide spinner once auth state is determined
+  console.log("DEBUG: updateAdminUI called with user:", user);
+  const adminContent = document.getElementById('admin-content');
+  const loginRequiredMessage = document.getElementById('login-required-message');
+  const loadingSpinner = document.getElementById('loading-spinner');
+
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'none';
+  }
 
   if (user) {
-    console.log("DEBUG: Authenticated User UID:", user.uid);
-    console.log("DEBUG: Authenticated User Email:", user.email);
-
-    let profileLoaded = false;
-    // Wait for firebaseCurrentUser to be populated and isAdmin to be set.
-    // Give it a short delay to allow firebase-init.js's onAuthStateChanged to run.
-    for (let i = 0; i < 10; i++) { // Try up to 10 times with 100ms delay each
-      // Ensure firebaseCurrentUser is not null, its UID matches the authenticated user,
-      // and isAdmin property is defined (meaning the profile from Firestore has been merged).
-      if (firebaseCurrentUser && firebaseCurrentUser.uid === user.uid && typeof firebaseCurrentUser.isAdmin !== 'undefined') {
-        profileLoaded = true;
-        break;
-      }
-      console.log("DEBUG: Waiting for firebaseCurrentUser to be fully populated...");
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
-    }
-
-    if (!profileLoaded) {
-      console.error("ERROR: firebaseCurrentUser did not get fully populated within expected time. Displaying access denied.");
-      loginRequiredMessage.style.display = 'block';
-      adminContent.style.display = 'none';
-      showMessageBox("Could not retrieve admin status. Access denied.", true);
-      return;
-    }
-
-    console.log("DEBUG: firebaseCurrentUser object (after wait):", firebaseCurrentUser);
-    console.log("DEBUG: firebaseCurrentUser.isAdmin (after wait):", firebaseCurrentUser.isAdmin);
-
-
-    const userProfile = firebaseCurrentUser; // Now firebaseCurrentUser should be the fully loaded profile
-    const themePreference = userProfile?.themePreference || DEFAULT_THEME_NAME;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === themePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(themeToApply.id, themeToApply);
-
-    // Show main admin content div
-    adminContent.style.display = 'block';
-
-    if (userProfile.isAdmin) { // Use isAdmin from the now confirmed userProfile
-      console.log("DEBUG: User is confirmed as ADMIN via userProfile.isAdmin.");
+    console.log("DEBUG: User is authenticated, showing admin content");
+    if (loginRequiredMessage) {
       loginRequiredMessage.style.display = 'none';
-      adminUserDisplay.textContent = userProfile?.displayName || user.displayName || user.email || user.uid;
-
-      // Show admin-specific sections
-      if (infrastructureSection) infrastructureSection.style.display = 'block';
-      if (devToolsSection) devToolsSection.style.display = 'block';
-      if (userManagementSection) userManagementSection.style.display = 'block';
-      if (formManagementSection) formManagementSection.style.display = 'block';
-      if (tempPagesSection) tempPagesSection.style.display = 'block';
-      if (importantLinksSection) importantLinksSection.style.display = 'block';
-      if (roadmapSection) roadmapSection.style.display = 'block';
-
-      // Render data for admin-specific sections
-      renderUserList();
-      renderTempPages();
-      renderTodoList();
-
-    } else {
-      console.log("DEBUG: User is NOT an admin.");
-      loginRequiredMessage.style.display = 'block';
-      adminContent.style.display = 'none'; // Hide all admin content if not admin
-      showMessageBox("You are logged in, but do not have admin privileges for some sections.", true);
-
-      // Hide admin-specific sections explicitly for non-admins
-      if (infrastructureSection) infrastructureSection.style.display = 'none';
-      if (devToolsSection) devToolsSection.style.display = 'none';
-      if (userManagementSection) userManagementSection.style.display = 'none';
-      if (formManagementSection) formManagementSection.style.display = 'none';
-      if (tempPagesSection) tempPagesSection.style.display = 'none';
-      if (importantLinksSection) importantLinksSection.style.display = 'none';
-      if (roadmapSection) roadmapSection.style.display = 'none';
+    }
+    if (adminContent) {
+      adminContent.style.display = 'block';
     }
 
-    // Darrion API, Grief Detection, and Onfim Notifications are visible to ALL logged-in users
-    if (darrionApiSection) darrionApiSection.style.display = 'block';
-    if (griefDetectionSection) griefDetectionSection.style.display = 'block';
-    if (onfimNotificationsSection) onfimNotificationsSection.style.display = 'block';
+    // Update admin user display
+    const adminUserDisplay = document.getElementById('admin-user-display');
+    if (adminUserDisplay) {
+      adminUserDisplay.textContent = user.displayName || user.email || 'Admin User';
+    }
+
+    // Show all sections for authenticated users
+    const sections = [
+      'infrastructure-section',
+      'dev-tools-section',
+      'user-management-section',
+      'email-management-section',
+      'form-management-section',
+      'temp-pages-section',
+      'important-links-section',
+      'roadmap-section',
+      'darrion-api-section',
+      'grief-detection-section',
+      'onfim-notifications-section'
+    ];
+
+    sections.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.style.display = 'block';
+      }
+    });
+
+    // Load initial data
+    try {
+      await Promise.all([
+        fetchAllTempPages(),
+        fetchAllTodoItems(),
+        loadEmailHistory(),
+        populateEmailRecipients(),
+        loadUsers() // Automatically load users when admin content is shown
+      ]);
+    } catch (error) {
+      console.error("Error loading initial admin data:", error);
+      showMessageBox("Some data failed to load. Please refresh the page.", true);
+    }
+
+    // Setup collapsible sections
+    setupCollapsibleSections();
 
   } else {
-    console.log("DEBUG: No user is currently authenticated.");
-    loginRequiredMessage.style.display = 'block';
-    adminContent.style.display = 'none';
-    const allThemes = await getAvailableThemes();
-    const defaultThemeObj = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    applyTheme(defaultThemeObj.id, defaultThemeObj);
-
-    // Hide all sections if not logged in
-    if (infrastructureSection) infrastructureSection.style.display = 'none';
-    if (devToolsSection) devToolsSection.style.display = 'none';
-    if (userManagementSection) userManagementSection.style.display = 'none';
-    if (formManagementSection) formManagementSection.style.display = 'none';
-    if (tempPagesSection) tempPagesSection.style.display = 'none';
-    if (importantLinksSection) importantLinksSection.style.display = 'none';
-    if (roadmapSection) roadmapSection.style.display = 'none';
-    if (darrionApiSection) darrionApiSection.style.display = 'none';
-    if (griefDetectionSection) griefDetectionSection.style.display = 'none';
-    if (onfimNotificationsSection) onfimNotificationsSection.style.display = 'none';
+    console.log("DEBUG: No user authenticated, showing login required message");
+    if (adminContent) {
+      adminContent.style.display = 'none';
+    }
+    if (loginRequiredMessage) {
+      loginRequiredMessage.style.display = 'block';
+    }
   }
 };
 
@@ -1073,13 +1044,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  // Load Users button event listener
-  loadUsersBtn?.addEventListener('click', async function() {
-    console.log("DEBUG: Load Users button clicked");
-    await loadUsers();
-  });
-
-
+  // Create Temp Page form event listener
   createTempPageForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = tempPageTitleInput.value.trim();
@@ -1303,3 +1268,28 @@ window.deleteUserProfile = async function(uid, displayName) {
 window.openEditUserModal = function(uid, userData) {
   openEditUserModal(uid, userData);
 };
+
+// Setup collapsible sections
+function setupCollapsibleSections() {
+  const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+  
+  collapsibleHeaders.forEach(header => {
+    header.addEventListener('click', function() {
+      const content = this.nextElementSibling;
+      const arrow = this.querySelector('svg');
+      
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.classList.add('rotate-90');
+        
+        // Auto-load users when user management section is expanded
+        if (this.id === 'user-management-header' && usersData.length === 0) {
+          loadUsers();
+        }
+      } else {
+        content.classList.add('hidden');
+        arrow.classList.remove('rotate-90');
+      }
+    });
+  });
+}

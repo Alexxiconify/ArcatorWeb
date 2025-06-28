@@ -225,11 +225,6 @@
 
     <!-- Admin Content Section (visible only to authenticated users) -->
     <div id="admin-content" style="display: none;">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-heading-main">Welcome, <span id="admin-user-display"></span>!</h2>
-        <button id="logout-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-300 ease-in-out shadow-lg">Logout</button>
-      </div>
-
       <p class="text-lg text-text-secondary mb-8">
         This portal provides tools and information for managing Arcator infrastructure and development.
       </p>
@@ -284,7 +279,6 @@
           </div>
           <div id="user-management-content" class="collapsible-content hidden">
             <p class="text-text-secondary leading-relaxed mb-4">View and manage registered user profiles.</p>
-            <button id="load-users-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg mb-4">Load Users</button>
             <div class="overflow-x-auto">
               <table class="w-full text-left table-auto text-xs">
                 <thead>
@@ -298,8 +292,7 @@
                 </thead>
                 <tbody id="user-list-tbody">
                 <tr>
-                  <td class="text-center py-4 text-text-secondary text-xs" colspan="5">No users loaded yet. Click "Load
-                    Users".
+                  <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...
                   </td>
                 </tr>
                 </tbody>
