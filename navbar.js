@@ -5,6 +5,24 @@ import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEF
 import { applyTheme, getAvailableThemes } from './themes.js';
 import {validatePhotoURL} from './utils.js';
 
+// Utility function to convert hex color to RGB
+function hexToRgb(hex) {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Parse the hex values
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Check if parsing was successful
+  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+    return null;
+  }
+  
+  return { r, g, b };
+}
+
 // Modern embedded CSS styles with glassmorphism and contemporary design
 const navbarStyles = `
 /* Modern navbar styling with glassmorphism and contemporary design */
@@ -625,85 +643,32 @@ function injectNavbarStyles() {
  * This function forces the navbar to re-evaluate CSS variables
  */
 function updateNavbarForTheme() {
-  console.log('DEBUG: updateNavbarForTheme called');
-
   const navbar = document.querySelector('.navbar-bg');
-  if (navbar) {
-    console.log('DEBUG: Found navbar element, updating...');
+  if (!navbar) return;
 
-    // Get the current theme's navbar color
-    const computedStyle = getComputedStyle(document.documentElement);
-    const navbarColor = computedStyle.getPropertyValue('--color-bg-navbar').trim();
-    const navbarRgb = computedStyle.getPropertyValue('--color-bg-navbar-rgb').trim();
+  // Get the current navbar background color from CSS variables
+  const navbarColor = getComputedStyle(document.documentElement).getPropertyValue('--color-bg-navbar').trim();
+  const navbarRgb = hexToRgb(navbarColor);
 
-    console.log('DEBUG: Navbar color:', navbarColor);
-    console.log('DEBUG: Navbar RGB value:', navbarRgb);
+  if (navbarRgb) {
+    // Check if we're using a custom theme
+    const isCustomTheme = document.body.classList.contains('custom-theme') || 
+                         document.documentElement.classList.contains('custom-theme') ||
+                         document.documentElement.style.getPropertyValue('--color-body-bg');
 
-    // Force a reflow to ensure CSS variables are updated
-    navbar.style.transition = 'none';
-    navbar.offsetHeight; // Trigger reflow
-    navbar.style.transition = '';
-
-    // Check if this is a custom theme by looking for custom theme indicators
-    const hasInlineVariables = document.documentElement.style.cssText.length > 0;
-    const currentThemeClasses = Array.from(document.documentElement.classList).filter(cls => cls.startsWith('theme-'));
-    const isCustomTheme = document.body.classList.contains('custom-theme') ||
-      document.documentElement.classList.contains('custom-theme') ||
-      navbarColor.includes('custom') ||
-      !navbarRgb || navbarRgb === '' ||
-      hasInlineVariables;
-
-    console.log('DEBUG: Is custom theme:', isCustomTheme);
-    console.log('DEBUG: Body has custom-theme class:', document.body.classList.contains('custom-theme'));
-    console.log('DEBUG: Document has custom-theme class:', document.documentElement.classList.contains('custom-theme'));
-    console.log('DEBUG: Has inline variables:', hasInlineVariables);
-    console.log('DEBUG: Current theme classes:', currentThemeClasses);
-    console.log('DEBUG: Navbar RGB value:', navbarRgb);
-
-    if (isCustomTheme && navbarRgb && navbarRgb !== '') {
-      // For custom themes, apply direct background color
-      const rgbaValue = `rgba(${navbarRgb}, 0.95)`;
-      navbar.style.background = rgbaValue;
-      console.log('DEBUG: Applied custom theme background:', rgbaValue);
+    if (isCustomTheme) {
+      // Apply custom theme background with transparency
+      const rgbaValue = `rgba(${navbarRgb.r}, ${navbarRgb.g}, ${navbarRgb.b}, 0.95)`;
+      navbar.style.backgroundColor = rgbaValue;
+      
+      // Also update mobile background
+      const mobileRgbaValue = `rgba(${navbarRgb.r}, ${navbarRgb.g}, ${navbarRgb.b}, 0.98)`;
+      navbar.style.setProperty('--mobile-navbar-bg', mobileRgbaValue);
     } else {
-      // For built-in themes, remove inline styles to use CSS variables
-      navbar.style.removeProperty('background');
-      console.log('DEBUG: Removed inline background, using CSS variables for built-in theme');
+      // Remove inline background for built-in themes
+      navbar.style.backgroundColor = '';
+      navbar.style.removeProperty('--mobile-navbar-bg');
     }
-
-    // Update mobile menu background if open
-    const navbarLinks = document.getElementById('navbar-links');
-    if (navbarLinks && navbarLinks.classList.contains('mobile-open')) {
-      navbarLinks.style.transition = 'none';
-      navbarLinks.offsetHeight; // Trigger reflow
-      navbarLinks.style.transition = '';
-
-      if (isCustomTheme && navbarRgb && navbarRgb !== '') {
-        // For custom themes, apply direct background color
-        const mobileRgbaValue = `rgba(${navbarRgb}, 0.98)`;
-        navbarLinks.style.background = mobileRgbaValue;
-        console.log('DEBUG: Applied custom theme mobile background:', mobileRgbaValue);
-      } else {
-        // For built-in themes, remove inline styles
-        navbarLinks.style.removeProperty('background');
-        console.log('DEBUG: Removed inline mobile background, using CSS variables');
-      }
-    }
-
-    // Force update of all navbar elements that use CSS variables
-    const navbarElements = navbar.querySelectorAll('*');
-    navbarElements.forEach(element => {
-      if (element.style.transition) {
-        const originalTransition = element.style.transition;
-        element.style.transition = 'none';
-        element.offsetHeight; // Trigger reflow
-        element.style.transition = originalTransition;
-      }
-    });
-
-    console.log('DEBUG: Navbar theme update completed');
-  } else {
-    console.warn('DEBUG: Navbar element not found for theme update');
   }
 }
 
@@ -808,14 +773,8 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   const isLoggedIn = authUser && !authUser.isAnonymous;
   const isAnonymous = authUser && authUser.isAnonymous;
 
-  console.log('[DEBUG] updateNavbarState: authUser exists:', !!authUser);
-  console.log('[DEBUG] updateNavbarState: isAnonymous:', isAnonymous);
-  console.log('[DEBUG] updateNavbarState: isLoggedIn:', isLoggedIn);
-  console.log('[DEBUG] updateNavbarState: userProfile exists:', !!userProfile);
-
   if (isLoggedIn && userProfile) {
     // User is logged in with a profile
-    console.log('[DEBUG] updateNavbarState: Showing logged in user profile');
     if (userSettingsLink) {
       userSettingsLink.classList.remove('hidden');
     }
@@ -826,22 +785,13 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
     // Update profile picture with enhanced validation
     if (userProfilePic) {
       try {
-        console.log('[DEBUG] updateNavbarState: Setting profile picture for user:', userProfile.displayName);
-        console.log('[DEBUG] updateNavbarState: Raw photoURL:', userProfile.photoURL);
-
         const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL, defaultProfilePic);
-        console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
         userProfilePic.src = profilePicURL;
 
         // Add error handling for image loading
         userProfilePic.onerror = function () {
           const failedURL = this.src;
-          console.warn('[DEBUG] updateNavbarState: Profile picture failed to load:', failedURL);
-
-          // Special handling for Discord URLs
           if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
-            console.log('[DEBUG] updateNavbarState: Discord CDN URL failed - this is common due to CORS restrictions');
-            console.log('[DEBUG] updateNavbarState: The URL may work in browser tabs but fail in JavaScript');
             provideDiscordUrlGuidance(failedURL);
           }
 
@@ -850,11 +800,10 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
         };
 
         userProfilePic.onload = function () {
-          console.log('[DEBUG] updateNavbarState: Profile picture loaded successfully:', this.src);
+          // Success, do nothing
         };
 
       } catch (error) {
-        console.error('[DEBUG] updateNavbarState: Error setting profile picture:', error);
         userProfilePic.src = defaultProfilePic;
       }
     }
@@ -869,7 +818,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
     }
   } else if (isAnonymous) {
     // Anonymous user - show sign in
-    console.log('[DEBUG] updateNavbarState: Showing sign in for anonymous user');
     if (userSettingsLink) {
       userSettingsLink.classList.add('hidden');
     }
@@ -881,7 +829,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
     }
   } else {
     // User is not logged in at all
-    console.log('[DEBUG] updateNavbarState: Showing sign in for no user');
     if (userSettingsLink) {
       userSettingsLink.classList.add('hidden');
     }
@@ -924,7 +871,6 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
   const navbarPlaceholder = document.getElementById('navbar-placeholder');
 
   if (!navbarPlaceholder) {
-    console.error('Navbar placeholder element not found');
     return;
   }
 
@@ -951,15 +897,10 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
 
     // Listen for theme changes and update navbar
     document.addEventListener('themeChanged', () => {
-      console.log('Navbar: Theme changed, updating styles...');
       updateNavbarForTheme();
     });
 
-    console.log('Modern navbar loaded successfully');
-
   } catch (error) {
-    console.error('Failed to load navbar:', error);
-    // Fallback to simple navbar if loading fails
     navbarPlaceholder.innerHTML = `
       <nav style="background: var(--color-bg-navbar, #111827); padding: 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
         <a href="index.html" style="color: var(--color-text-primary, #E5E7EB); text-decoration: none; font-weight: bold;">Arcator.co.uk</a>
@@ -1015,16 +956,12 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
 firebaseReadyPromise.then(() => {
   // Set up auth state listener
   auth.onAuthStateChanged(async (user) => {
-    console.log('[DEBUG] Auth state changed:', user ? 'User logged in' : 'No user');
-    console.log('[DEBUG] User is anonymous:', user ? user.isAnonymous : 'N/A');
-
     let userProfile = null;
     if (user && !user.isAnonymous) {
       try {
         userProfile = await getUserProfileFromFirestore(user.uid);
-        console.log('[DEBUG] User profile loaded:', userProfile ? 'Success' : 'No profile found');
       } catch (error) {
-        console.error('[DEBUG] Error loading user profile:', error);
+        console.error('Error loading user profile:', error);
       }
     }
 
@@ -1032,12 +969,10 @@ firebaseReadyPromise.then(() => {
     const navbarPlaceholder = document.getElementById('navbar-placeholder');
     if (navbarPlaceholder && navbarPlaceholder.innerHTML.trim() !== '') {
       // Navbar is already loaded, just update the state
-      console.log('[DEBUG] Navbar already loaded, updating state only');
-      await updateNavbarState(user, userProfile, DEFAULT_PROFILE_PIC);
+      updateNavbarState(user, userProfile, DEFAULT_PROFILE_PIC);
     } else {
       // Navbar not loaded yet, load it completely
-      console.log('[DEBUG] Loading navbar for the first time');
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+      loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     }
 
     // Load footer if not already loaded
@@ -1050,8 +985,6 @@ firebaseReadyPromise.then(() => {
   // Add page visibility change listener to refresh navbar state when user returns to tab
   document.addEventListener('visibilitychange', async () => {
     if (!document.hidden) {
-      console.log('[DEBUG] Page became visible, checking auth state');
-      // Small delay to ensure Firebase auth state is current
       setTimeout(async () => {
         if (typeof window.forceRefreshNavbarState === 'function') {
           await window.forceRefreshNavbarState();
@@ -1062,8 +995,6 @@ firebaseReadyPromise.then(() => {
 
   // Add window focus listener as additional safeguard
   window.addEventListener('focus', async () => {
-    console.log('[DEBUG] Window gained focus, checking auth state');
-    // Small delay to ensure Firebase auth state is current
     setTimeout(async () => {
       if (typeof window.forceRefreshNavbarState === 'function') {
         await window.forceRefreshNavbarState();
@@ -1077,8 +1008,6 @@ firebaseReadyPromise.then(() => {
  * This can be called when you need to manually update the navbar
  */
 export async function forceRefreshNavbarState() {
-  console.log('[DEBUG] Force refreshing navbar state');
-
   const currentUser = auth.currentUser;
   let userProfile = null;
 
@@ -1086,7 +1015,7 @@ export async function forceRefreshNavbarState() {
     try {
       userProfile = await getUserProfileFromFirestore(currentUser.uid);
     } catch (error) {
-      console.error('[DEBUG] Error loading user profile for force refresh:', error);
+      console.error('Error loading user profile for force refresh:', error);
     }
   }
 
@@ -1103,10 +1032,7 @@ window.forceRefreshNavbarState = forceRefreshNavbarState;
  * @param {string} photoURL - The photo URL to test
  */
 export async function testProfilePicture(photoURL) {
-  console.log('[DEBUG] Testing profile picture URL:', photoURL);
-
   if (!window.currentUser) {
-    console.error('[DEBUG] No user logged in, cannot test profile picture');
     return;
   }
 
@@ -1114,8 +1040,6 @@ export async function testProfilePicture(photoURL) {
     // Use the enhanced validation function
     const {validateAndTestPhotoURL} = await import('./utils.js');
     const safePhotoURL = await validateAndTestPhotoURL(photoURL, window.DEFAULT_PROFILE_PIC);
-
-    console.log('[DEBUG] testProfilePicture: Validated URL:', safePhotoURL);
 
     // Temporarily update the current user's photoURL
     const originalPhotoURL = window.currentUser.photoURL;
@@ -1128,13 +1052,10 @@ export async function testProfilePicture(photoURL) {
     setTimeout(async () => {
       window.currentUser.photoURL = originalPhotoURL;
       await refreshNavbarProfilePicture(window.currentUser);
-      console.log('[DEBUG] testProfilePicture: Restored original profile picture');
     }, 5000);
 
-    console.log('[DEBUG] testProfilePicture: Profile picture test completed. Will restore in 5 seconds.');
-
   } catch (error) {
-    console.error('[DEBUG] testProfilePicture: Error testing profile picture:', error);
+    console.error('Error testing profile picture:', error);
   }
 }
 
@@ -1146,27 +1067,26 @@ window.testProfilePicture = testProfilePicture;
  * @param {string} discordURL - The Discord URL that's failing
  */
 export function provideDiscordUrlGuidance(discordURL) {
-  console.log('[DEBUG] Discord URL Guidance:');
-  console.log('[DEBUG] URL:', discordURL);
-  console.log('[DEBUG] This is a common issue with Discord CDN URLs.');
-  console.log('[DEBUG]');
-  console.log('[DEBUG] 🎯 RECOMMENDED SOLUTION: Convert to ImgBB');
-  console.log('[DEBUG] 1. Visit: https://imgbb.com/');
-  console.log('[DEBUG] 2. Click "Start uploading"');
-  console.log('[DEBUG] 3. Upload your Discord image file');
-  console.log('[DEBUG] 4. Copy the direct link (ends with .jpg, .png, etc.)');
-  console.log('[DEBUG] 5. Use window.updateProfilePicture(newURL) to update your profile');
-  console.log('[DEBUG]');
-  console.log('[DEBUG] Why Discord URLs break:');
-  console.log('[DEBUG] - Discord CDN URLs can expire over time');
-  console.log('[DEBUG] - CORS restrictions prevent loading in JavaScript');
-  console.log('[DEBUG] - URLs work in browser tabs but fail in JavaScript');
-  console.log('[DEBUG]');
-  console.log('[DEBUG] Quick fix commands:');
-  console.log('[DEBUG] - window.convertAndUpdateDiscordUrl("' + discordURL + '")');
-  console.log('[DEBUG] - window.updateProfilePicture("your-new-imgbb-url")');
-  console.log('[DEBUG]');
-  console.log('[DEBUG] Alternative services: Imgur, Cloudinary, Uploadcare, Postimages');
+  console.log('Discord URL Guidance:');
+  console.log('URL:', discordURL);
+  console.log('This is a common issue with Discord CDN URLs.');
+  console.log('🎯 RECOMMENDED SOLUTION: Convert to ImgBB');
+  console.log('1. Visit: https://imgbb.com/');
+  console.log('2. Click "Start uploading"');
+  console.log('3. Upload your Discord image file');
+  console.log('4. Copy the direct link (ends with .jpg, .png, etc.)');
+  console.log('5. Use window.updateProfilePicture(newURL) to update your profile');
+  console.log('');
+  console.log('Why Discord URLs break:');
+  console.log('- Discord CDN URLs can expire over time');
+  console.log('- CORS restrictions prevent loading in JavaScript');
+  console.log('- URLs work in browser tabs but fail in JavaScript');
+  console.log('');
+  console.log('Quick fix commands:');
+  console.log('- window.convertAndUpdateDiscordUrl("' + discordURL + '")');
+  console.log('- window.updateProfilePicture("your-new-imgbb-url")');
+  console.log('');
+  console.log('Alternative services: Imgur, Cloudinary, Uploadcare, Postimages');
 }
 
 /**
@@ -1175,15 +1095,11 @@ export function provideDiscordUrlGuidance(discordURL) {
  * @param {string} newPhotoURL - The new photo URL to set
  */
 export async function updateProfilePicture(newPhotoURL) {
-  console.log('[DEBUG] updateProfilePicture called with:', newPhotoURL);
-
   if (!window.currentUser || !window.auth.currentUser) {
-    console.error('[DEBUG] No user logged in, cannot update profile picture');
     return;
   }
 
   if (!newPhotoURL) {
-    console.error('[DEBUG] No photo URL provided');
     return;
   }
 
@@ -1195,8 +1111,6 @@ export async function updateProfilePicture(newPhotoURL) {
     });
 
     if (success) {
-      console.log('[DEBUG] Profile picture updated successfully');
-
       // Update the local currentUser object
       window.currentUser.photoURL = newPhotoURL;
 
@@ -1206,14 +1120,12 @@ export async function updateProfilePicture(newPhotoURL) {
       // Show success message
       if (typeof window.showMessageBox === 'function') {
         window.showMessageBox('Profile picture updated successfully!', false);
-      } else {
-        console.log('[DEBUG] Profile picture updated successfully!');
       }
     } else {
-      console.error('[DEBUG] Failed to update profile picture in Firestore');
+      console.error('Failed to update profile picture in Firestore');
     }
   } catch (error) {
-    console.error('[DEBUG] Error updating profile picture:', error);
+    console.error('Error updating profile picture:', error);
   }
 }
 
@@ -1222,15 +1134,11 @@ export async function updateProfilePicture(newPhotoURL) {
  * @param {string} discordURL - The broken Discord URL to convert
  */
 export async function convertAndUpdateDiscordUrl(discordURL) {
-  console.log('[DEBUG] convertAndUpdateDiscordUrl called with:', discordURL);
-
   if (!window.currentUser || !window.auth.currentUser) {
-    console.error('[DEBUG] No user logged in, cannot convert Discord URL');
     return;
   }
 
   if (!discordURL || !discordURL.includes('discordapp.com')) {
-    console.error('[DEBUG] Not a Discord URL provided');
     return;
   }
 
@@ -1238,16 +1146,14 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     // Import the conversion function
     const {convertDiscordUrlToReliableCDN, createImageUploadHelper} = await import('./utils.js');
 
-    console.log('[DEBUG] Attempting to convert Discord URL to ImgBB...');
-
     // Try to convert the Discord URL to ImgBB
     const convertedURL = await convertDiscordUrlToReliableCDN(discordURL);
 
     if (convertedURL === discordURL) {
-      console.log('[DEBUG] Discord URL conversion not needed or failed');
-      console.log('[DEBUG] Showing manual conversion options...');
+      console.log('Discord URL conversion not needed or failed');
+      console.log('Showing manual conversion options...');
     } else {
-      console.log('[DEBUG] Discord URL converted successfully:', convertedURL);
+      console.log('Discord URL converted successfully:', convertedURL);
 
       // Automatically update the user's profile with the converted URL
       await updateProfilePicture(convertedURL);

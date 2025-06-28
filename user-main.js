@@ -16,7 +16,6 @@ import {
 import { showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL } from './utils.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
-import { setupCustomThemeManagement } from './custom_theme_modal.js'; // Import custom theme management
 
 // Import global shortcut functions from app.js
 import {
@@ -157,7 +156,6 @@ const githubSignInBtn = document.getElementById('github-signin-btn');
  * @param {HTMLElement} sectionElement - The DOM element of the section to make visible.
  */
 function showSection(sectionElement) {
-  console.log(`DEBUG: showSection called with element: ${sectionElement ? sectionElement.id : 'null'}`);
   // Hide all main content sections first
   const sections = [signInSection, signUpSection, forgotPasswordSection, settingsContent, loginRequiredMessage];
   sections.forEach(sec => {
@@ -166,7 +164,6 @@ function showSection(sectionElement) {
 
   if (sectionElement) {
     sectionElement.style.display = 'block';
-    console.log(`DEBUG: Displayed section: ${sectionElement.id}`);
 
     // Update hero banner based on section
     const heroTitle = document.getElementById('hero-title');
@@ -199,31 +196,30 @@ function showSection(sectionElement) {
           break;
       }
     }
-  } else {
-    console.warn(`Attempted to show null section element.`);
   }
-  hideLoading(); // Always hide loading once a section is displayed
 }
 
 /**
  * Shows the loading spinner and hides all content sections.
  */
 function showLoading() {
-  if (loadingSpinner) loadingSpinner.style.display = 'flex';
-  // Hide all known content sections
-  const sections = [signInSection, signUpSection, forgotPasswordSection, settingsContent, loginRequiredMessage];
-  sections.forEach(sec => {
-    if (sec) sec.style.display = 'none';
-  });
-  console.log("DEBUG: showLoading - Spinner visible, content hidden.");
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'flex';
+  }
+  if (signInSection) signInSection.style.display = 'none';
+  if (signUpSection) signUpSection.style.display = 'none';
+  if (forgotPasswordSection) forgotPasswordSection.style.display = 'none';
+  if (settingsContent) settingsContent.style.display = 'none';
+  if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
 }
 
 /**
  * Hides the loading spinner.
  */
 function hideLoading() {
-  if (loadingSpinner) loadingSpinner.style.display = 'none';
-  console.log("DEBUG: hideLoading - Spinner hidden.");
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'none';
+  }
 }
 
 // Handler for user sign-in
@@ -441,7 +437,23 @@ async function reloadAndApplyUserProfile() {
   const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
   if (!userProfile) return;
 
-  console.log('DEBUG: reloadAndApplyUserProfile - userProfile:', userProfile);
+  // Populate profile input fields
+  if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
+  if (handleInput) handleInput.value = userProfile.handle || '';
+  if (emailInput) emailInput.value = userProfile.email || '';
+  if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
+
+  // Update profile display elements
+  if (displayNameText) displayNameText.textContent = userProfile.displayName || 'N/A';
+  if (handleText) handleText.textContent = userProfile.handle ? `@${userProfile.handle}` : 'N/A';
+  if (emailText) emailText.textContent = userProfile.email || 'N/A';
+  
+  // Update profile picture display
+  if (profilePictureDisplay) {
+    const photoURL = userProfile.photoURL || DEFAULT_PROFILE_PIC;
+    profilePictureDisplay.src = photoURL;
+    profilePictureDisplay.alt = userProfile.displayName || 'User Profile Picture';
+  }
 
   // Apply all settings to UI controls
   if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
@@ -613,8 +625,6 @@ async function reloadAndApplyUserProfile() {
 
   // Update UI to reflect current shortcuts and disabled state
   updateShortcutUI();
-
-  console.log('DEBUG: All settings loaded and applied successfully');
 }
 
 // Function to update shortcut UI elements
@@ -651,7 +661,12 @@ function updateShortcutUI() {
 
 // Function to save shortcuts to Firebase
 async function saveShortcutsToFirebase() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save keyboard shortcuts.', true);
+    return;
+  }
 
   const currentShortcuts = getCurrentShortcuts();
   const disabledShortcutsList = Array.from(disabledShortcuts);
@@ -664,7 +679,7 @@ async function saveShortcutsToFirebase() {
   };
 
   try {
-    await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    await setUserProfileInFirestore(currentUser.uid, updates);
     showMessageBox('Keyboard shortcuts saved successfully!', false);
   } catch (error) {
     console.error('Error saving shortcuts:', error);
@@ -826,79 +841,68 @@ function applyFontScalingSystem(userProfile) {
   document.documentElement.style.setProperty('--font-family', fontFamily);
 }
 
-// Handler for saving profile changes
+// Handler for saving profile information
 async function handleSaveProfile() {
-  const displayName = displayNameInput.value.trim();
-  const handle = handleInput.value.trim();
-  const email = emailInput.value.trim();
-  const photoURL = profilePictureUrlInput.value.trim();
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save profile settings.', true);
+    return;
+  }
 
-  // Validate inputs
+  const displayName = displayNameInput ? displayNameInput.value.trim() : '';
+  const handle = handleInput ? handleInput.value.trim() : '';
+  const email = emailInput ? emailInput.value.trim() : '';
+  const photoURL = profilePictureUrlInput ? profilePictureUrlInput.value.trim() : '';
+
   if (!displayName) {
     showMessageBox('Display name is required.', true);
     return;
   }
 
-  if (handle && !sanitizeHandle(handle)) {
-    showMessageBox('Handle must be 3-20 characters, alphanumeric with underscores only.', true);
-    return;
-  }
-
-  if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    showMessageBox('Please enter a valid email address.', true);
-    return;
-  }
-
-  if (photoURL && !validatePhotoURL(photoURL)) {
-    showMessageBox('Please enter a valid image URL.', true);
-    return;
-  }
+  const updates = {
+    displayName: displayName,
+    handle: handle,
+    email: email,
+    photoURL: photoURL,
+    lastUpdated: new Date().toISOString()
+  };
 
   try {
-    showLoading();
-
-    // Update Firebase Auth profile
-    await updateProfile(auth.currentUser, {
-      displayName: displayName,
-      photoURL: photoURL || null
-    });
-
-    // Update user profile in Firestore
-    const userProfile = {
-      displayName: displayName,
-      handle: handle,
-      email: email,
-      photoURL: photoURL || DEFAULT_PROFILE_PIC,
-      lastUpdated: new Date()
-    };
-
-    await setUserProfileInFirestore(auth.currentUser.uid, userProfile);
-
-    // Update UI
-    if (displayNameText) displayNameText.textContent = displayName;
-    if (handleText) handleText.textContent = handle ? `@${handle}` : 'No handle set';
-    if (emailText) emailText.textContent = email || 'No email set';
-    if (profilePictureDisplay) {
-      profilePictureDisplay.src = photoURL || DEFAULT_PROFILE_PIC;
+    showMessageBox('Updating profile...', false);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
+    if (success) {
+      showMessageBox('Profile updated successfully!');
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        const messageBox = document.getElementById('message-box');
+        if (messageBox) messageBox.style.display = 'none';
+      }, 2000);
+      
+      // Update UI immediately
+      if (displayNameText) displayNameText.textContent = displayName;
+      if (handleText) handleText.textContent = handle ? `@${handle}` : '';
+      if (emailText) emailText.textContent = email || 'N/A';
+      if (profilePictureDisplay) {
+        profilePictureDisplay.src = photoURL || DEFAULT_PROFILE_PIC;
+      }
+    } else {
+      showMessageBox('Failed to update profile. Please try again.', true);
     }
-
-    showMessageBox('Profile updated successfully!');
-    // Auto-hide success message after 2 seconds
-    setTimeout(() => {
-      const messageBox = document.getElementById('message-box');
-      if (messageBox) messageBox.style.display = 'none';
-    }, 2000);
   } catch (error) {
     console.error('Error updating profile:', error);
-    showMessageBox('Failed to update profile. Please try again.', true);
-  } finally {
-    hideLoading();
+    showMessageBox('Error updating profile.', true);
   }
 }
 
 // Handler for saving preferences
 async function handleSavePreferences() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save preferences.', true);
+    return;
+  }
 
   const fontSize = fontSizeSelect ? fontSizeSelect.value : '16px';
   const fontFamily = fontFamilySelect ? fontFamilySelect.value : 'Inter, sans-serif';
@@ -915,38 +919,13 @@ async function handleSavePreferences() {
     headingSizeMultiplier: headingSizeMultiplier,
     lineHeight: lineHeight,
     letterSpacing: letterSpacing,
-    backgroundOpacity: backgroundOpacity
+    backgroundOpacity: backgroundOpacity,
+    lastUpdated: new Date().toISOString()
   };
-
-  // Apply font scaling system immediately
-  const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-  const updatedProfile = { ...userProfile, ...updates };
-  applyFontScalingSystem(updatedProfile);
-
-  // Apply background pattern with opacity immediately
-  const opacity = (backgroundOpacity || 50) / 100;
-  if (backgroundPattern === 'none') {
-    document.body.style.backgroundImage = 'none';
-  } else if (backgroundPattern === 'dots') {
-    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '20px 20px';
-  } else if (backgroundPattern === 'grid') {
-    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '40px 40px';
-  } else if (backgroundPattern === 'diagonal') {
-    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
-    document.body.style.backgroundSize = '60px 60px';
-  } else if (backgroundPattern === 'circles') {
-    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = '30px 30px';
-  } else if (backgroundPattern === 'hexagons') {
-    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
-    document.body.style.backgroundSize = '40px 40px';
-  }
 
   try {
     showMessageBox('Saving preferences...', false);
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox('Preferences saved successfully!', false);
       // Auto-hide success message after 2 seconds
@@ -954,6 +933,8 @@ async function handleSavePreferences() {
         const messageBox = document.getElementById('message-box');
         if (messageBox) messageBox.style.display = 'none';
       }, 2000);
+      // Apply settings immediately (use full profile)
+      await reloadAndApplyUserProfile();
       // Update background opacity display immediately
       if (backgroundOpacityValue) {
         backgroundOpacityValue.textContent = backgroundOpacity + '%';
@@ -969,7 +950,12 @@ async function handleSavePreferences() {
 
 // Handler for saving notification settings
 async function handleSaveNotifications() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save notification settings.', true);
+    return;
+  }
 
   // Get all notification checkboxes
   const notificationCheckboxes = [
@@ -987,25 +973,23 @@ async function handleSaveNotifications() {
     if (checkbox) {
       const settingKey = checkboxId.replace('-checkbox', '');
       notificationSettings[settingKey] = checkbox.checked;
-      console.log(`DEBUG: Saving ${settingKey}:`, checkbox.checked);
     }
   });
 
-  // Add notification frequency
+  // Add notification frequency setting
   const notificationFrequencySelect = document.getElementById('notification-frequency-select');
   if (notificationFrequencySelect) {
     notificationSettings.notificationFrequency = notificationFrequencySelect.value;
   }
 
-  console.log('DEBUG: Saving notificationSettings to Firebase:', notificationSettings);
-
   const updates = {
-    notificationSettings: notificationSettings
+    notificationSettings: notificationSettings,
+    lastUpdated: new Date().toISOString()
   };
 
   try {
     showMessageBox('Saving notification settings...', false);
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox('Notification settings saved successfully!', false);
       // Auto-hide success message after 2 seconds
@@ -1024,7 +1008,12 @@ async function handleSaveNotifications() {
 
 // Handler for saving privacy settings
 async function handleSavePrivacy() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save privacy settings.', true);
+    return;
+  }
 
   // Get all privacy checkboxes
   const privacyCheckboxes = [
@@ -1049,12 +1038,13 @@ async function handleSavePrivacy() {
   }
 
   const updates = {
-    privacySettings: privacySettings
+    privacySettings: privacySettings,
+    lastUpdated: new Date().toISOString()
   };
 
   try {
     showMessageBox('Saving privacy settings...', false);
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox('Privacy settings saved successfully!', false);
       // Auto-hide success message after 2 seconds
@@ -1249,7 +1239,12 @@ function applyAccessibilitySettings(settings) {
 
 // Handler for saving accessibility settings
 async function handleSaveAccessibility() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save accessibility settings.', true);
+    return;
+  }
 
   // Get all accessibility checkboxes
   const accessibilityCheckboxes = [
@@ -1277,15 +1272,13 @@ async function handleSaveAccessibility() {
   });
 
   const updates = {
-    accessibilitySettings: accessibilitySettings
+    accessibilitySettings: accessibilitySettings,
+    lastUpdated: new Date().toISOString()
   };
-
-  // Apply accessibility settings immediately
-  applyAccessibilitySettings(accessibilitySettings);
 
   try {
     showMessageBox('Saving accessibility settings...', false);
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox('Accessibility settings saved successfully!', false);
       // Auto-hide success message after 2 seconds
@@ -1293,6 +1286,9 @@ async function handleSaveAccessibility() {
         const messageBox = document.getElementById('message-box');
         if (messageBox) messageBox.style.display = 'none';
       }, 2000);
+      
+      // Apply settings immediately
+      applyAccessibilitySettings(accessibilitySettings);
     } else {
       showMessageBox('Failed to save accessibility settings. Please try again.', true);
     }
@@ -1304,7 +1300,12 @@ async function handleSaveAccessibility() {
 
 // Handler for saving advanced settings
 async function handleSaveAdvanced() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to save advanced settings.', true);
+    return;
+  }
 
   // Get all advanced checkboxes
   const advancedCheckboxes = [
@@ -1352,7 +1353,8 @@ async function handleSaveAdvanced() {
   advancedSettings.disabledShortcuts = disabledShortcuts;
 
   const updates = {
-    advancedSettings: advancedSettings
+    advancedSettings: advancedSettings,
+    lastUpdated: new Date().toISOString()
   };
 
   // Apply advanced settings immediately
@@ -1363,7 +1365,7 @@ async function handleSaveAdvanced() {
 
   try {
     showMessageBox('Saving advanced settings...', false);
-    const success = await setUserProfileInFirestore(auth.currentUser.uid, updates);
+    const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox('Advanced settings saved successfully!', false);
       // Auto-hide success message after 2 seconds
@@ -1440,10 +1442,15 @@ function applyAdvancedSettings(settings) {
 
 // Handler for exporting user data
 async function handleExportData() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to export data.', true);
+    return;
+  }
 
   try {
-    const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    const userProfile = await getUserProfileFromFirestore(currentUser.uid);
     const exportData = {
       exportDate: new Date().toISOString(),
       userProfile: userProfile,
@@ -1469,7 +1476,7 @@ async function handleExportData() {
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `arcator-user-data-${auth.currentUser.uid}-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `arcator-user-data-${currentUser.uid}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1484,7 +1491,12 @@ async function handleExportData() {
 
 // Handler for importing user data
 async function handleImportData() {
-  if (!auth.currentUser) return;
+  // Get current user from Firebase auth
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showMessageBox('You must be logged in to import data.', true);
+    return;
+  }
 
   const input = document.createElement('input');
   input.type = 'file';
@@ -1499,7 +1511,7 @@ async function handleImportData() {
 
       if (importData.userProfile && importData.settings) {
         // Import settings
-        await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
+        await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUser.uid), {
           ...importData.userProfile,
           ...importData.settings
         }, { merge: true });
@@ -1561,283 +1573,41 @@ async function handleResetAdvanced() {
 
 // Main execution logic when the window loads
 window.onload = async function () {
-  console.log("user-main.js: window.onload fired.");
   showLoading(); // Show spinner initially
 
   try {
     // Wait for Firebase to be fully initialized and available
     await firebaseReadyPromise;
-    console.log("user-main.js: Firebase is ready. Proceeding with auth state check.");
 
     // Initialize themes module (connects it to Firebase instances)
     setupThemesFirebase();
-    console.log("DEBUG: Themes module initialized.");
 
-    // Listen for authentication state changes
-    onAuthStateChanged(auth, async (user) => {
-      console.log("user-main.js: onAuthStateChanged triggered. User:", user ? user.uid : "none", "User email:", user ? user.email : "none");
-      console.log("DEBUG: Starting onAuthStateChanged processing block.");
+    // Apply default theme
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    applyTheme(themeToApply.id, themeToApply);
 
-      let userProfile = null; // Initialize userProfile here, moved to higher scope
-      let userThemePreference = null; // Initialize here, moved to higher scope
+    // Setup event listeners
+    setupEventListeners();
 
-      if (user && !user.isAnonymous) {
-        console.log("DEBUG: User is authenticated and not anonymous. Attempting to fetch user profile.");
-        // User is signed in and not anonymous. Fetch user profile.
-        userProfile = await getUserProfileFromFirestore(user.uid);
-        console.log("user-main.js: User Profile fetched for settings:", userProfile);
+    // Show settings section by default
+    showSection(settingsContent);
 
-        // Load navbar with *both* the basic user object and the fetched userProfile.
-        // This ensures navbar has full data to render correctly.
-        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-        console.log("DEBUG: Navbar loaded.");
-
-        if (userProfile) {
-          console.log("DEBUG: User profile found. Populating settings UI.");
-          userThemePreference = userProfile.themePreference; // Assign value here
-
-          // Update profile display elements
-          console.log("DEBUG: Setting profile picture. userProfile.photoURL:", userProfile.photoURL, "user.photoURL:", user.photoURL);
-          console.log("DEBUG: profilePictureDisplay element:", profilePictureDisplay);
-          if (profilePictureDisplay) {
-            const finalPhotoURL = validatePhotoURL(userProfile.photoURL || user.photoURL, DEFAULT_PROFILE_PIC);
-            console.log("DEBUG: Final photo URL:", finalPhotoURL);
-            profilePictureDisplay.src = finalPhotoURL;
-
-            // Add error handling for image loading
-            profilePictureDisplay.onerror = function () {
-              console.log("DEBUG: Image failed to load, falling back to default");
-              this.src = DEFAULT_PROFILE_PIC;
-
-              // Show helpful message if it's a Discord URL
-              const failedURL = this.src;
-              if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
-                showMessageBox("Your Discord profile picture URL appears to be broken. Consider uploading a new image or using a different hosting service.", true);
-              }
-            };
-
-            profilePictureDisplay.onload = function () {
-              console.log("DEBUG: Image loaded successfully");
-            };
-          } else {
-            console.error("DEBUG: profilePictureDisplay element not found!");
-          }
-          if (displayNameText) displayNameText.textContent = userProfile.displayName || 'N/A';
-          if (handleText) handleText.textContent = userProfile.handle ? `@${userProfile.handle}` : '';
-          if (emailText) emailText.textContent = userProfile.email || user.email || 'N/A';
-
-          // Populate settings input fields
-          if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
-          if (handleInput) handleInput.value = userProfile.handle || '';
-          if (emailInput) emailInput.value = userProfile.email || '';
-          if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
-
-          // Populate session information
-          if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
-            const lastLoginDate = userProfile.lastLoginAt.toDate ? userProfile.lastLoginAt.toDate() : new Date(userProfile.lastLoginAt);
-            document.getElementById('last-login-time').textContent = `Last Login: ${lastLoginDate.toLocaleString()}`;
-          }
-          if (document.getElementById('account-creation-time') && userProfile.createdAt) {
-            const creationDate = userProfile.createdAt.toDate ? userProfile.createdAt.toDate() : new Date(userProfile.createdAt);
-            document.getElementById('account-creation-time').textContent = `Account Created: ${creationDate.toLocaleString()}`;
-          }
-
-          // Use the centralized reloadAndApplyUserProfile function to load all settings consistently
-          await reloadAndApplyUserProfile();
-
-          showSection(settingsContent); // Display the settings section
-        } else {
-          console.warn("user-main.js: User profile not found in Firestore for UID:", user.uid, ". Displaying login required message.");
-          showSection(loginRequiredMessage); // Fallback to login required
-        }
-
-        console.log("DEBUG: Attempting to apply theme after user profile processed.");
-        // Apply the theme: user's preference, or the default theme.
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        applyTheme(themeToApply.id, themeToApply);
-        console.log("DEBUG: Theme applied.");
-
-        // Populate theme select (moved inside the authenticated user block)
-        const themeSelect = document.getElementById('theme-select');
-        if (themeSelect) {
-          themeSelect.innerHTML = '';
-          allThemes.forEach(theme => {
-            const opt = document.createElement('option');
-            opt.value = theme.id;
-            opt.textContent = theme.name;
-            themeSelect.appendChild(opt);
-          });
-          // Set current theme as selected
-          if (userProfile && userProfile.themePreference) {
-            themeSelect.value = userProfile.themePreference;
-          } else {
-            themeSelect.value = DEFAULT_THEME_NAME;
-          }
-          // Change event
-          themeSelect.onchange = async function () {
-            const selectedThemeId = themeSelect.value;
-            console.log(`DEBUG: Theme selection changed to: ${selectedThemeId}`);
-
-            const themes = await getAvailableThemes();
-            const selectedTheme = themes.find(t => t.id === selectedThemeId);
-
-            if (selectedTheme) {
-              console.log(`DEBUG: Found theme data:`, selectedTheme);
-              await applyTheme(selectedTheme.id, selectedTheme);
-
-              // Save theme preference to user profile
-              if (auth.currentUser) {
-                try {
-                  await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid), {
-                    themePreference: selectedThemeId
-                  }, { merge: true });
-                  console.log("Theme preference saved to user profile.");
-                } catch (error) {
-                  console.error("Error saving theme preference:", error);
-                }
-              }
-            } else {
-              console.error(`DEBUG: Theme not found for ID: ${selectedThemeId}`);
-              console.log(`DEBUG: Available themes:`, themes.map(t => ({
-                id: t.id,
-                name: t.name,
-                isCustom: t.isCustom
-              })));
-            }
-          };
-
-          // Setup custom theme management
-          const populateThemeSelect = async (selectedThemeId = null) => {
-            const themes = await getAvailableThemes();
-            themeSelect.innerHTML = '';
-            themes.forEach(theme => {
-              const opt = document.createElement('option');
-              opt.value = theme.id;
-              opt.textContent = theme.name;
-              themeSelect.appendChild(opt);
-            });
-            if (selectedThemeId) {
-              themeSelect.value = selectedThemeId;
-            }
-          };
-
-          setupCustomThemeManagement(
-            db,
-            auth,
-            appId,
-            showMessageBox,
-            populateThemeSelect,
-            themeSelect,
-            DEFAULT_THEME_NAME,
-            user,
-            showCustomConfirm
-          );
-        }
-
-      } else {
-        // User is signed out or anonymous. Display the sign-in form.
-        console.log("user-main.js: User logged out or anonymous. Showing sign-in section.");
-        // Load navbar for logged-out state
-        await loadNavbar(user, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-        console.log("DEBUG: Navbar loaded for logged-out user.");
-        showSection(signInSection);
-        console.log("DEBUG: Sign-in section displayed.");
-
-        // Apply default theme for logged-out users
-        console.log("DEBUG: Applying default theme for logged-out user.");
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        applyTheme(themeToApply.id, themeToApply);
-        console.log("DEBUG: Default theme applied.");
-      }
-    });
-
-    // --- Event Listeners for Authentication Navigation ---
-    if (goToSignUpLink) goToSignUpLink.addEventListener('click', (e) => { e.preventDefault(); showSection(signUpSection); });
-    if (goToSignInLink) goToSignInLink.addEventListener('click', (e) => { e.preventDefault(); showSection(signInSection); });
-    if (goToForgotPasswordLink) goToForgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showSection(forgotPasswordSection); });
-    if (goToSignInFromForgotLink) goToSignInFromForgotLink.addEventListener('click', (e) => { e.preventDefault(); showSection(signInSection); });
-    if (document.getElementById('link-to-signin')) document.getElementById('link-to-signin').addEventListener('click', (e) => { e.preventDefault(); showSection(signInSection); });
-
-    // --- Event Listeners for Authentication Actions ---
-    if (signInButton) signInButton.addEventListener('click', handleSignIn);
-    if (signUpButton) signUpButton.addEventListener('click', handleSignUp);
-    if (resetPasswordButton) resetPasswordButton.addEventListener('click', handlePasswordReset);
-
-    // --- Event listeners for profile/preferences saving ---
-    if (saveProfileBtn) saveProfileBtn.addEventListener('click', handleSaveProfile);
-    if (savePreferencesBtn) savePreferencesBtn.addEventListener('click', handleSavePreferences);
-
-    // --- Placeholder Event Listeners for Future Features ---
-    const changePasswordBtn = document.getElementById('change-password-btn');
-    if (changePasswordBtn) changePasswordBtn.addEventListener('click', () => showMessageBox('Change Password functionality coming soon!', false));
-
-    const saveNotificationsBtn = document.getElementById('save-notifications-btn');
-    if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', handleSaveNotifications);
-
-    const saveAccessibilityBtn = document.getElementById('save-accessibility-btn');
-    if (saveAccessibilityBtn) saveAccessibilityBtn.addEventListener('click', handleSaveAccessibility);
-
-    const deleteAccountBtn = document.getElementById('delete-account-btn');
-    if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', () => showMessageBox('Delete account functionality coming soon! Be careful with this one!', true));
-
-    // New event listeners for enhanced settings
-    if (savePrivacyBtn) savePrivacyBtn.addEventListener('click', handleSavePrivacy);
-    if (exportDataBtn) exportDataBtn.addEventListener('click', handleExportData);
-    if (importDataBtn) importDataBtn.addEventListener('click', handleImportData);
-    if (saveAdvancedBtn) saveAdvancedBtn.addEventListener('click', handleSaveAdvanced);
-    if (resetAdvancedBtn) resetAdvancedBtn.addEventListener('click', handleResetAdvanced);
-
-    // Background opacity range slider
-    if (backgroundOpacityRange && backgroundOpacityValue) {
-      backgroundOpacityRange.addEventListener('input', function () {
-        backgroundOpacityValue.textContent = this.value + '%';
-      });
-    }
-
-    // Custom theme management
-    const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
-    if (createCustomThemeBtn) {
-      createCustomThemeBtn.addEventListener('click', () => {
-        setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, themeSelect, DEFAULT_THEME_NAME, userProfile, showCustomConfirm);
-      });
-    }
-
-    // Global shortcuts are now handled by app.js
-
-    // Social authentication event listeners
-    if (googleSignInBtn) {
-      googleSignInBtn.addEventListener('click', handleGoogleSignIn);
-    }
-
-    if (githubSignInBtn) {
-      githubSignInBtn.addEventListener('click', handleGitHubSignIn);
-    }
-
+    hideLoading(); // Hide spinner
   } catch (error) {
-    console.error("user-main.js: Error during window.onload execution:", error);
-    showMessageBox("An unexpected error occurred during page load.", true);
-  } finally {
-    // The hideLoading() is now consistently called within showSection()
-    // which is invoked once the appropriate UI section is determined.
+    console.error("Error in user-main.js initialization:", error);
+    hideLoading();
   }
 };
 
 // Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-  console.log('DEBUG: user-main.js DOMContentLoaded event fired');
-
   try {
     // Wait for Firebase to be ready
     await firebaseReadyPromise;
-    console.log('DEBUG: Firebase is ready');
 
     // Setup themes
     setupThemesFirebase(db, auth, appId);
-
-    // Setup custom theme management
-    setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, null, DEFAULT_THEME_NAME, auth.currentUser, showCustomConfirm);
 
     // Global shortcuts are now handled by app.js
 
@@ -1846,13 +1616,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Check authentication state
     auth.onAuthStateChanged(async (user) => {
-      console.log('DEBUG: Auth state changed:', user ? 'User logged in' : 'No user');
-
       if (user) {
         // User is signed in
-        console.log('DEBUG: User is signed in, loading profile...');
         const userProfile = await getUserProfileFromFirestore(user.uid);
-        console.log('DEBUG: User profile loaded:', userProfile);
 
         // Load and apply user profile
         await reloadAndApplyUserProfile();
@@ -1865,7 +1631,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       } else {
         // User is signed out
-        console.log('DEBUG: User is signed out, showing sign in form');
         showSection(signInSection);
 
         // Load navbar without user
@@ -1873,18 +1638,14 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     });
 
-    console.log('DEBUG: user-main.js initialization completed');
-
   } catch (error) {
-    console.error('DEBUG: Error during user-main.js initialization:', error);
+    console.error('Error during user-main.js initialization:', error);
     showMessageBox('Failed to initialize page. Please refresh and try again.', true);
   }
 });
 
 // Setup all event listeners
 function setupEventListeners() {
-  console.log('DEBUG: Setting up event listeners');
-
   // Sign in form
   if (signInButton) {
     signInButton.addEventListener('click', handleSignIn);
@@ -1967,130 +1728,101 @@ function setupEventListeners() {
     importDataBtn.addEventListener('click', handleImportData);
   }
 
-  // Password change
-  const changePasswordForm = document.getElementById('change-password-form');
-  if (changePasswordForm) {
-    changePasswordForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      // Handle password change
-      console.log('Password change form submitted');
-    });
+  // Social authentication
+  if (googleSignInBtn) {
+    googleSignInBtn.addEventListener('click', handleGoogleSignIn);
   }
 
-  // Account deletion
-  const deleteAccountForm = document.getElementById('delete-account-form');
-  if (deleteAccountForm) {
-    deleteAccountForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      // Handle account deletion
-      console.log('Account deletion form submitted');
-    });
+  if (githubSignInBtn) {
+    githubSignInBtn.addEventListener('click', handleGitHubSignIn);
   }
 
-  // Background opacity range
-  if (backgroundOpacityRange && backgroundOpacityValue) {
+  // Background opacity range slider
+  if (backgroundOpacityRange) {
     backgroundOpacityRange.addEventListener('input', (e) => {
-      backgroundOpacityValue.textContent = `${e.target.value}%`;
-    });
-  }
-
-  // Profile picture URL preview
-  if (profilePictureUrlInput) {
-    profilePictureUrlInput.addEventListener('input', (e) => {
-      const url = e.target.value.trim();
-      const previewMessage = document.getElementById('url-preview-message');
-
-      if (url && previewMessage) {
-        previewMessage.style.display = 'block';
-      } else if (previewMessage) {
-        previewMessage.style.display = 'none';
+      if (backgroundOpacityValue) {
+        backgroundOpacityValue.textContent = e.target.value + '%';
       }
     });
   }
 
-  // Custom theme button
-  const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
-  if (createCustomThemeBtn) {
-    createCustomThemeBtn.addEventListener('click', () => {
-      // This will be handled by custom_theme_modal.js
-      console.log('Create custom theme button clicked');
+  // Keyboard shortcuts recording
+  const shortcutInputs = document.querySelectorAll('[id^="shortcut-"]');
+  shortcutInputs.forEach(input => {
+    let isRecording = false;
+    let currentRecordingShortcut = null;
+
+    input.addEventListener('click', function() {
+      if (isRecording) return;
+      
+      isRecording = true;
+      currentRecordingShortcut = this.dataset.shortcut;
+      this.value = 'Press keys...';
+      this.style.backgroundColor = 'var(--color-button-yellow-bg)';
+      this.style.color = 'var(--color-button-text)';
     });
-  }
 
-  // Enhanced keyboard shortcut buttons with Firebase integration
-  document.querySelectorAll('.shortcut-edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const shortcutKey = e.target.dataset.shortcut;
-      const input = document.getElementById(`shortcut-${shortcutKey}`);
-      if (input) {
-        input.classList.add('recording');
-        input.placeholder = 'Press keys...';
-        input.focus();
+    input.addEventListener('keydown', function(e) {
+      if (!isRecording) return;
+      
+      e.preventDefault();
+      const keys = [];
+      if (e.altKey) keys.push('Alt');
+      if (e.ctrlKey) keys.push('Ctrl');
+      if (e.shiftKey) keys.push('Shift');
+      if (e.metaKey) keys.push('Meta');
+      if (e.key && !['Alt', 'Ctrl', 'Shift', 'Meta'].includes(e.key)) {
+        keys.push(e.key.toUpperCase());
+      }
+      
+      const combo = keys.join('+');
+      if (combo) {
+        this.value = combo;
+        this.style.backgroundColor = '';
+        this.style.color = '';
+        isRecording = false;
+        
+        // Update the shortcut in memory
+        const currentShortcuts = getCurrentShortcuts();
+        currentShortcuts[currentRecordingShortcut] = combo;
+        updateGlobalShortcuts(currentShortcuts);
+      }
+    });
 
-        // Handle key recording with validation
-        const handleKeyDown = (event) => {
-          event.preventDefault();
-          const keys = getPressedKeys(event);
-
-          // Test the new shortcut combination
-          const testResult = testShortcutCombination(keys);
-          if (!testResult.valid) {
-            showMessageBox(`Invalid shortcut: ${testResult.reason}`, true);
-            input.classList.remove('recording');
-            input.placeholder = input.value || defaultShortcuts[shortcutKey];
-            document.removeEventListener('keydown', handleKeyDown);
-            return;
-          }
-
-          // Update the shortcut globally
-          const currentShortcuts = getCurrentShortcuts();
-          currentShortcuts[shortcutKey] = keys;
-          updateGlobalShortcuts(currentShortcuts);
-
-          // Update UI
-          input.value = keys;
-          input.classList.remove('recording');
-          input.placeholder = keys;
-
-          // Save to Firebase
-          saveShortcutsToFirebase();
-
-          document.removeEventListener('keydown', handleKeyDown);
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
+    input.addEventListener('blur', function() {
+      if (isRecording) {
+        isRecording = false;
+        this.style.backgroundColor = '';
+        this.style.color = '';
+        // Restore previous value
+        const currentShortcuts = getCurrentShortcuts();
+        this.value = currentShortcuts[currentRecordingShortcut] || '';
       }
     });
   });
 
-  document.querySelectorAll('.shortcut-disable-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const shortcutKey = e.target.dataset.shortcut;
-      const input = document.getElementById(`shortcut-${shortcutKey}`);
-      if (input) {
-        if (e.target.classList.contains('disabled')) {
-          // Enable shortcut
-          e.target.classList.remove('disabled');
-          e.target.textContent = 'Disable';
-          input.disabled = false;
-          input.style.opacity = '1';
-          toggleShortcutDisabled(shortcutKey, false);
-        } else {
-          // Disable shortcut
-          e.target.classList.add('disabled');
-          e.target.textContent = 'Disabled';
-          input.disabled = true;
-          input.style.opacity = '0.5';
-          toggleShortcutDisabled(shortcutKey, true);
-        }
-
-        // Save to Firebase
-        saveShortcutsToFirebase();
+  // Shortcut disable buttons
+  const disableButtons = document.querySelectorAll('.shortcut-disable-btn');
+  disableButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const shortcutName = this.dataset.shortcut;
+      const isDisabled = this.classList.contains('disabled');
+      
+      if (isDisabled) {
+        this.classList.remove('disabled');
+        this.textContent = 'Disable';
+        toggleShortcutDisabled(shortcutName, false);
+        const input = document.getElementById(`shortcut-${shortcutName}`);
+        if (input) input.disabled = false;
+      } else {
+        this.classList.add('disabled');
+        this.textContent = 'Disabled';
+        toggleShortcutDisabled(shortcutName, true);
+        const input = document.getElementById(`shortcut-${shortcutName}`);
+        if (input) input.disabled = true;
       }
     });
   });
-
-  console.log('DEBUG: Event listeners setup completed');
 }
 
 // Helper function to get pressed keys (imported from app.js logic)

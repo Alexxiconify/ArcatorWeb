@@ -75,7 +75,6 @@ export async function setUserProfileInFirestore(uid, profileData) {
       // Re-fetch the updated profile to ensure currentUser is fully synchronized
       currentUser = await getUserProfileFromFirestore(uid);
     }
-    console.log("DEBUG: User profile updated in Firestore for UID:", uid);
     return true;
   } catch (error) {
     console.error("Error updating user profile in Firestore:", error);
@@ -98,7 +97,6 @@ export async function deleteUserProfileFromFirestore(uid) {
   const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
     await deleteDoc(userDocRef);
-    console.log("DEBUG: User profile deleted from Firestore for UID:", uid);
     return true;
   } catch (error) {
     console.error("Error deleting user profile from Firestore:", error);
@@ -111,8 +109,6 @@ export async function deleteUserProfileFromFirestore(uid) {
  * This function is called immediately when the module loads.
  */
 async function setupFirebaseCore() {
-  console.log("DEBUG: setupFirebaseCore called.");
-
   if (getApps().length === 0) {
     let finalFirebaseConfig = firebaseConfig; // Default to hardcoded config
 
@@ -121,7 +117,6 @@ async function setupFirebaseCore() {
       if (typeof __firebase_config === 'string') {
         try {
           finalFirebaseConfig = JSON.parse(__firebase_config);
-          console.log("DEBUG: __firebase_config provided as string and parsed successfully.");
         } catch (e) {
           console.error("ERROR: Failed to parse __firebase_config string as JSON. Using hardcoded firebaseConfig. Error:", e);
           finalFirebaseConfig = firebaseConfig;
@@ -129,16 +124,11 @@ async function setupFirebaseCore() {
       } else if (typeof __firebase_config === 'object') {
         // If it's already an object, use it directly without parsing
         finalFirebaseConfig = __firebase_config;
-        console.log("DEBUG: __firebase_config provided as object. Using directly.");
       } else {
         console.warn("DEBUG: __firebase_config provided but not string or object. Type:", typeof __firebase_config, ". Using hardcoded firebaseConfig.");
         finalFirebaseConfig = firebaseConfig;
       }
-    } else {
-      console.log("DEBUG: __firebase_config not provided by Canvas. Using hardcoded firebaseConfig.");
     }
-
-    console.log("DEBUG: Final Firebase config to be used:", finalFirebaseConfig);
 
     try {
       // Initialize Firebase app and services
@@ -153,14 +143,11 @@ async function setupFirebaseCore() {
       // Attempt to sign in with custom token if provided (e.g., from Canvas environment)
       // This is done after firebaseReadyResolve to ensure auth is fully set up.
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        console.log("DEBUG: Attempting to sign in with custom token.");
         await signInWithCustomToken(auth, __initial_auth_token)
             .then(() => console.log("DEBUG: Signed in with custom token."))
             .catch((error) => {
               console.error("ERROR: Custom token sign-in failed:", error);
             });
-      } else {
-        console.log("DEBUG: __initial_auth_token not defined. Relying on platform for initial auth state (could be anonymous or null).");
       }
 
     } catch (e) {
@@ -172,7 +159,6 @@ async function setupFirebaseCore() {
     app = getApp();
     db = getFirestore(app);
     auth = getAuth(app);
-    console.log("DEBUG: Firebase app already initialized. Re-using existing app instance.");
     firebaseReadyResolve(); // Ensure promise is resolved if already initialized
   }
 }
@@ -193,12 +179,10 @@ firebaseReadyPromise.then(() => {
   // No change needed to the listener itself, just ensuring the function is exported.
   // The listener below is for internal state management within firebase-init.js,
   onAuthStateChanged(auth, async (user) => {
-    console.log("onAuthStateChanged triggered. User:", user ? user.uid : "none");
     if (user) {
       // Check if user profile exists in Firestore, create if not
       let userProfile = await getUserProfileFromFirestore(user.uid);
       if (!userProfile) {
-        console.log("No profile found. Creating default.");
         userProfile = {
           uid: user.uid,
           displayName: user.displayName || `User-${user.uid.substring(0, 6)}`,
@@ -244,7 +228,6 @@ firebaseReadyPromise.then(() => {
         }
       }
     } else {
-      console.log("Auth State Changed: User logged out.");
       currentUser = null;
       window.currentUser = null; // Ensure global sync for forms.js
       if (typeof window.onUserReady === 'function') window.onUserReady();

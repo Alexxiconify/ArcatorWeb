@@ -15,7 +15,9 @@ import {
   getDocs,
   query,
   where,
-  addDoc
+  addDoc,
+  updateDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global variables for Firebase instances
@@ -285,11 +287,10 @@ const defaultThemes = [
  * @param {string} [appIdentifier] - The application ID (optional).
  */
 export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
-  // Use passed instances or fall back to globally imported ones
-  themesDb = firestoreDb || db;
-  themesAuth = firebaseAuth || auth;
-  themesAppId = appIdentifier || appId;
-  console.log("DEBUG: Themes Firebase setup complete.");
+  // Store Firebase instances for use in theme operations
+  themesDb = firestoreDb;
+  themesAuth = firebaseAuth;
+  themesAppId = appIdentifier;
 }
 
 /**
@@ -297,36 +298,32 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
  * @returns {Promise<Array>} Array of custom theme objects.
  */
 async function fetchCustomThemes() {
-  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
-  const firestoreDb = themesDb || db;
-  const appIdentifier = themesAppId || appId;
-
-  if (!firestoreDb) {
+  if (!themesDb) {
     console.error("Firestore DB not initialized for fetchCustomThemes.");
     return [];
   }
-  const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
+
   try {
-    const querySnapshot = await getDocs(customThemesCol);
+    const customThemesRef = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
+    const querySnapshot = await getDocs(customThemesRef);
     const customThemes = [];
-    querySnapshot.forEach((doc) => {
-      const themeData = {id: doc.id, ...doc.data()};
-      console.log(`DEBUG: Fetched theme - ID: ${themeData.id}, Name: ${themeData.name}, isCustom: ${themeData.isCustom}`);
 
-      // Filter out themes with null or invalid IDs
-      if (!themeData.id || themeData.id === 'null' || themeData.id === null) {
-        console.error(`DEBUG: Theme with invalid ID found - Name: ${themeData.name}, ID: ${themeData.id}`);
-        return; // Skip this theme
-      }
-
-      // Ensure the theme has required fields
-      if (!themeData.name || !themeData.isCustom) {
-        console.warn(`DEBUG: Theme missing required fields - ID: ${themeData.id}, Name: ${themeData.name}, isCustom: ${themeData.isCustom}`);
-      }
-
-      customThemes.push(themeData);
+    querySnapshot.forEach(doc => {
+      const themeData = doc.data();
+      customThemes.push({
+        id: doc.id,
+        name: themeData.name || 'Unnamed Theme',
+        variables: themeData.variables || {},
+        backgroundPattern: themeData.backgroundPattern || 'none',
+        isCustom: true,
+        createdAt: themeData.createdAt,
+        updatedAt: themeData.updatedAt,
+        authorUid: themeData.authorUid,
+        authorDisplayName: themeData.authorDisplayName,
+        authorEmail: themeData.authorEmail
+      });
     });
-    console.log("DEBUG: Fetched custom themes:", customThemes.length);
+
     return customThemes;
   } catch (error) {
     console.error("Error fetching custom themes:", error);
@@ -340,49 +337,26 @@ async function fetchCustomThemes() {
  * @returns {Promise<Array>} Array of all available theme objects.
  */
 export async function getAvailableThemes(forceRefresh = false) {
-  console.log(`DEBUG: getAvailableThemes called with forceRefresh=${forceRefresh}, cache exists=${!!availableThemesCache}`);
-
-  if (availableThemesCache && !forceRefresh) {
-    console.log(`DEBUG: Returning cached themes (${availableThemesCache.length} total)`);
-    console.log("DEBUG: Cached themes details:", availableThemesCache.map(t => ({
-      id: t.id,
-      name: t.name,
-      isCustom: t.isCustom
-    })));
+  // Return cached themes if available and not forcing refresh
+  if (!forceRefresh && availableThemesCache.length > 0) {
     return availableThemesCache;
   }
 
-  console.log(`DEBUG: Fetching fresh themes...`);
-  const customThemes = await fetchCustomThemes();
-  console.log(`DEBUG: Fetched ${customThemes.length} custom themes`);
-
-  console.log("DEBUG: Default themes:", defaultThemes.map(t => ({id: t.id, name: t.name, isCustom: t.isCustom})));
-  console.log("DEBUG: Custom themes before combining:", customThemes.map(t => ({
-    id: t.id,
-    name: t.name,
-    isCustom: t.isCustom
-  })));
-
-  // Filter out any themes with null or invalid IDs
-  const validCustomThemes = customThemes.filter(theme => {
-    if (!theme.id || theme.id === 'null' || theme.id === null) {
-      console.error(`DEBUG: Filtering out theme with invalid ID: ${theme.name} (ID: ${theme.id})`);
-      return false;
-    }
-    return true;
-  });
-
-  console.log(`DEBUG: Valid custom themes after filtering: ${validCustomThemes.length}`);
-
-  availableThemesCache = [...defaultThemes, ...validCustomThemes];
-  console.log(`DEBUG: Updated cache with ${availableThemesCache.length} total themes`);
-  console.log("DEBUG: Final themes details:", availableThemesCache.map(t => ({
-    id: t.id,
-    name: t.name,
-    isCustom: t.isCustom
-  })));
-
-  return availableThemesCache;
+  try {
+    // Fetch custom themes from Firestore
+    const customThemes = await fetchCustomThemes();
+    
+    // Combine default and custom themes
+    const allThemes = [...defaultThemes, ...customThemes];
+    
+    // Update cache
+    availableThemesCache = allThemes;
+    
+    return allThemes;
+  } catch (error) {
+    console.error("Error fetching themes:", error);
+    return defaultThemes; // Return default themes on error
+  }
 }
 
 /**
@@ -466,125 +440,74 @@ export function applyTheme(themeId, themeProperties) {
  * @returns {Promise<string|boolean>} Document ID on success, false on failure.
  */
 export async function saveCustomTheme(themeData) {
-  console.log('DEBUG: saveCustomTheme called with:', themeData);
-
   // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
   const firestoreDb = themesDb || db;
   const firebaseAuth = themesAuth || auth;
   const appIdentifier = themesAppId || appId;
 
-  console.log('DEBUG: Firebase instances - firestoreDb:', !!firestoreDb, 'firebaseAuth:', !!firebaseAuth, 'appIdentifier:', appIdentifier);
-
-  if (!firestoreDb || !firebaseAuth.currentUser) {
-    console.error("Not authenticated or database not ready for saveCustomTheme.");
-    console.error("firestoreDb:", !!firestoreDb, "firebaseAuth.currentUser:", !!firebaseAuth.currentUser);
+  if (!firestoreDb || !firebaseAuth || !appIdentifier) {
+    console.error("Firebase instances not initialized for saveCustomTheme.");
     return false;
   }
-
-  // Validate theme name is required
-  if (!themeData.name || themeData.name.trim() === '') {
-    console.error("Theme name is required for saveCustomTheme.");
-    return false;
-  }
-
-  const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
-
-  // Define all required color variables with their default values
-  const colorVariables = {
-    '--color-body-bg': '#1F2937',
-    '--color-text-primary': '#E5E7EB',
-    '--color-text-secondary': '#9CA3AF',
-    '--color-bg-navbar': '#111827',
-    '--color-bg-content-section': '#374151',
-    '--color-bg-card': '#2D3748',
-    '--color-input-bg': '#374151',
-    '--color-input-text': '#E5E7EB',
-    '--color-input-border': '#4B5563',
-    '--color-placeholder': '#9CA3AF',
-    '--color-link': '#60A5FA',
-    '--color-heading-main': '#F9FAFB',
-    '--color-heading-card': '#E5E7EB',
-    '--color-button-blue-bg': '#3B82F6',
-    '--color-button-blue-hover': '#2563EB',
-    '--color-button-red-bg': '#EF4444',
-    '--color-button-red-hover': '#DC2626',
-    '--color-button-green-bg': '#10B981',
-    '--color-button-green-hover': '#059669',
-    '--color-button-purple-bg': '#8B5CF6',
-    '--color-button-purple-hover': '#7C3AED',
-    '--color-button-yellow-bg': '#F59E0B',
-    '--color-button-yellow-hover': '#D97706',
-    '--color-button-indigo-bg': '#6366F1',
-    '--color-button-indigo-hover': '#4F46E5',
-    '--color-button-text': '#FFFFFF',
-    '--color-modal-bg': '#374151',
-    '--color-modal-text': '#E5E7EB',
-    '--color-modal-input-bg': '#4B5563',
-    '--color-modal-input-text': '#E5E7EB',
-    '--color-table-th-bg': '#374151',
-    '--color-table-th-text': '#F9FAFB',
-    '--color-table-td-border': '#4B5563',
-    '--color-table-row-even-bg': '#2D3748',
-    '--color-message-box-bg-success': '#10B981',
-    '--color-message-box-bg-error': '#EF4444'
-  };
-
-  // Extract color variables from themeData - handle both direct and nested formats
-  const sourceColors = themeData.variables || themeData;
-
-  // Build theme data with validation - use provided values or defaults
-  const validatedColors = {};
-  Object.keys(colorVariables).forEach(key => {
-    const value = sourceColors[key];
-    if (value !== undefined && value !== null && value !== '') {
-      validatedColors[key] = value;
-    } else {
-      validatedColors[key] = colorVariables[key];
-      console.warn(`DEBUG: Using default value for ${key}: ${colorVariables[key]}`);
-    }
-  });
-
-  console.log('DEBUG: Validated colors:', validatedColors);
-
-  // Prepare theme data for saving
-  const themeToSave = {
-    name: themeData.name.trim(),
-    isCustom: true,
-    authorId: firebaseAuth.currentUser.uid,
-    authorEmail: firebaseAuth.currentUser.email,
-    authorDisplayName: firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email,
-    authorHandle: firebaseAuth.currentUser.handle || firebaseAuth.currentUser.email?.split('@')[0] || 'user',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...validatedColors // Spread the validated colors
-  };
 
   try {
-    let docRef;
-
-    if (themeData.id && themeData.id !== 'null' && themeData.id !== null) {
-      // Update existing theme
-      console.log(`DEBUG: Updating existing theme with ID: ${themeData.id}`);
-      docRef = doc(customThemesCol, themeData.id);
-      await setDoc(docRef, {
-        ...themeToSave,
-        updatedAt: new Date()
-      }, {merge: true});
-      console.log(`Updated custom theme: ${themeData.id}`);
-
-      // Clear cache to force refresh
-      availableThemesCache = null;
-      return themeData.id; // Return existing ID
-    } else {
-      // Create new theme with auto-generated ID
-      console.log(`DEBUG: Creating new theme with auto-generated ID`);
-      docRef = await addDoc(customThemesCol, themeToSave);
-      console.log(`Created new custom theme: ${docRef.id}`);
-
-      // Clear cache to force refresh
-      availableThemesCache = null;
-      return docRef.id; // Return new document ID
+    // Validate theme data
+    if (!themeData.name || !themeData.variables) {
+      console.error("Invalid theme data: missing name or variables");
+      return false;
     }
+
+    // Validate color values
+    const validatedColors = {};
+    for (const [key, value] of Object.entries(themeData.variables)) {
+      if (key.startsWith('--color-') && value) {
+        // Basic hex color validation
+        if (/^#[0-9A-F]{6}$/i.test(value)) {
+          validatedColors[key] = value;
+        } else {
+          console.warn(`Invalid color value for ${key}: ${value}`);
+        }
+      } else {
+        validatedColors[key] = value;
+      }
+    }
+
+    const customThemesCol = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
+    const currentUser = firebaseAuth.currentUser;
+
+    if (!currentUser) {
+      console.error("No authenticated user for saving custom theme");
+      return false;
+    }
+
+    const themeToSave = {
+      name: themeData.name,
+      variables: validatedColors,
+      backgroundPattern: themeData.backgroundPattern || 'none',
+      isCustom: true,
+      authorUid: currentUser.uid,
+      authorDisplayName: currentUser.displayName || 'Unknown User',
+      authorEmail: currentUser.email || null,
+      updatedAt: serverTimestamp()
+    };
+
+    let docId;
+    if (themeData.id) {
+      // Update existing theme
+      const themeDocRef = doc(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`, themeData.id);
+      await updateDoc(themeDocRef, themeToSave);
+      docId = themeData.id;
+    } else {
+      // Create new theme
+      themeToSave.createdAt = serverTimestamp();
+      const docRef = await addDoc(customThemesCol, themeToSave);
+      docId = docRef.id;
+    }
+
+    // Clear cache to force refresh
+    availableThemesCache = [];
+    
+    return docId;
   } catch (error) {
     console.error("Error saving custom theme:", error);
     return false;
