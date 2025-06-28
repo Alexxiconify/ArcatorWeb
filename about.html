@@ -661,25 +661,53 @@
       errorEl.classList.add('hidden');
       tableContainer.classList.add('hidden');
 
-      // Try to fetch from Google Sheets with CORS proxy
-      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-      const sheetUrl = GOOGLE_SHEETS_CONFIG.sheetUrl;
+      // Try multiple approaches to fetch from Google Sheets
+      const sheetUrl = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/gviz/tq?tqx=out:csv&gid=1977273024';
 
-      console.log('[DEBUG] Attempting to fetch interests data from:', sheetUrl);
+      console.log('[DEBUG] Attempting to fetch interests data from Google Sheets...');
 
-      const response = await fetch(proxyUrl + sheetUrl, {
-        headers: {
-          'Origin': window.location.origin
+      // First try: Direct fetch with CORS proxy
+      let response = null;
+      try {
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        response = await fetch(proxyUrl + sheetUrl, {
+          headers: {
+            'Origin': window.location.origin
+          }
+        });
+      } catch (proxyError) {
+        console.log('[DEBUG] CORS proxy failed, trying alternative proxy...');
+
+        // Second try: Alternative CORS proxy
+        try {
+          const altProxyUrl = 'https://api.allorigins.win/raw?url=';
+          response = await fetch(altProxyUrl + encodeURIComponent(sheetUrl));
+        } catch (altProxyError) {
+          console.log('[DEBUG] Alternative proxy failed, trying direct fetch...');
+
+          // Third try: Direct fetch (may fail due to CORS)
+          try {
+            response = await fetch(sheetUrl);
+          } catch (directError) {
+            console.log('[DEBUG] Direct fetch failed, using fallback data...');
+            throw new Error('All fetch methods failed');
+          }
         }
-      });
+      }
 
-      if (response.ok) {
+      if (response && response.ok) {
         const csvText = await response.text();
         console.log('[DEBUG] Successfully fetched CSV data, length:', csvText.length);
-        interestsData = parseCSV(csvText);
-        console.log('[DEBUG] Parsed interests data:', interestsData.length, 'items');
+
+        // Check if the response is actually CSV data
+        if (csvText.includes('Games / Interests') || csvText.includes('Interest')) {
+          interestsData = parseCSV(csvText);
+          console.log('[DEBUG] Parsed interests data:', interestsData.length, 'items');
+        } else {
+          throw new Error('Response is not valid CSV data');
+        }
       } else {
-        throw new Error(`Failed to fetch from Google Sheets: ${response.status}`);
+        throw new Error(`Failed to fetch from Google Sheets: ${response ? response.status : 'No response'}`);
       }
     } catch (error) {
       console.warn('[DEBUG] Using fallback interests data due to error:', error);
@@ -690,8 +718,22 @@
 
       // Show a subtle warning that we're using fallback data
       const warningEl = document.createElement('div');
-      warningEl.className = 'text-yellow-400 text-sm text-center mb-4';
-      warningEl.innerHTML = '⚠️ Using sample data (Google Sheets temporarily unavailable)';
+      warningEl.className = 'text-yellow-400 text-sm text-center mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg';
+      warningEl.innerHTML = `
+        <div class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Using sample data (Google Sheets temporarily unavailable)</span>
+        </div>
+        <div class="text-xs mt-1">
+          <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?gid=1977273024"
+             target="_blank" rel="noopener noreferrer"
+             class="text-blue-400 hover:text-blue-300 underline">
+            View live data in Google Sheets
+          </a>
+        </div>
+      `;
       const tableContainer = document.getElementById('interests-table-container');
       if (tableContainer) {
         tableContainer.insertBefore(warningEl, tableContainer.firstChild);
@@ -912,6 +954,10 @@
 
     // Retry button
     retryBtn.addEventListener('click', () => {
+      console.log('[DEBUG] Retry button clicked, reloading interests data...');
+      // Clear existing data and reload
+      interestsData = [];
+      filteredData = [];
       loadInterestsData();
     });
   }
