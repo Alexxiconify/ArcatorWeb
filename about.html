@@ -496,7 +496,7 @@
     DEFAULT_THEME_NAME
   } from './firebase-init.js';
   import {loadNavbar, loadFooter} from './navbar.js';
-  import { getAvailableThemes, applyTheme } from './themes.js';
+  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
 
   window.showTab = function (tabName) {
     const tabContents = document.querySelectorAll('.tab-content');
@@ -511,6 +511,9 @@
       loadInterestsData();
     }
   };
+
+  // Apply cached theme immediately to prevent flash
+  applyCachedTheme();
 
   firebaseReadyPromise.then(async () => {
     let userProfile = null;

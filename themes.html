@@ -102,9 +102,15 @@
   // Import Firebase instances and utility functions from firebase-init.js
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_THEME_NAME } from './firebase-init.js';
   // Import theme-related functions from themes.js
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
   import { doc, getDoc, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+  // Apply cached theme immediately to prevent flash
+  applyCachedTheme().then(cachedApplied => {
+    if (cachedApplied) {
+      console.log('Themes page: Applied cached theme');
+    }
+  });
 
   // Main execution logic on window load for themes.html
   document.addEventListener('DOMContentLoaded', async () => {
@@ -150,6 +156,7 @@
       // Apply the theme using the imported applyTheme function
       if (themeToApply) {
         applyTheme(themeToApply.id, themeToApply);
+        console.log(`Themes page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
       } else {
         console.error("No valid theme found to apply. Falling back to hardcoded dark theme variables.");
         // As a last resort, directly set dark theme properties if all else fails

@@ -312,7 +312,7 @@
     DEFAULT_THEME_NAME
   } from './firebase-init.js';
   import {loadNavbar, loadFooter} from './navbar.js';
-  import { getAvailableThemes, applyTheme } from './themes.js';
+  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
 
   // Tab functionality
   window.showTab = function (tabName) {
@@ -360,6 +360,9 @@
     });
   };
 
+  // Apply cached theme immediately to prevent flash
+  applyCachedTheme();
+
   firebaseReadyPromise.then(() => {
     auth.onAuthStateChanged(async (user) => {
       let userProfile = null;
@@ -373,7 +376,7 @@
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
       if (themeToApply) {
         applyTheme(themeToApply.id, themeToApply);
-        console.log(`[Servers & Games]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+        console.log(`Servers and Games page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
       }
     });
   });

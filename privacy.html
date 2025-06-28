@@ -351,7 +351,7 @@
     DEFAULT_THEME_NAME
   } from './firebase-init.js';
   import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme } from './themes.js';
+  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
 
   window.showTab = function (tabName) {
     const tabContents = document.querySelectorAll('.tab-content');
@@ -361,6 +361,14 @@
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');
   };
+
+  // Apply cached theme immediately to prevent flash
+  applyCachedTheme().then(cachedApplied => {
+    if (cachedApplied) {
+      // Show content immediately if cached theme was applied
+      document.getElementById('legal-main-content').classList.remove('opacity-0');
+    }
+  });
 
   firebaseReadyPromise.then(() => {
     auth.onAuthStateChanged(async (user) => {

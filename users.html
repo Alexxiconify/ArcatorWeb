@@ -1546,7 +1546,10 @@
 <script type="module">
   import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
   import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme } from './themes.js';
+  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
+
+  // Apply cached theme immediately to prevent flash
+  applyCachedTheme();
 
   firebaseReadyPromise.then(() => {
     auth.onAuthStateChanged(async (user) => {
@@ -1561,7 +1564,7 @@
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
       if (themeToApply) {
         applyTheme(themeToApply.id, themeToApply);
-        console.log(`[Users]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+        console.log(`Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
       }
     });
   });

@@ -291,7 +291,7 @@
 <script src="navbar.js" type="module"></script>
 <script type="module">
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
-  import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+  import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
   import {loadNavbar, loadFooter} from './navbar.js';
   import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import {doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -422,6 +422,13 @@
 
     // Setup themes integration using the imported function
     setupThemesFirebase(db, auth, appId);
+
+    // Apply cached theme immediately to prevent flash
+    applyCachedTheme().then(cachedApplied => {
+      if (cachedApplied) {
+        console.log('Temp page viewer: Applied cached theme');
+      }
+    });
 
     // Get user profile and apply theme
     let userProfile = null;

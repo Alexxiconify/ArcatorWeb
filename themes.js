@@ -30,6 +30,11 @@ let themesAppId = appId; // Assign global appId instance
 // Cache for available themes
 let availableThemesCache = [];
 
+// Theme caching constants
+const THEME_CACHE_KEY = 'arcator_user_theme_preference';
+const THEME_CACHE_TIMESTAMP_KEY = 'arcator_theme_cache_timestamp';
+const THEME_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const defaultThemes = [
   {
     id: 'dark',
@@ -422,6 +427,10 @@ export function applyTheme(themeId, themeProperties) {
     console.log(`Applied font family: ${themeProperties.variables['--font-family-body']}`);
   }
 
+  // Cache the theme preference for future page loads
+  const currentUser = auth.currentUser;
+  cacheUserTheme(themeId, currentUser ? currentUser.uid : null);
+
   // Dispatch theme change event for components that need to update
   const themeChangeEvent = new CustomEvent('themeChanged', {
     detail: {
@@ -586,6 +595,95 @@ export async function initializeGlobalThemes() {
     if (defaultTheme) {
       applyTheme(defaultTheme.id, defaultTheme);
     }
+  }
+}
+
+/**
+ * Cache user's theme preference in localStorage
+ * @param {string} themeId - The theme ID to cache
+ * @param {string} userId - The user's UID (optional, for user-specific caching)
+ */
+export function cacheUserTheme(themeId, userId = null) {
+  try {
+    const cacheData = {
+      themeId: themeId,
+      userId: userId,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(cacheData));
+    console.log(`Cached theme preference: ${themeId} for user: ${userId || 'anonymous'}`);
+  } catch (error) {
+    console.warn('Failed to cache theme preference:', error);
+  }
+}
+
+/**
+ * Get cached theme preference from localStorage
+ * @param {string} userId - The user's UID (optional, for user-specific caching)
+ * @returns {string|null} The cached theme ID or null if not found/expired
+ */
+export function getCachedTheme(userId = null) {
+  try {
+    const cached = localStorage.getItem(THEME_CACHE_KEY);
+    if (!cached) return null;
+
+    const cacheData = JSON.parse(cached);
+    const now = Date.now();
+    
+    // Check if cache is expired
+    if (now - cacheData.timestamp > THEME_CACHE_DURATION) {
+      localStorage.removeItem(THEME_CACHE_KEY);
+      return null;
+    }
+
+    // If userId is provided, only return cache if it matches
+    if (userId && cacheData.userId !== userId) {
+      return null;
+    }
+
+    console.log(`Retrieved cached theme: ${cacheData.themeId}`);
+    return cacheData.themeId;
+  } catch (error) {
+    console.warn('Failed to retrieve cached theme:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear cached theme preference
+ */
+export function clearCachedTheme() {
+  try {
+    localStorage.removeItem(THEME_CACHE_KEY);
+    console.log('Cleared cached theme preference');
+  } catch (error) {
+    console.warn('Failed to clear cached theme:', error);
+  }
+}
+
+/**
+ * Apply cached theme immediately on page load to prevent flash
+ * @returns {Promise<boolean>} True if cached theme was applied, false otherwise
+ */
+export async function applyCachedTheme() {
+  try {
+    const cachedThemeId = getCachedTheme();
+    if (!cachedThemeId) return false;
+
+    // Get available themes (use cache if available, otherwise fetch)
+    const themes = availableThemesCache.length > 0 ? availableThemesCache : await getAvailableThemes();
+    const themeToApply = themes.find(t => t.id === cachedThemeId);
+    
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Applied cached theme: ${cachedThemeId}`);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.warn('Failed to apply cached theme:', error);
+    return false;
   }
 }
 

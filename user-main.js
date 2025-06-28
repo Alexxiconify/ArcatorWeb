@@ -14,7 +14,7 @@ import {
 } from './firebase-init.js';
 
 import { showMessageBox, sanitizeHandle, showCustomConfirm, validatePhotoURL } from './utils.js';
-import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
+import { setupThemesFirebase, applyTheme, getAvailableThemes, cacheUserTheme } from './themes.js';
 import { loadNavbar } from './navbar.js'; // Ensure loadNavbar is imported
 
 // Import global shortcut functions from app.js
@@ -1861,6 +1861,8 @@ function setupEventListeners() {
           const selectedTheme = allThemes.find(t => t.id === select.value);
           if (selectedTheme) {
             applyTheme(selectedTheme.id, selectedTheme);
+            // Cache the theme preference for future page loads
+            cacheUserTheme(selectedTheme.id, auth.currentUser.uid);
           }
         } else {
           // Apply typography settings immediately
