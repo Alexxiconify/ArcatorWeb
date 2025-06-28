@@ -872,12 +872,10 @@ async function renderConversationMessages(convId) {
 
     return `
       <div class="message-bubble ${isOwnMessage ? 'sent' : 'received'}">
-        ${!isOwnMessage ? `
-          <div class="message-author">
-            <img src="${senderAvatar}" alt="${senderName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-            <span>${escapeHtml(senderName)}</span>
-          </div>
-        ` : ''}
+        <div class="message-author">
+          <img src="${senderAvatar}" alt="${senderName}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+          <span>${escapeHtml(senderName)}</span>
+        </div>
         <div class="message-content">
           ${escapeHtml(message.content)}
         </div>

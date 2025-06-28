@@ -1194,8 +1194,8 @@
 
 /* User list for DM recipient selection - Matrix layout */
 .user-list-scrollable {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 0.5rem;
   overflow-x: auto;
   overflow-y: visible;
@@ -1208,7 +1208,6 @@
 }
 
 .user-card {
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -1221,6 +1220,8 @@
   min-width: 0;
   max-width: 220px;
   overflow: hidden;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .user-card .user-avatar {
