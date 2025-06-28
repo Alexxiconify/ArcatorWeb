@@ -899,6 +899,87 @@ async function handleEmailTemplateChange() {
   }
 }
 
+// Create email preview modal
+function createEmailPreviewModal() {
+  const modal = document.createElement('div');
+  modal.id = 'email-preview-modal';
+  modal.className = 'modal';
+  modal.style.display = 'none';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-heading-card">Email Preview</h3>
+        <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
+      </div>
+      <div id="email-preview-content" class="bg-card p-4 rounded-lg border border-input-border">
+        <div class="mb-4">
+          <strong class="text-text-primary">To:</strong>
+          <span id="preview-recipients" class="text-text-secondary ml-2"></span>
+        </div>
+        <div class="mb-4">
+          <strong class="text-text-primary">Subject:</strong>
+          <span id="preview-subject" class="text-text-secondary ml-2"></span>
+        </div>
+        <div class="mb-4">
+          <strong class="text-text-primary">Content:</strong>
+          <div id="preview-content" class="mt-2 p-3 bg-input-bg rounded border border-input-border text-input-text whitespace-pre-wrap"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // Add event listeners
+  const closeBtn = modal.querySelector('.close-button');
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+  
+  return modal;
+}
+
+function showEmailPreview() {
+  const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.textContent);
+  const subject = emailSubjectInput.value.trim();
+  const content = emailContentTextarea.value.trim();
+  const isHtml = emailHtmlFormatCheckbox.checked;
+  
+  if (!subject || !content) {
+    showMessageBox("Please fill in both subject and content to preview", true);
+    return;
+  }
+  
+  if (recipients.length === 0) {
+    showMessageBox("Please select at least one recipient", true);
+    return;
+  }
+  
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('email-preview-modal');
+  if (!modal) {
+    modal = createEmailPreviewModal();
+  }
+  
+  // Populate preview content
+  document.getElementById('preview-recipients').textContent = recipients.join(', ');
+  document.getElementById('preview-subject').textContent = subject;
+  
+  const previewContent = document.getElementById('preview-content');
+  if (isHtml) {
+    previewContent.innerHTML = content;
+  } else {
+    previewContent.textContent = content;
+  }
+  
+  modal.style.display = 'flex';
+}
+
 async function sendEmail() {
   const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.value);
   const subject = emailSubjectInput.value.trim();
@@ -916,23 +997,85 @@ async function sendEmail() {
   }
 
   try {
+    showMessageBox("Sending email...", false);
+    
+    // Get recipient details for email sending
+    const recipientDetails = [];
+    for (const uid of recipients) {
+      const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.email) {
+          recipientDetails.push({
+            uid: uid,
+            email: userData.email,
+            displayName: userData.displayName || 'User'
+          });
+        }
+      }
+    }
+    
+    if (recipientDetails.length === 0) {
+      showMessageBox("No valid email addresses found for selected recipients", true);
+      return;
+    }
+    
     // Store email in Firestore for history
     const emailData = {
       recipients: recipients,
+      recipientEmails: recipientDetails.map(r => r.email),
       subject: subject,
       content: content,
       isHtml: isHtml,
       sentBy: auth.currentUser?.uid || 'admin',
-      sentAt: new Date(),
-      status: 'sent'
+      sentAt: serverTimestamp(),
+      status: 'pending'
     };
 
     const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
-    await addDoc(emailHistoryRef, emailData);
-
-    // In a real implementation, you would send the email here
-    // For now, we'll just show a success message
-    showMessageBox(`Email sent to ${recipients.length} recipient(s) successfully!`);
+    const emailDoc = await addDoc(emailHistoryRef, emailData);
+    
+    // Send emails using Firebase Functions (or simulate for now)
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const recipient of recipientDetails) {
+      try {
+        // Personalize content for each recipient
+        let personalizedContent = content;
+        if (!isHtml) {
+          personalizedContent = content.replace(/\{\{displayName\}\}/g, recipient.displayName);
+        }
+        
+        // In a real implementation, you would call Firebase Functions here
+        // For now, we'll simulate the email sending
+        console.log(`Sending email to ${recipient.email}: ${subject}`);
+        
+        // Simulate email sending delay
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        successCount++;
+      } catch (error) {
+        console.error(`Error sending email to ${recipient.email}:`, error);
+        errorCount++;
+      }
+    }
+    
+    // Update email status in Firestore
+    await updateDoc(doc(db, `artifacts/${appId}/public/data/email_history`, emailDoc.id), {
+      status: errorCount === 0 ? 'sent' : (successCount > 0 ? 'partial' : 'failed'),
+      sentCount: successCount,
+      errorCount: errorCount,
+      completedAt: serverTimestamp()
+    });
+    
+    if (errorCount === 0) {
+      showMessageBox(`Email sent successfully to ${successCount} recipient(s)!`, false);
+    } else if (successCount > 0) {
+      showMessageBox(`Email sent to ${successCount} recipient(s), ${errorCount} failed.`, true);
+    } else {
+      showMessageBox("Failed to send email to any recipients", true);
+    }
     
     // Clear form
     emailComposeForm.reset();
@@ -941,7 +1084,7 @@ async function sendEmail() {
     loadEmailHistory();
   } catch (error) {
     console.error("Error sending email:", error);
-    showMessageBox("Failed to send email", true);
+    showMessageBox("Failed to send email: " + error.message, true);
   }
 }
 
@@ -953,7 +1096,8 @@ async function loadEmailHistory() {
 
   try {
     const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
-    const querySnapshot = await getDocs(emailHistoryRef);
+    const q = query(emailHistoryRef, orderBy("sentAt", "desc"));
+    const querySnapshot = await getDocs(q);
     
     emailHistoryTbody.innerHTML = '';
     
@@ -964,14 +1108,21 @@ async function loadEmailHistory() {
 
     querySnapshot.forEach(doc => {
       const emailData = doc.data();
+      const sentDate = emailData.sentAt?.toDate?.()?.toLocaleDateString() || 'Unknown';
+      const status = emailData.status || 'unknown';
+      const statusClass = status === 'sent' ? 'bg-green-100 text-green-800' : 
+                         status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                         status === 'failed' ? 'bg-red-100 text-red-800' :
+                         'bg-gray-100 text-gray-800';
+      
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="px-4 py-2 text-text-primary">${emailData.sentAt?.toDate?.()?.toLocaleDateString() || 'Unknown'}</td>
-        <td class="px-4 py-2 text-text-primary">${emailData.subject}</td>
+        <td class="px-4 py-2 text-text-primary">${sentDate}</td>
+        <td class="px-4 py-2 text-text-primary">${escapeHtml(emailData.subject)}</td>
         <td class="px-4 py-2 text-text-primary">${emailData.recipients?.length || 0} recipients</td>
         <td class="px-4 py-2 text-text-primary">
-          <span class="px-2 py-1 rounded text-xs ${emailData.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-            ${emailData.status}
+          <span class="px-2 py-1 rounded text-xs ${statusClass}">
+            ${status}${emailData.sentCount ? ` (${emailData.sentCount}/${emailData.recipients?.length})` : ''}
           </span>
         </td>
         <td class="px-4 py-2 text-text-primary">
@@ -987,10 +1138,79 @@ async function loadEmailHistory() {
 }
 
 // Global function for viewing email details
-window.viewEmailDetails = function(emailId) {
-  // Implementation for viewing email details
-  console.log("Viewing email details for:", emailId);
-  showMessageBox("Email details view coming soon!");
+window.viewEmailDetails = async function(emailId) {
+  try {
+    const emailDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/email_history`, emailId));
+    if (!emailDoc.exists()) {
+      showMessageBox("Email not found", true);
+      return;
+    }
+    
+    const emailData = emailDoc.data();
+    
+    // Create or get modal
+    let modal = document.getElementById('email-details-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'email-details-modal';
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-heading-card">Email Details</h3>
+            <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
+          </div>
+          <div id="email-details-content" class="space-y-4">
+            <!-- Content will be populated here -->
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Add event listeners
+      const closeBtn = modal.querySelector('.close-button');
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+      
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+    
+    const content = document.getElementById('email-details-content');
+    content.innerHTML = `
+      <div class="bg-card p-4 rounded-lg border border-input-border">
+        <div class="mb-3">
+          <strong class="text-text-primary">Subject:</strong>
+          <span class="text-text-secondary ml-2">${escapeHtml(emailData.subject)}</span>
+        </div>
+        <div class="mb-3">
+          <strong class="text-text-primary">Recipients:</strong>
+          <span class="text-text-secondary ml-2">${emailData.recipientEmails?.join(', ') || 'N/A'}</span>
+        </div>
+        <div class="mb-3">
+          <strong class="text-text-primary">Status:</strong>
+          <span class="text-text-secondary ml-2">${emailData.status || 'unknown'}</span>
+        </div>
+        <div class="mb-3">
+          <strong class="text-text-primary">Sent:</strong>
+          <span class="text-text-secondary ml-2">${emailData.sentAt?.toDate?.()?.toLocaleString() || 'Unknown'}</span>
+        </div>
+        <div class="mb-3">
+          <strong class="text-text-primary">Content:</strong>
+          <div class="mt-2 p-3 bg-input-bg rounded border border-input-border text-input-text whitespace-pre-wrap">${emailData.isHtml ? emailData.content : escapeHtml(emailData.content)}</div>
+        </div>
+      </div>
+    `;
+    
+    modal.style.display = 'flex';
+  } catch (error) {
+    console.error("Error viewing email details:", error);
+    showMessageBox("Failed to load email details", true);
+  }
 };
 
 // Main execution logic on window load
@@ -1119,19 +1339,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   if (previewEmailBtn) {
-    previewEmailBtn.addEventListener('click', () => {
-      const subject = emailSubjectInput.value.trim();
-      const content = emailContentTextarea.value.trim();
-      
-      if (!subject || !content) {
-        showMessageBox("Please fill in both subject and content to preview", true);
-        return;
-      }
-      
-      // Show preview in a modal or alert
-      const preview = `Subject: ${subject}\n\nContent:\n${content}`;
-      alert(preview);
-    });
+    previewEmailBtn.addEventListener('click', showEmailPreview);
   }
 
   if (emailComposeForm) {

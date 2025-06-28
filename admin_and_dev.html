@@ -312,15 +312,15 @@
               <form id="email-compose-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="input-field">
-                    <label for="email-to-select">To:</label>
-                    <select id="email-to-select" multiple class="h-32">
+                    <label for="email-to-select" class="form-label">To:</label>
+                    <select id="email-to-select" multiple class="form-input h-32">
                       <option value="">Select recipients...</option>
                     </select>
                     <p class="text-text-secondary text-sm mt-1">Hold Ctrl/Cmd to select multiple users</p>
                   </div>
                   <div class="input-field">
-                    <label for="email-template-select">Email Template:</label>
-                    <select id="email-template-select">
+                    <label for="email-template-select" class="form-label">Email Template:</label>
+                    <select id="email-template-select" class="form-input">
                       <option value="">Custom Message</option>
                       <option value="welcome">Welcome Email</option>
                       <option value="announcement">Announcement</option>
@@ -330,16 +330,16 @@
                   </div>
                 </div>
                 <div class="input-field">
-                  <label for="email-subject">Subject:</label>
-                  <input id="email-subject" type="text" placeholder="Email subject" required/>
+                  <label for="email-subject" class="form-label">Subject:</label>
+                  <input id="email-subject" type="text" placeholder="Email subject" required class="form-input"/>
                 </div>
                 <div class="input-field">
-                  <label for="email-content">Message:</label>
-                  <textarea id="email-content" rows="8" placeholder="Enter your message here..." required></textarea>
+                  <label for="email-content" class="form-label">Message:</label>
+                  <textarea id="email-content" rows="8" placeholder="Enter your message here..." required class="form-input"></textarea>
                 </div>
                 <div class="checkbox-container">
                   <input type="checkbox" id="email-html-format" class="form-checkbox">
-                  <label for="email-html-format">Send as HTML (allows formatting)</label>
+                  <label for="email-html-format" class="form-label">Send as HTML (allows formatting)</label>
                 </div>
                 <div class="flex justify-end space-x-4">
                   <button type="button" id="preview-email-btn" class="btn-primary btn-purple">Preview</button>
