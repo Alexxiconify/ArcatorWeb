@@ -289,42 +289,97 @@
               <table class="w-full text-left table-auto">
                 <thead>
                 <tr class="bg-table-th-bg">
-                  <th class="px-4 py-2 text-table-th-text">Email</th>
+                  <th class="px-4 py-2 text-table-th-text">UID</th>
                   <th class="px-4 py-2 text-table-th-text">Display Name</th>
+                  <th class="px-4 py-2 text-table-th-text">Email</th>
                   <th class="px-4 py-2 text-table-th-text">Theme</th>
+                  <th class="px-4 py-2 text-table-th-text">Handle</th>
                   <th class="px-4 py-2 text-table-th-text">Actions</th>
                 </tr>
                 </thead>
                 <tbody id="user-list-tbody">
                 <tr>
-                  <td class="text-center py-4 text-text-secondary" colspan="4">No users loaded yet. Click "Load
+                  <td class="text-center py-4 text-text-secondary" colspan="6">No users loaded yet. Click "Load
                     Users".
                   </td>
                 </tr>
                 </tbody>
               </table>
-              <div id="edit-user-modal" class="modal">
-                <div class="modal-content">
-                  <span class="close-button">&times;</span>
-                  <h3 class="text-xl font-bold mb-4 text-heading-card">Edit User Profile</h3>
-                  <div class="mb-4">
-                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-user-display-name">Display
-                      Name:</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-user-display-name"
-                           type="text"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Management Card -->
+        <div id="email-management-section" class="md:col-span-2" style="display: none;">
+          <div id="email-management-header" class="collapsible-header">
+            <h3>Email Management</h3>
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div id="email-management-content" class="collapsible-content hidden">
+            <p class="text-text-secondary leading-relaxed mb-4">Send emails to users with email addresses added to their accounts.</p>
+            
+            <!-- Email Composition Form -->
+            <div class="bg-card p-6 rounded-lg shadow-md mb-6">
+              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Compose Email</h4>
+              <form id="email-compose-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="input-field">
+                    <label for="email-to-select">To:</label>
+                    <select id="email-to-select" multiple class="h-32">
+                      <option value="">Select recipients...</option>
+                    </select>
+                    <p class="text-text-secondary text-sm mt-1">Hold Ctrl/Cmd to select multiple users</p>
                   </div>
-                  <div class="mb-4">
-                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-user-theme">Theme
-                      Preference:</label>
-                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
-                            id="edit-user-theme">
-                      <option value="dark">Dark</option>
-                      <option value="light">Light</option>
-                      <!-- Options will be dynamically populated by populateEditUserThemeSelect -->
+                  <div class="input-field">
+                    <label for="email-template-select">Email Template:</label>
+                    <select id="email-template-select">
+                      <option value="">Custom Message</option>
+                      <option value="welcome">Welcome Email</option>
+                      <option value="announcement">Announcement</option>
+                      <option value="maintenance">Maintenance Notice</option>
+                      <option value="event">Event Invitation</option>
                     </select>
                   </div>
-                  <button id="save-user-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
                 </div>
+                <div class="input-field">
+                  <label for="email-subject">Subject:</label>
+                  <input id="email-subject" type="text" placeholder="Email subject" required/>
+                </div>
+                <div class="input-field">
+                  <label for="email-content">Message:</label>
+                  <textarea id="email-content" rows="8" placeholder="Enter your message here..." required></textarea>
+                </div>
+                <div class="checkbox-container">
+                  <input type="checkbox" id="email-html-format" class="form-checkbox">
+                  <label for="email-html-format">Send as HTML (allows formatting)</label>
+                </div>
+                <div class="flex justify-end space-x-4">
+                  <button type="button" id="preview-email-btn" class="btn-primary btn-purple">Preview</button>
+                  <button type="submit" id="send-email-btn" class="btn-primary btn-blue">Send Email</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Email History -->
+            <div class="bg-card p-6 rounded-lg shadow-md">
+              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Email History</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto">
+                  <thead>
+                  <tr class="bg-table-th-bg">
+                    <th class="px-4 py-2 text-table-th-text">Date</th>
+                    <th class="px-4 py-2 text-table-th-text">Subject</th>
+                    <th class="px-4 py-2 text-table-th-text">Recipients</th>
+                    <th class="px-4 py-2 text-table-th-text">Status</th>
+                    <th class="px-4 py-2 text-table-th-text">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody id="email-history-tbody">
+                  <tr>
+                    <td class="text-center py-4 text-text-secondary" colspan="5">No emails sent yet.</td>
+                  </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -654,5 +709,176 @@
     loadFooter('current-year-admin-dev');
   });
 </script>
+
+<!-- Edit User Modal -->
+<div id="edit-user-modal" class="modal">
+  <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+    <span class="close-button">&times;</span>
+    <h3 class="text-xl font-bold mb-4 text-heading-card">Edit User Profile</h3>
+    
+    <!-- Basic Information Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Basic Information</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="edit-user-display-name">Display Name:</label>
+          <input id="edit-user-display-name" type="text" placeholder="User's display name"/>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-handle">Handle:</label>
+          <input id="edit-user-handle" type="text" placeholder="@userhandle"/>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-email">Email Address:</label>
+          <input id="edit-user-email" type="email" placeholder="user@example.com"/>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-photo-url">Profile Picture URL:</label>
+          <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg"/>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-discord-url">Discord URL:</label>
+          <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..."/>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-github-url">GitHub URL:</label>
+          <input id="edit-user-github-url" type="url" placeholder="https://github.com/username"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferences Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Preferences</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="edit-user-theme">Theme Preference:</label>
+          <select id="edit-user-theme">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="arcator-green">Arcator Green</option>
+            <option value="ocean-blue">Ocean Blue</option>
+            <option value="high-contrast">High Contrast</option>
+          </select>
+        </div>
+        <div class="input-field">
+          <label for="edit-user-font-scaling">Font Scaling:</label>
+          <select id="edit-user-font-scaling">
+            <option value="normal">Normal</option>
+            <option value="large">Large</option>
+            <option value="extra-large">Extra Large</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Notification Settings</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="edit-user-notification-frequency">Notification Frequency:</label>
+          <select id="edit-user-notification-frequency">
+            <option value="immediate">Immediate</option>
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-email-notifications" class="form-checkbox">
+          <label for="edit-user-email-notifications">Email Notifications</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-discord-notifications" class="form-checkbox">
+          <label for="edit-user-discord-notifications">Discord Notifications</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-push-notifications" class="form-checkbox">
+          <label for="edit-user-push-notifications">Push Notifications</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Settings Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Privacy Settings</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="edit-user-data-retention">Data Retention (days):</label>
+          <select id="edit-user-data-retention">
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="365">1 year</option>
+            <option value="0">Indefinite</option>
+          </select>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-profile-visible" class="form-checkbox">
+          <label for="edit-user-profile-visible">Profile Visible to Others</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-activity-tracking" class="form-checkbox">
+          <label for="edit-user-activity-tracking">Allow Activity Tracking</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-third-party-sharing" class="form-checkbox">
+          <label for="edit-user-third-party-sharing">Allow Third-party Data Sharing</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accessibility Settings Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Accessibility Settings</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-high-contrast" class="form-checkbox">
+          <label for="edit-user-high-contrast">High Contrast Mode</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-reduced-motion" class="form-checkbox">
+          <label for="edit-user-reduced-motion">Reduced Motion</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-screen-reader" class="form-checkbox">
+          <label for="edit-user-screen-reader">Screen Reader Support</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-focus-indicators" class="form-checkbox">
+          <label for="edit-user-focus-indicators">Enhanced Focus Indicators</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Settings Section -->
+    <div class="mb-6">
+      <h4 class="text-lg font-semibold text-text-primary mb-3 border-b border-dashed border-link pb-1">Advanced Settings</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="input-field">
+          <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
+          <select id="edit-user-keyboard-shortcuts">
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="edit-user-debug-mode" class="form-checkbox">
+          <label for="edit-user-debug-mode">Debug Mode</label>
+        </div>
+      </div>
+      <div class="mt-4">
+        <label for="edit-user-custom-css" class="block text-text-secondary text-sm font-bold mb-2">Custom CSS:</label>
+        <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-4">
+      <button id="save-user-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+      <button id="cancel-user-changes-btn" class="btn-primary btn-red">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

@@ -42,8 +42,30 @@ const loadUsersBtn = document.getElementById('load-users-btn');
 const userListTbody = document.getElementById('user-list-tbody');
 const editUserModal = document.getElementById('edit-user-modal');
 const editUserDisplayNameInput = document.getElementById('edit-user-display-name');
+const editUserHandleInput = document.getElementById('edit-user-handle');
+const editUserEmailInput = document.getElementById('edit-user-email');
+const editUserPhotoUrlInput = document.getElementById('edit-user-photo-url');
+const editUserDiscordUrlInput = document.getElementById('edit-user-discord-url');
+const editUserGithubUrlInput = document.getElementById('edit-user-github-url');
 const editUserThemeSelect = document.getElementById('edit-user-theme');
+const editUserFontScalingSelect = document.getElementById('edit-user-font-scaling');
+const editUserNotificationFrequencySelect = document.getElementById('edit-user-notification-frequency');
+const editUserEmailNotificationsCheckbox = document.getElementById('edit-user-email-notifications');
+const editUserDiscordNotificationsCheckbox = document.getElementById('edit-user-discord-notifications');
+const editUserPushNotificationsCheckbox = document.getElementById('edit-user-push-notifications');
+const editUserDataRetentionSelect = document.getElementById('edit-user-data-retention');
+const editUserProfileVisibleCheckbox = document.getElementById('edit-user-profile-visible');
+const editUserActivityTrackingCheckbox = document.getElementById('edit-user-activity-tracking');
+const editUserThirdPartySharingCheckbox = document.getElementById('edit-user-third-party-sharing');
+const editUserHighContrastCheckbox = document.getElementById('edit-user-high-contrast');
+const editUserReducedMotionCheckbox = document.getElementById('edit-user-reduced-motion');
+const editUserScreenReaderCheckbox = document.getElementById('edit-user-screen-reader');
+const editUserFocusIndicatorsCheckbox = document.getElementById('edit-user-focus-indicators');
+const editUserKeyboardShortcutsSelect = document.getElementById('edit-user-keyboard-shortcuts');
+const editUserDebugModeCheckbox = document.getElementById('edit-user-debug-mode');
+const editUserCustomCssTextarea = document.getElementById('edit-user-custom-css');
 const saveUserChangesBtn = document.getElementById('save-user-changes-btn');
+const cancelUserChangesBtn = document.getElementById('cancel-user-changes-btn');
 let currentEditingUserUid = null;
 
 // Temporary Pages DOM elements
@@ -139,10 +161,10 @@ function toggleSection(headerElement, contentElement) {
 async function renderUserList() {
   if (!db) {
     console.error("Firestore DB not initialized for renderUserList.");
-    userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-400">Database not ready.</td></tr>';
+    userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-400">Database not ready.</td></tr>';
     return;
   }
-  userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
+  userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">Loading users...</td></tr>';
   // Assuming fetchAllUserProfiles is implemented elsewhere or is a direct Firestore call
   const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
   const querySnapshot = await getDocs(usersRef);
@@ -153,7 +175,7 @@ async function renderUserList() {
 
   userListTbody.innerHTML = '';
   if (users.length === 0) {
-    userListTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
+    userListTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">No user profiles found.</td></tr>';
     return;
   }
 
@@ -165,21 +187,34 @@ async function renderUserList() {
       <td class="px-4 py-2 break-all border-b border-table-td-border">${user.id}</td>
       <td class="px-4 py-2 border-b border-table-td-border">${user.displayName || 'N/A'}</td>
       <td class="px-4 py-2 border-b border-table-td-border">${user.themePreference || DEFAULT_THEME_NAME}</td>
+      <td class="px-4 py-2 border-b border-table-td-border">${user.handle || 'N/A'}</td>
       <td class="px-4 py-2 border-b border-table-td-border">
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}" data-displayname="${user.displayName || ''}" data-theme="${user.themePreference || DEFAULT_THEME_NAME}">Edit</button>
+        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-user-btn" data-uid="${user.id}">Edit</button>
         <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-user-btn" data-uid="${user.id}">Delete Profile</button>
       </td>
     `;
   });
 
   document.querySelectorAll('.edit-user-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', async (event) => {
       console.log("DEBUG: Edit User button clicked.");
       const uid = event.target.dataset.uid;
-      const displayName = event.target.dataset.displayname;
-      const theme = event.target.dataset.theme;
-      console.log(`DEBUG: Edit User - UID: ${uid}, Display Name: ${displayName}, Theme: ${theme}`);
-      openEditUserModal(uid, displayName, theme);
+      console.log(`DEBUG: Edit User - UID: ${uid}`);
+      
+      // Fetch the complete user profile data
+      const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+      try {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          openEditUserModal(uid, userData);
+        } else {
+          showMessageBox("User profile not found.", true);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        showMessageBox("Error fetching user profile.", true);
+      }
     });
   });
 
@@ -187,11 +222,17 @@ async function renderUserList() {
     button.addEventListener('click', async (event) => {
       console.log("DEBUG: Delete User button clicked.");
       const uid = event.target.dataset.uid;
-      const confirmed = await showCustomConfirm(`Are you sure you want to delete user profile for UID: ${uid}?`, "This will NOT delete the Firebase Authentication account.");
+      
+      // Show confirmation dialog with more details
+      const confirmed = await showCustomConfirm(
+        `Are you sure you want to delete the user profile for UID: ${uid}?`,
+        "This action will permanently delete the user's profile data including all settings, preferences, and customizations. This will NOT delete the Firebase Authentication account. This action cannot be undone."
+      );
+      
       if (confirmed) {
         const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
         try {
-          await deleteDoc(userDocRef); // Directly use deleteDoc
+          await deleteDoc(userDocRef);
           showMessageBox(`User profile ${uid} deleted successfully!`, false);
           renderUserList();
         } catch (error) {
@@ -208,16 +249,55 @@ async function renderUserList() {
 /**
  * Opens the modal for editing a user's profile.
  * @param {string} uid - The UID of the user to edit.
- * @param {string} displayName - The current display name.
- * @param {string} theme - The current theme preference.
+ * @param {Object} userData - The complete user profile data.
  */
-function openEditUserModal(uid, displayName, theme) {
+function openEditUserModal(uid, userData) {
   currentEditingUserUid = uid;
-  editUserDisplayNameInput.value = displayName;
-  // Populate the theme dropdown in the modal with all available themes
-  populateEditUserThemeSelect(theme);
+  
+  // Basic Information
+  editUserDisplayNameInput.value = userData.displayName || '';
+  editUserHandleInput.value = userData.handle || '';
+  editUserEmailInput.value = userData.email || '';
+  editUserPhotoUrlInput.value = userData.photoURL || '';
+  editUserDiscordUrlInput.value = userData.discordURL || '';
+  editUserGithubUrlInput.value = userData.githubURL || '';
+  
+  // Preferences
+  editUserThemeSelect.value = userData.themePreference || DEFAULT_THEME_NAME;
+  editUserFontScalingSelect.value = userData.fontScaling || 'normal';
+  
+  // Notification Settings
+  const notificationSettings = userData.notificationSettings || {};
+  editUserNotificationFrequencySelect.value = notificationSettings.notificationFrequency || 'immediate';
+  editUserEmailNotificationsCheckbox.checked = notificationSettings.emailNotifications || false;
+  editUserDiscordNotificationsCheckbox.checked = notificationSettings.discordNotifications || false;
+  editUserPushNotificationsCheckbox.checked = notificationSettings.pushNotifications || false;
+  
+  // Privacy Settings
+  const privacySettings = userData.privacySettings || {};
+  editUserDataRetentionSelect.value = privacySettings.dataRetention || '90';
+  editUserProfileVisibleCheckbox.checked = privacySettings.profileVisible !== undefined ? privacySettings.profileVisible : true;
+  editUserActivityTrackingCheckbox.checked = privacySettings.activityTracking || false;
+  editUserThirdPartySharingCheckbox.checked = privacySettings.thirdPartySharing || false;
+  
+  // Accessibility Settings
+  const accessibilitySettings = userData.accessibilitySettings || {};
+  editUserHighContrastCheckbox.checked = accessibilitySettings.highContrast || false;
+  editUserReducedMotionCheckbox.checked = accessibilitySettings.reducedMotion || false;
+  editUserScreenReaderCheckbox.checked = accessibilitySettings.screenReader || false;
+  editUserFocusIndicatorsCheckbox.checked = accessibilitySettings.focusIndicators || false;
+  
+  // Advanced Settings
+  const advancedSettings = userData.advancedSettings || {};
+  editUserKeyboardShortcutsSelect.value = advancedSettings.keyboardShortcuts || 'enabled';
+  editUserDebugModeCheckbox.checked = advancedSettings.debugMode || false;
+  editUserCustomCssTextarea.value = advancedSettings.customCSS || '';
+  
+  // Populate theme dropdown with available themes
+  populateEditUserThemeSelect(userData.themePreference || DEFAULT_THEME_NAME);
+  
   editUserModal.style.display = 'flex';
-  console.log("DEBUG: User Edit Modal opened.");
+  console.log("DEBUG: User Edit Modal opened with data:", userData);
 }
 
 /**
@@ -245,28 +325,69 @@ if (saveUserChangesBtn) {
       console.error("ERROR: currentEditingUserUid is null. Cannot save changes.");
       return;
     }
-    const newDisplayName = editUserDisplayNameInput.value.trim();
-    const newTheme = editUserThemeSelect.value;
-    console.log(`DEBUG: Saving User Changes for UID: ${currentEditingUserUid}, Display Name: ${newDisplayName}, Theme: ${newTheme}`);
-    // Use the imported updateUserProfileInFirestore
-    const success = await updateUserProfileInFirestore(currentEditingUserUid, {
-      displayName: newDisplayName,
-      themePreference: newTheme
-    });
-    if (success) {
-      showMessageBox("User profile updated successfully!", false);
+    
+    // Collect all form data
+    const updatedProfile = {
+      displayName: editUserDisplayNameInput.value.trim(),
+      handle: editUserHandleInput.value.trim(),
+      email: editUserEmailInput.value.trim(),
+      photoURL: editUserPhotoUrlInput.value.trim(),
+      discordURL: editUserDiscordUrlInput.value.trim(),
+      githubURL: editUserGithubUrlInput.value.trim(),
+      themePreference: editUserThemeSelect.value,
+      fontScaling: editUserFontScalingSelect.value,
+      
+      // Notification Settings
+      notificationSettings: {
+        notificationFrequency: editUserNotificationFrequencySelect.value,
+        emailNotifications: editUserEmailNotificationsCheckbox.checked,
+        discordNotifications: editUserDiscordNotificationsCheckbox.checked,
+        pushNotifications: editUserPushNotificationsCheckbox.checked
+      },
+      
+      // Privacy Settings
+      privacySettings: {
+        dataRetention: parseInt(editUserDataRetentionSelect.value),
+        profileVisible: editUserProfileVisibleCheckbox.checked,
+        activityTracking: editUserActivityTrackingCheckbox.checked,
+        thirdPartySharing: editUserThirdPartySharingCheckbox.checked
+      },
+      
+      // Accessibility Settings
+      accessibilitySettings: {
+        highContrast: editUserHighContrastCheckbox.checked,
+        reducedMotion: editUserReducedMotionCheckbox.checked,
+        screenReader: editUserScreenReaderCheckbox.checked,
+        focusIndicators: editUserFocusIndicatorsCheckbox.checked
+      },
+      
+      // Advanced Settings
+      keyboardShortcuts: editUserKeyboardShortcutsSelect.value,
+      debugMode: editUserDebugModeCheckbox.checked,
+      customCSS: editUserCustomCssTextarea.value.trim()
+    };
+
+    try {
+      const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentEditingUserUid);
+      await updateDoc(userRef, updatedProfile);
+      
+      showMessageBox("User profile updated successfully!");
       editUserModal.style.display = 'none';
+      currentEditingUserUid = null;
+      
+      // Refresh the user list
       renderUserList();
-      // If the admin is editing their own profile, apply the theme immediately
-      if (auth.currentUser && auth.currentUser.uid === currentEditingUserUid) {
-        const allThemes = await getAvailableThemes();
-        const selectedTheme = allThemes.find(t => t.id === newTheme);
-        applyTheme(selectedTheme.id, selectedTheme);
-        console.log("DEBUG: Admin's own theme updated and applied.");
-      }
-    } else {
-      showMessageBox("Error updating user profile.", true);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      showMessageBox("Failed to update user profile", true);
     }
+  });
+}
+
+if (cancelUserChangesBtn) {
+  cancelUserChangesBtn.addEventListener('click', () => {
+    editUserModal.style.display = 'none';
+    currentEditingUserUid = null;
   });
 }
 
@@ -277,6 +398,7 @@ document.querySelectorAll('.close-button').forEach(button => {
     editUserModal.style.display = 'none';
     editTempPageModal.style.display = 'none';
     editTodoModal.style.display = 'none';
+    currentEditingUserUid = null; // Clear the current editing user
     // showCustomConfirm is handled internally by utils.js, so no direct `display = 'none'` needed here for it
   });
 });
@@ -285,6 +407,7 @@ window.addEventListener('click', (event) => {
   // Only close if click is outside modal content
   if (event.target === editUserModal) {
     editUserModal.style.display = 'none';
+    currentEditingUserUid = null; // Clear the current editing user
     console.log("DEBUG: User Edit Modal closed by clicking outside.");
   }
   if (event.target === editTempPageModal) {
@@ -727,6 +850,195 @@ async function deleteTodoItem(id) {
   }
 }
 
+// Email templates
+const emailTemplates = {
+  welcome: {
+    subject: 'Welcome to Arcator.co.uk!',
+    content: `Hello {{displayName}},
+
+Welcome to Arcator.co.uk! We're excited to have you join our Minecraft community.
+
+Here are some things you can do to get started:
+- Join our Discord server: https://discord.gg/GwArgw2
+- Check out our servers at arcator.co.uk
+- Explore the community features on our website
+
+If you have any questions, feel free to reach out to our staff.
+
+Best regards,
+The Arcator Team`
+  },
+  announcement: {
+    subject: 'Important Announcement from Arcator',
+    content: `Hello {{displayName}},
+
+We have an important announcement to share with our community.
+
+{{announcementContent}}
+
+Thank you for being part of our community!
+
+Best regards,
+The Arcator Team`
+  },
+  maintenance: {
+    subject: 'Scheduled Maintenance Notice',
+    content: `Hello {{displayName}},
+
+We wanted to let you know about upcoming scheduled maintenance.
+
+{{maintenanceDetails}}
+
+We apologize for any inconvenience and appreciate your patience.
+
+Best regards,
+The Arcator Team`
+  },
+  event: {
+    subject: 'You\'re Invited: Arcator Community Event',
+    content: `Hello {{displayName}},
+
+You're invited to join us for a special community event!
+
+{{eventDetails}}
+
+We hope to see you there!
+
+Best regards,
+The Arcator Team`
+  }
+};
+
+// Email functionality
+async function populateEmailRecipients() {
+  if (!db) {
+    console.error("Firestore DB not initialized for populateEmailRecipients.");
+    return;
+  }
+
+  try {
+    const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    const querySnapshot = await getDocs(usersRef);
+    
+    emailToSelect.innerHTML = '<option value="">Select recipients...</option>';
+    
+    querySnapshot.forEach(doc => {
+      const userData = doc.data();
+      if (userData.email && userData.displayName) {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = `${userData.displayName} (${userData.email})`;
+        emailToSelect.appendChild(option);
+      }
+    });
+  } catch (error) {
+    console.error("Error populating email recipients:", error);
+    showMessageBox("Failed to load email recipients", true);
+  }
+}
+
+async function handleEmailTemplateChange() {
+  const template = emailTemplateSelect.value;
+  if (template && emailTemplates[template]) {
+    emailSubjectInput.value = emailTemplates[template].subject;
+    emailContentTextarea.value = emailTemplates[template].content;
+  }
+}
+
+async function sendEmail() {
+  const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.value);
+  const subject = emailSubjectInput.value.trim();
+  const content = emailContentTextarea.value.trim();
+  const isHtml = emailHtmlFormatCheckbox.checked;
+
+  if (recipients.length === 0) {
+    showMessageBox("Please select at least one recipient", true);
+    return;
+  }
+
+  if (!subject || !content) {
+    showMessageBox("Please fill in both subject and content", true);
+    return;
+  }
+
+  try {
+    // Store email in Firestore for history
+    const emailData = {
+      recipients: recipients,
+      subject: subject,
+      content: content,
+      isHtml: isHtml,
+      sentBy: auth.currentUser?.uid || 'admin',
+      sentAt: new Date(),
+      status: 'sent'
+    };
+
+    const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
+    await addDoc(emailHistoryRef, emailData);
+
+    // In a real implementation, you would send the email here
+    // For now, we'll just show a success message
+    showMessageBox(`Email sent to ${recipients.length} recipient(s) successfully!`);
+    
+    // Clear form
+    emailComposeForm.reset();
+    
+    // Refresh email history
+    loadEmailHistory();
+  } catch (error) {
+    console.error("Error sending email:", error);
+    showMessageBox("Failed to send email", true);
+  }
+}
+
+async function loadEmailHistory() {
+  if (!db) {
+    console.error("Firestore DB not initialized for loadEmailHistory.");
+    return;
+  }
+
+  try {
+    const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
+    const querySnapshot = await getDocs(emailHistoryRef);
+    
+    emailHistoryTbody.innerHTML = '';
+    
+    if (querySnapshot.empty) {
+      emailHistoryTbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="5">No emails sent yet.</td></tr>';
+      return;
+    }
+
+    querySnapshot.forEach(doc => {
+      const emailData = doc.data();
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="px-4 py-2 text-text-primary">${emailData.sentAt?.toDate?.()?.toLocaleDateString() || 'Unknown'}</td>
+        <td class="px-4 py-2 text-text-primary">${emailData.subject}</td>
+        <td class="px-4 py-2 text-text-primary">${emailData.recipients?.length || 0} recipients</td>
+        <td class="px-4 py-2 text-text-primary">
+          <span class="px-2 py-1 rounded text-xs ${emailData.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+            ${emailData.status}
+          </span>
+        </td>
+        <td class="px-4 py-2 text-text-primary">
+          <button class="text-link hover:underline" onclick="viewEmailDetails('${doc.id}')">View</button>
+        </td>
+      `;
+      emailHistoryTbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Error loading email history:", error);
+    showMessageBox("Failed to load email history", true);
+  }
+}
+
+// Global function for viewing email details
+window.viewEmailDetails = function(emailId) {
+  // Implementation for viewing email details
+  console.log("Viewing email details for:", emailId);
+  showMessageBox("Email details view coming soon!");
+};
+
 // Main execution logic on window load
 document.addEventListener('DOMContentLoaded', async function() {
   // Setup Firebase and user authentication first
@@ -848,4 +1160,46 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (darrionApiContent) darrionApiContent.classList.add('hidden');
   if (griefDetectionContent) griefDetectionContent.classList.add('hidden');
   if (onfimNotificationsContent) onfimNotificationsContent.classList.add('hidden');
+
+  // Event listeners for email management
+  if (emailTemplateSelect) {
+    emailTemplateSelect.addEventListener('change', handleEmailTemplateChange);
+  }
+
+  if (previewEmailBtn) {
+    previewEmailBtn.addEventListener('click', () => {
+      const subject = emailSubjectInput.value.trim();
+      const content = emailContentTextarea.value.trim();
+      
+      if (!subject || !content) {
+        showMessageBox("Please fill in both subject and content to preview", true);
+        return;
+      }
+      
+      // Show preview in a modal or alert
+      const preview = `Subject: ${subject}\n\nContent:\n${content}`;
+      alert(preview);
+    });
+  }
+
+  if (emailComposeForm) {
+    emailComposeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await sendEmail();
+    });
+  }
+
+  // Load email recipients when email management section is opened
+  document.addEventListener('DOMContentLoaded', () => {
+    const emailManagementHeader = document.getElementById('email-management-header');
+    if (emailManagementHeader) {
+      emailManagementHeader.addEventListener('click', () => {
+        const content = document.getElementById('email-management-content');
+        if (content && !content.classList.contains('hidden')) {
+          populateEmailRecipients();
+          loadEmailHistory();
+        }
+      });
+    }
+  });
 });

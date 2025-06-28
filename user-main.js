@@ -35,7 +35,10 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
-  getAuth
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  GithubAuthProvider
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 import {
@@ -85,6 +88,7 @@ const loginRequiredMessage = document.getElementById('login-required-message');
 const loadingSpinner = document.getElementById('loading-spinner');
 const displayNameInput = document.getElementById('display-name-input');
 const handleInput = document.getElementById('handle-input');
+const emailInput = document.getElementById('email-input');
 const profilePictureUrlInput = document.getElementById('profile-picture-url-input');
 const saveProfileBtn = document.getElementById('save-profile-btn');
 const savePreferencesBtn = document.getElementById('save-preferences-btn');
@@ -142,6 +146,10 @@ const customCssTextarea = document.getElementById('custom-css-textarea');
 const keyboardShortcutsToggle = document.getElementById('keyboard-shortcuts-toggle');
 const saveAdvancedBtn = document.getElementById('save-advanced-btn');
 const resetAdvancedBtn = document.getElementById('reset-advanced-btn');
+
+// Social authentication buttons
+const googleSignInBtn = document.getElementById('google-signin-btn');
+const githubSignInBtn = document.getElementById('github-signin-btn');
 
 /**
  * Shows a specific section and hides others within the main content area.
@@ -324,21 +332,106 @@ async function handleSignUp() {
   }
 }
 
-// Handler for password reset
+/**
+ * Handles password reset request
+ */
 async function handlePasswordReset() {
-  const email = forgotPasswordEmailInput.value;
+  const email = forgotPasswordEmailInput.value.trim();
   if (!email) {
     showMessageBox('Please enter your email address.', true);
     return;
   }
+
   try {
-    console.log("DEBUG: Sending password reset email to:", email);
+    showLoading();
     await sendPasswordResetEmail(auth, email);
-    showMessageBox('Password reset email sent! Check your inbox.', false);
-    showSection(signInSection); // Redirect to sign-in after sending reset email
+    showMessageBox('Password reset email sent! Check your inbox.');
+    showSection(signInSection);
   } catch (error) {
     console.error('Password reset error:', error);
-    showMessageBox(`Password reset failed: ${error.message}`, true);
+    showMessageBox('Failed to send reset email. Please check your email address.', true);
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * Handles Google sign-in
+ */
+async function handleGoogleSignIn() {
+  try {
+    showLoading();
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    
+    // Check if this is a new user
+    if (result._tokenResponse?.isNewUser) {
+      // Create user profile for new Google user
+      const userProfile = {
+        displayName: result.user.displayName || '',
+        email: result.user.email || '',
+        photoURL: result.user.photoURL || DEFAULT_PROFILE_PIC,
+        handle: '',
+        themePreference: DEFAULT_THEME_NAME,
+        createdAt: new Date(),
+        lastLogin: new Date(),
+        provider: 'google'
+      };
+      
+      await setUserProfileInFirestore(result.user.uid, userProfile);
+      showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
+    } else {
+      showMessageBox('Welcome back!');
+    }
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      showMessageBox('Sign-in cancelled by user.', true);
+    } else {
+      showMessageBox('Google sign-in failed. Please try again.', true);
+    }
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * Handles GitHub sign-in
+ */
+async function handleGitHubSignIn() {
+  try {
+    showLoading();
+    const provider = new GithubAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    
+    // Check if this is a new user
+    if (result._tokenResponse?.isNewUser) {
+      // Create user profile for new GitHub user
+      const userProfile = {
+        displayName: result.user.displayName || '',
+        email: result.user.email || '',
+        photoURL: result.user.photoURL || DEFAULT_PROFILE_PIC,
+        handle: '',
+        themePreference: DEFAULT_THEME_NAME,
+        createdAt: new Date(),
+        lastLogin: new Date(),
+        provider: 'github'
+      };
+      
+      await setUserProfileInFirestore(result.user.uid, userProfile);
+      showMessageBox('Welcome to Arcator.co.uk! Your account has been created.');
+    } else {
+      showMessageBox('Welcome back!');
+    }
+  } catch (error) {
+    console.error('GitHub sign-in error:', error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      showMessageBox('Sign-in cancelled by user.', true);
+    } else {
+      showMessageBox('GitHub sign-in failed. Please try again.', true);
+    }
+  } finally {
+    hideLoading();
   }
 }
 
@@ -735,119 +828,66 @@ function applyFontScalingSystem(userProfile) {
 
 // Handler for saving profile changes
 async function handleSaveProfile() {
-  const newDisplayName = displayNameInput.value.trim();
-  const newPhotoURL = profilePictureUrlInput.value.trim(); // Get raw input from field
-  const rawNewHandle = handleInput.value.trim();
-  const newHandle = sanitizeHandle(rawNewHandle);
+  const displayName = displayNameInput.value.trim();
+  const handle = handleInput.value.trim();
+  const email = emailInput.value.trim();
+  const photoURL = profilePictureUrlInput.value.trim();
 
-  if (newHandle.length < 3) {
-    showMessageBox('Handle must be at least 3 characters.', true);
-    return;
-  }
-  if (newHandle !== rawNewHandle.toLowerCase().replace(/[^a-z0-9_.]/g, '') && rawNewHandle !== '') {
-    showMessageBox('Handle contains invalid characters. Use only alphanumeric, dots, and underscores.', true);
+  // Validate inputs
+  if (!displayName) {
+    showMessageBox('Display name is required.', true);
     return;
   }
 
-  if (auth.currentUser) {
-    try {
-      console.log("DEBUG: Preparing to save profile for UID:", auth.currentUser.uid);
-      // Check for handle uniqueness if changing
-      if (newHandle && newHandle !== (auth.currentUser.handle || '')) {
-        const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-        const q = query(usersRef, where('handle', '==', newHandle));
-        const querySnapshot = await getDocs(q);
-        // Ensure the found handle is not for the current user
-        if (!querySnapshot.empty && querySnapshot.docs[0].id !== auth.currentUser.uid) {
-          showMessageBox('This handle is already taken. Please choose another.', true);
-          return;
-        }
-        console.log("DEBUG: New handle is unique or belongs to current user.");
-      }
+  if (handle && !sanitizeHandle(handle)) {
+    showMessageBox('Handle must be 3-20 characters, alphanumeric with underscores only.', true);
+    return;
+  }
 
-      const updates = {};
-      // Compare with current user data to avoid unnecessary updates
-      const currentProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+  if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    showMessageBox('Please enter a valid email address.', true);
+    return;
+  }
 
-      if (newDisplayName !== (currentProfile?.displayName || auth.currentUser.displayName)) {
-        updates.displayName = newDisplayName;
-      }
+  if (photoURL && !validatePhotoURL(photoURL)) {
+    showMessageBox('Please enter a valid image URL.', true);
+    return;
+  }
 
-      // Determine the effective photo URL: use newPhotoURL if provided and valid, else fallback to current or default
-      const effectivePhotoURL = newPhotoURL.startsWith('http') || newPhotoURL.startsWith('https') ? newPhotoURL : DEFAULT_PROFILE_PIC;
-      if (effectivePhotoURL !== (currentProfile?.photoURL || auth.currentUser.photoURL || DEFAULT_PROFILE_PIC)) {
-        updates.photoURL = effectivePhotoURL;
-      }
+  try {
+    showLoading();
+    
+    // Update Firebase Auth profile
+    await updateProfile(auth.currentUser, {
+      displayName: displayName,
+      photoURL: photoURL || null
+    });
 
-      if (newHandle !== (currentProfile?.handle || auth.currentUser.uid.substring(0,6))) { // Compare with Firestore handle or default UID handle
-        updates.handle = newHandle;
-      }
+    // Update user profile in Firestore
+    const userProfile = {
+      displayName: displayName,
+      handle: handle,
+      email: email,
+      photoURL: photoURL || DEFAULT_PROFILE_PIC,
+      lastUpdated: new Date()
+    };
 
-      if (Object.keys(updates).length > 0) {
-        console.log("DEBUG: Detected profile updates:", updates);
-        // Update Firebase Auth profile (display name and photo URL)
-        await updateProfile(auth.currentUser, {
-          displayName: updates.displayName !== undefined ? updates.displayName : auth.currentUser.displayName,
-          photoURL: updates.photoURL !== undefined ? updates.photoURL : auth.currentUser.photoURL
-        });
-        console.log("DEBUG: Firebase Auth profile updated.");
+    await setUserProfileInFirestore(auth.currentUser.uid, userProfile);
 
-        // Update Firestore user profile (all fields including handle)
-        await setUserProfileInFirestore(auth.currentUser.uid, updates);
-        console.log("DEBUG: Firestore user profile updated.");
-
-        // Immediately update UI elements
-        if (profilePictureDisplay) {
-          try {
-            // Use the enhanced validation function
-            const {validateAndTestPhotoURL} = await import('./utils.js');
-            const finalPhotoURL = await validateAndTestPhotoURL(updates.photoURL || effectivePhotoURL, DEFAULT_PROFILE_PIC);
-            console.log("DEBUG: Final photo URL:", finalPhotoURL);
-            profilePictureDisplay.src = finalPhotoURL;
-
-            // Add error handling for image loading
-            profilePictureDisplay.onerror = function () {
-              console.log("DEBUG: Image failed to load, falling back to default");
-              this.src = DEFAULT_PROFILE_PIC;
-
-              // Show helpful message if it's a Discord URL
-              const failedURL = this.src;
-              if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
-                showMessageBox("Your Discord profile picture URL appears to be broken. Consider uploading a new image or using a different hosting service.", true);
-              }
-            };
-
-            profilePictureDisplay.onload = function () {
-              console.log("DEBUG: Image loaded successfully");
-            };
-          } catch (error) {
-            console.error("DEBUG: Error setting profile picture:", error);
-            profilePictureDisplay.src = DEFAULT_PROFILE_PIC;
-          }
-        } else {
-          console.error("DEBUG: profilePictureDisplay element not found!");
-        }
-        if (displayNameText) displayNameText.textContent = updates.displayName || 'N/A';
-        if (handleText) handleText.textContent = updates.handle ? `@${updates.handle}` : '';
-
-        // Refresh navbar profile picture
-        if (typeof window.refreshNavbarProfilePicture === 'function') {
-          try {
-            await window.refreshNavbarProfilePicture();
-          } catch (error) {
-            console.error("DEBUG: Error refreshing navbar profile picture:", error);
-          }
-        }
-
-        showMessageBox('Profile updated successfully!', false);
-      } else {
-        showMessageBox('No profile changes detected.', false);
-        console.log("DEBUG: No profile changes detected.");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showMessageBox(`Failed to update profile: ${error.message}`, true);
+    // Update UI
+    if (displayNameText) displayNameText.textContent = displayName;
+    if (handleText) handleText.textContent = handle ? `@${handle}` : 'No handle set';
+    if (emailText) emailText.textContent = email || 'No email set';
+    if (profilePictureDisplay) {
+      profilePictureDisplay.src = photoURL || DEFAULT_PROFILE_PIC;
     }
+
+    showMessageBox('Profile updated successfully!');
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    showMessageBox('Failed to update profile. Please try again.', true);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -1537,10 +1577,8 @@ window.onload = async function() {
           // Populate settings input fields
           if (displayNameInput) displayNameInput.value = userProfile.displayName || '';
           if (handleInput) handleInput.value = userProfile.handle || '';
-          // Ensure profilePictureUrlInput is correctly populated or left empty for user input
-          if (profilePictureUrlInput) {
-            profilePictureUrlInput.value = userProfile.photoURL && userProfile.photoURL !== DEFAULT_PROFILE_PIC ? userProfile.photoURL : '';
-          }
+          if (emailInput) emailInput.value = userProfile.email || '';
+          if (profilePictureUrlInput) profilePictureUrlInput.value = userProfile.photoURL || '';
 
           // Populate session information
           if (document.getElementById('last-login-time') && userProfile.lastLoginAt) {
@@ -1715,6 +1753,15 @@ window.onload = async function() {
     }
 
     // Global shortcuts are now handled by app.js
+
+    // Social authentication event listeners
+    if (googleSignInBtn) {
+      googleSignInBtn.addEventListener('click', handleGoogleSignIn);
+    }
+
+    if (githubSignInBtn) {
+      githubSignInBtn.addEventListener('click', handleGitHubSignIn);
+    }
 
   } catch (error) {
     console.error("user-main.js: Error during window.onload execution:", error);
