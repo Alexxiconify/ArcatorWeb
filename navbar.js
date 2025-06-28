@@ -828,8 +828,18 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   const userProfilePic = document.getElementById('navbar-user-profile-pic');
   const signinLink = document.getElementById('navbar-signin-link');
 
-  if (authUser && userProfile) {
-    // User is logged in
+  // Check if user is logged in (including anonymous users)
+  const isLoggedIn = authUser && !authUser.isAnonymous;
+  const isAnonymous = authUser && authUser.isAnonymous;
+
+  console.log('[DEBUG] updateNavbarState: authUser exists:', !!authUser);
+  console.log('[DEBUG] updateNavbarState: isAnonymous:', isAnonymous);
+  console.log('[DEBUG] updateNavbarState: isLoggedIn:', isLoggedIn);
+  console.log('[DEBUG] updateNavbarState: userProfile exists:', !!userProfile);
+
+  if (isLoggedIn && userProfile) {
+    // User is logged in with a profile
+    console.log('[DEBUG] updateNavbarState: Showing logged in user profile');
     if (userSettingsLink) {
       userSettingsLink.classList.remove('hidden');
     }
@@ -843,8 +853,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
         console.log('[DEBUG] updateNavbarState: Setting profile picture for user:', userProfile.displayName);
         console.log('[DEBUG] updateNavbarState: Raw photoURL:', userProfile.photoURL);
 
-        // Use the enhanced validation function
-        const {validateAndTestPhotoURL} = await import('./utils.js');
         const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL, defaultProfilePic);
         console.log('[DEBUG] About to set userProfilePic.src to:', profilePicURL);
         userProfilePic.src = profilePicURL;
@@ -883,8 +891,21 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
         displayNameSpan.textContent = displayName;
       }
     }
+  } else if (isAnonymous) {
+    // Anonymous user - show sign in
+    console.log('[DEBUG] updateNavbarState: Showing sign in for anonymous user');
+    if (userSettingsLink) {
+      userSettingsLink.classList.add('hidden');
+    }
+    if (signinLink) {
+      signinLink.classList.remove('hidden');
+    }
+    if (userProfilePic) {
+      userProfilePic.src = defaultProfilePic;
+    }
   } else {
-    // User is not logged in
+    // User is not logged in at all
+    console.log('[DEBUG] updateNavbarState: Showing sign in for no user');
     if (userSettingsLink) {
       userSettingsLink.classList.add('hidden');
     }
@@ -1018,18 +1039,89 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
 
 // Initialize navbar when Firebase is ready
 firebaseReadyPromise.then(() => {
+  // Set up auth state listener
   auth.onAuthStateChanged(async (user) => {
+    console.log('[DEBUG] Auth state changed:', user ? 'User logged in' : 'No user');
+    console.log('[DEBUG] User is anonymous:', user ? user.isAnonymous : 'N/A');
+
     let userProfile = null;
-    if (user) {
-      userProfile = await getUserProfileFromFirestore(user.uid);
+    if (user && !user.isAnonymous) {
+      try {
+        userProfile = await getUserProfileFromFirestore(user.uid);
+        console.log('[DEBUG] User profile loaded:', userProfile ? 'Success' : 'No profile found');
+      } catch (error) {
+        console.error('[DEBUG] Error loading user profile:', error);
+      }
     }
-    await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-    loadFooter('current-year-...');
+
+    // Check if navbar is already loaded
+    const navbarPlaceholder = document.getElementById('navbar-placeholder');
+    if (navbarPlaceholder && navbarPlaceholder.innerHTML.trim() !== '') {
+      // Navbar is already loaded, just update the state
+      console.log('[DEBUG] Navbar already loaded, updating state only');
+      await updateNavbarState(user, userProfile, DEFAULT_PROFILE_PIC);
+    } else {
+      // Navbar not loaded yet, load it completely
+      console.log('[DEBUG] Loading navbar for the first time');
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    }
+
+    // Load footer if not already loaded
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+    if (footerPlaceholder && footerPlaceholder.innerHTML.trim() === '') {
+      loadFooter('current-year-...');
+    }
+  });
+
+  // Add page visibility change listener to refresh navbar state when user returns to tab
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden) {
+      console.log('[DEBUG] Page became visible, checking auth state');
+      // Small delay to ensure Firebase auth state is current
+      setTimeout(async () => {
+        if (typeof window.forceRefreshNavbarState === 'function') {
+          await window.forceRefreshNavbarState();
+        }
+      }, 100);
+    }
+  });
+
+  // Add window focus listener as additional safeguard
+  window.addEventListener('focus', async () => {
+    console.log('[DEBUG] Window gained focus, checking auth state');
+    // Small delay to ensure Firebase auth state is current
+    setTimeout(async () => {
+      if (typeof window.forceRefreshNavbarState === 'function') {
+        await window.forceRefreshNavbarState();
+      }
+    }, 100);
   });
 });
 
+/**
+ * Force refresh the navbar authentication state
+ * This can be called when you need to manually update the navbar
+ */
+export async function forceRefreshNavbarState() {
+  console.log('[DEBUG] Force refreshing navbar state');
+
+  const currentUser = auth.currentUser;
+  let userProfile = null;
+
+  if (currentUser && !currentUser.isAnonymous) {
+    try {
+      userProfile = await getUserProfileFromFirestore(currentUser.uid);
+    } catch (error) {
+      console.error('[DEBUG] Error loading user profile for force refresh:', error);
+    }
+  }
+
+  await updateNavbarState(currentUser, userProfile, DEFAULT_PROFILE_PIC);
+}
+
 // Make function available globally
 window.refreshNavbarProfilePicture = refreshNavbarProfilePicture;
+window.forceRefreshNavbarState = forceRefreshNavbarState;
 
 /**
  * Test function to manually set a profile picture URL

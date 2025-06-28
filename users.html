@@ -1497,6 +1497,14 @@
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
     loadFooter('current-year-users');
+
+    // Force check authentication state after a short delay to ensure navbar is correct
+    setTimeout(async () => {
+      console.log('[DEBUG] users.html: Force checking auth state after page load');
+      if (typeof window.forceRefreshNavbarState === 'function') {
+        await window.forceRefreshNavbarState();
+      }
+    }, 500);
   });
 </script>
 </body>
