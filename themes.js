@@ -28,7 +28,7 @@ let themesAuth = auth; // Assign global auth instance
 let themesAppId = appId; // Assign global appId instance
 
 // Cache for available themes
-let availableThemesCache = null;
+let availableThemesCache = [];
 
 const defaultThemes = [
   {
@@ -533,7 +533,7 @@ export async function deleteCustomTheme(themeId) {
   const themeDocRef = doc(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`, themeId);
   try {
     await deleteDoc(themeDocRef);
-    availableThemesCache = null; // Clear cache
+    availableThemesCache = []; // Clear cache
     console.log(`Deleted custom theme: ${themeId}`);
     return true;
   } catch (error) {

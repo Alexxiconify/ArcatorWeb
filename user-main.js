@@ -455,18 +455,38 @@ async function reloadAndApplyUserProfile() {
     profilePictureDisplay.alt = userProfile.displayName || 'User Profile Picture';
   }
 
-  // Apply all settings to UI controls
-  if (fontSizeSelect) fontSizeSelect.value = userProfile.fontSize || '16px';
-  if (fontFamilySelect) fontFamilySelect.value = userProfile.fontFamily || 'Inter, sans-serif';
-  if (backgroundPatternSelect) backgroundPatternSelect.value = userProfile.backgroundPattern || 'none';
-  if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = userProfile.headingSizeMultiplier || '1.6';
-  if (lineHeightSelect) lineHeightSelect.value = userProfile.lineHeight || '1.6';
-  if (letterSpacingSelect) letterSpacingSelect.value = userProfile.letterSpacing || '0px';
-  if (backgroundOpacityRange) backgroundOpacityRange.value = userProfile.backgroundOpacity || '50';
-  if (backgroundOpacityValue) backgroundOpacityValue.textContent = (userProfile.backgroundOpacity || '50') + '%';
+  // Use advancedSettings for UI controls and font scaling
+  const advSettingsLocal = userProfile.advancedSettings || {};
+  if (fontSizeSelect) fontSizeSelect.value = advSettingsLocal.fontSize || '16px';
+  if (fontFamilySelect) fontFamilySelect.value = advSettingsLocal.fontFamily || 'Inter, sans-serif';
+  if (backgroundPatternSelect) backgroundPatternSelect.value = advSettingsLocal.backgroundPattern || 'none';
+  if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = advSettingsLocal.headingSizeMultiplier || '1.6';
+  if (lineHeightSelect) lineHeightSelect.value = advSettingsLocal.lineHeight || '1.6';
+  if (letterSpacingSelect) letterSpacingSelect.value = advSettingsLocal.letterSpacing || '0px';
+  if (backgroundOpacityRange) backgroundOpacityRange.value = advSettingsLocal.backgroundOpacity || '50';
+  if (backgroundOpacityValue) backgroundOpacityValue.textContent = (advSettingsLocal.backgroundOpacity || '50') + '%';
+
+  // Populate theme select
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    // Clear existing options
+    themeSelect.innerHTML = '';
+    
+    // Get available themes and populate
+    const allThemes = await getAvailableThemes();
+    allThemes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.id;
+      option.textContent = theme.name;
+      if (theme.id === userProfile.themePreference) {
+        option.selected = true;
+      }
+      themeSelect.appendChild(option);
+    });
+  }
 
   // Apply font scaling system
-  applyFontScalingSystem(userProfile);
+  applyFontScalingSystem(advSettingsLocal);
 
   // Load notification settings
   const notificationSettings = userProfile.notificationSettings || {};
@@ -912,14 +932,18 @@ async function handleSavePreferences() {
   const letterSpacing = letterSpacingSelect ? letterSpacingSelect.value : '0px';
   const backgroundOpacity = backgroundOpacityRange ? backgroundOpacityRange.value : '50';
 
-  const updates = {
+  const advancedSettings = {
     fontSize: fontSize,
     fontFamily: fontFamily,
     backgroundPattern: backgroundPattern,
     headingSizeMultiplier: headingSizeMultiplier,
     lineHeight: lineHeight,
     letterSpacing: letterSpacing,
-    backgroundOpacity: backgroundOpacity,
+    backgroundOpacity: backgroundOpacity
+  };
+
+  const updates = {
+    advancedSettings: advancedSettings,
     lastUpdated: new Date().toISOString()
   };
 
@@ -1739,12 +1763,109 @@ function setupEventListeners() {
 
   // Background opacity range slider
   if (backgroundOpacityRange) {
-    backgroundOpacityRange.addEventListener('input', (e) => {
+    backgroundOpacityRange.addEventListener('input', async (e) => {
       if (backgroundOpacityValue) {
         backgroundOpacityValue.textContent = e.target.value + '%';
       }
+      
+      // Apply immediately
+      if (auth.currentUser) {
+        const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+        if (userProfile) {
+          const advSettings = userProfile.advancedSettings || {};
+          advSettings.backgroundOpacity = e.target.value;
+          applyFontScalingSystem({ ...userProfile, advancedSettings: advSettings });
+          
+          // Save to Firebase in background
+          try {
+            await setUserProfileInFirestore(auth.currentUser.uid, {
+              ...userProfile,
+              advancedSettings: advSettings
+            });
+          } catch (error) {
+            console.error('Error saving background opacity:', error);
+          }
+        }
+      }
     });
   }
+
+  // Typography settings - update immediately when changed
+  const typographySelects = [
+    'font-size-select',
+    'font-family-select', 
+    'line-height-select',
+    'letter-spacing-select',
+    'heading-size-multiplier',
+    'background-pattern-select',
+    'theme-select'
+  ];
+
+  typographySelects.forEach(selectId => {
+    const select = document.getElementById(selectId);
+    if (select) {
+      select.addEventListener('change', async () => {
+        // Get current user profile
+        if (!auth.currentUser) return;
+        const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+        if (!userProfile) return;
+
+        // Update the specific setting that changed
+        const advSettings = userProfile.advancedSettings || {};
+        
+        switch (selectId) {
+          case 'font-size-select':
+            advSettings.fontSize = select.value;
+            break;
+          case 'font-family-select':
+            advSettings.fontFamily = select.value;
+            break;
+          case 'line-height-select':
+            advSettings.lineHeight = select.value;
+            break;
+          case 'letter-spacing-select':
+            advSettings.letterSpacing = select.value;
+            break;
+          case 'heading-size-multiplier':
+            advSettings.headingSizeMultiplier = select.value;
+            break;
+          case 'background-pattern-select':
+            advSettings.backgroundPattern = select.value;
+            break;
+          case 'theme-select':
+            userProfile.themePreference = select.value;
+            break;
+        }
+
+        // Apply the updated settings immediately
+        if (selectId === 'theme-select') {
+          // Apply theme immediately
+          const allThemes = await getAvailableThemes();
+          const selectedTheme = allThemes.find(t => t.id === select.value);
+          if (selectedTheme) {
+            applyTheme(selectedTheme.id, selectedTheme);
+          }
+        } else {
+          // Apply typography settings immediately
+          applyFontScalingSystem({ ...userProfile, advancedSettings: advSettings });
+        }
+
+        // Save to Firebase in background
+        try {
+          if (selectId === 'theme-select') {
+            await setUserProfileInFirestore(auth.currentUser.uid, userProfile);
+          } else {
+            await setUserProfileInFirestore(auth.currentUser.uid, {
+              ...userProfile,
+              advancedSettings: advSettings
+            });
+          }
+        } catch (error) {
+          console.error('Error saving typography setting:', error);
+        }
+      });
+    }
+  });
 
   // Keyboard shortcuts recording
   const shortcutInputs = document.querySelectorAll('[id^="shortcut-"]');

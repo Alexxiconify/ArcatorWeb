@@ -586,43 +586,44 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
   }
 
   if (user) {
-    console.log("DEBUG: User is authenticated, showing admin content");
-    if (loginRequiredMessage) {
-      loginRequiredMessage.style.display = 'none';
-    }
-    if (adminContent) {
-      adminContent.style.display = 'block';
-    }
+    const isAdmin = user.isAdmin === true;
+    if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+    if (adminContent) adminContent.style.display = 'block';
 
-    // Update admin sections visibility
-    const sections = [
+    // Section IDs
+    const allSections = [
       'infrastructure-section',
-      'dev-tools-section', 
+      'dev-tools-section',
       'user-management-section',
-      'email-management-section',
       'form-management-section',
       'temp-pages-section',
       'important-links-section',
       'roadmap-section',
       'darrion-api-section',
       'grief-detection-section',
-      'onfim-notifications-section'
+      'onfim-notifications-section',
+      'email-management-section'
     ];
 
-    sections.forEach(sectionId => {
+    allSections.forEach(sectionId => {
       const section = document.getElementById(sectionId);
-      if (section) {
-        section.style.display = 'block';
-      }
+      if (section) section.style.display = 'none';
     });
 
-    // Setup collapsible sections
+    if (isAdmin) {
+      // Show all admin sections
+      allSections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) section.style.display = 'block';
+      });
+    } else {
+      // Only show email management for non-admins
+      const emailSection = document.getElementById('email-management-section');
+      if (emailSection) emailSection.style.display = 'block';
+    }
+
     setupCollapsibleSections();
-
-    // Load initial data
     setupEventListeners();
-
-    // Auto-load users when user management section is expanded
     const userManagementHeader = document.getElementById('user-management-header');
     if (userManagementHeader) {
       userManagementHeader.addEventListener('click', async function() {
@@ -632,15 +633,9 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
         }
       });
     }
-
   } else {
-    console.log("DEBUG: User is not authenticated, showing login required message");
-    if (adminContent) {
-      adminContent.style.display = 'none';
-    }
-    if (loginRequiredMessage) {
-      loginRequiredMessage.style.display = 'block';
-    }
+    if (adminContent) adminContent.style.display = 'none';
+    if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
   }
 };
 
