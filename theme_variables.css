@@ -50,6 +50,8 @@
 
   /* Default font family variable */
   --font-family-body: 'Inter', sans-serif;
+
+  --color-hero-shadow: rgba(0,0,0,0.7);
 }
 
 /* --- Theme Specific Variable Overrides --- */
@@ -98,6 +100,7 @@
   --color-message-box-bg-success: #4CAF50;
   --color-message-box-bg-error: #F44336;
   --font-family-body: 'Inter', sans-serif;
+  --color-hero-shadow: rgba(0,0,0,0.7);
 }
 
 /* Light Theme */
@@ -144,6 +147,7 @@
   --color-message-box-bg-success: #4CAF50;
   --color-message-box-bg-error: #F44336;
   --font-family-body: 'Inter', sans-serif;
+  --color-hero-shadow: rgba(0,0,0,0.25);
 }
 
 /* New Theme: Arcator Green */
@@ -190,6 +194,7 @@
   --color-message-box-bg-success: #34D399;
   --color-message-box-bg-error: #F87171;
   --font-family-body: 'Inter', sans-serif; /* Default to Inter */
+  --color-hero-shadow: rgba(0,0,0,0.6);
 }
 
 /* New Theme: Ocean Blue */
@@ -236,6 +241,7 @@
   --color-message-box-bg-success: #29B6F6;
   --color-message-box-bg-error: #EF5350;
   --font-family-body: 'Inter', sans-serif; /* Default to Inter */
+  --color-hero-shadow: rgba(0,0,0,0.6);
 }
 
 /* New Theme: High Contrast */
@@ -282,6 +288,7 @@
   --color-message-box-bg-success: #00FF00;
   --color-message-box-bg-error: #FF0000;
   --font-family-body: 'Inter', sans-serif; /* Default to Inter */
+  --color-hero-shadow: #000;
 }
 
 /* Background Patterns */

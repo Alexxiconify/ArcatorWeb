@@ -4,6 +4,13 @@ import { db, appId, getCurrentUser } from './firebase-init.js';
 import { showMessageBox, showCustomConfirm, sanitizeHandle, resolveHandlesToUids, getUserProfileFromFirestore, parseEmojis, parseMentions } from './utils.js';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Utility: escape HTML for safe rendering
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // --- DOM Elements ---
 const conversationsPanel = document.getElementById('conversations-panel');
 const messagesPanel = document.getElementById('messages-panel');
@@ -47,7 +54,7 @@ const DEFAULT_PROFILE_PIC = 'https://placehold.co/40x40/1F2937/E5E7EB?text=AV';
  * @param {string} [groupName=''] - Optional name for group chats.
  */
 export async function createConversation(type, participantHandles, groupName = '') {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser || !currentUser.uid || !currentUser.handle) {
     showMessageBox("You must be logged in and have a handle to start a chat.", true);
     return;
@@ -242,7 +249,7 @@ export function renderConversationsList() {
  * @param {object} conversationData - The conversation object data.
  */
 export async function selectConversation(convId, conversationData) {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser || !convId) {
     console.error("No current user or conversation ID for selection.");
     return;
@@ -313,24 +320,44 @@ export async function selectConversation(convId, conversationData) {
 }
 
 /**
- * Updates the UI when no conversation is selected.
+ * Update UI when no conversation is selected
  */
 export function updateDmUiForNoConversationSelected() {
   selectedConversationId = null;
-  conversationsPanel.classList.remove('hidden');
-  messagesPanel.classList.add('hidden');
-  messageInputArea.classList.add('hidden');
-  noMessagesMessage.style.display = 'block';
-  conversationMessagesContainer.innerHTML = '';
-  conversationTitleHeader.textContent = 'Select a conversation';
-  deleteConversationBtn.classList.add('hidden');
+  
+  // Update UI to show conversations panel
+  const conversationsPanel = document.getElementById('conversations-panel');
+  const messagesPanel = document.getElementById('messages-panel');
+  const messageInputArea = document.getElementById('message-input-area');
+  
+  if (conversationsPanel) conversationsPanel.classList.remove('hidden');
+  if (messagesPanel) messagesPanel.classList.add('hidden');
+  if (messageInputArea) messageInputArea.classList.add('hidden');
+  
+  // Clear active conversation styling
+  document.querySelectorAll('.conversation-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Clear messages
+  currentMessages = [];
+  const messagesContainer = document.getElementById('conversation-messages-container');
+  if (messagesContainer) {
+    messagesContainer.innerHTML = '';
+  }
+  
+  // Hide delete button
+  const deleteConversationBtn = document.getElementById('delete-conversation-btn');
+  if (deleteConversationBtn) {
+    deleteConversationBtn.style.display = 'none';
+  }
 }
 
 /**
  * Renders messages for a specific conversation in real-time.
  * @param {string} convId - The ID of the conversation whose messages to render.
  */
-function renderConversationMessages(convId) {
+async function renderConversationMessages(convId) {
   const messagesContainer = document.getElementById('conversation-messages-container');
   const noMessagesEl = document.getElementById('no-messages-message');
   
@@ -344,7 +371,7 @@ function renderConversationMessages(convId) {
   
   noMessagesEl.style.display = 'none';
   
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser) return;
   
   messagesContainer.innerHTML = currentMessages.map(message => {
@@ -396,9 +423,9 @@ function renderConversationMessages(convId) {
  * @param {string} content - The message content.
  */
 export async function sendMessage(content) {
-  const currentUser = getCurrentUser();
-  if (!currentUser || !currentUser.uid || !currentUser.handle || !selectedConversationId) {
-    showMessageBox("Cannot send message. User not logged in or no conversation selected.", true);
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !currentUser.uid || !currentUser.handle) {
+    showMessageBox("You must be logged in and have a handle to send messages.", true);
     return;
   }
   if (!db) {
@@ -443,7 +470,7 @@ export async function sendMessage(content) {
  * @param {string} messageId - The ID of the message to delete.
  */
 export async function deleteMessage(messageId) {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser || !currentUser.uid || !selectedConversationId) {
     showMessageBox("Cannot delete message. User not logged in or no conversation selected.", true);
     return;
@@ -498,7 +525,7 @@ export async function deleteMessage(messageId) {
  * Initialize the DM system
  */
 export async function initializeDmSystem() {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser) {
     console.warn("No current user for DM system initialization");
     return;
@@ -517,7 +544,7 @@ export async function initializeDmSystem() {
  * Set up real-time listener for conversations
  */
 async function setupConversationsListener() {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser || !db) return;
   
   if (unsubscribeConversationsList) {
@@ -578,7 +605,7 @@ async function setupConversationsListener() {
  * Load messages for a specific conversation
  */
 async function loadMessagesForConversation(convId) {
-  const currentUser = getCurrentUser();
+  const currentUser = await getCurrentUser();
   if (!currentUser || !convId || !db) return;
   
   if (unsubscribeCurrentMessages) {
@@ -592,7 +619,7 @@ async function loadMessagesForConversation(convId) {
     currentMessages = [];
     
     if (snapshot.empty) {
-      renderConversationMessages(convId);
+      await renderConversationMessages(convId);
       return;
     }
     
@@ -624,7 +651,7 @@ async function loadMessagesForConversation(convId) {
       msg.timestamp = msg.createdAt?.toDate?.() || msg.createdAt || new Date();
     });
     
-    renderConversationMessages(convId);
+    await renderConversationMessages(convId);
   }, (error) => {
     console.error("Error fetching messages:", error);
     showMessageBox(`Error loading messages: ${error.message}`, true);
@@ -786,4 +813,50 @@ export function attachDmEventListeners() {
   
   // Conversation items (handled in renderConversationsList)
   // Back button (handled in forms.js)
+}
+
+/**
+ * Deletes an entire conversation and all its messages.
+ * @param {string} convId - The ID of the conversation to delete.
+ */
+export async function deleteConversation(convId) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !currentUser.uid) {
+    showMessageBox("You must be logged in to delete a conversation.", true);
+    return;
+  }
+  if (!db) {
+    showMessageBox("Database not initialized. Cannot delete conversation.", true);
+    return;
+  }
+
+  const confirmation = await showCustomConfirm(
+    "Are you sure you want to delete this entire chat?",
+    "This will delete the conversation and all its messages for everyone. This action cannot be undone."
+  );
+  if (!confirmation) {
+    showMessageBox("Conversation deletion cancelled.", false);
+    return;
+  }
+
+  // Use the correct path structure
+  const conversationDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/dms`, convId);
+  const messagesColRef = collection(conversationDocRef, 'messages');
+
+  try {
+    const messagesSnapshot = await getDocs(messagesColRef);
+    const batch = writeBatch(db);
+    messagesSnapshot.docs.forEach((msgDoc) => {
+      batch.delete(msgDoc.ref);
+    });
+    await batch.commit();
+
+    await deleteDoc(conversationDocRef);
+
+    showMessageBox("Conversation deleted successfully!", false);
+    updateDmUiForNoConversationSelected();
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
+    showMessageBox(`Error deleting conversation: ${error.message}`, true);
+  }
 }

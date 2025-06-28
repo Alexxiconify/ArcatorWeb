@@ -234,16 +234,16 @@ table tbody tr:nth-child(even) {
   z-index: 1;
 }
 .hero-content {
-  position: absolute; /* Position text content absolutely */
+  position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* Center the text content */
-  width: 100%; /* Ensure content takes full width for text-align: center */
-  max-width: 800px; /* Optional: Constrain text width for better readability */
-  text-align: center; /* Center the text horizontally within its container */
-  z-index: 2; /* Ensure text is above the overlay */
-  color: white; /* Hero content text is hardcoded white for readability over image */
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+  z-index: 2;
+  color: white;
+  text-shadow: 2px 2px 4px var(--color-hero-shadow, rgba(0,0,0,0.7));
 }
 
 .input-field select, select.w-full {
