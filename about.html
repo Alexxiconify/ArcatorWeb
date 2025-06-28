@@ -19,8 +19,6 @@
     body {
       font-family: 'Inter', sans-serif;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
       background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
       background-size: 20px 20px;
       background-attachment: fixed;
@@ -60,8 +58,6 @@
 
     /* Feature card specific styling */
     .feature-card {
-      background-color: var(--color-bg-card); /* Use card background for feature cards */
-      color: var(--color-text-primary);
       border-radius: 0.75rem;
       padding: 2rem;
       box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
@@ -74,7 +70,6 @@
     }
 
     .minecraft-ip-box {
-      background-color: var(--color-bg-ip-box);
       border: 2px solid var(--color-border-ip-box);
       box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     }
@@ -85,7 +80,6 @@
 
     /* Content section styling */
     .content-section {
-      background-color: var(--color-bg-content-section);
       border-radius: 0.75rem;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
       padding: 2rem;
@@ -93,7 +87,6 @@
     }
 
     .content-card {
-      background-color: var(--color-bg-card);
       border: 1px solid var(--color-input-border);
       border-radius: 0.75rem;
       padding: 1.5rem;
@@ -110,7 +103,6 @@
     .feature-list {
       list-style-type: disc;
       list-style-position: inside;
-      color: var(--color-text-secondary);
     }
 
     .feature-list li {
@@ -119,7 +111,6 @@
     }
 
     .feature-list .highlight {
-      color: var(--color-text-primary);
       font-weight: 600;
     }
 
@@ -131,8 +122,6 @@
     }
 
     .tab-button {
-      background: var(--color-bg-card);
-      color: var(--color-text-secondary);
       border: none;
       padding: 1rem 2rem;
       margin: 0 0.5rem;
@@ -144,14 +133,7 @@
       border-bottom: 3px solid transparent;
     }
 
-    .tab-button:hover {
-      background: var(--color-bg-content-section);
-      color: var(--color-text-primary);
-    }
-
     .tab-button.active {
-      background: var(--color-bg-content-section);
-      color: var(--color-text-primary);
       border-bottom-color: var(--color-link);
     }
 
@@ -178,8 +160,6 @@
 
       .tab-button.active {
         border-bottom-color: transparent;
-        background: var(--color-link);
-        color: var(--color-button-text);
       }
     }
   </style>
@@ -590,83 +570,7 @@
       console.warn('[DEBUG] Using fallback census data due to error:', error);
       console.log('[DEBUG] Error details:', error.message);
 
-      // Use fallback data
-      interestsData = [
-        {
-          interest: 'Minecraft Building',
-          category: 'Gaming',
-          members: 45,
-          description: 'Creative building and redstone engineering'
-        },
-        {
-          interest: 'Programming',
-          category: 'Technology',
-          members: 23,
-          description: 'Software development and coding projects'
-        },
-        {
-          interest: 'Digital Art',
-          category: 'Creative',
-          members: 18,
-          description: 'Digital painting, pixel art, and graphic design'
-        },
-        {
-          interest: 'Music Production',
-          category: 'Creative',
-          members: 12,
-          description: 'Creating and sharing original music'
-        },
-        {
-          interest: 'Server Administration',
-          category: 'Technology',
-          members: 8,
-          description: 'Managing servers and infrastructure'
-        },
-        {
-          interest: 'Writing & Storytelling',
-          category: 'Creative',
-          members: 15,
-          description: 'Creative writing and world-building'
-        },
-        {interest: 'Photography', category: 'Creative', members: 10, description: 'Capturing moments and landscapes'},
-        {
-          interest: 'Game Development',
-          category: 'Technology',
-          members: 7,
-          description: 'Creating games and interactive experiences'
-        },
-        {interest: '3D Modeling', category: 'Creative', members: 9, description: '3D design and modeling projects'},
-        {
-          interest: 'Web Development',
-          category: 'Technology',
-          members: 14,
-          description: 'Building websites and web applications'
-        }
-      ];
-
-      // Show a subtle warning that we're using fallback data
-      const warningEl = document.createElement('div');
-      warningEl.className = 'text-yellow-400 text-sm text-center mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg';
-      warningEl.innerHTML = `
-        <div class="flex items-center justify-center">
-          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-          </svg>
-          <span>Using sample data (JSON file temporarily unavailable)</span>
-        </div>
-        <div class="text-xs mt-1">
-          <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?gid=1977273024"
-             target="_blank" rel="noopener noreferrer"
-             class="text-blue-400 hover:text-blue-300 underline">
-            View live data in Google Sheets
-          </a>
-        </div>
-      `;
-      const tableContainer = document.getElementById('interests-table-container');
-      if (tableContainer) {
-        tableContainer.insertBefore(warningEl, tableContainer.firstChild);
-      }
-    }
+    
 
     // Initialize the table
     initializeInterestsTable();

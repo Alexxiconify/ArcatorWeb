@@ -16,8 +16,7 @@
   <style>
     /* Base styles using CSS variables */
     body {
-      background: var(--color-body-bg);
-      color: var(--color-text-primary);
+      /* Theme colors will be applied by themes.js */
     }
 
     /* Hero banner background image */
@@ -52,66 +51,22 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
-    /* Theme-aware classes using CSS variables */
-    .bg-content-section {
-      background-color: var(--color-bg-content-section);
-    }
-
-    .text-heading-main {
-      color: var(--color-heading-main);
-    }
-
-    .text-heading-card {
-      color: var(--color-heading-card);
-    }
-
-    .text-text-primary {
-      color: var(--color-text-primary);
-    }
-
-    .text-text-secondary {
-      color: var(--color-text-secondary);
-    }
-
-    .bg-card {
-      background-color: var(--color-bg-card);
-    }
-
-    .bg-navbar-footer {
-      background-color: var(--color-bg-navbar);
-    }
-
-    .text-link {
-      color: var(--color-link);
-    }
-
-    .hover\:text-link:hover {
-      color: var(--color-link);
-    }
-
     /* Collapsible header styling */
     .collapsible-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 1rem 1.5rem;
-      background-color: var(--color-table-th-bg);
-      color: var(--color-table-th-text);
       border-radius: 0.5rem;
       margin-bottom: 0.5rem;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
-    .collapsible-header:hover {
-      background-color: var(--color-link);
-    }
-
     .collapsible-header h3 {
       margin: 0;
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--color-table-th-text);
     }
 
     .collapsible-header svg {
@@ -125,7 +80,6 @@
     /* Styles for content sections to save vertical space */
     .collapsible-content {
       padding: 1rem 1.5rem;
-      background-color: var(--color-bg-card);
       border-radius: 0.5rem;
       margin-bottom: 1rem;
     }
@@ -170,8 +124,6 @@
       flex-shrink: 0;
       padding: 0.5rem 1rem;
       border-radius: 0.375rem;
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-secondary);
       cursor: pointer;
       transition: background-color 0.2s ease, color 0.2s ease;
       white-space: nowrap;
@@ -180,14 +132,7 @@
       max-width: 150px;
     }
 
-    .temp-page-tab-button:hover {
-      background-color: var(--color-link);
-      color: var(--color-button-text);
-    }
-
     .temp-page-tab-button.active {
-      background-color: var(--color-link);
-      color: var(--color-button-text);
       font-weight: 600;
     }
   </style>
