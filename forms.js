@@ -787,3 +787,35 @@ async function handleCreateConversation(event) {
 
 // Make handleReaction globally accessible
 window.handleReaction = handleReaction;
+
+// --- Tab Persistence and Scroll to Top ---
+function setActiveTab(tabName) {
+  localStorage.setItem('formsActiveTab', tabName);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
+function getActiveTab() {
+  return localStorage.getItem('formsActiveTab') || 'thema-all';
+}
+
+window.showTab = function(tabName) {
+  setActiveTab(tabName);
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(content => content.classList.remove('active'));
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(button => button.classList.remove('active'));
+  document.getElementById(tabName + '-tab-content').classList.add('active');
+  const btn = document.getElementById('tab-' + tabName);
+  if (btn) btn.classList.add('active');
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+};
+
+// On page load, restore last active tab and scroll to top
+window.addEventListener('DOMContentLoaded', () => {
+  const tab = getActiveTab();
+  window.showTab(tab);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+});
