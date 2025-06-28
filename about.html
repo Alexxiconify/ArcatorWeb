@@ -200,8 +200,9 @@
 <div class="container mx-auto px-4 mt-8">
   <div class="tab-container">
     <button class="tab-button active" onclick="showTab('about')">About</button>
-    <button class="tab-button" onclick="showTab('community')">Community</button>
-    <button class="tab-button" onclick="showTab('interests')">Interests</button>
+    <button class="tab-button" onclick="showTab('discord')">Discord</button>
+    <button class="tab-button" onclick="showTab('census')">Census</button>
+    <button class="tab-button" onclick="showTab('infrastructure')">Infrastructure</button>
   </div>
 </div>
 
@@ -316,7 +317,7 @@
   </section>
 </div>
 
-<div class="tab-content" id="community-tab">
+<div class="tab-content" id="discord-tab">
   <!-- Community content from original community.html -->
   <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
     <div class="container mx-auto px-4">
@@ -407,7 +408,7 @@
   </section>
 </div>
 
-<div class="tab-content" id="interests-tab">
+<div class="tab-content" id="census-tab">
   <!-- Interests content with Google Sheets data table -->
   <section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
     <div class="container mx-auto px-4">
@@ -513,6 +514,50 @@
   </section>
 </div>
 
+<div class="tab-content" id="infrastructure-tab">
+  <!-- Infrastructure content from original infrastructure.html -->
+  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Robust Network Setup</h2>
+      <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
+        <p>Arcator's stability and performance are built upon a foundation of dedicated and well-maintained server
+          infrastructure. We utilize a blend of powerful machines and strategic network configurations to ensure a
+          seamless and low-latency experience for all our players across various Minecraft servers and services.</p>
+        <p>Our setup is designed for efficiency, reliability, and scalability, allowing us to host diverse gamemodes,
+          critical background services, and provide robust redundancy measures.</p>
+      </div>
+
+      <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
+        <table class="min-w-full bg-card">
+          <thead>
+          <tr class="bg-table-th-bg text-table-th-text">
+            <th class="py-3 px-6 text-xl">Hostname</th>
+            <th class="py-3 px-6 text-xl">Primary Role</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr class="text-text-primary border-t border-table-td-border">
+            <td>jylina</td>
+            <td>Main Minecraft Server Host (s1)</td>
+          </tr>
+          <tr class="text-text-primary bg-table-row-even-bg border-t border-table-td-border">
+            <td>thoth</td>
+            <td>Raspberry Pi Minecraft Server (s2) / Backup Services</td>
+          </tr>
+          <tr class="text-text-primary border-t border-table-td-border">
+            <td>sputnik</td>
+            <td>Web Server / Load Balancer (s9)</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-lg mt-12 text-text-secondary text-center">This setup allows us to efficiently manage different
+        aspects of the network, from hosting Minecraft servers to handling critical background services and providing
+        redundancy.</p>
+    </div>
+  </section>
+</div>
+
 <!-- Footer Section -->
 <div id="footer-placeholder"></div>
 
@@ -536,6 +581,11 @@
     tabButtons.forEach(button => button.classList.remove('active'));
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');
+
+    // Load interests data when census tab is shown
+    if (tabName === 'census' && interestsData.length === 0) {
+      loadInterestsData();
+    }
   };
 
   firebaseReadyPromise.then(async () => {
@@ -560,7 +610,7 @@
   // Google Sheets configuration
   const GOOGLE_SHEETS_CONFIG = {
     // Arcator Interests Google Sheets URL
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/gviz/tq?tqx=out:csv',
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/gviz/tq?tqx=out:csv&gid=1977273024',
     // Fallback data if Google Sheets is not available
     fallbackData: [
       {
@@ -957,21 +1007,6 @@
       timeout = setTimeout(later, wait);
     };
   }
-
-  // Load interests data when the interests tab is shown
-  window.showTab = function (tabName) {
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => button.classList.remove('active'));
-    document.getElementById(tabName + '-tab').classList.add('active');
-    event.target.classList.add('active');
-
-    // Load interests data when interests tab is shown
-    if (tabName === 'interests' && interestsData.length === 0) {
-      loadInterestsData();
-    }
-  };
 </script>
 </body>
 </html>
