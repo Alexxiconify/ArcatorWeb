@@ -709,11 +709,22 @@ async function saveShortcutsToFirebase() {
 
 // Comprehensive font scaling system
 function applyFontScalingSystem(userProfile) {
-  const baseFontSize = parseInt(userProfile.fontSize || '16px');
-  const headingMultiplier = parseFloat(userProfile.headingSizeMultiplier || '1.6');
-  const fontFamily = userProfile.fontFamily || 'Inter, sans-serif';
-  const lineHeight = userProfile.lineHeight || '1.6';
-  const letterSpacing = userProfile.letterSpacing || '0px';
+  // Handle both direct properties and nested advancedSettings
+  const settings = userProfile.advancedSettings || userProfile;
+  
+  // Extract font size and remove "px" if present
+  let fontSizeValue = settings.fontSize || '16px';
+  if (typeof fontSizeValue === 'string' && fontSizeValue.includes('px')) {
+    fontSizeValue = fontSizeValue.replace('px', '');
+  }
+  const baseFontSize = parseInt(fontSizeValue) || 16;
+  
+  const headingMultiplier = parseFloat(settings.headingSizeMultiplier || '1.6');
+  const fontFamily = settings.fontFamily || 'Inter, sans-serif';
+  const lineHeight = settings.lineHeight || '1.6';
+  const letterSpacing = settings.letterSpacing || '0px';
+
+  console.log('DEBUG: Applying font scaling - fontSize:', fontSizeValue, 'baseFontSize:', baseFontSize);
 
   // Set base font properties on body
   document.body.style.fontSize = `${baseFontSize}px`;
