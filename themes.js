@@ -304,14 +304,12 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
  */
 async function fetchCustomThemes() {
   try {
-    // Wait for Firebase to be ready
-    await firebaseReadyPromise;
-    
-    // Use themesDb if available, otherwise fall back to global db
+    // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
     const firestoreDb = themesDb || db;
+    const firebaseAuth = themesAuth || auth;
     const appIdentifier = themesAppId || appId;
-    
-    if (!firestoreDb) {
+
+    if (!firestoreDb || !firebaseAuth || !appIdentifier) {
       console.warn("Firestore DB not initialized for fetchCustomThemes. Using default themes only.");
       return [];
     }
@@ -322,10 +320,18 @@ async function fetchCustomThemes() {
       return [];
     }
 
-    // Check if Firestore is properly connected
+    // Check if Firestore is properly connected with a timeout
     try {
       const customThemesRef = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
-      const querySnapshot = await getDocs(customThemesRef);
+      
+      // Add a timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore query timeout')), 5000)
+      );
+      
+      const queryPromise = getDocs(customThemesRef);
+      const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
+      
       const customThemes = [];
 
       querySnapshot.forEach(doc => {
@@ -347,10 +353,12 @@ async function fetchCustomThemes() {
       return customThemes;
     } catch (firestoreError) {
       console.warn("Error accessing Firestore for custom themes:", firestoreError);
+      // Return empty array instead of throwing to allow fallback to default themes
       return [];
     }
   } catch (error) {
     console.warn("Error in fetchCustomThemes:", error);
+    // Return empty array instead of throwing to allow fallback to default themes
     return [];
   }
 }
@@ -367,8 +375,14 @@ export async function getAvailableThemes(forceRefresh = false) {
   }
 
   try {
-    // Fetch custom themes from Firestore
-    const customThemes = await fetchCustomThemes();
+    // Fetch custom themes from Firestore with error handling
+    let customThemes = [];
+    try {
+      customThemes = await fetchCustomThemes();
+    } catch (customThemeError) {
+      console.warn("Failed to fetch custom themes, using defaults only:", customThemeError);
+      customThemes = [];
+    }
     
     // Combine default and custom themes
     const allThemes = [...defaultThemes, ...customThemes];
@@ -379,7 +393,9 @@ export async function getAvailableThemes(forceRefresh = false) {
     return allThemes;
   } catch (error) {
     console.error("Error fetching themes:", error);
-    return defaultThemes; // Return default themes on error
+    // Always return default themes on error to ensure the app doesn't break
+    availableThemesCache = defaultThemes;
+    return defaultThemes;
   }
 }
 
@@ -689,17 +705,26 @@ export async function applyCachedTheme() {
     const cachedThemeId = getCachedTheme();
     if (!cachedThemeId) return false;
 
-    // Get available themes (use cache if available, otherwise fetch)
-    const themes = availableThemesCache.length > 0 ? availableThemesCache : await getAvailableThemes();
+    // Get available themes with better error handling
+    let themes = [];
+    try {
+      themes = availableThemesCache.length > 0 ? availableThemesCache : await getAvailableThemes();
+    } catch (themeError) {
+      console.warn('Failed to get available themes for cached theme application:', themeError);
+      // Try to use default themes as fallback
+      themes = defaultThemes;
+    }
+    
     const themeToApply = themes.find(t => t.id === cachedThemeId);
     
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
       console.log(`Applied cached theme: ${cachedThemeId}`);
       return true;
+    } else {
+      console.warn(`Cached theme ${cachedThemeId} not found in available themes`);
+      return false;
     }
-    
-    return false;
   } catch (error) {
     console.warn('Failed to apply cached theme:', error);
     return false;

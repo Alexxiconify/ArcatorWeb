@@ -616,76 +616,104 @@
    * Initializes the temporary page viewer.
    */
   async function initTemporaryPageViewer() {
-    // Ensure Firebase is initialized and ready before proceeding
-    await firebaseReadyPromise;
+    try {
+      // Ensure Firebase is initialized and ready before proceeding
+      await firebaseReadyPromise;
+      
+      // Wait a bit more to ensure Firestore is fully connected
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Setup themes integration using the imported function
-    setupThemesFirebase(db, auth, appId);
+      // Setup themes integration using the imported function
+      setupThemesFirebase(db, auth, appId);
 
-    // Apply cached theme immediately to prevent flash
-    applyCachedTheme().then(cachedApplied => {
-      if (cachedApplied) {
-        console.log('Temp page viewer: Applied cached theme');
+      // Get user profile and apply theme
+      let userProfile = null;
+      if (auth.currentUser) {
+        userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
       }
-    });
+      
+      // Load navbar dynamically
+      await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-    // Get user profile and apply theme
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-    
-    // Load navbar dynamically
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+      // Load footer
+      loadFooter('current-year-temp-page');
+      
+      // Apply cached theme with better error handling
+      try {
+        const cachedApplied = await applyCachedTheme();
+        if (cachedApplied) {
+          console.log('Temp page viewer: Applied cached theme');
+        }
+      } catch (themeError) {
+        console.warn('Failed to apply cached theme, using default:', themeError);
+        // Apply default theme as fallback
+        const defaultTheme = { id: DEFAULT_THEME_NAME, name: 'Dark Theme' };
+        applyTheme(defaultTheme.id, defaultTheme);
+      }
+      
+      // Apply user's theme preference with better error handling
+      try {
+        const userThemePreference = userProfile?.themePreference;
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+        if (themeToApply) {
+          applyTheme(themeToApply.id, themeToApply);
+          console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+        }
+      } catch (themeError) {
+        console.warn('Failed to apply user theme preference, using default:', themeError);
+        // Apply default theme as fallback
+        const defaultTheme = { id: DEFAULT_THEME_NAME, name: 'Dark Theme' };
+        applyTheme(defaultTheme.id, defaultTheme);
+      }
 
-    // Load footer
-    loadFooter('current-year-temp-page');
-    
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-    }
+      // Load temporary pages
+      allTemporaryPages = await fetchAllTemporaryPages();
 
-    allTemporaryPages = await fetchAllTemporaryPages();
+      if (allTemporaryPages.length === 0) {
+        pageDisplayTitle.textContent = 'No Pages Found';
+        pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
+        pageHtmlTitle.textContent = 'No Pages';
+        pageUpdatedAt.textContent = 'N/A';
+        commentsSection.style.display = 'none';
+        return;
+      }
 
-    if (allTemporaryPages.length === 0) {
-      pageDisplayTitle.textContent = 'No Pages Found';
-      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
-      pageHtmlTitle.textContent = 'No Pages';
+      // Create navigation tabs
+      tempPageNav.innerHTML = '';
+      allTemporaryPages.forEach((page, index) => {
+        const button = document.createElement('button');
+        button.textContent = page.title;
+        button.dataset.pageId = page.id;
+        button.classList.add('temp-page-nav-button');
+        button.addEventListener('click', () => displayPage(index));
+        tempPageNav.appendChild(button);
+      });
+
+      // Determine which page to display initially
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageIdFromUrl = urlParams.get('id');
+
+      let initialPage = null;
+      if (pageIdFromUrl) {
+        initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
+      }
+
+      // If no specific page from URL or page not found, display the first page
+      displayPage(initialPage ? allTemporaryPages.indexOf(initialPage) : 0);
+
+      // Setup comment form event listener
+      setupCommentForm();
+      
+    } catch (error) {
+      console.error('Error initializing temporary page viewer:', error);
+      // Show error message to user
+      pageDisplayTitle.textContent = 'Error Loading Page';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">Failed to load the page. Please refresh and try again.</p>';
+      pageHtmlTitle.textContent = 'Error';
       pageUpdatedAt.textContent = 'N/A';
       commentsSection.style.display = 'none';
-      return;
     }
-
-    // Create navigation tabs
-    tempPageNav.innerHTML = '';
-    allTemporaryPages.forEach((page, index) => {
-      const button = document.createElement('button');
-      button.textContent = page.title;
-      button.dataset.pageId = page.id;
-      button.classList.add('temp-page-nav-button');
-      button.addEventListener('click', () => displayPage(index));
-      tempPageNav.appendChild(button);
-    });
-
-    // Determine which page to display initially
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageIdFromUrl = urlParams.get('id');
-
-    let initialPage = null;
-    if (pageIdFromUrl) {
-      initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
-    }
-
-    // If no specific page from URL or page not found, display the first page
-    displayPage(initialPage ? allTemporaryPages.indexOf(initialPage) : 0);
-
-    // Setup comment form event listener
-    setupCommentForm();
   }
 
   /**
