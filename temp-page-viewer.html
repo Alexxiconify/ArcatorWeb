@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="page-title-display">Loading...</title>
-  <!-- Production Tailwind CSS -->
-  <link rel="stylesheet" href="style.css">
-  <!-- Google Fonts - Inter -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables for theming -->
   <link rel="stylesheet" href="theme_variables.css">
@@ -17,364 +15,477 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    /* Ensure the HTML and Body default to dark colors immediately */
-    html {
-      /* Theme colors will be applied by themes.js */
+    /* Critical CSS for immediate rendering */
+    * {
+      box-sizing: border-box;
     }
-
+  
+    html,
     body {
+      margin: 0;
+      padding: 0;
       font-family: 'Inter', sans-serif;
+      line-height: 1.6;
       background-color: var(--color-body-bg);
       color: var(--color-text-primary);
-      transition: background-color 0.3s ease, color 0.3s ease;
-      min-height: 100vh; /* Ensure body takes full viewport height */
-      display: flex;
-      flex-direction: column;
+      transition: background-color 0.3s, color 0.3s;
     }
-
-    /* Container for the main page content - ensure it uses theme colors */
-    .container {
-      flex-grow: 1; /* Allow container to grow and fill available space */
+  
+    .main-section,
+    .forum-section,
+    .content-section {
       background-color: var(--color-bg-content-section);
-    }
-
-    /* Temporary Page Navigation Tabs */
-    .temp-page-nav {
-      display: flex;
-      flex-wrap: wrap; /* Allow tabs to wrap */
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--color-input-border);
-      overflow-x: auto; /* Enable horizontal scrolling for many tabs */
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: var(--color-link) var(--color-bg-navbar); /* Firefox */
-    }
-
-    /* Webkit (Chrome, Safari) scrollbar styling */
-    .temp-page-nav::-webkit-scrollbar {
-      height: 8px;
-    }
-
-    .temp-page-nav::-webkit-scrollbar-track {
-      background: var(--color-bg-navbar);
-      border-radius: 10px;
-    }
-
-    .temp-page-nav::-webkit-scrollbar-thumb {
-      background-color: var(--color-link);
-      border-radius: 10px;
-      border: 2px solid var(--color-bg-navbar);
-    }
-
-    .temp-page-nav button {
-      flex-shrink: 0; /* Prevent buttons from shrinking */
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-      white-space: nowrap; /* Prevent text wrapping inside button */
-      max-width: 180px; /* Limit tab width for better wrapping/scrolling */
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border: 1px solid transparent; /* Add a subtle border */
-      background-color: var(--color-bg-navbar);
       color: var(--color-text-primary);
     }
-
-    .temp-page-nav button:hover {
-      background-color: var(--color-link);
-      color: var(--color-text-primary);
+  
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 0.375rem;
     }
-
-    .temp-page-nav button.active {
-      font-weight: 700; /* Bold for active tab */
-      background-color: var(--color-link);
-      color: var(--color-text-primary);
+  
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+  
+      100% {
+        background-position: -200% 0;
+      }
     }
-
-    /* HTML content styling within the viewer (direct application of content) */
-    .html-content {
-      line-height: 1.7;
-      word-wrap: break-word; /* Ensure long words break */
-      color: var(--color-text-primary);
+  
+    /* Smooth transitions */
+    .transition-all {
+      transition: all 0.2s ease-in-out;
     }
-
-    /* General HTML element styling to match theme */
-    .html-content h1, .html-content h2, .html-content h3, .html-content h4, .html-content h5, .html-content h6 {
-      margin-top: 1.5em;
-      margin-bottom: 0.8em;
-      font-weight: 700;
-      line-height: 1.2;
-      color: var(--color-heading-main);
-    }
-    .html-content h1 { font-size: 2.5rem; }
-    .html-content h2 { font-size: 2rem; }
-    .html-content h3 { font-size: 1.75rem; }
-    .html-content h4 { font-size: 1.5rem; }
-    .html-content h5 { font-size: 1.25rem; }
-    .html-content h6 { font-size: 1rem; }
-
-    .html-content p {
-      margin-bottom: 1em;
-      line-height: 1.6;
-    }
-
-    .html-content ul, .html-content ol {
-      margin-bottom: 1em;
-      padding-left: 2em; /* More padding for lists */
-    }
-    .html-content ul li, .html-content ol li {
-      margin-bottom: 0.5em;
-    }
-
-    .html-content a {
-      text-decoration: underline;
-      font-weight: 500;
-      color: var(--color-link);
-    }
-
-    .html-content a:hover {
-      color: var(--color-link);
-    }
-
-    .html-content strong {
-      font-weight: 700;
-    }
-
-    .html-content em {
-      font-style: italic;
-    }
-
-    .html-content blockquote {
-      border-left: 4px solid var(--color-link);
-      padding-left: 1em;
-      margin: 1em 0;
-      font-style: italic;
-      background-color: var(--color-bg-navbar);
-      padding: 1em;
-      border-radius: 0.5rem;
-    }
-
-    .html-content code {
-      border-radius: 0.25rem;
-      padding: 0.2em 0.4em;
-      font-family: 'Roboto Mono', monospace;
-      font-size: 0.9em;
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-    }
-
-    .html-content pre {
-      border-radius: 0.5rem;
-      padding: 1em;
-      overflow-x: auto;
-      margin-bottom: 1.5em;
-      background-color: var(--color-bg-navbar);
+  
+    /* Modern card design */
+    .card-modern {
       border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px;
+      transition: all 0.2s ease-in-out;
     }
-
-    .html-content pre code {
-      padding: 0;
-      background-color: transparent;
-      font-size: 1em;
+  
+    .card-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px;
     }
-
-    .html-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 1em;
-      background-color: var(--color-bg-card);
-    }
-
-    .html-content th, .html-content td {
-      border: 1px solid var(--color-input-border);
-      padding: 0.75em;
-      text-align: left;
-    }
-
-    .html-content th {
-      font-weight: bold;
-      background-color: var(--color-bg-navbar);
-    }
-
-    .html-content hr {
-      border: none;
-      border-top: 1px solid var(--color-input-border);
-      margin: 2em 0;
-    }
-
-    .html-content img {
-      max-width: 100%; /* Make images responsive */
-      height: auto;
-      border-radius: 0.5rem; /* Slightly rounded corners for images */
-    }
-
-    /* Styles for custom collapsible content within temp pages */
-    /* This assumes the admin will input HTML like:
-       <div class="custom-collapsible">
-           <button class="custom-collapsible-header">Toggle Me <svg>...</svg></button>
-           <div class="custom-collapsible-content hidden">...</div>
-       </div>
-    */
-    .custom-collapsible-header {
-      display: flex;
-      justify-content: space-between;
+  
+    /* Improved button design */
+    .btn-modern {
+      display: inline-flex;
       align-items: center;
-      padding: 0.75rem 1rem;
-      background-color: var(--color-bg-navbar); /* Use navbar color */
-      color: var(--color-text-primary);
-      border-radius: 0.375rem;
-      margin-bottom: 0.5rem;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      border: none;
       cursor: pointer;
-      transition: background-color 0.2s ease;
-      width: 100%; /* Ensure button takes full width */
-      border: none; /* Remove default button border */
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
     }
-    .custom-collapsible-header:hover {
-      background-color: var(--color-link);
+  
+    .btn-modern:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px;
     }
-    .custom-collapsible-header svg {
-      transition: transform 0.2s ease;
+  
+    .btn-modern:active {
+      transform: translateY(0);
     }
-    .custom-collapsible-header svg.rotate-90 {
-      transform: rotate(90deg);
-    }
-    .custom-collapsible-content {
-      padding: 1rem;
-      background-color: var(--color-bg-card); /* Use card background */
-      border-radius: 0.375rem;
-      margin-bottom: 1rem;
+  
+    /* Tab design */
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
       border: 1px solid var(--color-input-border);
     }
-
-    .custom-collapsible-content.hidden {
-      display: none;
+  
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: all 0.2s ease-in-out;
+      border: none;
+      cursor: pointer;
+      background: transparent;
     }
-
+  
+    .tab-btn.active {
+      box-shadow: 0 2px 8px;
+    }
+  
+    /* Status indicator */
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--color-input-border);
+      margin: 1rem auto;
+      max-width: 300px;
+    }
+  
+    .status-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+    }
+  
+    .status-dot.online {
+      background: #10B981;
+    }
+  
+    .status-dot.loading {
+      background: #F59E0B;
+    }
+  
+    .status-dot.offline {
+      background: #6B7280;
+    }
+  
+    /* Form improvements */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+  
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+  
+    /* Collapsible sections */
+    .collapsible {
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+  
+    .collapsible-header {
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background-color 0.2s ease-in-out;
+    }
+  
+    .collapsible-content {
+      padding: 1.5rem;
+    }
+  
+    /* Loading states */
+    .loading-spinner {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 2px solid var(--color-input-border);
+      border-radius: 50%;
+      border-top-color: var(--color-link);
+      animation: spin 1s linear infinite;
+    }
+  
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .tab-container {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+  
+      .tab-btn {
+        width: 100%;
+        text-align: center;
+      }
+  
+      .collapsible-header {
+        padding: 0.75rem 1rem;
+      }
+  
+      .collapsible-content {
+        padding: 1rem;
+      }
+    }
+  
     /* Message box styling */
     .message-box {
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: var(--color-modal-bg);
-      color: var(--color-modal-text);
-      padding: 15px 30px;
+      padding: 15px 20px;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 10px;
       z-index: 1000;
-      display: none; /* Hidden by default */
-      font-size: 1rem;
-      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
     }
+  
     .message-box.show {
-      display: block;
+      opacity: 1;
+      visibility: visible;
     }
-    .message-box.success {
-      background-color: var(--color-message-box-bg-success);
-    }
+  
     .message-box.error {
-      background-color: var(--color-message-box-bg-error);
+      background-color: var(--color-button-red-bg);
     }
-
-    .loading-spinner {
+  
+    .message-box.success {
+      background-color: var(--color-button-green-bg);
+    }
+  
+    /* Custom confirm modal styling */
+    .custom-confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 200px;
+      z-index: 2000;
+      display: none;
     }
-
-    .spinner {
-      border: 4px solid var(--color-bg-navbar);
-      border-top: 4px solid var(--color-link);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .no-pages {
+  
+    .custom-confirm-modal .modal-content {
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px;
       text-align: center;
-      padding: 2rem;
-      color: var(--color-text-secondary);
+      position: relative;
+      max-width: 400px;
+      width: 90%;
     }
-
-    .page-content {
-      background-color: var(--color-bg-card);
-      padding: 2rem;
-      border-radius: 0.5rem;
+  
+    .custom-confirm-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  
+    .custom-confirm-modal .close-button:hover,
+    .custom-confirm-modal .close-button:focus {
+      text-decoration: none;
+      cursor: pointer;
+    }
+  
+    /* DM chat bubbles */
+    .dm-bubble-in {
+      border-radius: 1.2em 1.2em 1.2em 0.4em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px;
+      max-width: 80%;
+      word-break: break-word;
+    }
+  
+    .dm-bubble-out {
+      border-radius: 1.2em 1.2em 0.4em 1.2em;
+      padding: 0.75em 1.1em;
+      margin-bottom: 0.1em;
+      box-shadow: 0 2px 8px;
+      max-width: 80%;
+      word-break: break-word;
+    }
+  
+    .thema-item,
+    .thread-item,
+    .comment-item {
       border: 1px solid var(--color-input-border);
-      margin-bottom: 2rem;
-    }
-
-    .page-meta {
-      background-color: var(--color-bg-navbar);
+      border-radius: 0.5rem;
       padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 0.875rem;
-      color: var(--color-text-secondary);
+      margin-bottom: 0.75rem;
     }
-
-    /* Comment theming overrides */
-    #comments-section {
-      background: var(--color-bg-card);
-      color: var(--color-text-primary);
+  
+    .comment-item {
+      padding-left: 1.5rem;
     }
-    #comment-form-container {
-      background: var(--color-input-bg);
-      border: 1px solid var(--color-input-border);
-    }
-    #comment-content.form-input {
-      background: var(--color-input-bg);
-      color: var(--color-input-text);
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      min-height: 80px;
-    }
-    .comment-bubble {
-      background: var(--color-bg-card);
-      color: var(--color-text-primary);
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.75rem;
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.5rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    .comment-bubble .comment-meta {
-      color: var(--color-text-secondary);
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
-    }
-    .reactions-bar {
-      display: flex;
-      gap: 0.5rem;
+  
+    .meta-info {
+      font-size: 0.8rem;
       margin-top: 0.5rem;
     }
-    .reaction-btn {
-      background: var(--color-input-bg);
-      color: var(--color-text-secondary);
+  
+    .thema-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+  
+    .thema-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  
+    .thema-actions button {
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      height: 2rem;
+    }
+  
+    .thema-threads {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-input-border);
+    }
+  
+    .thread-item {
       border: 1px solid var(--color-input-border);
-      border-radius: 9999px;
-      padding: 0.25rem 0.75rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
-    .reaction-btn.selected, .reaction-btn:hover {
-      background: var(--color-link);
-      color: var(--color-button-text);
+  
+    .thread-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+  
+    .thread-actions {
+      display: flex;
+      gap: 0.25rem;
+    }
+  
+    .thread-actions button {
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.5rem;
+      height: 1.5rem;
+    }
+  
+    .thread-comments {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-input-border);
+    }
+  
+    .comment-item {
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+  
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  
+    .comment-content {
+      flex: 1;
+      margin: 0;
+    }
+  
+    .comment-actions {
+      display: flex;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+  
+    .comment-actions button {
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.5rem;
+      height: 1.5rem;
+    }
+  
+    .create-thread-section,
+    .add-comment-section {
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  
+    .create-thread-form,
+    .add-comment-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  
+    .create-thread-form input,
+    .create-thread-form textarea,
+    .add-comment-form textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+  
+    .create-thread-form input:focus,
+    .create-thread-form textarea:focus,
+    .add-comment-form textarea:focus {
+      outline: none;
       border-color: var(--color-link);
+      box-shadow: 0 0 0 2px;
     }
-    .user-card .user-avatar .authorPhoto .comment-bubble {
+  
+    .create-thread-form button,
+    .add-comment-form button {
+      align-self: flex-start;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+  
+    .no-threads,
+    .no-comments {
+      text-align: center;
+      font-style: italic;
+      padding: 1rem;
+    }
+  
+    .threads-loading,
+    .comments-loading {
+      text-align: center;
+      padding: 1rem;
+    }
+  
+    .error {
+      text-align: center;
+      padding: 1rem;
+    }
+  
+    .user-card .user-avatar {
       width: 1.5rem;
       height: 1.5rem;
       min-width: 1.5rem;
@@ -384,18 +495,19 @@
     }
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen">
-<!-- Link back to forms.html -->
-<div class="w-full flex justify-center mt-4 mb-2">
-  <a href="forms.html" class="btn-primary btn-blue px-6 py-2 rounded-full font-bold text-lg shadow hover:bg-blue-700 transition">← Back to Forum</a>
-</div>
-
-<!-- Navbar Placeholder -->
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+<div style="height: 56px;"></div>
+<!-- Hero Section with Background Image -->
+<section class="hero-banner rounded-b-lg shadow-xl">
+  <div class="container mx-auto px-4 text-center hero-content">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
+    <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
+  </div>
+</section>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8">
   <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
-  <p class="text-text-secondary text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
+  <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
 
   <!-- Temporary Page Navigation -->
   <div id="temp-page-nav" class="temp-page-nav">
@@ -403,52 +515,13 @@
   </div>
 
   <!-- Main content area for the temporary page -->
-  <div id="page-display-content" class="html-content p-4 border border-input-border rounded-md bg-input-bg text-input-text">
-    <p class="text-center text-text-secondary">Loading page content...</p>
-  </div>
-
-  <!-- Comments Section -->
-  <div id="comments-section" class="mt-8 bg-card p-6 rounded-lg border border-input-border">
-    <h3 class="text-2xl font-bold text-heading-card mb-4">Comments</h3>
-    
-    <!-- Comment Form -->
-    <div id="comment-form-container" class="mb-6 p-4 bg-input-bg rounded-lg border border-input-border">
-      <form id="comment-form" class="space-y-4">
-        <div>
-          <label for="comment-content" class="block text-sm font-medium text-text-primary mb-2">Add a comment:</label>
-          <textarea 
-            id="comment-content" 
-            name="content" 
-            rows="4" 
-            class="form-input w-full bg-input-bg text-input-text border-input-border rounded-lg focus:border-link focus:outline-none resize-vertical"
-            placeholder="Share your thoughts about this page..."
-            required
-          ></textarea>
-        </div>
-        <div class="flex justify-end">
-          <button 
-            type="submit" 
-            class="btn-primary btn-blue px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
-          >
-            Post Comment
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Comments List -->
-    <div id="comments-list" class="space-y-4">
-      <div class="text-center text-text-secondary py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-link mx-auto mb-4"></div>
-        <p>Loading comments...</p>
-      </div>
-    </div>
+  <div id="page-display-content" class="html-content p-4 border border-input-border rounded-md">
+    <p class="text-center text-gray-400">Loading page content...</p>
   </div>
 
   <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-    <!-- Changed Tailwind bg- classes to semantic btn- classes -->
-    <a href="admin.html" class="inline-block btn-primary btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
-    <a href="forms.html" class="inline-block btn-primary btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
+    <a href="admin_and_dev.html" class="inline-block btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
+    <a href="forms.html" class="inline-block btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
   </div>
 </div>
 
@@ -464,11 +537,11 @@
 <script src="custom_theme_modal.js" type="module"></script>
 <script src="navbar.js" type="module"></script>
 <script type="module">
-  import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser, getUserProfileFromFirestore } from './firebase-init.js';
+  import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
   import {loadNavbar, loadFooter} from './navbar.js';
   import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp, deleteDoc, updateDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const pageDisplayTitle = document.getElementById('page-display-title');
   const pageDisplayContent = document.getElementById('page-display-content');
@@ -476,14 +549,8 @@
   const pageHtmlTitle = document.getElementById('page-title-display');
   const tempPageNav = document.getElementById('temp-page-nav');
   const messageBox = document.getElementById('message-box');
-  const commentsSection = document.getElementById('comments-section');
-  const commentForm = document.getElementById('comment-form');
-  const commentsList = document.getElementById('comments-list');
 
   let allTemporaryPages = [];
-  let currentPageIndex = 0;
-  let currentPageId = null;
-  let currentThemaId = null;
 
   /**
    * Displays a message box with success or error styling.
@@ -493,7 +560,7 @@
   function showMessageBox(message, isError) {
     if (messageBox) {
       messageBox.textContent = message;
-      messageBox.className = 'message-box show'; // Reset classes and show
+      messageBox.className = 'message-box show';
       if (isError) {
         messageBox.classList.add('error');
       } else {
@@ -501,7 +568,7 @@
       }
       setTimeout(() => {
         messageBox.classList.remove('show');
-      }, 3000); // Hide after 3 seconds
+      }, 3000);
     }
   }
 
@@ -511,23 +578,20 @@
    */
   async function fetchAllTemporaryPages() {
     try {
-      // Ensure db is initialized before trying to use it
       if (!db) {
         console.error("Firestore DB not initialized for fetchAllTemporaryPages.");
         showMessageBox("Database not ready. Cannot load pages.", true);
         return [];
       }
       const tempPagesCol = collection(db, `artifacts/${appId}/public/data/temp_pages`);
-      const querySnapshot = await getDocs(query(tempPagesCol, orderBy('createdAt', 'desc')));
+      const querySnapshot = await getDocs(tempPagesCol);
       const pages = [];
       querySnapshot.forEach(doc => {
         pages.push({ id: doc.id, ...doc.data() });
       });
-      // Sort pages by createdAt timestamp, or by title if createdAt is not consistent
       pages.sort((a, b) => {
         const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
         const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-        // If timestamps are the same or missing, sort by title
         if (dateA === dateB) {
           return (a.title || '').localeCompare(b.title || '');
         }
@@ -546,25 +610,18 @@
    * Displays a specific temporary page's content.
    * @param {Object} pageData - The data of the page to display.
    */
-  function displayPage(index) {
-    if (index < 0 || index >= allTemporaryPages.length) return;
-    
-    currentPageIndex = index;
-    const page = allTemporaryPages[index];
-    
-    if (!page) {
+  function displayPage(pageData) {
+    if (!pageData) {
       pageDisplayTitle.textContent = 'Page Not Found';
       pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">The temporary page you are looking for does not exist.</p>';
       pageHtmlTitle.textContent = 'Page Not Found';
       pageUpdatedAt.textContent = 'N/A';
-      commentsSection.style.display = 'none';
       return;
     }
 
-    currentPageId = page.id;
-    pageDisplayTitle.textContent = page.title;
-    pageHtmlTitle.textContent = page.title;
-    pageDisplayContent.innerHTML = page.content || '';
+    pageDisplayTitle.textContent = pageData.title;
+    pageHtmlTitle.textContent = pageData.title;
+    pageDisplayContent.innerHTML = pageData.content || '';
 
     // Re-attach event listeners for any custom collapsible sections within the loaded HTML
     pageDisplayContent.querySelectorAll('.custom-collapsible-header').forEach(header => {
@@ -577,47 +634,38 @@
       });
     });
 
-    if (page.updatedAt && page.updatedAt.toDate) {
-      pageUpdatedAt.textContent = page.updatedAt.toDate().toLocaleString();
+    if (pageData.updatedAt && pageData.updatedAt.toDate) {
+      pageUpdatedAt.textContent = pageData.updatedAt.toDate().toLocaleString();
     } else {
       pageUpdatedAt.textContent = 'N/A';
     }
 
     // Update URL without reloading the page
-    const newUrl = `${window.location.pathname}?id=${page.id}`;
+    const newUrl = `${window.location.pathname}?id=${pageData.id}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
 
     // Update active tab button
     document.querySelectorAll('.temp-page-nav button').forEach(btn => {
-      if (btn.dataset.pageId === page.id) {
+      if (btn.dataset.pageId === pageData.id) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
       }
     });
-
-    // Show comments section and load comments
-    if (page.allowComments !== false) {
-      commentsSection.style.display = 'block';
-      loadCommentsForPage(page.id, page.title);
-    } else {
-      commentsSection.style.display = 'none';
-    }
   }
 
   /**
-   * Loads comments for a specific temporary page
+   * Gets user profile from Firestore.
+   * @param {string} uid - User ID
+   * @returns {Promise<Object|null>} User profile or null
    */
-  async function loadCommentsForPage(pageId, pageTitle) {
+  async function getUserProfileFromFirestore(uid) {
     try {
-      // Get or create the hidden thema for this page
-      currentThemaId = await getOrCreateTempPageThema(pageId, pageTitle);
-      
-      // Load comments
-      await loadComments();
+      const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users`, uid));
+      return userDoc.exists() ? userDoc.data() : null;
     } catch (error) {
-      console.error('Error loading comments for page:', error);
-      commentsList.innerHTML = '<p class="text-center text-red-400 py-4">Failed to load comments.</p>';
+      console.error("Error fetching user profile:", error);
+      return null;
     }
   }
 
@@ -625,408 +673,74 @@
    * Initializes the temporary page viewer.
    */
   async function initTemporaryPageViewer() {
-    try {
-      // Ensure Firebase is initialized and ready before proceeding
-      await firebaseReadyPromise;
-      
-      // Wait a bit more to ensure Firestore is fully connected
-      await new Promise(resolve => setTimeout(resolve, 100));
+    // Ensure Firebase is initialized and ready before proceeding
+    await firebaseReadyPromise;
 
-      // Setup themes integration using the imported function
-      setupThemesFirebase(db, auth, appId);
+    // Setup themes integration using the imported function
+    setupThemesFirebase(db, auth, appId);
 
-      // Get user profile and apply theme
-      let userProfile = null;
-      if (auth.currentUser) {
-        userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    // Apply cached theme immediately to prevent flash
+    applyCachedTheme().then(cachedApplied => {
+      if (cachedApplied) {
+        console.log('Temp page viewer: Applied cached theme');
       }
-      
-      // Load navbar dynamically
-      await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    });
 
-      // Load footer
-      loadFooter('current-year-temp-page');
-      
-      // Apply cached theme with better error handling
-      try {
-        const cachedApplied = await applyCachedTheme();
-        if (cachedApplied) {
-          console.log('Temp page viewer: Applied cached theme');
-        }
-      } catch (themeError) {
-        console.warn('Failed to apply cached theme, using default:', themeError);
-        // Apply default theme as fallback
-        const defaultTheme = { id: DEFAULT_THEME_NAME, name: 'Dark Theme' };
-        applyTheme(defaultTheme.id, defaultTheme);
-      }
-      
-      // Apply user's theme preference with better error handling
-      try {
-        const userThemePreference = userProfile?.themePreference;
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        if (themeToApply) {
-          applyTheme(themeToApply.id, themeToApply);
-          console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-        }
-      } catch (themeError) {
-        console.warn('Failed to apply user theme preference, using default:', themeError);
-        // Apply default theme as fallback
-        const defaultTheme = { id: DEFAULT_THEME_NAME, name: 'Dark Theme' };
-        applyTheme(defaultTheme.id, defaultTheme);
-      }
+    // Get user profile and apply theme
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+    }
+    
+    // Load navbar dynamically
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
 
-      // Load temporary pages
-      allTemporaryPages = await fetchAllTemporaryPages();
+    // Load footer
+    loadFooter('current-year-temp-page');
+    
+    // Apply user's theme preference
+    const userThemePreference = userProfile?.themePreference;
+    const allThemes = await getAvailableThemes();
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    if (themeToApply) {
+      applyTheme(themeToApply.id, themeToApply);
+      console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+    }
 
-      if (allTemporaryPages.length === 0) {
-        pageDisplayTitle.textContent = 'No Pages Found';
-        pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
-        pageHtmlTitle.textContent = 'No Pages';
-        pageUpdatedAt.textContent = 'N/A';
-        commentsSection.style.display = 'none';
-        return;
-      }
+    allTemporaryPages = await fetchAllTemporaryPages();
 
-      // Create navigation tabs
-      tempPageNav.innerHTML = '';
-      allTemporaryPages.forEach((page, index) => {
-        const button = document.createElement('button');
-        button.textContent = page.title;
-        button.dataset.pageId = page.id;
-        button.classList.add('temp-page-nav-button');
-        button.addEventListener('click', () => displayPage(index));
-        tempPageNav.appendChild(button);
-      });
-
-      // Determine which page to display initially
-      const urlParams = new URLSearchParams(window.location.search);
-      const pageIdFromUrl = urlParams.get('id');
-
-      let initialPage = null;
-      if (pageIdFromUrl) {
-        initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
-      }
-
-      // If no specific page from URL or page not found, display the first page
-      displayPage(initialPage ? allTemporaryPages.indexOf(initialPage) : 0);
-
-      // Setup comment form event listener
-      setupCommentForm();
-      
-    } catch (error) {
-      console.error('Error initializing temporary page viewer:', error);
-      // Show error message to user
-      pageDisplayTitle.textContent = 'Error Loading Page';
-      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">Failed to load the page. Please refresh and try again.</p>';
-      pageHtmlTitle.textContent = 'Error';
+    if (allTemporaryPages.length === 0) {
+      pageDisplayTitle.textContent = 'No Pages Found';
+      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
+      pageHtmlTitle.textContent = 'No Pages';
       pageUpdatedAt.textContent = 'N/A';
-      commentsSection.style.display = 'none';
+      return;
     }
-  }
 
-  /**
-   * Sets up the comment form event listener
-   */
-  function setupCommentForm() {
-    commentForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      if (!auth.currentUser) {
-        showMessageBox('Please log in to post comments.', true);
-        return;
-      }
-
-      const content = document.getElementById('comment-content').value.trim();
-      if (!content) {
-        showMessageBox('Please enter a comment.', true);
-        return;
-      }
-
-      try {
-        await postComment(content);
-        document.getElementById('comment-content').value = '';
-        showMessageBox('Comment posted successfully!', false);
-      } catch (error) {
-        console.error('Error posting comment:', error);
-        showMessageBox('Failed to post comment. Please try again.', true);
-      }
-    });
-  }
-
-  /**
-   * Creates or gets the hidden thema for a temporary page
-   */
-  async function getOrCreateTempPageThema(pageId, pageTitle) {
-    const themaName = `temp-page-${pageId}`;
-    const thematasRef = collection(db, `artifacts/${appId}/public/data/thematas`);
-    
-    // Check if thema already exists
-    const themaQuery = query(thematasRef);
-    const themaSnapshot = await getDocs(themaQuery);
-    let existingThema = null;
-    
-    themaSnapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.name === themaName) {
-        existingThema = { id: doc.id, ...data };
-      }
+    // Create navigation tabs
+    tempPageNav.innerHTML = '';
+    allTemporaryPages.forEach(page => {
+      const button = document.createElement('button');
+      button.textContent = page.title;
+      button.dataset.pageId = page.id;
+      button.classList.add('temp-page-nav-button');
+      button.addEventListener('click', () => displayPage(page));
+      tempPageNav.appendChild(button);
     });
 
-    if (existingThema) {
-      return existingThema.id;
+    // Determine which page to display initially
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageIdFromUrl = urlParams.get('id');
+
+    let initialPage = null;
+    if (pageIdFromUrl) {
+      initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
     }
 
-    // Create new hidden thema
-    const newThema = {
-      name: themaName,
-      description: `Comments for temporary page: ${pageTitle}`,
-      theme: 'hidden',
-      isHidden: true,
-      isTempPageComments: true,
-      tempPageId: pageId,
-      createdAt: serverTimestamp(),
-      createdBy: auth.currentUser?.uid || 'system'
-    };
-
-    const themaDoc = await addDoc(thematasRef, newThema);
-    return themaDoc.id;
-  }
-
-  /**
-   * Posts a comment for the current temporary page
-   */
-  async function postComment(content) {
-    if (!currentPageId || !currentThemaId) {
-      throw new Error('No page or thema selected');
-    }
-
-    const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    const displayName = userProfile?.displayName || auth.currentUser.displayName || 'Anonymous';
-    const photoURL = userProfile?.photoURL || auth.currentUser.photoURL || '';
-
-    // Create the initial thread if it doesn't exist
-    const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads`);
-    const threadQuery = query(threadsRef);
-    const threadSnapshot = await getDocs(threadQuery);
-    
-    let threadId;
-    if (threadSnapshot.empty) {
-      // Create new thread
-      const threadData = {
-        title: `Comments for ${allTemporaryPages[currentPageIndex].title}`,
-        author: auth.currentUser.uid,
-        authorName: displayName,
-        authorPhoto: photoURL,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        isTempPageThread: true,
-        tempPageId: currentPageId
-      };
-      const threadDoc = await addDoc(threadsRef, threadData);
-      threadId = threadDoc.id;
-    } else {
-      // Use existing thread
-      threadId = threadSnapshot.docs[0].id;
-    }
-
-    // Add comment to the thread
-    const commentsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads/${threadId}/comments`);
-    const commentData = {
-      content: content,
-      author: auth.currentUser.uid,
-      authorName: displayName,
-      authorPhoto: photoURL,
-      createdAt: serverTimestamp(),
-      isTempPageComment: true
-    };
-
-    await addDoc(commentsRef, commentData);
-
-    // Reload comments
-    await loadComments();
-  }
-
-  /**
-   * Loads comments for the current temporary page
-   */
-  async function loadComments() {
-    if (!currentThemaId) {
-      commentsList.innerHTML = '<p class="text-center text-text-secondary py-4">No comments available.</p>';
-      return;
-    }
-
-    try {
-      commentsList.innerHTML = '<div class="text-center text-text-secondary py-4"><div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-link mx-auto mb-2"></div><p>Loading comments...</p></div>';
-
-      const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads`);
-      const threadQuery = query(threadsRef);
-      const threadSnapshot = await getDocs(threadQuery);
-
-      if (threadSnapshot.empty) {
-        commentsList.innerHTML = '<p class="text-center text-text-secondary py-4">No comments yet. Be the first to comment!</p>';
-        return;
-      }
-
-      const threadId = threadSnapshot.docs[0].id;
-      const commentsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads/${threadId}/comments`);
-      const commentsQuery = query(commentsRef, orderBy('createdAt', 'asc'));
-      const commentsSnapshot = await getDocs(commentsQuery);
-
-      if (commentsSnapshot.empty) {
-        commentsList.innerHTML = '<p class="text-center text-text-secondary py-4">No comments yet. Be the first to comment!</p>';
-        return;
-      }
-
-      const comments = [];
-      commentsSnapshot.forEach(doc => {
-        comments.push({ id: doc.id, ...doc.data() });
-      });
-
-      renderComments(comments);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-      commentsList.innerHTML = '<p class="text-center text-red-400 py-4">Failed to load comments.</p>';
-    }
-  }
-
-  /**
-   * Renders the comments list with reactions
-   */
-  function renderComments(comments) {
-    if (comments.length === 0) {
-      commentsList.innerHTML = '<p class="text-center text-text-secondary py-4">No comments yet. Be the first to comment!</p>';
-      return;
-    }
-
-    const currentUid = auth.currentUser?.uid;
-    const REACTIONS = ['👍', '❤️', '🚀', '😂', '😮', '😢'];
-
-    commentsList.innerHTML = comments.map(comment => {
-      const date = comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Unknown date';
-      const canDelete = auth.currentUser && (auth.currentUser.uid === comment.author || auth.currentUser.email === 'admin@arcator.co.uk');
-      const reactions = comment.reactions || {};
-      // Render reactions bar
-      const reactionsBar = REACTIONS.map(emoji => {
-        const users = reactions[emoji] || [];
-        const selected = users.includes(currentUid);
-        return `<button class="reaction-btn${selected ? ' selected' : ''}" data-comment-id="${comment.id}" data-emoji="${emoji}" title="React with ${emoji}">${emoji} <span class="reaction-count">${users.length > 0 ? users.length : ''}</span></button>`;
-      }).join('');
-      return `
-        <div class="comment-bubble">
-          <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0">
-              <img src="${comment.authorPhoto || 'https://via.placeholder.com/40x40?text=U'}" 
-                   alt="${comment.authorName}" 
-                   class="w-8 h-8 rounded-full object-cover mr-2"
-                   onerror="this.src='https://via.placeholder.com/40x40?text=U'">
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-text-primary">${escapeHtml(comment.authorName)}</p>
-                  <p class="comment-meta">${date}</p>
-                </div>
-                ${canDelete ? `<button onclick="deleteComment('${comment.id}')" class="text-red-400 hover:text-red-300 text-sm transition-colors" title="Delete comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}
-              </div>
-              <div class="mt-2 text-text-primary whitespace-pre-wrap">${escapeHtml(comment.content)}</div>
-              <div class="reactions-bar mt-2">${reactionsBar}</div>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Attach event listeners for reactions
-    commentsList.querySelectorAll('.reaction-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const commentId = btn.dataset.commentId;
-        const emoji = btn.dataset.emoji;
-        await handleReaction(commentId, emoji);
-      });
-    });
-  }
-
-  /**
-   * Handles adding/removing a reaction for a comment
-   */
-  async function handleReaction(commentId, emoji) {
-    if (!auth.currentUser) {
-      showMessageBox('Please log in to react.', true);
-      return;
-    }
-    try {
-      // Find thread ID
-      const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads`);
-      const threadQuery = query(threadsRef);
-      const threadSnapshot = await getDocs(threadQuery);
-      if (threadSnapshot.empty) return;
-      const threadId = threadSnapshot.docs[0].id;
-      const commentRef = doc(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads/${threadId}/comments`, commentId);
-      const commentSnap = await getDoc(commentRef);
-      if (!commentSnap.exists()) return;
-      const commentData = commentSnap.data();
-      const reactions = commentData.reactions || {};
-      const uid = auth.currentUser.uid;
-      let users = reactions[emoji] || [];
-      if (users.includes(uid)) {
-        // Remove reaction
-        users = users.filter(u => u !== uid);
-      } else {
-        // Add reaction
-        users.push(uid);
-      }
-      reactions[emoji] = users;
-      await updateDoc(commentRef, { reactions });
-      await loadComments();
-    } catch (error) {
-      showMessageBox('Failed to update reaction.', true);
-    }
-  }
-
-  /**
-   * Deletes a comment
-   */
-  window.deleteComment = async function(commentId) {
-    if (!auth.currentUser) {
-      showMessageBox('Please log in to delete comments.', true);
-      return;
-    }
-
-    if (!confirm('Are you sure you want to delete this comment?')) {
-      return;
-    }
-
-    try {
-      const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads`);
-      const threadQuery = query(threadsRef);
-      const threadSnapshot = await getDocs(threadQuery);
-      
-      if (!threadSnapshot.empty) {
-        const threadId = threadSnapshot.docs[0].id;
-        const commentRef = doc(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads/${threadId}/comments`, commentId);
-        await deleteDoc(commentRef);
-        showMessageBox('Comment deleted successfully!', false);
-        await loadComments();
-      }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      showMessageBox('Failed to delete comment.', true);
-    }
-  };
-
-  /**
-   * Utility function to escape HTML
-   */
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    // If no specific page from URL or page not found, display the first page
+    displayPage(initialPage || allTemporaryPages[0]);
   }
 
   // Use DOMContentLoaded to ensure all HTML elements are available before script runs
   document.addEventListener('DOMContentLoaded', initTemporaryPageViewer);
 </script>
-
-</body>
-</html>
