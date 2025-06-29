@@ -289,7 +289,20 @@
                 </div>
                 <div class="input-field w-full">
                   <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
-                  <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
+                  <div class="emoji-input-container">
+                    <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
+                    <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('temp-page-content-emoji-picker')" title="Add emoji">
+                      😊
+                    </button>
+                  </div>
+                  <div id="temp-page-content-emoji-picker" class="emoji-picker hidden">
+                    <div class="emoji-picker-header">
+                      <input type="text" id="temp-page-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+                    </div>
+                    <div id="temp-page-content-emoji-list" class="emoji-list">
+                      <!-- Emojis will be loaded here -->
+                    </div>
+                  </div>
                 </div>
                 <div class="flex items-center gap-4 mb-4">
                   <div class="checkbox-container mb-0">
@@ -331,7 +344,20 @@
                         </div>
                         <div class="input-field">
                           <label for="edit-temp-page-content" class="form-label">Page Content (HTML allowed):</label>
-                          <textarea id="edit-temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-48"></textarea>
+                          <div class="emoji-input-container">
+                            <textarea id="edit-temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-48"></textarea>
+                            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-temp-page-content-emoji-picker')" title="Add emoji">
+                              😊
+                            </button>
+                          </div>
+                          <div id="edit-temp-page-content-emoji-picker" class="emoji-picker hidden">
+                            <div class="emoji-picker-header">
+                              <input type="text" id="edit-temp-page-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+                            </div>
+                            <div id="edit-temp-page-content-emoji-list" class="emoji-list">
+                              <!-- Emojis will be loaded here -->
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -443,7 +469,20 @@
                   
                   <div class="input-field">
                     <label for="email-content" class="form-label">Email Content:</label>
-                    <textarea id="email-content" placeholder="Write your email content here..." class="form-input w-full h-32"></textarea>
+                    <div class="emoji-input-container">
+                      <textarea id="email-content" placeholder="Write your email content here..." class="form-input w-full h-32"></textarea>
+                      <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('email-content-emoji-picker')" title="Add emoji">
+                        😊
+                      </button>
+                    </div>
+                    <div id="email-content-emoji-picker" class="emoji-picker hidden">
+                      <div class="emoji-picker-header">
+                        <input type="text" id="email-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+                      </div>
+                      <div id="email-content-emoji-list" class="emoji-list">
+                        <!-- Emojis will be loaded here -->
+                      </div>
+                    </div>
                   </div>
                   
                   <div class="flex space-x-2">
@@ -506,11 +545,13 @@
 <script type="module" src="firebase-init.js"></script>
 <script type="module" src="themes.js"></script>
 <script type="module" src="custom_theme_modal.js"></script>
+<script src="emoji-picker.js" type="module"></script>
 <script type="module" src="admin.js"></script>
 <script type="module">
   import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
   import { loadNavbar, loadFooter } from './navbar.js';
   import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
+  import { initEmojiPicker } from './emoji-picker.js';
 
   // Apply cached theme immediately to prevent flash
   applyCachedTheme();
@@ -529,6 +570,20 @@
       if (themeToApply) {
         applyTheme(themeToApply.id, themeToApply);
       }
+      
+      // Initialize all emoji pickers
+      const emojiPickers = [
+        'temp-page-content-emoji-picker',
+        'edit-temp-page-content-emoji-picker',
+        'email-content-emoji-picker',
+        'edit-user-custom-css-emoji-picker',
+        'edit-dm-content-emoji-picker',
+        'edit-form-thema-description-emoji-picker'
+      ];
+      
+      emojiPickers.forEach(pickerId => {
+        initEmojiPicker(pickerId);
+      });
     });
   });
 </script>
@@ -704,7 +759,20 @@
         </div>
         <div class="mt-4">
           <label for="edit-user-custom-css" class="block text-text-secondary text-sm font-bold mb-2">Custom CSS:</label>
-          <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
+          <div class="emoji-input-container">
+            <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
+            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-user-custom-css-emoji-picker')" title="Add emoji">
+              😊
+            </button>
+          </div>
+          <div id="edit-user-custom-css-emoji-picker" class="emoji-picker hidden">
+            <div class="emoji-picker-header">
+              <input type="text" id="edit-user-custom-css-emoji-search" placeholder="Search emojis..." class="emoji-search">
+            </div>
+            <div id="edit-user-custom-css-emoji-list" class="emoji-list">
+              <!-- Emojis will be loaded here -->
+            </div>
+          </div>
         </div>
       </div>
 
@@ -738,7 +806,20 @@
       </div>
       <div class="input-field">
         <label for="edit-dm-content" class="form-label">Content:</label>
-        <textarea id="edit-dm-content" class="form-input w-full h-32"></textarea>
+        <div class="emoji-input-container">
+          <textarea id="edit-dm-content" class="form-input w-full h-32"></textarea>
+          <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-dm-content-emoji-picker')" title="Add emoji">
+            😊
+          </button>
+        </div>
+        <div id="edit-dm-content-emoji-picker" class="emoji-picker hidden">
+          <div class="emoji-picker-header">
+            <input type="text" id="edit-dm-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+          </div>
+          <div id="edit-dm-content-emoji-list" class="emoji-list">
+            <!-- Emojis will be loaded here -->
+          </div>
+        </div>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" id="cancel-edit-dm-btn" class="btn-primary btn-red">Cancel</button>
@@ -762,7 +843,20 @@
       </div>
       <div class="input-field">
         <label for="edit-form-thema-description" class="form-label">Theme Description:</label>
-        <textarea id="edit-form-thema-description" class="form-input w-full h-24"></textarea>
+        <div class="emoji-input-container">
+          <textarea id="edit-form-thema-description" class="form-input w-full h-24"></textarea>
+          <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-form-thema-description-emoji-picker')" title="Add emoji">
+            😊
+          </button>
+        </div>
+        <div id="edit-form-thema-description-emoji-picker" class="emoji-picker hidden">
+          <div class="emoji-picker-header">
+            <input type="text" id="edit-form-thema-description-emoji-search" placeholder="Search emojis..." class="emoji-search">
+          </div>
+          <div id="edit-form-thema-description-emoji-list" class="emoji-list">
+            <!-- Emojis will be loaded here -->
+          </div>
+        </div>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">Cancel</button>
