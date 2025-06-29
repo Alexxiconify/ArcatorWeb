@@ -25,6 +25,24 @@ emailjs_credentials.json
 firebase-config.json
 firebase-keys.json
 
+# SSH Keys and sensitive server files
+apollo_key
+apollo_key.pub
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# SMTP Server configuration
+smtp-server/.env
+smtp-server/config.json
+smtp-server/credentials.json
+
+# Deployment scripts with sensitive data
+deploy-smtp-apollo.ps1
+setup-smtp-apollo.sh
+
 # Log files
 *.log
 pglite-debug.log
@@ -33,3 +51,14 @@ pglite-debug.log
 *.tmp
 *.temp
 temp-*
+
+# Environment files
+.env*
+!.env.example
+
+# API Keys and secrets
+*api-key*
+*secret*
+*token*
+*password*
+*credential*
