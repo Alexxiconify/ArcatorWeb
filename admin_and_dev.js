@@ -14,6 +14,7 @@ import {
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
+import { EmailJSIntegration } from './emailjs-integration.js';
 import {
   doc,
   getDoc,
