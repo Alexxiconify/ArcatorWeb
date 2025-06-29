@@ -103,5 +103,12 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null && isAppAdmin(request.auth.uid);
     }
+
+    // Email history: only authenticated users can read, only admins can create
+    match /artifacts/{appId}/public/data/email_history/{emailId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.token.admin == true;
+      allow update, delete: if false;
+    }
   }
 } 
