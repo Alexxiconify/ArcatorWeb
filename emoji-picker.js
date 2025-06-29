@@ -314,10 +314,453 @@ export function createEmojiInputContainer(inputId, pickerId = 'emoji-picker', in
 }
 
 /**
- * Initializes emoji picker functionality for a page.
+ * Initializes the emoji picker with all functionality.
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 export function initEmojiPicker(pickerId = 'emoji-picker') {
+  const picker = document.getElementById(pickerId);
+  if (!picker) return;
+
+  // Initialize emoji functionality
+  loadEmojiData();
+  
+  // Initialize media picker functionality
+  initMediaPicker(pickerId);
+  
+  // Setup event listeners
+  setupEmojiPickerEventListeners(pickerId);
+  setupMediaPickerEventListeners(pickerId);
+  
+  // Reposition picker on window resize
+  window.addEventListener('resize', () => {
+    const picker = document.getElementById(pickerId);
+    if (picker && !picker.classList.contains('hidden')) {
+      positionEmojiPicker(pickerId);
+    }
+  });
+
+  // Reposition picker on scroll
+  window.addEventListener('scroll', () => {
+    const picker = document.getElementById(pickerId);
+    if (picker && !picker.classList.contains('hidden')) {
+      positionEmojiPicker(pickerId);
+    }
+  }, { passive: true });
+
+  // Load emoji data
+  loadEmojiData();
+}
+
+/**
+ * Initializes the media picker functionality.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function initMediaPicker(pickerId) {
+  const picker = document.getElementById(pickerId);
+  if (!picker) return;
+
+  // Initialize GIF search
+  initGifSearch(pickerId);
+  
+  // Initialize URL validation
+  initUrlValidation(pickerId);
+  
+  // Initialize YouTube validation
+  initYouTubeValidation(pickerId);
+}
+
+/**
+ * Initializes GIF search functionality.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function initGifSearch(pickerId) {
+  const gifSearchInput = document.querySelector(`#${pickerId} #gif-search-input`);
+  const gifResults = document.querySelector(`#${pickerId} #gif-results`);
+  
+  if (!gifSearchInput || !gifResults) return;
+
+  let searchTimeout;
+  
+  gifSearchInput.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      gifResults.innerHTML = '<div class="media-loading">Search for GIFs...</div>';
+      return;
+    }
+    
+    gifResults.innerHTML = '<div class="media-loading">Searching...</div>';
+    
+    searchTimeout = setTimeout(() => {
+      searchGifs(query, pickerId);
+    }, 500);
+  });
+}
+
+/**
+ * Searches for GIFs using GIPHY API.
+ * @param {string} query - Search query.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+async function searchGifs(query, pickerId) {
+  const gifResults = document.querySelector(`#${pickerId} #gif-results`);
+  
+  try {
+    // Using GIPHY API (you'll need to get an API key)
+    const apiKey = 'dc6zaTOxFJmzC'; // Public beta key (limited)
+    const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(query)}&limit=12&rating=g`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch GIFs');
+    }
+    
+    const data = await response.json();
+    
+    if (data.data.length === 0) {
+      gifResults.innerHTML = '<div class="media-error">No GIFs found</div>';
+      return;
+    }
+    
+    gifResults.innerHTML = data.data.map(gif => `
+      <div class="gif-item" onclick="insertGif('${gif.images.fixed_height.url}', '${pickerId}')">
+        <img src="${gif.images.fixed_height_small.url}" alt="${gif.title}" loading="lazy">
+      </div>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Error searching GIFs:', error);
+    gifResults.innerHTML = '<div class="media-error">Failed to load GIFs</div>';
+  }
+}
+
+/**
+ * Inserts a GIF into the target input.
+ * @param {string} gifUrl - The GIF URL to insert.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+window.insertGif = function(gifUrl, pickerId) {
+  const container = document.querySelector(`#${pickerId}`).closest('.emoji-input-container');
+  const targetInput = container.querySelector('textarea, input');
+  
+  if (targetInput) {
+    const markdown = `![GIF](${gifUrl})`;
+    insertAtCursor(targetInput, markdown);
+    hideEmojiPicker(pickerId);
+  }
+};
+
+/**
+ * Initializes URL validation for media input.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function initUrlValidation(pickerId) {
+  const urlInput = document.querySelector(`#${pickerId} #media-url-input`);
+  const urlPreview = document.querySelector(`#${pickerId} #url-preview`);
+  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
+  const insertBtn = document.querySelector(`#${pickerId} #insert-media-btn`);
+  
+  if (!urlInput || !urlPreview || !mediaPreview || !insertBtn) return;
+
+  let validationTimeout;
+  
+  urlInput.addEventListener('input', (e) => {
+    clearTimeout(validationTimeout);
+    const url = e.target.value.trim();
+    
+    if (!url) {
+      urlPreview.innerHTML = '';
+      mediaPreview.innerHTML = '';
+      insertBtn.disabled = true;
+      return;
+    }
+    
+    urlPreview.innerHTML = 'Validating...';
+    mediaPreview.innerHTML = '';
+    insertBtn.disabled = true;
+    
+    validationTimeout = setTimeout(() => {
+      validateMediaUrl(url, pickerId);
+    }, 500);
+  });
+  
+  insertBtn.addEventListener('click', () => {
+    const url = urlInput.value.trim();
+    if (url) {
+      insertMediaUrl(url, pickerId);
+    }
+  });
+}
+
+/**
+ * Validates a media URL and shows preview.
+ * @param {string} url - The URL to validate.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+async function validateMediaUrl(url, pickerId) {
+  const urlPreview = document.querySelector(`#${pickerId} #url-preview`);
+  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
+  const insertBtn = document.querySelector(`#${pickerId} #insert-media-btn`);
+  
+  try {
+    // Basic URL validation
+    const urlObj = new URL(url);
+    const extension = urlObj.pathname.split('.').pop()?.toLowerCase();
+    
+    // Check if it's a valid media file
+    const mediaExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'aac'];
+    
+    if (!mediaExtensions.includes(extension)) {
+      urlPreview.innerHTML = 'Invalid media file format';
+      urlPreview.className = 'url-preview error';
+      insertBtn.disabled = true;
+      return;
+    }
+    
+    // Test if the URL is accessible
+    const response = await fetch(url, { method: 'HEAD' });
+    
+    if (!response.ok) {
+      throw new Error('URL not accessible');
+    }
+    
+    urlPreview.innerHTML = 'Valid media URL';
+    urlPreview.className = 'url-preview success';
+    insertBtn.disabled = false;
+    
+    // Show preview
+    showMediaPreview(url, extension, pickerId);
+    
+  } catch (error) {
+    urlPreview.innerHTML = 'Invalid or inaccessible URL';
+    urlPreview.className = 'url-preview error';
+    insertBtn.disabled = true;
+  }
+}
+
+/**
+ * Shows a preview of the media.
+ * @param {string} url - The media URL.
+ * @param {string} extension - The file extension.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function showMediaPreview(url, extension, pickerId) {
+  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
+  
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+  const videoExtensions = ['mp4', 'webm', 'ogg'];
+  const audioExtensions = ['mp3', 'wav', 'aac'];
+  
+  if (imageExtensions.includes(extension)) {
+    mediaPreview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none'">`;
+  } else if (videoExtensions.includes(extension)) {
+    mediaPreview.innerHTML = `<video controls><source src="${url}" type="video/${extension}">Your browser does not support the video tag.</video>`;
+  } else if (audioExtensions.includes(extension)) {
+    mediaPreview.innerHTML = `<audio controls><source src="${url}" type="audio/${extension}">Your browser does not support the audio tag.</audio>`;
+  }
+}
+
+/**
+ * Inserts a media URL into the target input.
+ * @param {string} url - The media URL to insert.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function insertMediaUrl(url, pickerId) {
+  const container = document.querySelector(`#${pickerId}`).closest('.emoji-input-container');
+  const targetInput = container.querySelector('textarea, input');
+  
+  if (targetInput) {
+    const extension = url.split('.').pop()?.toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    const videoExtensions = ['mp4', 'webm', 'ogg'];
+    const audioExtensions = ['mp3', 'wav', 'aac'];
+    
+    let markdown;
+    if (imageExtensions.includes(extension)) {
+      markdown = `![Image](${url})`;
+    } else if (videoExtensions.includes(extension)) {
+      markdown = `![Video](${url})`;
+    } else if (audioExtensions.includes(extension)) {
+      markdown = `![Audio](${url})`;
+    } else {
+      markdown = url;
+    }
+    
+    insertAtCursor(targetInput, markdown);
+    hideEmojiPicker(pickerId);
+  }
+}
+
+/**
+ * Initializes YouTube URL validation.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function initYouTubeValidation(pickerId) {
+  const urlInput = document.querySelector(`#${pickerId} #youtube-url-input`);
+  const urlPreview = document.querySelector(`#${pickerId} #youtube-preview`);
+  const embedPreview = document.querySelector(`#${pickerId} #youtube-embed-preview`);
+  const insertBtn = document.querySelector(`#${pickerId} #insert-youtube-btn`);
+  
+  if (!urlInput || !urlPreview || !embedPreview || !insertBtn) return;
+
+  let validationTimeout;
+  
+  urlInput.addEventListener('input', (e) => {
+    clearTimeout(validationTimeout);
+    const url = e.target.value.trim();
+    
+    if (!url) {
+      urlPreview.innerHTML = '';
+      embedPreview.innerHTML = '';
+      insertBtn.disabled = true;
+      return;
+    }
+    
+    urlPreview.innerHTML = 'Validating...';
+    embedPreview.innerHTML = '';
+    insertBtn.disabled = true;
+    
+    validationTimeout = setTimeout(() => {
+      validateYouTubeUrl(url, pickerId);
+    }, 500);
+  });
+  
+  insertBtn.addEventListener('click', () => {
+    const url = urlInput.value.trim();
+    if (url) {
+      insertYouTubeUrl(url, pickerId);
+    }
+  });
+}
+
+/**
+ * Validates a YouTube URL and shows preview.
+ * @param {string} url - The YouTube URL to validate.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function validateYouTubeUrl(url, pickerId) {
+  const urlPreview = document.querySelector(`#${pickerId} #youtube-preview`);
+  const embedPreview = document.querySelector(`#${pickerId} #youtube-embed-preview`);
+  const insertBtn = document.querySelector(`#${pickerId} #insert-youtube-btn`);
+  
+  try {
+    const videoId = extractYouTubeVideoId(url);
+    
+    if (!videoId) {
+      urlPreview.innerHTML = 'Invalid YouTube URL';
+      urlPreview.className = 'url-preview error';
+      insertBtn.disabled = true;
+      return;
+    }
+    
+    urlPreview.innerHTML = 'Valid YouTube URL';
+    urlPreview.className = 'url-preview success';
+    insertBtn.disabled = false;
+    
+    // Show embed preview
+    embedPreview.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+    
+  } catch (error) {
+    urlPreview.innerHTML = 'Invalid YouTube URL';
+    urlPreview.className = 'url-preview error';
+    insertBtn.disabled = true;
+  }
+}
+
+/**
+ * Extracts video ID from YouTube URL.
+ * @param {string} url - The YouTube URL.
+ * @returns {string|null} The video ID or null if invalid.
+ */
+function extractYouTubeVideoId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Inserts a YouTube URL into the target input.
+ * @param {string} url - The YouTube URL to insert.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function insertYouTubeUrl(url, pickerId) {
+  const container = document.querySelector(`#${pickerId}`).closest('.emoji-input-container');
+  const targetInput = container.querySelector('textarea, input');
+  
+  if (targetInput) {
+    const videoId = extractYouTubeVideoId(url);
+    if (videoId) {
+      const markdown = `![YouTube Video](https://www.youtube.com/watch?v=${videoId})`;
+      insertAtCursor(targetInput, markdown);
+      hideEmojiPicker(pickerId);
+    }
+  }
+}
+
+/**
+ * Sets up media picker event listeners.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function setupMediaPickerEventListeners(pickerId) {
+  const picker = document.getElementById(pickerId);
+  if (!picker) return;
+
+  // Tab switching
+  const tabs = picker.querySelectorAll('.media-tab');
+  const tabContents = picker.querySelectorAll('.media-tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+      
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Update active content
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === `${targetTab}-tab`) {
+          content.classList.add('active');
+        }
+      });
+    });
+  });
+}
+
+/**
+ * Inserts text at the current cursor position.
+ * @param {HTMLElement} input - The input element.
+ * @param {string} text - The text to insert.
+ */
+function insertAtCursor(input, text) {
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const value = input.value;
+  
+  input.value = value.substring(0, start) + text + value.substring(end);
+  input.selectionStart = input.selectionEnd = start + text.length;
+  
+  // Trigger input event
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/**
+ * Sets up emoji picker event listeners.
+ * @param {string} pickerId - The ID of the emoji picker element.
+ */
+function setupEmojiPickerEventListeners(pickerId) {
   // Setup emoji search functionality
   const emojiSearch = document.getElementById('emoji-search');
   if (emojiSearch) {
@@ -337,25 +780,6 @@ export function initEmojiPicker(pickerId = 'emoji-picker') {
       hideEmojiPicker(pickerId);
     }
   });
-
-  // Reposition picker on window resize
-  window.addEventListener('resize', () => {
-    const picker = document.getElementById(pickerId);
-    if (picker && !picker.classList.contains('hidden')) {
-      positionEmojiPicker(pickerId);
-    }
-  });
-
-  // Reposition picker on scroll
-  window.addEventListener('scroll', () => {
-    const picker = document.getElementById(pickerId);
-    if (picker && !picker.classList.contains('hidden')) {
-      positionEmojiPicker(pickerId);
-    }
-  }, { passive: true });
-
-  // Load emoji data
-  loadEmojiData();
 }
 
 /**

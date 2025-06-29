@@ -1129,3 +1129,183 @@ select {
   border-radius: 0.25rem;
   margin: 0.5em 0;
 }
+
+/* Media content display styles */
+.media-content {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.media-content:hover {
+  transform: scale(1.02);
+}
+
+/* Image media */
+.media-content[src*=".jpg"],
+.media-content[src*=".jpeg"],
+.media-content[src*=".png"],
+.media-content[src*=".gif"],
+.media-content[src*=".webp"],
+.media-content[src*=".svg"] {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Video media */
+.media-content[src*=".mp4"],
+.media-content[src*=".webm"],
+.media-content[src*=".ogg"] {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  background-color: #000;
+  border-radius: 0.5rem;
+}
+
+/* Audio media */
+.media-content[src*=".mp3"],
+.media-content[src*=".wav"],
+.media-content[src*=".aac"] {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* YouTube embed */
+.youtube-embed {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.youtube-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0.5rem;
+}
+
+/* Media in markdown content */
+.markdown-content .media-content {
+  margin: 1rem 0;
+  border: 1px solid var(--color-input-border);
+}
+
+.markdown-content .youtube-embed {
+  margin: 1rem 0;
+  border: 1px solid var(--color-input-border);
+}
+
+/* Media in forum posts and comments */
+.thema-item .media-content,
+.thread-item .media-content,
+.comment-item .media-content {
+  margin: 0.75rem 0;
+  max-width: 100%;
+}
+
+/* Media in messages */
+.message-bubble .media-content {
+  margin: 0.5rem 0;
+  max-width: 100%;
+}
+
+/* Responsive media sizing */
+@media (max-width: 768px) {
+  .media-content {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .youtube-embed {
+    padding-bottom: 56.25%; /* Maintain aspect ratio */
+  }
+  
+  .media-content:hover {
+    transform: none; /* Disable hover effect on mobile */
+  }
+}
+
+/* Media loading states */
+.media-content[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.media-content[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* Media error handling */
+.media-content[onerror] {
+  min-height: 100px;
+  background-color: var(--color-bg-navbar);
+  border: 1px dashed var(--color-input-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Media gallery layout */
+.media-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.media-gallery .media-content {
+  margin: 0;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Media controls styling */
+.media-content::-webkit-media-controls {
+  background-color: var(--color-bg-navbar);
+}
+
+.media-content::-webkit-media-controls-panel {
+  background-color: var(--color-bg-navbar);
+}
+
+.media-content::-webkit-media-controls-play-button {
+  background-color: var(--color-link);
+  border-radius: 50%;
+}
+
+/* Media focus states for accessibility */
+.media-content:focus {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+/* Media in different contexts */
+.admin-content .media-content {
+  max-width: 300px;
+}
+
+.forms-content .media-content {
+  max-width: 100%;
+}
+
+.temp-page-content .media-content {
+  max-width: 100%;
+  margin: 1rem 0;
+}

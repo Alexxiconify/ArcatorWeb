@@ -4,6 +4,7 @@
 import { auth, db, appId, getUserProfileFromFirestore, setUserProfileInFirestore } from './firebase-init.js';
 import { showMessageBox, showCustomConfirm } from './utils.js';
 import { loadFooter } from './navbar.js';
+import { renderMarkdownWithMedia } from './utils.js';
 
 // Import DM functionality
 import { 
@@ -228,7 +229,7 @@ async function loadThreadsForThema(themaId) {
                 ` : ''}
               </div>
             </div>
-            <p class="thread-initial-comment text-sm mt-2">${escapeHtml(thread.initialComment)}</p>
+            <p class="thread-initial-comment text-sm mt-2">${renderContent(thread.initialComment)}</p>
             <div class="reactions-bar mt-2">
               ${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}
             </div>
@@ -292,7 +293,7 @@ async function loadCommentsForThread(themaId, threadId) {
               <img src="${photoURL}" alt="User" class="w-7 h-7 rounded-full object-cover mr-2">
               <div>
                 <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || 'Anonymous')}</span>
-                <p class="comment-content text-sm mt-1">${escapeHtml(comment.content)}</p>
+                <p class="comment-content text-sm mt-1">${renderContent(comment.content)}</p>
               </div>
               <div class="comment-actions ml-auto">
                 ${(window.currentUser && window.currentUser.isAdmin) ? `
@@ -820,3 +821,17 @@ window.addEventListener('DOMContentLoaded', () => {
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 });
+
+/**
+ * Renders content with media support.
+ * @param {string} content - The content to render.
+ * @returns {string} The rendered HTML.
+ */
+function renderContent(content) {
+  if (!content) return '';
+  
+  // Create a temporary element to render into
+  const tempDiv = document.createElement('div');
+  renderMarkdownWithMedia(content, tempDiv);
+  return tempDiv.innerHTML;
+}

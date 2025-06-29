@@ -1,15 +1,8 @@
 // dms.js: Handles Direct Messages and Group Chats.
 
 import { db, appId, getCurrentUser } from './firebase-init.js';
-import { showMessageBox, showCustomConfirm, sanitizeHandle, resolveHandlesToUids, getUserProfileFromFirestore, parseEmojis, parseMentions } from './utils.js';
+import { showMessageBox, showCustomConfirm, sanitizeHandle, resolveHandlesToUids, getUserProfileFromFirestore, parseEmojis, parseMentions, escapeHtml, renderMarkdownWithMedia } from './utils.js';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Utility: escape HTML for safe rendering
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 // --- DOM Elements ---
 const conversationsPanel = document.getElementById('conversations-panel');
@@ -1787,9 +1780,14 @@ async function renderConversationMessages(convId) {
   const currentUser = await getCurrentUser();
   if (!currentUser) return;
 
-  // Helper: render content with emoji and line breaks
+  // Helper: render content with emoji, media, and line breaks
   function renderContent(text) {
-    return escapeHtml(parseEmojis(text)).replace(/\n/g, '<br>');
+    if (!text) return '';
+    
+    // Create a temporary element to render into
+    const tempDiv = document.createElement('div');
+    renderMarkdownWithMedia(text, tempDiv);
+    return tempDiv.innerHTML;
   }
 
   messagesContainer.innerHTML = currentMessages.map(message => {

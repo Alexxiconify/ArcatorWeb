@@ -296,3 +296,214 @@ const emojiMap = {
   ':warning:': '⚠️',
   ':info:': 'ℹ️'
 };
+
+/**
+ * Renders media content from markdown text with proper sanitization and display.
+ * @param {string} text - The text containing media markdown.
+ * @returns {string} The rendered HTML with media elements.
+ */
+export function renderMediaContent(text) {
+  if (!text) return '';
+  
+  // Convert markdown to HTML first
+  let html = text;
+  
+  // Handle image markdown: ![alt](url)
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+    return `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" class="media-content" loading="lazy" onerror="this.style.display='none'">`;
+  });
+  
+  // Handle video markdown: ![Video](url)
+  html = html.replace(/!\[Video\]\(([^)]+)\)/g, (match, url) => {
+    const extension = url.split('.').pop()?.toLowerCase();
+    const videoTypes = {
+      'mp4': 'video/mp4',
+      'webm': 'video/webm',
+      'ogg': 'video/ogg'
+    };
+    
+    if (videoTypes[extension]) {
+      return `<video controls class="media-content"><source src="${escapeHtml(url)}" type="${videoTypes[extension]}">Your browser does not support the video tag.</video>`;
+    }
+    return match; // Return original if not a valid video format
+  });
+  
+  // Handle audio markdown: ![Audio](url)
+  html = html.replace(/!\[Audio\]\(([^)]+)\)/g, (match, url) => {
+    const extension = url.split('.').pop()?.toLowerCase();
+    const audioTypes = {
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'ogg': 'audio/ogg',
+      'aac': 'audio/aac'
+    };
+    
+    if (audioTypes[extension]) {
+      return `<audio controls class="media-content"><source src="${escapeHtml(url)}" type="${audioTypes[extension]}">Your browser does not support the audio tag.</audio>`;
+    }
+    return match; // Return original if not a valid audio format
+  });
+  
+  // Handle YouTube markdown: ![YouTube Video](url)
+  html = html.replace(/!\[YouTube Video\]\(([^)]+)\)/g, (match, url) => {
+    const videoId = extractYouTubeVideoId(url);
+    if (videoId) {
+      return `<div class="youtube-embed media-content"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`;
+    }
+    return match; // Return original if not a valid YouTube URL
+  });
+  
+  return html;
+}
+
+/**
+ * Extracts video ID from YouTube URL.
+ * @param {string} url - The YouTube URL.
+ * @returns {string|null} The video ID or null if invalid.
+ */
+function extractYouTubeVideoId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Validates and sanitizes media URLs.
+ * @param {string} url - The URL to validate.
+ * @returns {boolean} True if the URL is valid and safe.
+ */
+export function validateMediaUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    
+    // Check protocol
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return false;
+    }
+    
+    // Check for valid media extensions
+    const extension = urlObj.pathname.split('.').pop()?.toLowerCase();
+    const validExtensions = [
+      'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg',
+      'mp4', 'webm', 'ogg',
+      'mp3', 'wav', 'aac'
+    ];
+    
+    return validExtensions.includes(extension);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Creates a media preview element.
+ * @param {string} url - The media URL.
+ * @param {string} type - The media type ('image', 'video', 'audio').
+ * @returns {HTMLElement} The preview element.
+ */
+export function createMediaPreview(url, type) {
+  const container = document.createElement('div');
+  container.className = 'media-preview-container';
+  
+  switch (type) {
+    case 'image':
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Preview';
+      img.className = 'media-preview';
+      img.loading = 'lazy';
+      img.onerror = () => img.style.display = 'none';
+      container.appendChild(img);
+      break;
+      
+    case 'video':
+      const video = document.createElement('video');
+      video.controls = true;
+      video.className = 'media-preview';
+      const source = document.createElement('source');
+      source.src = url;
+      source.type = `video/${url.split('.').pop()}`;
+      video.appendChild(source);
+      video.appendChild(document.createTextNode('Your browser does not support the video tag.'));
+      container.appendChild(video);
+      break;
+      
+    case 'audio':
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      audio.className = 'media-preview';
+      const audioSource = document.createElement('source');
+      audioSource.src = url;
+      audioSource.type = `audio/${url.split('.').pop()}`;
+      audio.appendChild(audioSource);
+      audio.appendChild(document.createTextNode('Your browser does not support the audio tag.'));
+      container.appendChild(audio);
+      break;
+  }
+  
+  return container;
+}
+
+/**
+ * Processes markdown content and renders media elements.
+ * @param {string} content - The markdown content.
+ * @param {HTMLElement} targetElement - The element to render into.
+ */
+export function renderMarkdownWithMedia(content, targetElement) {
+  if (!content || !targetElement) return;
+  
+  // First, process media content
+  let processedContent = renderMediaContent(content);
+  
+  // Then convert markdown to HTML
+  if (typeof marked !== 'undefined') {
+    try {
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+        sanitize: false
+      });
+      
+      processedContent = marked.parse(processedContent);
+      
+      // Sanitize the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = processedContent;
+      
+      // Remove dangerous elements but keep media elements
+      const dangerousElements = tempDiv.querySelectorAll('script, iframe:not([src*="youtube.com"]), object, embed, form, input, button, select, textarea');
+      dangerousElements.forEach(el => el.remove());
+      
+      // Remove dangerous attributes
+      const allElements = tempDiv.querySelectorAll('*');
+      allElements.forEach(el => {
+        const attrs = el.attributes;
+        for (let i = attrs.length - 1; i >= 0; i--) {
+          const attr = attrs[i];
+          if (attr.name.startsWith('on') || attr.name.startsWith('javascript:')) {
+            el.removeAttribute(attr.name);
+          }
+        }
+      });
+      
+      targetElement.innerHTML = tempDiv.innerHTML;
+    } catch (error) {
+      console.error('Error rendering markdown:', error);
+      targetElement.innerHTML = escapeHtml(processedContent);
+    }
+  } else {
+    // Fallback if marked is not available
+    targetElement.innerHTML = escapeHtml(processedContent);
+  }
+}
