@@ -412,52 +412,21 @@ async function fetchAllTempPages() {
   }
 }
 
-async function renderTempPages() {
-  if (!tempPageList) return;
-  tempPageList.innerHTML = '<li>Loading temporary pages...</li>';
-  const pages = await fetchAllTempPages();
-  tempPageList.innerHTML = '';
-  if (pages.length === 0) {
-    tempPageList.innerHTML = '<li>No temporary pages created yet.</li>';
+async function renderTempPages(tempPages) {
+  const tbody = document.getElementById('temp-pages-tbody');
+  if (!tbody) return;
+  if (!tempPages || tempPages.length === 0) {
+    tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="2">No temporary pages found.</td></tr>';
     return;
   }
-
-  pages.forEach(page => {
-    const li = document.createElement('li');
-    // Apply theme-aware classes to list items for consistency
-    li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
-    li.style.backgroundColor = 'var(--color-bg-card)'; /* Apply card background color */
-    li.style.color = 'var(--color-text-primary)'; /* Apply primary text color */
-
-    li.innerHTML = `
-      <span class="font-semibold break-all md:w-3/5">${page.title}</span>
-      <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
-        <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page">View</a>
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-temp-page-btn" data-id="${page.id}">Delete</button>
-      </div>
-    `;
-    tempPageList.appendChild(li);
-  });
-
-  // No longer need separate click listeners for view-temp-page as it's a direct link
-  document.querySelectorAll('.edit-temp-page-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
-      console.log("DEBUG: Edit Temporary Page button clicked.");
-      const id = event.target.dataset.id;
-      const title = decodeURIComponent(event.target.dataset.title);
-      const content = decodeURIComponent(event.target.dataset.content);
-      console.log(`DEBUG: Edit Temp Page - ID: ${id}, Title: ${title}`);
-      openEditTempPageModal(id, title, content);
-    });
-  });
-  document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      console.log("DEBUG: Delete Temporary Page button clicked.");
-      const id = event.target.dataset.id;
-      await deleteTempPage(id);
-    });
-  });
+  tbody.innerHTML = tempPages.map(page => `
+    <tr>
+      <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(page.title)}</td>
+      <td class="px-2 py-1 text-text-secondary text-xs">
+        <button onclick="openEditTempPageModal('${page.id}', '${escapeHtml(page.title)}', '${escapeHtml(page.content)}')" class="text-blue-400 hover:text-blue-300 transition-colors">Edit</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function openEditTempPageModal(id, title, content) {
