@@ -453,19 +453,22 @@
                         >Page Content (HTML allowed):</label
                       >
                       <div class="emoji-input-container">
+                        <div id="temp-page-content-container"></div>
                         <script type="module">
                           import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                          document.currentScript.insertAdjacentHTML(
-                            "beforebegin",
-                            createEmojiMediaInputContainer(
-                              "temp-page-content",
-                              "temp-page-content-emoji-picker",
-                              "temp-page-content-media-picker",
-                              "textarea",
-                              "Write your page content here... Use HTML for styling!",
-                              "form-input w-full h-32",
-                            ),
-                          );
+                          document.addEventListener('DOMContentLoaded', () => {
+                            const container = document.getElementById('temp-page-content-container');
+                            if (container) {
+                              container.innerHTML = createEmojiMediaInputContainer(
+                                "temp-page-content",
+                                "temp-page-content-emoji-picker",
+                                "temp-page-content-media-picker",
+                                "textarea",
+                                "Write your page content here... Use HTML for styling!",
+                                "form-input w-full h-32",
+                              );
+                            }
+                          });
                         </script>
                       </div>
                     </div>
@@ -568,19 +571,22 @@
                                 >Page Content (HTML allowed):</label
                               >
                               <div class="emoji-input-container">
+                                <div id="edit-temp-page-content-container"></div>
                                 <script type="module">
                                   import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                                  document.currentScript.insertAdjacentHTML(
-                                    "beforebegin",
-                                    createEmojiMediaInputContainer(
-                                      "edit-temp-page-content",
-                                      "edit-temp-page-content-emoji-picker",
-                                      "edit-temp-page-content-media-picker",
-                                      "textarea",
-                                      "Write your page content here... Use HTML for styling!",
-                                      "form-input w-full h-48",
-                                    ),
-                                  );
+                                  document.addEventListener('DOMContentLoaded', () => {
+                                    const container = document.getElementById('edit-temp-page-content-container');
+                                    if (container) {
+                                      container.innerHTML = createEmojiMediaInputContainer(
+                                        "edit-temp-page-content",
+                                        "edit-temp-page-content-emoji-picker",
+                                        "edit-temp-page-content-media-picker",
+                                        "textarea",
+                                        "Write your page content here... Use HTML for styling!",
+                                        "form-input w-full h-48",
+                                      );
+                                    }
+                                  });
                                 </script>
                               </div>
                             </div>
@@ -808,19 +814,22 @@
                       </div>
 
                       <div class="emoji-input-container">
+                        <div id="email-content-container"></div>
                         <script type="module">
                           import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                          document.currentScript.insertAdjacentHTML(
-                            "beforebegin",
-                            createEmojiMediaInputContainer(
-                              "email-content",
-                              "email-content-emoji-picker",
-                              "email-content-media-picker",
-                              "textarea",
-                              "Write your email content here...",
-                              "form-input w-full h-32",
-                            ),
-                          );
+                          document.addEventListener('DOMContentLoaded', () => {
+                            const container = document.getElementById('email-content-container');
+                            if (container) {
+                              container.innerHTML = createEmojiMediaInputContainer(
+                                "email-content",
+                                "email-content-emoji-picker",
+                                "email-content-media-picker",
+                                "textarea",
+                                "Write your email content here...",
+                                "form-input w-full h-32",
+                              );
+                            }
+                          });
                         </script>
                       </div>
 

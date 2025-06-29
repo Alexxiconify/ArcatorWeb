@@ -120,13 +120,9 @@ let currentEditingUserUid = null;
 // Temporary Pages DOM elements
 const createTempPageForm = document.getElementById("create-temp-page-form");
 const tempPageTitleInput = document.getElementById("temp-page-title");
-const tempPageContentInput = document.getElementById("temp-page-content");
 const tempPageList = document.getElementById("temp-page-list");
 const editTempPageModal = document.getElementById("edit-temp-page-modal");
 const editTempPageTitleInput = document.getElementById("edit-temp-page-title");
-const editTempPageContentInput = document.getElementById(
-  "edit-temp-page-content",
-);
 const saveTempPageChangesBtn = document.getElementById(
   "save-temp-page-changes-btn",
 );
@@ -142,7 +138,7 @@ const formSubmissionsTbody = document.getElementById("form-submissions-tbody");
 const emailRecipientTypeSelect = document.getElementById(
   "email-recipient-type",
 );
-const emailTemplateSelect = document.getElementById("email-template");
+const emailTemplateSelect = document.getElementById("email-template-select");
 const emailRecipientsSection = document.getElementById(
   "custom-recipients-section",
 );
@@ -471,7 +467,7 @@ async function createTempPage(title, content) {
     });
     showMessageBox("Temporary page created successfully!", false);
     tempPageTitleInput.value = "";
-    tempPageContentInput.value = ""; // Clear content input
+    document.getElementById("temp-page-content").value = ""; // Clear content input
     renderTempPages();
     console.log("DEBUG: Temporary page created:", docRef.id);
   } catch (error) {
@@ -565,7 +561,7 @@ async function renderTempPages() {
 function openEditTempPageModal(id, title, content) {
   currentEditingTempPageId = id;
   editTempPageTitleInput.value = title;
-  editTempPageContentInput.value = content; // Set raw HTML content
+  document.getElementById("edit-temp-page-content").value = content; // Set raw HTML content
   editTempPageModal.style.display = "flex";
   console.log("DEBUG: Temporary Page Edit Modal opened.");
 }
@@ -580,7 +576,7 @@ if (saveTempPageChangesBtn) {
       return;
     }
     const newTitle = editTempPageTitleInput.value.trim();
-    const newContent = editTempPageContentInput.value.trim(); // Get raw HTML content
+    const newContent = document.getElementById("edit-temp-page-content").value.trim(); // Get raw HTML content
     if (!newTitle || !newContent) {
       showMessageBox("Title and Content cannot be empty.", true);
       return;
@@ -1148,7 +1144,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   createTempPageForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const title = tempPageTitleInput.value.trim();
-    const content = tempPageContentInput.value.trim(); // Get raw HTML content
+    const content = document.getElementById("temp-page-content").value.trim(); // Get raw HTML content
     if (!title || !content) {
       showMessageBox(
         "Please enter both title and content for the temporary page.",
@@ -1240,17 +1236,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     .addEventListener("change", handleEmailTemplateChange);
 
   // EmailJS buttons
-  document
-    .getElementById("test-emailjs-btn")
-    .addEventListener("click", testEmailJSConnectionHandler);
-  document
-    .getElementById("configure-emailjs-btn")
-    .addEventListener("click", configureEmailJS);
+  if (testEmailJSBtn) {
+    testEmailJSBtn.addEventListener("click", testEmailJSConnectionHandler);
+  }
+  if (configureEmailJSBtn) {
+    configureEmailJSBtn.addEventListener("click", configureEmailJS);
+  }
 
   // SMTP server buttons
-  document
-    .getElementById("test-smtp-btn")
-    .addEventListener("click", testSMTPServerConnectionHandler);
+  if (testSmtpBtn) {
+    testSmtpBtn.addEventListener("click", testSMTPServerConnectionHandler);
+  }
 });
 
 // Utility function to escape HTML
@@ -1437,11 +1433,11 @@ function setupEventListeners() {
     createTempPageForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const title = tempPageTitleInput.value.trim();
-      const content = tempPageContentInput.value.trim();
+      const content = document.getElementById("temp-page-content").value.trim();
       if (title && content) {
         await createTempPage(title, content);
         tempPageTitleInput.value = "";
-        tempPageContentInput.value = "";
+        document.getElementById("temp-page-content").value = "";
       }
     });
   }

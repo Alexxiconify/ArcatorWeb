@@ -364,30 +364,20 @@ function initMediaPicker(pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 function initGifSearch(pickerId) {
-  const gifSearchInput = document.querySelector(
-    `#${pickerId} #gif-search-input`,
-  );
-  const gifResults = document.querySelector(`#${pickerId} #gif-results`);
-
-  if (!gifSearchInput || !gifResults) return;
-
-  let searchTimeout;
-
-  gifSearchInput.addEventListener("input", (e) => {
-    clearTimeout(searchTimeout);
-    const query = e.target.value.trim();
-
-    if (query.length < 2) {
-      gifResults.innerHTML =
-        '<div class="media-loading">Search for GIFs...</div>';
-      return;
+  const searchInput = document.getElementById(`${pickerId}-gif-search`);
+  const providerSelect = document.getElementById(`${pickerId}-gif-provider`);
+  if (!searchInput || !providerSelect) return;
+  let lastQuery = '';
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    if (q && q !== lastQuery) {
+      lastQuery = q;
+      searchGifs(q, pickerId);
     }
-
-    gifResults.innerHTML = '<div class="media-loading">Searching...</div>';
-
-    searchTimeout = setTimeout(() => {
-      searchGifs(query, pickerId);
-    }, 500);
+  });
+  providerSelect.addEventListener('change', () => {
+    const q = searchInput.value.trim();
+    if (q) searchGifs(q, pickerId);
   });
 }
 
@@ -397,39 +387,24 @@ function initGifSearch(pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 async function searchGifs(query, pickerId) {
-  const gifResults = document.querySelector(`#${pickerId} #gif-results`);
-
-  try {
-    // Using GIPHY API (you'll need to get an API key)
-    const apiKey = "dc6zaTOxFJmzC"; // Public beta key (limited)
-    const response = await fetch(
-      `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(query)}&limit=12&rating=g`,
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch GIFs");
-    }
-
-    const data = await response.json();
-
-    if (data.data.length === 0) {
-      gifResults.innerHTML = '<div class="media-error">No GIFs found</div>';
-      return;
-    }
-
-    gifResults.innerHTML = data.data
-      .map(
-        (gif) => `
-      <div class="gif-item" onclick="insertGif('${gif.images.fixed_height.url}', '${pickerId}')">
-        <img src="${gif.images.fixed_height_small.url}" alt="${gif.title}" loading="lazy">
-      </div>
-    `,
-      )
-      .join("");
-  } catch (error) {
-    console.error("Error searching GIFs:", error);
-    gifResults.innerHTML = '<div class="media-error">Failed to load GIFs</div>';
+  const provider = document.getElementById(`${pickerId}-gif-provider`)?.value || 'giphy';
+  let gifs = [];
+  if (provider === 'giphy') {
+    // Giphy API
+    const apiKey = 'dc6zaTOxFJmzC';
+    const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=20&rating=pg`;
+    const res = await fetch(url);
+    const data = await res.json();
+    gifs = data.data.map(g => g.images.fixed_height.url);
+  } else if (provider === 'tenor') {
+    // Tenor API
+    const apiKey = 'LIVDSRZULELA';
+    const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${apiKey}&limit=20&media_filter=gif&contentfilter=medium`;
+    const res = await fetch(url);
+    const data = await res.json();
+    gifs = data.results.map(g => g.media_formats.gif.url);
   }
+  renderGifResults(gifs, pickerId);
 }
 
 /**
@@ -926,7 +901,7 @@ export function createEmojiMediaInputContainer(
         <button type="button" class="emoji-picker-btn" style="border-radius:0.375rem 0 0 0.375rem;" onclick="toggleEmojiPicker('${emojiPickerId}','emoji')" title="Add emoji">😊</button>
         <button type="button" class="emoji-picker-btn" style="border-radius:0 0 0.375rem 0.375rem;" onclick="toggleEmojiPicker('${mediaPickerId}','media')" title="Add media">🎬</button>
       </div>
-      ${createEmojiPickerHTML(emojiPickerId)}
+      ${createSimpleEmojiPickerHTML(emojiPickerId)}
       ${createMediaPickerHTML(mediaPickerId)}
     </div>
   `;
@@ -935,7 +910,7 @@ export function createEmojiMediaInputContainer(
 /**
  * Creates emoji picker HTML only.
  */
-export function createEmojiPickerHTML(pickerId = "emoji-picker") {
+export function createSimpleEmojiPickerHTML(pickerId = "emoji-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
       <div class="emoji-picker-header">
@@ -957,7 +932,16 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
         <button class="media-tab" data-tab="url">🔗 URL</button>
         <button class="media-tab" data-tab="youtube">📺 YouTube</button>
       </div>
-      <div id="${pickerId}-gif-tab" class="media-tab-content active">...</div>
+      <div id="${pickerId}-gif-tab" class="media-tab-content active">
+        <div class="gif-search-container">
+          <select id="${pickerId}-gif-provider" class="gif-provider-select">
+            <option value="giphy">Giphy</option>
+            <option value="tenor">Tenor</option>
+          </select>
+          <input type="text" id="${pickerId}-gif-search" class="gif-search-input" placeholder="Search GIFs..." />
+        </div>
+        <div class="gif-results" id="${pickerId}-gif-results"></div>
+      </div>
       <div id="${pickerId}-url-tab" class="media-tab-content">...</div>
       <div id="${pickerId}-youtube-tab" class="media-tab-content">...</div>
     </div>
@@ -988,3 +972,10 @@ window.toggleEmojiPicker = function (pickerId, type) {
     }
   }
 };
+
+// Render GIFs
+function renderGifResults(gifs, pickerId) {
+  const resultsEl = document.getElementById(`${pickerId}-gif-results`);
+  if (!resultsEl) return;
+  resultsEl.innerHTML = gifs.map(url => `<img src="${url}" class="gif-item" style="max-width:120px;max-height:120px;cursor:pointer;" onclick="insertMediaUrl('${url}','${pickerId}')" />`).join('');
+}
