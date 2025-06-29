@@ -48,7 +48,6 @@ const loginRequiredMessage = document.getElementById('login-required-message');
 const adminContent = document.getElementById('admin-content');
 
 // User Management DOM elements
-const loadUsersBtn = document.getElementById('load-users-btn');
 const userListTbody = document.getElementById('user-list-tbody');
 const editUserModal = document.getElementById('edit-user-modal');
 const editUserDisplayNameInput = document.getElementById('edit-user-display-name');
@@ -89,57 +88,11 @@ const editTempPageContentInput = document.getElementById('edit-temp-page-content
 const saveTempPageChangesBtn = document.getElementById('save-temp-page-changes-btn');
 let currentEditingTempPageId = null;
 
-// Todo List DOM elements
-const addTodoForm = document.getElementById('add-todo-form');
-const todoTaskInput = document.getElementById('todo-task');
-const todoWorkerInput = document.getElementById('todo-worker');
-const todoPrioritySelect = document.getElementById('todo-priority');
-const todoEtaInput = document.getElementById('todo-eta');
-const todoNotesInput = document.getElementById('todo-notes');
-const roadmapTodoListTbody = document.getElementById('roadmap-todo-list-tbody');
-const editTodoModal = document.getElementById('edit-todo-modal');
-const editTodoTaskInput = document.getElementById('edit-todo-task');
-const editTodoWorkerInput = document.getElementById('edit-todo-worker');
-const editTodoPrioritySelect = document.getElementById('edit-todo-priority');
-const editTodoEtaInput = document.getElementById('edit-todo-eta');
-const editTodoNotesInput = document.getElementById('edit-todo-notes');
-const saveTodoChangesBtn = document.getElementById('save-todo-changes-btn');
-let currentEditingTodoId = null;
+// DM History DOM elements
+const dmHistoryTbody = document.getElementById('dm-history-tbody');
 
-// Collapsible section parent elements (used for showing/hiding entire sections based on login/admin status)
-const infrastructureSection = document.getElementById('infrastructure-section');
-const devToolsSection = document.getElementById('dev-tools-section');
-const userManagementSection = document.getElementById('user-management-section');
-const formManagementSection = document.getElementById('form-management-section');
-const tempPagesSection = document.getElementById('temp-pages-section');
-const importantLinksSection = document.getElementById('important-links-section');
-const roadmapSection = document.getElementById('roadmap-section');
-const darrionApiSection = document.getElementById('darrion-api-section');
-const griefDetectionSection = document.getElementById('grief-detection-section');
-const onfimNotificationsSection = document.getElementById('onfim-notifications-section');
-
-
-// Collapsible section header and content elements (used for toggling content visibility)
-const infrastructureHeader = document.getElementById('infrastructure-header');
-const infrastructureContent = document.getElementById('infrastructure-content');
-const devToolsHeader = document.getElementById('dev-tools-header');
-const devToolsContent = document.getElementById('dev-tools-content');
-const userManagementHeader = document.getElementById('user-management-header');
-const userManagementContent = document.getElementById('user-management-content');
-const formManagementHeader = document.getElementById('form-management-header');
-const formManagementContent = document.getElementById('form-management-content');
-const tempPagesHeader = document.getElementById('temp-pages-header');
-const tempPagesContent = document.getElementById('temp-pages-content');
-const importantLinksHeader = document.getElementById('important-links-header');
-const importantLinksContent = document.getElementById('important-links-content');
-const roadmapHeader = document.getElementById('roadmap-header');
-const roadmapContent = document.getElementById('roadmap-content');
-const darrionApiHeader = document.getElementById('darrion-api-header');
-const darrionApiContent = document.getElementById('darrion-api-content');
-const griefDetectionHeader = document.getElementById('grief-detection-header');
-const griefDetectionContent = document.getElementById('grief-detection-content');
-const onfimNotificationsHeader = document.getElementById('onfim-notifications-header');
-const onfimNotificationsContent = document.getElementById('onfim-notifications-content');
+// Forms Management DOM elements
+const formSubmissionsTbody = document.getElementById('form-submissions-tbody');
 
 // Email Management DOM elements
 const emailToSelect = document.getElementById('email-to-select');
@@ -393,34 +346,22 @@ if (cancelUserChangesBtn) {
   });
 }
 
-// Attach listeners to all close buttons for modals
+// Modal close buttons
 document.querySelectorAll('.close-button').forEach(button => {
   button.addEventListener('click', () => {
-    console.log("DEBUG: Close button clicked on a modal.");
     editUserModal.style.display = 'none';
     editTempPageModal.style.display = 'none';
-    editTodoModal.style.display = 'none';
-    currentEditingUserUid = null; // Clear the current editing user
-    // showCustomConfirm is handled internally by utils.js, so no direct `display = 'none'` needed here for it
   });
 });
 
+// Close modals when clicking outside
 window.addEventListener('click', (event) => {
-  // Only close if click is outside modal content
   if (event.target === editUserModal) {
     editUserModal.style.display = 'none';
-    currentEditingUserUid = null; // Clear the current editing user
-    console.log("DEBUG: User Edit Modal closed by clicking outside.");
   }
   if (event.target === editTempPageModal) {
     editTempPageModal.style.display = 'none';
-    console.log("DEBUG: Temp Page Edit Modal closed by clicking outside.");
   }
-  if (event.target === editTodoModal) {
-    editTodoModal.style.display = 'none';
-    console.log("DEBUG: Todo Edit Modal closed by clicking outside.");
-  }
-  // The custom confirm modal closing is managed by utils.js
 });
 
 
@@ -588,260 +529,38 @@ async function deleteTempPage(id) {
  * This function now explicitly waits for firebaseCurrentUser to be populated with isAdmin.
  * @param {Object|null} user - The Firebase User object or null.
  */
-const updateAdminUI = async (user) => { // Changed to const arrow function
-  console.log("DEBUG: updateAdminUI called with user:", user);
-  const adminContent = document.getElementById('admin-content');
-  const loginRequiredMessage = document.getElementById('login-required-message');
-  const loadingSpinner = document.getElementById('loading-spinner');
-
-  if (loadingSpinner) {
+const updateAdminUI = async (user) => {
+  if (!user) {
     loadingSpinner.style.display = 'none';
+    loginRequiredMessage.style.display = 'block';
+    adminContent.style.display = 'none';
+    return;
   }
 
-  if (user) {
-    const isAdmin = user.isAdmin === true;
-    if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
-    if (adminContent) adminContent.style.display = 'block';
+  try {
+    loadingSpinner.style.display = 'block';
+    loginRequiredMessage.style.display = 'none';
+    adminContent.style.display = 'block';
 
-    // Section IDs
-    const allSections = [
-      'infrastructure-section',
-      'dev-tools-section',
-      'user-management-section',
-      'form-management-section',
-      'temp-pages-section',
-      'important-links-section',
-      'roadmap-section',
-      'darrion-api-section',
-      'grief-detection-section',
-      'onfim-notifications-section',
-      'email-management-section'
-    ];
+    // Load all admin data
+    await Promise.all([
+      loadUsers(),
+      loadDMHistory(),
+      loadFormsData(),
+      fetchAllTempPages(),
+      populateEmailRecipients(),
+      loadEmailHistory(),
+      displayEmailJSStatus(),
+      displaySMTPServerStatus()
+    ]);
 
-    allSections.forEach(sectionId => {
-      const section = document.getElementById(sectionId);
-      if (section) section.style.display = 'none';
-    });
-
-    if (isAdmin) {
-      // Show all admin sections
-      allSections.forEach(sectionId => {
-        const section = document.getElementById(sectionId);
-        if (section) section.style.display = 'block';
-      });
-    } else {
-      // Only show email management for non-admins
-      const emailSection = document.getElementById('email-management-section');
-      if (emailSection) emailSection.style.display = 'block';
-    }
-
-    setupCollapsibleSections();
-    setupEventListeners();
-    const userManagementHeader = document.getElementById('user-management-header');
-    if (userManagementHeader) {
-      userManagementHeader.addEventListener('click', async function() {
-        const content = this.nextElementSibling;
-        if (content.classList.contains('hidden') && usersData.length === 0) {
-          await loadUsers();
-        }
-      });
-    }
-
-    // Initialize email management
-    await populateEmailRecipients();
-    await loadEmailHistory();
-    
-    // Initialize EmailJS automatically
-    try {
-      const initResult = await initializeEmailJS();
-      if (initResult.success) {
-        console.log('[EmailJS] Auto-initialized successfully');
-      } else {
-        console.warn('[EmailJS] Auto-initialization failed:', initResult.error);
-      }
-    } catch (error) {
-      console.warn('[EmailJS] Auto-initialization error:', error);
-    }
-    
-    // Initialize SMTP server automatically
-    try {
-      const smtpInitResult = await initializeSMTPIntegration();
-      if (smtpInitResult.success) {
-        console.log('[SMTP] Auto-initialized successfully');
-      } else {
-        console.warn('[SMTP] Auto-initialization failed:', smtpInitResult.error);
-      }
-    } catch (error) {
-      console.warn('[SMTP] Auto-initialization error:', error);
-    }
-    
-    displayEmailJSStatus();
-    displaySMTPServerStatus();
-  } else {
-    if (adminContent) adminContent.style.display = 'none';
-    if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+  } catch (error) {
+    console.error("Error updating admin UI:", error);
+    loadingSpinner.style.display = 'none';
+    showMessageBox("Error loading admin data: " + error.message, true);
   }
 };
-
-// Todo List Functions
-async function addTodoItem(task, worker, priority, eta, notes) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot add task.", true);
-    return;
-  }
-  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
-  try {
-    const docRef = await addDoc(todosCol, {
-      task: task,
-      worker: worker,
-      priority: priority,
-      eta: eta,
-      notes: notes,
-      createdAt: serverTimestamp() // Use serverTimestamp
-    });
-    showMessageBox("Task added successfully!", false);
-    todoTaskInput.value = '';
-    todoWorkerInput.value = '';
-    todoPrioritySelect.value = 'Low';
-    todoEtaInput.value = '';
-    todoNotesInput.value = '';
-    renderTodoList();
-    console.log("DEBUG: Todo item added:", docRef.id);
-  } catch (error) {
-    console.error("Error adding todo item:", error);
-    showMessageBox(`Error adding task: ${error.message}`, true);
-  }
-}
-
-async function fetchAllTodoItems() {
-  if (!db) {
-    console.error("Firestore DB not initialized for fetchAllTodoItems.");
-    return [];
-  }
-  const todosCol = collection(db, `artifacts/${appId}/public/data/roadmap_todos`);
-  const q = query(todosCol, orderBy("createdAt", "asc"));
-  try {
-    const querySnapshot = await getDocs(q);
-    const todos = [];
-    querySnapshot.forEach((doc) => {
-      todos.push({ id: doc.id, ...doc.data() });
-    });
-    console.log("DEBUG: Fetched todo items:", todos.length);
-    return todos;
-  }
-  catch (error) {
-    console.error("ERROR: Error fetching todo items:", error);
-    showMessageBox(`Error loading tasks: ${error.message}`, true);
-    return [];
-  }
-}
-
-async function renderTodoList() {
-  if (!roadmapTodoListTbody) return;
-  roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading roadmap tasks...</td></tr>';
-  const todos = await fetchAllTodoItems();
-  roadmapTodoListTbody.innerHTML = '';
-  if (todos.length === 0) {
-    roadmapTodoListTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No roadmap tasks found. Add a new task above.</td></tr>';
-    return;
-  }
-
-  todos.forEach(todo => {
-    const row = roadmapTodoListTbody.insertRow();
-    // Apply theme-aware classes to the table rows/cells for consistency
-    row.classList.add('text-text-primary'); // Apply primary text color
-    if (roadmapTodoListTbody.rows.length % 2 === 0) { // Check if it's an even row
-      row.style.backgroundColor = 'var(--color-table-row-even-bg)';
-    }
-    row.innerHTML = `
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.task || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.worker || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">${todo.priority || 'N/A'}</td>
-      <td class="px-4 py-2 break-all border-b border-table-td-border">${todo.notes || 'N/A'}</td>
-      <td class="px-4 py-2 border-b border-table-td-border">
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-todo-btn"
-                data-id="${todo.id}" data-task="${encodeURIComponent(todo.task || '')}" data-worker="${encodeURIComponent(todo.worker || '')}"
-                data-priority="${encodeURIComponent(todo.priority || '')}" data-eta="${encodeURIComponent(todo.eta || '')}" data-notes="${encodeURIComponent(todo.notes || '')}">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-todo-btn" data-id="${todo.id}">Delete</button>
-      </td>
-    `;
-  });
-
-  document.querySelectorAll('.edit-todo-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
-      console.log("DEBUG: Edit Todo button clicked.");
-      const { id, task, worker, priority, eta, notes } = event.target.dataset;
-      openEditTodoModal(id, decodeURIComponent(task), decodeURIComponent(worker), decodeURIComponent(priority), decodeURIComponent(eta), decodeURIComponent(notes));
-    });
-  });
-
-  document.querySelectorAll('.delete-todo-btn').forEach(button => {
-    button.addEventListener('click', async (event) => {
-      console.log("DEBUG: Delete Todo button clicked.");
-      const id = event.target.dataset.id;
-      await deleteTodoItem(id);
-    });
-  });
-}
-
-function openEditTodoModal(id, task, worker, priority, eta, notes) {
-  currentEditingTodoId = id;
-  editTodoTaskInput.value = task;
-  editTodoWorkerInput.value = worker;
-  editTodoPrioritySelect.value = priority;
-  editTodoEtaInput.value = eta;
-  editTodoNotesInput.value = notes;
-  editTodoModal.style.display = 'flex';
-  console.log("DEBUG: Todo Edit Modal opened.");
-}
-
-async function updateTodoItem(id, task, worker, priority, eta, notes) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot save changes.", true);
-    return;
-  }
-  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
-  try {
-    await updateDoc(todoDocRef, {
-      task: task,
-      worker: worker,
-      priority: priority,
-      eta: eta,
-      notes: notes,
-      updatedAt: serverTimestamp() // Use serverTimestamp
-    });
-    showMessageBox("Task updated successfully!", false);
-    editTodoModal.style.display = 'none';
-    renderTodoList();
-    console.log("DEBUG: Todo item updated successfully in Firestore.");
-  } catch (error) {
-    console.error("ERROR: Error updating todo item:", error);
-    showMessageBox(`Error updating task: ${error.message}`, true);
-  }
-}
-
-async function deleteTodoItem(id) {
-  if (!db) {
-    showMessageBox("Database not initialized. Cannot delete task.", true);
-    return;
-  }
-  const confirmation = await showCustomConfirm("Are you sure you want to delete this roadmap task?", "This action cannot be undone.");
-  if (!confirmation) {
-    showMessageBox("Deletion cancelled.", false);
-    return;
-  }
-
-  const todoDocRef = doc(db, `artifacts/${appId}/public/data/roadmap_todos`, id);
-  try {
-    await deleteDoc(todoDocRef);
-    showMessageBox("Task deleted successfully!", false);
-    renderTodoList();
-    console.log("DEBUG: Todo item deleted:", id);
-  } catch (error) {
-    console.error("ERROR: Error deleting todo item:", error);
-    showMessageBox(`Error deleting task: ${error.message}`, true);
-  }
-}
 
 // Email functionality - Using only EmailJS template
 async function populateEmailRecipients() {
@@ -1253,38 +972,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     await createTempPage(title, content);
   });
 
-
-  addTodoForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const task = todoTaskInput.value.trim();
-    const worker = todoWorkerInput.value.trim();
-    const priority = todoPrioritySelect.value;
-    const eta = todoEtaInput.value.trim();
-    const notes = todoNotesInput.value.trim();
-
-    if (!task) {
-      showMessageBox("Task description is required.", true);
-      return;
-    }
-    await addTodoItem(task, worker, priority, eta, notes);
-  });
-
-
-  saveTodoChangesBtn?.addEventListener('click', async () => {
-    if (!currentEditingTodoId) return;
-    const task = editTodoTaskInput.value.trim();
-    const worker = editTodoWorkerInput.value.trim();
-    const priority = editTodoPrioritySelect.value;
-    const eta = editTodoEtaInput.value.trim();
-    const notes = editTodoNotesInput.value.trim();
-
-    if (!task) {
-      showMessageBox("Task description is required.", true);
-      return;
-    }
-    await updateTodoItem(currentEditingTodoId, task, worker, priority, eta, notes);
-  });
-
   // Attach event listeners for collapsible sections
   infrastructureHeader?.addEventListener('click', () => toggleSection(infrastructureHeader, infrastructureContent));
   devToolsHeader?.addEventListener('click', () => toggleSection(devToolsHeader, devToolsContent));
@@ -1504,18 +1191,75 @@ async function saveUserChanges() {
 
 // Setup event listeners for other admin functionality
 function setupEventListeners() {
-  // Load initial data for admin sections
-  try {
-    Promise.all([
-      fetchAllTempPages(),
-      fetchAllTodoItems(),
-      loadEmailHistory(),
-      populateEmailRecipients()
-    ]);
-  } catch (error) {
-    console.error("Error loading initial admin data:", error);
-    showMessageBox("Some data failed to load. Please refresh the page.", true);
+  // Initialize EmailJS and SMTP
+  initializeEmailJS().then(result => {
+    if (result.success) {
+      console.log('[EmailJS] Initialized successfully');
+    } else {
+      console.warn('[EmailJS] Initialization failed:', result.error);
+    }
+  });
+
+  initializeSMTPIntegration().then(result => {
+    if (result.success) {
+      console.log('[SMTP] Initialized successfully');
+    } else {
+      console.warn('[SMTP] Initialization failed:', result.error);
+    }
+  });
+
+  // Email management event listeners
+  if (testEmailJSBtn) {
+    testEmailJSBtn.addEventListener('click', testEmailJSConnectionHandler);
   }
+  if (configureEmailJSBtn) {
+    configureEmailJSBtn.addEventListener('click', configureEmailJS);
+  }
+  if (testSmtpBtn) {
+    testSmtpBtn.addEventListener('click', testSMTPServerConnectionHandler);
+  }
+  if (emailComposeForm) {
+    emailComposeForm.addEventListener('submit', sendEmail);
+  }
+  if (previewEmailBtn) {
+    previewEmailBtn.addEventListener('click', showEmailPreview);
+  }
+  if (emailTemplateSelect) {
+    emailTemplateSelect.addEventListener('change', handleEmailTemplateChange);
+  }
+
+  // Temporary pages event listeners
+  if (createTempPageForm) {
+    createTempPageForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = tempPageTitleInput.value.trim();
+      const content = tempPageContentInput.value.trim();
+      if (title && content) {
+        await createTempPage(title, content);
+        tempPageTitleInput.value = '';
+        tempPageContentInput.value = '';
+      }
+    });
+  }
+
+  // User management event listeners
+  if (saveUserChangesBtn) {
+    saveUserChangesBtn.addEventListener('click', saveUserChanges);
+  }
+  if (cancelUserChangesBtn) {
+    cancelUserChangesBtn.addEventListener('click', () => {
+      editUserModal.style.display = 'none';
+      currentEditingUserUid = null;
+    });
+  }
+
+  // Modal close buttons
+  document.querySelectorAll('.close-button').forEach(button => {
+    button.addEventListener('click', () => {
+      editUserModal.style.display = 'none';
+      editTempPageModal.style.display = 'none';
+    });
+  });
 }
 
 // Test EmailJS connection
@@ -1608,9 +1352,147 @@ function displaySMTPServerStatus() {
     statusDisplay.innerHTML = `
       <div class="grid grid-cols-2 gap-2 text-sm">
         <div>Server Connected: ${status.connected ? '✅ Yes' : '❌ No'}</div>
-        <div>Server URL: ${status.serverUrl}</div>
         <div>Ready to Send: ${status.ready ? '✅ Yes' : '❌ No'}</div>
       </div>
     `;
   }
 }
+
+async function loadDMHistory() {
+  if (!db) {
+    console.error("Firestore DB not initialized for loadDMHistory.");
+    return;
+  }
+
+  try {
+    const dmRef = collection(db, `artifacts/${appId}/public/data/direct_messages`);
+    const querySnapshot = await getDocs(query(dmRef, orderBy('createdAt', 'desc')));
+    const dmData = [];
+    querySnapshot.forEach(doc => {
+      dmData.push({ id: doc.id, ...doc.data() });
+    });
+
+    await renderDMHistory(dmData);
+  } catch (error) {
+    console.error("Error loading DM history:", error);
+  }
+}
+
+async function renderDMHistory(dmData) {
+  if (!dmHistoryTbody) return;
+  
+  if (!dmData || dmData.length === 0) {
+    dmHistoryTbody.innerHTML = `
+      <tr>
+        <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  dmHistoryTbody.innerHTML = dmData.map(dm => {
+    const from = dm.from || 'Unknown';
+    const to = dm.to || 'Unknown';
+    const subject = dm.subject || 'No subject';
+    const content = dm.content || 'No content';
+    const date = dm.createdAt ? new Date(dm.createdAt.toDate()).toLocaleString() : 'Unknown';
+    
+    return `
+      <tr class="hover:bg-table-row-even-bg transition-colors">
+        <td class="px-2 py-1 text-text-primary text-xs">${date}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(from)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(to)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(subject)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(content.substring(0, 50))}${content.length > 50 ? '...' : ''}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
+          <button onclick="viewDM('${dm.id}')" class="text-blue-400 hover:text-blue-300 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function loadFormsData() {
+  if (!db) {
+    console.error("Firestore DB not initialized for loadFormsData.");
+    return;
+  }
+
+  try {
+    const formsRef = collection(db, `artifacts/${appId}/public/data/form_submissions`);
+    const querySnapshot = await getDocs(query(formsRef, orderBy('createdAt', 'desc')));
+    const formsData = [];
+    querySnapshot.forEach(doc => {
+      formsData.push({ id: doc.id, ...doc.data() });
+    });
+
+    await renderFormsData(formsData);
+  } catch (error) {
+    console.error("Error loading forms data:", error);
+  }
+}
+
+async function renderFormsData(formsData) {
+  if (!formSubmissionsTbody) return;
+  
+  if (!formsData || formsData.length === 0) {
+    formSubmissionsTbody.innerHTML = `
+      <tr>
+        <td class="text-center py-4 text-text-secondary text-xs" colspan="5">No forms found.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Group by form type
+  const formGroups = {};
+  formsData.forEach(form => {
+    const formType = form.formType || 'Unknown';
+    if (!formGroups[formType]) {
+      formGroups[formType] = {
+        submissions: 0,
+        themes: new Set(),
+        comments: 0
+      };
+    }
+    formGroups[formType].submissions++;
+    if (form.theme) formGroups[formType].themes.add(form.theme);
+    if (form.comment) formGroups[formType].comments++;
+  });
+
+  formSubmissionsTbody.innerHTML = Object.entries(formGroups).map(([formType, data]) => {
+    const themes = Array.from(data.themes).join(', ') || 'None';
+    
+    return `
+      <tr class="hover:bg-table-row-even-bg transition-colors">
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(formType)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themes)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${data.comments}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${data.submissions}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
+          <button onclick="viewFormDetails('${formType}')" class="text-blue-400 hover:text-blue-300 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Initialize the admin panel
+document.addEventListener('DOMContentLoaded', () => {
+  setupEventListeners();
+  
+  // Listen for auth state changes
+  onAuthStateChanged(auth, async (user) => {
+    await updateAdminUI(user);
+  });
+});

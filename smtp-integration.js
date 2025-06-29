@@ -141,7 +141,6 @@ async function sendBulkEmailsViaSMTP(emails) {
 function getSMTPServerStatus() {
   return {
     connected: FIREBASE_FUNCTIONS_BASE_URL !== null,
-    serverUrl: FIREBASE_FUNCTIONS_BASE_URL || 'Not initialized',
     ready: FIREBASE_FUNCTIONS_BASE_URL !== null
   };
 }

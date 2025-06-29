@@ -189,11 +189,113 @@
             <div class="mt-4 w-full flex flex-col items-start">
               <p class="mb-2">Guides for sysadmin tasks, SSH, and server management:</p>
               <ul class="list-disc ml-6 mb-2">
-                <li><a href="https://wiki.arcator.co.uk/en/Sysadmin" target="_blank" class="text-link hover:underline">Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a></li>
-                <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" class="text-link hover:underline">Arcator Internal Docs (Growth plans, admin notes)</a></li>
-                <li><a href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit" target="_blank" class="text-link hover:underline">Vann's Command Guide</a></li>
+                <li><a href="https://wiki.arcator.co.uk/en/Sysadmin" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a></li>
+                <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Arcator Internal Docs (Growth plans, admin notes)</a></li>
+                <li><a href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Vann's Command Guide</a></li>
               </ul>
               <p class="text-xs text-text-secondary">See wiki for SSH key setup, Termius config, and host details. Use Mosh for high-speed, port 220, user <b>mcsa</b>.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Email Management
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <div class="bg-card p-4 rounded-lg shadow-md mb-6">
+                <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">EmailJS Status</h4>
+                <div id="emailjs-status-display" class="text-xs text-text-secondary mb-4">
+                  <div>Loading EmailJS status...</div>
+                </div>
+                <button type="button" id="test-emailjs-btn" class="btn-primary btn-purple mr-2">Test EmailJS Connection</button>
+                <button type="button" id="configure-emailjs-btn" class="btn-primary btn-blue">Configure EmailJS</button>
+              </div>
+              
+              <div class="bg-card p-4 rounded-lg shadow-md mb-6">
+                <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">SMTP Server Status</h4>
+                <div id="smtp-status-display" class="text-xs text-text-secondary mb-4">
+                  <div>Loading SMTP server status...</div>
+                </div>
+                <button type="button" id="test-smtp-btn" class="btn-primary btn-green">Test SMTP Connection</button>
+              </div>
+              
+              <div class="bg-card p-6 rounded-lg shadow-md mb-6">
+                <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Compose Email</h4>
+                <form id="email-compose-form" class="space-y-4">
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                      <label for="email-to-select" class="block text-sm font-medium text-text-primary">Recipients</label>
+                      <select id="email-to-select" multiple class="form-input h-24 text-sm">
+                        <option value="" disabled>Select recipients...</option>
+                      </select>
+                      <p class="text-xs text-text-secondary">Hold Ctrl/Cmd to select multiple users</p>
+                    </div>
+                    <div class="space-y-2">
+                      <label for="email-template-select" class="block text-sm font-medium text-text-primary">Template</label>
+                      <select id="email-template-select" class="form-input text-sm">
+                        <option value="default">Default Template</option>
+                        <option value="generic">Generic Email</option>
+                        <option value="passwordReset">Password Reset</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                      <label for="email-subject" class="block text-sm font-medium text-text-primary">Subject</label>
+                      <input id="email-subject" type="text" placeholder="Enter subject..." required class="form-input text-sm"/>
+                    </div>
+                    <div class="space-y-2">
+                      <label for="email-from" class="block text-sm font-medium text-text-primary">From</label>
+                      <input id="email-from" type="email" value="noreply@arcator-web.firebaseapp.com" readonly class="form-input text-sm bg-gray-100" title="Sender address is fixed for security"/>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <label for="email-content" class="block text-sm font-medium text-text-primary">Message</label>
+                    <textarea id="email-content" rows="6" placeholder="Enter your message here..." required class="form-input text-sm resize-none"></textarea>
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                      <label class="flex items-center space-x-2 text-sm text-text-secondary">
+                        <input type="checkbox" id="email-html-format" class="form-checkbox w-4 h-4">
+                        <span>Send as HTML</span>
+                      </label>
+                    </div>
+                    <div class="flex space-x-3">
+                      <button type="button" id="preview-email-btn" class="px-4 py-2 text-sm font-medium text-text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Preview</button>
+                      <button type="submit" id="send-email-btn" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">Send Email</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div class="bg-card p-6 rounded-lg shadow-md">
+                <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Email History</h4>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left table-auto text-xs">
+                    <thead>
+                    <tr class="bg-table-th-bg">
+                      <th class="px-2 py-1 text-table-th-text text-xs">Date</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Subject</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Recipients</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Status</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Method</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="email-history-tbody">
+                    <tr>
+                      <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </details>
         </div>
@@ -205,8 +307,24 @@
               User Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div id="user-list-tbody"></div>
-              <!-- Editing handled by modal as before -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto text-xs">
+                  <thead>
+                  <tr class="bg-table-th-bg">
+                    <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody id="user-list-tbody">
+                  <tr>
+                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </details>
         </div>
@@ -219,11 +337,33 @@
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
               <form id="create-temp-page-form" class="space-y-4">
-                <input id="temp-page-title" placeholder="Page Title" type="text" class="form-input w-full"/>
-                <textarea id="temp-page-content" placeholder="HTML content" class="form-input w-full"></textarea>
-                <button type="submit" class="btn-primary btn-blue">Create</button>
+                <div class="input-field">
+                  <label for="temp-page-title" class="form-label">Page Title:</label>
+                  <input id="temp-page-title" placeholder="Enter page title" type="text" class="form-input w-full"/>
+                </div>
+                <div class="input-field">
+                  <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
+                  <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
+                </div>
+                <button type="submit" class="btn-primary btn-blue">Create Temp Page</button>
               </form>
+              <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
               <div id="temp-page-list" class="mt-4"></div>
+              <div id="edit-temp-page-modal" class="modal">
+                <div class="modal-content">
+                  <span class="close-button">&times;</span>
+                  <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Temporary Page</h3>
+                  <div class="mb-4">
+                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-title">Page Title:</label>
+                    <input id="edit-temp-page-title" type="text" class="form-input w-full"/>
+                  </div>
+                  <div class="mb-4">
+                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-content">Page Content (HTML allowed):</label>
+                    <textarea id="edit-temp-page-content" class="form-input w-full h-48"></textarea>
+                  </div>
+                  <button id="save-temp-page-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+                </div>
+              </div>
             </div>
           </details>
         </div>
@@ -232,16 +372,28 @@
         <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
           <details open>
             <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Direct Messages
+              Direct Messages History
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <form id="dm-compose-form" class="space-y-4">
-                <select id="dm-to-select" class="form-input w-full"></select>
-                <input id="dm-subject" placeholder="Subject" class="form-input w-full"/>
-                <textarea id="dm-content" placeholder="Message" class="form-input w-full"></textarea>
-                <button type="submit" class="btn-primary btn-blue">Send DM</button>
-              </form>
-              <div id="dm-history-tbody" class="mt-4"></div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto text-xs">
+                  <thead>
+                  <tr class="bg-table-th-bg">
+                    <th class="px-2 py-1 text-table-th-text text-xs">Date</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">From</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">To</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Subject</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Content</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody id="dm-history-tbody">
+                  <tr>
+                    <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </details>
         </div>
@@ -253,7 +405,24 @@
               Forms Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div id="form-submissions-tbody"></div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto text-xs">
+                  <thead>
+                  <tr class="bg-table-th-bg">
+                    <th class="px-2 py-1 text-table-th-text text-xs">Form</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Comments</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Submissions</th>
+                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody id="form-submissions-tbody">
+                  <tr>
+                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading forms...</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
               <a href="forms.html" class="btn-primary btn-blue mt-2">Go to Forms Page</a>
             </div>
           </details>
@@ -496,3 +665,4 @@
 </div>
 </body>
 </html>
+
