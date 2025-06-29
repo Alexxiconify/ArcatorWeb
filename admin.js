@@ -358,6 +358,8 @@ document.querySelectorAll('.close-button').forEach(button => {
     button.addEventListener('click', () => {
         editUserModal.style.display = 'none';
         editTempPageModal.style.display = 'none';
+        document.getElementById('edit-dm-modal').style.display = 'none';
+        document.getElementById('edit-form-modal').style.display = 'none';
     });
 });
 
@@ -674,19 +676,13 @@ function createEmailPreviewModal() {
 }
 
 function showEmailPreview() {
-    const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.textContent);
-    const subject = emailSubjectInput.value.trim();
-    const content = emailContentTextarea.value.trim();
-    const isHtml = emailHtmlFormatCheckbox.checked;
+    const recipientType = emailRecipientTypeSelect ? emailRecipientTypeSelect.value : 'all';
+    const subject = emailSubjectInput ? emailSubjectInput.value.trim() : '';
+    const content = emailContentTextarea ? emailContentTextarea.value.trim() : '';
     const sender = 'noreply@arcator-web.firebaseapp.com';
 
     if (!subject || !content) {
         showMessageBox("Please fill in both subject and content to preview", true);
-        return;
-    }
-
-    if (recipients.length === 0) {
-        showMessageBox("Please select at least one recipient", true);
         return;
     }
 
@@ -698,31 +694,19 @@ function showEmailPreview() {
 
     // Populate preview content
     document.getElementById('preview-sender').textContent = sender;
-    document.getElementById('preview-recipients').textContent = recipients.join(', ');
+    document.getElementById('preview-recipients').textContent = `Recipient Type: ${recipientType}`;
     document.getElementById('preview-subject').textContent = subject;
-
-    const previewContent = document.getElementById('preview-content');
-    if (isHtml) {
-        previewContent.innerHTML = content;
-    } else {
-        previewContent.textContent = content;
-    }
+    document.getElementById('preview-content').textContent = content;
 
     modal.style.display = 'flex';
 }
 
 // Send email using EmailJS templates
 async function sendEmail() {
-    const recipients = Array.from(document.getElementById('email-to-select').selectedOptions).map(option => option.value);
-    const subject = document.getElementById('email-subject').value.trim();
-    const content = document.getElementById('email-content').value.trim();
-    const isHtml = document.getElementById('email-html-format').checked;
-    const templateType = document.getElementById('email-template-select').value;
-
-    if (!recipients.length) {
-        showMessageBox('Please select at least one recipient.', true);
-        return;
-    }
+    const recipientType = emailRecipientTypeSelect ? emailRecipientTypeSelect.value : 'all';
+    const subject = emailSubjectInput ? emailSubjectInput.value.trim() : '';
+    const content = emailContentTextarea ? emailContentTextarea.value.trim() : '';
+    const templateType = emailTemplateSelect ? emailTemplateSelect.value : 'default';
 
     if (!subject || !content) {
         showMessageBox('Please fill in both subject and message.', true);
@@ -730,10 +714,12 @@ async function sendEmail() {
     }
 
     // Show loading state
-    const sendButton = document.getElementById('send-email-btn');
-    const originalText = sendButton.textContent;
-    sendButton.textContent = 'Sending...';
-    sendButton.disabled = true;
+    const sendButton = document.querySelector('#email-compose-form button[type="submit"]');
+    const originalText = sendButton ? sendButton.textContent : 'Send Email';
+    if (sendButton) {
+        sendButton.textContent = 'Sending...';
+        sendButton.disabled = true;
+    }
 
     // Use EmailJS templates
     let result = null;
@@ -751,6 +737,22 @@ async function sendEmail() {
 
             // Import the new EmailJS functions
             const { sendEmailWithTemplate } = await import('./emailjs-integration.js');
+
+            // Get recipients based on type
+            let recipients = [];
+            if (recipientType === 'all' && window.adminUserData) {
+                recipients = window.adminUserData.map(user => user.email);
+            } else if (recipientType === 'admins' && window.adminUserData) {
+                // For now, send to all users (you can add admin logic later)
+                recipients = window.adminUserData.map(user => user.email);
+            } else if (recipientType === 'custom' && window.adminUserData) {
+                // For custom, you can implement a recipient selection UI
+                recipients = window.adminUserData.map(user => user.email);
+            }
+
+            if (recipients.length === 0) {
+                throw new Error('No recipients found for the selected type');
+            }
 
             for (const recipient of recipients) {
                 const emailResult = await sendEmailWithTemplate(
@@ -786,7 +788,7 @@ async function sendEmail() {
                     to: recipients.join(','),
                     subject: subject,
                     content: content,
-                    isHtml: isHtml,
+                    isHtml: false,
                     from: 'noreply@arcator.co.uk'
                 };
 
@@ -811,16 +813,17 @@ async function sendEmail() {
             showMessageBox(`Email sent successfully via ${method}${templateInfo}!`, false);
 
             // Clear form
-            document.getElementById('email-compose-form').reset();
+            if (emailComposeForm) emailComposeForm.reset();
         }
     } catch (error) {
         console.error('Email sending failed:', error);
         showMessageBox(`Failed to send email: ${error.message}`, true);
     } finally {
         // Reset button state
-        const sendButton = document.getElementById('send-email-btn');
-        sendButton.textContent = 'Send Email';
-        sendButton.disabled = false;
+        if (sendButton) {
+            sendButton.textContent = originalText;
+            sendButton.disabled = false;
+        }
     }
 }
 
@@ -854,7 +857,12 @@ async function loadEmailHistory() {
         );
 
         const querySnapshot = await getDocs(emailHistoryQuery);
-        const tbody = document.getElementById('email-history-tbody');
+        const tbody = emailHistoryTbody;
+
+        if (!tbody) {
+            console.warn('Email history tbody element not found');
+            return;
+        }
 
         if (querySnapshot.empty) {
             tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td></tr>';
@@ -892,8 +900,9 @@ async function loadEmailHistory() {
         });
     } catch (error) {
         console.error('[Email] Failed to load email history:', error);
-        const tbody = document.getElementById('email-history-tbody');
-        tbody.innerHTML = '<tr><td class="text-center py-4 text-red-400" colspan="6">Failed to load email history.</td></tr>';
+        if (emailHistoryTbody) {
+            emailHistoryTbody.innerHTML = '<tr><td class="text-center py-4 text-red-400" colspan="6">Failed to load email history.</td></tr>';
+        }
     }
 }
 
@@ -1285,8 +1294,99 @@ function setupEventListeners() {
         button.addEventListener('click', () => {
             editUserModal.style.display = 'none';
             editTempPageModal.style.display = 'none';
+            document.getElementById('edit-dm-modal').style.display = 'none';
+            document.getElementById('edit-form-modal').style.display = 'none';
         });
     });
+
+    // Edit DM form submission
+    const editDMForm = document.getElementById('edit-dm-form');
+    if (editDMForm) {
+        editDMForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modal = document.getElementById('edit-dm-modal');
+            const dmId = modal.dataset.dmId;
+            
+            if (!dmId) {
+                showMessageBox('No DM ID found', true);
+                return;
+            }
+
+            try {
+                const from = document.getElementById('edit-dm-from').value;
+                const to = document.getElementById('edit-dm-to').value;
+                const subject = document.getElementById('edit-dm-subject').value;
+                const content = document.getElementById('edit-dm-content').value;
+
+                await updateDoc(doc(db, `artifacts/${appId}/public/data/direct_messages`, dmId), {
+                    from: from,
+                    to: to,
+                    subject: subject,
+                    content: content,
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox('DM updated successfully', false);
+                modal.style.display = 'none';
+                loadDMHistory(); // Reload the list
+            } catch (error) {
+                console.error('Error updating DM:', error);
+                showMessageBox('Failed to update DM: ' + error.message, true);
+            }
+        });
+    }
+
+    // Edit form form submission
+    const editFormForm = document.getElementById('edit-form-form');
+    if (editFormForm) {
+        editFormForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modal = document.getElementById('edit-form-modal');
+            const formId = modal.dataset.formId;
+            
+            if (!formId) {
+                showMessageBox('No form ID found', true);
+                return;
+            }
+
+            try {
+                const themaTitle = document.getElementById('edit-form-thema-title').value;
+                const themaName = document.getElementById('edit-form-thema-name').value;
+                const comments = document.getElementById('edit-form-comments').value;
+                const submissions = document.getElementById('edit-form-submissions').value;
+
+                await updateDoc(doc(db, `artifacts/${appId}/public/data/thematas`, formId), {
+                    title: themaTitle,
+                    name: themaName,
+                    comments: parseInt(comments) || 0,
+                    submissions: parseInt(submissions) || 0,
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox('Form updated successfully', false);
+                modal.style.display = 'none';
+                loadFormsData(); // Reload the list
+            } catch (error) {
+                console.error('Error updating form:', error);
+                showMessageBox('Failed to update form: ' + error.message, true);
+            }
+        });
+    }
+
+    // Cancel buttons for edit modals
+    const cancelEditDMBtn = document.getElementById('cancel-edit-dm-btn');
+    if (cancelEditDMBtn) {
+        cancelEditDMBtn.addEventListener('click', () => {
+            document.getElementById('edit-dm-modal').style.display = 'none';
+        });
+    }
+
+    const cancelEditFormBtn = document.getElementById('cancel-edit-form-btn');
+    if (cancelEditFormBtn) {
+        cancelEditFormBtn.addEventListener('click', () => {
+            document.getElementById('edit-form-modal').style.display = 'none';
+        });
+    }
 }
 
 // Test EmailJS connection
@@ -1406,7 +1506,10 @@ async function loadDMHistory() {
 }
 
 async function renderDMHistory(dmData) {
-    if (!dmHistoryTbody) return;
+    if (!dmHistoryTbody) {
+        console.warn('DM history tbody element not found');
+        return;
+    }
 
     if (!dmData || dmData.length === 0) {
         dmHistoryTbody.innerHTML = `
@@ -1426,18 +1529,26 @@ async function renderDMHistory(dmData) {
 
         return `
       <tr class="hover:bg-table-row-even-bg transition-colors">
-        <td class="px-2 py-1 text-text-primary text-xs">${date}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${date}</td>
         <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(from)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(to)}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(to)}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(subject)}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(content.substring(0, 50))}${content.length > 50 ? '...' : ''}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
-          <button onclick="viewDM('${dm.id}')" class="text-blue-400 hover:text-blue-300 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
+          <div class="flex space-x-1">
+            <button onclick="openEditDMModal('${dm.id}', '${escapeHtml(from)}', '${escapeHtml(to)}', '${escapeHtml(subject)}', '${escapeHtml(content)}')" 
+                    class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit DM">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button onclick="deleteDM('${dm.id}')" 
+                    class="text-red-400 hover:text-red-300 transition-colors" title="Delete DM">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -1451,8 +1562,8 @@ async function loadFormsData() {
     }
 
     try {
-        const formsRef = collection(db, `artifacts/${appId}/public/data/form_submissions`);
-        const querySnapshot = await getDocs(query(formsRef, orderBy('createdAt', 'desc')));
+        const formsRef = collection(db, `artifacts/${appId}/public/data/thematas`);
+        const querySnapshot = await getDocs(formsRef);
         const formsData = [];
         querySnapshot.forEach(doc => {
             formsData.push({ id: doc.id, ...doc.data() });
@@ -1465,7 +1576,10 @@ async function loadFormsData() {
 }
 
 async function renderFormsData(formsData) {
-    if (!formSubmissionsTbody) return;
+    if (!formSubmissionsTbody) {
+        console.warn('Forms tbody element not found');
+        return;
+    }
 
     if (!formsData || formsData.length === 0) {
         formSubmissionsTbody.innerHTML = `
@@ -1476,50 +1590,138 @@ async function renderFormsData(formsData) {
         return;
     }
 
-    // Group by form type
-    const formGroups = {};
-    formsData.forEach(form => {
-        const formType = form.formType || 'Unknown';
-        if (!formGroups[formType]) {
-            formGroups[formType] = {
-                submissions: 0,
-                themes: new Set(),
-                comments: 0
-            };
-        }
-        formGroups[formType].submissions++;
-        if (form.theme) formGroups[formType].themes.add(form.theme);
-        if (form.comment) formGroups[formType].comments++;
-    });
-
-    formSubmissionsTbody.innerHTML = Object.entries(formGroups).map(([formType, data]) => {
-        const themes = Array.from(data.themes).join(', ') || 'None';
+    formSubmissionsTbody.innerHTML = formsData.map(form => {
+        const themaTitle = form.title || 'No title';
+        const themaName = form.name || 'No name';
+        const comments = form.comments || 0;
+        const submissions = form.submissions || 0;
 
         return `
       <tr class="hover:bg-table-row-even-bg transition-colors">
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(formType)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themes)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${data.comments}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${data.submissions}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(themaTitle)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themaName)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${comments}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${submissions}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
-          <button onclick="viewFormDetails('${formType}')" class="text-blue-400 hover:text-blue-300 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
+          <div class="flex space-x-1">
+            <button onclick="openEditFormModal('${form.id}', '${escapeHtml(themaTitle)}', '${escapeHtml(themaName)}', ${comments}, ${submissions})" 
+                    class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit Form">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button onclick="deleteForm('${form.id}')" 
+                    class="text-red-400 hover:text-red-300 transition-colors" title="Delete Form">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
         </td>
       </tr>
     `;
     }).join('');
 }
 
-// Initialize the admin panel
-document.addEventListener('DOMContentLoaded', () => {
-    setupEventListeners();
+// Global functions for DM and form editing
+window.openEditDMModal = function(dmId, from, to, subject, content) {
+    const modal = document.getElementById('edit-dm-modal');
+    if (!modal) {
+        console.error('Edit DM modal not found');
+        return;
+    }
 
-    // Listen for auth state changes
-    onAuthStateChanged(auth, async (user) => {
-        await updateAdminUI(user);
+    // Populate form fields
+    document.getElementById('edit-dm-from').value = from;
+    document.getElementById('edit-dm-to').value = to;
+    document.getElementById('edit-dm-subject').value = subject;
+    document.getElementById('edit-dm-content').value = content;
+
+    // Store DM ID for saving
+    modal.dataset.dmId = dmId;
+    modal.style.display = 'flex';
+};
+
+window.deleteDM = function(dmId) {
+    showCustomConfirm(
+        'Are you sure you want to delete this DM?',
+        'This action cannot be undone.'
+    ).then(async (confirmed) => {
+        if (confirmed) {
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/direct_messages`, dmId));
+                showMessageBox('DM deleted successfully', false);
+                loadDMHistory(); // Reload the list
+            } catch (error) {
+                console.error('Error deleting DM:', error);
+                showMessageBox('Failed to delete DM: ' + error.message, true);
+            }
+        }
     });
+};
+
+window.openEditFormModal = function(formId, themaTitle, themaName, comments, submissions) {
+    const modal = document.getElementById('edit-form-modal');
+    if (!modal) {
+        console.error('Edit form modal not found');
+        return;
+    }
+
+    // Populate form fields
+    document.getElementById('edit-form-thema-title').value = themaTitle;
+    document.getElementById('edit-form-thema-name').value = themaName;
+    document.getElementById('edit-form-comments').value = comments;
+    document.getElementById('edit-form-submissions').value = submissions;
+
+    // Store form ID for saving
+    modal.dataset.formId = formId;
+    modal.style.display = 'flex';
+};
+
+window.deleteForm = function(formId) {
+    showCustomConfirm(
+        'Are you sure you want to delete this form?',
+        'This will delete the thema and all associated threads and comments.'
+    ).then(async (confirmed) => {
+        if (confirmed) {
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/thematas`, formId));
+                showMessageBox('Form deleted successfully', false);
+                loadFormsData(); // Reload the list
+            } catch (error) {
+                console.error('Error deleting form:', error);
+                showMessageBox('Failed to delete form: ' + error.message, true);
+            }
+        }
+    });
+};
+
+// Initialize the admin panel when the page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Wait for Firebase to be ready
+        await firebaseReadyPromise;
+        
+        // Setup themes
+        setupThemesFirebase(db, auth, appId);
+        
+        // Apply cached theme
+        const { applyCachedTheme } = await import('./themes.js');
+        await applyCachedTheme();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Setup collapsible sections
+        setupCollapsibleSections();
+        
+        // Listen for auth state changes
+        auth.onAuthStateChanged(async (user) => {
+            await updateAdminUI(user);
+        });
+        
+    } catch (error) {
+        console.error('Error initializing admin panel:', error);
+        showMessageBox('Failed to initialize admin panel: ' + error.message, true);
+    }
 });

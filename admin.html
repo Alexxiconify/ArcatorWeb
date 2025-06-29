@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Arcator.co.uk</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Production Tailwind CSS -->
+  <link rel="stylesheet" href="style.css">
   <!-- Google Fonts - Inter and others -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables -->
@@ -155,8 +155,8 @@
 <!-- Hero Section -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Admin</h1>
-    <p id="hero-subtitle" class="text-xl md:text-2xl mb-8">Insights into Arcator's operations and ongoing projects.</p>
+    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main">Admin</h1>
+    <p id="hero-subtitle" class="text-xl md:text-2xl mb-8 text-heading-card">Insights into Arcator's operations and ongoing projects.</p>
   </div>
 </section>
 <!-- Admin Section Content -->
@@ -166,7 +166,7 @@
     <div class="text-center bg-card p-8 rounded-lg shadow-md mb-8" id="login-required-message" style="display: none;">
       <h2 class="text-4xl font-bold text-heading-main mb-6">Access Denied</h2>
       <p class="text-lg text-text-secondary mb-8">You must be logged in to access this page. Some sections require administrator privileges.</p>
-      <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="users.html">Login / Sign Up</a>
+      <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
     </div>
 
     <!-- Admin Guides section (first) -->

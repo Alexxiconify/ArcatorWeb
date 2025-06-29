@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About - Arcator.co.uk</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Production Tailwind CSS -->
+  <link rel="stylesheet" href="style.css">
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to theme_variables.css for centralized CSS variables -->
@@ -170,8 +170,8 @@
 <!-- Hero Section with Background Image -->
 <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;"> <!-- Added margin-top to account for fixed navbar height -->
   <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">About Arcator.co.uk</h1>
-    <p class="text-xl md:text-2xl mb-8">Our Journey, Community, and Interests</p>
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main">About Arcator.co.uk</h1>
+    <p class="text-xl md:text-2xl mb-8 text-heading-card">Our Journey, Community, and Interests</p>
   </div>
 </section>
 
@@ -187,7 +187,7 @@
 
 <div class="tab-content active" id="about-tab">
   <!-- About content from original about.html -->
-  <section class="content-section">
+  <section class="content-section bg-content-section">
     <div class="container mx-auto px-4">
       <!-- Our Story & Mission -->
       <div class="mb-12">
@@ -205,22 +205,22 @@
       <div class="mb-12">
         <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Our Core Values</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <div class="content-card">
+          <div class="content-card bg-card">
             <h3 class="text-2xl font-bold text-heading-card mb-3">Community First</h3>
             <p class="text-text-secondary">Welcoming and inclusive atmosphere where every player feels respected and
               heard.</p>
           </div>
-          <div class="content-card">
+          <div class="content-card bg-card">
             <h3 class="text-2xl font-bold text-heading-card mb-3">Innovation & Fun</h3>
             <p class="text-text-secondary">Constantly explore new ways to enhance the Minecraft experience with fresh
               content and features.</p>
           </div>
-          <div class="content-card">
+          <div class="content-card bg-card">
             <h3 class="text-2xl font-bold text-heading-card mb-3">Stability & Reliability</h3>
             <p class="text-text-secondary">Robust infrastructure ensuring smooth, low-lag gameplay with high uptime and
               secure data.</p>
           </div>
-          <div class="content-card">
+          <div class="content-card bg-card">
             <h3 class="text-2xl font-bold text-heading-card mb-3">Communication</h3>
             <p class="text-text-secondary">Open communication sharing insights into server development and community
               decisions.</p>
@@ -235,10 +235,9 @@
           love for creativity and adventure.
         </p>
         <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
-          <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" href="https://discord.gg/GwArgw2" rel="noopener noreferrer"
+          <a class="btn-primary btn-blue" href="https://discord.gg/GwArgw2" rel="noopener noreferrer"
              target="_blank">Join Our Discord</a>
-          <a class="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-             href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer"
+          <a class="btn-primary btn-green" href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer"
              target="_blank">View Community Interests</a>
         </div>
       </div>
@@ -246,10 +245,8 @@
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold text-heading-main text-center mb-10">Online Maps</h2>
         <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
-          <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-             href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer" target="_blank">Bluemap SSMP</a>
-          <a class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-             href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer" target="_blank">Bluemap Hub</a>
+          <a class="btn-primary btn-blue" href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer" target="_blank">Bluemap SSMP</a>
+          <a class="btn-primary btn-blue" href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer" target="_blank">Bluemap Hub</a>
         </div>
       </div>
     </div>
