@@ -1067,34 +1067,6 @@ async function sendEmail() {
       // Clear form
       document.getElementById('email-compose-form').reset();
     }
-  } catch (emailjsError) {
-    console.warn('[EmailJS] Failed, trying SMTP fallback:', emailjsError);
-    
-    // Try SMTP as fallback
-    const smtpStatus = getSMTPServerStatus();
-    console.log('[SMTP] Server status:', smtpStatus);
-    
-    if (smtpStatus.connected) {
-      // Send via SMTP
-      method = 'SMTP';
-      const emailData = {
-        to: recipients.join(','),
-        subject: subject,
-        content: content,
-        isHtml: isHtml,
-        from: 'noreply@arcator.co.uk'
-      };
-      
-      console.log('[SMTP] Attempting to send email:', emailData);
-      result = await sendEmailViaSMTP(emailData);
-      if (result.success) {
-        console.log('[SMTP] Email queued for sending via Firebase Cloud Functions:', result.messageId);
-      } else {
-        throw new Error(`SMTP failed: ${result.error}`);
-      }
-    } else {
-      throw new Error('Neither EmailJS nor SMTP server is available');
-    }
   } catch (error) {
     console.error('Email sending failed:', error);
     showMessageBox(`Failed to send email: ${error.message}`, true);

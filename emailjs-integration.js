@@ -96,7 +96,7 @@ async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
     
     const templateParams = {
       to_email: toEmail,
-      subject: subject,
+      title: subject, // Use 'title' for default template
       message: message,
       from_name: options.fromName || 'Arcator.co.uk',
       reply_to: options.replyTo || 'noreply@arcator-web.firebaseapp.com'
@@ -132,13 +132,20 @@ async function sendEmailWithTemplate(toEmail, subject, message, templateType = '
       throw new Error(`Template type '${templateType}' not found. Available: ${Object.keys(credentials.templates).join(', ')}`);
     }
     
+    // Use different variable names based on template type
     const templateParams = {
       to_email: toEmail,
-      subject: subject,
       message: message,
       from_name: options.fromName || 'Arcator.co.uk',
       reply_to: options.replyTo || 'noreply@arcator-web.firebaseapp.com'
     };
+    
+    // Add subject with appropriate variable name based on template
+    if (templateType === 'default') {
+      templateParams.title = subject; // Default template uses 'title'
+    } else {
+      templateParams.subject = subject; // Other templates use 'subject'
+    }
     
     const result = await window.emailjs.send(
       credentials.serviceId,
