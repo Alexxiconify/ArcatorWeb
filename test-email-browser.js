@@ -1,5 +1,5 @@
 // Browser console test script for email sending
-// Copy and paste this into your browser console on admin_and_dev.html
+// Copy and paste this into your browser console on admin.html
 
 async function testEmailSending() {
   try {
@@ -7,7 +7,7 @@ async function testEmailSending() {
     
     // Check if Firebase is available
     if (typeof db === 'undefined') {
-      console.error("Firebase not initialized. Make sure you're on admin_and_dev.html");
+      console.error("Firebase not initialized. Make sure you're on admin.html");
       return;
     }
 

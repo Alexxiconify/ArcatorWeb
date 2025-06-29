@@ -84,7 +84,7 @@ EmailJS allows you to send emails directly from the browser without needing serv
 
 ### 6. Test the Integration
 
-1. Open your admin panel (`admin_and_dev.html`)
+1. Open your admin panel (`admin.html`)
 2. Open the browser console
 3. Run the test script:
    ```javascript
