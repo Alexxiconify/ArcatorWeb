@@ -207,7 +207,7 @@
               User Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div class="overflow-x-auto">
+              <div class="w-full">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
                     <tr class="bg-table-th-bg">
@@ -236,7 +236,7 @@
               Direct Messages History
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div class="overflow-x-auto w-full">
+              <div class="w-full">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
                     <tr class="bg-table-th-bg">
@@ -264,7 +264,7 @@
               Forms Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div class="overflow-x-auto w-full">
+              <div class="w-full">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
                     <tr class="bg-table-th-bg">
@@ -292,12 +292,12 @@
               Temporary Pages
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <form id="create-temp-page-form" class="space-y-4">
-                <div class="input-field">
+              <form id="create-temp-page-form" class="space-y-4 w-full">
+                <div class="input-field w-full">
                   <label for="temp-page-title" class="form-label">Page Title:</label>
                   <input id="temp-page-title" placeholder="Enter page title" type="text" class="form-input w-full"/>
                 </div>
-                <div class="input-field">
+                <div class="input-field w-full">
                   <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
                   <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
                 </div>
@@ -343,18 +343,12 @@
               Email Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div class="overflow-x-auto w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">EMAIL</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="email-list-tbody">
-                    <tr><td class="text-center py-4 text-text-secondary text-xs" colspan="2">No emails found.</td></tr>
-                  </tbody>
-                </table>
+              <div class="space-y-2">
+                <label for="email-to-select" class="block text-sm font-medium text-text-primary">Recipients</label>
+                <select id="email-to-select" multiple class="form-input h-24 text-sm w-full">
+                  <option value="" disabled>Select recipients...</option>
+                </select>
+                <p class="text-xs text-text-secondary">Hold Ctrl/Cmd to select multiple users</p>
               </div>
               <a href="email.html" class="btn-primary btn-blue mt-2">Go to Email Page</a>
             </div>
@@ -430,27 +424,27 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="input-field">
             <label for="edit-user-display-name">Display Name:</label>
-            <input id="edit-user-display-name" type="text" placeholder="User's display name"/>
+            <input id="edit-user-display-name" type="text" placeholder="User's display name" class="form-input w-full"/>
           </div>
           <div class="input-field">
             <label for="edit-user-handle">Handle:</label>
-            <input id="edit-user-handle" type="text" placeholder="@userhandle"/>
+            <input id="edit-user-handle" type="text" placeholder="@userhandle" class="form-input w-full"/>
           </div>
           <div class="input-field">
             <label for="edit-user-email">Email Address:</label>
-            <input id="edit-user-email" type="email" placeholder="user@example.com"/>
+            <input id="edit-user-email" type="email" placeholder="user@example.com" class="form-input w-full"/>
           </div>
           <div class="input-field">
             <label for="edit-user-photo-url">Profile Picture URL:</label>
-            <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg"/>
+            <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg" class="form-input w-full"/>
           </div>
           <div class="input-field">
             <label for="edit-user-discord-url">Discord URL:</label>
-            <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..."/>
+            <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..." class="form-input w-full"/>
           </div>
           <div class="input-field">
             <label for="edit-user-github-url">GitHub URL:</label>
-            <input id="edit-user-github-url" type="url" placeholder="https://github.com/username"/>
+            <input id="edit-user-github-url" type="url" placeholder="https://github.com/username" class="form-input w-full"/>
           </div>
         </div>
       </div>
@@ -461,7 +455,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="input-field">
             <label for="edit-user-theme">Theme Preference:</label>
-            <select id="edit-user-theme">
+            <select id="edit-user-theme" class="form-input w-full">
               <option value="dark">Dark</option>
               <option value="light">Light</option>
               <option value="arcator-green">Arcator Green</option>
@@ -471,7 +465,7 @@
           </div>
           <div class="input-field">
             <label for="edit-user-font-scaling">Font Scaling:</label>
-            <select id="edit-user-font-scaling">
+            <select id="edit-user-font-scaling" class="form-input w-full">
               <option value="normal">Normal</option>
               <option value="large">Large</option>
               <option value="extra-large">Extra Large</option>
@@ -486,7 +480,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="input-field">
             <label for="edit-user-notification-frequency">Notification Frequency:</label>
-            <select id="edit-user-notification-frequency">
+            <select id="edit-user-notification-frequency" class="form-input w-full">
               <option value="immediate">Immediate</option>
               <option value="hourly">Hourly</option>
               <option value="daily">Daily</option>
@@ -517,7 +511,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="input-field">
             <label for="edit-user-data-retention">Data Retention (days):</label>
-            <select id="edit-user-data-retention">
+            <select id="edit-user-data-retention" class="form-input w-full">
               <option value="30">30 days</option>
               <option value="90">90 days</option>
               <option value="365">1 year</option>
@@ -574,7 +568,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="input-field">
             <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
-            <select id="edit-user-keyboard-shortcuts">
+            <select id="edit-user-keyboard-shortcuts" class="form-input w-full">
               <option value="enabled">Enabled</option>
               <option value="disabled">Disabled</option>
             </select>

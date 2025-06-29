@@ -533,30 +533,22 @@ const updateAdminUI = async (user) => {
 
 // Email functionality - Using only EmailJS template
 async function populateEmailRecipients() {
-  if (!db) {
-    console.error("Firestore DB not initialized for populateEmailRecipients.");
-    return;
-  }
-
+  const select = document.getElementById('email-to-select');
+  if (!select) return;
+  select.innerHTML = '<option value="" disabled>Select recipients...</option>';
   try {
     const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
     const querySnapshot = await getDocs(usersRef);
-    
-    const emailToSelect = document.getElementById('email-to-select');
-    emailToSelect.innerHTML = '<option value="" disabled>Select recipients...</option>';
-    
+    let options = '';
     querySnapshot.forEach(doc => {
-      const userData = doc.data();
-      if (userData.email && userData.displayName) {
-        const option = document.createElement('option');
-        option.value = userData.email; // Use email as value instead of user ID
-        option.textContent = `${userData.displayName} (${userData.email})`;
-        emailToSelect.appendChild(option);
+      const user = doc.data();
+      if (user.email) {
+        options += `<option value="${user.email}">${escapeHtml(user.displayName || user.email)} (${escapeHtml(user.email)})</option>`;
       }
     });
-  } catch (error) {
-    console.error("Error populating email recipients:", error);
-    showMessageBox("Failed to load email recipients", true);
+    select.innerHTML += options;
+  } catch (e) {
+    select.innerHTML = '<option value="" disabled>Failed to load users</option>';
   }
 }
 
@@ -654,17 +646,19 @@ function showEmailPreview() {
 }
 
 // Send email using EmailJS templates
-async function sendEmail() {
-  const recipients = Array.from(document.getElementById('email-to-select').selectedOptions).map(option => option.value);
+async function sendEmail(e) {
+  e.preventDefault();
+  const select = document.getElementById('email-to-select');
+  if (!select) return;
+  const recipients = Array.from(select.selectedOptions).map(opt => opt.value).filter(Boolean);
+  if (recipients.length === 0) {
+    showMessageBox('Please select at least one recipient.', true);
+    return;
+  }
   const subject = document.getElementById('email-subject').value.trim();
   const content = document.getElementById('email-content').value.trim();
   const isHtml = document.getElementById('email-html-format').checked;
   const templateType = document.getElementById('email-template-select').value;
-
-  if (!recipients.length) {
-    showMessageBox('Please select at least one recipient.', true);
-    return;
-  }
 
   if (!subject || !content) {
     showMessageBox('Please fill in both subject and message.', true);
@@ -789,53 +783,32 @@ async function logEmailToHistory(recipients, subject, content, status, method) {
 
 // Load email history from Firestore
 async function loadEmailHistory() {
+  if (!db) return;
+  const tbody = document.getElementById('email-history-tbody');
+  if (!tbody) return;
   try {
-    const emailHistoryQuery = query(
-      collection(db, `artifacts/${appId}/public/data/email_history`),
-      orderBy('sentAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(emailHistoryQuery);
-    const tbody = document.getElementById('email-history-tbody');
-    
-    if (querySnapshot.empty) {
-      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td></tr>';
+    const emailRef = collection(db, `artifacts/${appId}/public/data/email_history`);
+    const querySnapshot = await getDocs(query(emailRef, orderBy('createdAt', 'desc')));
+    const emails = [];
+    querySnapshot.forEach(doc => {
+      emails.push({ id: doc.id, ...doc.data() });
+    });
+    if (emails.length === 0) {
+      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td></tr>';
       return;
     }
-    
-    tbody.innerHTML = '';
-    
-    querySnapshot.forEach((doc) => {
-      const emailData = doc.data();
-      const sentAt = emailData.sentAt?.toDate() || new Date();
-      const recipients = Array.isArray(emailData.recipients) ? emailData.recipients.join(', ') : emailData.recipients || 'Unknown';
-      
-      const row = document.createElement('tr');
-      row.className = 'hover:bg-table-row-even-bg';
-      row.innerHTML = `
-        <td class="px-4 py-2 text-text-secondary">${sentAt.toLocaleString()}</td>
-        <td class="px-4 py-2 text-text-primary">${escapeHtml(emailData.subject || 'No subject')}</td>
-        <td class="px-4 py-2 text-text-secondary">${escapeHtml(recipients)}</td>
-        <td class="px-4 py-2">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            emailData.status === 'sent' ? 'bg-green-100 text-green-800' :
-            emailData.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
-          }">
-            ${emailData.status || 'unknown'}
-          </span>
-        </td>
-        <td class="px-4 py-2 text-text-secondary">${emailData.method || 'Unknown'}</td>
-        <td class="px-4 py-2">
-          <button class="text-link hover:underline text-sm" onclick="viewEmailDetails('${doc.id}')">View</button>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-  } catch (error) {
-    console.error('[Email] Failed to load email history:', error);
-    const tbody = document.getElementById('email-history-tbody');
-    tbody.innerHTML = '<tr><td class="text-center py-4 text-red-400" colspan="6">Failed to load email history.</td></tr>';
+    tbody.innerHTML = emails.map(email => `
+      <tr>
+        <td class="px-2 py-1 text-text-primary text-xs">${email.createdAt ? new Date(email.createdAt.toDate()).toLocaleString() : ''}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.subject || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.to || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.status || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.method || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs"><button class="btn-primary btn-blue text-xs">View</button></td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">Failed to load emails.</td></tr>';
   }
 }
 
@@ -1328,11 +1301,9 @@ function displaySMTPServerStatus() {
 }
 
 async function loadDMHistory() {
-  if (!db) {
-    console.error("Firestore DB not initialized for loadDMHistory.");
-    return;
-  }
-
+  if (!db) return;
+  const tbody = document.getElementById('dm-history-tbody');
+  if (!tbody) return;
   try {
     const dmRef = collection(db, `artifacts/${appId}/public/data/direct_messages`);
     const querySnapshot = await getDocs(query(dmRef, orderBy('createdAt', 'desc')));
@@ -1340,58 +1311,29 @@ async function loadDMHistory() {
     querySnapshot.forEach(doc => {
       dmData.push({ id: doc.id, ...doc.data() });
     });
-
-    await renderDMHistory(dmData);
-  } catch (error) {
-    console.error("Error loading DM history:", error);
-  }
-}
-
-async function renderDMHistory(dmData) {
-  if (!dmHistoryTbody) return;
-  
-  if (!dmData || dmData.length === 0) {
-    dmHistoryTbody.innerHTML = `
+    if (dmData.length === 0) {
+      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = dmData.map(dm => `
       <tr>
-        <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${dm.createdAt ? new Date(dm.createdAt.toDate()).toLocaleString() : ''}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(dm.from || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(dm.to || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(dm.subject || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(dm.content || '').slice(0, 50)}</td>
+        <td class="px-2 py-1 text-text-primary text-xs"><button class="btn-primary btn-blue text-xs">View</button></td>
       </tr>
-    `;
-    return;
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">Failed to load DMs.</td></tr>';
   }
-
-  dmHistoryTbody.innerHTML = dmData.map(dm => {
-    const from = dm.from || 'Unknown';
-    const to = dm.to || 'Unknown';
-    const subject = dm.subject || 'No subject';
-    const content = dm.content || 'No content';
-    const date = dm.createdAt ? new Date(dm.createdAt.toDate()).toLocaleString() : 'Unknown';
-    
-    return `
-      <tr class="hover:bg-table-row-even-bg transition-colors">
-        <td class="px-2 py-1 text-text-primary text-xs">${date}</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(from)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(to)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(subject)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(content.substring(0, 50))}${content.length > 50 ? '...' : ''}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">
-          <button onclick="viewDM('${dm.id}')" class="text-blue-400 hover:text-blue-300 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
 }
 
 async function loadFormsData() {
-  if (!db) {
-    console.error("Firestore DB not initialized for loadFormsData.");
-    return;
-  }
-
+  if (!db) return;
+  const tbody = document.getElementById('form-submissions-tbody');
+  if (!tbody) return;
   try {
     const formsRef = collection(db, `artifacts/${appId}/public/data/form_submissions`);
     const querySnapshot = await getDocs(query(formsRef, orderBy('createdAt', 'desc')));
@@ -1399,61 +1341,22 @@ async function loadFormsData() {
     querySnapshot.forEach(doc => {
       formsData.push({ id: doc.id, ...doc.data() });
     });
-
-    await renderFormsData(formsData);
-  } catch (error) {
-    console.error("Error loading forms data:", error);
-  }
-}
-
-async function renderFormsData(formsData) {
-  if (!formSubmissionsTbody) return;
-  
-  if (!formsData || formsData.length === 0) {
-    formSubmissionsTbody.innerHTML = `
-      <tr>
-        <td class="text-center py-4 text-text-secondary text-xs" colspan="5">No forms found.</td>
-      </tr>
-    `;
-    return;
-  }
-
-  // Group by form type
-  const formGroups = {};
-  formsData.forEach(form => {
-    const formType = form.formType || 'Unknown';
-    if (!formGroups[formType]) {
-      formGroups[formType] = {
-        submissions: 0,
-        themes: new Set(),
-        comments: 0
-      };
+    if (formsData.length === 0) {
+      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="5">No forms found.</td></tr>';
+      return;
     }
-    formGroups[formType].submissions++;
-    if (form.theme) formGroups[formType].themes.add(form.theme);
-    if (form.comment) formGroups[formType].comments++;
-  });
-
-  formSubmissionsTbody.innerHTML = Object.entries(formGroups).map(([formType, data]) => {
-    const themes = Array.from(data.themes).join(', ') || 'None';
-    
-    return `
-      <tr class="hover:bg-table-row-even-bg transition-colors">
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(formType)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themes)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${data.comments}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${data.submissions}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">
-          <button onclick="viewFormDetails('${formType}')" class="text-blue-400 hover:text-blue-300 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
-        </td>
+    tbody.innerHTML = formsData.map(form => `
+      <tr>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(form.formType || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(form.theme || '')}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${form.comment ? 1 : 0}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">1</td>
+        <td class="px-2 py-1 text-text-primary text-xs"><button class="btn-primary btn-blue text-xs">View</button></td>
       </tr>
-    `;
-  }).join('');
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="5">Failed to load forms.</td></tr>';
+  }
 }
 
 // Initialize the admin panel
