@@ -7,8 +7,8 @@ const EMAILJS_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist
 // Default credentials (these should be overridden with actual values)
 let credentials = {
   publicKey: 'o4CZtazWjPDVjPc1L',
-  serviceId: '', // Will be set by user
-  templateId: '' // Will be set by user
+  serviceId: 'service_7pm3neh', // Gmail service
+  templateId: 'template_1gv17ca' // Email template
 };
 
 let emailjsLoaded = false;
@@ -185,8 +185,8 @@ function clearCredentials() {
     localStorage.removeItem('emailjs_credentials');
     credentials = {
       publicKey: 'o4CZtazWjPDVjPc1L',
-      serviceId: '',
-      templateId: ''
+      serviceId: 'service_7pm3neh',
+      templateId: 'template_1gv17ca'
     };
     return true;
   } catch (error) {

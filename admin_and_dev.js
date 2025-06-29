@@ -1623,13 +1623,11 @@ function displayEmailJSStatus() {
 
 // Configure EmailJS with user input
 async function configureEmailJS() {
-  const serviceId = prompt('Enter your EmailJS Service ID:');
-  if (!serviceId) return;
-  
-  const templateId = prompt('Enter your EmailJS Template ID:');
-  if (!templateId) return;
-  
   try {
+    // Use the new Gmail service and template
+    const serviceId = 'service_7pm3neh';
+    const templateId = 'template_1gv17ca';
+    
     // Save credentials
     saveCredentials('o4CZtazWjPDVjPc1L', serviceId, templateId);
     
@@ -1637,7 +1635,7 @@ async function configureEmailJS() {
     const result = await initializeEmailJS();
     
     if (result.success) {
-      showMessageBox('EmailJS configured successfully!', false);
+      showMessageBox('EmailJS configured successfully with Gmail service!', false);
       displayEmailJSStatus();
     } else {
       showMessageBox(`EmailJS configuration failed: ${result.error}`, true);
