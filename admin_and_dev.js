@@ -551,261 +551,6 @@ async function populateEmailRecipients() {
     select.innerHTML = '<option value="" disabled>Failed to load users</option>';
   }
 }
-
-// Create email preview modal
-function createEmailPreviewModal() {
-  const modal = document.createElement('div');
-  modal.id = 'email-preview-modal';
-  modal.className = 'modal';
-  modal.style.display = 'none';
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-heading-card">Email Preview</h3>
-        <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
-      </div>
-      <div id="email-preview-content" class="bg-card p-4 rounded-lg border border-input-border">
-        <div class="mb-4">
-          <strong class="text-text-primary">From:</strong>
-          <span id="preview-sender" class="text-text-secondary ml-2">noreply@arcator-web.firebaseapp.com</span>
-        </div>
-        <div class="mb-4">
-          <strong class="text-text-primary">To:</strong>
-          <span id="preview-recipients" class="text-text-secondary ml-2"></span>
-        </div>
-        <div class="mb-4">
-          <strong class="text-text-primary">Subject:</strong>
-          <span id="preview-subject" class="text-text-secondary ml-2"></span>
-        </div>
-        <div class="mb-4">
-          <strong class="text-text-primary">Content:</strong>
-          <div id="preview-content" class="mt-2 p-3 bg-input-bg rounded border border-input-border text-input-text whitespace-pre-wrap"></div>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  
-  // Add event listeners
-  const closeBtn = modal.querySelector('.close-button');
-  closeBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-  
-  modal.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
-  
-  return modal;
-}
-
-function showEmailPreview() {
-  const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.textContent);
-  const subject = emailSubjectInput.value.trim();
-  const content = emailContentTextarea.value.trim();
-  const isHtml = emailHtmlFormatCheckbox.checked;
-  const sender = 'noreply@arcator-web.firebaseapp.com';
-  
-  if (!subject || !content) {
-    showMessageBox("Please fill in both subject and content to preview", true);
-    return;
-  }
-  
-  if (recipients.length === 0) {
-    showMessageBox("Please select at least one recipient", true);
-    return;
-  }
-  
-  // Create modal if it doesn't exist
-  let modal = document.getElementById('email-preview-modal');
-  if (!modal) {
-    modal = createEmailPreviewModal();
-  }
-  
-  // Populate preview content
-  document.getElementById('preview-sender').textContent = sender;
-  document.getElementById('preview-recipients').textContent = recipients.join(', ');
-  document.getElementById('preview-subject').textContent = subject;
-  
-  const previewContent = document.getElementById('preview-content');
-  if (isHtml) {
-    previewContent.innerHTML = content;
-  } else {
-    previewContent.textContent = content;
-  }
-  
-  modal.style.display = 'flex';
-}
-
-// Send email using EmailJS templates
-async function sendEmail(e) {
-  e.preventDefault();
-  const select = document.getElementById('email-to-select');
-  if (!select) return;
-  const recipients = Array.from(select.selectedOptions).map(opt => opt.value).filter(Boolean);
-  if (recipients.length === 0) {
-    showMessageBox('Please select at least one recipient.', true);
-    return;
-  }
-  const subject = document.getElementById('email-subject').value.trim();
-  const content = document.getElementById('email-content').value.trim();
-  const isHtml = document.getElementById('email-html-format').checked;
-  const templateType = document.getElementById('email-template-select').value;
-
-  if (!subject || !content) {
-    showMessageBox('Please fill in both subject and message.', true);
-    return;
-  }
-
-  // Show loading state
-  const sendButton = document.getElementById('send-email-btn');
-  const originalText = sendButton.textContent;
-  sendButton.textContent = 'Sending...';
-  sendButton.disabled = true;
-
-  // Use EmailJS templates
-  let result = null;
-  let method = 'EmailJS';
-
-  try {
-    // Check EmailJS status first (prioritize EmailJS since it's working)
-    const emailjsStatus = getEmailJSStatus();
-    console.log('[EmailJS] Status:', emailjsStatus);
-    
-    if (emailjsStatus.readyToSend) {
-      // Send via EmailJS (preferred method)
-      method = 'EmailJS';
-      console.log(`[EmailJS] Attempting to send email via ${templateType} template`);
-      
-      // Import the new EmailJS functions
-      const { sendEmailWithTemplate } = await import('./emailjs-integration.js');
-      
-      for (const recipient of recipients) {
-        const emailResult = await sendEmailWithTemplate(
-          recipient,  // toEmail
-          subject,    // subject
-          content,    // message
-          templateType, // templateType
-          {           // options
-            fromName: 'Arcator.co.uk',
-            replyTo: 'noreply@arcator-web.firebaseapp.com'
-          }
-        );
-        
-        if (emailResult.success) {
-          console.log(`[EmailJS] Email sent successfully to ${recipient} using ${templateType} template`);
-        } else {
-          console.error('[EmailJS] Failed to send email to:', recipient, emailResult.error);
-          throw new Error(`Failed to send email to ${recipient}: ${emailResult.error}`);
-        }
-      }
-      
-      result = { success: true, method: 'EmailJS', templateUsed: templateType };
-    } else {
-      // Fallback to SMTP if EmailJS is not available
-      console.log('[EmailJS] Not ready, trying SMTP fallback');
-      const smtpStatus = getSMTPServerStatus();
-      console.log('[SMTP] Server status:', smtpStatus);
-      
-      if (smtpStatus.connected) {
-        // Send via SMTP
-        method = 'SMTP';
-        const emailData = {
-          to: recipients.join(','),
-          subject: subject,
-          content: content,
-          isHtml: isHtml,
-          from: 'noreply@arcator.co.uk'
-        };
-        
-        console.log('[SMTP] Attempting to send email:', emailData);
-        result = await sendEmailViaSMTP(emailData);
-        if (result.success) {
-          console.log('[SMTP] Email queued for sending via Firebase Cloud Functions:', result.messageId);
-        } else {
-          throw new Error(`SMTP failed: ${result.error}`);
-        }
-      } else {
-        throw new Error('Neither EmailJS nor SMTP server is available');
-      }
-    }
-
-    // Only log to history if email was actually sent successfully
-    if (result && result.success) {
-      await logEmailToHistory(recipients, subject, content, 'sent', method);
-      
-      // Show success message
-      const templateInfo = result.templateUsed ? ` using ${result.templateUsed} template` : '';
-      showMessageBox(`Email sent successfully via ${method}${templateInfo}!`, false);
-      
-      // Clear form
-      document.getElementById('email-compose-form').reset();
-    }
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    showMessageBox(`Failed to send email: ${error.message}`, true);
-  } finally {
-    // Reset button state
-    const sendButton = document.getElementById('send-email-btn');
-    sendButton.textContent = 'Send Email';
-    sendButton.disabled = false;
-  }
-}
-
-// Log email to Firestore history
-async function logEmailToHistory(recipients, subject, content, status, method) {
-  try {
-    const emailRecord = {
-      recipients: recipients,
-      subject: subject,
-      content: content,
-      status: status,
-      method: method,
-      sentAt: serverTimestamp(),
-      sentBy: currentUser?.uid || 'unknown',
-      appId: appId
-    };
-
-    await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailRecord);
-    console.log('[Email] Logged to history:', emailRecord);
-  } catch (error) {
-    console.error('[Email] Failed to log to history:', error);
-  }
-}
-
-// Load email history from Firestore
-async function loadEmailHistory() {
-  if (!db) return;
-  const tbody = document.getElementById('email-history-tbody');
-  if (!tbody) return;
-  try {
-    const emailRef = collection(db, `artifacts/${appId}/public/data/email_history`);
-    const querySnapshot = await getDocs(query(emailRef, orderBy('createdAt', 'desc')));
-    const emails = [];
-    querySnapshot.forEach(doc => {
-      emails.push({ id: doc.id, ...doc.data() });
-    });
-    if (emails.length === 0) {
-      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = emails.map(email => `
-      <tr>
-        <td class="px-2 py-1 text-text-primary text-xs">${email.createdAt ? new Date(email.createdAt.toDate()).toLocaleString() : ''}</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.subject || '')}</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.to || '')}</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.status || '')}</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(email.method || '')}</td>
-        <td class="px-2 py-1 text-text-primary text-xs"><button class="btn-primary btn-blue text-xs">View</button></td>
-      </tr>
-    `).join('');
-  } catch (e) {
-    tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">Failed to load emails.</td></tr>';
-  }
-}
-
 // Global function for viewing email details
 window.viewEmailDetails = function(emailId) {
   // Implementation for viewing email details
@@ -1146,57 +891,33 @@ function handleEmailTemplateChange() {
 }
 
 async function sendEmail(e) {
-  e.preventDefault();
-  
+  if (e) e.preventDefault();
   const recipientType = document.getElementById('email-recipient-type').value;
   const subject = document.getElementById('email-subject').value.trim();
   const content = document.getElementById('email-content').value.trim();
-  
-  if (!subject || !content) {
-    showMessageBox('Please fill in both subject and content.', true);
-    return;
-  }
-
+  if (!subject || !content) return showMessageBox('Please fill in both subject and content.', true);
   let recipients = [];
-  
   if (recipientType === 'users') {
-    recipients = usersData.filter(user => user.email).map(user => user.email);
+    recipients = usersData.filter(u => u.email).map(u => u.email);
   } else if (recipientType === 'admins') {
-    recipients = usersData.filter(user => user.email && user.isAdmin).map(user => user.email);
+    recipients = usersData.filter(u => u.email && u.isAdmin).map(u => u.email);
   } else if (recipientType === 'custom') {
     const checkboxes = document.querySelectorAll('#custom-recipients-section input[type="checkbox"]:checked');
     recipients = Array.from(checkboxes).map(cb => cb.value);
   }
-
-  if (recipients.length === 0) {
-    showMessageBox('No recipients selected.', true);
-    return;
-  }
-
+  if (recipients.length === 0) return showMessageBox('No recipients selected.', true);
   try {
     showMessageBox('Sending email...', false);
-    
-    // Send via EmailJS
     const result = await sendEmailViaEmailJS(recipients, subject, content);
-    
     if (result.success) {
-      showMessageBox(`Email sent successfully to ${recipients.length} recipients!`, false);
-      
-      // Log to history
+      showMessageBox(`Email sent to ${recipients.length} recipients!`, false);
       await logEmailToHistory(recipients, subject, content, 'sent', 'EmailJS');
-      
-      // Clear form
-      document.getElementById('email-subject').value = '';
-      document.getElementById('email-content').value = '';
-      document.getElementById('email-template').value = '';
-      
-      // Reload history
+      document.getElementById('email-compose-form').reset();
       await loadEmailHistory();
     } else {
       showMessageBox(`Failed to send email: ${result.error}`, true);
     }
   } catch (error) {
-    console.error('Error sending email:', error);
     showMessageBox(`Error sending email: ${error.message}`, true);
   }
 }
@@ -1204,22 +925,16 @@ async function sendEmail(e) {
 async function sendEmailViaEmailJS(recipients, subject, content) {
   try {
     const emailjs = window.emailjs;
-    if (!emailjs) {
-      throw new Error('EmailJS not loaded');
-    }
-
+    if (!emailjs) throw new Error('EmailJS not loaded');
     const templateParams = {
       to_email: recipients.join(','),
-      subject: subject,
+      subject,
       message: content,
       from_name: 'Arcator Admin'
     };
-
     const result = await emailjs.send('service_7pm3neh', 'template_1gv17ca', templateParams);
-    
     return { success: true, result };
   } catch (error) {
-    console.error('EmailJS error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -1228,17 +943,13 @@ function showEmailPreview() {
   const subject = document.getElementById('email-subject').value;
   const content = document.getElementById('email-content').value;
   const recipientType = document.getElementById('email-recipient-type').value;
-  
   let recipientInfo = '';
-  if (recipientType === 'users') {
-    recipientInfo = 'All users';
-  } else if (recipientType === 'admins') {
-    recipientInfo = 'Admins only';
-  } else if (recipientType === 'custom') {
+  if (recipientType === 'users') recipientInfo = 'All users';
+  else if (recipientType === 'admins') recipientInfo = 'Admins only';
+  else if (recipientType === 'custom') {
     const checkboxes = document.querySelectorAll('#custom-recipients-section input[type="checkbox"]:checked');
     recipientInfo = `${checkboxes.length} selected recipients`;
   }
-  
   const previewContent = `
     <div class="bg-card p-4 rounded-lg border border-input-border">
       <h4 class="text-lg font-semibold text-heading-card mb-2">Email Preview</h4>
@@ -1250,7 +961,6 @@ function showEmailPreview() {
       </div>
     </div>
   `;
-  
   showMessageBox(previewContent, false, true);
 }
 
