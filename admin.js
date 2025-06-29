@@ -95,14 +95,21 @@ const dmHistoryTbody = document.getElementById('dm-history-tbody');
 const formSubmissionsTbody = document.getElementById('form-submissions-tbody');
 
 // Email Management DOM elements
-const emailToSelect = document.getElementById('email-to-select');
-const emailTemplateSelect = document.getElementById('email-template-select');
+const emailRecipientTypeSelect = document.getElementById('email-recipient-type');
+const emailTemplateSelect = document.getElementById('email-template');
+const emailRecipientsSection = document.getElementById('custom-recipients-section');
+const emailRecipientsList = document.getElementById('email-recipients-list');
 const emailSubjectInput = document.getElementById('email-subject');
 const emailContentTextarea = document.getElementById('email-content');
-const emailHtmlFormatCheckbox = document.getElementById('email-html-format');
 const emailComposeForm = document.getElementById('email-compose-form');
 const previewEmailBtn = document.getElementById('preview-email-btn');
+const saveDraftBtn = document.getElementById('save-draft-btn');
 const emailHistoryTbody = document.getElementById('email-history-tbody');
+
+// Email test buttons (these may not exist in the HTML, so we'll check for them)
+const testEmailJSBtn = document.getElementById('test-emailjs-btn');
+const configureEmailJSBtn = document.getElementById('configure-emailjs-btn');
+const testSmtpBtn = document.getElementById('test-smtp-btn');
 
 // EasyMDE instances (No longer using EasyMDE for temporary pages - it will be HTML editor)
 // let easyMDECreate;
@@ -531,16 +538,16 @@ async function deleteTempPage(id) {
  */
 const updateAdminUI = async (user) => {
     if (!user) {
-        loadingSpinner.style.display = 'none';
-        loginRequiredMessage.style.display = 'block';
-        adminContent.style.display = 'none';
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+        if (adminContent) adminContent.style.display = 'none';
         return;
     }
 
     try {
-        loadingSpinner.style.display = 'block';
-        loginRequiredMessage.style.display = 'none';
-        adminContent.style.display = 'block';
+        if (loadingSpinner) loadingSpinner.style.display = 'block';
+        if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+        if (adminContent) adminContent.style.display = 'block';
 
         // Load all admin data
         await Promise.all([
@@ -554,10 +561,10 @@ const updateAdminUI = async (user) => {
             displaySMTPServerStatus()
         ]);
 
-        loadingSpinner.style.display = 'none';
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
     } catch (error) {
         console.error("Error updating admin UI:", error);
-        loadingSpinner.style.display = 'none';
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
         showMessageBox("Error loading admin data: " + error.message, true);
     }
 };
@@ -573,16 +580,36 @@ async function populateEmailRecipients() {
         const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
         const querySnapshot = await getDocs(usersRef);
 
-        const emailToSelect = document.getElementById('email-to-select');
-        emailToSelect.innerHTML = '<option value="" disabled>Select recipients...</option>';
+        // Populate recipient type select
+        if (emailRecipientTypeSelect) {
+            emailRecipientTypeSelect.innerHTML = `
+                <option value="all">All Users</option>
+                <option value="admins">Admins Only</option>
+                <option value="custom">Custom Selection</option>
+            `;
+        }
 
+        // Populate email template select
+        if (emailTemplateSelect) {
+            emailTemplateSelect.innerHTML = `
+                <option value="default">Default Template</option>
+                <option value="announcement">Announcement</option>
+                <option value="newsletter">Newsletter</option>
+                <option value="custom">Custom</option>
+            `;
+        }
+
+        // Store user data for custom recipient selection
+        window.adminUserData = [];
         querySnapshot.forEach(doc => {
             const userData = doc.data();
             if (userData.email && userData.displayName) {
-                const option = document.createElement('option');
-                option.value = userData.email; // Use email as value instead of user ID
-                option.textContent = `${userData.displayName} (${userData.email})`;
-                emailToSelect.appendChild(option);
+                window.adminUserData.push({
+                    uid: doc.id,
+                    email: userData.email,
+                    displayName: userData.displayName,
+                    handle: userData.handle || ''
+                });
             }
         });
     } catch (error) {
