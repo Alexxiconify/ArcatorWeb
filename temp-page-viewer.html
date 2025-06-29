@@ -1305,6 +1305,9 @@
     if (!markdown) return '';
     
     try {
+      // First, replace emojis in the text
+      let processedText = replaceEmojis(markdown);
+      
       // Configure marked for safe rendering
       marked.setOptions({
         breaks: true, // Convert line breaks to <br>
@@ -1315,7 +1318,7 @@
       });
 
       // Convert markdown to HTML
-      const html = marked.parse(markdown);
+      const html = marked.parse(processedText);
       
       // Basic sanitization to prevent XSS
       const tempDiv = document.createElement('div');
