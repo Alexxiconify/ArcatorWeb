@@ -89,7 +89,7 @@ export async function setUserProfileInFirestore(uid, profileData) {
   }
 }
 
-// Export updateUserProfileInFirestore directly as requested by admin_and_dev.js
+// Export updateUserProfileInFirestore directly as requested by admin.html
 export { setUserProfileInFirestore as updateUserProfileInFirestore };
 
 
