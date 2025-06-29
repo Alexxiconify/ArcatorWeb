@@ -2,17 +2,18 @@
 // This module provides EmailJS functionality as an alternative to Cloud Functions
 
 // Import EmailJS library
-const EMAILJS_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+const EMAILJS_SCRIPT_URL =
+  "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
 
 // Default credentials (these should be overridden with actual values)
 let credentials = {
-  publicKey: 'o4CZtazWjPDVjPc1L',
-  serviceId: 'service_7pm3neh', // Gmail service
+  publicKey: "o4CZtazWjPDVjPc1L",
+  serviceId: "service_7pm3neh", // Gmail service
   templates: {
-    default: 'template_1gv17ca', // Original template
-    generic: 'template_tt7qx39', // Generic email template
-    passwordReset: 'template_hgysk9k' // Password reset template
-  }
+    default: "template_1gv17ca", // Original template
+    generic: "template_tt7qx39", // Generic email template
+    passwordReset: "template_hgysk9k", // Password reset template
+  },
 };
 
 let emailjsLoaded = false;
@@ -20,7 +21,7 @@ let emailjsInitialized = false;
 
 // Check if EmailJS script is already loaded
 function checkEmailJSScript() {
-  if (typeof emailjs !== 'undefined') {
+  if (typeof emailjs !== "undefined") {
     emailjsLoaded = true;
     return true;
   }
@@ -32,25 +33,25 @@ async function initializeEmailJS(publicKey = null) {
   try {
     // Check if script is loaded
     if (!checkEmailJSScript()) {
-      console.error('[EmailJS] Script not loaded');
-      return { success: false, error: 'EmailJS script not loaded' };
+      console.error("[EmailJS] Script not loaded");
+      return { success: false, error: "EmailJS script not loaded" };
     }
 
     // Use provided public key or default
     const keyToUse = publicKey || credentials.publicKey;
-    
+
     if (!keyToUse) {
-      return { success: false, error: 'No public key provided' };
+      return { success: false, error: "No public key provided" };
     }
 
     // Initialize EmailJS
     emailjs.init(keyToUse);
     emailjsInitialized = true;
-    
-    console.log('[EmailJS] Initialized successfully');
+
+    console.log("[EmailJS] Initialized successfully");
     return { success: true };
   } catch (error) {
-    console.error('[EmailJS] Initialization error:', error);
+    console.error("[EmailJS] Initialization error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -58,14 +59,14 @@ async function initializeEmailJS(publicKey = null) {
 // Load saved credentials from localStorage
 function loadCredentials() {
   try {
-    const saved = localStorage.getItem('emailjs_credentials');
+    const saved = localStorage.getItem("emailjs_credentials");
     if (saved) {
       const parsed = JSON.parse(saved);
       credentials = { ...credentials, ...parsed };
       return true;
     }
   } catch (error) {
-    console.warn('[EmailJS] Failed to load saved credentials:', error);
+    console.warn("[EmailJS] Failed to load saved credentials:", error);
   }
   return false;
 }
@@ -74,11 +75,11 @@ function loadCredentials() {
 function saveCredentials(publicKey, serviceId, templateId) {
   try {
     const creds = { publicKey, serviceId, templateId };
-    localStorage.setItem('emailjs_credentials', JSON.stringify(creds));
+    localStorage.setItem("emailjs_credentials", JSON.stringify(creds));
     credentials = creds;
     return true;
   } catch (error) {
-    console.error('[EmailJS] Failed to save credentials:', error);
+    console.error("[EmailJS] Failed to save credentials:", error);
     return false;
   }
 }
@@ -89,86 +90,108 @@ async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
     if (!emailjsInitialized) {
       await initializeEmailJS();
     }
-    
+
     if (!credentials.serviceId || !credentials.templates.default) {
-      throw new Error('EmailJS service ID and default template ID must be configured');
+      throw new Error(
+        "EmailJS service ID and default template ID must be configured",
+      );
     }
-    
+
     const templateParams = {
       to_email: toEmail,
       title: subject, // Use 'title' for default template
       message: message,
-      from_name: options.fromName || 'Arcator.co.uk',
-      reply_to: options.replyTo || 'noreply@arcator-web.firebaseapp.com'
+      from_name: options.fromName || "Arcator.co.uk",
+      reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com",
     };
-    
+
     const result = await window.emailjs.send(
       credentials.serviceId,
       credentials.templates.default,
-      templateParams
+      templateParams,
     );
-    
-    console.log('[EmailJS] Email sent successfully:', result);
+
+    console.log("[EmailJS] Email sent successfully:", result);
     return { success: true, result };
   } catch (error) {
-    console.error('[EmailJS] Failed to send email:', error);
+    console.error("[EmailJS] Failed to send email:", error);
     return { success: false, error: error.message };
   }
 }
 
 // Send email with specific template
-async function sendEmailWithTemplate(toEmail, subject, message, templateType = 'default', options = {}) {
+async function sendEmailWithTemplate(
+  toEmail,
+  subject,
+  message,
+  templateType = "default",
+  options = {},
+) {
   try {
     if (!emailjsInitialized) {
       await initializeEmailJS();
     }
-    
+
     if (!credentials.serviceId) {
-      throw new Error('EmailJS service ID must be configured');
+      throw new Error("EmailJS service ID must be configured");
     }
-    
+
     const templateId = credentials.templates[templateType];
     if (!templateId) {
-      throw new Error(`Template type '${templateType}' not found. Available: ${Object.keys(credentials.templates).join(', ')}`);
+      throw new Error(
+        `Template type '${templateType}' not found. Available: ${Object.keys(credentials.templates).join(", ")}`,
+      );
     }
-    
+
     // Use different variable names based on template type
     const templateParams = {
       to_email: toEmail,
       message: message,
-      from_name: options.fromName || 'Arcator.co.uk',
-      reply_to: options.replyTo || 'noreply@arcator-web.firebaseapp.com'
+      from_name: options.fromName || "Arcator.co.uk",
+      reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com",
     };
-    
+
     // Add subject with appropriate variable name based on template
-    if (templateType === 'default') {
+    if (templateType === "default") {
       templateParams.title = subject; // Default template uses 'title'
     } else {
       templateParams.subject = subject; // Other templates use 'subject'
     }
-    
+
     const result = await window.emailjs.send(
       credentials.serviceId,
       templateId,
-      templateParams
+      templateParams,
     );
-    
-    console.log(`[EmailJS] Email sent successfully with template ${templateType}:`, result);
+
+    console.log(
+      `[EmailJS] Email sent successfully with template ${templateType}:`,
+      result,
+    );
     return { success: true, result, templateUsed: templateType };
   } catch (error) {
-    console.error(`[EmailJS] Failed to send email with template ${templateType}:`, error);
+    console.error(
+      `[EmailJS] Failed to send email with template ${templateType}:`,
+      error,
+    );
     return { success: false, error: error.message };
   }
 }
 
 // Send generic email
 async function sendGenericEmail(toEmail, subject, message, options = {}) {
-  return await sendEmailWithTemplate(toEmail, subject, message, 'generic', options);
+  return await sendEmailWithTemplate(
+    toEmail,
+    subject,
+    message,
+    "generic",
+    options,
+  );
 }
 
 // Send password reset email
 async function sendPasswordResetEmail(toEmail, resetLink, options = {}) {
-  const subject = 'Password Reset Request - Arcator.co.uk';
+  const subject = "Password Reset Request - Arcator.co.uk";
   const message = `Hello,
 
 You have requested a password reset for your Arcator.co.uk account.
@@ -183,27 +206,33 @@ This link will expire in 24 hours.
 Best regards,
 The Arcator Team`;
 
-  return await sendEmailWithTemplate(toEmail, subject, message, 'passwordReset', options);
+  return await sendEmailWithTemplate(
+    toEmail,
+    subject,
+    message,
+    "passwordReset",
+    options,
+  );
 }
 
 // Send bulk emails
 async function sendBulkEmails(emails) {
   const results = [];
-  
+
   for (const email of emails) {
     try {
       const result = await sendEmailWithEmailJS(
         email.to,
         email.subject,
         email.message,
-        email.options
+        email.options,
       );
       results.push({ email, result });
     } catch (error) {
       results.push({ email, result: { success: false, error: error.message } });
     }
   }
-  
+
   return results;
 }
 
@@ -216,21 +245,21 @@ async function testEmailJSConnection() {
         return initResult;
       }
     }
-    
+
     // Test with a simple template parameter
     const testParams = {
-      to_email: 'test@example.com',
-      subject: 'Test Email',
-      message: 'This is a test email from EmailJS integration.',
-      from_name: 'Arcator.co.uk',
-      reply_to: 'noreply@arcator-web.firebaseapp.com'
+      to_email: "test@example.com",
+      subject: "Test Email",
+      message: "This is a test email from EmailJS integration.",
+      from_name: "Arcator.co.uk",
+      reply_to: "noreply@arcator-web.firebaseapp.com",
     };
-    
+
     // Just test the initialization, don't actually send
-    console.log('[EmailJS] Connection test successful');
-    return { success: true, message: 'EmailJS is properly configured' };
+    console.log("[EmailJS] Connection test successful");
+    return { success: true, message: "EmailJS is properly configured" };
   } catch (error) {
-    console.error('[EmailJS] Connection test failed:', error);
+    console.error("[EmailJS] Connection test failed:", error);
     return { success: false, error: error.message };
   }
 }
@@ -241,34 +270,39 @@ function getEmailJSStatus() {
   const publicKeyConfigured = !!credentials.publicKey;
   const serviceIdConfigured = !!credentials.serviceId;
   const templateIdConfigured = !!credentials.templates.default;
-  const readyToSend = scriptLoaded && emailjsInitialized && publicKeyConfigured && serviceIdConfigured && templateIdConfigured;
+  const readyToSend =
+    scriptLoaded &&
+    emailjsInitialized &&
+    publicKeyConfigured &&
+    serviceIdConfigured &&
+    templateIdConfigured;
 
   return {
     scriptLoaded,
     initialized: emailjsInitialized,
-    publicKey: publicKeyConfigured ? 'Configured' : 'Not configured',
-    serviceId: serviceIdConfigured ? 'Configured' : 'Not configured',
-    templateId: templateIdConfigured ? 'Configured' : 'Not configured',
-    readyToSend
+    publicKey: publicKeyConfigured ? "Configured" : "Not configured",
+    serviceId: serviceIdConfigured ? "Configured" : "Not configured",
+    templateId: templateIdConfigured ? "Configured" : "Not configured",
+    readyToSend,
   };
 }
 
 // Clear saved credentials
 function clearCredentials() {
   try {
-    localStorage.removeItem('emailjs_credentials');
+    localStorage.removeItem("emailjs_credentials");
     credentials = {
-      publicKey: 'o4CZtazWjPDVjPc1L',
-      serviceId: 'service_7pm3neh',
+      publicKey: "o4CZtazWjPDVjPc1L",
+      serviceId: "service_7pm3neh",
       templates: {
-        default: 'template_1gv17ca',
-        generic: 'template_tt7qx39',
-        passwordReset: 'template_hgysk9k'
-      }
+        default: "template_1gv17ca",
+        generic: "template_tt7qx39",
+        passwordReset: "template_hgysk9k",
+      },
     };
     return true;
   } catch (error) {
-    console.error('[EmailJS] Failed to clear credentials:', error);
+    console.error("[EmailJS] Failed to clear credentials:", error);
     return false;
   }
 }
@@ -285,8 +319,8 @@ export {
   getEmailJSStatus,
   saveCredentials,
   loadCredentials,
-  clearCredentials
+  clearCredentials,
 };
 
 // Auto-load credentials on module load
-loadCredentials(); 
+loadCredentials();

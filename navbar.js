@@ -1,25 +1,35 @@
 // navbar.js - Modern, self-contained navbar component with embedded CSS and HTML
 // Combines navbar.css, navbar.html, and navbar.js into a single file
 
-import { auth, db, appId, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, onAuthStateChanged, currentUser } from './firebase-init.js';
-import { applyTheme, getAvailableThemes } from './themes.js';
-import {validatePhotoURL} from './utils.js';
+import {
+  auth,
+  db,
+  appId,
+  getUserProfileFromFirestore,
+  firebaseReadyPromise,
+  DEFAULT_PROFILE_PIC,
+  DEFAULT_THEME_NAME,
+  onAuthStateChanged,
+  currentUser,
+} from "./firebase-init.js";
+import { applyTheme, getAvailableThemes } from "./themes.js";
+import { validatePhotoURL } from "./utils.js";
 
 // Utility function to convert hex color to RGB
 function hexToRgb(hex) {
   // Remove # if present
-  hex = hex.replace('#', '');
-  
+  hex = hex.replace("#", "");
+
   // Parse the hex values
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
-  
+
   // Check if parsing was successful
   if (isNaN(r) || isNaN(g) || isNaN(b)) {
     return null;
   }
-  
+
   return { r, g, b };
 }
 
@@ -635,9 +645,9 @@ const navbarTemplate = `
  * Injects navbar styles into the document head
  */
 function injectNavbarStyles() {
-  if (!document.getElementById('navbar-styles')) {
-    const styleElement = document.createElement('style');
-    styleElement.id = 'navbar-styles';
+  if (!document.getElementById("navbar-styles")) {
+    const styleElement = document.createElement("style");
+    styleElement.id = "navbar-styles";
     styleElement.textContent = navbarStyles;
     document.head.appendChild(styleElement);
   }
@@ -648,31 +658,34 @@ function injectNavbarStyles() {
  * This function forces the navbar to re-evaluate CSS variables
  */
 function updateNavbarForTheme() {
-  const navbar = document.querySelector('.navbar-bg');
+  const navbar = document.querySelector(".navbar-bg");
   if (!navbar) return;
 
   // Get the current navbar background color from CSS variables
-  const navbarColor = getComputedStyle(document.documentElement).getPropertyValue('--color-bg-navbar').trim();
+  const navbarColor = getComputedStyle(document.documentElement)
+    .getPropertyValue("--color-bg-navbar")
+    .trim();
   const navbarRgb = hexToRgb(navbarColor);
 
   if (navbarRgb) {
     // Check if we're using a custom theme
-    const isCustomTheme = document.body.classList.contains('custom-theme') || 
-                         document.documentElement.classList.contains('custom-theme') ||
-                         document.documentElement.style.getPropertyValue('--color-body-bg');
+    const isCustomTheme =
+      document.body.classList.contains("custom-theme") ||
+      document.documentElement.classList.contains("custom-theme") ||
+      document.documentElement.style.getPropertyValue("--color-body-bg");
 
     if (isCustomTheme) {
       // Apply custom theme background with transparency
       const rgbaValue = `rgba(${navbarRgb.r}, ${navbarRgb.g}, ${navbarRgb.b}, 0.95)`;
       navbar.style.backgroundColor = rgbaValue;
-      
+
       // Also update mobile background
       const mobileRgbaValue = `rgba(${navbarRgb.r}, ${navbarRgb.g}, ${navbarRgb.b}, 0.98)`;
-      navbar.style.setProperty('--mobile-navbar-bg', mobileRgbaValue);
+      navbar.style.setProperty("--mobile-navbar-bg", mobileRgbaValue);
     } else {
       // Remove inline background for built-in themes
-      navbar.style.backgroundColor = '';
-      navbar.style.removeProperty('--mobile-navbar-bg');
+      navbar.style.backgroundColor = "";
+      navbar.style.removeProperty("--mobile-navbar-bg");
     }
   }
 }
@@ -681,19 +694,19 @@ function updateNavbarForTheme() {
  * Handles scroll effects for the navbar
  */
 function setupScrollEffects() {
-  const navbar = document.querySelector('.navbar-bg');
+  const navbar = document.querySelector(".navbar-bg");
   if (!navbar) return;
 
   let lastScrollTop = 0;
 
-  window.addEventListener('scroll', () => {
+  window.addEventListener("scroll", () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     // Add scrolled class for background opacity
     if (scrollTop > 10) {
-      navbar.classList.add('scrolled');
+      navbar.classList.add("scrolled");
     } else {
-      navbar.classList.remove('scrolled');
+      navbar.classList.remove("scrolled");
     }
 
     lastScrollTop = scrollTop;
@@ -704,38 +717,38 @@ function setupScrollEffects() {
  * Sets up mobile menu functionality
  */
 function setupMobileMenu() {
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const navbarLinks = document.getElementById('navbar-links');
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const navbarLinks = document.getElementById("navbar-links");
 
   if (!mobileMenuBtn || !navbarLinks) return;
 
-  mobileMenuBtn.addEventListener('click', () => {
-    mobileMenuBtn.classList.toggle('active');
-    navbarLinks.classList.toggle('mobile-open');
+  mobileMenuBtn.addEventListener("click", () => {
+    mobileMenuBtn.classList.toggle("active");
+    navbarLinks.classList.toggle("mobile-open");
 
     // Prevent body scroll when menu is open
-    if (navbarLinks.classList.contains('mobile-open')) {
-      document.body.style.overflow = 'hidden';
+    if (navbarLinks.classList.contains("mobile-open")) {
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
   });
 
   // Close mobile menu when clicking on a link
-  navbarLinks.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A') {
-      mobileMenuBtn.classList.remove('active');
-      navbarLinks.classList.remove('mobile-open');
-      document.body.style.overflow = '';
+  navbarLinks.addEventListener("click", (e) => {
+    if (e.target.tagName === "A") {
+      mobileMenuBtn.classList.remove("active");
+      navbarLinks.classList.remove("mobile-open");
+      document.body.style.overflow = "";
     }
   });
 
   // Close mobile menu when clicking outside
-  document.addEventListener('click', (e) => {
+  document.addEventListener("click", (e) => {
     if (!mobileMenuBtn.contains(e.target) && !navbarLinks.contains(e.target)) {
-      mobileMenuBtn.classList.remove('active');
-      navbarLinks.classList.remove('mobile-open');
-      document.body.style.overflow = '';
+      mobileMenuBtn.classList.remove("active");
+      navbarLinks.classList.remove("mobile-open");
+      document.body.style.overflow = "";
     }
   });
 }
@@ -745,11 +758,14 @@ function setupMobileMenu() {
  * This can be called when user profile is updated
  */
 export function refreshNavbarProfilePicture(userProfile) {
-  const userProfilePic = document.getElementById('navbar-user-profile-pic');
-  const userSettingsLink = document.getElementById('navbar-user-settings-link');
+  const userProfilePic = document.getElementById("navbar-user-profile-pic");
+  const userSettingsLink = document.getElementById("navbar-user-settings-link");
   if (!userProfilePic || !userSettingsLink) return;
   if (!userProfile) return;
-  const profilePicURL = getSafePhotoURL(userProfile.photoURL, DEFAULT_PROFILE_PIC);
+  const profilePicURL = getSafePhotoURL(
+    userProfile.photoURL,
+    DEFAULT_PROFILE_PIC,
+  );
   userProfilePic.src = profilePicURL;
   userProfilePic.onload = function () {
     // Success, do nothing
@@ -758,8 +774,8 @@ export function refreshNavbarProfilePicture(userProfile) {
     this.src = DEFAULT_PROFILE_PIC;
     this.onerror = null;
   };
-  const displayName = userProfile.displayName || userProfile.handle || 'User';
-  const displayNameSpan = document.getElementById('navbar-user-display-name');
+  const displayName = userProfile.displayName || userProfile.handle || "User";
+  const displayNameSpan = document.getElementById("navbar-user-display-name");
   if (displayNameSpan) displayNameSpan.textContent = displayName;
 }
 
@@ -770,9 +786,9 @@ export function refreshNavbarProfilePicture(userProfile) {
  * @param {string} defaultProfilePic - Default profile picture URL
  */
 async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
-  const userSettingsLink = document.getElementById('navbar-user-settings-link');
-  const userProfilePic = document.getElementById('navbar-user-profile-pic');
-  const signinLink = document.getElementById('navbar-signin-link');
+  const userSettingsLink = document.getElementById("navbar-user-settings-link");
+  const userProfilePic = document.getElementById("navbar-user-profile-pic");
+  const signinLink = document.getElementById("navbar-signin-link");
 
   // Check if user is logged in (including anonymous users)
   const isLoggedIn = authUser && !authUser.isAnonymous;
@@ -781,22 +797,28 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   if (isLoggedIn && userProfile) {
     // User is logged in with a profile
     if (userSettingsLink) {
-      userSettingsLink.classList.remove('hidden');
+      userSettingsLink.classList.remove("hidden");
     }
     if (signinLink) {
-      signinLink.classList.add('hidden');
+      signinLink.classList.add("hidden");
     }
 
     // Update profile picture with enhanced validation
     if (userProfilePic) {
       try {
-        const profilePicURL = getSafePhotoURL(userProfile && userProfile.photoURL, defaultProfilePic);
+        const profilePicURL = getSafePhotoURL(
+          userProfile && userProfile.photoURL,
+          defaultProfilePic,
+        );
         userProfilePic.src = profilePicURL;
 
         // Add error handling for image loading
         userProfilePic.onerror = function () {
           const failedURL = this.src;
-          if (failedURL.includes('discordapp.com') || failedURL.includes('discord.com')) {
+          if (
+            failedURL.includes("discordapp.com") ||
+            failedURL.includes("discord.com")
+          ) {
             provideDiscordUrlGuidance(failedURL);
           }
 
@@ -807,7 +829,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
         userProfilePic.onload = function () {
           // Success, do nothing
         };
-
       } catch (error) {
         userProfilePic.src = defaultProfilePic;
       }
@@ -815,8 +836,11 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
     // Update user display name
     if (userSettingsLink) {
-      const displayName = userProfile.displayName || userProfile.handle || 'User';
-      const displayNameSpan = document.getElementById('navbar-user-display-name');
+      const displayName =
+        userProfile.displayName || userProfile.handle || "User";
+      const displayNameSpan = document.getElementById(
+        "navbar-user-display-name",
+      );
       if (displayNameSpan) {
         displayNameSpan.textContent = displayName;
       }
@@ -824,10 +848,10 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   } else if (isAnonymous) {
     // Anonymous user - show sign in
     if (userSettingsLink) {
-      userSettingsLink.classList.add('hidden');
+      userSettingsLink.classList.add("hidden");
     }
     if (signinLink) {
-      signinLink.classList.remove('hidden');
+      signinLink.classList.remove("hidden");
     }
     if (userProfilePic) {
       userProfilePic.src = defaultProfilePic;
@@ -835,10 +859,10 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   } else {
     // User is not logged in at all
     if (userSettingsLink) {
-      userSettingsLink.classList.add('hidden');
+      userSettingsLink.classList.add("hidden");
     }
     if (signinLink) {
-      signinLink.classList.remove('hidden');
+      signinLink.classList.remove("hidden");
     }
     if (userProfilePic) {
       userProfilePic.src = defaultProfilePic;
@@ -854,14 +878,15 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 async function applyUserTheme(userThemePreference, defaultThemeName) {
   try {
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) ||
-      allThemes.find(t => t.id === defaultThemeName);
+    const themeToApply =
+      allThemes.find((t) => t.id === userThemePreference) ||
+      allThemes.find((t) => t.id === defaultThemeName);
 
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
     }
   } catch (error) {
-    console.error('Failed to apply user theme:', error);
+    console.error("Failed to apply user theme:", error);
   }
 }
 
@@ -872,8 +897,13 @@ async function applyUserTheme(userThemePreference, defaultThemeName) {
  * @param {string} defaultProfilePic - Default profile picture URL
  * @param {string} defaultThemeName - Default theme name
  */
-export async function loadNavbar(authUser, userProfile, defaultProfilePic, defaultThemeName) {
-  const navbarPlaceholder = document.getElementById('navbar-placeholder');
+export async function loadNavbar(
+  authUser,
+  userProfile,
+  defaultProfilePic,
+  defaultThemeName,
+) {
+  const navbarPlaceholder = document.getElementById("navbar-placeholder");
 
   if (!navbarPlaceholder) {
     return;
@@ -901,12 +931,11 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
     }, 100); // Small delay to ensure DOM is ready
 
     // Listen for theme changes and update navbar
-    document.addEventListener('themeChanged', () => {
+    document.addEventListener("themeChanged", () => {
       updateNavbarForTheme();
     });
 
     styleNavbarItemsUniformly();
-
   } catch (error) {
     navbarPlaceholder.innerHTML = `
       <nav style="background: var(--color-bg-navbar, #111827); padding: 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
@@ -923,19 +952,25 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
  * @param {Array} additionalLinks - Optional array of additional link objects with href and text properties
  */
 export async function loadFooter(yearElementId = null, additionalLinks = []) {
-  const footerPlaceholder = document.getElementById('footer-placeholder');
+  const footerPlaceholder = document.getElementById("footer-placeholder");
   if (!footerPlaceholder) {
-    console.warn('Footer placeholder not found. Add <div id="footer-placeholder"></div> to your page.');
+    console.warn(
+      'Footer placeholder not found. Add <div id="footer-placeholder"></div> to your page.',
+    );
     return;
   }
 
   // Default footer links
   const defaultLinks = [
-    {href: 'privacy.html', text: 'Legal'},
-    {href: 'temp-page-viewer.html', text: 'Pages'},
-    {href: 'https://wiki.arcator.co.uk/', text: 'Wiki', external: true},
-    {href: 'https://ssmp.arcator.co.uk/', text: 'SSMP', external: true},
-    {href: 'https://hub.arcator.co.uk/#creative', text: 'Hub', external: true}
+    { href: "privacy.html", text: "Legal" },
+    { href: "temp-page-viewer.html", text: "Pages" },
+    { href: "https://wiki.arcator.co.uk/", text: "Wiki", external: true },
+    { href: "https://ssmp.arcator.co.uk/", text: "SSMP", external: true },
+    {
+      href: "https://hub.arcator.co.uk/#creative",
+      text: "Hub",
+      external: true,
+    },
   ];
 
   // Merge default links with additional links
@@ -945,13 +980,17 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
   const footerHTML = `
     <footer class="bg-navbar-footer py-8 text-center text-text-secondary rounded-t-lg shadow-inner mt-8">
       <div class="container mx-auto px-4">
-        <p>© 2010 - <span id="${yearElementId || 'current-year'}">${new Date().getFullYear()}</span> Arcator.co.uk. All rights reserved.</p>
+        <p>© 2010 - <span id="${yearElementId || "current-year"}">${new Date().getFullYear()}</span> Arcator.co.uk. All rights reserved.</p>
         <p class="mt-2">Made with ❤️ for the Minecraft Community.</p>
         <div class="flex flex-wrap justify-center space-x-6 mt-4">
-          ${allLinks.map(link => {
-    const externalAttrs = link.external ? 'target="_blank" rel="noopener noreferrer"' : '';
-    return `<a href="${link.href}" ${externalAttrs} class="hover:text-link transition duration-300 ease-in-out">${link.text}</a>`;
-  }).join('')}
+          ${allLinks
+            .map((link) => {
+              const externalAttrs = link.external
+                ? 'target="_blank" rel="noopener noreferrer"'
+                : "";
+              return `<a href="${link.href}" ${externalAttrs} class="hover:text-link transition duration-300 ease-in-out">${link.text}</a>`;
+            })
+            .join("")}
         </div>
       </div>
     </footer>
@@ -969,13 +1008,13 @@ firebaseReadyPromise.then(() => {
       try {
         userProfile = await getUserProfileFromFirestore(user.uid);
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        console.error("Error loading user profile:", error);
       }
     }
 
     // Check if navbar is already loaded
-    const navbarPlaceholder = document.getElementById('navbar-placeholder');
-    if (navbarPlaceholder && navbarPlaceholder.innerHTML.trim() !== '') {
+    const navbarPlaceholder = document.getElementById("navbar-placeholder");
+    if (navbarPlaceholder && navbarPlaceholder.innerHTML.trim() !== "") {
       // Navbar is already loaded, just update the state
       updateNavbarState(user, userProfile, DEFAULT_PROFILE_PIC);
     } else {
@@ -984,17 +1023,17 @@ firebaseReadyPromise.then(() => {
     }
 
     // Load footer if not already loaded
-    const footerPlaceholder = document.getElementById('footer-placeholder');
-    if (footerPlaceholder && footerPlaceholder.innerHTML.trim() === '') {
-      loadFooter('current-year-...');
+    const footerPlaceholder = document.getElementById("footer-placeholder");
+    if (footerPlaceholder && footerPlaceholder.innerHTML.trim() === "") {
+      loadFooter("current-year-...");
     }
   });
 
   // Add page visibility change listener to refresh navbar state when user returns to tab
-  document.addEventListener('visibilitychange', async () => {
+  document.addEventListener("visibilitychange", async () => {
     if (!document.hidden) {
       setTimeout(async () => {
-        if (typeof window.forceRefreshNavbarState === 'function') {
+        if (typeof window.forceRefreshNavbarState === "function") {
           await window.forceRefreshNavbarState();
         }
       }, 100);
@@ -1002,9 +1041,9 @@ firebaseReadyPromise.then(() => {
   });
 
   // Add window focus listener as additional safeguard
-  window.addEventListener('focus', async () => {
+  window.addEventListener("focus", async () => {
     setTimeout(async () => {
-      if (typeof window.forceRefreshNavbarState === 'function') {
+      if (typeof window.forceRefreshNavbarState === "function") {
         await window.forceRefreshNavbarState();
       }
     }, 100);
@@ -1023,7 +1062,7 @@ export async function forceRefreshNavbarState() {
     try {
       userProfile = await getUserProfileFromFirestore(currentUser.uid);
     } catch (error) {
-      console.error('Error loading user profile for force refresh:', error);
+      console.error("Error loading user profile for force refresh:", error);
     }
   }
 
@@ -1046,8 +1085,11 @@ export async function testProfilePicture(photoURL) {
 
   try {
     // Use the enhanced validation function
-    const {validateAndTestPhotoURL} = await import('./utils.js');
-    const safePhotoURL = await validateAndTestPhotoURL(photoURL, window.DEFAULT_PROFILE_PIC);
+    const { validateAndTestPhotoURL } = await import("./utils.js");
+    const safePhotoURL = await validateAndTestPhotoURL(
+      photoURL,
+      window.DEFAULT_PROFILE_PIC,
+    );
 
     // Temporarily update the current user's photoURL
     const originalPhotoURL = window.currentUser.photoURL;
@@ -1061,9 +1103,8 @@ export async function testProfilePicture(photoURL) {
       window.currentUser.photoURL = originalPhotoURL;
       await refreshNavbarProfilePicture(window.currentUser);
     }, 5000);
-
   } catch (error) {
-    console.error('Error testing profile picture:', error);
+    console.error("Error testing profile picture:", error);
   }
 }
 
@@ -1075,26 +1116,30 @@ window.testProfilePicture = testProfilePicture;
  * @param {string} discordURL - The Discord URL that's failing
  */
 export function provideDiscordUrlGuidance(discordURL) {
-  console.log('Discord URL Guidance:');
-  console.log('URL:', discordURL);
-  console.log('This is a common issue with Discord CDN URLs.');
-  console.log('🎯 RECOMMENDED SOLUTION: Convert to ImgBB');
-  console.log('1. Visit: https://imgbb.com/');
+  console.log("Discord URL Guidance:");
+  console.log("URL:", discordURL);
+  console.log("This is a common issue with Discord CDN URLs.");
+  console.log("🎯 RECOMMENDED SOLUTION: Convert to ImgBB");
+  console.log("1. Visit: https://imgbb.com/");
   console.log('2. Click "Start uploading"');
-  console.log('3. Upload your Discord image file');
-  console.log('4. Copy the direct link (ends with .jpg, .png, etc.)');
-  console.log('5. Use window.updateProfilePicture(newURL) to update your profile');
-  console.log('');
-  console.log('Why Discord URLs break:');
-  console.log('- Discord CDN URLs can expire over time');
-  console.log('- CORS restrictions prevent loading in JavaScript');
-  console.log('- URLs work in browser tabs but fail in JavaScript');
-  console.log('');
-  console.log('Quick fix commands:');
+  console.log("3. Upload your Discord image file");
+  console.log("4. Copy the direct link (ends with .jpg, .png, etc.)");
+  console.log(
+    "5. Use window.updateProfilePicture(newURL) to update your profile",
+  );
+  console.log("");
+  console.log("Why Discord URLs break:");
+  console.log("- Discord CDN URLs can expire over time");
+  console.log("- CORS restrictions prevent loading in JavaScript");
+  console.log("- URLs work in browser tabs but fail in JavaScript");
+  console.log("");
+  console.log("Quick fix commands:");
   console.log('- window.convertAndUpdateDiscordUrl("' + discordURL + '")');
   console.log('- window.updateProfilePicture("your-new-imgbb-url")');
-  console.log('');
-  console.log('Alternative services: Imgur, Cloudinary, Uploadcare, Postimages');
+  console.log("");
+  console.log(
+    "Alternative services: Imgur, Cloudinary, Uploadcare, Postimages",
+  );
 }
 
 /**
@@ -1113,10 +1158,13 @@ export async function updateProfilePicture(newPhotoURL) {
 
   try {
     // Update the user profile in Firestore
-    const {setUserProfileInFirestore} = await import('./firebase-init.js');
-    const success = await setUserProfileInFirestore(window.auth.currentUser.uid, {
-      photoURL: newPhotoURL
-    });
+    const { setUserProfileInFirestore } = await import("./firebase-init.js");
+    const success = await setUserProfileInFirestore(
+      window.auth.currentUser.uid,
+      {
+        photoURL: newPhotoURL,
+      },
+    );
 
     if (success) {
       // Update the local currentUser object
@@ -1126,14 +1174,14 @@ export async function updateProfilePicture(newPhotoURL) {
       await refreshNavbarProfilePicture(window.currentUser);
 
       // Show success message
-      if (typeof window.showMessageBox === 'function') {
-        window.showMessageBox('Profile picture updated successfully!', false);
+      if (typeof window.showMessageBox === "function") {
+        window.showMessageBox("Profile picture updated successfully!", false);
       }
     } else {
-      console.error('Failed to update profile picture in Firestore');
+      console.error("Failed to update profile picture in Firestore");
     }
   } catch (error) {
-    console.error('Error updating profile picture:', error);
+    console.error("Error updating profile picture:", error);
   }
 }
 
@@ -1146,38 +1194,39 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     return;
   }
 
-  if (!discordURL || !discordURL.includes('discordapp.com')) {
+  if (!discordURL || !discordURL.includes("discordapp.com")) {
     return;
   }
 
   try {
     // Import the conversion function
-    const {convertDiscordUrlToReliableCDN, createImageUploadHelper} = await import('./utils.js');
+    const { convertDiscordUrlToReliableCDN, createImageUploadHelper } =
+      await import("./utils.js");
 
     // Try to convert the Discord URL to ImgBB
     const convertedURL = await convertDiscordUrlToReliableCDN(discordURL);
 
     if (convertedURL === discordURL) {
-      console.log('Discord URL conversion not needed or failed');
-      console.log('Showing manual conversion options...');
+      console.log("Discord URL conversion not needed or failed");
+      console.log("Showing manual conversion options...");
     } else {
-      console.log('Discord URL converted successfully:', convertedURL);
+      console.log("Discord URL converted successfully:", convertedURL);
 
       // Automatically update the user's profile with the converted URL
       await updateProfilePicture(convertedURL);
-      console.log('[DEBUG] Profile picture updated with converted ImgBB URL');
+      console.log("[DEBUG] Profile picture updated with converted ImgBB URL");
       return;
     }
 
     // Show the user the conversion options
-    console.log('[DEBUG] Showing Discord URL conversion helper...');
+    console.log("[DEBUG] Showing Discord URL conversion helper...");
 
     // Create a modal or helper to guide the user
-    const helperId = 'discord-url-converter-helper';
+    const helperId = "discord-url-converter-helper";
     let helperElement = document.getElementById(helperId);
 
     if (!helperElement) {
-      helperElement = document.createElement('div');
+      helperElement = document.createElement("div");
       helperElement.id = helperId;
       helperElement.style.cssText = `
         position: fixed;
@@ -1202,8 +1251,8 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     createImageUploadHelper(helperId);
 
     // Add a close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = '×';
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "×";
     closeButton.style.cssText = `
       position: absolute;
       top: 0.5rem;
@@ -1220,7 +1269,7 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     helperElement.appendChild(closeButton);
 
     // Add a manual URL input option
-    const manualInput = document.createElement('div');
+    const manualInput = document.createElement("div");
     manualInput.style.cssText = `
       margin-top: 1rem;
       padding-top: 1rem;
@@ -1245,8 +1294,8 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     helperElement.appendChild(manualInput);
 
     // Add event listener for manual URL update
-    document.getElementById('update-url-btn').onclick = async () => {
-      const newURL = document.getElementById('manual-url-input').value.trim();
+    document.getElementById("update-url-btn").onclick = async () => {
+      const newURL = document.getElementById("manual-url-input").value.trim();
       if (newURL) {
         await updateProfilePicture(newURL);
         helperElement.remove();
@@ -1254,8 +1303,8 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
     };
 
     // Add event listener for Enter key
-    document.getElementById('manual-url-input').onkeypress = async (e) => {
-      if (e.key === 'Enter') {
+    document.getElementById("manual-url-input").onkeypress = async (e) => {
+      if (e.key === "Enter") {
         const newURL = e.target.value.trim();
         if (newURL) {
           await updateProfilePicture(newURL);
@@ -1263,9 +1312,8 @@ export async function convertAndUpdateDiscordUrl(discordURL) {
         }
       }
     };
-
   } catch (error) {
-    console.error('[DEBUG] Error converting Discord URL:', error);
+    console.error("[DEBUG] Error converting Discord URL:", error);
   }
 }
 
@@ -1275,8 +1323,16 @@ window.updateProfilePicture = updateProfilePicture;
 window.convertAndUpdateDiscordUrl = convertAndUpdateDiscordUrl;
 
 function getSafePhotoURL(photoURL, defaultProfilePic = null) {
-  const fallback = defaultProfilePic || window.DEFAULT_PROFILE_PIC || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-  if (!photoURL || photoURL === '' || photoURL === 'undefined' || typeof photoURL !== 'string') {
+  const fallback =
+    defaultProfilePic ||
+    window.DEFAULT_PROFILE_PIC ||
+    "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+  if (
+    !photoURL ||
+    photoURL === "" ||
+    photoURL === "undefined" ||
+    typeof photoURL !== "string"
+  ) {
     return fallback;
   }
   return photoURL;
@@ -1284,16 +1340,18 @@ function getSafePhotoURL(photoURL, defaultProfilePic = null) {
 
 // PATCH: Uniform navbar item sizing
 function styleNavbarItemsUniformly() {
-  const navItems = document.querySelectorAll('.navbar-link, .navbar-logo, .navbar-profile');
-  navItems.forEach(item => {
-    item.style.height = '2.5rem';
-    item.style.minWidth = '2.5rem';
-    item.style.display = 'flex';
-    item.style.alignItems = 'center';
-    item.style.justifyContent = 'center';
-    item.style.fontSize = '1rem';
-    item.style.fontWeight = '500';
-    item.style.borderRadius = '1.25rem';
-    item.style.padding = '0 0.75rem';
+  const navItems = document.querySelectorAll(
+    ".navbar-link, .navbar-logo, .navbar-profile",
+  );
+  navItems.forEach((item) => {
+    item.style.height = "2.5rem";
+    item.style.minWidth = "2.5rem";
+    item.style.display = "flex";
+    item.style.alignItems = "center";
+    item.style.justifyContent = "center";
+    item.style.fontSize = "1rem";
+    item.style.fontWeight = "500";
+    item.style.borderRadius = "1.25rem";
+    item.style.padding = "0 0.75rem";
   });
 }

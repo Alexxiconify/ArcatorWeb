@@ -1,30 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Legal - Arcator.co.uk</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Link to theme_variables.css for centralized CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to common.css for shared styles -->
-  <link href="common.css" rel="stylesheet">
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Legal - Arcator.co.uk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Link to theme_variables.css for centralized CSS variables -->
+    <link rel="stylesheet" href="theme_variables.css" />
+    <!-- Link to common.css for shared styles -->
+    <link href="common.css" rel="stylesheet" />
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
     <style>
       /* Base styles, will be overridden by CSS variables from themes.js */
       body {
-        font-family: 'Inter', sans-serif;
-        transition: background-color 0.3s ease, color 0.3s ease;
+        font-family: "Inter", sans-serif;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
         background-color: var(--color-body-bg);
         color: var(--color-text-primary);
       }
       /* Hero Banner styles - common for all themes, retains background image */
       .hero-banner {
-        background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
+        background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -37,7 +42,7 @@
         overflow: hidden;
       }
       .hero-banner::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         left: 0;
@@ -53,30 +58,32 @@
         color: white;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
       }
-    
+
       /* Feature card specific styling */
       .feature-card {
         border-radius: 0.75rem;
         padding: 2rem;
         box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        transition:
+          transform 0.3s ease-in-out,
+          box-shadow 0.3s ease-in-out;
       }
-    
+
       .feature-card:hover {
         transform: translateY(-5px) scale(1.02);
         box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
       }
-    
+
       .minecraft-ip-box {
         border: 2px solid var(--color-border-ip-box);
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
       }
-    
+
       .text-white {
         /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
         color: white !important;
       }
-    
+
       /* Content section styling */
       .content-section {
         border-radius: 0.75rem;
@@ -84,7 +91,7 @@
         padding: 2rem;
         margin: 2rem 1rem;
       }
-    
+
       .content-card {
         border: 1px solid var(--color-input-border);
         border-radius: 0.75rem;
@@ -92,34 +99,34 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.2s ease-in-out;
       }
-    
+
       .content-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
       }
-    
+
       /* List styling */
       .feature-list {
         list-style-type: disc;
         list-style-position: inside;
       }
-    
+
       .feature-list li {
         margin-bottom: 0.5rem;
         line-height: 1.6;
       }
-    
+
       .feature-list .highlight {
         font-weight: 600;
       }
-    
+
       .tab-container {
         display: flex;
         justify-content: center;
         margin-bottom: 2rem;
         border-bottom: 2px solid var(--color-input-border);
       }
-    
+
       .tab-button {
         border: none;
         padding: 1rem 2rem;
@@ -133,20 +140,20 @@
         background-color: var(--color-bg-card);
         color: var(--color-text-primary);
       }
-    
+
       .tab-button.active {
         border-bottom-color: var(--color-link);
         background-color: var(--color-bg-content-section);
       }
-    
+
       .tab-content {
         display: none;
       }
-    
+
       .tab-content.active {
         display: block;
       }
-    
+
       /* Legal content styling */
       .legal-content {
         color: var(--color-text-primary);
@@ -184,212 +191,274 @@
         margin-bottom: 0.5rem;
         line-height: 1.6;
       }
-    
+
       @media (max-width: 768px) {
         .tab-container {
           flex-direction: column;
           align-items: center;
         }
-    
+
         .tab-button {
           margin: 0.25rem 0;
           border-radius: 0.5rem;
           width: 100%;
           max-width: 300px;
         }
-    
+
         .tab-button.active {
           border-bottom-color: transparent;
         }
       }
     </style>
-</head>
-<body class="antialiased">
-<!-- Navbar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+  </head>
+  <body class="antialiased">
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Legal Information</h1>
-    <p class="text-xl md:text-2xl mb-8">Privacy Policy & Terms of Service</p>
-  </div>
-</section>
-
-<!-- Main Content Section -->
-<section id="legal-main-content" class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200">
-  <div class="container mx-auto px-4">
-    <!-- Tab Navigation -->
-    <div class="tab-container">
-      <button class="tab-button active" onclick="showTab('privacy')">Privacy Policy</button>
-      <button class="tab-button" onclick="showTab('terms')">Terms of Service</button>
-    </div>
-
-    <!-- Privacy Policy Tab -->
-    <div class="tab-content active" id="privacy-tab">
-      <div class="legal-content">
-        <h2>Privacy Policy</h2>
-        <p>Last updated: December 2024</p>
-
-        <h3>Information We Collect</h3>
-        <p>We collect information you provide directly to us, such as when you create an account, contact us, or
-          participate in our community features.</p>
-
-        <h3>How We Use Your Information</h3>
-        <ul>
-          <li>To provide and maintain our services</li>
-          <li>To communicate with you about updates and changes</li>
-          <li>To ensure the security and integrity of our platform</li>
-          <li>To improve our services and user experience</li>
-        </ul>
-
-        <h3>Information Sharing</h3>
-        <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent,
-          except as described in this policy.</p>
-
-        <h3>Data Security</h3>
-        <p>We implement appropriate security measures to protect your personal information against unauthorized access,
-          alteration, disclosure, or destruction.</p>
-
-        <h3>Your Rights</h3>
-        <p>You have the right to access, update, or delete your personal information. You can manage your account
-          settings through your profile page.</p>
-
-        <h3>Contact Us</h3>
-        <p>If you have any questions about this Privacy Policy, please contact us through our Discord server or website
-          contact forms.</p>
+    <!-- Hero Section -->
+    <section
+      class="hero-banner rounded-b-lg shadow-xl"
+      style="margin-top: 64px"
+    >
+      <div class="container mx-auto px-4 text-center hero-content">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+          Legal Information
+        </h1>
+        <p class="text-xl md:text-2xl mb-8">
+          Privacy Policy & Terms of Service
+        </p>
       </div>
-    </div>
+    </section>
 
-    <!-- Terms of Service Tab -->
-    <div class="tab-content" id="terms-tab">
-      <div class="legal-content">
-        <h2>Terms of Service</h2>
-        <p>Last updated: December 2024</p>
+    <!-- Main Content Section -->
+    <section
+      id="legal-main-content"
+      class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200"
+    >
+      <div class="container mx-auto px-4">
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+          <button class="tab-button active" onclick="showTab('privacy')">
+            Privacy Policy
+          </button>
+          <button class="tab-button" onclick="showTab('terms')">
+            Terms of Service
+          </button>
+        </div>
 
-        <h3>Acceptance of Terms</h3>
-        <p>By accessing and using Arcator.co.uk, you accept and agree to be bound by the terms and provision of this
-          agreement.</p>
+        <!-- Privacy Policy Tab -->
+        <div class="tab-content active" id="privacy-tab">
+          <div class="legal-content">
+            <h2>Privacy Policy</h2>
+            <p>Last updated: December 2024</p>
 
-        <h3>Use License</h3>
-        <p>Permission is granted to temporarily access the materials on Arcator.co.uk for personal, non-commercial
-          transitory viewing only.</p>
+            <h3>Information We Collect</h3>
+            <p>
+              We collect information you provide directly to us, such as when
+              you create an account, contact us, or participate in our community
+              features.
+            </p>
 
-        <h3>User Conduct</h3>
-        <ul>
-          <li>Respect other users and community members</li>
-          <li>Follow server rules and guidelines</li>
-          <li>Do not engage in harassment or harmful behavior</li>
-          <li>Maintain appropriate language and content</li>
-        </ul>
+            <h3>How We Use Your Information</h3>
+            <ul>
+              <li>To provide and maintain our services</li>
+              <li>To communicate with you about updates and changes</li>
+              <li>To ensure the security and integrity of our platform</li>
+              <li>To improve our services and user experience</li>
+            </ul>
 
-        <h3>Account Responsibilities</h3>
-        <p>You are responsible for maintaining the confidentiality of your account and password. You agree to accept
-          responsibility for all activities that occur under your account.</p>
+            <h3>Information Sharing</h3>
+            <p>
+              We do not sell, trade, or otherwise transfer your personal
+              information to third parties without your consent, except as
+              described in this policy.
+            </p>
 
-        <h3>Content Guidelines</h3>
-        <p>Users may submit content to our platform. You retain ownership of your content but grant us a license to use,
-          modify, and distribute it in connection with our services.</p>
+            <h3>Data Security</h3>
+            <p>
+              We implement appropriate security measures to protect your
+              personal information against unauthorized access, alteration,
+              disclosure, or destruction.
+            </p>
 
-        <h3>Prohibited Activities</h3>
-        <ul>
-          <li>Violating any applicable laws or regulations</li>
-          <li>Attempting to gain unauthorized access to our systems</li>
-          <li>Interfering with the proper functioning of our services</li>
-          <li>Sharing malicious content or software</li>
-        </ul>
+            <h3>Your Rights</h3>
+            <p>
+              You have the right to access, update, or delete your personal
+              information. You can manage your account settings through your
+              profile page.
+            </p>
 
-        <h3>Termination</h3>
-        <p>We may terminate or suspend your account and access to our services at any time, with or without cause, with
-          or without notice.</p>
+            <h3>Contact Us</h3>
+            <p>
+              If you have any questions about this Privacy Policy, please
+              contact us through our Discord server or website contact forms.
+            </p>
+          </div>
+        </div>
 
-        <h3>Limitation of Liability</h3>
-        <p>Arcator.co.uk shall not be liable for any indirect, incidental, special, consequential, or punitive damages
-          resulting from your use of our services.</p>
+        <!-- Terms of Service Tab -->
+        <div class="tab-content" id="terms-tab">
+          <div class="legal-content">
+            <h2>Terms of Service</h2>
+            <p>Last updated: December 2024</p>
 
-        <h3>Changes to Terms</h3>
-        <p>We reserve the right to modify these terms at any time. We will notify users of any material changes through
-          our website or Discord server.</p>
+            <h3>Acceptance of Terms</h3>
+            <p>
+              By accessing and using Arcator.co.uk, you accept and agree to be
+              bound by the terms and provision of this agreement.
+            </p>
 
-        <h3>Contact Information</h3>
-        <p>For questions about these Terms of Service, please contact us through our Discord server or website contact
-          forms.</p>
+            <h3>Use License</h3>
+            <p>
+              Permission is granted to temporarily access the materials on
+              Arcator.co.uk for personal, non-commercial transitory viewing
+              only.
+            </p>
+
+            <h3>User Conduct</h3>
+            <ul>
+              <li>Respect other users and community members</li>
+              <li>Follow server rules and guidelines</li>
+              <li>Do not engage in harassment or harmful behavior</li>
+              <li>Maintain appropriate language and content</li>
+            </ul>
+
+            <h3>Account Responsibilities</h3>
+            <p>
+              You are responsible for maintaining the confidentiality of your
+              account and password. You agree to accept responsibility for all
+              activities that occur under your account.
+            </p>
+
+            <h3>Content Guidelines</h3>
+            <p>
+              Users may submit content to our platform. You retain ownership of
+              your content but grant us a license to use, modify, and distribute
+              it in connection with our services.
+            </p>
+
+            <h3>Prohibited Activities</h3>
+            <ul>
+              <li>Violating any applicable laws or regulations</li>
+              <li>Attempting to gain unauthorized access to our systems</li>
+              <li>Interfering with the proper functioning of our services</li>
+              <li>Sharing malicious content or software</li>
+            </ul>
+
+            <h3>Termination</h3>
+            <p>
+              We may terminate or suspend your account and access to our
+              services at any time, with or without cause, with or without
+              notice.
+            </p>
+
+            <h3>Limitation of Liability</h3>
+            <p>
+              Arcator.co.uk shall not be liable for any indirect, incidental,
+              special, consequential, or punitive damages resulting from your
+              use of our services.
+            </p>
+
+            <h3>Changes to Terms</h3>
+            <p>
+              We reserve the right to modify these terms at any time. We will
+              notify users of any material changes through our website or
+              Discord server.
+            </p>
+
+            <h3>Contact Information</h3>
+            <p>
+              For questions about these Terms of Service, please contact us
+              through our Discord server or website contact forms.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- Footer Section -->
-<div id="footer-placeholder"></div>
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
 
-<!-- JavaScript for tab functionality -->
-<script>
-  function showTab(tabName) {
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
+    <!-- JavaScript for tab functionality -->
+    <script>
+      function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll(".tab-content");
+        tabContents.forEach((content) => content.classList.remove("active"));
 
-    // Remove active class from all tab buttons
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => button.classList.remove('active'));
+        // Remove active class from all tab buttons
+        const tabButtons = document.querySelectorAll(".tab-button");
+        tabButtons.forEach((button) => button.classList.remove("active"));
 
-    // Show selected tab content
-    document.getElementById(tabName + '-tab').classList.add('active');
+        // Show selected tab content
+        document.getElementById(tabName + "-tab").classList.add("active");
 
-    // Add active class to clicked button
-    event.target.classList.add('active');
-  }
-</script>
-
-<!-- Firebase SDKs and Main Script -->
-<script type="module">
-  import {
-    auth,
-    getUserProfileFromFirestore,
-    firebaseReadyPromise,
-    DEFAULT_PROFILE_PIC,
-    DEFAULT_THEME_NAME
-  } from './firebase-init.js';
-  import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
-
-  window.showTab = function (tabName) {
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => button.classList.remove('active'));
-    document.getElementById(tabName + '-tab').classList.add('active');
-    event.target.classList.add('active');
-  };
-
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme().then(cachedApplied => {
-    if (cachedApplied) {
-      // Show content immediately if cached theme was applied
-      document.getElementById('legal-main-content').classList.remove('opacity-0');
-    }
-  });
-
-  firebaseReadyPromise.then(() => {
-    auth.onAuthStateChanged(async (user) => {
-      let userProfile = null;
-      if (user) {
-        userProfile = await getUserProfileFromFirestore(user.uid);
+        // Add active class to clicked button
+        event.target.classList.add("active");
       }
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-      loadFooter('current-year-legal');
+    </script>
 
-      // Apply user's theme preference
-      const userThemePreference = userProfile?.themePreference;
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-        document.getElementById('legal-main-content').classList.remove('opacity-0');
-        console.log(`Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-      }
-    });
-  });
-</script>
-</body>
+    <!-- Firebase SDKs and Main Script -->
+    <script type="module">
+      import {
+        auth,
+        getUserProfileFromFirestore,
+        firebaseReadyPromise,
+        DEFAULT_PROFILE_PIC,
+        DEFAULT_THEME_NAME,
+      } from "./firebase-init.js";
+      import { loadNavbar, loadFooter } from "./navbar.js";
+      import {
+        getAvailableThemes,
+        applyTheme,
+        applyCachedTheme,
+      } from "./themes.js";
+
+      window.showTab = function (tabName) {
+        const tabContents = document.querySelectorAll(".tab-content");
+        tabContents.forEach((content) => content.classList.remove("active"));
+        const tabButtons = document.querySelectorAll(".tab-button");
+        tabButtons.forEach((button) => button.classList.remove("active"));
+        document.getElementById(tabName + "-tab").classList.add("active");
+        event.target.classList.add("active");
+      };
+
+      // Apply cached theme immediately to prevent flash
+      applyCachedTheme().then((cachedApplied) => {
+        if (cachedApplied) {
+          // Show content immediately if cached theme was applied
+          document
+            .getElementById("legal-main-content")
+            .classList.remove("opacity-0");
+        }
+      });
+
+      firebaseReadyPromise.then(() => {
+        auth.onAuthStateChanged(async (user) => {
+          let userProfile = null;
+          if (user) {
+            userProfile = await getUserProfileFromFirestore(user.uid);
+          }
+          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+          loadFooter("current-year-legal");
+
+          // Apply user's theme preference
+          const userThemePreference = userProfile?.themePreference;
+          const allThemes = await getAvailableThemes();
+          const themeToApply =
+            allThemes.find((t) => t.id === userThemePreference) ||
+            allThemes.find((t) => t.id === "dark");
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+            document
+              .getElementById("legal-main-content")
+              .classList.remove("opacity-0");
+            console.log(
+              `Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+            );
+          }
+        });
+      });
+    </script>
+  </body>
 </html>

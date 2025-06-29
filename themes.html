@@ -1,174 +1,234 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Themes - Arcator.co.uk</title>
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Production Tailwind CSS -->
-  <link rel="stylesheet" href="style.css">
-  <!-- Google Fonts - Inter -->
-  <style>
-    /* CSS Variables will be set on the <body> tag based on the active theme */
-    /* This section remains as is, as it defines the CSS variables for themes. */
-    body {
-      /* Default fallback variables (for dark theme, or if no theme is applied) */
-      --color-body-bg: #1F2937;
-      --color-text-primary: #E5E7EB;
-      --color-text-secondary: #9CA3AF;
-      --color-link: #60A5FA;
-      --color-link-hover: #3B82F6;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Themes - Arcator.co.uk</title>
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- Production Tailwind CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Google Fonts - Inter -->
+    <style>
+      /* CSS Variables will be set on the <body> tag based on the active theme */
+      /* This section remains as is, as it defines the CSS variables for themes. */
+      body {
+        /* Default fallback variables (for dark theme, or if no theme is applied) */
+        --color-body-bg: #1f2937;
+        --color-text-primary: #e5e7eb;
+        --color-text-secondary: #9ca3af;
+        --color-link: #60a5fa;
+        --color-link-hover: #3b82f6;
 
-      --color-bg-navbar: #111827;
-      --color-bg-content-section: #1F2937;
-      --color-bg-card: #2D3748;
+        --color-bg-navbar: #111827;
+        --color-bg-content-section: #1f2937;
+        --color-bg-card: #2d3748;
 
-      --color-heading-main: #F9FAFB;
-      --color-heading-card: #93C5FD;
+        --color-heading-main: #f9fafb;
+        --color-heading-card: #93c5fd;
 
-      --color-input-bg: #374151;
-      --color-input-text: #E5E7EB;
-      --color-input-border: #4B5563;
-      --color-placeholder: #9CA3AF;
+        --color-input-bg: #374151;
+        --color-input-text: #e5e7eb;
+        --color-input-border: #4b5563;
+        --color-placeholder: #9ca3af;
 
-      --color-button-text: #FFFFFF;
-      --color-button-blue-bg: #3B82F6;
-      --color-button-blue-hover: #2563EB;
-      --color-button-green-bg: #10B981;
-      --color-button-green-hover: #059669;
-      --color-button-red-bg: #EF4444;
-      --color-button-red-hover: #DC2626;
-      --color-button-purple-bg: #9333EA;
-      --color-button-purple-hover: #7E22CE;
-      --color-button-yellow-bg: #FBBF24;
-      --color-button-yellow-hover: #D97706;
-      --color-button-orange-bg: #F97316;
-      --color-button-orange-hover: #EA580C;
-      --color-button-indigo-bg: #6366F1;
-      --color-button-indigo-hover: #4F46E5;
+        --color-button-text: #ffffff;
+        --color-button-blue-bg: #3b82f6;
+        --color-button-blue-hover: #2563eb;
+        --color-button-green-bg: #10b981;
+        --color-button-green-hover: #059669;
+        --color-button-red-bg: #ef4444;
+        --color-button-red-hover: #dc2626;
+        --color-button-purple-bg: #9333ea;
+        --color-button-purple-hover: #7e22ce;
+        --color-button-yellow-bg: #fbbf24;
+        --color-button-yellow-hover: #d97706;
+        --color-button-orange-bg: #f97316;
+        --color-button-orange-hover: #ea580c;
+        --color-button-indigo-bg: #6366f1;
+        --color-button-indigo-hover: #4f46e5;
 
-      --color-table-th-bg: #1F2937;
-      --color-table-th-text: #E5E7EB;
-      --color-table-td-border: #4B5563;
-      --color-table-row-even-bg: #374151;
+        --color-table-th-bg: #1f2937;
+        --color-table-th-text: #e5e7eb;
+        --color-table-td-border: #4b5563;
+        --color-table-row-even-bg: #374151;
 
-      --color-modal-bg: #2D3748;
-      --color-modal-text: #E5E7EB;
-      --color-modal-input-bg: #374151;
-      --color-modal-input-text: #E5E7EB;
+        --color-modal-bg: #2d3748;
+        --color-modal-text: #e5e7eb;
+        --color-modal-input-bg: #374151;
+        --color-modal-input-text: #e5e7eb;
 
-      --color-message-box-bg-success: #4CAF50; /* Green for success */
-      --color-message-box-bg-error: #F44336;   /* Red for error */
+        --color-message-box-bg-success: #4caf50; /* Green for success */
+        --color-message-box-bg-error: #f44336; /* Red for error */
 
-      /* Default font family variable */
-      --font-family-body: 'Inter', sans-serif;
-    }
+        /* Default font family variable */
+        --font-family-body: "Inter", sans-serif;
+      }
 
-    /* Apply CSS variables */
-    /* These base rules apply the variables from :root or the active theme class */
-    body {
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-    }
-    /* ... other theme application styles as in your original themes.html ... */
-    /* Example for .bg-card, .text-primary etc. */
-    .bg-card { background-color: var(--color-bg-card); }
-    .text-primary { color: var(--color-text-primary); }
+      /* Apply CSS variables */
+      /* These base rules apply the variables from :root or the active theme class */
+      body {
+        background-color: var(--color-body-bg);
+        color: var(--color-text-primary);
+      }
+      /* ... other theme application styles as in your original themes.html ... */
+      /* Example for .bg-card, .text-primary etc. */
+      .bg-card {
+        background-color: var(--color-bg-card);
+      }
+      .text-primary {
+        color: var(--color-text-primary);
+      }
 
-    /* --- Theme Specific Variable Overrides --- */
-    /* These classes are added to the <body> by JS to apply specific theme variable sets */
+      /* --- Theme Specific Variable Overrides --- */
+      /* These classes are added to the <body> by JS to apply specific theme variable sets */
 
-    /* Dark Theme (example - these specific values should match theme_variables.css) */
-    .theme-dark {
-      background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
-      background-size: 20px 20px;
-      background-attachment: fixed;
-    }
-    /* Light Theme */
-    .theme-light {
-      background-image: none;
-    }
-    /* Arcator Blue Theme */
-    .theme-arcator-blue {
-      background-image: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(26, 32, 44, 0.8) 0%, rgba(30, 58, 138, 0.4) 100%);
-      background-size: cover;
-      background-attachment: fixed;
-    }
-    /* Add other theme-specific styles if they modify elements not covered by general CSS variables */
+      /* Dark Theme (example - these specific values should match theme_variables.css) */
+      .theme-dark {
+        background-image: linear-gradient(
+          45deg,
+          rgba(0, 0, 0, 0.1) 25%,
+          transparent 25%,
+          transparent 50%,
+          rgba(0, 0, 0, 0.1) 50%,
+          rgba(0, 0, 0, 0.1) 75%,
+          transparent 75%,
+          transparent
+        );
+        background-size: 20px 20px;
+        background-attachment: fixed;
+      }
+      /* Light Theme */
+      .theme-light {
+        background-image: none;
+      }
+      /* Arcator Blue Theme */
+      .theme-arcator-blue {
+        background-image:
+          radial-gradient(
+            circle at center,
+            rgba(30, 58, 138, 0.2) 0%,
+            transparent 70%
+          ),
+          linear-gradient(
+            135deg,
+            rgba(26, 32, 44, 0.8) 0%,
+            rgba(30, 58, 138, 0.4) 100%
+          );
+        background-size: cover;
+        background-attachment: fixed;
+      }
+      /* Add other theme-specific styles if they modify elements not covered by general CSS variables */
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      // Import Firebase instances and utility functions from firebase-init.js
+      import {
+        db,
+        auth,
+        appId,
+        firebaseReadyPromise,
+        DEFAULT_THEME_NAME,
+      } from "./firebase-init.js";
+      // Import theme-related functions from themes.js
+      import {
+        setupThemesFirebase,
+        applyTheme,
+        getAvailableThemes,
+        applyCachedTheme,
+      } from "./themes.js";
+      import {
+        doc,
+        getDoc,
+        onAuthStateChanged,
+        signInAnonymously,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  </style>
-</head>
-<body>
-<script type="module">
-  // Import Firebase instances and utility functions from firebase-init.js
-  import { db, auth, appId, firebaseReadyPromise, DEFAULT_THEME_NAME } from './firebase-init.js';
-  // Import theme-related functions from themes.js
-  import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
-  import { doc, getDoc, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      // Apply cached theme immediately to prevent flash
+      applyCachedTheme().then((cachedApplied) => {
+        if (cachedApplied) {
+          console.log("Themes page: Applied cached theme");
+        }
+      });
 
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme().then(cachedApplied => {
-    if (cachedApplied) {
-      console.log('Themes page: Applied cached theme');
-    }
-  });
+      // Main execution logic on window load for themes.html
+      document.addEventListener("DOMContentLoaded", async () => {
+        // 1. Ensure Firebase is fully initialized and ready
+        await firebaseReadyPromise;
 
-  // Main execution logic on window load for themes.html
-  document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Ensure Firebase is fully initialized and ready
-    await firebaseReadyPromise;
+        // 2. Setup themes Firebase integration with the initialized instances
+        setupThemesFirebase(db, auth, appId); // Pass the imported instances
 
-    // 2. Setup themes Firebase integration with the initialized instances
-    setupThemesFirebase(db, auth, appId); // Pass the imported instances
-
-    // 3. Listen for auth state changes to apply user's theme preference
-    onAuthStateChanged(auth, async (user) => {
-      let userThemePreference = null;
-      if (user) {
-        const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-        try {
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            userThemePreference = data.themePreference;
+        // 3. Listen for auth state changes to apply user's theme preference
+        onAuthStateChanged(auth, async (user) => {
+          let userThemePreference = null;
+          if (user) {
+            const userDocRef = doc(
+              db,
+              `artifacts/${appId}/public/data/user_profiles`,
+              user.uid,
+            );
+            try {
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                userThemePreference = data.themePreference;
+              }
+            } catch (error) {
+              console.error("Error fetching user profile for theme:", error);
+            }
           }
-        } catch (error) {
-          console.error("Error fetching user profile for theme:", error);
-        }
-      }
 
-      // If no user preference and user is anonymous, attempt anonymous sign-in
-      // (This block is primarily for environments where auth is needed just for initial theme load,
-      // like standalone previews if not already authenticated by a parent app).
-      if (!userThemePreference && !user && typeof __initial_auth_token !== 'undefined') {
-        try {
-          await signInAnonymously(auth); // Use the imported 'auth' instance
-          console.log("Signed in anonymously for initial theme load.");
-        } catch (error) {
-          console.error("Anonymous sign-in failed during theme load:", error);
-        }
-      }
+          // If no user preference and user is anonymous, attempt anonymous sign-in
+          // (This block is primarily for environments where auth is needed just for initial theme load,
+          // like standalone previews if not already authenticated by a parent app).
+          if (
+            !userThemePreference &&
+            !user &&
+            typeof __initial_auth_token !== "undefined"
+          ) {
+            try {
+              await signInAnonymously(auth); // Use the imported 'auth' instance
+              console.log("Signed in anonymously for initial theme load.");
+            } catch (error) {
+              console.error(
+                "Anonymous sign-in failed during theme load:",
+                error,
+              );
+            }
+          }
 
-      // Get all available themes (predefined + custom)
-      const allThemes = await getAvailableThemes();
-      // Determine the theme to apply: user's preference, or the default
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+          // Get all available themes (predefined + custom)
+          const allThemes = await getAvailableThemes();
+          // Determine the theme to apply: user's preference, or the default
+          const themeToApply =
+            allThemes.find((t) => t.id === userThemePreference) ||
+            allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
 
-      // Apply the theme using the imported applyTheme function
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-        console.log(`Themes page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-      } else {
-        console.error("No valid theme found to apply. Falling back to hardcoded dark theme variables.");
-        // As a last resort, directly set dark theme properties if all else fails
-        document.documentElement.style.setProperty('--color-body-bg', '#1F2937');
-        document.documentElement.style.setProperty('--color-text-primary', '#E5E7EB');
-        // ... and so on for other core dark theme variables
-      }
-    });
-  });
-</script>
-</body>
+          // Apply the theme using the imported applyTheme function
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+            console.log(
+              `Themes page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+            );
+          } else {
+            console.error(
+              "No valid theme found to apply. Falling back to hardcoded dark theme variables.",
+            );
+            // As a last resort, directly set dark theme properties if all else fails
+            document.documentElement.style.setProperty(
+              "--color-body-bg",
+              "#1F2937",
+            );
+            document.documentElement.style.setProperty(
+              "--color-text-primary",
+              "#E5E7EB",
+            );
+            // ... and so on for other core dark theme variables
+          }
+        });
+      });
+    </script>
+  </body>
 </html>

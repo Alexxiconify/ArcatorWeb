@@ -11,10 +11,12 @@ This guide will help you set up automatic email sending from your Firebase proje
 ## Step 1: Set Up SendGrid
 
 ### 1.1 Create SendGrid Account
+
 - Go to [SendGrid](https://sendgrid.com/) and sign up for a free account
 - Verify your email address
 
 ### 1.2 Get API Key
+
 - In SendGrid dashboard, go to **Settings > API Keys**
 - Click **Create API Key**
 - Name it "Arcator Email Sending"
@@ -22,6 +24,7 @@ This guide will help you set up automatic email sending from your Firebase proje
 - Copy the API key (you'll need it for Firebase)
 
 ### 1.3 Verify Sender Domain
+
 - In SendGrid, go to **Settings > Sender Authentication**
 - Add and verify `noreply@arcator-web.firebaseapp.com` as a sender
 - Follow the DNS verification steps if needed
@@ -29,26 +32,31 @@ This guide will help you set up automatic email sending from your Firebase proje
 ## Step 2: Set Up Firebase Functions
 
 ### 2.1 Initialize Functions (if not already done)
+
 ```bash
 cd "C:\Users\taylo\Documents\projects\arcator website"
 firebase init functions
 ```
+
 - Choose JavaScript
 - Use ESLint: No
 - Install dependencies: Yes
 
 ### 2.2 Install Dependencies
+
 ```bash
 cd functions
 npm install @sendgrid/mail
 ```
 
 ### 2.3 Set SendGrid API Key
+
 ```bash
 firebase functions:config:set sendgrid.key="YOUR_SENDGRID_API_KEY_HERE"
 ```
 
 ### 2.4 Deploy Functions
+
 ```bash
 firebase deploy --only functions
 ```
@@ -56,12 +64,14 @@ firebase deploy --only functions
 ## Step 3: Test Email Sending
 
 ### 3.1 Browser Console Test
+
 1. Go to `admin_and_dev.html` in your browser
 2. Open browser console (F12)
 3. Copy and paste the content from `test-email-browser.js`
 4. Press Enter to run the test
 
 ### 3.2 Check Results
+
 - Check browser console for success/error messages
 - Check Firebase Functions logs: `firebase functions:log`
 - Check your email at `taylorallred04@gmail.com`
@@ -69,19 +79,23 @@ firebase deploy --only functions
 ## Step 4: Verify Everything Works
 
 ### 4.1 Check Firestore
+
 - Go to Firebase Console > Firestore
 - Navigate to `artifacts/arcator-web/public/data/email_history`
 - You should see the test email record with status updates
 
 ### 4.2 Check Functions Logs
+
 ```bash
 firebase functions:log --only sendEmail
 ```
 
 ### 4.3 Test SendGrid Directly
+
 ```bash
 firebase functions:config:get
 ```
+
 Then visit: `https://us-central1-arcator-web.cloudfunctions.net/testSendGrid`
 
 ## Troubleshooting
@@ -121,6 +135,7 @@ firebase functions:config:set sendgrid.key="NEW_API_KEY"
 ## Email Templates
 
 Your system supports these email templates:
+
 - **Welcome Email**: For new users
 - **Announcement**: For community updates
 - **Maintenance**: For scheduled maintenance
@@ -145,7 +160,8 @@ Once email sending is working:
 ## Support
 
 If you encounter issues:
+
 1. Check Firebase Functions logs
 2. Verify SendGrid account status
 3. Test with the browser console script
-4. Check Firestore rules and permissions 
+4. Check Firestore rules and permissions

@@ -1,10 +1,25 @@
 /* Base styles for the body, applying transitions for smooth theme changes. */
 body {
-  font-family: 'Inter', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  background-color: var(--color-body-bg); /* Use CSS variable for body background */
-  color: var(--color-text-primary); /* Use CSS variable for default body text color */
-  background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+  font-family: "Inter", sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  background-color: var(
+    --color-body-bg
+  ); /* Use CSS variable for body background */
+  color: var(
+    --color-text-primary
+  ); /* Use CSS variable for default body text color */
+  background-image: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
   background-size: 20px 20px;
   background-attachment: fixed;
 }
@@ -26,12 +41,15 @@ body {
   color: var(--color-text-secondary) !important;
 }
 .text-gray-400 {
-  color: var(--color-text-secondary) !important; /* Adjust if a different grey is needed */
+  color: var(
+    --color-text-secondary
+  ) !important; /* Adjust if a different grey is needed */
 }
 .text-gray-200 {
   color: var(--color-text-primary) !important;
 }
-.text-blue-500 { /* For spinner */
+.text-blue-500 {
+  /* For spinner */
   color: var(--color-link) !important; /* Using link color for spinner */
 }
 
@@ -39,46 +57,85 @@ body {
 .text-blue-300 {
   color: var(--color-heading-card) !important;
 }
-.text-red-200 { /* Specific for Darrion API subheadings */
-  color: var(--color-text-primary) !important; /* Or a darker version of heading-main */
+.text-red-200 {
+  /* Specific for Darrion API subheadings */
+  color: var(
+    --color-text-primary
+  ) !important; /* Or a darker version of heading-main */
 }
 
 /* Input field styling */
-input, select, textarea {
+input,
+select,
+textarea {
   background-color: var(--color-input-bg) !important;
   color: var(--color-input-text) !important;
   border-color: var(--color-input-border) !important;
 }
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--color-placeholder) !important;
 }
 
 /* Button styling for better visibility */
 .btn-primary,
-.bg-blue-600, .bg-red-600, .bg-green-600, .bg-purple-600, .bg-yellow-600, .bg-indigo-600 {
+.bg-blue-600,
+.bg-red-600,
+.bg-green-600,
+.bg-purple-600,
+.bg-yellow-600,
+.bg-indigo-600 {
   color: var(--color-button-text) !important;
 }
-.bg-blue-600 { background-color: var(--color-button-blue-bg) !important; }
-.hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
-.bg-red-600 { background-color: var(--color-button-red-bg) !important; }
-.hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
-.bg-green-600 { background-color: var(--color-button-green-bg) !important; }
-.hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
-.bg-purple-600 { background-color: var(--color-button-purple-bg) !important; }
-.hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
-.bg-yellow-500 { background-color: var(--color-button-yellow-bg) !important; }
-.hover\:bg-yellow-600:hover { background-color: var(--color-button-yellow-hover) !important; }
-.bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; }
-.hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
-.bg-gray-500 { background-color: var(--color-text-secondary) !important; } /* For confirm-no button */
-.hover\:bg-gray-600:hover { background-color: var(--color-text-primary) !important; } /* For confirm-no button hover */
-
+.bg-blue-600 {
+  background-color: var(--color-button-blue-bg) !important;
+}
+.hover\:bg-blue-700:hover {
+  background-color: var(--color-button-blue-hover) !important;
+}
+.bg-red-600 {
+  background-color: var(--color-button-red-bg) !important;
+}
+.hover\:bg-red-700:hover {
+  background-color: var(--color-button-red-hover) !important;
+}
+.bg-green-600 {
+  background-color: var(--color-button-green-bg) !important;
+}
+.hover\:bg-green-700:hover {
+  background-color: var(--color-button-green-hover) !important;
+}
+.bg-purple-600 {
+  background-color: var(--color-button-purple-bg) !important;
+}
+.hover\:bg-purple-700:hover {
+  background-color: var(--color-button-purple-hover) !important;
+}
+.bg-yellow-500 {
+  background-color: var(--color-button-yellow-bg) !important;
+}
+.hover\:bg-yellow-600:hover {
+  background-color: var(--color-button-yellow-hover) !important;
+}
+.bg-indigo-600 {
+  background-color: var(--color-button-indigo-bg) !important;
+}
+.hover\:bg-indigo-700:hover {
+  background-color: var(--color-button-indigo-hover) !important;
+}
+.bg-gray-500 {
+  background-color: var(--color-text-secondary) !important;
+} /* For confirm-no button */
+.hover\:bg-gray-600:hover {
+  background-color: var(--color-text-primary) !important;
+} /* For confirm-no button hover */
 
 /* Links */
 a {
   color: var(--color-link);
 }
-a.text-blue-400 { /* Specific link color used in this page */
+a.text-blue-400 {
+  /* Specific link color used in this page */
   color: var(--color-link) !important;
 }
 a:hover {
@@ -115,7 +172,8 @@ table tbody tr:nth-child(even) {
 }
 
 /* Modals */
-.modal, .custom-confirm-modal {
+.modal,
+.custom-confirm-modal {
   display: none; /* Crucial: Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 1001; /* Sit on top */
@@ -124,7 +182,7 @@ table tbody tr:nth-child(even) {
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0,0,0,0.7); /* Dark overlay */
+  background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
   /* display: flex; will be set by JS when needed */
   justify-content: center;
   align-items: center;
@@ -135,7 +193,7 @@ table tbody tr:nth-child(even) {
   color: var(--color-modal-text);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   width: 90%;
   max-width: 600px;
   position: relative;
@@ -146,10 +204,14 @@ table tbody tr:nth-child(even) {
 .modal-content label {
   color: var(--color-text-secondary); /* Modal label text */
 }
-.modal-content input, .modal-content select, .modal-content textarea {
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
   background-color: var(--color-modal-input-bg) !important;
   color: var(--color-modal-input-text) !important;
-  border-color: var(--color-input-border) !important; /* Use common input border */
+  border-color: var(
+    --color-input-border
+  ) !important; /* Use common input border */
 }
 
 /* Message box styling */
@@ -165,7 +227,9 @@ table tbody tr:nth-child(even) {
   display: none; /* Hidden by default */
   font-size: 1rem;
   text-align: center;
-  background-color: var(--color-modal-bg); /* Use modal background for consistency */
+  background-color: var(
+    --color-modal-bg
+  ); /* Use modal background for consistency */
   color: var(--color-modal-text); /* Use modal text for consistency */
 }
 .message-box.success {
@@ -183,18 +247,26 @@ table tbody tr:nth-child(even) {
 .editor-toolbar button {
   color: var(--color-input-text) !important; /* Lighter icons */
 }
-.editor-toolbar button.active, .editor-toolbar button:hover {
-  background-color: var(--color-input-border) !important; /* Hover/active state */
+.editor-toolbar button.active,
+.editor-toolbar button:hover {
+  background-color: var(
+    --color-input-border
+  ) !important; /* Hover/active state */
 }
-.CodeMirror, .CodeMirror-scroll {
-  background-color: var(--color-body-bg) !important; /* Dark editor background */
+.CodeMirror,
+.CodeMirror-scroll {
+  background-color: var(
+    --color-body-bg
+  ) !important; /* Dark editor background */
   color: var(--color-text-primary) !important; /* Light text */
 }
 .CodeMirror-cursor {
   border-left: 1px solid var(--color-text-primary) !important; /* Light cursor */
 }
 .CodeMirror-selected {
-  background-color: var(--color-table-th-bg) !important; /* Selection color - using a similar dark shade */
+  background-color: var(
+    --color-table-th-bg
+  ) !important; /* Selection color - using a similar dark shade */
 }
 .CodeMirror-placeholder {
   color: var(--color-placeholder) !important; /* Placeholder color */
@@ -218,7 +290,7 @@ table tbody tr:nth-child(even) {
 }
 
 .hero-banner::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -237,16 +309,17 @@ table tbody tr:nth-child(even) {
   text-align: center;
   z-index: 2;
   color: white;
-  text-shadow: 2px 2px 4px var(--color-hero-shadow, rgba(0,0,0,0.7));
+  text-shadow: 2px 2px 4px var(--color-hero-shadow, rgba(0, 0, 0, 0.7));
 }
 
-.input-field select, select.w-full {
+.input-field select,
+select.w-full {
   width: 100%;
   min-width: 0;
   display: block;
   background-color: var(--color-input-bg, #374151);
-  color: var(--color-input-text, #E5E7EB);
-  border: 1px solid var(--color-input-border, #4B5563);
+  color: var(--color-input-text, #e5e7eb);
+  border: 1px solid var(--color-input-border, #4b5563);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;
@@ -258,20 +331,32 @@ table tbody tr:nth-child(even) {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, var(--color-table-th-bg) 0%, var(--color-bg-card) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-table-th-bg) 0%,
+    var(--color-bg-card) 100%
+  );
   color: var(--color-table-th-text);
   border-radius: 0.75rem;
   margin-bottom: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid var(--color-input-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .collapsible-header:hover {
-  background: linear-gradient(135deg, var(--color-link) 0%, var(--color-table-th-bg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-link) 0%,
+    var(--color-table-th-bg) 100%
+  );
   transform: translateY(-1px);
-  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 15px -3px rgba(0, 0, 0, 0.2),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 .collapsible-header h3 {
@@ -304,12 +389,16 @@ table tbody tr:nth-child(even) {
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
   border: 1px solid var(--color-input-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
 }
 
 .collapsible-content:hover {
-  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 15px -3px rgba(0, 0, 0, 0.2),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 /* Reduce vertical spacing for lists within collapsible sections */
@@ -344,22 +433,38 @@ table tbody tr:nth-child(even) {
 }
 
 .btn-blue {
-  background: linear-gradient(135deg, var(--color-button-blue-bg) 0%, var(--color-button-blue-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-button-blue-bg) 0%,
+    var(--color-button-blue-hover) 100%
+  );
   color: var(--color-button-text);
 }
 
 .btn-red {
-  background: linear-gradient(135deg, var(--color-button-red-bg) 0%, var(--color-button-red-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-button-red-bg) 0%,
+    var(--color-button-red-hover) 100%
+  );
   color: var(--color-button-text);
 }
 
 .btn-purple {
-  background: linear-gradient(135deg, var(--color-button-purple-bg) 0%, var(--color-button-purple-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-button-purple-bg) 0%,
+    var(--color-button-purple-hover) 100%
+  );
   color: var(--color-button-text);
 }
 
 .btn-green {
-  background: linear-gradient(135deg, var(--color-button-green-bg) 0%, var(--color-button-green-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-button-green-bg) 0%,
+    var(--color-button-green-hover) 100%
+  );
   color: var(--color-button-text);
 }
 
@@ -428,7 +533,11 @@ table {
 }
 
 table th {
-  background: linear-gradient(135deg, var(--color-table-th-bg) 0%, var(--color-bg-card) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-table-th-bg) 0%,
+    var(--color-bg-card) 100%
+  );
   color: var(--color-table-th-text);
   padding: 1rem;
   text-align: left;
@@ -473,7 +582,9 @@ table tbody tr:hover {
   color: var(--color-modal-text);
   padding: 2rem;
   border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
   width: 90%;
   max-width: 600px;
   position: relative;
@@ -482,13 +593,23 @@ table tbody tr:hover {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Modern close button */
@@ -531,17 +652,31 @@ table tbody tr:hover {
 }
 
 @keyframes slideDown {
-  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 }
 
 .message-box.success {
-  background: linear-gradient(135deg, var(--color-message-box-bg-success) 0%, #10b981 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-message-box-bg-success) 0%,
+    #10b981 100%
+  );
   color: white;
 }
 
 .message-box.error {
-  background: linear-gradient(135deg, var(--color-message-box-bg-error) 0%, #ef4444 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-message-box-bg-error) 0%,
+    #ef4444 100%
+  );
   color: white;
 }
 
@@ -550,21 +685,21 @@ table tbody tr:hover {
   .collapsible-header {
     padding: 1rem;
   }
-  
+
   .collapsible-header h3 {
     font-size: 1.25rem;
   }
-  
+
   .collapsible-content {
     padding: 1rem;
   }
-  
+
   .modal-content {
     width: 95%;
     margin: 1rem auto;
     padding: 1.5rem;
   }
-  
+
   .btn-primary {
     padding: 0.625rem 1.25rem;
     font-size: 0.8rem;
@@ -589,7 +724,9 @@ table tbody tr:hover {
   color: var(--color-input-text);
   font-size: 0.875rem;
   line-height: 1.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 .form-input:focus {
@@ -647,7 +784,9 @@ table tbody tr:hover {
   color: var(--color-input-text);
   font-size: 0.875rem;
   line-height: 1.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 .input-field input:focus,

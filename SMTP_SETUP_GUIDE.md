@@ -5,6 +5,7 @@ This guide will help you set up a local SMTP server on your server to handle ema
 ## Overview
 
 The SMTP server provides:
+
 - Local email sending without external dependencies
 - Email templates for common use cases
 - Bulk email support
@@ -32,73 +33,79 @@ Edit `smtp-server.js` and update the `SMTP_CONFIG` object:
 
 ```javascript
 const SMTP_CONFIG = {
-  host: 'your-smtp-server.com', // Your SMTP server hostname
+  host: "your-smtp-server.com", // Your SMTP server hostname
   port: 587, // SMTP port (587 for TLS, 465 for SSL)
   secure: false, // true for 465, false for other ports
   auth: {
-    user: 'your-email@arcator.co.uk', // Your email username
-    pass: 'your-secure-password' // Your email password
+    user: "your-email@arcator.co.uk", // Your email username
+    pass: "your-secure-password", // Your email password
   },
   tls: {
-    rejectUnauthorized: false // Set to true for production
-  }
+    rejectUnauthorized: false, // Set to true for production
+  },
 };
 ```
 
 ### 3. Common SMTP Providers
 
 #### Gmail
+
 ```javascript
 const SMTP_CONFIG = {
-  host: 'smtp.gmail.com',
+  host: "smtp.gmail.com",
   port: 587,
   secure: false,
   auth: {
-    user: 'your-email@gmail.com',
-    pass: 'your-app-password' // Use App Password, not regular password
-  }
+    user: "your-email@gmail.com",
+    pass: "your-app-password", // Use App Password, not regular password
+  },
 };
 ```
 
 #### Outlook/Hotmail
+
 ```javascript
 const SMTP_CONFIG = {
-  host: 'smtp-mail.outlook.com',
+  host: "smtp-mail.outlook.com",
   port: 587,
   secure: false,
   auth: {
-    user: 'your-email@outlook.com',
-    pass: 'your-password'
-  }
+    user: "your-email@outlook.com",
+    pass: "your-password",
+  },
 };
 ```
 
 #### Custom Domain (cPanel)
+
 ```javascript
 const SMTP_CONFIG = {
-  host: 'mail.yourdomain.com',
+  host: "mail.yourdomain.com",
   port: 587,
   secure: false,
   auth: {
-    user: 'noreply@yourdomain.com',
-    pass: 'your-email-password'
-  }
+    user: "noreply@yourdomain.com",
+    pass: "your-email-password",
+  },
 };
 ```
 
 ## Running the Server
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
 
 ### Production Mode
+
 ```bash
 npm start
 ```
 
 ### Testing
+
 ```bash
 npm test
 ```
@@ -106,12 +113,15 @@ npm test
 ## API Endpoints
 
 ### Health Check
+
 ```
 GET /health
 ```
+
 Returns server status and SMTP connection status.
 
 ### Send Single Email
+
 ```
 POST /send-email
 Content-Type: application/json
@@ -127,6 +137,7 @@ Content-Type: application/json
 ```
 
 ### Send Bulk Emails
+
 ```
 POST /send-bulk-emails
 Content-Type: application/json
@@ -148,9 +159,11 @@ Content-Type: application/json
 ```
 
 ### Test Connection
+
 ```
 POST /test-connection
 ```
+
 Tests SMTP server connection.
 
 ## Email Templates
@@ -158,6 +171,7 @@ Tests SMTP server connection.
 The server includes built-in templates:
 
 ### Welcome Template
+
 ```javascript
 {
   subject: 'Welcome to Arcator.co.uk!',
@@ -166,6 +180,7 @@ The server includes built-in templates:
 ```
 
 ### Announcement Template
+
 ```javascript
 {
   subject: 'Arcator.co.uk - {{subject}}',
@@ -174,6 +189,7 @@ The server includes built-in templates:
 ```
 
 ### Maintenance Template
+
 ```javascript
 {
   subject: 'Arcator.co.uk - Maintenance Notice',
@@ -182,6 +198,7 @@ The server includes built-in templates:
 ```
 
 ### Event Template
+
 ```javascript
 {
   subject: 'Arcator.co.uk - Event Invitation',
@@ -196,11 +213,11 @@ The server includes built-in templates:
 Import the SMTP integration in `admin_and_dev.js`:
 
 ```javascript
-import { 
-  sendEmailViaSMTP, 
+import {
+  sendEmailViaSMTP,
   testSMTPServerConnection,
-  getSMTPServerStatus 
-} from './smtp-integration.js';
+  getSMTPServerStatus,
+} from "./smtp-integration.js";
 ```
 
 ### 2. Update Email Sending Function
@@ -210,27 +227,27 @@ Replace the EmailJS sending with SMTP:
 ```javascript
 async function sendEmail() {
   // ... existing validation code ...
-  
+
   try {
     const emailData = {
-      to: recipients.join(','),
+      to: recipients.join(","),
       subject: subject,
       content: content,
-      template: template || 'custom',
+      template: template || "custom",
       isHtml: isHtml,
-      from: 'noreply@arcator.co.uk'
+      from: "noreply@arcator.co.uk",
     };
-    
+
     const result = await sendEmailViaSMTP(emailData);
-    
+
     if (result.success) {
-      await logEmailToHistory(recipients, subject, content, 'sent', 'SMTP');
-      showMessageBox('Email sent successfully!', false);
+      await logEmailToHistory(recipients, subject, content, "sent", "SMTP");
+      showMessageBox("Email sent successfully!", false);
     } else {
       throw new Error(result.error);
     }
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error("Email sending failed:", error);
     showMessageBox(`Failed to send email: ${error.message}`, true);
   }
 }
@@ -241,14 +258,14 @@ async function sendEmail() {
 ```javascript
 function displaySMTPStatus() {
   const status = getSMTPServerStatus();
-  const statusDisplay = document.getElementById('smtp-status-display');
-  
+  const statusDisplay = document.getElementById("smtp-status-display");
+
   if (statusDisplay) {
     statusDisplay.innerHTML = `
       <div class="grid grid-cols-2 gap-2 text-sm">
-        <div>Server Connected: ${status.connected ? '✅ Yes' : '❌ No'}</div>
+        <div>Server Connected: ${status.connected ? "✅ Yes" : "❌ No"}</div>
         <div>Server URL: ${status.serverUrl}</div>
-        <div>Ready to Send: ${status.ready ? '✅ Yes' : '❌ No'}</div>
+        <div>Ready to Send: ${status.ready ? "✅ Yes" : "❌ No"}</div>
       </div>
     `;
   }
@@ -258,62 +275,69 @@ function displaySMTPStatus() {
 ## Security Considerations
 
 ### 1. Environment Variables
+
 Store sensitive data in environment variables:
 
 ```javascript
 const SMTP_CONFIG = {
-  host: process.env.SMTP_HOST || 'localhost',
+  host: process.env.SMTP_HOST || "localhost",
   port: parseInt(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true',
+  secure: process.env.SMTP_SECURE === "true",
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
+    pass: process.env.SMTP_PASS,
+  },
 };
 ```
 
 ### 2. Rate Limiting
+
 Add rate limiting to prevent abuse:
 
 ```javascript
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 const emailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 
-app.use('/send-email', emailLimiter);
-app.use('/send-bulk-emails', emailLimiter);
+app.use("/send-email", emailLimiter);
+app.use("/send-bulk-emails", emailLimiter);
 ```
 
 ### 3. CORS Configuration
+
 Restrict CORS to your domain:
 
 ```javascript
-app.use(cors({
-  origin: ['https://arcator.co.uk', 'https://www.arcator.co.uk'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["https://arcator.co.uk", "https://www.arcator.co.uk"],
+    credentials: true,
+  }),
+);
 ```
 
 ## Monitoring and Logging
 
 ### 1. Add Logging
+
 ```javascript
-const winston = require('winston');
+const winston = require("winston");
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: "info",
   format: winston.format.json(),
   transports: [
-    new winston.transports.File({ filename: 'smtp-error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'smtp-combined.log' })
-  ]
+    new winston.transports.File({ filename: "smtp-error.log", level: "error" }),
+    new winston.transports.File({ filename: "smtp-combined.log" }),
+  ],
 });
 ```
 
 ### 2. Health Monitoring
+
 Set up monitoring for the health endpoint:
 
 ```bash
@@ -341,19 +365,21 @@ Set up monitoring for the health endpoint:
    - Check certificate validity
 
 ### Debug Mode
+
 Enable debug logging:
 
 ```javascript
 const SMTP_CONFIG = {
   // ... other config
   debug: true, // Enable debug output
-  logger: true // Enable built-in logger
+  logger: true, // Enable built-in logger
 };
 ```
 
 ## Production Deployment
 
 ### 1. Process Manager
+
 Use PM2 for production:
 
 ```bash
@@ -364,13 +390,14 @@ pm2 startup
 ```
 
 ### 2. Reverse Proxy
+
 Configure Nginx as reverse proxy:
 
 ```nginx
 server {
     listen 80;
     server_name smtp.arcator.co.uk;
-    
+
     location / {
         proxy_pass http://localhost:3001;
         proxy_set_header Host $host;
@@ -380,6 +407,7 @@ server {
 ```
 
 ### 3. SSL Certificate
+
 Add SSL for secure communication:
 
 ```bash
@@ -404,6 +432,7 @@ node test-smtp.js
 ## Support
 
 For issues or questions:
+
 1. Check the troubleshooting section
 2. Review server logs
 3. Test SMTP connection manually
@@ -411,4 +440,4 @@ For issues or questions:
 
 ---
 
-**Note**: This SMTP server is designed for internal use. For high-volume email sending, consider using dedicated email services like SendGrid, Mailgun, or AWS SES. 
+**Note**: This SMTP server is designed for internal use. For high-volume email sending, consider using dedicated email services like SendGrid, Mailgun, or AWS SES.

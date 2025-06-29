@@ -1,17 +1,17 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const axios = require('axios');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const axios = require("axios");
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
 // SMTP Server configuration
-const SMTP_SERVER_URL = 'http://apollo.arcator.co.uk:3001';
+const SMTP_SERVER_URL = "http://apollo.arcator.co.uk:3001";
 const SMTP_SERVER_CONFIG = {
-  host: 'smtp.gmail.com',
+  host: "smtp.gmail.com",
   port: 587,
-  user: 'no-reply.aractor@gmail.com',
-  pass: 'ArcatorAppS3rver!2024'
+  user: "no-reply.aractor@gmail.com",
+  pass: "ArcatorAppS3rver!2024",
 };
 
 /**
@@ -19,57 +19,70 @@ const SMTP_SERVER_CONFIG = {
  * Sends the email using the SMTP server via REST API and updates the status
  */
 exports.sendEmail = functions.firestore
-  .document('artifacts/{appId}/public/data/email_history/{emailId}')
+  .document("artifacts/{appId}/public/data/email_history/{emailId}")
   .onCreate(async (snap, context) => {
     const emailData = snap.data();
     const emailId = snap.id;
     const appId = context.params.appId;
-    
+
     console.log(`Processing email ${emailId} for app ${appId}:`, emailData);
-    
+
     try {
       // Validate required fields
       if (!emailData.to || !emailData.subject || !emailData.content) {
-        console.error('Missing required email fields:', emailData);
-        await updateEmailStatus(emailId, appId, 'failed', 'Missing required fields');
+        console.error("Missing required email fields:", emailData);
+        await updateEmailStatus(
+          emailId,
+          appId,
+          "failed",
+          "Missing required fields",
+        );
         return;
       }
-      
+
       // Prepare email data for SMTP server
       const smtpEmailData = {
         to: emailData.to,
-        from: emailData.from || 'no-reply.aractor@gmail.com',
+        from: emailData.from || "no-reply.aractor@gmail.com",
         subject: emailData.subject,
         text: emailData.isHtml ? null : emailData.content,
         html: emailData.isHtml ? emailData.content : null,
       };
-      
-      console.log('Sending email via SMTP server:', smtpEmailData);
-      
+
+      console.log("Sending email via SMTP server:", smtpEmailData);
+
       // Send email using SMTP server REST API
-      const response = await axios.post(`${SMTP_SERVER_URL}/send-email`, smtpEmailData, {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axios.post(
+        `${SMTP_SERVER_URL}/send-email`,
+        smtpEmailData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000, // 30 second timeout
         },
-        timeout: 30000, // 30 second timeout
-      });
-      
-      console.log('Email sent successfully via SMTP server:', response.data);
-      
+      );
+
+      console.log("Email sent successfully via SMTP server:", response.data);
+
       // Update email status to sent
-      await updateEmailStatus(emailId, appId, 'sent', 'Email sent successfully via SMTP server');
-      
+      await updateEmailStatus(
+        emailId,
+        appId,
+        "sent",
+        "Email sent successfully via SMTP server",
+      );
     } catch (error) {
-      console.error('Error sending email via SMTP server:', error);
-      
+      console.error("Error sending email via SMTP server:", error);
+
       // Extract error message
       let errorMessage = error.message;
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       }
-      
+
       // Update email status to failed
-      await updateEmailStatus(emailId, appId, 'failed', errorMessage);
+      await updateEmailStatus(emailId, appId, "failed", errorMessage);
     }
   });
 
@@ -78,23 +91,24 @@ exports.sendEmail = functions.firestore
  */
 async function updateEmailStatus(emailId, appId, status, message) {
   try {
-    const emailRef = admin.firestore()
-      .collection('artifacts')
+    const emailRef = admin
+      .firestore()
+      .collection("artifacts")
       .doc(appId)
-      .collection('public')
-      .doc('data')
-      .collection('email_history')
+      .collection("public")
+      .doc("data")
+      .collection("email_history")
       .doc(emailId);
-    
+
     await emailRef.update({
       status: status,
       errorMessage: message,
-      completedAt: admin.firestore.FieldValue.serverTimestamp()
+      completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-    
+
     console.log(`Email ${emailId} status updated to: ${status}`);
   } catch (error) {
-    console.error('Error updating email status:', error);
+    console.error("Error updating email status:", error);
   }
 }
 
@@ -107,43 +121,47 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
     const healthResponse = await axios.get(`${SMTP_SERVER_URL}/health`, {
       timeout: 10000,
     });
-    
-    console.log('SMTP server health check:', healthResponse.data);
-    
+
+    console.log("SMTP server health check:", healthResponse.data);
+
     // Send test email
     const testEmailData = {
-      to: 'taylorallred04@gmail.com',
-      from: 'no-reply.aractor@gmail.com',
-      subject: 'SMTP Server Test Email',
-      text: 'This is a test email to verify SMTP server configuration.',
-      html: '<p>This is a test email to verify SMTP server configuration.</p>',
+      to: "taylorallred04@gmail.com",
+      from: "no-reply.aractor@gmail.com",
+      subject: "SMTP Server Test Email",
+      text: "This is a test email to verify SMTP server configuration.",
+      html: "<p>This is a test email to verify SMTP server configuration.</p>",
     };
-    
-    const emailResponse = await axios.post(`${SMTP_SERVER_URL}/send-email`, testEmailData, {
-      headers: {
-        'Content-Type': 'application/json',
+
+    const emailResponse = await axios.post(
+      `${SMTP_SERVER_URL}/send-email`,
+      testEmailData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 30000,
       },
-      timeout: 30000,
-    });
-    
+    );
+
     res.json({
       success: true,
-      message: 'Test email sent successfully via SMTP server',
+      message: "Test email sent successfully via SMTP server",
       health: healthResponse.data,
-      email: emailResponse.data
+      email: emailResponse.data,
     });
   } catch (error) {
-    console.error('SMTP server test failed:', error);
-    
+    console.error("SMTP server test failed:", error);
+
     let errorMessage = error.message;
     if (error.response && error.response.data && error.response.data.error) {
       errorMessage = error.response.data.error;
     }
-    
+
     res.status(500).json({
       success: false,
       error: errorMessage,
-      smtpServerUrl: SMTP_SERVER_URL
+      smtpServerUrl: SMTP_SERVER_URL,
     });
   }
 });
@@ -154,43 +172,46 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
 exports.sendBulkEmails = functions.https.onRequest(async (req, res) => {
   try {
     const { emails } = req.body;
-    
+
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'No emails provided or invalid format'
+        error: "No emails provided or invalid format",
       });
     }
-    
+
     console.log(`Sending ${emails.length} bulk emails via SMTP server`);
-    
+
     // Send bulk emails using SMTP server REST API
-    const response = await axios.post(`${SMTP_SERVER_URL}/send-bulk-emails`, { emails }, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post(
+      `${SMTP_SERVER_URL}/send-bulk-emails`,
+      { emails },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 60000, // 60 second timeout for bulk emails
       },
-      timeout: 60000, // 60 second timeout for bulk emails
-    });
-    
-    console.log('Bulk emails sent successfully:', response.data);
-    
+    );
+
+    console.log("Bulk emails sent successfully:", response.data);
+
     res.json({
       success: true,
-      message: 'Bulk emails sent successfully via SMTP server',
-      result: response.data
+      message: "Bulk emails sent successfully via SMTP server",
+      result: response.data,
     });
-    
   } catch (error) {
-    console.error('Error sending bulk emails via SMTP server:', error);
-    
+    console.error("Error sending bulk emails via SMTP server:", error);
+
     let errorMessage = error.message;
     if (error.response && error.response.data && error.response.data.error) {
       errorMessage = error.response.data.error;
     }
-    
+
     res.status(500).json({
       success: false,
-      error: errorMessage
+      error: errorMessage,
     });
   }
 });
@@ -203,19 +224,19 @@ exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
     const response = await axios.get(`${SMTP_SERVER_URL}/health`, {
       timeout: 10000,
     });
-    
+
     res.json({
       success: true,
       smtpServerUrl: SMTP_SERVER_URL,
-      status: response.data
+      status: response.data,
     });
   } catch (error) {
-    console.error('Error getting SMTP server status:', error);
-    
+    console.error("Error getting SMTP server status:", error);
+
     res.status(500).json({
       success: false,
       error: error.message,
-      smtpServerUrl: SMTP_SERVER_URL
+      smtpServerUrl: SMTP_SERVER_URL,
     });
   }
 });

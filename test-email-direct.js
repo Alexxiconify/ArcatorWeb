@@ -1,50 +1,55 @@
 // Test script to send emails directly using SendGrid API
 // Note: This requires a SendGrid API key and should only be used for testing
 
-const SENDGRID_API_KEY = 'YOUR_SENDGRID_API_KEY_HERE'; // Replace with your actual API key
+const SENDGRID_API_KEY = "YOUR_SENDGRID_API_KEY_HERE"; // Replace with your actual API key
 
 async function testDirectEmailSending() {
   const emailData = {
-    to: 'taylorallred04@gmail.com',
-    from: 'noreply@arcator-web.firebaseapp.com',
-    subject: 'Test Email from Arcator.co.uk',
-    content: 'Hello! This is a test email to verify the email system is working.',
-    isHtml: false
+    to: "taylorallred04@gmail.com",
+    from: "noreply@arcator-web.firebaseapp.com",
+    subject: "Test Email from Arcator.co.uk",
+    content:
+      "Hello! This is a test email to verify the email system is working.",
+    isHtml: false,
   };
 
   try {
-    console.log('Sending test email...');
-    
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
+    console.log("Sending test email...");
+
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        personalizations: [{
-          to: [{ email: emailData.to }]
-        }],
+        personalizations: [
+          {
+            to: [{ email: emailData.to }],
+          },
+        ],
         from: { email: emailData.from },
         subject: emailData.subject,
-        content: [{
-          type: emailData.isHtml ? 'text/html' : 'text/plain',
-          value: emailData.content
-        }]
-      })
+        content: [
+          {
+            type: emailData.isHtml ? "text/html" : "text/plain",
+            value: emailData.content,
+          },
+        ],
+      }),
     });
 
     if (response.ok) {
-      console.log('✅ Email sent successfully!');
-      console.log('Response status:', response.status);
+      console.log("✅ Email sent successfully!");
+      console.log("Response status:", response.status);
     } else {
       const errorText = await response.text();
-      console.error('❌ Failed to send email');
-      console.error('Status:', response.status);
-      console.error('Error:', errorText);
+      console.error("❌ Failed to send email");
+      console.error("Status:", response.status);
+      console.error("Error:", errorText);
     }
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error("❌ Error sending email:", error);
   }
 }
 
@@ -90,4 +95,4 @@ ALTERNATIVE: Use a different email service like:
 `);
 
 // Uncomment the line below to test (after adding your API key):
-// testDirectEmailSending(); 
+// testDirectEmailSending();

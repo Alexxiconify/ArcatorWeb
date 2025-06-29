@@ -1,870 +1,1507 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Arcator.co.uk</title>
-  <!-- Production Tailwind CSS -->
-  <link rel="stylesheet" href="style.css">
-  <!-- Google Fonts - Inter and others -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Link to the CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to common.css for shared styles -->
-  <link href="common.css" rel="stylesheet">
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <!-- EmailJS Script -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <style>
-    /* Base styles using CSS variables */
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-      transition: background-color 0.3s, color 0.3s;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Arcator.co.uk</title>
+    <!-- Production Tailwind CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Google Fonts - Inter and others -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Link to the CSS variables -->
+    <link rel="stylesheet" href="theme_variables.css" />
+    <!-- Link to common.css for shared styles -->
+    <link href="common.css" rel="stylesheet" />
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- EmailJS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+      /* Base styles using CSS variables */
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--color-body-bg);
+        color: var(--color-text-primary);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
 
-    /* Hero banner background image */
-    .hero-banner {
-      background-image: url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
+      /* Hero banner background image */
+      .hero-banner {
+        background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
 
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
-    }
+      .hero-banner::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1;
+      }
 
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    }
+      .hero-content {
+        position: relative;
+        z-index: 2;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      }
 
-    /* Collapsible header styling */
-    .collapsible-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 1.5rem;
-      border-radius: 0.5rem;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+      /* Collapsible header styling */
+      .collapsible-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
 
-    .collapsible-header h3 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
+      .collapsible-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
 
-    .collapsible-header svg {
-      transition: transform 0.3s ease;
-    }
+      .collapsible-header svg {
+        transition: transform 0.3s ease;
+      }
 
-    .collapsible-header svg.rotate-90 {
-      transform: rotate(90deg);
-    }
+      .collapsible-header svg.rotate-90 {
+        transform: rotate(90deg);
+      }
 
-    /* Styles for content sections to save vertical space */
-    .collapsible-content {
-      padding: 1rem 1.5rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1rem;
-    }
+      /* Styles for content sections to save vertical space */
+      .collapsible-content {
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
 
-    /* Reduce vertical spacing for lists within collapsible sections */
-    .collapsible-content ul {
-      margin-bottom: 0.5rem;
-    }
-    .collapsible-content li {
-      margin-bottom: 0.25rem;
-    }
+      /* Reduce vertical spacing for lists within collapsible sections */
+      .collapsible-content ul {
+        margin-bottom: 0.5rem;
+      }
+      .collapsible-content li {
+        margin-bottom: 0.25rem;
+      }
 
-    /* Styles for temporary page tabs */
-    .temp-page-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--color-input-border);
-      padding-bottom: 0.5rem;
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-link) var(--color-bg-navbar);
-    }
+      /* Styles for temporary page tabs */
+      .temp-page-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--color-input-border);
+        padding-bottom: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-link) var(--color-bg-navbar);
+      }
 
-    .temp-page-tabs::-webkit-scrollbar {
-      height: 8px;
-    }
+      .temp-page-tabs::-webkit-scrollbar {
+        height: 8px;
+      }
 
-    .temp-page-tabs::-webkit-scrollbar-track {
-      background: var(--color-bg-navbar);
-      border-radius: 10px;
-    }
+      .temp-page-tabs::-webkit-scrollbar-track {
+        background: var(--color-bg-navbar);
+        border-radius: 10px;
+      }
 
-    .temp-page-tabs::-webkit-scrollbar-thumb {
-      background-color: var(--color-link);
-      border-radius: 10px;
-      border: 2px solid var(--color-bg-navbar);
-    }
+      .temp-page-tabs::-webkit-scrollbar-thumb {
+        background-color: var(--color-link);
+        border-radius: 10px;
+        border: 2px solid var(--color-bg-navbar);
+      }
 
-    .temp-page-tab-button {
-      flex-shrink: 0;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 150px;
-    }
+      .temp-page-tab-button {
+        flex-shrink: 0;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition:
+          background-color 0.2s ease,
+          color 0.2s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+      }
 
-    .temp-page-tab-button.active {
-      font-weight: 600;
-    }
+      .temp-page-tab-button.active {
+        font-weight: 600;
+      }
 
-    .main-section, .admin-section, .content-section {
-      background-color: var(--color-bg-content-section);
-      color: var(--color-text-primary);
-    }
-  </style>
-</head>
-<body class="antialiased">
-<!-- Navbar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+      .main-section,
+      .admin-section,
+      .content-section {
+        background-color: var(--color-bg-content-section);
+        color: var(--color-text-primary);
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-<!-- Hero Section -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px;">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main">Admin</h1>
-    <p id="hero-subtitle" class="text-xl md:text-2xl mb-8 text-heading-card">Insights into Arcator's operations and ongoing projects.</p>
-  </div>
-</section>
-<!-- Admin Section Content -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="admin-dev">
-  <div class="container mx-auto px-4">
-    <!-- Login Required Message / Redirect -->
-    <div class="text-center bg-card p-8 rounded-lg shadow-md mb-8" id="login-required-message" style="display: none;">
-      <h2 class="text-4xl font-bold text-heading-main mb-6">Access Denied</h2>
-      <p class="text-lg text-text-secondary mb-8">You must be logged in to access this page. Some sections require administrator privileges.</p>
-      <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
-    </div>
+    <!-- Hero Section -->
+    <section
+      class="hero-banner rounded-b-lg shadow-xl"
+      style="margin-top: 64px"
+    >
+      <div class="container mx-auto px-4 text-center hero-content">
+        <h1
+          id="hero-title"
+          class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main"
+        >
+          Admin
+        </h1>
+        <p
+          id="hero-subtitle"
+          class="text-xl md:text-2xl mb-8 text-heading-card"
+        >
+          Insights into Arcator's operations and ongoing projects.
+        </p>
+      </div>
+    </section>
+    <!-- Admin Section Content -->
+    <section
+      class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8"
+      id="admin-dev"
+    >
+      <div class="container mx-auto px-4">
+        <!-- Login Required Message / Redirect -->
+        <div
+          class="text-center bg-card p-8 rounded-lg shadow-md mb-8"
+          id="login-required-message"
+          style="display: none"
+        >
+          <h2 class="text-4xl font-bold text-heading-main mb-6">
+            Access Denied
+          </h2>
+          <p class="text-lg text-text-secondary mb-8">
+            You must be logged in to access this page. Some sections require
+            administrator privileges.
+          </p>
+          <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
+        </div>
 
-    <!-- Admin Guides section (first) -->
-    <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-      <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <details open>
-          <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Admin Guides
-          </summary>
-          <div class="mt-4 w-full flex flex-col items-start">
-            <p class="mb-2">Guides for sysadmin tasks, SSH, and server management:</p>
-            <ul class="list-disc ml-6 mb-2">
-              <li><a href="https://wiki.arcator.co.uk/en/Sysadmin" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a></li>
-              <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Arcator Internal Docs (Growth plans, admin notes)</a></li>
-              <li><a href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Vann's Command Guide</a></li>
-            </ul>
-            <p class="text-xs text-text-secondary">See wiki for SSH key setup, Termius config, and host details. Use Mosh for high-speed, port 220, user <b>mcsa</b>.</p>
+        <!-- Admin Guides section (first) -->
+        <div
+          class="settings-section"
+          style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+        >
+          <div
+            class="settings-card"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <details open>
+              <summary
+                class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+              >
+                Admin Guides
+              </summary>
+              <div class="mt-4 w-full flex flex-col items-start">
+                <p class="mb-2">
+                  Guides for sysadmin tasks, SSH, and server management:
+                </p>
+                <ul class="list-disc ml-6 mb-2">
+                  <li>
+                    <a
+                      href="https://wiki.arcator.co.uk/en/Sysadmin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-link hover:underline"
+                      >Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-link hover:underline"
+                      >Arcator Internal Docs (Growth plans, admin notes)</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-link hover:underline"
+                      >Vann's Command Guide</a
+                    >
+                  </li>
+                </ul>
+                <p class="text-xs text-text-secondary">
+                  See wiki for SSH key setup, Termius config, and host details.
+                  Use Mosh for high-speed, port 220, user <b>mcsa</b>.
+                </p>
+              </div>
+            </details>
           </div>
-        </details>
-      </div>
-    </div>
+        </div>
 
-    <!-- RE-ADD ALL MAIN ADMIN PANEL SECTIONS BELOW -->
-    <div id="admin-content">
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              User Management
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="user-list-tbody">
-                    <tr>
-                      <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Direct Messages History
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">DATE</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">FROM</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">TO</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">SUBJECT</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">CONTENT</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="dm-history-tbody">
-                    <tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Forms Management (Theme → Thread → Comment)
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">THEME</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">DESCRIPTION</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">THREADS</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">COMMENTS</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="form-submissions-tbody">
-                    <tr><td class="text-center py-4 text-text-secondary text-xs" colspan="5">No forms found.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Temporary Pages
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <form id="create-temp-page-form" class="space-y-4 w-full">
-                <div class="input-field w-full">
-                  <label for="temp-page-title" class="form-label">Page Title:</label>
-                  <input id="temp-page-title" placeholder="Enter page title" type="text" class="form-input w-full"/>
-                </div>
-                <div class="input-field w-full">
-                  <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
-                  <div class="emoji-input-container">
-                    <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
-                    <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('temp-page-content-emoji-picker')" title="Add emoji">
-                      😊
-                    </button>
-                  </div>
-                  <div id="temp-page-content-emoji-picker" class="emoji-picker hidden">
-                    <div class="emoji-picker-header">
-                      <input type="text" id="temp-page-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
-                    </div>
-                    <div id="temp-page-content-emoji-list" class="emoji-list">
-                      <!-- Emojis will be loaded here -->
-                    </div>
+        <!-- RE-ADD ALL MAIN ADMIN PANEL SECTIONS BELOW -->
+        <div id="admin-content">
+          <div
+            class="settings-section"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <div
+              class="settings-card"
+              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            >
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+                >
+                  User Management
+                </summary>
+                <div class="mt-4 w-full flex flex-col items-start">
+                  <div class="w-full">
+                    <table class="w-full text-left table-auto text-xs">
+                      <thead>
+                        <tr class="bg-table-th-bg">
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            UID
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            Display Name
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            Email
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            Theme
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody id="user-list-tbody">
+                        <tr>
+                          <td
+                            class="text-center py-4 text-text-secondary text-xs"
+                            colspan="5"
+                          >
+                            Loading users...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <div class="flex items-center gap-4 mb-4">
-                  <div class="checkbox-container mb-0">
-                    <input type="checkbox" id="temp-page-allow-comments-create" class="form-checkbox" checked>
-                    <label for="temp-page-allow-comments-create">Allow Comments</label>
-                  </div>
-                  <button type="submit" class="btn-primary btn-blue ml-0">Create Temp Page</button>
-                </div>
-              </form>
-              <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
-              <div id="temp-page-list" class="overflow-x-auto w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">TITLE</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="temp-pages-tbody">
-                    <tr><td class="text-center py-4 text-text-secondary text-xs" colspan="2">No temporary pages found.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div id="edit-temp-page-modal" class="modal" style="display: none;">
-                <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
-                  <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-heading-card">Edit Temporary Page</h3>
-                    <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
-                  </div>
-                  
-                  <form id="edit-temp-page-form" class="space-y-6">
-                    <!-- Page Information Section -->
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Page Information</h4>
-                      <div class="space-y-4">
-                        <div class="input-field">
-                          <label for="edit-temp-page-title" class="form-label">Page Title:</label>
-                          <input id="edit-temp-page-title" type="text" placeholder="Enter page title" class="form-input w-full"/>
-                        </div>
-                        <div class="input-field">
-                          <label for="edit-temp-page-content" class="form-label">Page Content (HTML allowed):</label>
-                          <div class="emoji-input-container">
-                            <textarea id="edit-temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-48"></textarea>
-                            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-temp-page-content-emoji-picker')" title="Add emoji">
-                              😊
-                            </button>
-                          </div>
-                          <div id="edit-temp-page-content-emoji-picker" class="emoji-picker hidden">
-                            <div class="emoji-picker-header">
-                              <input type="text" id="edit-temp-page-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
-                            </div>
-                            <div id="edit-temp-page-content-emoji-list" class="emoji-list">
-                              <!-- Emojis will be loaded here -->
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Page Settings Section -->
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Page Settings</h4>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="input-field">
-                          <label for="edit-temp-page-status" class="form-label">Page Status:</label>
-                          <select id="edit-temp-page-status" class="form-input w-full">
-                            <option value="active">Active</option>
-                            <option value="draft">Draft</option>
-                            <option value="archived">Archived</option>
-                          </select>
-                        </div>
-                        <div class="input-field">
-                          <label for="edit-temp-page-visibility" class="form-label">Visibility:</label>
-                          <select id="edit-temp-page-visibility" class="form-input w-full">
-                            <option value="public">Public</option>
-                            <option value="private">Private</option>
-                            <option value="admin-only">Admin Only</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="mt-4 space-y-3">
-                        <div class="checkbox-container">
-                          <input type="checkbox" id="edit-temp-page-allow-comments" class="form-checkbox">
-                          <label for="edit-temp-page-allow-comments">Allow Comments</label>
-                        </div>
-                        <div class="checkbox-container">
-                          <input type="checkbox" id="edit-temp-page-show-author" class="form-checkbox">
-                          <label for="edit-temp-page-show-author">Show Author Information</label>
-                        </div>
-                        <div class="checkbox-container">
-                          <input type="checkbox" id="edit-temp-page-enable-tracking" class="form-checkbox">
-                          <label for="edit-temp-page-enable-tracking">Enable Page View Tracking</label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Advanced Settings Section -->
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Advanced Settings</h4>
-                      <div class="space-y-4">
-                        <div class="input-field">
-                          <label for="edit-temp-page-meta-description" class="form-label">Meta Description:</label>
-                          <textarea id="edit-temp-page-meta-description" placeholder="Enter meta description for SEO..." class="form-input w-full h-20"></textarea>
-                        </div>
-                        <div class="input-field">
-                          <label for="edit-temp-page-custom-css" class="form-label">Custom CSS:</label>
-                          <textarea id="edit-temp-page-custom-css" placeholder="Enter custom CSS for this page..." class="form-input w-full h-24"></textarea>
-                        </div>
-                        <div class="input-field">
-                          <label for="edit-temp-page-custom-js" class="form-label">Custom JavaScript:</label>
-                          <textarea id="edit-temp-page-custom-js" placeholder="Enter custom JavaScript for this page..." class="form-input w-full h-24"></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
-                      <button type="button" id="cancel-temp-page-changes-btn" class="btn-primary btn-red">Cancel</button>
-                      <button type="submit" id="save-temp-page-changes-btn" class="btn-primary btn-blue">Save Changes</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+              </details>
             </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Email Management
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <!-- Compose Email Section -->
-              <div class="w-full mb-6">
-                <h4 class="text-lg font-semibold text-heading-card mb-4">Compose Email</h4>
-                <form id="email-compose-form" class="space-y-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="input-field">
-                      <label for="email-recipient-type" class="form-label">Recipient Type:</label>
-                      <select id="email-recipient-type" class="form-input w-full">
-                      </select>
-                    </div>
-                    <div class="input-field">
-                      <label for="email-template" class="form-label">Email Template:</label>
-                      <select id="email-template" class="form-input w-full">
-                      </select>
-                    </div>
+          </div>
+          <div
+            class="settings-section"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <div
+              class="settings-card"
+              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            >
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+                >
+                  Direct Messages History
+                </summary>
+                <div class="mt-4 w-full flex flex-col items-start">
+                  <div class="w-full">
+                    <table class="w-full text-left table-auto text-xs">
+                      <thead>
+                        <tr class="bg-table-th-bg">
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            DATE
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            FROM
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            TO
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            SUBJECT
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            CONTENT
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            ACTIONS
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody id="dm-history-tbody">
+                        <tr>
+                          <td
+                            class="text-center py-4 text-text-secondary text-xs"
+                            colspan="6"
+                          >
+                            No DMs found.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                  
-                  <div id="custom-recipients-section" class="input-field" style="display: none;">
-                    <label for="email-recipients" class="form-label">Select Recipients:</label>
-                    <div class="bg-input-bg border border-input-border rounded-lg p-3 max-h-48 overflow-y-auto">
-                      <div id="email-recipients-list" class="space-y-2">
-                        <!-- Recipients will be populated here -->
+                </div>
+              </details>
+            </div>
+          </div>
+          <div
+            class="settings-section"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <div
+              class="settings-card"
+              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            >
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+                >
+                  Forms Management (Theme → Thread → Comment)
+                </summary>
+                <div class="mt-4 w-full flex flex-col items-start">
+                  <div class="w-full">
+                    <table class="w-full text-left table-auto text-xs">
+                      <thead>
+                        <tr class="bg-table-th-bg">
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            THEME
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            DESCRIPTION
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            THREADS
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            COMMENTS
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            ACTIONS
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody id="form-submissions-tbody">
+                        <tr>
+                          <td
+                            class="text-center py-4 text-text-secondary text-xs"
+                            colspan="5"
+                          >
+                            No forms found.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+          <div
+            class="settings-section"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <div
+              class="settings-card"
+              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            >
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+                >
+                  Temporary Pages
+                </summary>
+                <div class="mt-4 w-full flex flex-col items-start">
+                  <form id="create-temp-page-form" class="space-y-4 w-full">
+                    <div class="input-field w-full">
+                      <label for="temp-page-title" class="form-label"
+                        >Page Title:</label
+                      >
+                      <input
+                        id="temp-page-title"
+                        placeholder="Enter page title"
+                        type="text"
+                        class="form-input w-full"
+                      />
+                    </div>
+                    <div class="input-field w-full">
+                      <label for="temp-page-content" class="form-label"
+                        >Page Content (HTML allowed):</label
+                      >
+                      <div class="emoji-input-container">
+                        <script type="module">
+                          import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                          document.currentScript.insertAdjacentHTML(
+                            "beforebegin",
+                            createEmojiMediaInputContainer(
+                              "temp-page-content",
+                              "temp-page-content-emoji-picker",
+                              "temp-page-content-media-picker",
+                              "textarea",
+                              "Write your page content here... Use HTML for styling!",
+                              "form-input w-full h-32",
+                            ),
+                          );
+                        </script>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div class="input-field">
-                    <label for="email-subject" class="form-label">Subject:</label>
-                    <input id="email-subject" type="text" placeholder="Enter email subject" class="form-input w-full"/>
-                  </div>
-                  
-                  <div class="input-field">
-                    <label for="email-content" class="form-label">Email Content:</label>
-                    <div class="emoji-input-container">
-                      <textarea id="email-content" placeholder="Write your email content here..." class="form-input w-full h-32"></textarea>
-                      <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('email-content-emoji-picker')" title="Add emoji">
-                        😊
+                    <div class="flex items-center gap-4 mb-4">
+                      <div class="checkbox-container mb-0">
+                        <input
+                          type="checkbox"
+                          id="temp-page-allow-comments-create"
+                          class="form-checkbox"
+                          checked
+                        />
+                        <label for="temp-page-allow-comments-create"
+                          >Allow Comments</label
+                        >
+                      </div>
+                      <button type="submit" class="btn-primary btn-blue ml-0">
+                        Create Temp Page
                       </button>
                     </div>
-                    <div id="email-content-emoji-picker" class="emoji-picker hidden">
-                      <div class="emoji-picker-header">
-                        <input type="text" id="email-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+                  </form>
+                  <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">
+                    Existing Temporary Pages:
+                  </h4>
+                  <div id="temp-page-list" class="overflow-x-auto w-full">
+                    <table class="w-full text-left table-auto text-xs">
+                      <thead>
+                        <tr class="bg-table-th-bg">
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            TITLE
+                          </th>
+                          <th class="px-2 py-1 text-table-th-text text-xs">
+                            ACTIONS
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody id="temp-pages-tbody">
+                        <tr>
+                          <td
+                            class="text-center py-4 text-text-secondary text-xs"
+                            colspan="2"
+                          >
+                            No temporary pages found.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div
+                    id="edit-temp-page-modal"
+                    class="modal"
+                    style="display: none"
+                  >
+                    <div
+                      class="modal-content"
+                      style="
+                        max-width: 800px;
+                        max-height: 85vh;
+                        overflow-y: auto;
+                      "
+                    >
+                      <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-heading-card">
+                          Edit Temporary Page
+                        </h3>
+                        <button
+                          class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors"
+                        >
+                          &times;
+                        </button>
                       </div>
-                      <div id="email-content-emoji-list" class="emoji-list">
-                        <!-- Emojis will be loaded here -->
-                      </div>
+
+                      <form id="edit-temp-page-form" class="space-y-6">
+                        <!-- Page Information Section -->
+                        <div
+                          class="bg-card p-4 rounded-lg border border-input-border"
+                        >
+                          <h4
+                            class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+                          >
+                            Page Information
+                          </h4>
+                          <div class="space-y-4">
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-title"
+                                class="form-label"
+                                >Page Title:</label
+                              >
+                              <input
+                                id="edit-temp-page-title"
+                                type="text"
+                                placeholder="Enter page title"
+                                class="form-input w-full"
+                              />
+                            </div>
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-content"
+                                class="form-label"
+                                >Page Content (HTML allowed):</label
+                              >
+                              <div class="emoji-input-container">
+                                <script type="module">
+                                  import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                                  document.currentScript.insertAdjacentHTML(
+                                    "beforebegin",
+                                    createEmojiMediaInputContainer(
+                                      "edit-temp-page-content",
+                                      "edit-temp-page-content-emoji-picker",
+                                      "edit-temp-page-content-media-picker",
+                                      "textarea",
+                                      "Write your page content here... Use HTML for styling!",
+                                      "form-input w-full h-48",
+                                    ),
+                                  );
+                                </script>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Page Settings Section -->
+                        <div
+                          class="bg-card p-4 rounded-lg border border-input-border"
+                        >
+                          <h4
+                            class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+                          >
+                            Page Settings
+                          </h4>
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-status"
+                                class="form-label"
+                                >Page Status:</label
+                              >
+                              <select
+                                id="edit-temp-page-status"
+                                class="form-input w-full"
+                              >
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="archived">Archived</option>
+                              </select>
+                            </div>
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-visibility"
+                                class="form-label"
+                                >Visibility:</label
+                              >
+                              <select
+                                id="edit-temp-page-visibility"
+                                class="form-input w-full"
+                              >
+                                <option value="public">Public</option>
+                                <option value="private">Private</option>
+                                <option value="admin-only">Admin Only</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="mt-4 space-y-3">
+                            <div class="checkbox-container">
+                              <input
+                                type="checkbox"
+                                id="edit-temp-page-allow-comments"
+                                class="form-checkbox"
+                              />
+                              <label for="edit-temp-page-allow-comments"
+                                >Allow Comments</label
+                              >
+                            </div>
+                            <div class="checkbox-container">
+                              <input
+                                type="checkbox"
+                                id="edit-temp-page-show-author"
+                                class="form-checkbox"
+                              />
+                              <label for="edit-temp-page-show-author"
+                                >Show Author Information</label
+                              >
+                            </div>
+                            <div class="checkbox-container">
+                              <input
+                                type="checkbox"
+                                id="edit-temp-page-enable-tracking"
+                                class="form-checkbox"
+                              />
+                              <label for="edit-temp-page-enable-tracking"
+                                >Enable Page View Tracking</label
+                              >
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Advanced Settings Section -->
+                        <div
+                          class="bg-card p-4 rounded-lg border border-input-border"
+                        >
+                          <h4
+                            class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+                          >
+                            Advanced Settings
+                          </h4>
+                          <div class="space-y-4">
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-meta-description"
+                                class="form-label"
+                                >Meta Description:</label
+                              >
+                              <textarea
+                                id="edit-temp-page-meta-description"
+                                placeholder="Enter meta description for SEO..."
+                                class="form-input w-full h-20"
+                              ></textarea>
+                            </div>
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-custom-css"
+                                class="form-label"
+                                >Custom CSS:</label
+                              >
+                              <textarea
+                                id="edit-temp-page-custom-css"
+                                placeholder="Enter custom CSS for this page..."
+                                class="form-input w-full h-24"
+                              ></textarea>
+                            </div>
+                            <div class="input-field">
+                              <label
+                                for="edit-temp-page-custom-js"
+                                class="form-label"
+                                >Custom JavaScript:</label
+                              >
+                              <textarea
+                                id="edit-temp-page-custom-js"
+                                placeholder="Enter custom JavaScript for this page..."
+                                class="form-input w-full h-24"
+                              ></textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="flex justify-end space-x-4 pt-4 border-t border-input-border"
+                        >
+                          <button
+                            type="button"
+                            id="cancel-temp-page-changes-btn"
+                            class="btn-primary btn-red"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            id="save-temp-page-changes-btn"
+                            class="btn-primary btn-blue"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </form>
                     </div>
                   </div>
-                  
-                  <div class="flex space-x-2">
-                    <button type="submit" class="btn-primary btn-blue">Send Email</button>
-                    <button type="button" id="preview-email-btn" class="btn-primary btn-blue">Preview</button>
-                    <button type="button" id="save-draft-btn" class="btn-primary btn-blue">Save Draft</button>
+                </div>
+              </details>
+            </div>
+          </div>
+          <div
+            class="settings-section"
+            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          >
+            <div
+              class="settings-card"
+              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            >
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center"
+                >
+                  Email Management
+                </summary>
+                <div class="mt-4 w-full flex flex-col items-start">
+                  <!-- Compose Email Section -->
+                  <div class="w-full mb-6">
+                    <h4 class="text-lg font-semibold text-heading-card mb-4">
+                      Compose Email
+                    </h4>
+                    <form id="email-compose-form" class="space-y-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-field">
+                          <label for="email-recipient-type" class="form-label"
+                            >Recipient Type:</label
+                          >
+                          <select
+                            id="email-recipient-type"
+                            class="form-input w-full"
+                          ></select>
+                        </div>
+                        <div class="input-field">
+                          <label for="email-template" class="form-label"
+                            >Email Template:</label
+                          >
+                          <select
+                            id="email-template"
+                            class="form-input w-full"
+                          ></select>
+                        </div>
+                      </div>
+
+                      <div
+                        id="custom-recipients-section"
+                        class="input-field"
+                        style="display: none"
+                      >
+                        <label for="email-recipients" class="form-label"
+                          >Select Recipients:</label
+                        >
+                        <div
+                          class="bg-input-bg border border-input-border rounded-lg p-3 max-h-48 overflow-y-auto"
+                        >
+                          <div id="email-recipients-list" class="space-y-2">
+                            <!-- Recipients will be populated here -->
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="input-field">
+                        <label for="email-subject" class="form-label"
+                          >Subject:</label
+                        >
+                        <input
+                          id="email-subject"
+                          type="text"
+                          placeholder="Enter email subject"
+                          class="form-input w-full"
+                        />
+                      </div>
+
+                      <div class="emoji-input-container">
+                        <script type="module">
+                          import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                          document.currentScript.insertAdjacentHTML(
+                            "beforebegin",
+                            createEmojiMediaInputContainer(
+                              "email-content",
+                              "email-content-emoji-picker",
+                              "email-content-media-picker",
+                              "textarea",
+                              "Write your email content here...",
+                              "form-input w-full h-32",
+                            ),
+                          );
+                        </script>
+                      </div>
+
+                      <div class="flex space-x-2">
+                        <button type="submit" class="btn-primary btn-blue">
+                          Send Email
+                        </button>
+                        <button
+                          type="button"
+                          id="preview-email-btn"
+                          class="btn-primary btn-blue"
+                        >
+                          Preview
+                        </button>
+                        <button
+                          type="button"
+                          id="save-draft-btn"
+                          class="btn-primary btn-blue"
+                        >
+                          Save Draft
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                </form>
+
+                  <!-- Email History Section -->
+                  <div class="w-full">
+                    <h4 class="text-lg font-semibold text-heading-card mb-4">
+                      Email History
+                    </h4>
+                    <div class="w-full">
+                      <table class="w-full text-left table-auto text-xs">
+                        <thead>
+                          <tr class="bg-table-th-bg">
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              DATE
+                            </th>
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              RECIPIENTS
+                            </th>
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              SUBJECT
+                            </th>
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              STATUS
+                            </th>
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              METHOD
+                            </th>
+                            <th class="px-2 py-1 text-table-th-text text-xs">
+                              ACTIONS
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody id="email-history-tbody">
+                          <tr>
+                            <td
+                              class="text-center py-4 text-text-secondary text-xs"
+                              colspan="6"
+                            >
+                              No emails sent yet.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Message Box Element -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Custom Confirmation Modal (for delete operations) -->
+    <div id="custom-confirm-modal" class="custom-confirm-modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <p class="mb-4 text-lg" id="confirm-message"></p>
+        <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
+        <button
+          id="confirm-yes"
+          class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4"
+        >
+          Yes
+        </button>
+        <button
+          id="confirm-no"
+          class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
+    <!-- External JavaScript modules -->
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+    <!-- Ensure firebase-init.js is loaded first as its exports are used by others -->
+    <script type="module" src="firebase-init.js"></script>
+    <script type="module" src="themes.js"></script>
+    <script type="module" src="custom_theme_modal.js"></script>
+    <script src="emoji-picker.js" type="module"></script>
+    <script type="module" src="admin.js"></script>
+    <script type="module">
+      import {
+        auth,
+        getUserProfileFromFirestore,
+        firebaseReadyPromise,
+        DEFAULT_PROFILE_PIC,
+        DEFAULT_THEME_NAME,
+      } from "./firebase-init.js";
+      import { loadNavbar, loadFooter } from "./navbar.js";
+      import {
+        getAvailableThemes,
+        applyTheme,
+        applyCachedTheme,
+      } from "./themes.js";
+      import { initEmojiPicker } from "./emoji-picker.js";
+
+      // Apply cached theme immediately to prevent flash
+      applyCachedTheme();
+
+      firebaseReadyPromise.then(() => {
+        auth.onAuthStateChanged(async (user) => {
+          let userProfile = null;
+          if (user) {
+            userProfile = await getUserProfileFromFirestore(user.uid);
+          }
+          await loadNavbar(
+            user,
+            userProfile,
+            DEFAULT_PROFILE_PIC,
+            DEFAULT_THEME_NAME,
+          );
+          loadFooter("current-year-admin-dev");
+          const userThemePreference = userProfile?.themePreference;
+          const allThemes = await getAvailableThemes();
+          const themeToApply =
+            allThemes.find((t) => t.id === userThemePreference) ||
+            allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+          }
+
+          // Initialize all emoji pickers
+          const emojiPickers = [
+            "temp-page-content-emoji-picker",
+            "edit-temp-page-content-emoji-picker",
+            "email-content-emoji-picker",
+            "edit-user-custom-css-emoji-picker",
+            "edit-dm-content-emoji-picker",
+            "edit-form-thema-description-emoji-picker",
+          ];
+
+          emojiPickers.forEach((pickerId) => {
+            initEmojiPicker(pickerId);
+          });
+        });
+      });
+    </script>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal" style="display: none">
+      <div
+        class="modal-content"
+        style="max-width: 800px; max-height: 85vh; overflow-y: auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-heading-card">
+            Edit User Profile
+          </h3>
+          <button
+            class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="edit-user-form" class="space-y-6">
+          <!-- Basic Information Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Basic Information
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="input-field">
+                <label for="edit-user-display-name">Display Name:</label>
+                <input
+                  id="edit-user-display-name"
+                  type="text"
+                  placeholder="User's display name"
+                  class="form-input w-full"
+                />
               </div>
-              
-              <!-- Email History Section -->
-              <div class="w-full">
-                <h4 class="text-lg font-semibold text-heading-card mb-4">Email History</h4>
-                <div class="w-full">
-                  <table class="w-full text-left table-auto text-xs">
-                    <thead>
-                      <tr class="bg-table-th-bg">
-                        <th class="px-2 py-1 text-table-th-text text-xs">DATE</th>
-                        <th class="px-2 py-1 text-table-th-text text-xs">RECIPIENTS</th>
-                        <th class="px-2 py-1 text-table-th-text text-xs">SUBJECT</th>
-                        <th class="px-2 py-1 text-table-th-text text-xs">STATUS</th>
-                        <th class="px-2 py-1 text-table-th-text text-xs">METHOD</th>
-                        <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
-                      </tr>
-                    </thead>
-                    <tbody id="email-history-tbody">
-                      <tr><td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td></tr>
-                    </tbody>
-                  </table>
+              <div class="input-field">
+                <label for="edit-user-handle">Handle:</label>
+                <input
+                  id="edit-user-handle"
+                  type="text"
+                  placeholder="@userhandle"
+                  class="form-input w-full"
+                />
+              </div>
+              <div class="input-field">
+                <label for="edit-user-email">Email Address:</label>
+                <input
+                  id="edit-user-email"
+                  type="email"
+                  placeholder="user@example.com"
+                  class="form-input w-full"
+                />
+              </div>
+              <div class="input-field">
+                <label for="edit-user-photo-url">Profile Picture URL:</label>
+                <input
+                  id="edit-user-photo-url"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  class="form-input w-full"
+                />
+              </div>
+              <div class="input-field">
+                <label for="edit-user-discord-url">Discord URL:</label>
+                <input
+                  id="edit-user-discord-url"
+                  type="url"
+                  placeholder="https://discord.com/users/..."
+                  class="form-input w-full"
+                />
+              </div>
+              <div class="input-field">
+                <label for="edit-user-github-url">GitHub URL:</label>
+                <input
+                  id="edit-user-github-url"
+                  type="url"
+                  placeholder="https://github.com/username"
+                  class="form-input w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Preferences
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="input-field">
+                <label for="edit-user-theme">Theme Preference:</label>
+                <select id="edit-user-theme" class="form-input w-full">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                  <option value="arcator-green">Arcator Green</option>
+                  <option value="ocean-blue">Ocean Blue</option>
+                  <option value="high-contrast">High Contrast</option>
+                </select>
+              </div>
+              <div class="input-field">
+                <label for="edit-user-font-scaling">Font Scaling:</label>
+                <select id="edit-user-font-scaling" class="form-input w-full">
+                  <option value="normal">Normal</option>
+                  <option value="large">Large</option>
+                  <option value="extra-large">Extra Large</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Settings Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Notification Settings
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="input-field">
+                <label for="edit-user-notification-frequency"
+                  >Notification Frequency:</label
+                >
+                <select
+                  id="edit-user-notification-frequency"
+                  class="form-input w-full"
+                >
+                  <option value="immediate">Immediate</option>
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+              <div class="space-y-3">
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-email-notifications"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-email-notifications"
+                    >Email Notifications</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-discord-notifications"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-discord-notifications"
+                    >Discord Notifications</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-push-notifications"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-push-notifications"
+                    >Push Notifications</label
+                  >
                 </div>
               </div>
             </div>
-          </details>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- Message Box Element -->
-<div id="message-box" class="message-box"></div>
-
-<!-- Custom Confirmation Modal (for delete operations) -->
-<div id="custom-confirm-modal" class="custom-confirm-modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <p class="mb-4 text-lg" id="confirm-message"></p>
-    <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
-    <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">Yes</button>
-    <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">Cancel</button>
-  </div>
-</div>
-
-<!-- Footer Section -->
-<div id="footer-placeholder"></div>
-<!-- External JavaScript modules -->
-<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-<!-- Ensure firebase-init.js is loaded first as its exports are used by others -->
-<script type="module" src="firebase-init.js"></script>
-<script type="module" src="themes.js"></script>
-<script type="module" src="custom_theme_modal.js"></script>
-<script src="emoji-picker.js" type="module"></script>
-<script type="module" src="admin.js"></script>
-<script type="module">
-  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
-  import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
-  import { initEmojiPicker } from './emoji-picker.js';
-
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme();
-
-  firebaseReadyPromise.then(() => {
-    auth.onAuthStateChanged(async (user) => {
-      let userProfile = null;
-      if (user) {
-        userProfile = await getUserProfileFromFirestore(user.uid);
-      }
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-      loadFooter('current-year-admin-dev');
-      const userThemePreference = userProfile?.themePreference;
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-      }
-      
-      // Initialize all emoji pickers
-      const emojiPickers = [
-        'temp-page-content-emoji-picker',
-        'edit-temp-page-content-emoji-picker',
-        'email-content-emoji-picker',
-        'edit-user-custom-css-emoji-picker',
-        'edit-dm-content-emoji-picker',
-        'edit-form-thema-description-emoji-picker'
-      ];
-      
-      emojiPickers.forEach(pickerId => {
-        initEmojiPicker(pickerId);
-      });
-    });
-  });
-</script>
-
-<!-- Edit User Modal -->
-<div id="edit-user-modal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
-    <div class="flex justify-between items-center mb-6">
-      <h3 class="text-2xl font-bold text-heading-card">Edit User Profile</h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
-    </div>
-    
-    <form id="edit-user-form" class="space-y-6">
-      <!-- Basic Information Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Basic Information</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-display-name">Display Name:</label>
-            <input id="edit-user-display-name" type="text" placeholder="User's display name" class="form-input w-full"/>
           </div>
-          <div class="input-field">
-            <label for="edit-user-handle">Handle:</label>
-            <input id="edit-user-handle" type="text" placeholder="@userhandle" class="form-input w-full"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-email">Email Address:</label>
-            <input id="edit-user-email" type="email" placeholder="user@example.com" class="form-input w-full"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-photo-url">Profile Picture URL:</label>
-            <input id="edit-user-photo-url" type="url" placeholder="https://example.com/image.jpg" class="form-input w-full"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-discord-url">Discord URL:</label>
-            <input id="edit-user-discord-url" type="url" placeholder="https://discord.com/users/..." class="form-input w-full"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-github-url">GitHub URL:</label>
-            <input id="edit-user-github-url" type="url" placeholder="https://github.com/username" class="form-input w-full"/>
-          </div>
-        </div>
-      </div>
 
-      <!-- Preferences Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Preferences</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-theme">Theme Preference:</label>
-            <select id="edit-user-theme" class="form-input w-full">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="arcator-green">Arcator Green</option>
-              <option value="ocean-blue">Ocean Blue</option>
-              <option value="high-contrast">High Contrast</option>
-            </select>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-font-scaling">Font Scaling:</label>
-            <select id="edit-user-font-scaling" class="form-input w-full">
-              <option value="normal">Normal</option>
-              <option value="large">Large</option>
-              <option value="extra-large">Extra Large</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notification Settings Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Notification Settings</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-notification-frequency">Notification Frequency:</label>
-            <select id="edit-user-notification-frequency" class="form-input w-full">
-              <option value="immediate">Immediate</option>
-              <option value="hourly">Hourly</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="disabled">Disabled</option>
-            </select>
-          </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-email-notifications" class="form-checkbox">
-              <label for="edit-user-email-notifications">Email Notifications</label>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-discord-notifications" class="form-checkbox">
-              <label for="edit-user-discord-notifications">Discord Notifications</label>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-push-notifications" class="form-checkbox">
-              <label for="edit-user-push-notifications">Push Notifications</label>
+          <!-- Privacy Settings Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Privacy Settings
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="input-field">
+                <label for="edit-user-data-retention"
+                  >Data Retention (days):</label
+                >
+                <select id="edit-user-data-retention" class="form-input w-full">
+                  <option value="30">30 days</option>
+                  <option value="90">90 days</option>
+                  <option value="365">1 year</option>
+                  <option value="0">Indefinite</option>
+                </select>
+              </div>
+              <div class="space-y-3">
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-profile-visible"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-profile-visible"
+                    >Profile Visible to Others</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-activity-tracking"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-activity-tracking"
+                    >Allow Activity Tracking</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-third-party-sharing"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-third-party-sharing"
+                    >Allow Third-party Data Sharing</label
+                  >
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Privacy Settings Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Privacy Settings</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-data-retention">Data Retention (days):</label>
-            <select id="edit-user-data-retention" class="form-input w-full">
-              <option value="30">30 days</option>
-              <option value="90">90 days</option>
-              <option value="365">1 year</option>
-              <option value="0">Indefinite</option>
-            </select>
+          <!-- Accessibility Settings Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Accessibility Settings
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-3">
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-high-contrast"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-high-contrast"
+                    >High Contrast Mode</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-reduced-motion"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-reduced-motion">Reduced Motion</label>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-screen-reader"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-screen-reader"
+                    >Screen Reader Support</label
+                  >
+                </div>
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="edit-user-focus-indicators"
+                    class="form-checkbox"
+                  />
+                  <label for="edit-user-focus-indicators"
+                    >Enhanced Focus Indicators</label
+                  >
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-profile-visible" class="form-checkbox">
-              <label for="edit-user-profile-visible">Profile Visible to Others</label>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-activity-tracking" class="form-checkbox">
-              <label for="edit-user-activity-tracking">Allow Activity Tracking</label>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-third-party-sharing" class="form-checkbox">
-              <label for="edit-user-third-party-sharing">Allow Third-party Data Sharing</label>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Accessibility Settings Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Accessibility Settings</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-high-contrast" class="form-checkbox">
-              <label for="edit-user-high-contrast">High Contrast Mode</label>
+          <!-- Advanced Settings Section -->
+          <div class="bg-card p-4 rounded-lg border border-input-border">
+            <h4
+              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2"
+            >
+              Advanced Settings
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="input-field">
+                <label for="edit-user-keyboard-shortcuts"
+                  >Keyboard Shortcuts:</label
+                >
+                <select
+                  id="edit-user-keyboard-shortcuts"
+                  class="form-input w-full"
+                >
+                  <option value="enabled">Enabled</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+              <div class="checkbox-container">
+                <input
+                  type="checkbox"
+                  id="edit-user-debug-mode"
+                  class="form-checkbox"
+                />
+                <label for="edit-user-debug-mode">Debug Mode</label>
+              </div>
             </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-reduced-motion" class="form-checkbox">
-              <label for="edit-user-reduced-motion">Reduced Motion</label>
+            <div class="mt-4">
+              <label
+                for="edit-user-custom-css"
+                class="block text-text-secondary text-sm font-bold mb-2"
+                >Custom CSS:</label
+              >
+              <div class="emoji-input-container">
+                <textarea
+                  id="edit-user-custom-css"
+                  placeholder="Enter custom CSS code..."
+                  class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"
+                ></textarea>
+                <button
+                  type="button"
+                  class="emoji-picker-btn"
+                  onclick="toggleEmojiPicker('edit-user-custom-css-emoji-picker')"
+                  title="Add emoji"
+                >
+                  😊
+                </button>
+              </div>
+              <div
+                id="edit-user-custom-css-emoji-picker"
+                class="emoji-picker hidden"
+              >
+                <div class="emoji-picker-header">
+                  <input
+                    type="text"
+                    id="edit-user-custom-css-emoji-search"
+                    placeholder="Search emojis..."
+                    class="emoji-search"
+                  />
+                </div>
+                <div id="edit-user-custom-css-emoji-list" class="emoji-list">
+                  <!-- Emojis will be loaded here -->
+                </div>
+              </div>
             </div>
           </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-screen-reader" class="form-checkbox">
-              <label for="edit-user-screen-reader">Screen Reader Support</label>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="edit-user-focus-indicators" class="form-checkbox">
-              <label for="edit-user-focus-indicators">Enhanced Focus Indicators</label>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Advanced Settings Section -->
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Advanced Settings</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
-            <select id="edit-user-keyboard-shortcuts" class="form-input w-full">
-              <option value="enabled">Enabled</option>
-              <option value="disabled">Disabled</option>
-            </select>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="edit-user-debug-mode" class="form-checkbox">
-            <label for="edit-user-debug-mode">Debug Mode</label>
-          </div>
-        </div>
-        <div class="mt-4">
-          <label for="edit-user-custom-css" class="block text-text-secondary text-sm font-bold mb-2">Custom CSS:</label>
-          <div class="emoji-input-container">
-            <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..." class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
-            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-user-custom-css-emoji-picker')" title="Add emoji">
-              😊
+          <div
+            class="flex justify-end space-x-4 pt-4 border-t border-input-border"
+          >
+            <button
+              type="button"
+              id="cancel-user-changes-btn"
+              class="btn-primary btn-red"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="save-user-changes-btn"
+              class="btn-primary btn-blue"
+            >
+              Save Changes
             </button>
           </div>
-          <div id="edit-user-custom-css-emoji-picker" class="emoji-picker hidden">
-            <div class="emoji-picker-header">
-              <input type="text" id="edit-user-custom-css-emoji-search" placeholder="Search emojis..." class="emoji-search">
-            </div>
-            <div id="edit-user-custom-css-emoji-list" class="emoji-list">
-              <!-- Emojis will be loaded here -->
-            </div>
-          </div>
-        </div>
+        </form>
       </div>
-
-      <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
-        <button type="button" id="cancel-user-changes-btn" class="btn-primary btn-red">Cancel</button>
-        <button type="submit" id="save-user-changes-btn" class="btn-primary btn-blue">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Edit DM Modal -->
-<div id="edit-dm-modal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 600px;">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold text-heading-card">Edit Direct Message</h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">&times;</button>
     </div>
-    <form id="edit-dm-form" class="space-y-4">
-      <div class="input-field">
-        <label for="edit-dm-from" class="form-label">From:</label>
-        <input id="edit-dm-from" type="text" class="form-input w-full"/>
-      </div>
-      <div class="input-field">
-        <label for="edit-dm-to" class="form-label">To:</label>
-        <input id="edit-dm-to" type="text" class="form-input w-full"/>
-      </div>
-      <div class="input-field">
-        <label for="edit-dm-subject" class="form-label">Subject:</label>
-        <input id="edit-dm-subject" type="text" class="form-input w-full"/>
-      </div>
-      <div class="input-field">
-        <label for="edit-dm-content" class="form-label">Content:</label>
-        <div class="emoji-input-container">
-          <textarea id="edit-dm-content" class="form-input w-full h-32"></textarea>
-          <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-dm-content-emoji-picker')" title="Add emoji">
-            😊
+
+    <!-- Edit DM Modal -->
+    <div id="edit-dm-modal" class="modal" style="display: none">
+      <div class="modal-content" style="max-width: 600px">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-heading-card">
+            Edit Direct Message
+          </h3>
+          <button
+            class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary"
+          >
+            &times;
           </button>
         </div>
-        <div id="edit-dm-content-emoji-picker" class="emoji-picker hidden">
-          <div class="emoji-picker-header">
-            <input type="text" id="edit-dm-content-emoji-search" placeholder="Search emojis..." class="emoji-search">
+        <form id="edit-dm-form" class="space-y-4">
+          <div class="input-field">
+            <label for="edit-dm-from" class="form-label">From:</label>
+            <input id="edit-dm-from" type="text" class="form-input w-full" />
           </div>
-          <div id="edit-dm-content-emoji-list" class="emoji-list">
-            <!-- Emojis will be loaded here -->
+          <div class="input-field">
+            <label for="edit-dm-to" class="form-label">To:</label>
+            <input id="edit-dm-to" type="text" class="form-input w-full" />
           </div>
-        </div>
+          <div class="input-field">
+            <label for="edit-dm-subject" class="form-label">Subject:</label>
+            <input id="edit-dm-subject" type="text" class="form-input w-full" />
+          </div>
+          <div class="input-field">
+            <label for="edit-dm-content" class="form-label">Content:</label>
+            <div class="emoji-input-container">
+              <textarea
+                id="edit-dm-content"
+                class="form-input w-full h-32"
+              ></textarea>
+              <button
+                type="button"
+                class="emoji-picker-btn"
+                onclick="toggleEmojiPicker('edit-dm-content-emoji-picker')"
+                title="Add emoji"
+              >
+                😊
+              </button>
+            </div>
+            <div id="edit-dm-content-emoji-picker" class="emoji-picker hidden">
+              <div class="emoji-picker-header">
+                <input
+                  type="text"
+                  id="edit-dm-content-emoji-search"
+                  placeholder="Search emojis..."
+                  class="emoji-search"
+                />
+              </div>
+              <div id="edit-dm-content-emoji-list" class="emoji-list">
+                <!-- Emojis will be loaded here -->
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              id="cancel-edit-dm-btn"
+              class="btn-primary btn-red"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary btn-blue">
+              Save Changes
+            </button>
+          </div>
+        </form>
       </div>
-      <div class="flex justify-end gap-2">
-        <button type="button" id="cancel-edit-dm-btn" class="btn-primary btn-red">Cancel</button>
-        <button type="submit" class="btn-primary btn-blue">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Edit Form Modal -->
-<div id="edit-form-modal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 700px;">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">&times;</button>
     </div>
-    <form id="edit-form-form" class="space-y-4">
-      <div class="input-field">
-        <label for="edit-form-thema-name" class="form-label">Theme Name:</label>
-        <input id="edit-form-thema-name" type="text" class="form-input w-full"/>
-      </div>
-      <div class="input-field">
-        <label for="edit-form-thema-description" class="form-label">Theme Description:</label>
-        <div class="emoji-input-container">
-          <textarea id="edit-form-thema-description" class="form-input w-full h-24"></textarea>
-          <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-form-thema-description-emoji-picker')" title="Add emoji">
-            😊
+
+    <!-- Edit Form Modal -->
+    <div id="edit-form-modal" class="modal" style="display: none">
+      <div class="modal-content" style="max-width: 700px">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
+          <button
+            class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary"
+          >
+            &times;
           </button>
         </div>
-        <div id="edit-form-thema-description-emoji-picker" class="emoji-picker hidden">
-          <div class="emoji-picker-header">
-            <input type="text" id="edit-form-thema-description-emoji-search" placeholder="Search emojis..." class="emoji-search">
+        <form id="edit-form-form" class="space-y-4">
+          <div class="input-field">
+            <label for="edit-form-thema-name" class="form-label"
+              >Theme Name:</label
+            >
+            <input
+              id="edit-form-thema-name"
+              type="text"
+              class="form-input w-full"
+            />
           </div>
-          <div id="edit-form-thema-description-emoji-list" class="emoji-list">
-            <!-- Emojis will be loaded here -->
+          <div class="input-field">
+            <label for="edit-form-thema-description" class="form-label"
+              >Theme Description:</label
+            >
+            <div class="emoji-input-container">
+              <textarea
+                id="edit-form-thema-description"
+                class="form-input w-full h-24"
+              ></textarea>
+              <button
+                type="button"
+                class="emoji-picker-btn"
+                onclick="toggleEmojiPicker('edit-form-thema-description-emoji-picker')"
+                title="Add emoji"
+              >
+                😊
+              </button>
+            </div>
+            <div
+              id="edit-form-thema-description-emoji-picker"
+              class="emoji-picker hidden"
+            >
+              <div class="emoji-picker-header">
+                <input
+                  type="text"
+                  id="edit-form-thema-description-emoji-search"
+                  placeholder="Search emojis..."
+                  class="emoji-search"
+                />
+              </div>
+              <div
+                id="edit-form-thema-description-emoji-list"
+                class="emoji-list"
+              >
+                <!-- Emojis will be loaded here -->
+              </div>
+            </div>
           </div>
-        </div>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              id="cancel-edit-form-btn"
+              class="btn-primary btn-red"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary btn-blue">
+              Save Changes
+            </button>
+          </div>
+        </form>
       </div>
-      <div class="flex justify-end gap-2">
-        <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">Cancel</button>
-        <button type="submit" class="btn-primary btn-blue">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-</body>
+    </div>
+  </body>
 </html>
-

@@ -1,4 +1,9 @@
-import { applyTheme, getAvailableThemes, saveCustomTheme, deleteCustomTheme } from './themes.js';
+import {
+  applyTheme,
+  getAvailableThemes,
+  saveCustomTheme,
+  deleteCustomTheme,
+} from "./themes.js";
 
 /**
  * Sets up the functionality for managing custom themes.
@@ -12,38 +17,58 @@ import { applyTheme, getAvailableThemes, saveCustomTheme, deleteCustomTheme } fr
  * @param {User} currentUser - The currently authenticated Firebase user.
  * @param {function} showCustomConfirm - Function to show custom confirmation dialogs.
  */
-export function setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, userThemeSelect, defaultThemeName, currentUser, showCustomConfirm) {
+export function setupCustomThemeManagement(
+  db,
+  auth,
+  appId,
+  showMessageBox,
+  populateThemeSelect,
+  userThemeSelect,
+  defaultThemeName,
+  currentUser,
+  showCustomConfirm,
+) {
   let currentCustomThemeId = null;
 
   // Ensure the modal HTML is added to the DOM if it's not already there
-  const customThemeModal = document.getElementById('custom-theme-modal') || createCustomThemeModal();
+  const customThemeModal =
+    document.getElementById("custom-theme-modal") || createCustomThemeModal();
 
   // Get DOM elements for the modal
-  const closeButton = customThemeModal.querySelector('.close-button');
-  const customThemeForm = document.getElementById('custom-theme-form');
-  const themeNameInput = document.getElementById('custom-theme-name');
-  const colorInputsContainer = document.getElementById('custom-theme-color-inputs');
-  const backgroundPatternSelect = document.getElementById('custom-theme-background-pattern');
-  const saveCustomThemeBtn = document.getElementById('save-custom-theme-btn');
-  const customThemeList = document.getElementById('custom-theme-list');
+  const closeButton = customThemeModal.querySelector(".close-button");
+  const customThemeForm = document.getElementById("custom-theme-form");
+  const themeNameInput = document.getElementById("custom-theme-name");
+  const colorInputsContainer = document.getElementById(
+    "custom-theme-color-inputs",
+  );
+  const backgroundPatternSelect = document.getElementById(
+    "custom-theme-background-pattern",
+  );
+  const saveCustomThemeBtn = document.getElementById("save-custom-theme-btn");
+  const customThemeList = document.getElementById("custom-theme-list");
 
   // Trigger button to open the modal (from settings.html)
-  const createCustomThemeBtn = document.getElementById('create-custom-theme-btn');
+  const createCustomThemeBtn = document.getElementById(
+    "create-custom-theme-btn",
+  );
   if (createCustomThemeBtn) {
-    createCustomThemeBtn.addEventListener('click', async () => {
+    createCustomThemeBtn.addEventListener("click", async () => {
       openCustomThemeModal();
       await renderCustomThemeList(); // Ensure the list is fresh when opening
     });
   }
 
   // Handle form submission for saving/updating a custom theme
-  customThemeForm.addEventListener('submit', async (e) => {
+  customThemeForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     // Validate required fields
     const themeName = themeNameInput.value.trim();
     if (!themeName) {
-      showMessageBox("Theme name is required. Please enter a name for your custom theme.", true);
+      showMessageBox(
+        "Theme name is required. Please enter a name for your custom theme.",
+        true,
+      );
       themeNameInput.focus();
       return;
     }
@@ -64,23 +89,23 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     // Collect all color variable values
     const variables = {};
     const inputs = colorInputsContainer.querySelectorAll('input[type="text"]');
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       const varName = `--${input.id}`; // Reconstruct the CSS variable name
       variables[varName] = input.value.trim();
     });
 
     // Add RGB version of navbar background for proper theming
-    if (variables['--color-bg-navbar']) {
-      const hex = variables['--color-bg-navbar'].replace('#', '');
+    if (variables["--color-bg-navbar"]) {
+      const hex = variables["--color-bg-navbar"].replace("#", "");
       const r = parseInt(hex.substr(0, 2), 16);
       const g = parseInt(hex.substr(2, 2), 16);
       const b = parseInt(hex.substr(4, 2), 16);
-      variables['--color-bg-navbar-rgb'] = `${r},${g},${b}`;
+      variables["--color-bg-navbar-rgb"] = `${r},${g},${b}`;
     }
 
     // Add font family from the main settings page to the custom theme variables
     if (userThemeSelect && userThemeSelect.value) {
-      variables['--font-family-body'] = userThemeSelect.value;
+      variables["--font-family-body"] = userThemeSelect.value;
     }
 
     const newTheme = {
@@ -88,25 +113,25 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
       name: themeName,
       variables: variables,
       backgroundPattern: backgroundPatternSelect.value,
-      isCustom: true // Flag this as a custom theme
+      isCustom: true, // Flag this as a custom theme
     };
 
     try {
       // Show loading state
-      const saveBtn = document.getElementById('save-custom-theme-btn');
+      const saveBtn = document.getElementById("save-custom-theme-btn");
       const originalText = saveBtn.textContent;
-      saveBtn.textContent = 'Saving...';
+      saveBtn.textContent = "Saving...";
       saveBtn.disabled = true;
 
-      console.log('DEBUG: Attempting to save custom theme:', newTheme);
+      console.log("DEBUG: Attempting to save custom theme:", newTheme);
       const result = await saveCustomTheme(newTheme);
-      console.log('DEBUG: saveCustomTheme result:', result);
+      console.log("DEBUG: saveCustomTheme result:", result);
 
       if (result) {
         // result is now the document ID (string) or false
         const savedThemeId = result;
         showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
-        customThemeModal.style.display = 'none'; // Close modal
+        customThemeModal.style.display = "none"; // Close modal
 
         // Refresh the theme list
         await renderCustomThemeList();
@@ -123,35 +148,43 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
 
         // Get the saved theme data and apply it
         const allThemes = await getAvailableThemes(true); // Force refresh to get the new theme
-        const savedTheme = allThemes.find(t => t.id === savedThemeId);
+        const savedTheme = allThemes.find((t) => t.id === savedThemeId);
         if (savedTheme) {
           applyTheme(savedThemeId, savedTheme);
         } else {
-          console.error('DEBUG: Could not find saved theme in available themes');
+          console.error(
+            "DEBUG: Could not find saved theme in available themes",
+          );
         }
 
         // Reset form for next use
         customThemeForm.reset();
         currentCustomThemeId = null;
       } else {
-        showMessageBox("Failed to save theme. Please check your connection and try again.", true);
+        showMessageBox(
+          "Failed to save theme. Please check your connection and try again.",
+          true,
+        );
       }
     } catch (error) {
       console.error("Error saving custom theme:", error);
       showMessageBox(`Error saving theme: ${error.message}`, true);
     } finally {
       // Restore button state
-      const saveBtn = document.getElementById('save-custom-theme-btn');
-      saveBtn.textContent = 'Save Custom Theme';
+      const saveBtn = document.getElementById("save-custom-theme-btn");
+      saveBtn.textContent = "Save Custom Theme";
       saveBtn.disabled = false;
     }
   });
 
   // Close modal functionality
-  closeButton.addEventListener('click', () => customThemeModal.style.display = 'none');
-  window.addEventListener('click', (e) => {
+  closeButton.addEventListener(
+    "click",
+    () => (customThemeModal.style.display = "none"),
+  );
+  window.addEventListener("click", (e) => {
     if (e.target == customThemeModal) {
-      customThemeModal.style.display = 'none';
+      customThemeModal.style.display = "none";
     }
   });
 
@@ -464,13 +497,13 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
         </div>
       </div>
     `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    const modal = document.getElementById('custom-theme-modal');
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    const modal = document.getElementById("custom-theme-modal");
 
     // Set up color picker sync
     const colorInputs = modal.querySelectorAll('input[type="color"]');
-    colorInputs.forEach(input => {
-      input.addEventListener('input', function() {
+    colorInputs.forEach((input) => {
+      input.addEventListener("input", function () {
         const targetId = this.dataset.target;
         const textInput = document.getElementById(targetId);
         if (textInput) {
@@ -487,29 +520,46 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
    */
   async function renderCustomThemeList() {
     if (!auth.currentUser) {
-      customThemeList.innerHTML = '<li>Please log in to manage custom themes.</li>';
+      customThemeList.innerHTML =
+        "<li>Please log in to manage custom themes.</li>";
       return;
     }
 
-    customThemeList.innerHTML = '<li>Loading custom themes...</li>';
+    customThemeList.innerHTML = "<li>Loading custom themes...</li>";
     const availableThemes = await getAvailableThemes();
-    const userCustomThemes = availableThemes.filter(theme => theme.isCustom && theme.id !== defaultThemeName); // Exclude default themes
+    const userCustomThemes = availableThemes.filter(
+      (theme) => theme.isCustom && theme.id !== defaultThemeName,
+    ); // Exclude default themes
 
     if (userCustomThemes.length === 0) {
-      customThemeList.innerHTML = '<li>No custom themes created yet.</li>';
+      customThemeList.innerHTML = "<li>No custom themes created yet.</li>";
       return;
     }
 
-    customThemeList.innerHTML = ''; // Clear loading message
-    userCustomThemes.forEach(theme => {
-      const li = document.createElement('li');
-      li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
-      li.style.backgroundColor = 'var(--color-bg-card)'; // Apply card background color
-      li.style.color = 'var(--color-text-primary)'; // Apply primary text color
+    customThemeList.innerHTML = ""; // Clear loading message
+    userCustomThemes.forEach((theme) => {
+      const li = document.createElement("li");
+      li.classList.add(
+        "flex",
+        "flex-col",
+        "md:flex-row",
+        "md:items-center",
+        "justify-between",
+        "p-3",
+        "rounded-md",
+        "mb-2",
+      );
+      li.style.backgroundColor = "var(--color-bg-card)"; // Apply card background color
+      li.style.color = "var(--color-text-primary)"; // Apply primary text color
 
       // Format creation date
-      const createdDate = theme.createdAt ? new Date(theme.createdAt.toDate ? theme.createdAt.toDate() : theme.createdAt).toLocaleDateString() : 'Unknown';
-      const authorName = theme.authorDisplayName || theme.authorEmail || 'Unknown User';
+      const createdDate = theme.createdAt
+        ? new Date(
+            theme.createdAt.toDate ? theme.createdAt.toDate() : theme.createdAt,
+          ).toLocaleDateString()
+        : "Unknown";
+      const authorName =
+        theme.authorDisplayName || theme.authorEmail || "Unknown User";
 
       li.innerHTML = `
         <div class="flex-1">
@@ -518,7 +568,7 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
             <span>Created by: ${authorName}</span>
             <span class="mx-2">•</span>
             <span>Created: ${createdDate}</span>
-            ${theme.updatedAt ? `<span class="mx-2">•</span><span>Updated: ${new Date(theme.updatedAt.toDate ? theme.updatedAt.toDate() : theme.updatedAt).toLocaleDateString()}</span>` : ''}
+            ${theme.updatedAt ? `<span class="mx-2">•</span><span>Updated: ${new Date(theme.updatedAt.toDate ? theme.updatedAt.toDate() : theme.updatedAt).toLocaleDateString()}</span>` : ""}
           </div>
         </div>
         <div class="mt-2 md:mt-0 md:ml-4 flex gap-2">
@@ -540,59 +590,68 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     });
 
     // Add event listeners for edit and delete buttons
-    document.querySelectorAll('.edit-custom-theme-btn').forEach(button => {
-      button.addEventListener('click', (e) => {
-        const themeId = e.target.closest('button').dataset.themeId;
+    document.querySelectorAll(".edit-custom-theme-btn").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const themeId = e.target.closest("button").dataset.themeId;
         loadCustomThemeForEditing(themeId);
       });
     });
 
-    document.querySelectorAll('.delete-custom-theme-btn').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        const themeId = e.target.closest('button').dataset.themeId;
-        console.log('DEBUG: Delete button clicked for theme ID:', themeId);
+    document.querySelectorAll(".delete-custom-theme-btn").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const themeId = e.target.closest("button").dataset.themeId;
+        console.log("DEBUG: Delete button clicked for theme ID:", themeId);
 
         // Find the theme in the full list of available themes, not just user custom themes
         const allThemes = await getAvailableThemes();
-        console.log('DEBUG: All available themes:', allThemes.map(t => ({
-          id: t.id,
-          name: t.name,
-          isCustom: t.isCustom
-        })));
+        console.log(
+          "DEBUG: All available themes:",
+          allThemes.map((t) => ({
+            id: t.id,
+            name: t.name,
+            isCustom: t.isCustom,
+          })),
+        );
 
-        const themeToDelete = allThemes.find(t => t.id === themeId);
-        console.log('DEBUG: Theme to delete found:', themeToDelete);
+        const themeToDelete = allThemes.find((t) => t.id === themeId);
+        console.log("DEBUG: Theme to delete found:", themeToDelete);
 
         if (!themeToDelete) {
           console.error(`Theme not found for deletion: ${themeId}`);
-          showMessageBox('Error: Theme not found for deletion.', true);
+          showMessageBox("Error: Theme not found for deletion.", true);
           return;
         }
 
-        const themeName = themeToDelete.name || themeToDelete.id || 'Unknown Theme';
-        console.log('DEBUG: Theme name for confirmation:', themeName);
+        const themeName =
+          themeToDelete.name || themeToDelete.id || "Unknown Theme";
+        console.log("DEBUG: Theme name for confirmation:", themeName);
 
-        console.log('DEBUG: About to show custom confirm for theme:', themeName);
+        console.log(
+          "DEBUG: About to show custom confirm for theme:",
+          themeName,
+        );
         const confirmation = await showCustomConfirm(
           `Are you sure you want to delete theme "${themeName}"?`,
-          "This action cannot be undone."
+          "This action cannot be undone.",
         );
-        console.log('DEBUG: Custom confirm result:', confirmation);
+        console.log("DEBUG: Custom confirm result:", confirmation);
 
         if (confirmation) {
-          console.log('DEBUG: User confirmed deletion, calling deleteCustomTheme');
+          console.log(
+            "DEBUG: User confirmed deletion, calling deleteCustomTheme",
+          );
           if (await deleteCustomTheme(themeId)) {
-            showMessageBox('Custom theme deleted successfully!', false);
+            showMessageBox("Custom theme deleted successfully!", false);
             // After deletion, revert to default theme if the deleted one was active
             await populateThemeSelect(defaultThemeName); // Re-populate and select default
             userThemeSelect.value = defaultThemeName; // Update main dropdown
             applyTheme(defaultThemeName); // Apply the default theme
             renderCustomThemeList(); // Re-render the list
           } else {
-            showMessageBox('Error deleting theme. Please try again.', true);
+            showMessageBox("Error deleting theme. Please try again.", true);
           }
         } else {
-          showMessageBox('Theme deletion cancelled.', false);
+          showMessageBox("Theme deletion cancelled.", false);
         }
       });
     });
@@ -610,19 +669,23 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
     } else {
       // Reset form for a new theme
       customThemeForm.reset();
-      themeNameInput.value = '';
+      themeNameInput.value = "";
       // Populate with default colors for a new custom theme
-      colorInputsContainer.querySelectorAll('input[type="text"]').forEach(input => {
-        const varName = `--${input.id}`;
-        // Get current values from the document's computed style (which reflects the active theme)
-        const computedValue = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-        input.value = computedValue || '#000000'; // Fallback to black if empty
-        input.nextElementSibling.value = computedValue || '#000000'; // Also update color picker
-      });
-      backgroundPatternSelect.value = 'none'; // Default to no pattern for new theme
+      colorInputsContainer
+        .querySelectorAll('input[type="text"]')
+        .forEach((input) => {
+          const varName = `--${input.id}`;
+          // Get current values from the document's computed style (which reflects the active theme)
+          const computedValue = getComputedStyle(document.documentElement)
+            .getPropertyValue(varName)
+            .trim();
+          input.value = computedValue || "#000000"; // Fallback to black if empty
+          input.nextElementSibling.value = computedValue || "#000000"; // Also update color picker
+        });
+      backgroundPatternSelect.value = "none"; // Default to no pattern for new theme
       themeNameInput.focus();
     }
-    customThemeModal.style.display = 'flex';
+    customThemeModal.style.display = "flex";
   }
 
   /**
@@ -631,20 +694,22 @@ export function setupCustomThemeManagement(db, auth, appId, showMessageBox, popu
    */
   async function loadCustomThemeForEditing(themeId) {
     const allThemes = await getAvailableThemes();
-    const themeToEdit = allThemes.find(theme => theme.id === themeId && theme.isCustom);
+    const themeToEdit = allThemes.find(
+      (theme) => theme.id === themeId && theme.isCustom,
+    );
 
     if (!themeToEdit) {
-      console.error('Custom theme not found for editing:', themeId);
-      showMessageBox('Error: Custom theme not found.', true);
+      console.error("Custom theme not found for editing:", themeId);
+      showMessageBox("Error: Custom theme not found.", true);
       return;
     }
 
     currentCustomThemeId = themeId;
     themeNameInput.value = themeToEdit.name;
-    backgroundPatternSelect.value = themeToEdit.backgroundPattern || 'none';
+    backgroundPatternSelect.value = themeToEdit.backgroundPattern || "none";
 
     for (const [key, value] of Object.entries(themeToEdit.variables)) {
-      const inputId = key.replace('--', ''); // Convert CSS var name back to input ID
+      const inputId = key.replace("--", ""); // Convert CSS var name back to input ID
       const textInput = document.getElementById(inputId);
       if (textInput) {
         textInput.value = value;

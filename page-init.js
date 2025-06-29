@@ -4,11 +4,15 @@ import {
   firebaseReadyPromise,
   DEFAULT_PROFILE_PIC,
   DEFAULT_THEME_NAME,
-  getUserProfileFromFirestore
-} from './firebase-init.js';
-import {setupThemesFirebase, applyTheme, getAvailableThemes} from './themes.js';
-import {loadNavbar} from './navbar.js';
-import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  getUserProfileFromFirestore,
+} from "./firebase-init.js";
+import {
+  setupThemesFirebase,
+  applyTheme,
+  getAvailableThemes,
+} from "./themes.js";
+import { loadNavbar } from "./navbar.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 /**
  * Initialize a page with common functionality (navbar, themes, footer year)
@@ -16,7 +20,11 @@ import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/fire
  * @param {string} yearElementId - ID of the element to set current year
  * @param {boolean} useWindowLoad - Whether to use window.onload instead of DOMContentLoaded
  */
-export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
+export async function initializePage(
+  pageName,
+  yearElementId = null,
+  useWindowLoad = false,
+) {
   const initFunction = async () => {
     console.log(`${pageName}: Initialization started.`);
 
@@ -32,7 +40,12 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(
+      auth.currentUser,
+      userProfile,
+      DEFAULT_PROFILE_PIC,
+      DEFAULT_THEME_NAME,
+    );
     console.log(`${pageName}: Navbar loaded.`);
 
     // Set current year for footer
@@ -52,7 +65,9 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
         userThemePreference = userProfile?.themePreference;
       }
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      const themeToApply =
+        allThemes.find((t) => t.id === userThemePreference) ||
+        allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
 
@@ -62,8 +77,8 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
   if (useWindowLoad) {
     window.onload = initFunction;
   } else {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initFunction);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initFunction);
     } else {
       initFunction();
     }
@@ -77,7 +92,12 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
  * @param {string} yearElementId - ID of the element to set current year
  * @param {boolean} useWindowLoad - Whether to use window.onload instead of DOMContentLoaded
  */
-export async function initializePageWithCustom(pageName, customInit, yearElementId = null, useWindowLoad = false) {
+export async function initializePageWithCustom(
+  pageName,
+  customInit,
+  yearElementId = null,
+  useWindowLoad = false,
+) {
   const initFunction = async () => {
     console.log(`${pageName}: Initialization started.`);
 
@@ -93,7 +113,12 @@ export async function initializePageWithCustom(pageName, customInit, yearElement
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(
+      auth.currentUser,
+      userProfile,
+      DEFAULT_PROFILE_PIC,
+      DEFAULT_THEME_NAME,
+    );
     console.log(`${pageName}: Navbar loaded.`);
 
     // Set current year for footer
@@ -113,12 +138,14 @@ export async function initializePageWithCustom(pageName, customInit, yearElement
         userThemePreference = userProfile?.themePreference;
       }
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      const themeToApply =
+        allThemes.find((t) => t.id === userThemePreference) ||
+        allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
 
     // Run custom initialization
-    if (customInit && typeof customInit === 'function') {
+    if (customInit && typeof customInit === "function") {
       await customInit();
     }
 
@@ -128,8 +155,8 @@ export async function initializePageWithCustom(pageName, customInit, yearElement
   if (useWindowLoad) {
     window.onload = initFunction;
   } else {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initFunction);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initFunction);
     } else {
       initFunction();
     }

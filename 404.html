@@ -1,72 +1,100 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <title>Page Not Found - Arcator.co.uk</title>
-  <!-- Production Tailwind CSS -->
-  <link rel="stylesheet" href="style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Link to the CSS variables -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to common.css for shared styles -->
-  <link href="common.css" rel="stylesheet">
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <style>
-    body {
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-      font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-  </style>
-</head>
-
-<body>
-<!-- Navbar Placeholder -->
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-
-<h1>404 - Page Not Found</h1>
-<p>Sorry, but the page you were trying to view does not exist. It might have been moved or deleted, or you might have mistyped the address.</p>
-
-<div class="button-group">
-  <a href="index.html" class="btn-primary btn-blue">Go to Homepage</a>
-  <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="btn-primary btn-indigo">Join Our Discord</a>
-</div>
-
-<!-- External JavaScript modules -->
-<script type="module" src="themes.js"></script>
-<script type="module" src="custom_theme_modal.js"></script>
-<script type="module" src="navbar.js"></script>
-<script type="module" src="firebase-init.js"></script> <!-- Ensure firebase-init.js is loaded first -->
-<script type="module">
-  // Specific JavaScript for this page
-  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
-  import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
-
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme();
-
-  firebaseReadyPromise.then(() => {
-    auth.onAuthStateChanged(async (user) => {
-      let userProfile = null;
-      if (user) {
-        userProfile = await getUserProfileFromFirestore(user.uid);
+  <head>
+    <meta charset="utf-8" />
+    <title>Page Not Found - Arcator.co.uk</title>
+    <!-- Production Tailwind CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Link to the CSS variables -->
+    <link rel="stylesheet" href="theme_variables.css" />
+    <!-- Link to common.css for shared styles -->
+    <link href="common.css" rel="stylesheet" />
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <style>
+      body {
+        background-color: var(--color-body-bg);
+        color: var(--color-text-primary);
+        font-family: "Inter", sans-serif;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
       }
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-      loadFooter('current-year-404');
-      const userThemePreference = userProfile?.themePreference;
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-        console.log(`[404]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-      }
-    });
-  });
-</script>
-</body>
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+
+    <h1>404 - Page Not Found</h1>
+    <p>
+      Sorry, but the page you were trying to view does not exist. It might have
+      been moved or deleted, or you might have mistyped the address.
+    </p>
+
+    <div class="button-group">
+      <a href="index.html" class="btn-primary btn-blue">Go to Homepage</a>
+      <a
+        href="https://discord.gg/GwArgw2"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-primary btn-indigo"
+        >Join Our Discord</a
+      >
+    </div>
+
+    <!-- External JavaScript modules -->
+    <script type="module" src="themes.js"></script>
+    <script type="module" src="custom_theme_modal.js"></script>
+    <script type="module" src="navbar.js"></script>
+    <script type="module" src="firebase-init.js"></script>
+    <!-- Ensure firebase-init.js is loaded first -->
+    <script type="module">
+      // Specific JavaScript for this page
+      import {
+        auth,
+        getUserProfileFromFirestore,
+        firebaseReadyPromise,
+        DEFAULT_PROFILE_PIC,
+        DEFAULT_THEME_NAME,
+      } from "./firebase-init.js";
+      import { loadNavbar, loadFooter } from "./navbar.js";
+      import {
+        getAvailableThemes,
+        applyTheme,
+        applyCachedTheme,
+      } from "./themes.js";
+
+      // Apply cached theme immediately to prevent flash
+      applyCachedTheme();
+
+      firebaseReadyPromise.then(() => {
+        auth.onAuthStateChanged(async (user) => {
+          let userProfile = null;
+          if (user) {
+            userProfile = await getUserProfileFromFirestore(user.uid);
+          }
+          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+          loadFooter("current-year-404");
+          const userThemePreference = userProfile?.themePreference;
+          const allThemes = await getAvailableThemes();
+          const themeToApply =
+            allThemes.find((t) => t.id === userThemePreference) ||
+            allThemes.find((t) => t.id === "dark");
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+            console.log(
+              `[404]: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+            );
+          }
+        });
+      });
+    </script>
+  </body>
 </html>

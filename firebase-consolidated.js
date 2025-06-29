@@ -1,16 +1,24 @@
 // firebase-consolidated.js - Consolidated Firebase initialization for HTML files
 // This file eliminates the need for duplicate Firebase initialization code in HTML files
 
-import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInAnonymously,
-  signInWithCustomToken
+  signInWithCustomToken,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import {setupThemesFirebase, applyTheme, getAvailableThemes} from './themes.js';
-import {loadNavbar} from './navbar.js';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  setupThemesFirebase,
+  applyTheme,
+  getAvailableThemes,
+} from "./themes.js";
+import { loadNavbar } from "./navbar.js";
 
 // Firebase configuration object
 const firebaseConfig = {
@@ -20,12 +28,12 @@ const firebaseConfig = {
   storageBucket: "arcator-web.firebasestorage.app",
   messagingSenderId: "1033082068049",
   appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-  measurementId: "G-DJXNT1L7CM"
+  measurementId: "G-DJXNT1L7CM",
 };
 
 // Determine the correct appId for Firestore paths
-const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : null;
-const appId = canvasAppId || firebaseConfig.projectId || 'default-app-id';
+const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
+const appId = canvasAppId || firebaseConfig.projectId || "default-app-id";
 
 // Firebase instances
 let app;
@@ -34,8 +42,8 @@ let db;
 let firebaseReadyPromise;
 
 // Constants
-const DEFAULT_PROFILE_PIC = 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-const DEFAULT_THEME_NAME = 'dark';
+const DEFAULT_PROFILE_PIC = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+const DEFAULT_THEME_NAME = "dark";
 
 /**
  * Fetches user profile data from Firestore.
@@ -45,10 +53,16 @@ const DEFAULT_THEME_NAME = 'dark';
 async function getUserProfileFromFirestore(uid) {
   await firebaseReadyPromise;
   if (!db) {
-    console.error("Firestore DB not initialized for getUserProfileFromFirestore.");
+    console.error(
+      "Firestore DB not initialized for getUserProfileFromFirestore.",
+    );
     return null;
   }
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+  const userDocRef = doc(
+    db,
+    `artifacts/${appId}/public/data/user_profiles`,
+    uid,
+  );
   try {
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
@@ -74,24 +88,52 @@ function initializeFirebase() {
 
       // Critical: Ensure auth state is settled before resolving
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("onAuthStateChanged triggered during initialization. User:", user ? user.uid : "none");
+        console.log(
+          "onAuthStateChanged triggered during initialization. User:",
+          user ? user.uid : "none",
+        );
         unsubscribe();
 
         // Perform initial sign-in if in Canvas and no user is already authenticated
-        if (typeof __initial_auth_token !== 'undefined' && !user) {
+        if (typeof __initial_auth_token !== "undefined" && !user) {
           signInWithCustomToken(auth, __initial_auth_token)
-            .then(() => console.log("DEBUG: Signed in with custom token from Canvas during init."))
+            .then(() =>
+              console.log(
+                "DEBUG: Signed in with custom token from Canvas during init.",
+              ),
+            )
             .catch((error) => {
-              console.error("ERROR: Error signing in with custom token during init:", error);
+              console.error(
+                "ERROR: Error signing in with custom token during init:",
+                error,
+              );
               signInAnonymously(auth)
-                .then(() => console.log("DEBUG: Signed in anonymously after custom token failure during init."))
-                .catch((anonError) => console.error("ERROR: Error signing in anonymously during init:", anonError));
+                .then(() =>
+                  console.log(
+                    "DEBUG: Signed in anonymously after custom token failure during init.",
+                  ),
+                )
+                .catch((anonError) =>
+                  console.error(
+                    "ERROR: Error signing in anonymously during init:",
+                    anonError,
+                  ),
+                );
             })
             .finally(() => resolve());
-        } else if (!user && typeof __initial_auth_token === 'undefined') {
+        } else if (!user && typeof __initial_auth_token === "undefined") {
           signInAnonymously(auth)
-            .then(() => console.log("DEBUG: Signed in anonymously (no custom token) during init."))
-            .catch((anonError) => console.error("ERROR: Error signing in anonymously during init:", anonError))
+            .then(() =>
+              console.log(
+                "DEBUG: Signed in anonymously (no custom token) during init.",
+              ),
+            )
+            .catch((anonError) =>
+              console.error(
+                "ERROR: Error signing in anonymously during init:",
+                anonError,
+              ),
+            )
             .finally(() => resolve());
         } else {
           resolve();
@@ -110,7 +152,11 @@ function initializeFirebase() {
  * @param {string} yearElementId - ID of the element to set current year
  * @param {boolean} useWindowLoad - Whether to use window.onload instead of DOMContentLoaded
  */
-export async function initializePageWithFirebase(pageName, yearElementId = null, useWindowLoad = false) {
+export async function initializePageWithFirebase(
+  pageName,
+  yearElementId = null,
+  useWindowLoad = false,
+) {
   const initFunction = async () => {
     console.log(`${pageName}: Initialization started.`);
 
@@ -124,7 +170,12 @@ export async function initializePageWithFirebase(pageName, yearElementId = null,
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    await loadNavbar(
+      auth.currentUser,
+      userProfile,
+      DEFAULT_PROFILE_PIC,
+      DEFAULT_THEME_NAME,
+    );
     console.log(`${pageName}: Navbar loaded.`);
 
     // Set current year for footer
@@ -139,10 +190,14 @@ export async function initializePageWithFirebase(pageName, yearElementId = null,
     // Apply theme
     const userThemePreference = userProfile?.themePreference;
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    const themeToApply =
+      allThemes.find((t) => t.id === userThemePreference) ||
+      allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
-      console.log(`${pageName}: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+      console.log(
+        `${pageName}: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+      );
     }
 
     console.log(`${pageName}: Page initialization complete.`);
@@ -151,8 +206,8 @@ export async function initializePageWithFirebase(pageName, yearElementId = null,
   if (useWindowLoad) {
     window.onload = initFunction;
   } else {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initFunction);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initFunction);
     } else {
       initFunction();
     }
@@ -168,5 +223,5 @@ export {
   appId,
   DEFAULT_PROFILE_PIC,
   DEFAULT_THEME_NAME,
-  getUserProfileFromFirestore
+  getUserProfileFromFirestore,
 };
