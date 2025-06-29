@@ -552,12 +552,6 @@ async function populateEmailRecipients() {
   }
 }
 
-// Remove template change handler since we're only using EmailJS template
-async function handleEmailTemplateChange() {
-  // No longer needed - using only EmailJS template
-  console.log('[EmailJS] Using EmailJS template: template_1gv17ca');
-}
-
 // Create email preview modal
 function createEmailPreviewModal() {
   const modal = document.createElement('div');
@@ -813,79 +807,9 @@ async function loadEmailHistory() {
 }
 
 // Global function for viewing email details
-window.viewEmailDetails = async function(emailId) {
-  try {
-    const emailDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/email_history`, emailId));
-    if (!emailDoc.exists()) {
-      showMessageBox("Email not found", true);
-      return;
-    }
-    
-    const emailData = emailDoc.data();
-    
-    // Create or get modal
-    let modal = document.getElementById('email-details-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'email-details-modal';
-      modal.className = 'modal';
-      modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-heading-card">Email Details</h3>
-            <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
-          </div>
-          <div id="email-details-content" class="space-y-4">
-            <!-- Content will be populated here -->
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      
-      // Add event listeners
-      const closeBtn = modal.querySelector('.close-button');
-      closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-      
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    }
-    
-    const content = document.getElementById('email-details-content');
-    content.innerHTML = `
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <div class="mb-3">
-          <strong class="text-text-primary">Subject:</strong>
-          <span class="text-text-secondary ml-2">${escapeHtml(emailData.subject)}</span>
-        </div>
-        <div class="mb-3">
-          <strong class="text-text-primary">Recipients:</strong>
-          <span class="text-text-secondary ml-2">${emailData.recipientEmails?.join(', ') || 'N/A'}</span>
-        </div>
-        <div class="mb-3">
-          <strong class="text-text-primary">Status:</strong>
-          <span class="text-text-secondary ml-2">${emailData.status || 'unknown'}</span>
-        </div>
-        <div class="mb-3">
-          <strong class="text-text-primary">Sent:</strong>
-          <span class="text-text-secondary ml-2">${emailData.sentAt?.toDate?.()?.toLocaleString() || 'Unknown'}</span>
-        </div>
-        <div class="mb-3">
-          <strong class="text-text-primary">Content:</strong>
-          <div class="mt-2 p-3 bg-input-bg rounded border border-input-border text-input-text whitespace-pre-wrap">${emailData.isHtml ? emailData.content : escapeHtml(emailData.content)}</div>
-        </div>
-      </div>
-    `;
-    
-    modal.style.display = 'flex';
-  } catch (error) {
-    console.error("Error viewing email details:", error);
-    showMessageBox("Failed to load email details", true);
-  }
+window.viewEmailDetails = function(emailId) {
+  // Implementation for viewing email details
+  showMessageBox('Email details view not implemented yet.', true);
 };
 
 // Main execution logic on window load
@@ -1131,77 +1055,219 @@ async function saveUserChanges() {
   }
 }
 
-// Setup event listeners for other admin functionality
-function setupEventListeners() {
-  // Initialize EmailJS and SMTP
-  initializeEmailJS().then(result => {
-    if (result.success) {
-      console.log('[EmailJS] Initialized successfully');
-    } else {
-      console.warn('[EmailJS] Initialization failed:', result.error);
-    }
-  });
+// Email Management Functions
+async function setupEmailManagement() {
+  const recipientTypeSelect = document.getElementById('email-recipient-type');
+  const customRecipientsSection = document.getElementById('custom-recipients-section');
+  const emailRecipientsList = document.getElementById('email-recipients-list');
+  const emailTemplateSelect = document.getElementById('email-template');
+  const emailComposeForm = document.getElementById('email-compose-form');
+  const previewEmailBtn = document.getElementById('preview-email-btn');
+  const saveDraftBtn = document.getElementById('save-draft-btn');
 
-  initializeSMTPIntegration().then(result => {
-    if (result.success) {
-      console.log('[SMTP] Initialized successfully');
-    } else {
-      console.warn('[SMTP] Initialization failed:', result.error);
-    }
-  });
-
-  // Email management event listeners
-  if (testEmailJSBtn) {
-    testEmailJSBtn.addEventListener('click', testEmailJSConnectionHandler);
-  }
-  if (configureEmailJSBtn) {
-    configureEmailJSBtn.addEventListener('click', configureEmailJS);
-  }
-  if (testSmtpBtn) {
-    testSmtpBtn.addEventListener('click', testSMTPServerConnectionHandler);
-  }
-  if (emailComposeForm) {
-    emailComposeForm.addEventListener('submit', sendEmail);
-  }
-  if (previewEmailBtn) {
-    previewEmailBtn.addEventListener('click', showEmailPreview);
-  }
-  if (emailTemplateSelect) {
-    emailTemplateSelect.addEventListener('change', handleEmailTemplateChange);
-  }
-
-  // Temporary pages event listeners
-  if (createTempPageForm) {
-    createTempPageForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const title = tempPageTitleInput.value.trim();
-      const content = tempPageContentInput.value.trim();
-      if (title && content) {
-        await createTempPage(title, content);
-        tempPageTitleInput.value = '';
-        tempPageContentInput.value = '';
+  // Recipient type change handler
+  if (recipientTypeSelect) {
+    recipientTypeSelect.addEventListener('change', async (e) => {
+      const type = e.target.value;
+      if (type === 'custom') {
+        customRecipientsSection.style.display = 'block';
+        await populateCustomRecipients();
+      } else {
+        customRecipientsSection.style.display = 'none';
       }
     });
   }
 
-  // User management event listeners
-  if (saveUserChangesBtn) {
-    saveUserChangesBtn.addEventListener('click', saveUserChanges);
-  }
-  if (cancelUserChangesBtn) {
-    cancelUserChangesBtn.addEventListener('click', () => {
-      editUserModal.style.display = 'none';
-      currentEditingUserUid = null;
-    });
+  // Email template change handler
+  if (emailTemplateSelect) {
+    emailTemplateSelect.addEventListener('change', handleEmailTemplateChange);
   }
 
-  // Modal close buttons
-  document.querySelectorAll('.close-button').forEach(button => {
-    button.addEventListener('click', () => {
-      editUserModal.style.display = 'none';
-      editTempPageModal.style.display = 'none';
-    });
-  });
+  // Form submission handler
+  if (emailComposeForm) {
+    emailComposeForm.addEventListener('submit', sendEmail);
+  }
+
+  // Preview button handler
+  if (previewEmailBtn) {
+    previewEmailBtn.addEventListener('click', showEmailPreview);
+  }
+
+  // Save draft button handler
+  if (saveDraftBtn) {
+    saveDraftBtn.addEventListener('click', saveEmailDraft);
+  }
+
+  // Load email history
+  await loadEmailHistory();
+}
+
+async function populateCustomRecipients() {
+  const emailRecipientsList = document.getElementById('email-recipients-list');
+  if (!emailRecipientsList || !usersData) return;
+
+  emailRecipientsList.innerHTML = usersData.map(user => `
+    <div class="flex items-center space-x-2">
+      <input type="checkbox" id="recipient-${user.uid}" value="${user.email}" class="form-checkbox">
+      <label for="recipient-${user.uid}" class="text-sm text-text-primary cursor-pointer">
+        ${escapeHtml(user.displayName || 'Unknown')} (${escapeHtml(user.email || 'No email')})
+      </label>
+    </div>
+  `).join('');
+}
+
+function handleEmailTemplateChange() {
+  const templateSelect = document.getElementById('email-template');
+  const subjectInput = document.getElementById('email-subject');
+  const contentInput = document.getElementById('email-content');
+  
+  if (!templateSelect || !subjectInput || !contentInput) return;
+
+  const template = templateSelect.value;
+  const templates = {
+    welcome: {
+      subject: 'Welcome to Arcator!',
+      content: 'Dear user,\n\nWelcome to Arcator! We\'re excited to have you join our community.\n\nBest regards,\nThe Arcator Team'
+    },
+    announcement: {
+      subject: 'Important Announcement',
+      content: 'Dear users,\n\nWe have an important announcement to share with you.\n\nBest regards,\nThe Arcator Team'
+    },
+    notification: {
+      subject: 'System Notification',
+      content: 'Dear user,\n\nThis is a system notification.\n\nBest regards,\nThe Arcator Team'
+    }
+  };
+
+  if (templates[template]) {
+    subjectInput.value = templates[template].subject;
+    contentInput.value = templates[template].content;
+  }
+}
+
+async function sendEmail(e) {
+  e.preventDefault();
+  
+  const recipientType = document.getElementById('email-recipient-type').value;
+  const subject = document.getElementById('email-subject').value.trim();
+  const content = document.getElementById('email-content').value.trim();
+  
+  if (!subject || !content) {
+    showMessageBox('Please fill in both subject and content.', true);
+    return;
+  }
+
+  let recipients = [];
+  
+  if (recipientType === 'users') {
+    recipients = usersData.filter(user => user.email).map(user => user.email);
+  } else if (recipientType === 'admins') {
+    recipients = usersData.filter(user => user.email && user.isAdmin).map(user => user.email);
+  } else if (recipientType === 'custom') {
+    const checkboxes = document.querySelectorAll('#custom-recipients-section input[type="checkbox"]:checked');
+    recipients = Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  if (recipients.length === 0) {
+    showMessageBox('No recipients selected.', true);
+    return;
+  }
+
+  try {
+    showMessageBox('Sending email...', false);
+    
+    // Send via EmailJS
+    const result = await sendEmailViaEmailJS(recipients, subject, content);
+    
+    if (result.success) {
+      showMessageBox(`Email sent successfully to ${recipients.length} recipients!`, false);
+      
+      // Log to history
+      await logEmailToHistory(recipients, subject, content, 'sent', 'EmailJS');
+      
+      // Clear form
+      document.getElementById('email-subject').value = '';
+      document.getElementById('email-content').value = '';
+      document.getElementById('email-template').value = '';
+      
+      // Reload history
+      await loadEmailHistory();
+    } else {
+      showMessageBox(`Failed to send email: ${result.error}`, true);
+    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    showMessageBox(`Error sending email: ${error.message}`, true);
+  }
+}
+
+async function sendEmailViaEmailJS(recipients, subject, content) {
+  try {
+    const emailjs = window.emailjs;
+    if (!emailjs) {
+      throw new Error('EmailJS not loaded');
+    }
+
+    const templateParams = {
+      to_email: recipients.join(','),
+      subject: subject,
+      message: content,
+      from_name: 'Arcator Admin'
+    };
+
+    const result = await emailjs.send('service_7pm3neh', 'template_1gv17ca', templateParams);
+    
+    return { success: true, result };
+  } catch (error) {
+    console.error('EmailJS error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+function showEmailPreview() {
+  const subject = document.getElementById('email-subject').value;
+  const content = document.getElementById('email-content').value;
+  const recipientType = document.getElementById('email-recipient-type').value;
+  
+  let recipientInfo = '';
+  if (recipientType === 'users') {
+    recipientInfo = 'All users';
+  } else if (recipientType === 'admins') {
+    recipientInfo = 'Admins only';
+  } else if (recipientType === 'custom') {
+    const checkboxes = document.querySelectorAll('#custom-recipients-section input[type="checkbox"]:checked');
+    recipientInfo = `${checkboxes.length} selected recipients`;
+  }
+  
+  const previewContent = `
+    <div class="bg-card p-4 rounded-lg border border-input-border">
+      <h4 class="text-lg font-semibold text-heading-card mb-2">Email Preview</h4>
+      <div class="space-y-2 text-sm">
+        <div><strong>To:</strong> ${recipientInfo}</div>
+        <div><strong>Subject:</strong> ${escapeHtml(subject)}</div>
+        <div><strong>Content:</strong></div>
+        <div class="bg-input-bg p-3 rounded border border-input-border whitespace-pre-wrap">${escapeHtml(content)}</div>
+      </div>
+    </div>
+  `;
+  
+  showMessageBox(previewContent, false, true);
+}
+
+function saveEmailDraft() {
+  const subject = document.getElementById('email-subject').value;
+  const content = document.getElementById('email-content').value;
+  
+  if (!subject && !content) {
+    showMessageBox('No content to save as draft.', true);
+    return;
+  }
+  
+  // Save to localStorage for now
+  const draft = { subject, content, timestamp: new Date().toISOString() };
+  localStorage.setItem('emailDraft', JSON.stringify(draft));
+  
+  showMessageBox('Draft saved successfully!', false);
 }
 
 // Test EmailJS connection
