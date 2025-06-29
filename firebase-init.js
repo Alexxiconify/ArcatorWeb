@@ -54,6 +54,13 @@ export async function getUserProfileFromFirestore(uid) {
     }
   } catch (error) {
     console.error("Error fetching user profile from Firestore:", error);
+    // Log more details for debugging
+    if (error.code) {
+      console.error("Firestore error code:", error.code);
+    }
+    if (error.message) {
+      console.error("Firestore error message:", error.message);
+    }
   }
   return null;
 }
@@ -165,6 +172,34 @@ async function setupFirebaseCore() {
 
 // Call core initialization function immediately when the module loads.
 setupFirebaseCore();
+
+// Test Firestore connection after initialization
+async function testFirestoreConnection() {
+  try {
+    await firebaseReadyPromise;
+    if (!db) {
+      console.error("Firestore DB not available for connection test");
+      return false;
+    }
+    
+    // Try a simple read operation to test connection
+    const testDocRef = doc(db, `artifacts/${appId}/public/data/test_connection`);
+    await getDoc(testDocRef);
+    console.log("Firestore connection test successful");
+    return true;
+  } catch (error) {
+    console.error("Firestore connection test failed:", error);
+    if (error.code) {
+      console.error("Connection error code:", error.code);
+    }
+    return false;
+  }
+}
+
+// Test connection after a short delay to ensure everything is initialized
+setTimeout(() => {
+  testFirestoreConnection();
+}, 2000);
 
 // Register onAuthStateChanged listener ONLY after firebaseReadyPromise resolves.
 // This ensures 'auth' and 'db' instances are definitely available.

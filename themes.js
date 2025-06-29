@@ -23,9 +23,9 @@ import {
 // Global variables for Firebase instances
 // These are not strictly necessary if using direct imports from firebase-init.js
 // but are kept for consistency with the pattern if other parts of themes.js rely on them.
-let themesDb = db; // Assign global db instance
-let themesAuth = auth; // Assign global auth instance
-let themesAppId = appId; // Assign global appId instance
+let themesDb = null;
+let themesAuth = null;
+let themesAppId = null;
 
 // Cache for available themes
 let availableThemesCache = [];
@@ -303,35 +303,54 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
  * @returns {Promise<Array>} Array of custom theme objects.
  */
 async function fetchCustomThemes() {
-  if (!themesDb) {
-    console.error("Firestore DB not initialized for fetchCustomThemes.");
-    return [];
-  }
-
   try {
-    const customThemesRef = collection(themesDb, `artifacts/${themesAppId}/public/data/custom_themes`);
-    const querySnapshot = await getDocs(customThemesRef);
-    const customThemes = [];
+    // Wait for Firebase to be ready
+    await firebaseReadyPromise;
+    
+    // Use themesDb if available, otherwise fall back to global db
+    const firestoreDb = themesDb || db;
+    const appIdentifier = themesAppId || appId;
+    
+    if (!firestoreDb) {
+      console.warn("Firestore DB not initialized for fetchCustomThemes. Using default themes only.");
+      return [];
+    }
 
-    querySnapshot.forEach(doc => {
-      const themeData = doc.data();
-      customThemes.push({
-        id: doc.id,
-        name: themeData.name || 'Unnamed Theme',
-        variables: themeData.variables || {},
-        backgroundPattern: themeData.backgroundPattern || 'none',
-        isCustom: true,
-        createdAt: themeData.createdAt,
-        updatedAt: themeData.updatedAt,
-        authorUid: themeData.authorUid,
-        authorDisplayName: themeData.authorDisplayName,
-        authorEmail: themeData.authorEmail
+    // Additional check to ensure Firestore is properly connected
+    if (!firestoreDb._delegate) {
+      console.warn("Firestore DB not fully initialized. Using default themes only.");
+      return [];
+    }
+
+    // Check if Firestore is properly connected
+    try {
+      const customThemesRef = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
+      const querySnapshot = await getDocs(customThemesRef);
+      const customThemes = [];
+
+      querySnapshot.forEach(doc => {
+        const themeData = doc.data();
+        customThemes.push({
+          id: doc.id,
+          name: themeData.name || 'Unnamed Theme',
+          variables: themeData.variables || {},
+          backgroundPattern: themeData.backgroundPattern || 'none',
+          isCustom: true,
+          createdAt: themeData.createdAt,
+          updatedAt: themeData.updatedAt,
+          authorUid: themeData.authorUid,
+          authorDisplayName: themeData.authorDisplayName,
+          authorEmail: themeData.authorEmail
+        });
       });
-    });
 
-    return customThemes;
+      return customThemes;
+    } catch (firestoreError) {
+      console.warn("Error accessing Firestore for custom themes:", firestoreError);
+      return [];
+    }
   } catch (error) {
-    console.error("Error fetching custom themes:", error);
+    console.warn("Error in fetchCustomThemes:", error);
     return [];
   }
 }
@@ -686,6 +705,22 @@ export async function applyCachedTheme() {
     return false;
   }
 }
+
+// Initialize themesDb with the global db instance when Firebase is ready
+async function initializeThemesDb() {
+  try {
+    await firebaseReadyPromise;
+    themesDb = db;
+    themesAuth = auth;
+    themesAppId = appId;
+    console.log("Themes Firebase instances initialized");
+  } catch (error) {
+    console.error("Error initializing themes Firebase instances:", error);
+  }
+}
+
+// Call initialization
+initializeThemesDb();
 
 // Don't automatically initialize themes when script loads
 // Let individual pages call this explicitly if needed

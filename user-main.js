@@ -1787,44 +1787,71 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // Setup all event listeners
 function setupEventListeners() {
-  // Sign in form
+  // Sign in form - handle both button click and form submit
   if (signInButton) {
     signInButton.addEventListener('click', handleSignIn);
   }
+  
+  // Add form submit event listener for sign-in form
+  const signInForm = document.getElementById('signin-form');
+  if (signInForm) {
+    signInForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleSignIn();
+    });
+  }
 
-  // Sign up form
+  // Sign up form - handle both button click and form submit
   if (signUpButton) {
     signUpButton.addEventListener('click', handleSignUp);
   }
+  
+  // Add form submit event listener for sign-up form
+  const signUpForm = document.getElementById('signup-form');
+  if (signUpForm) {
+    signUpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleSignUp();
+    });
+  }
 
-  // Forgot password form
+  // Forgot password form - handle both button click and form submit
   if (resetPasswordButton) {
     resetPasswordButton.addEventListener('click', handlePasswordReset);
   }
+  
+  // Add form submit event listener for forgot password form
+  const forgotPasswordForm = document.getElementById('forgot-password-form');
+  if (forgotPasswordForm) {
+    forgotPasswordForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handlePasswordReset();
+    });
+  }
 
-  // Navigation links
-  if (goToSignUpLink) {
+  // Navigation links - only add if sections exist
+  if (goToSignUpLink && signUpSection) {
     goToSignUpLink.addEventListener('click', (e) => {
       e.preventDefault();
       showSection(signUpSection);
     });
   }
 
-  if (goToSignInLink) {
+  if (goToSignInLink && signInSection) {
     goToSignInLink.addEventListener('click', (e) => {
       e.preventDefault();
       showSection(signInSection);
     });
   }
 
-  if (goToForgotPasswordLink) {
+  if (goToForgotPasswordLink && forgotPasswordSection) {
     goToForgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
       showSection(forgotPasswordSection);
     });
   }
 
-  if (goToSignInFromForgotLink) {
+  if (goToSignInFromForgotLink && signInSection) {
     goToSignInFromForgotLink.addEventListener('click', (e) => {
       e.preventDefault();
       showSection(signInSection);
