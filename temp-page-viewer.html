@@ -321,6 +321,58 @@
       color: var(--color-text-secondary);
     }
 
+    /* Comment theming overrides */
+    #comments-section {
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+    }
+    #comment-form-container {
+      background: var(--color-input-bg);
+      border: 1px solid var(--color-input-border);
+    }
+    #comment-content.form-input {
+      background: var(--color-input-bg);
+      color: var(--color-input-text);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      min-height: 80px;
+    }
+    .comment-bubble {
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-input-border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .comment-bubble .comment-meta {
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+    .reactions-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .reaction-btn {
+      background: var(--color-input-bg);
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-input-border);
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .reaction-btn.selected, .reaction-btn:hover {
+      background: var(--color-link);
+      color: var(--color-button-text);
+      border-color: var(--color-link);
+    }
+
   </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen theme-dark">
@@ -359,7 +411,7 @@
             id="comment-content" 
             name="content" 
             rows="4" 
-            class="w-full p-3 border border-input-border rounded-lg bg-input-bg text-input-text focus:border-link focus:outline-none resize-vertical"
+            class="form-input w-full bg-input-bg text-input-text border-input-border rounded-lg focus:border-link focus:outline-none resize-vertical"
             placeholder="Share your thoughts about this page..."
             required
           ></textarea>
