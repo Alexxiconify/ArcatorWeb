@@ -459,7 +459,7 @@
   import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
   import {loadNavbar, loadFooter} from './navbar.js';
   import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import {doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp, deleteDoc, updateDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const pageDisplayTitle = document.getElementById('page-display-title');
   const pageDisplayContent = document.getElementById('page-display-content');
@@ -854,7 +854,7 @@
   }
 
   /**
-   * Renders the comments list
+   * Renders the comments list with reactions
    */
   function renderComments(comments) {
     if (comments.length === 0) {
@@ -862,12 +862,21 @@
       return;
     }
 
+    const currentUid = auth.currentUser?.uid;
+    const REACTIONS = ['👍', '❤️', '🚀', '😂', '😮', '😢'];
+
     commentsList.innerHTML = comments.map(comment => {
       const date = comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Unknown date';
       const canDelete = auth.currentUser && (auth.currentUser.uid === comment.author || auth.currentUser.email === 'admin@arcator.co.uk');
-      
+      const reactions = comment.reactions || {};
+      // Render reactions bar
+      const reactionsBar = REACTIONS.map(emoji => {
+        const users = reactions[emoji] || [];
+        const selected = users.includes(currentUid);
+        return `<button class="reaction-btn${selected ? ' selected' : ''}" data-comment-id="${comment.id}" data-emoji="${emoji}" title="React with ${emoji}">${emoji} <span class="reaction-count">${users.length > 0 ? users.length : ''}</span></button>`;
+      }).join('');
       return `
-        <div class="bg-input-bg p-4 rounded-lg border border-input-border">
+        <div class="comment-bubble">
           <div class="flex items-start space-x-3">
             <div class="flex-shrink-0">
               <img src="${comment.authorPhoto || 'https://via.placeholder.com/40x40?text=U'}" 
@@ -879,24 +888,63 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm font-medium text-text-primary">${escapeHtml(comment.authorName)}</p>
-                  <p class="text-xs text-text-secondary">${date}</p>
+                  <p class="comment-meta">${date}</p>
                 </div>
-                ${canDelete ? `
-                  <button onclick="deleteComment('${comment.id}')" 
-                          class="text-red-400 hover:text-red-300 text-sm transition-colors"
-                          title="Delete comment">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                ` : ''}
+                ${canDelete ? `<button onclick="deleteComment('${comment.id}')" class="text-red-400 hover:text-red-300 text-sm transition-colors" title="Delete comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}
               </div>
               <div class="mt-2 text-text-primary whitespace-pre-wrap">${escapeHtml(comment.content)}</div>
+              <div class="reactions-bar mt-2">${reactionsBar}</div>
             </div>
           </div>
         </div>
       `;
     }).join('');
+
+    // Attach event listeners for reactions
+    commentsList.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const commentId = btn.dataset.commentId;
+        const emoji = btn.dataset.emoji;
+        await handleReaction(commentId, emoji);
+      });
+    });
+  }
+
+  /**
+   * Handles adding/removing a reaction for a comment
+   */
+  async function handleReaction(commentId, emoji) {
+    if (!auth.currentUser) {
+      showMessageBox('Please log in to react.', true);
+      return;
+    }
+    try {
+      // Find thread ID
+      const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads`);
+      const threadQuery = query(threadsRef);
+      const threadSnapshot = await getDocs(threadQuery);
+      if (threadSnapshot.empty) return;
+      const threadId = threadSnapshot.docs[0].id;
+      const commentRef = doc(db, `artifacts/${appId}/public/data/thematas/${currentThemaId}/threads/${threadId}/comments`, commentId);
+      const commentSnap = await getDoc(commentRef);
+      if (!commentSnap.exists()) return;
+      const commentData = commentSnap.data();
+      const reactions = commentData.reactions || {};
+      const uid = auth.currentUser.uid;
+      let users = reactions[emoji] || [];
+      if (users.includes(uid)) {
+        // Remove reaction
+        users = users.filter(u => u !== uid);
+      } else {
+        // Add reaction
+        users.push(uid);
+      }
+      reactions[emoji] = users;
+      await updateDoc(commentRef, { reactions });
+      await loadComments();
+    } catch (error) {
+      showMessageBox('Failed to update reaction.', true);
+    }
   }
 
   /**

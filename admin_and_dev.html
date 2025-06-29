@@ -291,11 +291,13 @@
                   <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
                   <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
                 </div>
-                <div class="checkbox-container">
-                  <input type="checkbox" id="temp-page-allow-comments-create" class="form-checkbox">
-                  <label for="temp-page-allow-comments-create">Allow Comments</label>
+                <div class="flex items-center gap-4 mb-4">
+                  <div class="checkbox-container mb-0">
+                    <input type="checkbox" id="temp-page-allow-comments-create" class="form-checkbox" checked>
+                    <label for="temp-page-allow-comments-create">Allow Comments</label>
+                  </div>
+                  <button type="submit" class="btn-primary btn-blue ml-0">Create Temp Page</button>
                 </div>
-                <button type="submit" class="btn-primary btn-blue">Create Temp Page</button>
               </form>
               <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
               <div id="temp-page-list" class="overflow-x-auto w-full">
@@ -709,6 +711,70 @@
       <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
         <button type="button" id="cancel-user-changes-btn" class="btn-primary btn-red">Cancel</button>
         <button type="submit" id="save-user-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit DM Modal -->
+<div id="edit-dm-modal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-heading-card">Edit Direct Message</h3>
+      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">&times;</button>
+    </div>
+    <form id="edit-dm-form" class="space-y-4">
+      <div class="input-field">
+        <label for="edit-dm-from" class="form-label">From:</label>
+        <input id="edit-dm-from" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-dm-to" class="form-label">To:</label>
+        <input id="edit-dm-to" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-dm-subject" class="form-label">Subject:</label>
+        <input id="edit-dm-subject" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-dm-content" class="form-label">Content:</label>
+        <textarea id="edit-dm-content" class="form-input w-full h-32"></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancel-edit-dm-btn" class="btn-primary btn-red">Cancel</button>
+        <button type="submit" class="btn-primary btn-blue">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Form Modal -->
+<div id="edit-form-modal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
+      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">&times;</button>
+    </div>
+    <form id="edit-form-form" class="space-y-4">
+      <div class="input-field">
+        <label for="edit-form-thema-title" class="form-label">Thema Title:</label>
+        <input id="edit-form-thema-title" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-thema-name" class="form-label">Thema Name:</label>
+        <input id="edit-form-thema-name" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-comments" class="form-label">Comments:</label>
+        <textarea id="edit-form-comments" class="form-input w-full h-24"></textarea>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-submissions" class="form-label">Submissions:</label>
+        <textarea id="edit-form-submissions" class="form-input w-full h-24"></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">Cancel</button>
+        <button type="submit" class="btn-primary btn-blue">Save Changes</button>
       </div>
     </form>
   </div>
