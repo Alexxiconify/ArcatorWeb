@@ -180,437 +180,83 @@
 
     <!-- Admin Content Section (visible only to authenticated users) -->
     <div id="admin-content" style="display: none;">
-      <p class="text-lg text-text-secondary mb-8">
-        Provides tools and information for managing Arcator infrastructure and development.
-      </p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-        <!-- Infrastructure Management Card -->
-        <div id="infrastructure-section" style="display: none;">
-          <div id="infrastructure-header" class="collapsible-header">
-            <h3>Infrastructure Management</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="infrastructure-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Monitor server health, manage deployments, and ensure network stability.</p>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li>Review server logs and performance metrics.</li>
-              <li>Perform routine maintenance tasks.</li>
-              <li>Manage user permissions on core systems.</li>
-              <li>Oversee backup and recovery procedures.</li>
-            </ul>
-            <a class="inline-block bg-purple-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-               href="about.html#infrastructure">View Infrastructure Details</a>
-          </div>
-        </div>
-
-        <!-- Development Tools Card -->
-        <div id="dev-tools-section" style="display: none;">
-          <div id="dev-tools-header" class="collapsible-header">
-            <h3>Development Tools & Wiki</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="dev-tools-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Access development resources, manage codebases, and update the Arcator Wiki.</p>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li>Access the code repositories and version control.</li>
-              <li>Contribute to ongoing development projects.</li>
-              <li>Update and maintain the official Arcator Wiki.</li>
-              <li>Collaborate on new features and bug fixes.</li>
-            </ul>
-            <a href="https://wiki.arcator.co.uk/" target="_blank" rel="noopener noreferrer" class="inline-block bg-yellow-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-yellow-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Arcator Wiki</a>
-          </div>
-        </div>
-
-        <!-- User Management Card -->
-        <div id="user-management-section" class="md:col-span-2" style="display: none;">
-          <div id="user-management-header" class="collapsible-header">
-            <h3>User Management</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="user-management-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">View and manage registered user profiles.</p>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left table-auto text-xs">
-                <thead>
-                <tr class="bg-table-th-bg">
-                  <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
-                  <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
-                  <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
-                  <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
-                  <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                </tr>
-                </thead>
-                <tbody id="user-list-tbody">
-                <tr>
-                  <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...</td>
-                </tr>
-                </tbody>
-              </table>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              System Admin Resources
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <p class="mb-2">Guides for sysadmin tasks, SSH, and server management:</p>
+              <ul class="list-disc ml-6 mb-2">
+                <li><a href="https://wiki.arcator.co.uk/en/Sysadmin" target="_blank" class="text-link hover:underline">Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a></li>
+                <li><a href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" target="_blank" class="text-link hover:underline">Arcator Internal Docs (Growth plans, admin notes)</a></li>
+                <li><a href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit" target="_blank" class="text-link hover:underline">Vann's Command Guide</a></li>
+              </ul>
+              <p class="text-xs text-text-secondary">See wiki for SSH key setup, Termius config, and host details. Use Mosh for high-speed, port 220, user <b>mcsa</b>.</p>
             </div>
-          </div>
+          </details>
         </div>
-
-        <!-- Email Management Card -->
-        <div id="email-management-section" class="md:col-span-2" style="display: none;">
-          <div id="email-management-header" class="collapsible-header">
-            <h3>Email Management</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="email-management-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Send emails to users with email addresses added to their accounts using EmailJS.</p>
-            
-            <!-- EmailJS Status -->
-            <div class="bg-card p-4 rounded-lg shadow-md mb-6">
-              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">EmailJS Status</h4>
-              <div id="emailjs-status-display" class="text-sm text-text-secondary mb-4">
-                <div>Loading EmailJS status...</div>
-              </div>
-              <button type="button" id="test-emailjs-btn" class="btn-primary btn-purple mr-2">Test EmailJS Connection</button>
-              <button type="button" id="configure-emailjs-btn" class="btn-primary btn-blue">Configure EmailJS</button>
+      </div>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              User Management
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <div id="user-list-tbody"></div>
+              <!-- Editing handled by modal as before -->
             </div>
-            
-            <!-- SMTP Server Status -->
-            <div class="bg-card p-4 rounded-lg shadow-md mb-6">
-              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">SMTP Server Status</h4>
-              <div id="smtp-status-display" class="text-sm text-text-secondary mb-4">
-                <div>Loading SMTP server status...</div>
-              </div>
-              <button type="button" id="test-smtp-btn" class="btn-primary btn-green">Test SMTP Connection</button>
-            </div>
-            
-            <!-- Email Composition Form -->
-            <div class="bg-card p-6 rounded-lg shadow-md mb-6">
-              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Compose Email</h4>
-              <form id="email-compose-form" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="input-field">
-                    <label for="email-to-select" class="form-label">To:</label>
-                    <select id="email-to-select" multiple class="form-input h-32">
-                      <option value="" disabled>Select recipients...</option>
-                    </select>
-                    <p class="text-text-secondary text-sm mt-1">Hold Ctrl/Cmd to select multiple users</p>
-                  </div>
-                  <div class="input-field">
-                    <label for="email-template-select" class="form-label">Email Template:</label>
-                    <select id="email-template-select" class="form-input">
-                      <option value="default">Default Template (template_1gv17ca)</option>
-                      <option value="generic">Generic Email (template_tt7qx39)</option>
-                      <option value="passwordReset">Password Reset (template_hgysk9k)</option>
-                    </select>
-                    <p class="text-text-secondary text-sm mt-1">Choose your EmailJS template</p>
-                  </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="input-field">
-                    <label for="email-subject" class="form-label">Subject:</label>
-                    <input id="email-subject" type="text" placeholder="Email subject" required class="form-input"/>
-                  </div>
-                  <div class="input-field">
-                    <label for="email-from" class="form-label">From:</label>
-                    <input id="email-from" type="email" value="noreply@arcator-web.firebaseapp.com" readonly class="form-input bg-gray-100" title="Sender address is fixed for security"/>
-                  </div>
-                </div>
-                <div class="input-field">
-                  <label for="email-content" class="form-label">Message:</label>
-                  <textarea id="email-content" rows="8" placeholder="Enter your message here..." required class="form-input"></textarea>
-                </div>
-                <div class="checkbox-container">
-                  <input type="checkbox" id="email-html-format" class="form-checkbox">
-                  <label for="email-html-format" class="form-label">Send as HTML (allows formatting)</label>
-                </div>
-                <div class="flex justify-end space-x-4">
-                  <button type="button" id="preview-email-btn" class="btn-primary btn-purple">Preview</button>
-                  <button type="submit" id="send-email-btn" class="btn-primary btn-blue">Send Email</button>
-                </div>
+          </details>
+        </div>
+      </div>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Temporary Pages
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <form id="create-temp-page-form" class="space-y-4">
+                <input id="temp-page-title" placeholder="Page Title" type="text" class="form-input w-full"/>
+                <textarea id="temp-page-content" placeholder="HTML content" class="form-input w-full"></textarea>
+                <button type="submit" class="btn-primary btn-blue">Create</button>
               </form>
+              <div id="temp-page-list" class="mt-4"></div>
             </div>
-
-            <!-- Email History -->
-            <div class="bg-card p-6 rounded-lg shadow-md">
-              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Email History</h4>
-              <div class="overflow-x-auto">
-                <table class="w-full text-left table-auto">
-                  <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-4 py-2 text-table-th-text">Date</th>
-                    <th class="px-4 py-2 text-table-th-text">Subject</th>
-                    <th class="px-4 py-2 text-table-th-text">Recipients</th>
-                    <th class="px-4 py-2 text-table-th-text">Status</th>
-                    <th class="px-4 py-2 text-table-th-text">Method</th>
-                    <th class="px-4 py-2 text-table-th-text">Actions</th>
-                  </tr>
-                  </thead>
-                  <tbody id="email-history-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Management Card -->
-        <div id="form-management-section" style="display: none;">
-          <div id="form-management-header" class="collapsible-header">
-            <h3>Form Management</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="form-management-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Overview of form submissions and structure.</p>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li>Review recent form submissions.</li>
-              <li>Analyze form data trends.</li>
-              <li>(Future: Edit form questions/fields directly)</li>
-            </ul>
-            <a href="forms.html" class="inline-block bg-green-600 text-white font-bold py-2 px-6 rounded-full mt-6 hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">Go to Forms Page</a>
-          </div>
-        </div>
-
-        <!-- Temporary Pages Card -->
-        <div id="temp-pages-section" style="display: none;">
-          <div id="temp-pages-header" class="collapsible-header">
-            <h3>Temporary Pages</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="temp-pages-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Create and manage temporary informational pages. Use <strong>HTML</strong> for advanced content styling, including collapsible sections.</p>
-            <form id="create-temp-page-form" class="space-y-4">
-              <div>
-                <label class="block text-text-secondary text-sm font-bold mb-2" for="temp-page-title">Page Title:</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="temp-page-title"
-                       placeholder="Enter page title"
-                       type="text">
-              </div>
-              <div>
-                <label class="block text-text-secondary text-sm font-bold mb-2" for="temp-page-content">Page Content (HTML allowed):</label>
-                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-32"
-                          id="temp-page-content"
-                          placeholder="Write your page content here... Use HTML for styling!"></textarea>
-              </div>
-              <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-full hover:bg-indigo-700 transition duration-300 ease-in-out shadow-lg">Create Temp Page</button>
-            </form>
-            <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
-            <ul class="list-disc list-inside text-text-secondary space-y-2" id="temp-page-list">
-              <li>No temporary pages created yet.</li>
-            </ul>
-            <div id="edit-temp-page-modal" class="modal">
-              <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Temporary Page</h3>
-                <div class="mb-4">
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-title">Page Title:</label>
-                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-temp-page-title"
-                         type="text">
-                </div>
-                <div class="mb-4">
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-content">Page Content (HTML allowed):</label>
-                  <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-48"
-                            id="edit-temp-page-content"></textarea>
-                </div>
-                <button id="save-temp-page-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Important Links Card -->
-        <div id="important-links-section" class="md:col-span-2" style="display: none;">
-          <div id="important-links-header" class="collapsible-header">
-            <h3>Important Links</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="important-links-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Quick access to essential internal and external documentation.</p>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li><a class="text-link hover:underline"
-                     href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" rel="noopener noreferrer" target="_blank">Arcator Internal Documentation (Google Doc)</a></li>
-              <li><a class="text-link hover:underline" href="https://wiki.arcator.co.uk/" rel="noopener noreferrer"
-                     target="_blank">Arcator Official Wiki</a></li>
-              <li><a class="text-link hover:underline" href="about.html#infrastructure">Infrastructure Details Page</a></li>
-            </ul>
-          </div>
+          </details>
         </div>
       </div>
-
-      <!-- Roadmap (Todo List) Section -->
-      <div id="roadmap-section" style="display: none;">
-        <div id="roadmap-header" class="collapsible-header mt-8">
-          <h3>Our Development Roadmap (Todo List)</h3>
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </div>
-        <div id="roadmap-content" class="collapsible-content hidden">
-          <p class="text-lg text-center mb-8 text-text-secondary">This section outlines our ongoing tasks, future plans, and administrative protocols that help keep Arcator running smoothly and evolving.</p>
-
-          <!-- Add New Todo Item Form -->
-          <div class="p-6 bg-card rounded-lg shadow-md mb-8">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">Add New Roadmap Task</h3>
-            <form id="add-todo-form" class="space-y-4">
-              <div>
-                <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-task">Task:</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-task"
-                       placeholder="Enter task description"
-                       required type="text">
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-worker">Worker:</label>
-                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-worker"
-                         placeholder="Assigned worker"
-                         type="text">
-                </div>
-                <div>
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-priority">Priority:</label>
-                  <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
-                          id="todo-priority">
-                    <option value="Very Low">Very Low</option>
-                    <option value="Low">Low</option>
-                    <option value="Mid">Mid</option>
-                    <option value="High">High</option>
-                    <option value="Urgent">Urgent</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-eta">ETA:</label>
-                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="todo-eta"
-                         placeholder="e.g., 1 Day, N/A"
-                         type="text">
-                </div>
-              </div>
-              <div>
-                <label class="block text-text-secondary text-sm font-bold mb-2" for="todo-notes">Notes:</label>
-                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-24"
-                          id="todo-notes"
-                          placeholder="Additional notes or links"></textarea>
-              </div>
-              <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg">Add Task</button>
-            </form>
-            <div id="edit-todo-modal" class="modal">
-              <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Roadmap Task</h3>
-                <div class="mb-4">
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-task">Task:</label>
-                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-task"
-                         required
-                         type="text">
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label class="block text-text-secondary text-sm font-bold mb-2"
-                           for="edit-todo-worker">Worker:</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-worker"
-                           type="text">
-                  </div>
-                  <div>
-                    <label class="block text-text-secondary text-sm font-bold mb-2"
-                           for="edit-todo-priority">Priority:</label>
-                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline"
-                            id="edit-todo-priority">
-                      <option value="Very Low">Very Low</option>
-                      <option value="Low">Low</option>
-                      <option value="Mid">Mid</option>
-                      <option value="High">High</option>
-                      <option value="Urgent">Urgent</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-eta">ETA:</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline" id="edit-todo-eta"
-                           type="text">
-                  </div>
-                </div>
-                <div class="mb-4">
-                  <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-todo-notes">Notes:</label>
-                  <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline h-24"
-                            id="edit-todo-notes"></textarea>
-                </div>
-                <button id="save-todo-changes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700">Save Changes</button>
-              </div>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Direct Messages
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <form id="dm-compose-form" class="space-y-4">
+                <select id="dm-to-select" class="form-input w-full"></select>
+                <input id="dm-subject" placeholder="Subject" class="form-input w-full"/>
+                <textarea id="dm-content" placeholder="Message" class="form-input w-full"></textarea>
+                <button type="submit" class="btn-primary btn-blue">Send DM</button>
+              </form>
+              <div id="dm-history-tbody" class="mt-4"></div>
             </div>
-          </div>
-
-          <div class="overflow-x-auto mb-12">
-            <table>
-              <thead>
-              <tr>
-                <th>Task</th>
-                <th>Worker</th>
-                <th>Priority</th>
-                <th>ETA</th>
-                <th>Notes</th>
-                <th>Actions</th>
-              </tr>
-              </thead>
-              <tbody id="roadmap-todo-list-tbody">
-              <!-- Todo items will be dynamically loaded here -->
-              <tr>
-                <td class="text-center py-4 text-text-secondary" colspan="6">Loading roadmap tasks...</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
+          </details>
         </div>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-        <!-- Darrion API Section -->
-        <div id="darrion-api-section" style="display: none;">
-          <div id="darrion-api-header" class="collapsible-header">
-            <h3>Darrion API</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="darrion-api-content" class="collapsible-content hidden">
-            <p class="text-lg leading-relaxed text-text-secondary mb-4">The Darrion API provides programmatic access to various Arcator service data. This allows for external tools and integrations to fetch information about our servers and services.</p>
-            <h4 class="text-2xl font-semibold mb-4 text-text-primary">REST API Endpoints:</h4>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/players</span>: Gets a list of all servers and the players online.</li>
-              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/players/:serverName</span>: Gets a list of players on a specific gamemode.</li>
-              <li><span class="font-semibold text-text-primary">GET mc.arcator.co.uk/services</span>: Gets the online services on the machines.</li>
-              <li><span class="font-semibold text-text-primary">GET plugin updates</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- GriefDetection Section -->
-        <div id="grief-detection-section" style="display: none;">
-          <div id="grief-detection-header" class="collapsible-header">
-            <h3>Grief Detection</h3>
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-          <div id="grief-detection-content" class="collapsible-content hidden">
-            <p class="text-lg leading-relaxed text-text-secondary mb-4">Our automated grief detection system performs regular checks to ensure fair gameplay and a positive environment for all. It prioritizes analysis based on player activity patterns.</p>
-            <ul class="list-disc list-inside text-text-secondary space-y-2">
-              <li>Regular checks for griefs and automated analysis of player actions.</li>
-              <li>Prioritizes players with smaller `lastlog` + `firstlog` differences for analysis (lower playtime players checked first).</li>
-              <li>Analyzes player actions using CoreProtectAPI (compares block placements vs. removals).</li>
-              <li>Includes `AutoWarn` system to log and optionally deny problematic block placements. (<a
-                class="text-link hover:underline" href="https://github.com/Alexxiconify/AlexxAutoWarn" rel="noopener noreferrer"
-                target="_blank">GitHub Link</a>)</li>
-              <li>Statistical analysis of player activity (placed & removed blocks, materials) for future flags.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Onfim Notifications Section -->
-      <div id="onfim-notifications-section" class="mt-16" style="display: none;">
-        <div id="onfim-notifications-header" class="collapsible-header">
-          <h3>Onfim Notifications</h3>
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </div>
-        <div id="onfim-notifications-content" class="collapsible-content hidden">
-          <p class="text-lg leading-relaxed text-text-secondary mb-4">Onfim Notifications are an automated system designed to alert staff via Discord about critical system statuses and potential issues, ensuring quick responses and minimal downtime.</p>
-          <ul class="list-disc list-inside text-text-secondary space-y-2">
-            <li>Warns staff on Discord when disk space is nearly full.</li>
-            <li>Detects and alerts on drive corruption.</li>
-            <li>Notifies if core services (Vulcan or Jylina) are not responding.</li>
-            <li>Alerts when Jylina's Ngrok IP address changes.</li>
-            <li>Handles `#machine-status` updates every minute.</li>
-          </ul>
+      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+          <details open>
+            <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+              Forms Management
+            </summary>
+            <div class="mt-4 w-full flex flex-col items-start">
+              <div id="form-submissions-tbody"></div>
+              <a href="forms.html" class="btn-primary btn-blue mt-2">Go to Forms Page</a>
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -654,14 +300,13 @@
       if (user) {
         userProfile = await getUserProfileFromFirestore(user.uid);
       }
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
       loadFooter('current-year-admin-dev');
       const userThemePreference = userProfile?.themePreference;
       const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       if (themeToApply) {
         applyTheme(themeToApply.id, themeToApply);
-        console.log(`[Admin]: Applied theme ${themeToApply.id} (${themeToApply.name})`);
       }
     });
   });
