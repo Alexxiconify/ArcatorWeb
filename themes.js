@@ -303,62 +303,38 @@ export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
  * @returns {Promise<Array>} Array of custom theme objects.
  */
 async function fetchCustomThemes() {
+  await firebaseReadyPromise;
+  const firestoreDb = themesDb || db;
+  const firebaseAuth = themesAuth || auth;
+  const appIdentifier = themesAppId || appId;
+  if (!firestoreDb || !firebaseAuth || !appIdentifier) {
+    console.error("Firestore DB not initialized for fetchCustomThemes.");
+    return [];
+  }
   try {
-    // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
-    const firestoreDb = themesDb || db;
-    const firebaseAuth = themesAuth || auth;
-    const appIdentifier = themesAppId || appId;
-
-    if (!firestoreDb || !firebaseAuth || !appIdentifier) {
-      console.warn("Firestore DB not initialized for fetchCustomThemes. Using default themes only.");
-      return [];
-    }
-
-    // Additional check to ensure Firestore is properly connected
-    if (!firestoreDb._delegate) {
-      console.warn("Firestore DB not fully initialized. Using default themes only.");
-      return [];
-    }
-
-    // Check if Firestore is properly connected with a timeout
-    try {
-      const customThemesRef = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
-      
-      // Add a timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore query timeout')), 5000)
-      );
-      
-      const queryPromise = getDocs(customThemesRef);
-      const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
-      
-      const customThemes = [];
-
-      querySnapshot.forEach(doc => {
-        const themeData = doc.data();
-        customThemes.push({
-          id: doc.id,
-          name: themeData.name || 'Unnamed Theme',
-          variables: themeData.variables || {},
-          backgroundPattern: themeData.backgroundPattern || 'none',
-          isCustom: true,
-          createdAt: themeData.createdAt,
-          updatedAt: themeData.updatedAt,
-          authorUid: themeData.authorUid,
-          authorDisplayName: themeData.authorDisplayName,
-          authorEmail: themeData.authorEmail
-        });
+    const customThemesRef = collection(firestoreDb, `artifacts/${appIdentifier}/public/data/custom_themes`);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore query timeout')), 5000));
+    const queryPromise = getDocs(customThemesRef);
+    const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
+    const customThemes = [];
+    querySnapshot.forEach(doc => {
+      const themeData = doc.data();
+      customThemes.push({
+        id: doc.id,
+        name: themeData.name || 'Unnamed Theme',
+        variables: themeData.variables || {},
+        backgroundPattern: themeData.backgroundPattern || 'none',
+        isCustom: true,
+        createdAt: themeData.createdAt,
+        updatedAt: themeData.updatedAt,
+        authorUid: themeData.authorUid,
+        authorDisplayName: themeData.authorDisplayName,
+        authorEmail: themeData.authorEmail
       });
-
-      return customThemes;
-    } catch (firestoreError) {
-      console.warn("Error accessing Firestore for custom themes:", firestoreError);
-      // Return empty array instead of throwing to allow fallback to default themes
-      return [];
-    }
+    });
+    return customThemes;
   } catch (error) {
     console.warn("Error in fetchCustomThemes:", error);
-    // Return empty array instead of throwing to allow fallback to default themes
     return [];
   }
 }
@@ -369,13 +345,9 @@ async function fetchCustomThemes() {
  * @returns {Promise<Array>} Array of all available theme objects.
  */
 export async function getAvailableThemes(forceRefresh = false) {
-  // Return cached themes if available and not forcing refresh
-  if (!forceRefresh && availableThemesCache.length > 0) {
-    return availableThemesCache;
-  }
-
+  await firebaseReadyPromise;
+  if (!forceRefresh && availableThemesCache.length > 0) return availableThemesCache;
   try {
-    // Fetch custom themes from Firestore with error handling
     let customThemes = [];
     try {
       customThemes = await fetchCustomThemes();
@@ -383,17 +355,11 @@ export async function getAvailableThemes(forceRefresh = false) {
       console.warn("Failed to fetch custom themes, using defaults only:", customThemeError);
       customThemes = [];
     }
-    
-    // Combine default and custom themes
     const allThemes = [...defaultThemes, ...customThemes];
-    
-    // Update cache
     availableThemesCache = allThemes;
-    
     return allThemes;
   } catch (error) {
     console.error("Error fetching themes:", error);
-    // Always return default themes on error to ensure the app doesn't break
     availableThemesCache = defaultThemes;
     return defaultThemes;
   }

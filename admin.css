@@ -36,14 +36,8 @@ body {
 }
 
 /* Heading colors to ensure clarity with themes */
-.text-red-400 {
-  color: var(--color-heading-main) !important;
-}
 .text-blue-300 {
   color: var(--color-heading-card) !important;
-}
-.text-red-300 { /* Specific for Darrion API/Grief Detection headings */
-  color: var(--color-heading-main) !important;
 }
 .text-red-200 { /* Specific for Darrion API subheadings */
   color: var(--color-text-primary) !important; /* Or a darker version of heading-main */
@@ -702,4 +696,66 @@ table tbody tr:hover {
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
+}
+
+/* SVG icon color inheritance for admin buttons */
+button svg {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Ensure edit button icons are blue */
+button.text-blue-400 svg,
+button.text-blue-400:hover svg {
+  stroke: currentColor;
+}
+
+/* Ensure delete button icons are red */
+button.text-red-400 svg,
+button.text-red-400:hover svg {
+  stroke: currentColor;
+}
+
+/* Force color inheritance for all admin action buttons */
+.admin-action-btn svg,
+[title*="Edit"] svg,
+[title*="Delete"] svg {
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* Specific styling for admin table action buttons */
+.flex.space-x-1 button svg {
+  stroke: currentColor;
+  fill: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Ensure proper color inheritance in admin tables */
+table button svg {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Ensure red color classes work properly for delete buttons */
+.text-red-400 {
+  color: #f87171 !important;
+}
+
+.text-red-300 {
+  color: #fca5a5 !important;
+}
+
+.hover\:text-red-300:hover {
+  color: #fca5a5 !important;
+}
+
+/* Ensure link color works for edit buttons */
+.text-link {
+  color: var(--color-link) !important;
+}
+
+.hover\:text-link:hover {
+  color: var(--color-link) !important;
 }

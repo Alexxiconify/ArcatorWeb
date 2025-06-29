@@ -803,6 +803,42 @@
   </div>
 </div>
 
+<!-- Edit Form Modal -->
+<div id="edit-form-modal" class="modal" style="display: none;">
+  <div class="modal-content bg-card" style="max-width: 700px;">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
+      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">&times;</button>
+    </div>
+    <form id="edit-form-form" class="space-y-4">
+      <div class="input-field">
+        <label for="edit-form-thema-name" class="form-label">Thema Name:</label>
+        <input id="edit-form-thema-name" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-thema-title" class="form-label">Thema Title:</label>
+        <input id="edit-form-thema-title" type="text" class="form-input w-full"/>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-thema-description" class="form-label">Thema Description:</label>
+        <textarea id="edit-form-thema-description" class="form-input w-full h-20"></textarea>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-comments" class="form-label">Comments:</label>
+        <textarea id="edit-form-comments" class="form-input w-full h-24"></textarea>
+      </div>
+      <div class="input-field">
+        <label for="edit-form-submissions" class="form-label">Submissions:</label>
+        <textarea id="edit-form-submissions" class="form-input w-full h-24"></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">Cancel</button>
+        <button type="submit" class="btn-primary btn-blue">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Footer -->
 <div id="footer-placeholder"></div>
 

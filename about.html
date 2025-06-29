@@ -177,11 +177,11 @@
 
 <!-- Main Content Section -->
 <div class="container mx-auto px-4 mt-8">
-  <div class="tab-container">
-    <button class="tab-button active" onclick="showTab('about')">About</button>
-    <button class="tab-button" onclick="showTab('discord')">Discord</button>
-    <button class="tab-button" onclick="showTab('census')">Census</button>
-    <button class="tab-button" onclick="showTab('infrastructure')">Infrastructure</button>
+  <div class="nav-tabs flex justify-center mb-8">
+    <button class="tab-btn active" onclick="showTab('about')">About</button>
+    <button class="tab-btn" onclick="showTab('discord')">Discord</button>
+    <button class="tab-btn" onclick="showTab('census')">Census</button>
+    <button class="tab-btn" onclick="showTab('infrastructure')">Infrastructure</button>
   </div>
 </div>
 
@@ -498,7 +498,7 @@
   window.showTab = function (tabName) {
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => content.classList.remove('active'));
-    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(button => button.classList.remove('active'));
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');

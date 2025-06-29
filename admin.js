@@ -192,7 +192,7 @@ async function renderUserList() {
           <div class="flex space-x-1">
             <button 
               onclick="openEditUserModal('${user.uid}', ${JSON.stringify(user).replace(/"/g, '&quot;')})"
-              class="text-blue-400 hover:text-blue-300 transition-colors"
+              class="text-link hover:text-link transition-colors admin-action-btn"
               title="Edit User"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +201,7 @@ async function renderUserList() {
             </button>
             <button 
               onclick="deleteUserProfile('${user.uid}', '${escapeHtml(displayName)}')"
-              class="text-red-400 hover:text-red-300 transition-colors"
+              class="text-red-400 hover:text-red-300 transition-colors admin-action-btn"
               title="Delete Profile"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -880,8 +880,8 @@ async function loadEmailHistory() {
             row.className = 'hover:bg-table-row-even-bg';
             row.innerHTML = `
         <td class="px-4 py-2 text-text-secondary">${sentAt.toLocaleString()}</td>
-        <td class="px-4 py-2 text-text-primary">${escapeHtml(emailData.subject || 'No subject')}</td>
-        <td class="px-4 py-2 text-text-secondary">${escapeHtml(recipients)}</td>
+        <td class="px-4 py-2 text-text-primary text-xs">${escapeHtml(emailData.subject || 'No subject')}</td>
+        <td class="px-4 py-2 text-text-secondary text-xs">${escapeHtml(recipients)}</td>
         <td class="px-4 py-2">
           <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 emailData.status === 'sent' ? 'bg-green-100 text-green-800' :
@@ -891,7 +891,7 @@ async function loadEmailHistory() {
             ${emailData.status || 'unknown'}
           </span>
         </td>
-        <td class="px-4 py-2 text-text-secondary">${emailData.method || 'Unknown'}</td>
+        <td class="px-4 py-2 text-text-secondary text-xs">${emailData.method || 'Unknown'}</td>
         <td class="px-4 py-2">
           <button class="text-link hover:underline text-sm" onclick="viewEmailDetails('${doc.id}')">View</button>
         </td>
@@ -1537,13 +1537,13 @@ async function renderDMHistory(dmData) {
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
             <button onclick="openEditDMModal('${dm.id}', '${escapeHtml(from)}', '${escapeHtml(to)}', '${escapeHtml(subject)}', '${escapeHtml(content)}')" 
-                    class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit DM">
+                    class="text-link hover:text-link transition-colors admin-action-btn" title="Edit DM">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </button>
             <button onclick="deleteDM('${dm.id}')" 
-                    class="text-red-400 hover:text-red-300 transition-colors" title="Delete DM">
+                    class="text-red-400 hover:text-red-300 transition-colors admin-action-btn" title="Delete DM">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -1605,13 +1605,13 @@ async function renderFormsData(formsData) {
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
             <button onclick="openEditFormModal('${form.id}', '${escapeHtml(themaTitle)}', '${escapeHtml(themaName)}', ${comments}, ${submissions})" 
-                    class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit Form">
+                    class="text-link hover:text-link transition-colors admin-action-btn" title="Edit Form">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </button>
             <button onclick="deleteForm('${form.id}')" 
-                    class="text-red-400 hover:text-red-300 transition-colors" title="Delete Form">
+                    class="text-red-400 hover:text-red-300 transition-colors admin-action-btn" title="Delete Form">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
