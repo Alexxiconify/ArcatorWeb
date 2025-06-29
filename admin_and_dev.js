@@ -21,6 +21,12 @@ import {
   getEmailJSStatus, 
   saveCredentials 
 } from './emailjs-integration.js';
+import { 
+  sendEmailViaSMTP, 
+  testSMTPServerConnection,
+  getSMTPServerStatus,
+  initializeSMTPIntegration 
+} from './smtp-integration.js';
 import {
   doc,
   getDoc,
@@ -1007,7 +1013,7 @@ function showEmailPreview() {
   modal.style.display = 'flex';
 }
 
-// Send email using EmailJS only (no Cloud Functions)
+// Send email using EmailJS or SMTP server
 async function sendEmail() {
   const recipients = Array.from(document.getElementById('email-to-select').selectedOptions).map(option => option.value);
   const subject = document.getElementById('email-subject').value.trim();
@@ -1032,56 +1038,69 @@ async function sendEmail() {
     sendButton.textContent = 'Sending...';
     sendButton.disabled = true;
 
-    // Send emails using EmailJS
-    const results = [];
-    for (const recipient of recipients) {
-      const result = await sendEmailWithEmailJS(
-        recipient,
-        subject,
-        content,
-        {
-          fromName: 'Arcator.co.uk',
-          replyTo: 'noreply@arcator-web.firebaseapp.com'
+    // Try SMTP server first, fallback to EmailJS
+    let result = null;
+    let method = 'SMTP';
+
+    try {
+      // Check SMTP server status
+      const smtpStatus = getSMTPServerStatus();
+      if (smtpStatus.connected) {
+        // Send via SMTP
+        const emailData = {
+          to: recipients.join(','),
+          subject: subject,
+          content: content,
+          template: template || 'custom',
+          isHtml: isHtml,
+          from: 'noreply@arcator.co.uk'
+        };
+        
+        result = await sendEmailViaSMTP(emailData);
+        console.log('[SMTP] Email sent successfully:', result);
+      } else {
+        throw new Error('SMTP server not connected');
+      }
+    } catch (smtpError) {
+      console.warn('[SMTP] Failed, trying EmailJS:', smtpError);
+      
+      // Fallback to EmailJS
+      method = 'EmailJS';
+      const emailjsStatus = getEmailJSStatus();
+      
+      if (emailjsStatus.readyToSend) {
+        // Send via EmailJS
+        for (const recipient of recipients) {
+          const emailData = {
+            to: recipient,
+            subject: subject,
+            content: content,
+            template: template || 'custom',
+            isHtml: isHtml
+          };
+          
+          result = await sendEmailWithEmailJS(emailData);
+          console.log('[EmailJS] Email sent successfully:', result);
         }
-      );
-      results.push({ recipient, result });
-    }
-
-    // Check results
-    const successCount = results.filter(r => r.result.success).length;
-    const failureCount = results.length - successCount;
-
-    if (successCount === results.length) {
-      showMessageBox(`✅ Email sent successfully to ${successCount} recipient(s)!`, false);
-      
-      // Log to email history in Firestore
-      await logEmailToHistory(recipients, subject, content, 'sent', 'EmailJS');
-      
-      // Clear form
-      document.getElementById('email-compose-form').reset();
-      document.getElementById('email-to-select').innerHTML = '<option value="" disabled>Select recipients...</option>';
-      await populateEmailRecipients();
-    } else {
-      const errorMessage = failureCount === results.length 
-        ? 'Failed to send email to all recipients.' 
-        : `Sent to ${successCount} recipient(s), failed for ${failureCount}.`;
-      showMessageBox(`⚠️ ${errorMessage}`, true);
-      
-      // Log partial success to history
-      if (successCount > 0) {
-        const successfulRecipients = results.filter(r => r.result.success).map(r => r.recipient);
-        await logEmailToHistory(successfulRecipients, subject, content, 'partial', 'EmailJS');
+      } else {
+        throw new Error('Neither SMTP server nor EmailJS is available');
       }
     }
 
-    // Reload email history
-    await loadEmailHistory();
-
+    // Log email to history
+    await logEmailToHistory(recipients, subject, content, 'sent', method);
+    
+    // Show success message
+    showMessageBox(`Email sent successfully via ${method}!`, false);
+    
+    // Clear form
+    document.getElementById('email-compose-form').reset();
+    
   } catch (error) {
-    console.error('[Email] Send error:', error);
-    showMessageBox(`❌ Failed to send email: ${error.message}`, true);
+    console.error('Email sending failed:', error);
+    showMessageBox(`Failed to send email: ${error.message}`, true);
   } finally {
-    // Restore button state
+    // Reset button state
     const sendButton = document.getElementById('send-email-btn');
     sendButton.textContent = 'Send Email';
     sendButton.disabled = false;
@@ -1609,5 +1628,40 @@ async function configureEmailJS() {
     }
   } catch (error) {
     showMessageBox(`Configuration error: ${error.message}`, true);
+  }
+}
+
+// Test SMTP server connection
+async function testSMTPServerConnectionHandler() {
+  try {
+    const result = await testSMTPServerConnection();
+    if (result.success) {
+      showMessageBox(`✅ SMTP server connection successful!`, false);
+      console.log('[SMTP] Connection test successful:', result);
+    } else {
+      showMessageBox(`❌ SMTP server connection failed: ${result.message}`, true);
+      console.error('[SMTP] Connection test failed:', result);
+    }
+    return result;
+  } catch (error) {
+    showMessageBox(`❌ SMTP test error: ${error.message}`, true);
+    console.error('[SMTP] Test error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Get and display SMTP server status
+function displaySMTPServerStatus() {
+  const status = getSMTPServerStatus();
+  const statusDisplay = document.getElementById('smtp-status-display');
+  
+  if (statusDisplay) {
+    statusDisplay.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div>Server Connected: ${status.connected ? '✅ Yes' : '❌ No'}</div>
+        <div>Server URL: ${status.serverUrl}</div>
+        <div>Ready to Send: ${status.ready ? '✅ Yes' : '❌ No'}</div>
+      </div>
+    `;
   }
 }
