@@ -49,6 +49,38 @@ import {
   setDoc // Added setDoc for saving preferences
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+/**
+ * Toggle password visibility for input fields
+ * @param {string} inputId - The ID of the password input field
+ * @param {HTMLElement} button - The toggle button element
+ */
+function togglePasswordVisibility(inputId, button) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    button.innerHTML = `
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    `;
+    button.setAttribute('aria-label', 'Hide password');
+  } else {
+    input.type = 'password';
+    button.innerHTML = `
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    `;
+    button.setAttribute('aria-label', 'Show password');
+  }
+}
+
+// Make the function globally available
+window.togglePasswordVisibility = togglePasswordVisibility;
+
 // Random name and handle generation
 const RANDOM_NAMES = [
   'Alex', 'Jordan', 'Casey', 'Riley', 'Quinn', 'Avery', 'Morgan', 'Taylor', 'Blake', 'Cameron',
@@ -214,6 +246,8 @@ const resetAdvancedBtn = document.getElementById('reset-advanced-btn');
 // Social authentication buttons
 const googleSignInBtn = document.getElementById('google-signin-btn');
 const githubSignInBtn = document.getElementById('github-signin-btn');
+const googleSignUpBtn = document.getElementById('google-signup-btn');
+const githubSignUpBtn = document.getElementById('github-signup-btn');
 
 /**
  * Shows a specific section and hides others within the main content area.
@@ -1903,6 +1937,15 @@ function setupEventListeners() {
 
   if (githubSignInBtn) {
     githubSignInBtn.addEventListener('click', handleGitHubSignIn);
+  }
+
+  // Social authentication for sign-up
+  if (googleSignUpBtn) {
+    googleSignUpBtn.addEventListener('click', handleGoogleSignIn); // Same handler for both sign-in and sign-up
+  }
+
+  if (githubSignUpBtn) {
+    githubSignUpBtn.addEventListener('click', handleGitHubSignIn); // Same handler for both sign-in and sign-up
   }
 
   // Background opacity range slider
