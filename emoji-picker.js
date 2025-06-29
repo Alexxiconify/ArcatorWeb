@@ -986,12 +986,12 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
       <div class="media-picker-tabs">
-        <button class="media-tab active" data-tab="gif">🎬 GIF Search</button>
-        <button class="media-tab" data-tab="url">🔗 URL Paste</button>
+        <button class="media-tab" data-tab="gif">🎬 GIF Search</button>
+        <button class="media-tab active" data-tab="url">🔗 URL Paste</button>
         <button class="media-tab" data-tab="youtube">📺 YouTube</button>
       </div>
       
-      <div id="${pickerId}-gif-tab" class="media-tab-content active">
+      <div id="${pickerId}-gif-tab" class="media-tab-content">
         <div class="gif-search-container">
           <input type="text" id="${pickerId}-gif-search" class="gif-search-input" placeholder="Search GIFs on Giphy..." />
           <button type="button" id="${pickerId}-gif-search-btn" class="btn-primary btn-blue" style="margin-top: 0.5rem;">Search</button>
@@ -999,7 +999,7 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
         <div class="gif-results" id="${pickerId}-gif-results"></div>
       </div>
       
-      <div id="${pickerId}-url-tab" class="media-tab-content">
+      <div id="${pickerId}-url-tab" class="media-tab-content active">
         <div class="url-input-container">
           <input type="url" id="${pickerId}-url-input" class="url-input" placeholder="Paste any media URL (image, video, audio, GIF)..." />
           <div id="${pickerId}-url-preview" class="url-preview"></div>

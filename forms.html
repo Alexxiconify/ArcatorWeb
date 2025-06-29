@@ -597,22 +597,23 @@
                 <label class="form-label" for="new-thema-description"
                   >Description</label
                 >
-                <div class="emoji-input-container">
-                  <script type="module">
-                    import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                    document.currentScript.insertAdjacentHTML(
-                      "beforebegin",
-                      createEmojiMediaInputContainer(
+                <div id="new-thema-description-container"></div>
+                <script type="module">
+                  import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                  document.addEventListener('DOMContentLoaded', () => {
+                    const container = document.getElementById('new-thema-description-container');
+                    if (container) {
+                      container.innerHTML = createEmojiMediaInputContainer(
                         "new-thema-description",
                         "thema-description-emoji-picker",
                         "thema-description-media-picker",
                         "textarea",
                         "Briefly describe this théma.",
                         "form-input bg-card text-text-primary border-none rounded w-full",
-                      ),
-                    );
-                  </script>
-                </div>
+                      );
+                    }
+                  });
+                </script>
               </div>
               <button class="btn-modern" type="submit">
                 <span>Create Théma</span>
@@ -851,22 +852,7 @@
                     </select>
                   </div>
                   <div class="flex gap-2">
-                    <div class="emoji-input-container flex-1">
-                      <script type="module">
-                        import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                        document.currentScript.insertAdjacentHTML(
-                          "beforebegin",
-                          createEmojiMediaInputContainer(
-                            "message-content-input",
-                            "dm-message-emoji-picker",
-                            "dm-message-media-picker",
-                            "text",
-                            "Type your message...",
-                            "form-input bg-card text-text-primary border-none rounded flex-1",
-                          ),
-                        );
-                      </script>
-                    </div>
+                    <div class="emoji-input-container flex-1" id="dm-message-input-container"></div>
                     <button type="submit" class="btn-modern">
                       <span>➤</span>
                     </button>
@@ -920,22 +906,23 @@
                   <label class="form-label" for="new-thread-initial-comment"
                     >Initial Comment</label
                   >
-                  <div class="emoji-input-container">
-                    <script type="module">
-                      import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                      document.currentScript.insertAdjacentHTML(
-                        "beforebegin",
-                        createEmojiMediaInputContainer(
+                  <div id="new-thread-initial-comment-container"></div>
+                  <script type="module">
+                    import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                    document.addEventListener('DOMContentLoaded', () => {
+                      const container = document.getElementById('new-thread-initial-comment-container');
+                      if (container) {
+                        container.innerHTML = createEmojiMediaInputContainer(
                           "new-thread-initial-comment",
                           "thread-comment-emoji-picker",
                           "thread-comment-media-picker",
                           "textarea",
                           "Start the discussion...",
                           "form-input",
-                        ),
-                      );
-                    </script>
-                  </div>
+                        );
+                      }
+                    });
+                  </script>
                 </div>
                 <button class="btn-modern" type="submit">
                   <span>Create Thread</span>
@@ -983,22 +970,23 @@
                   <label class="form-label" for="new-comment-content"
                     >Your Comment</label
                   >
-                  <div class="emoji-input-container">
-                    <script type="module">
-                      import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                      document.currentScript.insertAdjacentHTML(
-                        "beforebegin",
-                        createEmojiMediaInputContainer(
+                  <div id="new-comment-content-container"></div>
+                  <script type="module">
+                    import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                    document.addEventListener('DOMContentLoaded', () => {
+                      const container = document.getElementById('new-comment-content-container');
+                      if (container) {
+                        container.innerHTML = createEmojiMediaInputContainer(
                           "new-comment-content",
                           "comment-emoji-picker",
                           "comment-media-picker",
                           "textarea",
                           "Share your thoughts...",
                           "form-input",
-                        ),
-                      );
-                    </script>
-                  </div>
+                        );
+                      }
+                    });
+                  </script>
                 </div>
                 <button class="btn-modern" type="submit">
                   <span>Add Comment</span>

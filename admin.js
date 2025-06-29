@@ -1220,21 +1220,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     currentEditingUser = null;
   });
 
-  // Email management event listeners
-  document
-    .getElementById("email-compose-form")
-    .addEventListener("submit", async (e) => {
-      e.preventDefault();
-      await sendEmail();
-    });
-
-  document
-    .getElementById("preview-email-btn")
-    .addEventListener("click", showEmailPreview);
-  document
-    .getElementById("email-template-select")
-    .addEventListener("change", handleEmailTemplateChange);
-
   // EmailJS buttons
   if (testEmailJSBtn) {
     testEmailJSBtn.addEventListener("click", testEmailJSConnectionHandler);
