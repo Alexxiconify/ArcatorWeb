@@ -291,6 +291,10 @@
                   <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
                   <textarea id="temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-32"></textarea>
                 </div>
+                <div class="checkbox-container">
+                  <input type="checkbox" id="temp-page-allow-comments-create" class="form-checkbox">
+                  <label for="temp-page-allow-comments-create">Allow Comments</label>
+                </div>
                 <button type="submit" class="btn-primary btn-blue">Create Temp Page</button>
               </form>
               <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">Existing Temporary Pages:</h4>
@@ -307,19 +311,90 @@
                   </tbody>
                 </table>
               </div>
-              <div id="edit-temp-page-modal" class="modal">
-                <div class="modal-content">
-                  <span class="close-button">&times;</span>
-                  <h3 class="text-xl font-bold mb-4 text-heading-card">Edit Temporary Page</h3>
-                  <div class="mb-4">
-                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-title">Page Title:</label>
-                    <input id="edit-temp-page-title" type="text" class="form-input w-full"/>
+              <div id="edit-temp-page-modal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-heading-card">Edit Temporary Page</h3>
+                    <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
                   </div>
-                  <div class="mb-4">
-                    <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-temp-page-content">Page Content (HTML allowed):</label>
-                    <textarea id="edit-temp-page-content" class="form-input w-full h-48"></textarea>
-                  </div>
-                  <button id="save-temp-page-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+                  
+                  <form id="edit-temp-page-form" class="space-y-6">
+                    <!-- Page Information Section -->
+                    <div class="bg-card p-4 rounded-lg border border-input-border">
+                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Page Information</h4>
+                      <div class="space-y-4">
+                        <div class="input-field">
+                          <label for="edit-temp-page-title" class="form-label">Page Title:</label>
+                          <input id="edit-temp-page-title" type="text" placeholder="Enter page title" class="form-input w-full"/>
+                        </div>
+                        <div class="input-field">
+                          <label for="edit-temp-page-content" class="form-label">Page Content (HTML allowed):</label>
+                          <textarea id="edit-temp-page-content" placeholder="Write your page content here... Use HTML for styling!" class="form-input w-full h-48"></textarea>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Page Settings Section -->
+                    <div class="bg-card p-4 rounded-lg border border-input-border">
+                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Page Settings</h4>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-field">
+                          <label for="edit-temp-page-status" class="form-label">Page Status:</label>
+                          <select id="edit-temp-page-status" class="form-input w-full">
+                            <option value="active">Active</option>
+                            <option value="draft">Draft</option>
+                            <option value="archived">Archived</option>
+                          </select>
+                        </div>
+                        <div class="input-field">
+                          <label for="edit-temp-page-visibility" class="form-label">Visibility:</label>
+                          <select id="edit-temp-page-visibility" class="form-input w-full">
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                            <option value="admin-only">Admin Only</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="mt-4 space-y-3">
+                        <div class="checkbox-container">
+                          <input type="checkbox" id="edit-temp-page-allow-comments" class="form-checkbox">
+                          <label for="edit-temp-page-allow-comments">Allow Comments</label>
+                        </div>
+                        <div class="checkbox-container">
+                          <input type="checkbox" id="edit-temp-page-show-author" class="form-checkbox">
+                          <label for="edit-temp-page-show-author">Show Author Information</label>
+                        </div>
+                        <div class="checkbox-container">
+                          <input type="checkbox" id="edit-temp-page-enable-tracking" class="form-checkbox">
+                          <label for="edit-temp-page-enable-tracking">Enable Page View Tracking</label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Advanced Settings Section -->
+                    <div class="bg-card p-4 rounded-lg border border-input-border">
+                      <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">Advanced Settings</h4>
+                      <div class="space-y-4">
+                        <div class="input-field">
+                          <label for="edit-temp-page-meta-description" class="form-label">Meta Description:</label>
+                          <textarea id="edit-temp-page-meta-description" placeholder="Enter meta description for SEO..." class="form-input w-full h-20"></textarea>
+                        </div>
+                        <div class="input-field">
+                          <label for="edit-temp-page-custom-css" class="form-label">Custom CSS:</label>
+                          <textarea id="edit-temp-page-custom-css" placeholder="Enter custom CSS for this page..." class="form-input w-full h-24"></textarea>
+                        </div>
+                        <div class="input-field">
+                          <label for="edit-temp-page-custom-js" class="form-label">Custom JavaScript:</label>
+                          <textarea id="edit-temp-page-custom-js" placeholder="Enter custom JavaScript for this page..." class="form-input w-full h-24"></textarea>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
+                      <button type="button" id="cancel-temp-page-changes-btn" class="btn-primary btn-red">Cancel</button>
+                      <button type="submit" id="save-temp-page-changes-btn" class="btn-primary btn-blue">Save Changes</button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
