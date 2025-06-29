@@ -374,7 +374,14 @@
       color: var(--color-button-text);
       border-color: var(--color-link);
     }
-
+    .user-card .user-avatar .authorPhoto .comment-bubble {
+      width: 1.5rem;
+      height: 1.5rem;
+      min-width: 1.5rem;
+      min-height: 1.5rem;
+      max-width: 1.5rem;
+      max-height: 1.5rem;
+    }
   </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">
@@ -911,7 +918,7 @@
             <div class="flex-shrink-0">
               <img src="${comment.authorPhoto || 'https://via.placeholder.com/40x40?text=U'}" 
                    alt="${comment.authorName}" 
-                   class="w-10 h-10 rounded-full object-cover"
+                   class="w-8 h-8 rounded-full object-cover mr-2"
                    onerror="this.src='https://via.placeholder.com/40x40?text=U'">
             </div>
             <div class="flex-1 min-w-0">

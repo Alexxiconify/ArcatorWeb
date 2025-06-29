@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Account</title>
-  <!-- Production Tailwind CSS -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts - Inter and others -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
+    rel="stylesheet">
   <!-- Link to the CSS variables -->
   <link rel="stylesheet" href="theme_variables.css">
   <!-- Link to common.css for shared styles -->
@@ -22,7 +25,10 @@
       color: var(--color-text-primary);
       transition: background-color 0.3s, color 0.3s;
     }
-    .main-section, .user-section, .content-section {
+
+    .main-section,
+    .user-section,
+    .content-section {
       background-color: var(--color-bg-content-section);
       color: var(--color-text-primary);
     }
@@ -97,7 +103,9 @@
     }
 
     /* Card styling */
-    .glass-card, .auth-card, .settings-card {
+    .glass-card,
+    .auth-card,
+    .settings-card {
       border-radius: 1rem;
       box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.10);
       border: 2px solid var(--color-input-border);
@@ -311,7 +319,7 @@
       flex-direction: column;
     }
 
-    .settings-card.equal-size details > div {
+    .settings-card.equal-size details>div {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -351,7 +359,7 @@
         font-size: 1.125rem;
       }
 
-      .settings-card details > div {
+      .settings-card details>div {
         padding: 0.75rem;
       }
 
@@ -359,7 +367,9 @@
         min-height: auto;
       }
 
-      .input-field input, .input-field select, .auth-input-field input {
+      .input-field input,
+      .input-field select,
+      .auth-input-field input {
         width: 100%;
       }
     }
@@ -374,7 +384,7 @@
         font-size: 1rem;
       }
 
-      .settings-card details > div {
+      .settings-card details>div {
         padding: 0.625rem;
       }
     }
@@ -437,11 +447,13 @@
     }
 
     /* Input field styling */
-    .input-field, .auth-input-field {
+    .input-field,
+    .auth-input-field {
       margin-bottom: 0.5rem;
     }
 
-    .input-field label, .auth-input-field label {
+    .input-field label,
+    .auth-input-field label {
       display: block;
       margin-bottom: 0.25rem;
       font-weight: 600;
@@ -449,7 +461,9 @@
       font-size: 0.95rem;
     }
 
-    .input-field input, .input-field select, .auth-input-field input {
+    .input-field input,
+    .input-field select,
+    .auth-input-field input {
       background: var(--color-input-bg);
       color: var(--color-input-text);
       border: 2px solid var(--color-input-border);
@@ -464,19 +478,23 @@
       box-sizing: border-box;
     }
 
-    .input-field input:focus, .input-field select:focus, .auth-input-field input:focus {
+    .input-field input:focus,
+    .input-field select:focus,
+    .auth-input-field input:focus {
       border-color: var(--color-link);
       outline: none;
       box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
       transform: translateY(-1px);
     }
 
-    .input-field input::placeholder, .auth-input-field input::placeholder {
+    .input-field input::placeholder,
+    .auth-input-field input::placeholder {
       color: var(--color-placeholder);
     }
 
     /* Button styling */
-    .btn-primary, .auth-btn-primary {
+    .btn-primary,
+    .auth-btn-primary {
       background: var(--color-button-blue-bg);
       color: var(--color-button-text);
       border: none;
@@ -494,13 +512,15 @@
       text-decoration: none;
     }
 
-    .btn-primary:hover, .auth-btn-primary:hover {
+    .btn-primary:hover,
+    .auth-btn-primary:hover {
       background: var(--color-button-blue-hover);
       transform: translateY(-2px);
       box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.25);
     }
 
-    .btn-primary:active, .auth-btn-primary:active {
+    .btn-primary:active,
+    .auth-btn-primary:active {
       transform: translateY(0);
     }
 
@@ -695,15 +715,19 @@
     }
 
     @keyframes pulse {
-      0%, 100% {
+
+      0%,
+      100% {
         opacity: 1;
       }
+
       50% {
         opacity: 0.7;
       }
     }
 
-    .shortcut-edit-btn, .shortcut-disable-btn {
+    .shortcut-edit-btn,
+    .shortcut-disable-btn {
       padding: 0.375rem 0.75rem;
       border: none;
       border-radius: 0.375rem;
@@ -822,7 +846,9 @@
     }
 
     /* Modern, compact dropdowns */
-    select, .input-field select, select.w-full {
+    select,
+    .input-field select,
+    select.w-full {
       height: 0.5rem;
       font-size: 0.95rem;
       border-radius: 0.5rem;
@@ -860,7 +886,9 @@
     }
 
 
-    .modal-content, .custom-confirm-modal .modal-content, .message-box {
+    .modal-content,
+    .custom-confirm-modal .modal-content,
+    .message-box {
       background: var(--color-modal-bg);
       color: var(--color-modal-text);
       padding: 2rem 2.5rem;
@@ -877,11 +905,14 @@
       justify-content: center;
     }
 
-    .modal[open], .custom-confirm-modal[open], .message-box[open] {
+    .modal[open],
+    .custom-confirm-modal[open],
+    .message-box[open] {
       display: flex !important;
     }
 
-    .modal .close-button, .custom-confirm-modal .close-button {
+    .modal .close-button,
+    .custom-confirm-modal .close-button {
       position: absolute;
       top: 1rem;
       right: 1.5rem;
@@ -892,7 +923,8 @@
       border: none;
     }
 
-    .modal .close-button:hover, .custom-confirm-modal .close-button:hover {
+    .modal .close-button:hover,
+    .custom-confirm-modal .close-button:hover {
       color: var(--color-link);
     }
 
@@ -975,7 +1007,8 @@
       position: relative;
     }
 
-    .login-card .divider:before, .login-card .divider:after {
+    .login-card .divider:before,
+    .login-card .divider:after {
       content: '';
       display: inline-block;
       width: 30%;
@@ -1135,518 +1168,551 @@
     }
   </style>
 </head>
+
 <body class="antialiased">
-<!-- Navbar Placeholder -->\
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-<div style="height: 56px;"></div>
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Account</h1>
-    <p class="text-xl md:text-2xl mb-8">Manage your account or sign in</p>
-  </div>
-</section>
-
-<!-- Main Content Area -->
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-  <div class="container mx-auto px-4">
-    <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+  <!-- Navbar Placeholder -->\
+  <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+  <div style="height: 56px;"></div>
+  <!-- Hero Section with Background Image -->
+  <section class="hero-banner rounded-b-lg shadow-xl">
+    <div class="container mx-auto px-4 text-center hero-content">
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">User Account</h1>
+      <p class="text-xl md:text-2xl mb-8">Manage your account or sign in</p>
     </div>
+  </section>
 
-    <!-- Sign In Section (Modernized) -->
-    <div class="login-card" id="signin-section">
-      <h2>Sign In</h2>
-      <form id="signin-form">
-        <label for="signin-email">Email Address</label>
-        <input autocomplete="username" id="signin-email" placeholder="email@example.com" required type="email">
-        <label for="signin-password">Password</label>
-        <div class="password-row">
-          <input id="signin-password" placeholder="********" required type="password" autocomplete="current-password">
-          <button class="visibility-toggle"
-                  aria-label="Toggle password visibility"
-                  tabindex="-1"
-                  onclick="togglePasswordVisibility('signin-password', this)"
-                  type="button">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </button>
-        </div>
-        <button class="auth-btn-primary" id="signin-btn" type="submit"> Sign in with Email
-        </button>
-        <div class="divider">or</div>
-        <div class="social-auth-buttons">
-          <button type="button" id="google-signin-btn" class="social-auth-btn google-btn">
-            <svg class="social-icon" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </button>
-          <button type="button" id="github-signin-btn" class="social-auth-btn github-btn">
-            <svg class="social-icon" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            Sign in with GitHub
-          </button>
-        </div>
-        <div style="text-align:center;margin-top:1rem;">
-          <a href="#" id="go-to-signup-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Don't have an
-            account? Sign Up</a>
-          <br>
-          <a href="#" id="go-to-forgot-password-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Forgot
-            Password?</a>
-        </div>
-      </form>
-    </div>
+  <!-- Main Content Area -->
+  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+    <div class="container mx-auto px-4">
+      <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none;">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      </div>
 
-    <!-- Sign Up Section (Modernized) -->
-    <div class="login-card" id="signup-section" style="display: none;">
-      <h2>Sign Up</h2>
-      <form id="signup-form">
-        <label for="signup-email">Email Address</label>
-        <input autocomplete="username" id="signup-email" placeholder="email@example.com" required type="email">
-        <label for="signup-password">Password</label>
-        <div class="password-row">
-          <input id="signup-password" placeholder="********" required type="password" autocomplete="new-password">
-          <button class="visibility-toggle"
-                  aria-label="Toggle password visibility"
-                  tabindex="-1"
-                  onclick="togglePasswordVisibility('signup-password', this)"
-                  type="button">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
+      <!-- Sign In Section (Modernized) -->
+      <div class="login-card" id="signin-section">
+        <h2>Sign In</h2>
+        <form id="signin-form">
+          <label for="signin-email">Email Address</label>
+          <input autocomplete="username" id="signin-email" placeholder="email@example.com" required type="email">
+          <label for="signin-password">Password</label>
+          <div class="password-row">
+            <input id="signin-password" placeholder="********" required type="password" autocomplete="current-password">
+            <button class="visibility-toggle" aria-label="Toggle password visibility" tabindex="-1"
+              onclick="togglePasswordVisibility('signin-password', this)" type="button">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+                <path
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
+          <button class="auth-btn-primary" id="signin-btn" type="submit"> Sign in with Email
           </button>
-        </div>
-        <label for="signup-confirm-password">Confirm Password</label>
-        <div class="password-row">
-          <input id="signup-confirm-password" placeholder="********" required type="password" autocomplete="new-password">
-          <button class="visibility-toggle"
-                  aria-label="Toggle password visibility"
-                  tabindex="-1"
-                  onclick="togglePasswordVisibility('signup-confirm-password', this)"
-                  type="button">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </button>
-        </div>
-        <label for="signup-display-name">Display Name (Optional)</label>
-        <input id="signup-display-name" placeholder="Your Display Name" type="text">
-        <label for="signup-handle">Handle (Optional)</label>
-        <input id="signup-handle" placeholder="@yourhandle" type="text">
-        <button class="auth-btn-primary" id="signup-btn" type="submit">Sign Up</button>
-        <div class="divider">or</div>
-        <div class="social-auth-buttons">
-          <button type="button" id="google-signup-btn" class="social-auth-btn google-btn">
-            <svg class="social-icon" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Sign up with Google
-          </button>
-          <button type="button" id="github-signup-btn" class="social-auth-btn github-btn">
-            <svg class="social-icon" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            Sign up with GitHub
-          </button>
-        </div>
-        <div style="text-align:center;margin-top:1rem;">
-          <a href="#" id="go-to-signin-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Already have an account? Sign In</a>
-        </div>
-      </form>
-    </div>
+          <div class="divider">or</div>
+          <div class="social-auth-buttons">
+            <button type="button" id="google-signin-btn" class="social-auth-btn google-btn">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4" />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853" />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05" />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335" />
+              </svg>
+              Sign in with Google
+            </button>
+            <button type="button" id="github-signin-btn" class="social-auth-btn github-btn">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              Sign in with GitHub
+            </button>
+          </div>
+          <div style="text-align:center;margin-top:1rem;">
+            <a href="#" id="go-to-signup-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Don't have an
+              account? Sign Up</a>
+            <br>
+            <a href="#" id="go-to-forgot-password-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Forgot
+              Password?</a>
+          </div>
+        </form>
+      </div>
 
-    <!-- Forgot Password Section (Modernized) -->
-    <div class="login-card" id="forgot-password-section" style="display: none;">
-      <h2>Forgot Password</h2>
-      <form id="forgot-password-form">
-        <label for="forgot-password-email">Email Address</label>
-        <input autocomplete="username" id="forgot-password-email" placeholder="email@example.com" required type="email">
-        <button class="auth-btn-primary" id="reset-password-btn" type="submit">Send Reset Email</button>
-        <div style="text-align:center;margin-top:1rem;">
-          <a href="#" id="go-to-signin-from-forgot-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Back to Sign In</a>
-        </div>
-      </form>
-    </div>
+      <!-- Sign Up Section (Modernized) -->
+      <div class="login-card" id="signup-section" style="display: none;">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+          <label for="signup-email">Email Address</label>
+          <input autocomplete="username" id="signup-email" placeholder="email@example.com" required type="email">
+          <label for="signup-password">Password</label>
+          <div class="password-row">
+            <input id="signup-password" placeholder="********" required type="password" autocomplete="new-password">
+            <button class="visibility-toggle" aria-label="Toggle password visibility" tabindex="-1"
+              onclick="togglePasswordVisibility('signup-password', this)" type="button">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+                <path
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
+          <label for="signup-confirm-password">Confirm Password</label>
+          <div class="password-row">
+            <input id="signup-confirm-password" placeholder="********" required type="password"
+              autocomplete="new-password">
+            <button class="visibility-toggle" aria-label="Toggle password visibility" tabindex="-1"
+              onclick="togglePasswordVisibility('signup-confirm-password', this)" type="button">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+                <path
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
+          <label for="signup-display-name">Display Name (Optional)</label>
+          <input id="signup-display-name" placeholder="Your Display Name" type="text">
+          <label for="signup-handle">Handle (Optional)</label>
+          <input id="signup-handle" placeholder="@yourhandle" type="text">
+          <button class="auth-btn-primary" id="signup-btn" type="submit">Sign Up</button>
+          <div class="divider">or</div>
+          <div class="social-auth-buttons">
+            <button type="button" id="google-signup-btn" class="social-auth-btn google-btn">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4" />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853" />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05" />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335" />
+              </svg>
+              Sign up with Google
+            </button>
+            <button type="button" id="github-signup-btn" class="social-auth-btn github-btn">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              Sign up with GitHub
+            </button>
+          </div>
+          <div style="text-align:center;margin-top:1rem;">
+            <a href="#" id="go-to-signin-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Already have an
+              account? Sign In</a>
+          </div>
+        </form>
+      </div>
 
-    <!-- Collapsible Settings Sections (Account Management) -->
-    <div id="settings-content" style="display: none;">
-      <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary
-              class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Profile Information
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-center">
-              <div class="flex flex-col md:flex-row md:items-center md:justify-center gap-4 w-full">
-                <div class="flex-shrink-0 flex items-center justify-center md:justify-start" style="min-width:40px;">
-                  <img alt="Profile Preview"
-                       class="w-10 h-10 md:w-16 md:h-16 rounded-full object-cover border-2 border-link"
-                       id="profile-picture-display"
-                       onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
-                       src="https://placehold.co/64x64/1F2937/E5E7EB?text=AV">
-                </div>
-                <div class="flex-1 flex flex-col input-field min-w-0">
-                  <label for="display-name-input">Display Name:</label>
-                  <input class="w-full" id="display-name-input" placeholder="Your Display Name" type="text">
-                </div>
-                <div class="flex-1 flex flex-col input-field min-w-0">
-                  <label for="handle-input">Unique Handle:</label>
-                  <input class="w-full" id="handle-input" placeholder="@yourhandle" type="text">
-                </div>
-                <div class="flex-1 flex flex-col input-field min-w-0">
-                  <label for="email-input">Email Address:</label>
-                  <input class="w-full" id="email-input" placeholder="your.email@example.com" type="email">
-                </div>
-                <div class="flex-1 flex flex-col input-field min-w-0">
-                  <label for="profile-picture-url-input">Profile Picture URL:</label>
-                  <div class="flex items-center gap-2">
-                    <input class="w-full" id="profile-picture-url-input" placeholder="https://example.com/your-image.jpg"
-                           style="margin-bottom:0;padding:0.25rem 0.5rem;" type="url">
-                    <button class="save-btn-circle ml-0" id="save-profile-btn"
-                            style="margin-left:0;width:40px;height:40px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;">
-                      <svg fill="none" stroke="currentColor" style="width:24px;height:24px;" viewBox="0 0 24 24">
-                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
+      <!-- Forgot Password Section (Modernized) -->
+      <div class="login-card" id="forgot-password-section" style="display: none;">
+        <h2>Forgot Password</h2>
+        <form id="forgot-password-form">
+          <label for="forgot-password-email">Email Address</label>
+          <input autocomplete="username" id="forgot-password-email" placeholder="email@example.com" required
+            type="email">
+          <button class="auth-btn-primary" id="reset-password-btn" type="submit">Send Reset Email</button>
+          <div style="text-align:center;margin-top:1rem;">
+            <a href="#" id="go-to-signin-from-forgot-link" style="color:var(--color-link,#60A5FA);font-weight:600;">Back
+              to Sign In</a>
+          </div>
+        </form>
+      </div>
 
-        <!-- Decorative left icon for section -->
-        <div class="hidden md:flex items-center justify-center" style="min-width:40px;">
-          <svg fill="none" stroke="currentColor" style="width:32px;height:32px;opacity:0.25;" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path
-              d="M12 14c-2.5 0-4-1.5-4-4s1.5-4 4-4 4 1.5 4 4-1.5 4-4 4zm0 2c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4z"/>
-          </svg>
-        </div>
-        <!-- Decorative right icon for section -->
-        <div class="hidden md:flex items-center justify-center" style="min-width:40px;">
-          <svg fill="none" stroke="currentColor" style="width:32px;height:32px;opacity:0.25;" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-        </div>
-
-        <!-- Personalize Experience -->
+      <!-- Collapsible Settings Sections (Account Management) -->
+      <div id="settings-content" style="display: none;">
         <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
           <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
             <details open>
               <summary
                 class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-                Personalize Experience
+                Profile Information
               </summary>
-              <div class="mt-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Theme & Appearance -->
-                <div class="col-span-2">
-                  <h4 class="text-lg font-semibold text-heading-card mb-2 mt-2 border-b border-dashed border-link pb-1">
-                    Theme & Appearance</h4>
-                </div>
-                <div class="input-field">
-                  <label for="theme-select">Select Theme:</label>
-                  <select id="theme-select"></select>
-                </div>
-                <div class="input-field">
-                  <label for="background-pattern-select">Background Pattern:</label>
-                  <select class="w-full" id="background-pattern-select">
-                    <option class="default-option" value="none">None</option>
-                    <option value="dots">Dots</option>
-                    <option value="grid">Grid</option>
-                    <option value="diagonal">Diagonal Lines</option>
-                    <option value="circles">Circles</option>
-                    <option value="hexagons">Hexagons</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2 flex flex-col md:flex-row md:items-end gap-2 justify-center text-center">
-                  <div class="flex-1 input-field mb-0 flex flex-col items-center">
-                    <label class="w-full text-center" for="background-opacity-range">Background Pattern Opacity:</label>
-                    <input class="w-full mx-auto" id="background-opacity-range" max="100" min="0" style="max-width:300px;"
-                           type="range" value="10">
-                    <div class="flex justify-between text-xs text-text-secondary mt-1 w-full"
-                         style="max-width:300px;margin:0 auto;">
-                      <span>0%</span>
-                      <span id="background-opacity-value">10%</span>
-                      <span>100%</span>
+              <div class="mt-4 w-full flex flex-col items-center">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-center gap-4 w-full">
+                  <div class="flex-shrink-0 flex items-center justify-center md:justify-start" style="min-width:40px;">
+                    <img alt="Profile Preview"
+                      class="w-10 h-10 md:w-16 md:h-16 rounded-full object-cover border-2 border-link"
+                      id="profile-picture-display" onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
+                      src="https://placehold.co/64x64/1F2937/E5E7EB?text=AV">
+                  </div>
+                  <div class="flex-1 flex flex-col input-field min-w-0">
+                    <label for="display-name-input">Display Name:</label>
+                    <input class="w-full" id="display-name-input" placeholder="Your Display Name" type="text">
+                  </div>
+                  <div class="flex-1 flex flex-col input-field min-w-0">
+                    <label for="handle-input">Unique Handle:</label>
+                    <input class="w-full" id="handle-input" placeholder="@yourhandle" type="text">
+                  </div>
+                  <div class="flex-1 flex flex-col input-field min-w-0">
+                    <label for="email-input">Email Address:</label>
+                    <input class="w-full" id="email-input" placeholder="your.email@example.com" type="email">
+                  </div>
+                  <div class="flex-1 flex flex-col input-field min-w-0">
+                    <label for="profile-picture-url-input">Profile Picture URL:</label>
+                    <div class="flex items-center gap-2">
+                      <input class="w-full" id="profile-picture-url-input"
+                        placeholder="https://example.com/your-image.jpg" style="margin-bottom:0;padding:0.25rem 0.5rem;"
+                        type="url">
+                      <button class="save-btn-circle ml-0" id="save-profile-btn"
+                        style="margin-left:0;width:40px;height:40px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" style="width:24px;height:24px;" viewBox="0 0 24 24">
+                          <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                          </path>
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                  <div class="flex-1 flex flex-col justify-end mb-0 items-center">
-                    <label class="invisible md:visible" style="height:1.5em;">&nbsp;</label>
-                    <button class="btn-primary btn-purple w-full mx-auto" id="create-custom-theme-btn"
-                            style="height:2.25rem;min-height:2.25rem;max-width:300px;">Create/Manage Custom Themes
-                    </button>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Decorative left icon for section -->
+          <div class="hidden md:flex items-center justify-center" style="min-width:40px;">
+            <svg fill="none" stroke="currentColor" style="width:32px;height:32px;opacity:0.25;" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2" />
+              <path
+                d="M12 14c-2.5 0-4-1.5-4-4s1.5-4 4-4 4 1.5 4 4-1.5 4-4 4zm0 2c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4z" />
+            </svg>
+          </div>
+          <!-- Decorative right icon for section -->
+          <div class="hidden md:flex items-center justify-center" style="min-width:40px;">
+            <svg fill="none" stroke="currentColor" style="width:32px;height:32px;opacity:0.25;" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2" />
+              <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+          </div>
+
+          <!-- Personalize Experience -->
+          <div class="settings-section" style="width:100%;max-width:100%;margin-bottom:2rem;">
+            <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+              <details open>
+                <summary
+                  class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+                  Personalize Experience
+                </summary>
+                <div class="mt-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Theme & Appearance -->
+                  <div class="col-span-2">
+                    <h4
+                      class="text-lg font-semibold text-heading-card mb-2 mt-2 border-b border-dashed border-link pb-1">
+                      Theme & Appearance</h4>
+                  </div>
+                  <div class="input-field">
+                    <label for="theme-select">Select Theme:</label>
+                    <select id="theme-select"></select>
+                  </div>
+                  <div class="input-field">
+                    <label for="background-pattern-select">Background Pattern:</label>
+                    <select class="w-full" id="background-pattern-select">
+                      <option class="default-option" value="none">None</option>
+                      <option value="dots">Dots</option>
+                      <option value="grid">Grid</option>
+                      <option value="diagonal">Diagonal Lines</option>
+                      <option value="circles">Circles</option>
+                      <option value="hexagons">Hexagons</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-2 flex flex-col md:flex-row md:items-end gap-2 justify-center text-center">
+                    <div class="flex-1 input-field mb-0 flex flex-col items-center">
+                      <label class="w-full text-center" for="background-opacity-range">Background Pattern
+                        Opacity:</label>
+                      <input class="w-full mx-auto" id="background-opacity-range" max="100" min="0"
+                        style="max-width:300px;" type="range" value="10">
+                      <div class="flex justify-between text-xs text-text-secondary mt-1 w-full"
+                        style="max-width:300px;margin:0 auto;">
+                        <span>0%</span>
+                        <span id="background-opacity-value">10%</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-end mb-0 items-center">
+                      <label class="invisible md:visible" style="height:1.5em;">&nbsp;</label>
+                      <button class="btn-primary btn-purple w-full mx-auto" id="create-custom-theme-btn"
+                        style="height:2.25rem;min-height:2.25rem;max-width:300px;">Create/Manage Custom Themes
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Typography -->
+                  <div class="col-span-2">
+                    <h4
+                      class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
+                      Typography</h4>
+                  </div>
+                  <div class="input-field">
+                    <label for="font-size-select">Base Font Size:</label>
+                    <select class="w-full" id="font-size-select">
+                      <option value="12px">Extra Small (12px)</option>
+                      <option value="14px">Small (14px)</option>
+                      <option class="default-option" value="16px">Medium (16px)</option>
+                      <option value="18px">Large (18px)</option>
+                      <option value="20px">Extra Large (20px)</option>
+                      <option value="22px">XXL (22px)</option>
+                      <option value="24px">XXXL (24px)</option>
+                    </select>
+                  </div>
+                  <div class="input-field">
+                    <label for="heading-size-multiplier">Heading Size Multiplier:</label>
+                    <select class="w-full" id="heading-size-multiplier">
+                      <option value="1.2">Small (1.2x)</option>
+                      <option value="1.4">Medium (1.4x)</option>
+                      <option class="default-option" value="1.6">Large (1.6x)</option>
+                      <option value="1.8">Extra Large (1.8x)</option>
+                      <option value="2.0">XXL (2.0x)</option>
+                      <option value="2.5">XXXL (2.5x)</option>
+                    </select>
+                    <p class="text-text-secondary text-sm mt-1">Controls how much larger headings are compared to body
+                      text.</p>
+                  </div>
+                  <div class="input-field">
+                    <label for="font-family-select">Font Family:</label>
+                    <select class="w-full" id="font-family-select">
+                      <option class="default-option" value="Inter, sans-serif">Inter (Modern)</option>
+                      <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
+                      <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
+                      <option value="Roboto, sans-serif">Roboto (Google)</option>
+                      <option value="Lato, sans-serif">Lato (Friendly)</option>
+                      <option value="Poppins, sans-serif">Poppins (Geometric)</option>
+                      <option value="Source Sans Pro, sans-serif">Source Sans Pro (Professional)</option>
+                      <option value="Ubuntu, sans-serif">Ubuntu (System-like)</option>
+                      <option value="Merriweather, serif">Merriweather (Serif)</option>
+                      <option value="Playfair Display, serif">Playfair Display (Elegant)</option>
+                    </select>
+                  </div>
+                  <div class="input-field">
+                    <label for="line-height-select">Line Height:</label>
+                    <select class="w-full" id="line-height-select">
+                      <option value="1.2">Tight (1.2)</option>
+                      <option value="1.4">Compact (1.4)</option>
+                      <option class="default-option" value="1.6">Normal (1.6)</option>
+                      <option value="1.8">Relaxed (1.8)</option>
+                      <option value="2.0">Loose (2.0)</option>
+                      <option value="2.2">Very Loose (2.2)</option>
+                    </select>
+                    <p class="text-text-secondary text-sm mt-1">Controls spacing between lines of text.</p>
+                  </div>
+                  <div class="input-field">
+                    <label for="letter-spacing-select">Letter Spacing:</label>
+                    <select class="w-full" id="letter-spacing-select">
+                      <option value="-0.5px">Tight (-0.5px)</option>
+                      <option value="-0.2px">Slightly Tight (-0.2px)</option>
+                      <option class="default-option" value="0px">Normal (0px)</option>
+                      <option value="0.5px">Slightly Loose (0.5px)</option>
+                      <option value="1px">Loose (1px)</option>
+                      <option value="2px">Very Loose (2px)</option>
+                    </select>
+                    <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
+                  </div>
+                  <!-- Accessibility -->
+                  <div class="col-span-2">
+                    <h4
+                      class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
+                      Accessibility</h4>
+                  </div>
+                  <div class="checkbox-container" style="margin-bottom:0.25rem;">
+                    <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
+                    <label for="reduced-motion-checkbox">Reduced Motion <span
+                        style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes
+                        most transitions and animations for less motion.</span></label>
+                  </div>
+                  <div class="checkbox-container" style="margin-bottom:0.25rem;">
+                    <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
+                    <label for="disable-animations-checkbox">Disable Animations <span
+                        style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables
+                        all non-essential animations for accessibility.</span></label>
                   </div>
                 </div>
-                <!-- Typography -->
-                <div class="col-span-2">
-                  <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
-                    Typography</h4>
+              </details>
+            </div>
+          </div>
+
+          <!-- Combined Account & Security Section -->
+          <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
+            <details open>
+              <summary
+                class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
+                Account & Security
+              </summary>
+              <div class="mt-4 flex flex-col gap-6">
+                <!-- Information -->
+                <div>
+                  <div class="text-text-primary mb-2">
+                    <div><span id="last-login-time"></span></div>
+                    <div><span id="account-creation-time"></span></div>
+                  </div>
+                  <div class="text-text-primary text-center mb-2" style="font-size:1rem;line-height:1.2;">Control your
+                    privacy settings, manage your data, and configure notifications.
+                  </div>
                 </div>
-                <div class="input-field">
-                  <label for="font-size-select">Base Font Size:</label>
-                  <select class="w-full" id="font-size-select">
-                    <option value="12px">Extra Small (12px)</option>
-                    <option value="14px">Small (14px)</option>
-                    <option class="default-option" value="16px">Medium (16px)</option>
-                    <option value="18px">Large (18px)</option>
-                    <option value="20px">Extra Large (20px)</option>
-                    <option value="22px">XXL (22px)</option>
-                    <option value="24px">XXXL (24px)</option>
-                  </select>
+                <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
+                <!-- Privacy & Data Management -->
+                <div>
+                  <div class="checkbox-container mb-2">
+                    <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
+                    <label for="profile-visibility-checkbox">Make Profile Public</label>
+                  </div>
+                  <div class="checkbox-container mb-2">
+                    <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
+                    <label for="activity-visibility-checkbox">Show Activity Status</label>
+                  </div>
+                  <div class="checkbox-container mb-2">
+                    <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
+                    <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <button class="btn-primary btn-green" id="export-data-btn">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      </svg>
+                      Export My Data
+                    </button>
+                    <button class="btn-primary btn-purple" id="import-data-btn">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      </svg>
+                      Import Data
+                    </button>
+                  </div>
+                  <div class="input-field mt-2">
+                    <label for="data-retention-select">Data Retention Period:</label>
+                    <select class="w-full" id="data-retention-select">
+                      <option value="30">30 days</option>
+                      <option class="default-option" value="90">90 days</option>
+                      <option value="180">6 months</option>
+                      <option value="365">1 year</option>
+                      <option value="0">Indefinitely</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="input-field">
-                  <label for="heading-size-multiplier">Heading Size Multiplier:</label>
-                  <select class="w-full" id="heading-size-multiplier">
-                    <option value="1.2">Small (1.2x)</option>
-                    <option value="1.4">Medium (1.4x)</option>
-                    <option class="default-option" value="1.6">Large (1.6x)</option>
-                    <option value="1.8">Extra Large (1.8x)</option>
-                    <option value="2.0">XXL (2.0x)</option>
-                    <option value="2.5">XXXL (2.5x)</option>
-                  </select>
-                  <p class="text-text-secondary text-sm mt-1">Controls how much larger headings are compared to body
-                    text.</p>
+                <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
+                <!-- Notifications -->
+                <div>
+                  <div class="checkbox-container mb-2">
+                    <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
+                    <label for="email-notifications-checkbox">Receive Email Notifications</label>
+                  </div>
+                  <div class="checkbox-container mb-2">
+                    <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
+                    <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
+                  </div>
+                  <div class="input-field mt-2">
+                    <label for="notification-frequency-select">Email Frequency:</label>
+                    <select class="w-full" id="notification-frequency-select">
+                      <option class="default-option" value="immediate">Immediate</option>
+                      <option value="hourly">Hourly Digest</option>
+                      <option value="daily">Daily Digest</option>
+                      <option value="weekly">Weekly Digest</option>
+                      <option value="never">Never</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="input-field">
-                  <label for="font-family-select">Font Family:</label>
-                  <select class="w-full" id="font-family-select">
-                    <option class="default-option" value="Inter, sans-serif">Inter (Modern)</option>
-                    <option value="Roboto Mono, monospace">Roboto Mono (Monospace)</option>
-                    <option value="Open Sans, sans-serif">Open Sans (Clean)</option>
-                    <option value="Roboto, sans-serif">Roboto (Google)</option>
-                    <option value="Lato, sans-serif">Lato (Friendly)</option>
-                    <option value="Poppins, sans-serif">Poppins (Geometric)</option>
-                    <option value="Source Sans Pro, sans-serif">Source Sans Pro (Professional)</option>
-                    <option value="Ubuntu, sans-serif">Ubuntu (System-like)</option>
-                    <option value="Merriweather, serif">Merriweather (Serif)</option>
-                    <option value="Playfair Display, serif">Playfair Display (Elegant)</option>
-                  </select>
+                <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
+                <!-- Password Management -->
+                <div>
+                  <p class="text-text-secondary text-sm mb-4">You must enter your current password to change it.</p>
+                  <form id="change-password-form" class="space-y-4">
+                    <input type="hidden" name="username" autocomplete="username">
+                    <div class="input-field">
+                      <label for="current-password-input">Current Password:</label>
+                      <input autocomplete="current-password" id="current-password-input" placeholder="********"
+                        type="password">
+                    </div>
+                    <div class="input-field">
+                      <label for="new-password-input">New Password:</label>
+                      <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
+                    </div>
+                    <div class="input-field">
+                      <label for="confirm-new-password-input">Confirm New Password:</label>
+                      <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
+                        type="password">
+                    </div>
+                    <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
+                    </button>
+                  </form>
                 </div>
-                <div class="input-field">
-                  <label for="line-height-select">Line Height:</label>
-                  <select class="w-full" id="line-height-select">
-                    <option value="1.2">Tight (1.2)</option>
-                    <option value="1.4">Compact (1.4)</option>
-                    <option class="default-option" value="1.6">Normal (1.6)</option>
-                    <option value="1.8">Relaxed (1.8)</option>
-                    <option value="2.0">Loose (2.0)</option>
-                    <option value="2.2">Very Loose (2.2)</option>
-                  </select>
-                  <p class="text-text-secondary text-sm mt-1">Controls spacing between lines of text.</p>
-                </div>
-                <div class="input-field">
-                  <label for="letter-spacing-select">Letter Spacing:</label>
-                  <select class="w-full" id="letter-spacing-select">
-                    <option value="-0.5px">Tight (-0.5px)</option>
-                    <option value="-0.2px">Slightly Tight (-0.2px)</option>
-                    <option class="default-option" value="0px">Normal (0px)</option>
-                    <option value="0.5px">Slightly Loose (0.5px)</option>
-                    <option value="1px">Loose (1px)</option>
-                    <option value="2px">Very Loose (2px)</option>
-                  </select>
-                  <p class="text-text-secondary text-sm mt-1">Controls spacing between letters.</p>
-                </div>
-                <!-- Accessibility -->
-                <div class="col-span-2">
-                  <h4 class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
-                    Accessibility</h4>
-                </div>
-                <div class="checkbox-container" style="margin-bottom:0.25rem;">
-                  <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox">
-                  <label for="reduced-motion-checkbox">Reduced Motion <span
-                    style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Removes most transitions and animations for less motion.</span></label>
-                </div>
-                <div class="checkbox-container" style="margin-bottom:0.25rem;">
-                  <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox">
-                  <label for="disable-animations-checkbox">Disable Animations <span
-                    style="font-size:0.85em;color:var(--color-text-secondary);margin-left:8px;display:inline-block;">Disables all non-essential animations for accessibility.</span></label>
+                <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
+                <!-- Danger Zone -->
+                <div class="danger-zone">
+                  <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.
+                  </p>
+                  <form id="delete-account-form" class="space-y-4">
+                    <input type="hidden" name="username" autocomplete="username">
+                    <div class="input-field">
+                      <label for="delete-account-password">Confirm Password:</label>
+                      <input autocomplete="current-password" id="delete-account-password" placeholder="********"
+                        type="password">
+                    </div>
+                    <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete
+                      Account</button>
+                  </form>
                 </div>
               </div>
             </details>
           </div>
         </div>
+      </div>
 
-        <!-- Combined Account & Security Section -->
-        <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
-          <details open>
-            <summary
-              class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Account & Security
-            </summary>
-            <div class="mt-4 flex flex-col gap-6">
-              <!-- Information -->
-              <div>
-                <div class="text-text-primary mb-2">
-                  <div><span id="last-login-time"></span></div>
-                  <div><span id="account-creation-time"></span></div>
-                </div>
-                <div class="text-text-primary text-center mb-2" style="font-size:1rem;line-height:1.2;">Control your
-                  privacy settings, manage your data, and configure notifications.
-                </div>
-              </div>
-              <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
-              <!-- Privacy & Data Management -->
-              <div>
-                <div class="checkbox-container mb-2">
-                  <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox">
-                  <label for="profile-visibility-checkbox">Make Profile Public</label>
-                </div>
-                <div class="checkbox-container mb-2">
-                  <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox">
-                  <label for="activity-visibility-checkbox">Show Activity Status</label>
-                </div>
-                <div class="checkbox-container mb-2">
-                  <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox">
-                  <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  <button class="btn-primary btn-green" id="export-data-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                    Export My Data
-                  </button>
-                  <button class="btn-primary btn-purple" id="import-data-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                    Import Data
-                  </button>
-                </div>
-                <div class="input-field mt-2">
-                  <label for="data-retention-select">Data Retention Period:</label>
-                  <select class="w-full" id="data-retention-select">
-                    <option value="30">30 days</option>
-                    <option class="default-option" value="90">90 days</option>
-                    <option value="180">6 months</option>
-                    <option value="365">1 year</option>
-                    <option value="0">Indefinitely</option>
-                  </select>
-                </div>
-              </div>
-              <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
-              <!-- Notifications -->
-              <div>
-                <div class="checkbox-container mb-2">
-                  <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox">
-                  <label for="email-notifications-checkbox">Receive Email Notifications</label>
-                </div>
-                <div class="checkbox-container mb-2">
-                  <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox">
-                  <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
-                </div>
-                <div class="input-field mt-2">
-                  <label for="notification-frequency-select">Email Frequency:</label>
-                  <select class="w-full" id="notification-frequency-select">
-                    <option class="default-option" value="immediate">Immediate</option>
-                    <option value="hourly">Hourly Digest</option>
-                    <option value="daily">Daily Digest</option>
-                    <option value="weekly">Weekly Digest</option>
-                    <option value="never">Never</option>
-                  </select>
-                </div>
-              </div>
-              <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
-              <!-- Password Management -->
-              <div>
-                <p class="text-text-secondary text-sm mb-4">You must enter your current password to change it.</p>
-                <form id="change-password-form" class="space-y-4">
-                  <input type="hidden" name="username" autocomplete="username">
-                  <div class="input-field">
-                    <label for="current-password-input">Current Password:</label>
-                    <input autocomplete="current-password" id="current-password-input" placeholder="********"
-                           type="password">
-                  </div>
-                  <div class="input-field">
-                    <label for="new-password-input">New Password:</label>
-                    <input autocomplete="new-password" id="new-password-input" placeholder="********" type="password">
-                  </div>
-                  <div class="input-field">
-                    <label for="confirm-new-password-input">Confirm New Password:</label>
-                    <input autocomplete="new-password" id="confirm-new-password-input" placeholder="********"
-                           type="password">
-                  </div>
-                  <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">Change Password
-                  </button>
-                </form>
-              </div>
-              <hr class="my-1" style="border-top:2px solid var(--color-link);line-height:1;height:0;">
-              <!-- Danger Zone -->
-              <div class="danger-zone">
-                <p class="text-text-secondary text-sm mb-4">Enter your password to permanently delete your account.</p>
-                <form id="delete-account-form" class="space-y-4">
-                  <input type="hidden" name="username" autocomplete="username">
-                  <div class="input-field">
-                    <label for="delete-account-password">Confirm Password:</label>
-                    <input autocomplete="current-password" id="delete-account-password" placeholder="********"
-                           type="password">
-                  </div>
-                  <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">Delete Account</button>
-                </form>
-              </div>
-            </div>
-          </details>
-        </div>
+      <!-- Message for unauthenticated users (fallback, if not using auth forms) -->
+      <div class="text-center text-text-secondary text-xl py-12" id="login-required-message" style="display: none;">
+        <p>Please <a class="text-link hover:underline" href="#" id="link-to-signin">sign in</a> to view and manage your
+          settings.</p>
       </div>
     </div>
+  </section>
+  <!-- Footer Section -->
+  <div id="footer-placeholder"></div>
 
-    <!-- Message for unauthenticated users (fallback, if not using auth forms) -->
-    <div class="text-center text-text-secondary text-xl py-12" id="login-required-message" style="display: none;">
-      <p>Please <a class="text-link hover:underline" href="#" id="link-to-signin">sign in</a> to view and manage your
-        settings.</p>
-    </div>
-  </div>
-</section>
-<!-- Footer Section -->
-<div id="footer-placeholder"></div>
+  <!-- Main JavaScript module for this page -->
+  <script src="app.js" type="module"></script>
+  <script type="module" src="user-main.js"></script>
+  <script type="module">
+    import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
+    import { loadNavbar, loadFooter } from './navbar.js';
+    import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
 
-<!-- Main JavaScript module for this page -->
-<script src="app.js" type="module"></script>
-<script type="module" src="user-main.js"></script>
-<script type="module">
-  import { auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME } from './firebase-init.js';
-  import { loadNavbar, loadFooter } from './navbar.js';
-  import { getAvailableThemes, applyTheme, applyCachedTheme } from './themes.js';
+    // Apply cached theme immediately to prevent flash
+    applyCachedTheme();
 
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme();
-
-  firebaseReadyPromise.then(() => {
-    auth.onAuthStateChanged(async (user) => {
-      let userProfile = null;
-      if (user) {
-        userProfile = await getUserProfileFromFirestore(user.uid);
-      }
-      await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-      loadFooter('current-year-users');
-      const userThemePreference = userProfile?.themePreference;
-      const allThemes = await getAvailableThemes();
-      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-        console.log(`Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-      }
+    firebaseReadyPromise.then(() => {
+      auth.onAuthStateChanged(async (user) => {
+        let userProfile = null;
+        if (user) {
+          userProfile = await getUserProfileFromFirestore(user.uid);
+        }
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+        loadFooter('current-year-users');
+        const userThemePreference = userProfile?.themePreference;
+        const allThemes = await getAvailableThemes();
+        const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === "dark");
+        if (themeToApply) {
+          applyTheme(themeToApply.id, themeToApply);
+          console.log(`Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`);
+        }
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
+
 </html>

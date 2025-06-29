@@ -252,17 +252,17 @@
         <div class="settings-card" style="width:100%;max-width:100%;margin-bottom:2rem;">
           <details open>
             <summary class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Forms Management
+              Forms Management (Theme → Thread → Comment)
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
               <div class="w-full">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
                     <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">FORM</th>
                       <th class="px-2 py-1 text-table-th-text text-xs">THEME</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">DESCRIPTION</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">THREADS</th>
                       <th class="px-2 py-1 text-table-th-text text-xs">COMMENTS</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">SUBMISSIONS</th>
                       <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
                     </tr>
                   </thead>
@@ -757,20 +757,12 @@
     </div>
     <form id="edit-form-form" class="space-y-4">
       <div class="input-field">
-        <label for="edit-form-thema-title" class="form-label">Thema Title:</label>
-        <input id="edit-form-thema-title" type="text" class="form-input w-full"/>
-      </div>
-      <div class="input-field">
-        <label for="edit-form-thema-name" class="form-label">Thema Name:</label>
+        <label for="edit-form-thema-name" class="form-label">Theme Name:</label>
         <input id="edit-form-thema-name" type="text" class="form-input w-full"/>
       </div>
       <div class="input-field">
-        <label for="edit-form-comments" class="form-label">Comments:</label>
-        <textarea id="edit-form-comments" class="form-input w-full h-24"></textarea>
-      </div>
-      <div class="input-field">
-        <label for="edit-form-submissions" class="form-label">Submissions:</label>
-        <textarea id="edit-form-submissions" class="form-input w-full h-24"></textarea>
+        <label for="edit-form-thema-description" class="form-label">Theme Description:</label>
+        <textarea id="edit-form-thema-description" class="form-input w-full h-24"></textarea>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">Cancel</button>

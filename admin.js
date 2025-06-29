@@ -154,7 +154,6 @@ async function loadUsers() {
         });
 
         await renderUserList();
-        showMessageBox(`Loaded ${usersData.length} users successfully!`, false);
     } catch (error) {
         console.error("Error loading users:", error);
         showMessageBox("Error loading users: " + error.message, true);
@@ -427,42 +426,42 @@ async function renderTempPages() {
     const pages = await fetchAllTempPages();
     tempPageList.innerHTML = '';
     if (pages.length === 0) {
-        tempPageList.innerHTML = '<li>No temporary pages created yet.</li>';
+        tempPageList.innerHTML = '<li class="text-text-secondary text-xs">No temporary pages found.</li>';
         return;
     }
-
     pages.forEach(page => {
         const li = document.createElement('li');
-        // Apply theme-aware classes to list items for consistency
         li.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'justify-between', 'p-3', 'rounded-md', 'mb-2');
-        li.style.backgroundColor = 'var(--color-bg-card)'; /* Apply card background color */
-        li.style.color = 'var(--color-text-primary)'; /* Apply primary text color */
-
+        li.style.backgroundColor = 'var(--color-bg-card)';
+        li.style.color = 'var(--color-text-primary)';
         li.innerHTML = `
-      <span class="font-semibold break-all md:w-3/5">${page.title}</span>
-      <div class="mt-2 md:mt-0 md:w-2/5 md:text-right">
-        <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline text-sm mr-2 view-temp-page">View</a>
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm mr-2 edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-temp-page-btn" data-id="${page.id}">Delete</button>
+      <span class="font-semibold break-all md:w-3/5">${escapeHtml(page.title)}</span>
+      <div class="mt-2 md:mt-0 md:w-2/5 md:text-right flex space-x-1 justify-end">
+        <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-link hover:underline text-sm mr-2 view-temp-page">View</a>
+        <button class="text-link hover:text-link transition-colors admin-action-btn edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}" title="Edit Temp Page">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+        </button>
+        <button class="text-red-400 hover:text-red-300 transition-colors admin-action-btn delete-temp-page-btn" data-id="${page.id}" title="Delete Temp Page">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
       </div>
     `;
         tempPageList.appendChild(li);
     });
-
-    // No longer need separate click listeners for view-temp-page as it's a direct link
     document.querySelectorAll('.edit-temp-page-btn').forEach(button => {
         button.addEventListener('click', (event) => {
-            console.log("DEBUG: Edit Temporary Page button clicked.");
             const id = event.target.dataset.id;
             const title = decodeURIComponent(event.target.dataset.title);
             const content = decodeURIComponent(event.target.dataset.content);
-            console.log(`DEBUG: Edit Temp Page - ID: ${id}, Title: ${title}`);
             openEditTempPageModal(id, title, content);
         });
     });
     document.querySelectorAll('.delete-temp-page-btn').forEach(button => {
         button.addEventListener('click', async (event) => {
-            console.log("DEBUG: Delete Temporary Page button clicked.");
             const id = event.target.dataset.id;
             await deleteTempPage(id);
         });
@@ -855,27 +854,21 @@ async function loadEmailHistory() {
             collection(db, `artifacts/${appId}/public/data/email_history`),
             orderBy('sentAt', 'desc')
         );
-
         const querySnapshot = await getDocs(emailHistoryQuery);
         const tbody = emailHistoryTbody;
-
         if (!tbody) {
             console.warn('Email history tbody element not found');
             return;
         }
-
         if (querySnapshot.empty) {
             tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td></tr>';
             return;
         }
-
         tbody.innerHTML = '';
-
         querySnapshot.forEach((doc) => {
             const emailData = doc.data();
             const sentAt = emailData.sentAt?.toDate() || new Date();
             const recipients = Array.isArray(emailData.recipients) ? emailData.recipients.join(', ') : emailData.recipients || 'Unknown';
-
             const row = document.createElement('tr');
             row.className = 'hover:bg-table-row-even-bg';
             row.innerHTML = `
@@ -893,7 +886,7 @@ async function loadEmailHistory() {
         </td>
         <td class="px-4 py-2 text-text-secondary text-xs">${emailData.method || 'Unknown'}</td>
         <td class="px-4 py-2">
-          <button class="text-link hover:underline text-sm" onclick="viewEmailDetails('${doc.id}')">View</button>
+          <button class="btn-primary btn-blue text-xs px-3 py-1 rounded admin-action-btn" onclick="viewEmailDetails('${doc.id}')">View</button>
         </td>
       `;
             tbody.appendChild(row);
@@ -1007,31 +1000,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         await createTempPage(title, content);
     });
-
-    // Attach event listeners for collapsible sections
-    infrastructureHeader?.addEventListener('click', () => toggleSection(infrastructureHeader, infrastructureContent));
-    devToolsHeader?.addEventListener('click', () => toggleSection(devToolsHeader, devToolsContent));
-    userManagementHeader?.addEventListener('click', () => toggleSection(userManagementHeader, userManagementContent));
-    formManagementHeader?.addEventListener('click', () => toggleSection(formManagementHeader, formManagementContent));
-    tempPagesHeader?.addEventListener('click', () => toggleSection(tempPagesHeader, tempPagesContent));
-    importantLinksHeader?.addEventListener('click', () => toggleSection(importantLinksHeader, importantLinksContent));
-    roadmapHeader?.addEventListener('click', () => toggleSection(roadmapHeader, roadmapContent));
-    darrionApiHeader?.addEventListener('click', () => toggleSection(darrionApiHeader, darrionApiContent));
-    griefDetectionHeader?.addEventListener('click', () => toggleSection(griefDetectionHeader, griefDetectionContent));
-    onfimNotificationsHeader?.addEventListener('click', () => toggleSection(onfimNotificationsHeader, onfimNotificationsContent));
-
-    // Initialize all content sections as collapsed by default to save vertical space
-    // Note: These now only add the 'hidden' class, their parent sections are controlled by updateAdminUI's display property.
-    if (infrastructureContent) infrastructureContent.classList.add('hidden');
-    if (devToolsContent) devToolsContent.classList.add('hidden');
-    if (userManagementContent) userManagementContent.classList.add('hidden');
-    if (formManagementContent) formManagementContent.classList.add('hidden');
-    if (tempPagesContent) tempPagesContent.classList.add('hidden');
-    if (importantLinksContent) importantLinksContent.classList.add('hidden');
-    if (roadmapContent) roadmapContent.classList.add('hidden');
-    if (darrionApiContent) darrionApiContent.classList.add('hidden');
-    if (griefDetectionContent) griefDetectionContent.classList.add('hidden');
-    if (onfimNotificationsContent) onfimNotificationsContent.classList.add('hidden');
 
     // Event listeners for email management
     if (emailTemplateSelect) {
@@ -1350,16 +1318,12 @@ function setupEventListeners() {
             }
 
             try {
-                const themaTitle = document.getElementById('edit-form-thema-title').value;
                 const themaName = document.getElementById('edit-form-thema-name').value;
-                const comments = document.getElementById('edit-form-comments').value;
-                const submissions = document.getElementById('edit-form-submissions').value;
+                const themaDescription = document.getElementById('edit-form-thema-description').value;
 
                 await updateDoc(doc(db, `artifacts/${appId}/public/data/thematas`, formId), {
-                    title: themaTitle,
                     name: themaName,
-                    comments: parseInt(comments) || 0,
-                    submissions: parseInt(submissions) || 0,
+                    description: themaDescription,
                     updatedAt: serverTimestamp()
                 });
 
@@ -1526,7 +1490,6 @@ async function renderDMHistory(dmData) {
         const subject = dm.subject || 'No subject';
         const content = dm.content || 'No content';
         const date = dm.createdAt ? new Date(dm.createdAt.toDate()).toLocaleString() : 'Unknown';
-
         return `
       <tr class="hover:bg-table-row-even-bg transition-colors">
         <td class="px-2 py-1 text-text-secondary text-xs">${date}</td>
@@ -1536,13 +1499,13 @@ async function renderDMHistory(dmData) {
         <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(content.substring(0, 50))}${content.length > 50 ? '...' : ''}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
-            <button onclick="openEditDMModal('${dm.id}', '${escapeHtml(from)}', '${escapeHtml(to)}', '${escapeHtml(subject)}', '${escapeHtml(content)}')" 
+            <button onclick="openEditDMModal('${dm.id}', '${escapeHtml(from)}', '${escapeHtml(to)}', '${escapeHtml(subject)}', '${escapeHtml(content)}')"
                     class="text-link hover:text-link transition-colors admin-action-btn" title="Edit DM">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </button>
-            <button onclick="deleteDM('${dm.id}')" 
+            <button onclick="deleteDM('${dm.id}')"
                     class="text-red-400 hover:text-red-300 transition-colors admin-action-btn" title="Delete DM">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -1562,12 +1525,37 @@ async function loadFormsData() {
     }
 
     try {
-        const formsRef = collection(db, `artifacts/${appId}/public/data/thematas`);
-        const querySnapshot = await getDocs(formsRef);
+        const thematasRef = collection(db, `artifacts/${appId}/public/data/thematas`);
+        const querySnapshot = await getDocs(thematasRef);
         const formsData = [];
-        querySnapshot.forEach(doc => {
-            formsData.push({ id: doc.id, ...doc.data() });
-        });
+        
+        for (const themaDoc of querySnapshot.docs) {
+            if (themaDoc.id === 'temp-page-SQ1f81es7k4PMdS4f1pr') continue; // Hide this temp page
+            const themaData = { id: themaDoc.id, ...themaDoc.data() };
+            
+            // Get thread count for this thema
+            const threadsRef = collection(db, `artifacts/${appId}/public/data/thematas/${themaDoc.id}/threads`);
+            const threadsSnapshot = await getDocs(threadsRef);
+            let totalComments = 0;
+            
+            // Count comments across all threads
+            for (const threadDoc of threadsSnapshot.docs) {
+                const commentsRef = collection(db, `artifacts/${appId}/public/data/thematas/${themaDoc.id}/threads/${threadDoc.id}/comments`);
+                const commentsSnapshot = await getDocs(commentsRef);
+                totalComments += commentsSnapshot.size;
+            }
+            
+            formsData.push({
+                id: themaDoc.id,
+                name: themaData.name || 'No name',
+                description: themaData.description || 'No description',
+                theme: themaData.theme || 'default',
+                threads: threadsSnapshot.size,
+                comments: totalComments,
+                createdAt: themaData.createdAt,
+                createdBy: themaData.createdBy
+            });
+        }
 
         await renderFormsData(formsData);
     } catch (error) {
@@ -1591,20 +1579,21 @@ async function renderFormsData(formsData) {
     }
 
     formSubmissionsTbody.innerHTML = formsData.map(form => {
-        const themaTitle = form.title || 'No title';
         const themaName = form.name || 'No name';
+        const themaDescription = form.description || 'No description';
+        const threads = form.threads || 0;
         const comments = form.comments || 0;
-        const submissions = form.submissions || 0;
+        const date = form.createdAt?.toDate ? form.createdAt.toDate().toLocaleString() : 'Unknown';
 
         return `
       <tr class="hover:bg-table-row-even-bg transition-colors">
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(themaTitle)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themaName)}</td>
+        <td class="px-2 py-1 text-text-primary text-xs font-medium">${escapeHtml(themaName)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(themaDescription)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${threads}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">${comments}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${submissions}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
-            <button onclick="openEditFormModal('${form.id}', '${escapeHtml(themaTitle)}', '${escapeHtml(themaName)}', ${comments}, ${submissions})" 
+            <button onclick="openEditFormModal('${form.id}', '${escapeHtml(themaName)}', '${escapeHtml(themaDescription)}', ${threads}, ${comments})" 
                     class="text-link hover:text-link transition-colors admin-action-btn" title="Edit Form">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -1660,7 +1649,7 @@ window.deleteDM = function(dmId) {
     });
 };
 
-window.openEditFormModal = function(formId, themaTitle, themaName, comments, submissions) {
+window.openEditFormModal = function(formId, themaName, themaDescription, threads, comments) {
     const modal = document.getElementById('edit-form-modal');
     if (!modal) {
         console.error('Edit form modal not found');
@@ -1668,10 +1657,8 @@ window.openEditFormModal = function(formId, themaTitle, themaName, comments, sub
     }
 
     // Populate form fields
-    document.getElementById('edit-form-thema-title').value = themaTitle;
     document.getElementById('edit-form-thema-name').value = themaName;
-    document.getElementById('edit-form-comments').value = comments;
-    document.getElementById('edit-form-submissions').value = submissions;
+    document.getElementById('edit-form-thema-description').value = themaDescription;
 
     // Store form ID for saving
     modal.dataset.formId = formId;

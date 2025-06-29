@@ -122,6 +122,7 @@ function renderThematas() {
     snapshot.forEach(docSnap => {
       const thema = docSnap.data();
       const themaId = docSnap.id;
+      if (themaId === 'temp-page-SQ1f81es7k4PMdS4f1pr') return; // Hide this temp page
       const li = document.createElement('li');
       li.className = 'thema-item mb-6 p-4 bg-card rounded-lg shadow';
       
