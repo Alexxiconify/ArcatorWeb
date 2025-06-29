@@ -1237,32 +1237,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Call the imported loadNavbar function.
   await loadNavbar(auth.currentUser, firebaseCurrentUser, DEFAULT_THEME_NAME);
-
-  // Fix: Target the correct element ID for the current year in admin_and_dev.html footer
-  const currentYearElement = document.getElementById('current-year-admin-dev');
-  if (currentYearElement) {
-    currentYearElement.textContent = new Date().getFullYear();
-  } else {
-    console.warn("Element with ID 'current-year-admin-dev' not found in admin_and_dev.html.");
-  }
-
-  // No longer initializing EasyMDE for new temp page creation form
-  // if (tempPageContentInput) {
-  //   easyMDECreate = new EasyMDE({
-  //     element: tempPageContentInput,
-  //     spellChecker: false,
-  //     forceSync: true,
-  //     minHeight: "200px",
-  //     toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "guide"]
-  //   });
-  //   console.log("DEBUG: easyMDECreate initialized.");
-  // }
-
-
+  
   // After Firebase is set up and page content loaded, update UI based on auth state
-  onAuthStateChanged(auth, (user) => {
-    updateAdminUI(user);
-  });
+  onAuthStateChanged(auth, (user) => {updateAdminUI(user);});
 
   // Create Temp Page form event listener
   createTempPageForm?.addEventListener('submit', async (event) => {
