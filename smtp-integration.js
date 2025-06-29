@@ -1,78 +1,112 @@
-// SMTP Integration Module for Arcator.co.uk
-// This module provides client-side integration with the local SMTP server
+// SMTP Integration via Firebase Cloud Functions
+// This module handles email sending through Firebase Cloud Functions that connect to the SMTP server
 
-const SMTP_SERVER_URL = 'http://localhost:3001'; // Your SMTP server URL
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { db, appId } from './firebase-init.js';
 
-let smtpServerConnected = false;
+// Firebase Cloud Functions base URL (will be replaced with actual URL after deployment)
+let FIREBASE_FUNCTIONS_BASE_URL = null;
 
-// Test SMTP server connection
+// Initialize Firebase Functions URL
+async function initializeFirebaseFunctionsURL() {
+  try {
+    // Get the current Firebase project ID
+    const projectId = firebase.app().options.projectId;
+    FIREBASE_FUNCTIONS_BASE_URL = `https://us-central1-${projectId}.cloudfunctions.net`;
+    console.log('[SMTP] Firebase Functions URL initialized:', FIREBASE_FUNCTIONS_BASE_URL);
+    return true;
+  } catch (error) {
+    console.error('[SMTP] Error initializing Firebase Functions URL:', error);
+    return false;
+  }
+}
+
+// Test SMTP server connection via Firebase Cloud Functions
 async function testSMTPServerConnection() {
   try {
-    const response = await fetch(`${SMTP_SERVER_URL}/health`);
-    if (response.ok) {
-      const data = await response.json();
-      smtpServerConnected = data.smtp === 'connected';
+    if (!FIREBASE_FUNCTIONS_BASE_URL) {
+      await initializeFirebaseFunctionsURL();
+    }
+
+    const response = await fetch(`${FIREBASE_FUNCTIONS_BASE_URL}/getSMTPStatus`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
       return {
-        success: smtpServerConnected,
-        status: data.smtp,
-        message: smtpServerConnected ? 'SMTP server connected' : 'SMTP server disconnected'
+        success: true,
+        message: 'SMTP server is healthy and ready',
+        status: result.status
       };
     } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      return {
+        success: false,
+        message: result.error || 'SMTP server health check failed'
+      };
     }
   } catch (error) {
-    console.error('[SMTP] Connection test failed:', error);
+    console.error('[SMTP] Connection test error:', error);
     return {
       success: false,
-      error: error.message,
-      message: 'SMTP server unreachable'
+      message: `Connection error: ${error.message}`
     };
   }
 }
 
-// Send email via SMTP server
+// Send email via Firebase Cloud Functions
 async function sendEmailViaSMTP(emailData) {
-  if (!smtpServerConnected) {
-    const connectionTest = await testSMTPServerConnection();
-    if (!connectionTest.success) {
-      throw new Error('SMTP server not connected');
-    }
-  }
-
   try {
-    const response = await fetch(`${SMTP_SERVER_URL}/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailData)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+    if (!FIREBASE_FUNCTIONS_BASE_URL) {
+      await initializeFirebaseFunctionsURL();
     }
 
-    const result = await response.json();
-    console.log('[SMTP] Email sent successfully:', result);
-    return result;
+    // Add email to Firestore to trigger the Cloud Function
+    const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
+    
+    const emailDoc = {
+      to: emailData.to,
+      from: emailData.from || 'noreply@arcator.co.uk',
+      subject: emailData.subject,
+      content: emailData.html || emailData.text,
+      isHtml: !!emailData.html,
+      status: 'pending',
+      method: 'smtp',
+      createdAt: serverTimestamp(),
+      completedAt: null,
+      errorMessage: null
+    };
+
+    const docRef = await addDoc(emailHistoryRef, emailDoc);
+    
+    console.log('[SMTP] Email queued for sending via Firebase Cloud Functions:', docRef.id);
+    
+    return {
+      success: true,
+      messageId: docRef.id,
+      message: 'Email queued for sending via SMTP server'
+    };
   } catch (error) {
-    console.error('[SMTP] Email sending failed:', error);
-    throw error;
+    console.error('[SMTP] Error sending email:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 }
 
-// Send bulk emails via SMTP server
+// Send bulk emails via Firebase Cloud Functions
 async function sendBulkEmailsViaSMTP(emails) {
-  if (!smtpServerConnected) {
-    const connectionTest = await testSMTPServerConnection();
-    if (!connectionTest.success) {
-      throw new Error('SMTP server not connected');
-    }
-  }
-
   try {
-    const response = await fetch(`${SMTP_SERVER_URL}/send-bulk-emails`, {
+    if (!FIREBASE_FUNCTIONS_BASE_URL) {
+      await initializeFirebaseFunctionsURL();
+    }
+
+    const response = await fetch(`${FIREBASE_FUNCTIONS_BASE_URL}/sendBulkEmails`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,47 +114,55 @@ async function sendBulkEmailsViaSMTP(emails) {
       body: JSON.stringify({ emails })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
     const result = await response.json();
-    console.log('[SMTP] Bulk emails sent:', result);
-    return result;
+    
+    if (result.success) {
+      return {
+        success: true,
+        message: 'Bulk emails sent successfully via SMTP server',
+        result: result.result
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Failed to send bulk emails'
+      };
+    }
   } catch (error) {
-    console.error('[SMTP] Bulk email sending failed:', error);
-    throw error;
+    console.error('[SMTP] Bulk email error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 }
 
 // Get SMTP server status
 function getSMTPServerStatus() {
   return {
-    connected: smtpServerConnected,
-    serverUrl: SMTP_SERVER_URL,
-    ready: smtpServerConnected
+    connected: FIREBASE_FUNCTIONS_BASE_URL !== null,
+    serverUrl: FIREBASE_FUNCTIONS_BASE_URL || 'Not initialized',
+    ready: FIREBASE_FUNCTIONS_BASE_URL !== null
   };
 }
 
 // Initialize SMTP integration
 async function initializeSMTPIntegration() {
   try {
-    const connectionTest = await testSMTPServerConnection();
-    if (connectionTest.success) {
+    const initialized = await initializeFirebaseFunctionsURL();
+    if (initialized) {
       console.log('[SMTP] Integration initialized successfully');
-      return { success: true, message: 'SMTP server connected' };
+      return { success: true };
     } else {
-      console.warn('[SMTP] Integration failed:', connectionTest.message);
-      return { success: false, error: connectionTest.message };
+      return { success: false, error: 'Failed to initialize Firebase Functions URL' };
     }
   } catch (error) {
-    console.error('[SMTP] Integration error:', error);
+    console.error('[SMTP] Initialization error:', error);
     return { success: false, error: error.message };
   }
 }
 
-// Export functions for use in other modules
+// Export functions
 export {
   testSMTPServerConnection,
   sendEmailViaSMTP,

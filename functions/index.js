@@ -1,16 +1,22 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const sgMail = require('@sendgrid/mail');
+const axios = require('axios');
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Set SendGrid API key
-sgMail.setApiKey(functions.config().sendgrid.key);
+// SMTP Server configuration
+const SMTP_SERVER_URL = 'http://apollo.arcator.co.uk:3001';
+const SMTP_SERVER_CONFIG = {
+  host: 'smtp.gmail.com',
+  port: 587,
+  user: 'noreply@arcator.co.uk',
+  pass: 'ArcatorAppS3rver!2024'
+};
 
 /**
  * Cloud Function that triggers when a new document is added to email_history collection
- * Sends the email using SendGrid and updates the status
+ * Sends the email using the SMTP server via REST API and updates the status
  */
 exports.sendEmail = functions.firestore
   .document('artifacts/{appId}/public/data/email_history/{emailId}')
@@ -29,30 +35,41 @@ exports.sendEmail = functions.firestore
         return;
       }
       
-      // Prepare email message
-      const msg = {
+      // Prepare email data for SMTP server
+      const smtpEmailData = {
         to: emailData.to,
-        from: emailData.from || 'noreply@arcator-web.firebaseapp.com',
+        from: emailData.from || 'noreply@arcator.co.uk',
         subject: emailData.subject,
         text: emailData.isHtml ? null : emailData.content,
         html: emailData.isHtml ? emailData.content : null,
       };
       
-      console.log('Sending email with SendGrid:', msg);
+      console.log('Sending email via SMTP server:', smtpEmailData);
       
-      // Send email using SendGrid
-      const response = await sgMail.send(msg);
+      // Send email using SMTP server REST API
+      const response = await axios.post(`${SMTP_SERVER_URL}/send-email`, smtpEmailData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000, // 30 second timeout
+      });
       
-      console.log('Email sent successfully:', response);
+      console.log('Email sent successfully via SMTP server:', response.data);
       
       // Update email status to sent
-      await updateEmailStatus(emailId, appId, 'sent', 'Email sent successfully');
+      await updateEmailStatus(emailId, appId, 'sent', 'Email sent successfully via SMTP server');
       
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error sending email via SMTP server:', error);
+      
+      // Extract error message
+      let errorMessage = error.message;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      }
       
       // Update email status to failed
-      await updateEmailStatus(emailId, appId, 'failed', error.message);
+      await updateEmailStatus(emailId, appId, 'failed', errorMessage);
     }
   });
 
@@ -82,30 +99,123 @@ async function updateEmailStatus(emailId, appId, status, message) {
 }
 
 /**
- * Test function to verify SendGrid configuration
+ * Test function to verify SMTP server configuration
  */
-exports.testSendGrid = functions.https.onRequest(async (req, res) => {
+exports.testSMTP = functions.https.onRequest(async (req, res) => {
   try {
-    const msg = {
+    // First check if SMTP server is healthy
+    const healthResponse = await axios.get(`${SMTP_SERVER_URL}/health`, {
+      timeout: 10000,
+    });
+    
+    console.log('SMTP server health check:', healthResponse.data);
+    
+    // Send test email
+    const testEmailData = {
       to: 'taylorallred04@gmail.com',
-      from: 'noreply@arcator-web.firebaseapp.com',
-      subject: 'SendGrid Test Email',
-      text: 'This is a test email to verify SendGrid configuration.',
-      html: '<p>This is a test email to verify SendGrid configuration.</p>',
+      from: 'noreply@arcator.co.uk',
+      subject: 'SMTP Server Test Email',
+      text: 'This is a test email to verify SMTP server configuration.',
+      html: '<p>This is a test email to verify SMTP server configuration.</p>',
     };
     
-    const response = await sgMail.send(msg);
+    const emailResponse = await axios.post(`${SMTP_SERVER_URL}/send-email`, testEmailData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    });
     
     res.json({
       success: true,
-      message: 'Test email sent successfully',
-      response: response
+      message: 'Test email sent successfully via SMTP server',
+      health: healthResponse.data,
+      email: emailResponse.data
     });
   } catch (error) {
-    console.error('SendGrid test failed:', error);
+    console.error('SMTP server test failed:', error);
+    
+    let errorMessage = error.message;
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMessage = error.response.data.error;
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message
+      error: errorMessage,
+      smtpServerUrl: SMTP_SERVER_URL
+    });
+  }
+});
+
+/**
+ * Function to send bulk emails via SMTP server
+ */
+exports.sendBulkEmails = functions.https.onRequest(async (req, res) => {
+  try {
+    const { emails } = req.body;
+    
+    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No emails provided or invalid format'
+      });
+    }
+    
+    console.log(`Sending ${emails.length} bulk emails via SMTP server`);
+    
+    // Send bulk emails using SMTP server REST API
+    const response = await axios.post(`${SMTP_SERVER_URL}/send-bulk-emails`, { emails }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 60000, // 60 second timeout for bulk emails
+    });
+    
+    console.log('Bulk emails sent successfully:', response.data);
+    
+    res.json({
+      success: true,
+      message: 'Bulk emails sent successfully via SMTP server',
+      result: response.data
+    });
+    
+  } catch (error) {
+    console.error('Error sending bulk emails via SMTP server:', error);
+    
+    let errorMessage = error.message;
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMessage = error.response.data.error;
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+});
+
+/**
+ * Function to get SMTP server status
+ */
+exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
+  try {
+    const response = await axios.get(`${SMTP_SERVER_URL}/health`, {
+      timeout: 10000,
+    });
+    
+    res.json({
+      success: true,
+      smtpServerUrl: SMTP_SERVER_URL,
+      status: response.data
+    });
+  } catch (error) {
+    console.error('Error getting SMTP server status:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      smtpServerUrl: SMTP_SERVER_URL
     });
   }
 }); 
