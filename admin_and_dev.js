@@ -984,12 +984,6 @@ function showEmailPreview() {
 }
 
 async function sendEmail() {
-  if (!db) {
-    console.error("Firestore DB not initialized for sendEmail.");
-    showMessageBox("Database not initialized", true);
-    return;
-  }
-
   const form = document.getElementById('email-compose-form');
   const formData = new FormData(form);
   
@@ -1021,42 +1015,18 @@ async function sendEmail() {
   try {
     showMessageBox("Sending email...", false);
     
-    // Process each recipient individually (Cloud Function expects single recipient)
-    let successCount = 0;
-    let errorCount = 0;
+    // Check EmailJS availability first
+    const emailjsStatus = EmailJSIntegration.getStatus();
+    let useEmailJS = emailjsStatus.hasCredentials && emailjsStatus.initialized;
     
-    for (const recipientEmail of recipients) {
-      try {
-        // Create the document structure that the Cloud Function expects
-        const emailData = {
-          to: recipientEmail,
-          from: 'noreply@arcator-web.firebaseapp.com', // Required sender address
-          subject: subject,
-          content: content,
-          isHtml: isHtml,
-          sentAt: serverTimestamp(),
-          status: 'pending',
-          template: template || 'custom'
-        };
-        
-        // Add to Firestore - this will trigger the Cloud Function
-        const emailRef = await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailData);
-        
-        console.log(`Email queued for ${recipientEmail}: ${subject} (ID: ${emailRef.id})`);
-        successCount++;
-        
-      } catch (error) {
-        console.error(`Error queuing email for ${recipientEmail}:`, error);
-        errorCount++;
-      }
-    }
-    
-    if (errorCount === 0) {
-      showMessageBox(`Email queued successfully for ${successCount} recipient(s)! Check email history for status.`, false);
-    } else if (successCount > 0) {
-      showMessageBox(`Email queued for ${successCount} recipient(s), ${errorCount} failed. Check email history for status.`, true);
+    if (useEmailJS) {
+      console.log('[EmailJS] Using EmailJS for email sending');
+      await sendEmailWithEmailJS(recipients, subject, content, isHtml, template);
+    } else if (db) {
+      console.log('[Cloud Functions] Using Cloud Functions for email sending');
+      await sendEmailWithCloudFunctions(recipients, subject, content, isHtml, template);
     } else {
-      showMessageBox("Failed to queue email for any recipients", true);
+      throw new Error('No email sending method available. Please configure EmailJS or ensure Cloud Functions are available.');
     }
     
     // Clear form
@@ -1068,6 +1038,78 @@ async function sendEmail() {
   } catch (error) {
     console.error("Error sending email:", error);
     showMessageBox("Failed to send email: " + error.message, true);
+  }
+}
+
+// Send email using EmailJS
+async function sendEmailWithEmailJS(recipients, subject, content, isHtml, template) {
+  const emails = recipients.map(recipient => ({
+    to: recipient,
+    subject: subject,
+    message: content,
+    options: {
+      fromName: 'Arcator.co.uk',
+      fromEmail: 'noreply@arcator-web.firebaseapp.com',
+      replyTo: 'noreply@arcator-web.firebaseapp.com'
+    }
+  }));
+  
+  const result = await EmailJSIntegration.sendBulkEmails(emails);
+  
+  if (result.summary.failed === 0) {
+    showMessageBox(`✅ Email sent successfully to ${result.summary.success} recipient(s)!`, false);
+  } else if (result.summary.success > 0) {
+    showMessageBox(`⚠️ Email sent to ${result.summary.success} recipient(s), ${result.summary.failed} failed.`, true);
+  } else {
+    throw new Error(`Failed to send email to any recipients: ${result.results[0]?.error || 'Unknown error'}`);
+  }
+  
+  // Log results to console for debugging
+  console.log('[EmailJS] Email sending results:', result);
+}
+
+// Send email using Cloud Functions (original method)
+async function sendEmailWithCloudFunctions(recipients, subject, content, isHtml, template) {
+  if (!db) {
+    throw new Error("Firestore DB not initialized for Cloud Functions email sending.");
+  }
+  
+  // Process each recipient individually (Cloud Function expects single recipient)
+  let successCount = 0;
+  let errorCount = 0;
+  
+  for (const recipientEmail of recipients) {
+    try {
+      // Create the document structure that the Cloud Function expects
+      const emailData = {
+        to: recipientEmail,
+        from: 'noreply@arcator-web.firebaseapp.com', // Required sender address
+        subject: subject,
+        content: content,
+        isHtml: isHtml,
+        sentAt: serverTimestamp(),
+        status: 'pending',
+        template: template || 'custom'
+      };
+      
+      // Add to Firestore - this will trigger the Cloud Function
+      const emailRef = await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailData);
+      
+      console.log(`Email queued for ${recipientEmail}: ${subject} (ID: ${emailRef.id})`);
+      successCount++;
+      
+    } catch (error) {
+      console.error(`Error queuing email for ${recipientEmail}:`, error);
+      errorCount++;
+    }
+  }
+  
+  if (errorCount === 0) {
+    showMessageBox(`Email queued successfully for ${successCount} recipient(s)! Check email history for status.`, false);
+  } else if (successCount > 0) {
+    showMessageBox(`Email queued for ${successCount} recipient(s), ${errorCount} failed. Check email history for status.`, true);
+  } else {
+    throw new Error("Failed to queue email for any recipients");
   }
 }
 
@@ -1492,4 +1534,56 @@ function setupEventListeners() {
     console.error("Error loading initial admin data:", error);
     showMessageBox("Some data failed to load. Please refresh the page.", true);
   }
+}
+
+// Test EmailJS connection
+async function testEmailJSConnection() {
+  try {
+    const result = await EmailJSIntegration.testConnection();
+    if (result.success) {
+      showMessageBox(`✅ EmailJS connection successful! Credentials are valid.`, false);
+      console.log('[EmailJS] Connection test successful:', result);
+    } else {
+      showMessageBox(`❌ EmailJS connection failed: ${result.error}`, true);
+      console.error('[EmailJS] Connection test failed:', result);
+    }
+    return result;
+  } catch (error) {
+    showMessageBox(`❌ EmailJS test error: ${error.message}`, true);
+    console.error('[EmailJS] Test error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Get and display EmailJS status
+function displayEmailJSStatus() {
+  const status = EmailJSIntegration.getStatus();
+  console.log('[EmailJS] Current status:', status);
+  
+  let statusMessage = '';
+  if (status.hasCredentials && status.initialized) {
+    statusMessage = `✅ EmailJS Ready - Credentials configured and initialized`;
+  } else if (status.hasCredentials) {
+    statusMessage = `⚠️ EmailJS Configured - Credentials found but not initialized`;
+  } else {
+    statusMessage = `❌ EmailJS Not Configured - No credentials found`;
+  }
+  
+  // Add status indicator to the email management section
+  const emailManagementHeader = document.getElementById('email-management-header');
+  if (emailManagementHeader) {
+    let statusIndicator = emailManagementHeader.querySelector('.emailjs-status');
+    if (!statusIndicator) {
+      statusIndicator = document.createElement('div');
+      statusIndicator.className = 'emailjs-status text-sm ml-2';
+      emailManagementHeader.appendChild(statusIndicator);
+    }
+    statusIndicator.textContent = statusMessage;
+    statusIndicator.className = `emailjs-status text-sm ml-2 ${
+      status.hasCredentials && status.initialized ? 'text-green-400' : 
+      status.hasCredentials ? 'text-yellow-400' : 'text-red-400'
+    }`;
+  }
+  
+  return status;
 }
