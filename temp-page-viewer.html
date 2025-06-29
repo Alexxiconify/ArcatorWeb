@@ -1467,8 +1467,7 @@
       
       // Reset textarea to original content
       const textarea = document.getElementById(`edit-textarea-${commentId}`);
-      const originalContent = contentDiv.textContent.replace(/\(edited.*?\)/, '').trim(); admin.js: 1236 Uncaught(in promise) TypeError: Cannot read properties of null(reading 'addEventListener')
-    at HTMLDocument.< anonymous > (admin.js: 1236: 5)
+      const originalContent = contentDiv.textContent.replace(/\(edited.*?\)/, '').trim();
       if (textarea) {
         textarea.value = originalContent;
       }

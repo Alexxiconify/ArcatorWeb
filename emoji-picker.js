@@ -349,6 +349,9 @@ function initMediaPicker(pickerId) {
   const picker = document.getElementById(pickerId);
   if (!picker) return;
 
+  // Setup tab switching
+  setupMediaPickerEventListeners(pickerId);
+
   // Initialize GIF search
   initGifSearch(pickerId);
 
@@ -365,9 +368,13 @@ function initMediaPicker(pickerId) {
  */
 function initGifSearch(pickerId) {
   const searchInput = document.getElementById(`${pickerId}-gif-search`);
-  const providerSelect = document.getElementById(`${pickerId}-gif-provider`);
-  if (!searchInput || !providerSelect) return;
+  const searchBtn = document.getElementById(`${pickerId}-gif-search-btn`);
+  
+  if (!searchInput || !searchBtn) return;
+  
   let lastQuery = '';
+  
+  // Search on input with debounce
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim();
     if (q && q !== lastQuery) {
@@ -375,9 +382,25 @@ function initGifSearch(pickerId) {
       searchGifs(q, pickerId);
     }
   });
-  providerSelect.addEventListener('change', () => {
+  
+  // Search on button click
+  searchBtn.addEventListener('click', () => {
     const q = searchInput.value.trim();
-    if (q) searchGifs(q, pickerId);
+    if (q) {
+      lastQuery = q;
+      searchGifs(q, pickerId);
+    }
+  });
+  
+  // Search on Enter key
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const q = searchInput.value.trim();
+      if (q) {
+        lastQuery = q;
+        searchGifs(q, pickerId);
+      }
+    }
   });
 }
 
@@ -387,24 +410,38 @@ function initGifSearch(pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 async function searchGifs(query, pickerId) {
-  const provider = document.getElementById(`${pickerId}-gif-provider`)?.value || 'giphy';
-  let gifs = [];
-  if (provider === 'giphy') {
-    // Giphy API
-    const apiKey = 'dc6zaTOxFJmzC';
+  const resultsEl = document.getElementById(`${pickerId}-gif-results`);
+  if (!resultsEl) return;
+  
+  // Show loading state
+  resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem;">Searching...</div>';
+  
+  try {
+    // Giphy API with public key
+    const apiKey = 'dc6zaTOxFJmzC'; // Giphy public beta key
     const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=20&rating=pg`;
-    const res = await fetch(url);
-    const data = await res.json();
-    gifs = data.data.map(g => g.images.fixed_height.url);
-  } else if (provider === 'tenor') {
-    // Tenor API
-    const apiKey = 'LIVDSRZULELA';
-    const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${apiKey}&limit=20&media_filter=gif&contentfilter=medium`;
-    const res = await fetch(url);
-    const data = await res.json();
-    gifs = data.results.map(g => g.media_formats.gif.url);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.data && data.data.length > 0) {
+      const gifs = data.data.map(g => ({
+        url: g.images.fixed_height.url,
+        original: g.images.original.url,
+        title: g.title || 'GIF'
+      }));
+      renderGifResults(gifs, pickerId);
+    } else {
+      resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--color-text-secondary);">No GIFs found</div>';
+    }
+  } catch (error) {
+    console.error('Error searching GIFs:', error);
+    resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--color-text-secondary);">Error loading GIFs</div>';
   }
-  renderGifResults(gifs, pickerId);
 }
 
 /**
@@ -430,10 +467,10 @@ window.insertGif = function (gifUrl, pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 function initUrlValidation(pickerId) {
-  const urlInput = document.querySelector(`#${pickerId} #media-url-input`);
-  const urlPreview = document.querySelector(`#${pickerId} #url-preview`);
-  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
-  const insertBtn = document.querySelector(`#${pickerId} #insert-media-btn`);
+  const urlInput = document.getElementById(`${pickerId}-url-input`);
+  const urlPreview = document.getElementById(`${pickerId}-url-preview`);
+  const mediaPreview = document.getElementById(`${pickerId}-media-preview`);
+  const insertBtn = document.getElementById(`${pickerId}-insert-media-btn`);
 
   if (!urlInput || !urlPreview || !mediaPreview || !insertBtn) return;
 
@@ -451,6 +488,7 @@ function initUrlValidation(pickerId) {
     }
 
     urlPreview.innerHTML = "Validating...";
+    urlPreview.className = "url-preview";
     mediaPreview.innerHTML = "";
     insertBtn.disabled = true;
 
@@ -465,6 +503,16 @@ function initUrlValidation(pickerId) {
       insertMediaUrl(url, pickerId);
     }
   });
+  
+  // Allow Enter key to insert
+  urlInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      const url = urlInput.value.trim();
+      if (url && !insertBtn.disabled) {
+        insertMediaUrl(url, pickerId);
+      }
+    }
+  });
 }
 
 /**
@@ -473,9 +521,9 @@ function initUrlValidation(pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 async function validateMediaUrl(url, pickerId) {
-  const urlPreview = document.querySelector(`#${pickerId} #url-preview`);
-  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
-  const insertBtn = document.querySelector(`#${pickerId} #insert-media-btn`);
+  const urlPreview = document.getElementById(`${pickerId}-url-preview`);
+  const mediaPreview = document.getElementById(`${pickerId}-media-preview`);
+  const insertBtn = document.getElementById(`${pickerId}-insert-media-btn`);
 
   try {
     // Basic URL validation
@@ -484,18 +532,9 @@ async function validateMediaUrl(url, pickerId) {
 
     // Check if it's a valid media file
     const mediaExtensions = [
-      "jpg",
-      "jpeg",
-      "png",
-      "gif",
-      "webp",
-      "svg",
-      "mp4",
-      "webm",
-      "ogg",
-      "mp3",
-      "wav",
-      "aac",
+      "jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico",
+      "mp4", "webm", "ogg", "avi", "mov", "wmv", "flv",
+      "mp3", "wav", "aac", "ogg", "flac", "m4a"
     ];
 
     if (!mediaExtensions.includes(extension)) {
@@ -505,8 +544,16 @@ async function validateMediaUrl(url, pickerId) {
       return;
     }
 
-    // Test if the URL is accessible
-    const response = await fetch(url, { method: "HEAD" });
+    // Test if the URL is accessible (with timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(url, { 
+      method: "HEAD",
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error("URL not accessible");
@@ -519,9 +566,11 @@ async function validateMediaUrl(url, pickerId) {
     // Show preview
     showMediaPreview(url, extension, pickerId);
   } catch (error) {
+    console.warn("URL validation error:", error);
     urlPreview.innerHTML = "Invalid or inaccessible URL";
     urlPreview.className = "url-preview error";
     insertBtn.disabled = true;
+    mediaPreview.innerHTML = "";
   }
 }
 
@@ -532,18 +581,18 @@ async function validateMediaUrl(url, pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 function showMediaPreview(url, extension, pickerId) {
-  const mediaPreview = document.querySelector(`#${pickerId} #media-preview`);
+  const mediaPreview = document.getElementById(`${pickerId}-media-preview`);
 
-  const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
-  const videoExtensions = ["mp4", "webm", "ogg"];
-  const audioExtensions = ["mp3", "wav", "aac"];
+  const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"];
+  const videoExtensions = ["mp4", "webm", "ogg", "avi", "mov", "wmv", "flv"];
+  const audioExtensions = ["mp3", "wav", "aac", "ogg", "flac", "m4a"];
 
   if (imageExtensions.includes(extension)) {
-    mediaPreview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none'">`;
+    mediaPreview.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 0.375rem;" onerror="this.style.display='none'">`;
   } else if (videoExtensions.includes(extension)) {
-    mediaPreview.innerHTML = `<video controls><source src="${url}" type="video/${extension}">Your browser does not support the video tag.</video>`;
+    mediaPreview.innerHTML = `<video controls style="max-width: 200px; max-height: 200px; border-radius: 0.375rem;"><source src="${url}" type="video/${extension}">Your browser does not support the video tag.</video>`;
   } else if (audioExtensions.includes(extension)) {
-    mediaPreview.innerHTML = `<audio controls><source src="${url}" type="audio/${extension}">Your browser does not support the audio tag.</audio>`;
+    mediaPreview.innerHTML = `<audio controls style="width: 100%;"><source src="${url}" type="audio/${extension}">Your browser does not support the audio tag.</audio>`;
   }
 }
 
@@ -585,30 +634,29 @@ function insertMediaUrl(url, pickerId) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 function initYouTubeValidation(pickerId) {
-  const urlInput = document.querySelector(`#${pickerId} #youtube-url-input`);
-  const urlPreview = document.querySelector(`#${pickerId} #youtube-preview`);
-  const embedPreview = document.querySelector(
-    `#${pickerId} #youtube-embed-preview`,
-  );
-  const insertBtn = document.querySelector(`#${pickerId} #insert-youtube-btn`);
+  const youtubeInput = document.getElementById(`${pickerId}-youtube-input`);
+  const youtubePreview = document.getElementById(`${pickerId}-youtube-preview`);
+  const youtubeEmbedPreview = document.getElementById(`${pickerId}-youtube-embed-preview`);
+  const insertBtn = document.getElementById(`${pickerId}-insert-youtube-btn`);
 
-  if (!urlInput || !urlPreview || !embedPreview || !insertBtn) return;
+  if (!youtubeInput || !youtubePreview || !youtubeEmbedPreview || !insertBtn) return;
 
   let validationTimeout;
 
-  urlInput.addEventListener("input", (e) => {
+  youtubeInput.addEventListener("input", (e) => {
     clearTimeout(validationTimeout);
     const url = e.target.value.trim();
 
     if (!url) {
-      urlPreview.innerHTML = "";
-      embedPreview.innerHTML = "";
+      youtubePreview.innerHTML = "";
+      youtubeEmbedPreview.innerHTML = "";
       insertBtn.disabled = true;
       return;
     }
 
-    urlPreview.innerHTML = "Validating...";
-    embedPreview.innerHTML = "";
+    youtubePreview.innerHTML = "Validating YouTube URL...";
+    youtubePreview.className = "url-preview";
+    youtubeEmbedPreview.innerHTML = "";
     insertBtn.disabled = true;
 
     validationTimeout = setTimeout(() => {
@@ -617,9 +665,19 @@ function initYouTubeValidation(pickerId) {
   });
 
   insertBtn.addEventListener("click", () => {
-    const url = urlInput.value.trim();
+    const url = youtubeInput.value.trim();
     if (url) {
       insertYouTubeUrl(url, pickerId);
+    }
+  });
+  
+  // Allow Enter key to insert
+  youtubeInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      const url = youtubeInput.value.trim();
+      if (url && !insertBtn.disabled) {
+        insertYouTubeUrl(url, pickerId);
+      }
     }
   });
 }
@@ -928,22 +986,36 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
       <div class="media-picker-tabs">
-        <button class="media-tab active" data-tab="gif">🎬 GIF</button>
-        <button class="media-tab" data-tab="url">🔗 URL</button>
+        <button class="media-tab active" data-tab="gif">🎬 GIF Search</button>
+        <button class="media-tab" data-tab="url">🔗 URL Paste</button>
         <button class="media-tab" data-tab="youtube">📺 YouTube</button>
       </div>
+      
       <div id="${pickerId}-gif-tab" class="media-tab-content active">
         <div class="gif-search-container">
-          <select id="${pickerId}-gif-provider" class="gif-provider-select">
-            <option value="giphy">Giphy</option>
-            <option value="tenor">Tenor</option>
-          </select>
-          <input type="text" id="${pickerId}-gif-search" class="gif-search-input" placeholder="Search GIFs..." />
+          <input type="text" id="${pickerId}-gif-search" class="gif-search-input" placeholder="Search GIFs on Giphy..." />
+          <button type="button" id="${pickerId}-gif-search-btn" class="btn-primary btn-blue" style="margin-top: 0.5rem;">Search</button>
         </div>
         <div class="gif-results" id="${pickerId}-gif-results"></div>
       </div>
-      <div id="${pickerId}-url-tab" class="media-tab-content">...</div>
-      <div id="${pickerId}-youtube-tab" class="media-tab-content">...</div>
+      
+      <div id="${pickerId}-url-tab" class="media-tab-content">
+        <div class="url-input-container">
+          <input type="url" id="${pickerId}-url-input" class="url-input" placeholder="Paste any media URL (image, video, audio, GIF)..." />
+          <div id="${pickerId}-url-preview" class="url-preview"></div>
+          <div id="${pickerId}-media-preview" class="media-preview"></div>
+          <button type="button" id="${pickerId}-insert-media-btn" class="btn-primary btn-blue" disabled>Insert Media</button>
+        </div>
+      </div>
+      
+      <div id="${pickerId}-youtube-tab" class="media-tab-content">
+        <div class="youtube-input-container">
+          <input type="url" id="${pickerId}-youtube-input" class="url-input" placeholder="Paste YouTube URL..." />
+          <div id="${pickerId}-youtube-preview" class="url-preview"></div>
+          <div id="${pickerId}-youtube-embed-preview" class="youtube-preview"></div>
+          <button type="button" id="${pickerId}-insert-youtube-btn" class="btn-primary btn-blue" disabled>Insert YouTube</button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -977,5 +1049,19 @@ window.toggleEmojiPicker = function (pickerId, type) {
 function renderGifResults(gifs, pickerId) {
   const resultsEl = document.getElementById(`${pickerId}-gif-results`);
   if (!resultsEl) return;
-  resultsEl.innerHTML = gifs.map(url => `<img src="${url}" class="gif-item" style="max-width:120px;max-height:120px;cursor:pointer;" onclick="insertMediaUrl('${url}','${pickerId}')" />`).join('');
+  
+  if (gifs.length === 0) {
+    resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--color-text-secondary);">No GIFs found</div>';
+    return;
+  }
+  
+  resultsEl.innerHTML = gifs.map(gif => `
+    <div class="gif-item" style="display: inline-block; margin: 0.25rem; cursor: pointer; border-radius: 0.375rem; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;" 
+         onmouseover="this.style.borderColor='var(--color-link)'" 
+         onmouseout="this.style.borderColor='transparent'"
+         onclick="insertMediaUrl('${gif.original}', '${pickerId}')" 
+         title="${gif.title}">
+      <img src="${gif.url}" alt="${gif.title}" style="max-width: 120px; max-height: 120px; display: block;" />
+    </div>
+  `).join('');
 }
