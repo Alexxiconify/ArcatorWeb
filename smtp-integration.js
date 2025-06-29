@@ -2,7 +2,7 @@
 // This module handles email sending through Firebase Cloud Functions that connect to the SMTP server
 
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { db, appId } from './firebase-init.js';
+import { db, appId, app } from './firebase-init.js';
 
 // Firebase Cloud Functions base URL (will be replaced with actual URL after deployment)
 let FIREBASE_FUNCTIONS_BASE_URL = null;
@@ -11,7 +11,7 @@ let FIREBASE_FUNCTIONS_BASE_URL = null;
 async function initializeFirebaseFunctionsURL() {
   try {
     // Get the current Firebase project ID
-    const projectId = firebase.app().options.projectId;
+    const projectId = app.options.projectId;
     FIREBASE_FUNCTIONS_BASE_URL = `https://us-central1-${projectId}.cloudfunctions.net`;
     console.log('[SMTP] Firebase Functions URL initialized:', FIREBASE_FUNCTIONS_BASE_URL);
     return true;
@@ -72,8 +72,8 @@ async function sendEmailViaSMTP(emailData) {
       to: emailData.to,
       from: emailData.from || 'noreply@arcator.co.uk',
       subject: emailData.subject,
-      content: emailData.html || emailData.text,
-      isHtml: !!emailData.html,
+      content: emailData.content || emailData.html || emailData.text || '',
+      isHtml: !!emailData.isHtml || !!emailData.html,
       status: 'pending',
       method: 'smtp',
       createdAt: serverTimestamp(),

@@ -183,7 +183,7 @@ async function testFirestoreConnection() {
     }
     
     // Try a simple read operation to test connection
-    const testDocRef = doc(db, `artifacts/${appId}/public/data/test_connection`);
+    const testDocRef = doc(db, `artifacts/${appId}/public/data/test_connection/doc`);
     await getDoc(testDocRef);
     console.log("Firestore connection test successful");
     return true;

@@ -205,9 +205,9 @@ Arcator.co.uk Team</textarea>
 
         <!-- Template Preview -->
         <div class="credentials-section">
-            <h4>📝 Email Template Preview</h4>
+            <h4>📝 EmailJS Template Configuration</h4>
             <p style="color: var(--color-text-secondary); margin-bottom: 1rem;">
-                Your EmailJS template should include these variables:
+                Your EmailJS templates should include these variables:
             </p>
             <div class="template-preview">
 {
@@ -218,19 +218,36 @@ Arcator.co.uk Team</textarea>
   "from_email": "{{from_email}}",
   "reply_to": "{{reply_to}}"
 }</div>
+            <div style="margin-top: 1rem; padding: 1rem; background-color: var(--color-bg-content-section); border-radius: 0.5rem; border: 1px solid var(--color-input-border);">
+                <h5 style="color: var(--color-heading-card); margin-bottom: 0.5rem;">Available Templates:</h5>
+                <ul style="color: var(--color-text-secondary); font-size: 0.9em; margin: 0; padding-left: 1.5rem;">
+                    <li><strong>Default Template:</strong> template_1gv17ca</li>
+                    <li><strong>Generic Email:</strong> template_tt7qx39</li>
+                    <li><strong>Password Reset:</strong> template_hgysk9k</li>
+                </ul>
+            </div>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem; font-size: 0.9em;">
+                <strong>Note:</strong> The admin panel now supports multiple EmailJS templates. 
+                You can choose which template to use when sending emails.
+            </p>
         </div>
 
         <!-- Integration Instructions -->
         <div class="setup-section">
             <h3>🔗 Integration with Admin Panel</h3>
             <p style="color: var(--color-text-secondary);">
-                Once EmailJS is configured, you can integrate it with the admin panel by:
+                The admin panel is now configured to support multiple EmailJS templates. Once EmailJS is configured:
             </p>
             <ol>
-                <li>Copy the credentials from this page</li>
-                <li>Update the admin panel's email sending function to use EmailJS</li>
-                <li>Test the integration in the admin panel</li>
+                <li>Your credentials are automatically saved and loaded</li>
+                <li>Choose from multiple EmailJS templates when sending emails</li>
+                <li>All templates use the same variables for consistency</li>
+                <li>No additional configuration needed - just test the integration</li>
             </ol>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem; font-size: 0.9em;">
+                <strong>Current Setup:</strong> Service ID: service_7pm3neh<br>
+                <strong>Templates:</strong> Default (template_1gv17ca), Generic (template_tt7qx39), Password Reset (template_hgysk9k)
+            </p>
         </div>
     </div>
 

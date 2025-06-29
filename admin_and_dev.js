@@ -843,66 +843,7 @@ async function deleteTodoItem(id) {
   }
 }
 
-// Email templates
-const emailTemplates = {
-  welcome: {
-    subject: 'Welcome to Arcator.co.uk!',
-    content: `Hello {{displayName}},
-
-Welcome to Arcator.co.uk! We're excited to have you join our Minecraft community.
-
-Here are some things you can do to get started:
-- Join our Discord server: https://discord.gg/GwArgw2
-- Check out our servers at arcator.co.uk
-- Explore the community features on our website
-
-If you have any questions, feel free to reach out to our staff.
-
-Best regards,
-The Arcator Team`
-  },
-  announcement: {
-    subject: 'Important Announcement from Arcator',
-    content: `Hello {{displayName}},
-
-We have an important announcement to share with our community.
-
-{{announcementContent}}
-
-Thank you for being part of our community!
-
-Best regards,
-The Arcator Team`
-  },
-  maintenance: {
-    subject: 'Scheduled Maintenance Notice',
-    content: `Hello {{displayName}},
-
-We wanted to let you know about upcoming scheduled maintenance.
-
-{{maintenanceDetails}}
-
-We apologize for any inconvenience and appreciate your patience.
-
-Best regards,
-The Arcator Team`
-  },
-  event: {
-    subject: 'You\'re Invited: Arcator Community Event',
-    content: `Hello {{displayName}},
-
-You're invited to join us for a special community event!
-
-{{eventDetails}}
-
-We hope to see you there!
-
-Best regards,
-The Arcator Team`
-  }
-};
-
-// Email functionality
+// Email functionality - Using only EmailJS template
 async function populateEmailRecipients() {
   if (!db) {
     console.error("Firestore DB not initialized for populateEmailRecipients.");
@@ -931,12 +872,10 @@ async function populateEmailRecipients() {
   }
 }
 
+// Remove template change handler since we're only using EmailJS template
 async function handleEmailTemplateChange() {
-  const template = emailTemplateSelect.value;
-  if (template && emailTemplates[template]) {
-    emailSubjectInput.value = emailTemplates[template].subject;
-    emailContentTextarea.value = emailTemplates[template].content;
-  }
+  // No longer needed - using only EmailJS template
+  console.log('[EmailJS] Using EmailJS template: template_1gv17ca');
 }
 
 // Create email preview modal
@@ -1026,13 +965,13 @@ function showEmailPreview() {
   modal.style.display = 'flex';
 }
 
-// Send email using EmailJS or SMTP server
+// Send email using EmailJS templates
 async function sendEmail() {
   const recipients = Array.from(document.getElementById('email-to-select').selectedOptions).map(option => option.value);
   const subject = document.getElementById('email-subject').value.trim();
   const content = document.getElementById('email-content').value.trim();
   const isHtml = document.getElementById('email-html-format').checked;
-  const template = document.getElementById('email-template-select').value;
+  const templateType = document.getElementById('email-template-select').value;
 
   if (!recipients.length) {
     showMessageBox('Please select at least one recipient.', true);
@@ -1044,71 +983,118 @@ async function sendEmail() {
     return;
   }
 
+  // Show loading state
+  const sendButton = document.getElementById('send-email-btn');
+  const originalText = sendButton.textContent;
+  sendButton.textContent = 'Sending...';
+  sendButton.disabled = true;
+
+  // Use EmailJS templates
+  let result = null;
+  let method = 'EmailJS';
+
   try {
-    // Show loading state
-    const sendButton = document.getElementById('send-email-btn');
-    const originalText = sendButton.textContent;
-    sendButton.textContent = 'Sending...';
-    sendButton.disabled = true;
-
-    // Try SMTP server first, fallback to EmailJS
-    let result = null;
-    let method = 'SMTP';
-
-    try {
-      // Check SMTP server status
+    // Check EmailJS status first (prioritize EmailJS since it's working)
+    const emailjsStatus = getEmailJSStatus();
+    console.log('[EmailJS] Status:', emailjsStatus);
+    
+    if (emailjsStatus.readyToSend) {
+      // Send via EmailJS (preferred method)
+      method = 'EmailJS';
+      console.log(`[EmailJS] Attempting to send email via ${templateType} template`);
+      
+      // Import the new EmailJS functions
+      const { sendEmailWithTemplate } = await import('./emailjs-integration.js');
+      
+      for (const recipient of recipients) {
+        const emailResult = await sendEmailWithTemplate(
+          recipient,  // toEmail
+          subject,    // subject
+          content,    // message
+          templateType, // templateType
+          {           // options
+            fromName: 'Arcator.co.uk',
+            replyTo: 'noreply@arcator-web.firebaseapp.com'
+          }
+        );
+        
+        if (emailResult.success) {
+          console.log(`[EmailJS] Email sent successfully to ${recipient} using ${templateType} template`);
+        } else {
+          console.error('[EmailJS] Failed to send email to:', recipient, emailResult.error);
+          throw new Error(`Failed to send email to ${recipient}: ${emailResult.error}`);
+        }
+      }
+      
+      result = { success: true, method: 'EmailJS', templateUsed: templateType };
+    } else {
+      // Fallback to SMTP if EmailJS is not available
+      console.log('[EmailJS] Not ready, trying SMTP fallback');
       const smtpStatus = getSMTPServerStatus();
+      console.log('[SMTP] Server status:', smtpStatus);
+      
       if (smtpStatus.connected) {
         // Send via SMTP
+        method = 'SMTP';
         const emailData = {
           to: recipients.join(','),
           subject: subject,
           content: content,
-          template: template || 'custom',
           isHtml: isHtml,
           from: 'noreply@arcator.co.uk'
         };
         
+        console.log('[SMTP] Attempting to send email:', emailData);
         result = await sendEmailViaSMTP(emailData);
-        console.log('[SMTP] Email sent successfully:', result);
-      } else {
-        throw new Error('SMTP server not connected');
-      }
-    } catch (smtpError) {
-      console.warn('[SMTP] Failed, trying EmailJS:', smtpError);
-      
-      // Fallback to EmailJS
-      method = 'EmailJS';
-      const emailjsStatus = getEmailJSStatus();
-      
-      if (emailjsStatus.readyToSend) {
-        // Send via EmailJS
-        for (const recipient of recipients) {
-          const emailData = {
-            to: recipient,
-            subject: subject,
-            content: content,
-            template: template || 'custom',
-            isHtml: isHtml
-          };
-          
-          result = await sendEmailWithEmailJS(emailData);
-          console.log('[EmailJS] Email sent successfully:', result);
+        if (result.success) {
+          console.log('[SMTP] Email queued for sending via Firebase Cloud Functions:', result.messageId);
+        } else {
+          throw new Error(`SMTP failed: ${result.error}`);
         }
       } else {
-        throw new Error('Neither SMTP server nor EmailJS is available');
+        throw new Error('Neither EmailJS nor SMTP server is available');
       }
     }
 
-    // Log email to history
-    await logEmailToHistory(recipients, subject, content, 'sent', method);
+    // Only log to history if email was actually sent successfully
+    if (result && result.success) {
+      await logEmailToHistory(recipients, subject, content, 'sent', method);
+      
+      // Show success message
+      const templateInfo = result.templateUsed ? ` using ${result.templateUsed} template` : '';
+      showMessageBox(`Email sent successfully via ${method}${templateInfo}!`, false);
+      
+      // Clear form
+      document.getElementById('email-compose-form').reset();
+    }
+  } catch (emailjsError) {
+    console.warn('[EmailJS] Failed, trying SMTP fallback:', emailjsError);
     
-    // Show success message
-    showMessageBox(`Email sent successfully via ${method}!`, false);
+    // Try SMTP as fallback
+    const smtpStatus = getSMTPServerStatus();
+    console.log('[SMTP] Server status:', smtpStatus);
     
-    // Clear form
-    document.getElementById('email-compose-form').reset();
-    
+    if (smtpStatus.connected) {
+      // Send via SMTP
+      method = 'SMTP';
+      const emailData = {
+        to: recipients.join(','),
+        subject: subject,
+        content: content,
+        isHtml: isHtml,
+        from: 'noreply@arcator.co.uk'
+      };
+      
+      console.log('[SMTP] Attempting to send email:', emailData);
+      result = await sendEmailViaSMTP(emailData);
+      if (result.success) {
+        console.log('[SMTP] Email queued for sending via Firebase Cloud Functions:', result.messageId);
+      } else {
+        throw new Error(`SMTP failed: ${result.error}`);
+      }
+    } else {
+      throw new Error('Neither EmailJS nor SMTP server is available');
+    }
   } catch (error) {
     console.error('Email sending failed:', error);
     showMessageBox(`Failed to send email: ${error.message}`, true);
@@ -1134,7 +1120,7 @@ async function logEmailToHistory(recipients, subject, content, status, method) {
       appId: appId
     };
 
-    await addDoc(collection(db, 'email_history'), emailRecord);
+    await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailRecord);
     console.log('[Email] Logged to history:', emailRecord);
   } catch (error) {
     console.error('[Email] Failed to log to history:', error);
@@ -1145,7 +1131,7 @@ async function logEmailToHistory(recipients, subject, content, status, method) {
 async function loadEmailHistory() {
   try {
     const emailHistoryQuery = query(
-      collection(db, 'email_history'),
+      collection(db, `artifacts/${appId}/public/data/email_history`),
       orderBy('sentAt', 'desc')
     );
     

@@ -8,7 +8,11 @@ const EMAILJS_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist
 let credentials = {
   publicKey: 'o4CZtazWjPDVjPc1L',
   serviceId: 'service_7pm3neh', // Gmail service
-  templateId: 'template_1gv17ca' // Email template
+  templates: {
+    default: 'template_1gv17ca', // Original template
+    generic: 'template_tt7qx39', // Generic email template
+    passwordReset: 'template_hgysk9k' // Password reset template
+  }
 };
 
 let emailjsLoaded = false;
@@ -79,15 +83,15 @@ function saveCredentials(publicKey, serviceId, templateId) {
   }
 }
 
-// Send email using EmailJS
+// Send email using EmailJS with specific template
 async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
   try {
     if (!emailjsInitialized) {
       await initializeEmailJS();
     }
     
-    if (!credentials.serviceId || !credentials.templateId) {
-      throw new Error('EmailJS service ID and template ID must be configured');
+    if (!credentials.serviceId || !credentials.templates.default) {
+      throw new Error('EmailJS service ID and default template ID must be configured');
     }
     
     const templateParams = {
@@ -100,7 +104,7 @@ async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
     
     const result = await window.emailjs.send(
       credentials.serviceId,
-      credentials.templateId,
+      credentials.templates.default,
       templateParams
     );
     
@@ -110,6 +114,69 @@ async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
     console.error('[EmailJS] Failed to send email:', error);
     return { success: false, error: error.message };
   }
+}
+
+// Send email with specific template
+async function sendEmailWithTemplate(toEmail, subject, message, templateType = 'default', options = {}) {
+  try {
+    if (!emailjsInitialized) {
+      await initializeEmailJS();
+    }
+    
+    if (!credentials.serviceId) {
+      throw new Error('EmailJS service ID must be configured');
+    }
+    
+    const templateId = credentials.templates[templateType];
+    if (!templateId) {
+      throw new Error(`Template type '${templateType}' not found. Available: ${Object.keys(credentials.templates).join(', ')}`);
+    }
+    
+    const templateParams = {
+      to_email: toEmail,
+      subject: subject,
+      message: message,
+      from_name: options.fromName || 'Arcator.co.uk',
+      reply_to: options.replyTo || 'noreply@arcator-web.firebaseapp.com'
+    };
+    
+    const result = await window.emailjs.send(
+      credentials.serviceId,
+      templateId,
+      templateParams
+    );
+    
+    console.log(`[EmailJS] Email sent successfully with template ${templateType}:`, result);
+    return { success: true, result, templateUsed: templateType };
+  } catch (error) {
+    console.error(`[EmailJS] Failed to send email with template ${templateType}:`, error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Send generic email
+async function sendGenericEmail(toEmail, subject, message, options = {}) {
+  return await sendEmailWithTemplate(toEmail, subject, message, 'generic', options);
+}
+
+// Send password reset email
+async function sendPasswordResetEmail(toEmail, resetLink, options = {}) {
+  const subject = 'Password Reset Request - Arcator.co.uk';
+  const message = `Hello,
+
+You have requested a password reset for your Arcator.co.uk account.
+
+Click the following link to reset your password:
+${resetLink}
+
+If you did not request this password reset, please ignore this email.
+
+This link will expire in 24 hours.
+
+Best regards,
+The Arcator Team`;
+
+  return await sendEmailWithTemplate(toEmail, subject, message, 'passwordReset', options);
 }
 
 // Send bulk emails
@@ -166,7 +233,7 @@ function getEmailJSStatus() {
   const scriptLoaded = checkEmailJSScript();
   const publicKeyConfigured = !!credentials.publicKey;
   const serviceIdConfigured = !!credentials.serviceId;
-  const templateIdConfigured = !!credentials.templateId;
+  const templateIdConfigured = !!credentials.templates.default;
   const readyToSend = scriptLoaded && emailjsInitialized && publicKeyConfigured && serviceIdConfigured && templateIdConfigured;
 
   return {
@@ -186,7 +253,11 @@ function clearCredentials() {
     credentials = {
       publicKey: 'o4CZtazWjPDVjPc1L',
       serviceId: 'service_7pm3neh',
-      templateId: 'template_1gv17ca'
+      templates: {
+        default: 'template_1gv17ca',
+        generic: 'template_tt7qx39',
+        passwordReset: 'template_hgysk9k'
+      }
     };
     return true;
   } catch (error) {
@@ -199,6 +270,9 @@ function clearCredentials() {
 export {
   initializeEmailJS,
   sendEmailWithEmailJS,
+  sendEmailWithTemplate,
+  sendGenericEmail,
+  sendPasswordResetEmail,
   sendBulkEmails,
   testEmailJSConnection,
   getEmailJSStatus,
