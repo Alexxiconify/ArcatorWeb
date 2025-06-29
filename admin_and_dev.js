@@ -663,7 +663,20 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
       console.warn('[EmailJS] Auto-initialization error:', error);
     }
     
+    // Initialize SMTP server automatically
+    try {
+      const smtpInitResult = await initializeSMTPIntegration();
+      if (smtpInitResult.success) {
+        console.log('[SMTP] Auto-initialized successfully');
+      } else {
+        console.warn('[SMTP] Auto-initialization failed:', smtpInitResult.error);
+      }
+    } catch (error) {
+      console.warn('[SMTP] Auto-initialization error:', error);
+    }
+    
     displayEmailJSStatus();
+    displaySMTPServerStatus();
   } else {
     if (adminContent) adminContent.style.display = 'none';
     if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
@@ -1437,6 +1450,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // EmailJS buttons
   document.getElementById('test-emailjs-btn').addEventListener('click', testEmailJSConnectionHandler);
   document.getElementById('configure-emailjs-btn').addEventListener('click', configureEmailJS);
+  
+  // SMTP server buttons
+  document.getElementById('test-smtp-btn').addEventListener('click', testSMTPServerConnectionHandler);
 });
 
 // Utility function to escape HTML
