@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Setup - Arcator.co.uk</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1F2937;
+            color: #E5E7EB;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #2D3748;
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #4B5563;
+            border-radius: 0.25rem;
+            background-color: #374151;
+            color: #E5E7EB;
+        }
+        button {
+            background-color: #3B82F6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background-color: #2563EB;
+        }
+        .success {
+            color: #10B981;
+            background-color: #064E3B;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+        .error {
+            color: #EF4444;
+            background-color: #7F1D1D;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EmailJS Email Sending Test</h1>
+        <p>This is an alternative to Cloud Functions for sending emails.</p>
+        
+        <form id="email-form">
+            <div class="form-group">
+                <label for="to">To:</label>
+                <input type="email" id="to" value="taylorallred04@gmail.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" value="Test Email from Arcator.co.uk" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" rows="6" required>Hello! This is a test email from Arcator.co.uk using EmailJS.</textarea>
+            </div>
+            
+            <button type="submit">Send Email</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background-color: #374151; border-radius: 0.25rem;">
+            <h3>Setup Instructions:</h3>
+            <ol>
+                <li>Go to <a href="https://www.emailjs.com/" target="_blank" rel="noopener noreferrer" style="color: #60A5FA;">EmailJS.com</a> and create a free account</li>
+                <li>Add your email service (Gmail, Outlook, etc.)</li>
+                <li>Create an email template</li>
+                <li>Get your Public Key, Service ID, and Template ID</li>
+                <li>Update the JavaScript below with your credentials</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Initialize EmailJS
+        // Replace these with your actual EmailJS credentials
+        const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+        const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+        const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+        
+        // Initialize EmailJS (uncomment after adding your public key)
+        // emailjs.init(EMAILJS_PUBLIC_KEY);
+        
+        document.getElementById('email-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="success">Sending email...</div>';
+            
+            try {
+                // This will work once you add your EmailJS credentials
+                const response = await emailjs.send(
+                    EMAILJS_SERVICE_ID,
+                    EMAILJS_TEMPLATE_ID,
+                    {
+                        to_email: document.getElementById('to').value,
+                        subject: document.getElementById('subject').value,
+                        message: document.getElementById('message').value,
+                        from_name: 'Arcator.co.uk',
+                        from_email: 'noreply@arcator-web.firebaseapp.com'
+                    }
+                );
+                
+                resultDiv.innerHTML = '<div class="success">✅ Email sent successfully!</div>';
+                console.log('Email sent:', response);
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Failed to send email: ${error.text}</div>`;
+                console.error('Email error:', error);
+            }
+        });
+        
+        // Show setup message if credentials aren't configured
+        if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+            document.getElementById('result').innerHTML = `
+                <div class="error">
+                    <strong>Setup Required:</strong><br>
+                    Please update the JavaScript with your EmailJS credentials:<br>
+                    - EMAILJS_PUBLIC_KEY<br>
+                    - EMAILJS_SERVICE_ID<br>
+                    - EMAILJS_TEMPLATE_ID<br><br>
+                    Then uncomment the emailjs.init() line.
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 

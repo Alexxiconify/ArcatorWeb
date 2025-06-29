@@ -267,7 +267,7 @@
                   <div class="input-field">
                     <label for="email-to-select" class="form-label">To:</label>
                     <select id="email-to-select" multiple class="form-input h-32">
-                      <option value="">Select recipients...</option>
+                      <option value="" disabled>Select recipients...</option>
                     </select>
                     <p class="text-text-secondary text-sm mt-1">Hold Ctrl/Cmd to select multiple users</p>
                   </div>
@@ -282,9 +282,15 @@
                     </select>
                   </div>
                 </div>
-                <div class="input-field">
-                  <label for="email-subject" class="form-label">Subject:</label>
-                  <input id="email-subject" type="text" placeholder="Email subject" required class="form-input"/>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="input-field">
+                    <label for="email-subject" class="form-label">Subject:</label>
+                    <input id="email-subject" type="text" placeholder="Email subject" required class="form-input"/>
+                  </div>
+                  <div class="input-field">
+                    <label for="email-from" class="form-label">From:</label>
+                    <input id="email-from" type="email" value="noreply@arcator-web.firebaseapp.com" readonly class="form-input bg-gray-100" title="Sender address is fixed for security"/>
+                  </div>
                 </div>
                 <div class="input-field">
                   <label for="email-content" class="form-label">Message:</label>

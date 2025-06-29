@@ -17,14 +17,15 @@ exports.sendEmail = functions.firestore
   .onCreate(async (snap, context) => {
     const emailData = snap.data();
     const emailId = snap.id;
+    const appId = context.params.appId;
     
-    console.log(`Processing email ${emailId}:`, emailData);
+    console.log(`Processing email ${emailId} for app ${appId}:`, emailData);
     
     try {
       // Validate required fields
       if (!emailData.to || !emailData.subject || !emailData.content) {
         console.error('Missing required email fields:', emailData);
-        await updateEmailStatus(emailId, 'failed', 'Missing required fields');
+        await updateEmailStatus(emailId, appId, 'failed', 'Missing required fields');
         return;
       }
       
@@ -45,24 +46,24 @@ exports.sendEmail = functions.firestore
       console.log('Email sent successfully:', response);
       
       // Update email status to sent
-      await updateEmailStatus(emailId, 'sent', 'Email sent successfully');
+      await updateEmailStatus(emailId, appId, 'sent', 'Email sent successfully');
       
     } catch (error) {
       console.error('Error sending email:', error);
       
       // Update email status to failed
-      await updateEmailStatus(emailId, 'failed', error.message);
+      await updateEmailStatus(emailId, appId, 'failed', error.message);
     }
   });
 
 /**
  * Helper function to update email status in Firestore
  */
-async function updateEmailStatus(emailId, status, message) {
+async function updateEmailStatus(emailId, appId, status, message) {
   try {
     const emailRef = admin.firestore()
       .collection('artifacts')
-      .doc('arcator-web')
+      .doc(appId)
       .collection('public')
       .doc('data')
       .collection('email_history')

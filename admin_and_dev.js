@@ -869,13 +869,14 @@ async function populateEmailRecipients() {
     const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
     const querySnapshot = await getDocs(usersRef);
     
-    emailToSelect.innerHTML = '<option value="">Select recipients...</option>';
+    const emailToSelect = document.getElementById('email-to-select');
+    emailToSelect.innerHTML = '<option value="" disabled>Select recipients...</option>';
     
     querySnapshot.forEach(doc => {
       const userData = doc.data();
       if (userData.email && userData.displayName) {
         const option = document.createElement('option');
-        option.value = doc.id;
+        option.value = userData.email; // Use email as value instead of user ID
         option.textContent = `${userData.displayName} (${userData.email})`;
         emailToSelect.appendChild(option);
       }
@@ -907,6 +908,10 @@ function createEmailPreviewModal() {
         <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">&times;</button>
       </div>
       <div id="email-preview-content" class="bg-card p-4 rounded-lg border border-input-border">
+        <div class="mb-4">
+          <strong class="text-text-primary">From:</strong>
+          <span id="preview-sender" class="text-text-secondary ml-2">noreply@arcator-web.firebaseapp.com</span>
+        </div>
         <div class="mb-4">
           <strong class="text-text-primary">To:</strong>
           <span id="preview-recipients" class="text-text-secondary ml-2"></span>
@@ -944,6 +949,7 @@ function showEmailPreview() {
   const subject = emailSubjectInput.value.trim();
   const content = emailContentTextarea.value.trim();
   const isHtml = emailHtmlFormatCheckbox.checked;
+  const sender = 'noreply@arcator-web.firebaseapp.com';
   
   if (!subject || !content) {
     showMessageBox("Please fill in both subject and content to preview", true);
@@ -962,6 +968,7 @@ function showEmailPreview() {
   }
   
   // Populate preview content
+  document.getElementById('preview-sender').textContent = sender;
   document.getElementById('preview-recipients').textContent = recipients.join(', ');
   document.getElementById('preview-subject').textContent = subject;
   
@@ -976,107 +983,87 @@ function showEmailPreview() {
 }
 
 async function sendEmail() {
-  const recipients = Array.from(emailToSelect.selectedOptions).map(option => option.value);
-  const subject = emailSubjectInput.value.trim();
-  const content = emailContentTextarea.value.trim();
-  const isHtml = emailHtmlFormatCheckbox.checked;
-
-  if (recipients.length === 0) {
-    showMessageBox("Please select at least one recipient", true);
+  if (!db) {
+    console.error("Firestore DB not initialized for sendEmail.");
+    showMessageBox("Database not initialized", true);
     return;
   }
 
-  if (!subject || !content) {
-    showMessageBox("Please fill in both subject and content", true);
+  const form = document.getElementById('email-compose-form');
+  const formData = new FormData(form);
+  
+  // Get selected recipients and filter out empty values explicitly
+  const selectedOptions = document.getElementById('email-to-select').selectedOptions;
+  const recipients = Array.from(selectedOptions)
+    .map(option => option.value)
+    .filter(email => email && email.trim() !== ''); // Explicitly filter out empty values
+    
+  const subject = document.getElementById('email-subject').value.trim();
+  const content = document.getElementById('email-content').value.trim();
+  const isHtml = document.getElementById('email-html-format').checked;
+  const template = document.getElementById('email-template-select').value;
+
+  // Validation
+  if (!recipients.length) {
+    showMessageBox("Please select at least one recipient", true);
+    return;
+  }
+  if (!subject) {
+    showMessageBox("Please enter a subject", true);
+    return;
+  }
+  if (!content) {
+    showMessageBox("Please enter message content", true);
     return;
   }
 
   try {
     showMessageBox("Sending email...", false);
     
-    // Get recipient details for email sending
-    const recipientDetails = [];
-    for (const uid of recipients) {
-      const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.email) {
-          recipientDetails.push({
-            uid: uid,
-            email: userData.email,
-            displayName: userData.displayName || 'User'
-          });
-        }
-      }
-    }
-    
-    if (recipientDetails.length === 0) {
-      showMessageBox("No valid email addresses found for selected recipients", true);
-      return;
-    }
-    
-    // Store email in Firestore for history
-    const emailData = {
-      recipients: recipients,
-      recipientEmails: recipientDetails.map(r => r.email),
-      subject: subject,
-      content: content,
-      isHtml: isHtml,
-      sentBy: auth.currentUser?.uid || 'admin',
-      sentAt: serverTimestamp(),
-      status: 'pending'
-    };
-
-    const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
-    const emailDoc = await addDoc(emailHistoryRef, emailData);
-    
-    // Send emails using Firebase Functions (or simulate for now)
+    // Process each recipient individually (Cloud Function expects single recipient)
     let successCount = 0;
     let errorCount = 0;
     
-    for (const recipient of recipientDetails) {
+    for (const recipientEmail of recipients) {
       try {
-        // Personalize content for each recipient
-        let personalizedContent = content;
-        if (!isHtml) {
-          personalizedContent = content.replace(/\{\{displayName\}\}/g, recipient.displayName);
-        }
+        // Create the document structure that the Cloud Function expects
+        const emailData = {
+          to: recipientEmail,
+          from: 'noreply@arcator-web.firebaseapp.com', // Required sender address
+          subject: subject,
+          content: content,
+          isHtml: isHtml,
+          sentAt: serverTimestamp(),
+          status: 'pending',
+          template: template || 'custom'
+        };
         
-        // In a real implementation, you would call Firebase Functions here
-        // For now, we'll simulate the email sending
-        console.log(`Sending email to ${recipient.email}: ${subject}`);
+        // Add to Firestore - this will trigger the Cloud Function
+        const emailRef = await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailData);
         
-        // Simulate email sending delay
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        console.log(`Email queued for ${recipientEmail}: ${subject} (ID: ${emailRef.id})`);
         successCount++;
+        
       } catch (error) {
-        console.error(`Error sending email to ${recipient.email}:`, error);
+        console.error(`Error queuing email for ${recipientEmail}:`, error);
         errorCount++;
       }
     }
     
-    // Update email status in Firestore
-    await updateDoc(doc(db, `artifacts/${appId}/public/data/email_history`, emailDoc.id), {
-      status: errorCount === 0 ? 'sent' : (successCount > 0 ? 'partial' : 'failed'),
-      sentCount: successCount,
-      errorCount: errorCount,
-      completedAt: serverTimestamp()
-    });
-    
     if (errorCount === 0) {
-      showMessageBox(`Email sent successfully to ${successCount} recipient(s)!`, false);
+      showMessageBox(`Email queued successfully for ${successCount} recipient(s)! Check email history for status.`, false);
     } else if (successCount > 0) {
-      showMessageBox(`Email sent to ${successCount} recipient(s), ${errorCount} failed.`, true);
+      showMessageBox(`Email queued for ${successCount} recipient(s), ${errorCount} failed. Check email history for status.`, true);
     } else {
-      showMessageBox("Failed to send email to any recipients", true);
+      showMessageBox("Failed to queue email for any recipients", true);
     }
     
     // Clear form
-    emailComposeForm.reset();
+    form.reset();
     
     // Refresh email history
     loadEmailHistory();
+    
   } catch (error) {
     console.error("Error sending email:", error);
     showMessageBox("Failed to send email: " + error.message, true);
