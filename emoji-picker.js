@@ -240,6 +240,45 @@ export function createEmojiPickerHTML(pickerId = 'emoji-picker') {
       <div id="emoji-list" class="emoji-list">
         <!-- Emojis will be loaded here -->
       </div>
+      
+      <!-- Media Picker Section -->
+      <div class="media-picker">
+        <div class="media-picker-tabs">
+          <button class="media-tab active" data-tab="gif">🎬 GIF</button>
+          <button class="media-tab" data-tab="url">🔗 URL</button>
+          <button class="media-tab" data-tab="youtube">📺 YouTube</button>
+        </div>
+        
+        <!-- GIF Tab -->
+        <div id="gif-tab" class="media-tab-content active">
+          <div class="gif-search-container">
+            <input type="text" class="gif-search-input" placeholder="Search GIFs..." id="gif-search-input">
+          </div>
+          <div class="gif-results" id="gif-results">
+            <div class="media-loading">Search for GIFs...</div>
+          </div>
+        </div>
+        
+        <!-- URL Tab -->
+        <div id="url-tab" class="media-tab-content">
+          <div class="url-input-container">
+            <input type="url" class="url-input" placeholder="Enter media URL (image, video, audio)..." id="media-url-input">
+            <div class="url-preview" id="url-preview"></div>
+            <div class="media-preview" id="media-preview"></div>
+          </div>
+          <button class="media-insert-btn" id="insert-media-btn" disabled>Insert Media</button>
+        </div>
+        
+        <!-- YouTube Tab -->
+        <div id="youtube-tab" class="media-tab-content">
+          <div class="url-input-container">
+            <input type="url" class="url-input" placeholder="Enter YouTube URL..." id="youtube-url-input">
+            <div class="url-preview" id="youtube-preview"></div>
+            <div class="youtube-preview" id="youtube-embed-preview"></div>
+          </div>
+          <button class="media-insert-btn" id="insert-youtube-btn" disabled>Insert YouTube Video</button>
+        </div>
+      </div>
     </div>
   `;
 }
