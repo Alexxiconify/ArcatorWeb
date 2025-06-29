@@ -13,3 +13,23 @@ node_modules/
 ehthumbs.db
 Thumbs.db
 .git/
+
+# EmailJS credentials and sensitive data
+emailjs_credentials.json
+.env
+.env.local
+.env.production
+.env.development
+
+# Firebase config files with sensitive data
+firebase-config.json
+firebase-keys.json
+
+# Log files
+*.log
+pglite-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+temp-*

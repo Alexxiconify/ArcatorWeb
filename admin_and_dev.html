@@ -257,7 +257,17 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
           <div id="email-management-content" class="collapsible-content hidden">
-            <p class="text-text-secondary leading-relaxed mb-4">Send emails to users with email addresses added to their accounts.</p>
+            <p class="text-text-secondary leading-relaxed mb-4">Send emails to users with email addresses added to their accounts using EmailJS.</p>
+            
+            <!-- EmailJS Status -->
+            <div class="bg-card p-4 rounded-lg shadow-md mb-6">
+              <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">EmailJS Status</h4>
+              <div id="emailjs-status-display" class="text-sm text-text-secondary mb-4">
+                <div>Loading EmailJS status...</div>
+              </div>
+              <button type="button" id="test-emailjs-btn" class="btn-primary btn-purple mr-2">Test EmailJS Connection</button>
+              <button type="button" id="configure-emailjs-btn" class="btn-primary btn-blue">Configure EmailJS</button>
+            </div>
             
             <!-- Email Composition Form -->
             <div class="bg-card p-6 rounded-lg shadow-md mb-6">
@@ -318,12 +328,13 @@
                     <th class="px-4 py-2 text-table-th-text">Subject</th>
                     <th class="px-4 py-2 text-table-th-text">Recipients</th>
                     <th class="px-4 py-2 text-table-th-text">Status</th>
+                    <th class="px-4 py-2 text-table-th-text">Method</th>
                     <th class="px-4 py-2 text-table-th-text">Actions</th>
                   </tr>
                   </thead>
                   <tbody id="email-history-tbody">
                   <tr>
-                    <td class="text-center py-4 text-text-secondary" colspan="5">No emails sent yet.</td>
+                    <td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td>
                   </tr>
                   </tbody>
                 </table>

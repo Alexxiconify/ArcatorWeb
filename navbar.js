@@ -109,6 +109,8 @@ const navbarStyles = `
   min-width: 1em;
   min-height: 1em;
   color: var(--color-link, #60A5FA);
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .navbar-logo:hover svg {
@@ -183,12 +185,10 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  height: 1em;
-  width: 1em;
-  min-width: 1em;
-  min-height: 1em;
-  margin-right: clamp(0.08rem, 0.2vw, 0.15rem);
-  transition: all 0.3s ease;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .navbar-link:hover svg {

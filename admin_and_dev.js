@@ -27,7 +27,7 @@ import {
   query,
   orderBy,
   serverTimestamp // Ensure serverTimestamp is imported for Firestore operations
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from 'firebase/firestore';
 import { showMessageBox, showCustomConfirm } from './utils.js'; // Import message box and confirm utility
 
 // DOM elements - Initialize immediately after declaration
@@ -634,6 +634,11 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
         }
       });
     }
+
+    // Initialize email management
+    await populateEmailRecipients();
+    await loadEmailHistory();
+    displayEmailJSStatus();
   } else {
     if (adminContent) adminContent.style.display = 'none';
     if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
@@ -983,182 +988,157 @@ function showEmailPreview() {
   modal.style.display = 'flex';
 }
 
+// Send email using EmailJS only (no Cloud Functions)
 async function sendEmail() {
-  const form = document.getElementById('email-compose-form');
-  const formData = new FormData(form);
-  
-  // Get selected recipients and filter out empty values explicitly
-  const selectedOptions = document.getElementById('email-to-select').selectedOptions;
-  const recipients = Array.from(selectedOptions)
-    .map(option => option.value)
-    .filter(email => email && email.trim() !== ''); // Explicitly filter out empty values
-    
+  const recipients = Array.from(document.getElementById('email-to-select').selectedOptions).map(option => option.value);
   const subject = document.getElementById('email-subject').value.trim();
   const content = document.getElementById('email-content').value.trim();
   const isHtml = document.getElementById('email-html-format').checked;
   const template = document.getElementById('email-template-select').value;
 
-  // Validation
   if (!recipients.length) {
-    showMessageBox("Please select at least one recipient", true);
+    showMessageBox('Please select at least one recipient.', true);
     return;
   }
-  if (!subject) {
-    showMessageBox("Please enter a subject", true);
-    return;
-  }
-  if (!content) {
-    showMessageBox("Please enter message content", true);
+
+  if (!subject || !content) {
+    showMessageBox('Please fill in both subject and message.', true);
     return;
   }
 
   try {
-    showMessageBox("Sending email...", false);
-    
-    // Check EmailJS availability first
-    const emailjsStatus = EmailJSIntegration.getStatus();
-    let useEmailJS = emailjsStatus.hasCredentials && emailjsStatus.initialized;
-    
-    if (useEmailJS) {
-      console.log('[EmailJS] Using EmailJS for email sending');
-      await sendEmailWithEmailJS(recipients, subject, content, isHtml, template);
-    } else if (db) {
-      console.log('[Cloud Functions] Using Cloud Functions for email sending');
-      await sendEmailWithCloudFunctions(recipients, subject, content, isHtml, template);
+    // Show loading state
+    const sendButton = document.getElementById('send-email-btn');
+    const originalText = sendButton.textContent;
+    sendButton.textContent = 'Sending...';
+    sendButton.disabled = true;
+
+    // Send emails using EmailJS
+    const results = [];
+    for (const recipient of recipients) {
+      const result = await EmailJSIntegration.sendEmailWithEmailJS(
+        recipient,
+        subject,
+        content,
+        {
+          fromName: 'Arcator.co.uk',
+          replyTo: 'noreply@arcator-web.firebaseapp.com'
+        }
+      );
+      results.push({ recipient, result });
+    }
+
+    // Check results
+    const successCount = results.filter(r => r.result.success).length;
+    const failureCount = results.length - successCount;
+
+    if (successCount === results.length) {
+      showMessageBox(`✅ Email sent successfully to ${successCount} recipient(s)!`, false);
+      
+      // Log to email history in Firestore
+      await logEmailToHistory(recipients, subject, content, 'sent', 'EmailJS');
+      
+      // Clear form
+      document.getElementById('email-compose-form').reset();
+      document.getElementById('email-to-select').innerHTML = '<option value="" disabled>Select recipients...</option>';
+      await populateEmailRecipients();
     } else {
-      throw new Error('No email sending method available. Please configure EmailJS or ensure Cloud Functions are available.');
+      const errorMessage = failureCount === results.length 
+        ? 'Failed to send email to all recipients.' 
+        : `Sent to ${successCount} recipient(s), failed for ${failureCount}.`;
+      showMessageBox(`⚠️ ${errorMessage}`, true);
+      
+      // Log partial success to history
+      if (successCount > 0) {
+        const successfulRecipients = results.filter(r => r.result.success).map(r => r.recipient);
+        await logEmailToHistory(successfulRecipients, subject, content, 'partial', 'EmailJS');
+      }
     }
-    
-    // Clear form
-    form.reset();
-    
-    // Refresh email history
-    loadEmailHistory();
-    
+
+    // Reload email history
+    await loadEmailHistory();
+
   } catch (error) {
-    console.error("Error sending email:", error);
-    showMessageBox("Failed to send email: " + error.message, true);
+    console.error('[Email] Send error:', error);
+    showMessageBox(`❌ Failed to send email: ${error.message}`, true);
+  } finally {
+    // Restore button state
+    const sendButton = document.getElementById('send-email-btn');
+    sendButton.textContent = 'Send Email';
+    sendButton.disabled = false;
   }
 }
 
-// Send email using EmailJS
-async function sendEmailWithEmailJS(recipients, subject, content, isHtml, template) {
-  const emails = recipients.map(recipient => ({
-    to: recipient,
-    subject: subject,
-    message: content,
-    options: {
-      fromName: 'Arcator.co.uk',
-      fromEmail: 'noreply@arcator-web.firebaseapp.com',
-      replyTo: 'noreply@arcator-web.firebaseapp.com'
-    }
-  }));
-  
-  const result = await EmailJSIntegration.sendBulkEmails(emails);
-  
-  if (result.summary.failed === 0) {
-    showMessageBox(`✅ Email sent successfully to ${result.summary.success} recipient(s)!`, false);
-  } else if (result.summary.success > 0) {
-    showMessageBox(`⚠️ Email sent to ${result.summary.success} recipient(s), ${result.summary.failed} failed.`, true);
-  } else {
-    throw new Error(`Failed to send email to any recipients: ${result.results[0]?.error || 'Unknown error'}`);
-  }
-  
-  // Log results to console for debugging
-  console.log('[EmailJS] Email sending results:', result);
-}
-
-// Send email using Cloud Functions (original method)
-async function sendEmailWithCloudFunctions(recipients, subject, content, isHtml, template) {
-  if (!db) {
-    throw new Error("Firestore DB not initialized for Cloud Functions email sending.");
-  }
-  
-  // Process each recipient individually (Cloud Function expects single recipient)
-  let successCount = 0;
-  let errorCount = 0;
-  
-  for (const recipientEmail of recipients) {
-    try {
-      // Create the document structure that the Cloud Function expects
-      const emailData = {
-        to: recipientEmail,
-        from: 'noreply@arcator-web.firebaseapp.com', // Required sender address
-        subject: subject,
-        content: content,
-        isHtml: isHtml,
-        sentAt: serverTimestamp(),
-        status: 'pending',
-        template: template || 'custom'
-      };
-      
-      // Add to Firestore - this will trigger the Cloud Function
-      const emailRef = await addDoc(collection(db, `artifacts/${appId}/public/data/email_history`), emailData);
-      
-      console.log(`Email queued for ${recipientEmail}: ${subject} (ID: ${emailRef.id})`);
-      successCount++;
-      
-    } catch (error) {
-      console.error(`Error queuing email for ${recipientEmail}:`, error);
-      errorCount++;
-    }
-  }
-  
-  if (errorCount === 0) {
-    showMessageBox(`Email queued successfully for ${successCount} recipient(s)! Check email history for status.`, false);
-  } else if (successCount > 0) {
-    showMessageBox(`Email queued for ${successCount} recipient(s), ${errorCount} failed. Check email history for status.`, true);
-  } else {
-    throw new Error("Failed to queue email for any recipients");
-  }
-}
-
-async function loadEmailHistory() {
-  if (!db) {
-    console.error("Firestore DB not initialized for loadEmailHistory.");
-    return;
-  }
-
+// Log email to Firestore history
+async function logEmailToHistory(recipients, subject, content, status, method) {
   try {
-    const emailHistoryRef = collection(db, `artifacts/${appId}/public/data/email_history`);
-    const q = query(emailHistoryRef, orderBy("sentAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    const emailRecord = {
+      recipients: recipients,
+      subject: subject,
+      content: content,
+      status: status,
+      method: method,
+      sentAt: serverTimestamp(),
+      sentBy: currentUser?.uid || 'unknown',
+      appId: appId
+    };
+
+    await addDoc(collection(db, 'email_history'), emailRecord);
+    console.log('[Email] Logged to history:', emailRecord);
+  } catch (error) {
+    console.error('[Email] Failed to log to history:', error);
+  }
+}
+
+// Load email history from Firestore
+async function loadEmailHistory() {
+  try {
+    const emailHistoryQuery = query(
+      collection(db, 'email_history'),
+      orderBy('sentAt', 'desc')
+    );
     
-    emailHistoryTbody.innerHTML = '';
+    const querySnapshot = await getDocs(emailHistoryQuery);
+    const tbody = document.getElementById('email-history-tbody');
     
     if (querySnapshot.empty) {
-      emailHistoryTbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="5">No emails sent yet.</td></tr>';
+      tbody.innerHTML = '<tr><td class="text-center py-4 text-text-secondary" colspan="6">No emails sent yet.</td></tr>';
       return;
     }
-
-    querySnapshot.forEach(doc => {
+    
+    tbody.innerHTML = '';
+    
+    querySnapshot.forEach((doc) => {
       const emailData = doc.data();
-      const sentDate = emailData.sentAt?.toDate?.()?.toLocaleDateString() || 'Unknown';
-      const status = emailData.status || 'unknown';
-      const statusClass = status === 'sent' ? 'bg-green-100 text-green-800' : 
-                         status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                         status === 'failed' ? 'bg-red-100 text-red-800' :
-                         'bg-gray-100 text-gray-800';
+      const sentAt = emailData.sentAt?.toDate() || new Date();
+      const recipients = Array.isArray(emailData.recipients) ? emailData.recipients.join(', ') : emailData.recipients || 'Unknown';
       
       const row = document.createElement('tr');
+      row.className = 'hover:bg-table-row-even-bg';
       row.innerHTML = `
-        <td class="px-4 py-2 text-text-primary">${sentDate}</td>
-        <td class="px-4 py-2 text-text-primary">${escapeHtml(emailData.subject)}</td>
-        <td class="px-4 py-2 text-text-primary">${emailData.recipients?.length || 0} recipients</td>
-        <td class="px-4 py-2 text-text-primary">
-          <span class="px-2 py-1 rounded text-xs ${statusClass}">
-            ${status}${emailData.sentCount ? ` (${emailData.sentCount}/${emailData.recipients?.length})` : ''}
+        <td class="px-4 py-2 text-text-secondary">${sentAt.toLocaleString()}</td>
+        <td class="px-4 py-2 text-text-primary">${escapeHtml(emailData.subject || 'No subject')}</td>
+        <td class="px-4 py-2 text-text-secondary">${escapeHtml(recipients)}</td>
+        <td class="px-4 py-2">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            emailData.status === 'sent' ? 'bg-green-100 text-green-800' :
+            emailData.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }">
+            ${emailData.status || 'unknown'}
           </span>
         </td>
-        <td class="px-4 py-2 text-text-primary">
-          <button class="text-link hover:underline" onclick="viewEmailDetails('${doc.id}')">View</button>
+        <td class="px-4 py-2 text-text-secondary">${emailData.method || 'Unknown'}</td>
+        <td class="px-4 py-2">
+          <button class="text-link hover:underline text-sm" onclick="viewEmailDetails('${doc.id}')">View</button>
         </td>
       `;
-      emailHistoryTbody.appendChild(row);
+      tbody.appendChild(row);
     });
   } catch (error) {
-    console.error("Error loading email history:", error);
-    showMessageBox("Failed to load email history", true);
+    console.error('[Email] Failed to load email history:', error);
+    const tbody = document.getElementById('email-history-tbody');
+    tbody.innerHTML = '<tr><td class="text-center py-4 text-red-400" colspan="6">Failed to load email history.</td></tr>';
   }
 }
 
@@ -1406,6 +1386,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     modal.style.display = 'none';
     currentEditingUser = null;
   });
+
+  // Email management event listeners
+  document.getElementById('email-compose-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await sendEmail();
+  });
+
+  document.getElementById('preview-email-btn').addEventListener('click', showEmailPreview);
+  document.getElementById('email-template-select').addEventListener('change', handleEmailTemplateChange);
+  
+  // EmailJS buttons
+  document.getElementById('test-emailjs-btn').addEventListener('click', testEmailJSConnection);
+  document.getElementById('configure-emailjs-btn').addEventListener('click', configureEmailJS);
 });
 
 // Utility function to escape HTML
@@ -1539,7 +1532,7 @@ function setupEventListeners() {
 // Test EmailJS connection
 async function testEmailJSConnection() {
   try {
-    const result = await EmailJSIntegration.testConnection();
+    const result = await EmailJSIntegration.testEmailJSConnection();
     if (result.success) {
       showMessageBox(`✅ EmailJS connection successful! Credentials are valid.`, false);
       console.log('[EmailJS] Connection test successful:', result);
@@ -1557,33 +1550,59 @@ async function testEmailJSConnection() {
 
 // Get and display EmailJS status
 function displayEmailJSStatus() {
-  const status = EmailJSIntegration.getStatus();
-  console.log('[EmailJS] Current status:', status);
+  const status = EmailJSIntegration.getEmailJSStatus();
+  const statusDisplay = document.getElementById('emailjs-status-display');
   
-  let statusMessage = '';
-  if (status.hasCredentials && status.initialized) {
-    statusMessage = `✅ EmailJS Ready - Credentials configured and initialized`;
-  } else if (status.hasCredentials) {
-    statusMessage = `⚠️ EmailJS Configured - Credentials found but not initialized`;
+  if (!statusDisplay) return;
+  
+  const statusHtml = `
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <strong>Script Loaded:</strong> 
+        <span class="${status.loaded ? 'text-green-400' : 'text-red-400'}">${status.loaded ? '✅ Yes' : '❌ No'}</span>
+      </div>
+      <div>
+        <strong>Initialized:</strong> 
+        <span class="${status.initialized ? 'text-green-400' : 'text-red-400'}">${status.initialized ? '✅ Yes' : '❌ No'}</span>
+      </div>
+      <div>
+        <strong>Public Key:</strong> 
+        <span class="${status.publicKey === 'Configured' ? 'text-green-400' : 'text-red-400'}">${status.publicKey}</span>
+      </div>
+      <div>
+        <strong>Service ID:</strong> 
+        <span class="${status.serviceId !== 'Not configured' ? 'text-green-400' : 'text-red-400'}">${status.serviceId}</span>
+      </div>
+      <div>
+        <strong>Template ID:</strong> 
+        <span class="${status.templateId !== 'Not configured' ? 'text-green-400' : 'text-red-400'}">${status.templateId}</span>
+      </div>
+      <div>
+        <strong>Ready to Send:</strong> 
+        <span class="${status.hasCredentials ? 'text-green-400' : 'text-red-400'}">${status.hasCredentials ? '✅ Yes' : '❌ No'}</span>
+      </div>
+    </div>
+  `;
+  
+  statusDisplay.innerHTML = statusHtml;
+}
+
+// Configure EmailJS
+function configureEmailJS() {
+  const publicKey = prompt('Enter EmailJS Public Key:', 'o4CZtazWjPDVjPc1L');
+  if (!publicKey) return;
+  
+  const serviceId = prompt('Enter EmailJS Service ID:');
+  if (!serviceId) return;
+  
+  const templateId = prompt('Enter EmailJS Template ID:');
+  if (!templateId) return;
+  
+  const saved = EmailJSIntegration.saveCredentials(publicKey, serviceId, templateId);
+  if (saved) {
+    showMessageBox('✅ EmailJS credentials saved successfully!', false);
+    displayEmailJSStatus();
   } else {
-    statusMessage = `❌ EmailJS Not Configured - No credentials found`;
+    showMessageBox('❌ Failed to save EmailJS credentials.', true);
   }
-  
-  // Add status indicator to the email management section
-  const emailManagementHeader = document.getElementById('email-management-header');
-  if (emailManagementHeader) {
-    let statusIndicator = emailManagementHeader.querySelector('.emailjs-status');
-    if (!statusIndicator) {
-      statusIndicator = document.createElement('div');
-      statusIndicator.className = 'emailjs-status text-sm ml-2';
-      emailManagementHeader.appendChild(statusIndicator);
-    }
-    statusIndicator.textContent = statusMessage;
-    statusIndicator.className = `emailjs-status text-sm ml-2 ${
-      status.hasCredentials && status.initialized ? 'text-green-400' : 
-      status.hasCredentials ? 'text-yellow-400' : 'text-red-400'
-    }`;
-  }
-  
-  return status;
 }
