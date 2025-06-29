@@ -104,13 +104,14 @@ const navbarStyles = `
 }
 
 .navbar-logo svg {
-  height: 1em;
-  width: 1em;
-  min-width: 1em;
-  min-height: 1em;
-  color: var(--color-link, #60A5FA);
+  height: 1.1em;
+  width: 1.1em;
+  min-width: 1.1em;
+  min-height: 1.1em;
   vertical-align: middle;
   display: inline-block;
+  flex-shrink: 0;
+  margin-right: 0.3em;
 }
 
 .navbar-logo:hover svg {
@@ -185,10 +186,14 @@ const navbarStyles = `
 }
 
 .navbar-link svg {
-  margin-right: 0.75rem;
+  height: 1.1em;
+  width: 1.1em;
+  min-width: 1.1em;
+  min-height: 1.1em;
   vertical-align: middle;
   display: inline-block;
   flex-shrink: 0;
+  margin-right: 0.3em;
 }
 
 .navbar-link:hover svg {

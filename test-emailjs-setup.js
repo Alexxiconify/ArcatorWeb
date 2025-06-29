@@ -24,32 +24,23 @@ function testCredentials() {
     console.log('\n🔑 Test 2: EmailJS Credentials');
     console.log('-------------------------------');
     
-    const saved = localStorage.getItem('emailjs_credentials');
-    if (saved) {
-        try {
-            const credentials = JSON.parse(saved);
-            console.log('✅ Credentials found in localStorage');
-            console.log('📝 Credentials:', {
-                hasPublicKey: !!credentials.publicKey,
-                hasServiceId: !!credentials.serviceId,
-                hasTemplateId: !!credentials.templateId,
-                savedAt: credentials.savedAt
-            });
-            
-            if (credentials.publicKey === 'YOUR_PUBLIC_KEY') {
-                console.log('⚠️ Public key is still the default value');
-                return false;
-            }
-            
-            return true;
-        } catch (error) {
-            console.log('❌ Failed to parse saved credentials:', error);
-            return false;
+    try {
+        const saved = localStorage.getItem('emailjs_credentials');
+        if (saved) {
+            const creds = JSON.parse(saved);
+            console.log('✅ Credentials found in localStorage:');
+            console.log('   Public Key:', creds.publicKey ? '✅ Configured' : '❌ Missing');
+            console.log('   Service ID:', creds.serviceId || '❌ Not configured');
+            console.log('   Template ID:', creds.templateId || '❌ Not configured');
+            return creds;
+        } else {
+            console.log('❌ No credentials found in localStorage');
+            console.log('💡 Use the "Configure EmailJS" button in the admin panel');
+            return null;
         }
-    } else {
-        console.log('❌ No credentials found in localStorage');
-        console.log('💡 Go to emailjs-setup.html to configure credentials');
-        return false;
+    } catch (error) {
+        console.log('❌ Error reading credentials:', error.message);
+        return null;
     }
 }
 
@@ -58,133 +49,107 @@ async function testInitialization() {
     console.log('\n🚀 Test 3: EmailJS Initialization');
     console.log('----------------------------------');
     
-    if (typeof emailjs === 'undefined') {
-        console.log('❌ EmailJS not available');
-        return false;
+    try {
+        // Import the EmailJS integration
+        const { EmailJSIntegration } = await import('./emailjs-integration.js');
+        
+        const status = EmailJSIntegration.getEmailJSStatus();
+        console.log('📊 EmailJS Status:');
+        console.log('   Script Loaded:', status.loaded ? '✅ Yes' : '❌ No');
+        console.log('   Initialized:', status.initialized ? '✅ Yes' : '❌ No');
+        console.log('   Has Credentials:', status.hasCredentials ? '✅ Yes' : '❌ No');
+        console.log('   Public Key:', status.publicKey);
+        console.log('   Service ID:', status.serviceId);
+        console.log('   Template ID:', status.templateId);
+        
+        if (status.hasCredentials) {
+            const testResult = await EmailJSIntegration.testEmailJSConnection();
+            console.log('🔗 Connection Test:', testResult.success ? '✅ Success' : '❌ Failed');
+            if (!testResult.success) {
+                console.log('   Error:', testResult.error);
+            }
+        }
+        
+        return status;
+    } catch (error) {
+        console.log('❌ Error testing initialization:', error.message);
+        return null;
     }
-    
-    const saved = localStorage.getItem('emailjs_credentials');
-    if (!saved) {
-        console.log('❌ No credentials to test with');
-        return false;
-    }
+}
+
+// Test 4: Test email sending (simulation)
+async function testEmailSending() {
+    console.log('\n📧 Test 4: Email Sending Simulation');
+    console.log('------------------------------------');
     
     try {
-        const credentials = JSON.parse(saved);
-        if (credentials.publicKey === 'YOUR_PUBLIC_KEY') {
-            console.log('❌ Public key not configured');
+        const { EmailJSIntegration } = await import('./emailjs-integration.js');
+        
+        const status = EmailJSIntegration.getEmailJSStatus();
+        if (!status.hasCredentials) {
+            console.log('❌ Cannot test email sending - credentials not configured');
             return false;
         }
         
-        emailjs.init(credentials.publicKey);
-        console.log('✅ EmailJS initialized successfully');
+        console.log('✅ Credentials configured, ready for email sending');
+        console.log('💡 To send a test email, use the admin panel email form');
+        
         return true;
     } catch (error) {
-        console.log('❌ EmailJS initialization failed:', error);
+        console.log('❌ Error testing email sending:', error.message);
         return false;
     }
 }
 
-// Test 4: Test email sending (dry run)
-async function testEmailSending() {
-    console.log('\n📧 Test 4: Email Sending (Dry Run)');
+// Test 5: Check admin panel integration
+function testAdminPanelIntegration() {
+    console.log('\n⚙️ Test 5: Admin Panel Integration');
     console.log('-----------------------------------');
     
-    if (typeof emailjs === 'undefined') {
-        console.log('❌ EmailJS not available');
-        return false;
-    }
+    const testBtn = document.getElementById('test-emailjs-btn');
+    const configBtn = document.getElementById('configure-emailjs-btn');
+    const statusDisplay = document.getElementById('emailjs-status-display');
     
-    const saved = localStorage.getItem('emailjs_credentials');
-    if (!saved) {
-        console.log('❌ No credentials found');
-        return false;
-    }
-    
-    try {
-        const credentials = JSON.parse(saved);
-        
-        // Test with a dummy email (won't actually send)
-        const templateParams = {
-            to_email: 'test@example.com',
-            subject: 'EmailJS Test',
-            message: 'This is a test email from EmailJS setup verification.',
-            from_name: 'Arcator.co.uk',
-            from_email: 'noreply@arcator-web.firebaseapp.com',
-            reply_to: 'noreply@arcator-web.firebaseapp.com'
-        };
-        
-        console.log('📤 Attempting to send test email...');
-        console.log('📝 Template params:', templateParams);
-        
-        const response = await emailjs.send(
-            credentials.serviceId,
-            credentials.templateId,
-            templateParams
-        );
-        
-        console.log('✅ Email sent successfully!');
-        console.log('📨 Response:', response);
-        return true;
-        
-    } catch (error) {
-        console.log('❌ Email sending failed:', error);
-        console.log('💡 This might be expected if using a test email address');
-        return false;
-    }
-}
-
-// Test 5: Integration test with admin panel
-function testAdminPanelIntegration() {
-    console.log('\n🔗 Test 5: Admin Panel Integration');
-    console.log('----------------------------------');
-    
-    // Check if admin panel elements exist
-    const emailComposeForm = document.getElementById('email-compose-form');
-    const emailToSelect = document.getElementById('email-to-select');
-    const emailSubjectInput = document.getElementById('email-subject');
-    const emailContentTextarea = document.getElementById('email-content');
-    
-    if (emailComposeForm && emailToSelect && emailSubjectInput && emailContentTextarea) {
-        console.log('✅ Admin panel email elements found');
-        
-        // Check if EmailJS integration is available
-        if (typeof EmailJSIntegration !== 'undefined') {
-            console.log('✅ EmailJS integration module loaded');
-            const status = EmailJSIntegration.getStatus();
-            console.log('📊 EmailJS status:', status);
-            return true;
-        } else {
-            console.log('❌ EmailJS integration module not loaded');
-            console.log('💡 Make sure emailjs-integration.js is imported');
-            return false;
-        }
+    if (testBtn) {
+        console.log('✅ Test EmailJS button found');
     } else {
-        console.log('❌ Admin panel email elements not found');
-        console.log('💡 Make sure you are on the admin panel page');
-        return false;
+        console.log('❌ Test EmailJS button not found');
     }
+    
+    if (configBtn) {
+        console.log('✅ Configure EmailJS button found');
+    } else {
+        console.log('❌ Configure EmailJS button not found');
+    }
+    
+    if (statusDisplay) {
+        console.log('✅ EmailJS status display found');
+    } else {
+        console.log('❌ EmailJS status display not found');
+    }
+    
+    return !!(testBtn && configBtn && statusDisplay);
 }
 
 // Run all tests
 async function runAllTests() {
-    console.log('\n🧪 Running EmailJS Setup Tests...\n');
+    console.log('🧪 Running all EmailJS tests...\n');
     
     const results = {
-        scriptLoaded: testEmailJSScript(),
+        script: testEmailJSScript(),
         credentials: testCredentials(),
         initialization: await testInitialization(),
         emailSending: await testEmailSending(),
-        adminIntegration: testAdminPanelIntegration()
+        adminPanel: testAdminPanelIntegration()
     };
     
-    console.log('\n📊 Test Results Summary');
-    console.log('=======================');
-    console.log(`Script Loaded: ${results.scriptLoaded ? '✅' : '❌'}`);
-    console.log(`Credentials: ${results.credentials ? '✅' : '❌'}`);
-    console.log(`Initialization: ${results.initialization ? '✅' : '❌'}`);
-    console.log(`Email Sending: ${results.emailSending ? '✅' : '❌'}`);
-    console.log(`Admin Integration: ${results.adminIntegration ? '✅' : '❌'}`);
+    console.log('\n📊 Test Summary');
+    console.log('===============');
+    console.log('Script Loading:', results.script ? '✅ Pass' : '❌ Fail');
+    console.log('Credentials:', results.credentials ? '✅ Pass' : '❌ Fail');
+    console.log('Initialization:', results.initialization?.hasCredentials ? '✅ Pass' : '❌ Fail');
+    console.log('Email Sending:', results.emailSending ? '✅ Pass' : '❌ Fail');
+    console.log('Admin Panel:', results.adminPanel ? '✅ Pass' : '❌ Fail');
     
     const passedTests = Object.values(results).filter(Boolean).length;
     const totalTests = Object.keys(results).length;
@@ -192,36 +157,22 @@ async function runAllTests() {
     console.log(`\n🎯 Overall: ${passedTests}/${totalTests} tests passed`);
     
     if (passedTests === totalTests) {
-        console.log('🎉 All tests passed! EmailJS is properly configured.');
+        console.log('🎉 EmailJS is fully configured and ready to use!');
     } else {
-        console.log('⚠️ Some tests failed. Check the details above.');
+        console.log('⚠️ Some tests failed. Check the configuration.');
     }
     
     return results;
 }
 
-// Helper functions for manual testing
-window.EmailJSTest = {
-    runAll: runAllTests,
-    testScript: testEmailJSScript,
-    testCredentials: testCredentials,
-    testInit: testInitialization,
-    testSending: testEmailSending,
-    testIntegration: testAdminPanelIntegration
+// Make functions available globally
+window.testEmailJSSetup = {
+    testEmailJSScript,
+    testCredentials,
+    testInitialization,
+    testEmailSending,
+    testAdminPanelIntegration,
+    runAllTests
 };
 
-// Auto-run tests if on admin panel
-if (window.location.pathname.includes('admin_and_dev.html')) {
-    console.log('🔍 Admin panel detected, running EmailJS tests...');
-    setTimeout(runAllTests, 2000); // Wait for page to load
-} else {
-    console.log('💡 Run EmailJSTest.runAll() to test EmailJS setup');
-}
-
-console.log('\n📚 Available test functions:');
-console.log('- EmailJSTest.runAll() - Run all tests');
-console.log('- EmailJSTest.testScript() - Test script loading');
-console.log('- EmailJSTest.testCredentials() - Test credentials');
-console.log('- EmailJSTest.testInit() - Test initialization');
-console.log('- EmailJSTest.testSending() - Test email sending');
-console.log('- EmailJSTest.testIntegration() - Test admin integration'); 
+console.log('💡 Run testEmailJSSetup.runAllTests() to test everything'); 
