@@ -4,9 +4,6 @@
 // Import EmailJS library
 const EMAILJS_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
 
-let emailjsLoaded = false;
-let emailjsInitialized = false;
-
 // Default credentials (these should be overridden with actual values)
 let credentials = {
   publicKey: 'o4CZtazWjPDVjPc1L',
@@ -14,48 +11,42 @@ let credentials = {
   templateId: '' // Will be set by user
 };
 
-// Load EmailJS script dynamically
-async function loadEmailJSScript() {
-  if (emailjsLoaded) return Promise.resolve();
-  
-  return new Promise((resolve, reject) => {
-    // Check if script is already loaded
-    if (window.emailjs) {
-      emailjsLoaded = true;
-      resolve();
-      return;
-    }
-    
-    const script = document.createElement('script');
-    script.src = EMAILJS_SCRIPT_URL;
-    script.onload = () => {
-      emailjsLoaded = true;
-      resolve();
-    };
-    script.onerror = () => {
-      reject(new Error('Failed to load EmailJS script'));
-    };
-    document.head.appendChild(script);
-  });
+let emailjsLoaded = false;
+let emailjsInitialized = false;
+
+// Check if EmailJS script is already loaded
+function checkEmailJSScript() {
+  if (typeof emailjs !== 'undefined') {
+    emailjsLoaded = true;
+    return true;
+  }
+  return false;
 }
 
 // Initialize EmailJS with credentials
 async function initializeEmailJS(publicKey = null) {
   try {
-    await loadEmailJSScript();
-    
-    const keyToUse = publicKey || credentials.publicKey;
-    if (!keyToUse) {
-      throw new Error('EmailJS public key is required');
+    // Check if script is loaded
+    if (!checkEmailJSScript()) {
+      console.error('[EmailJS] Script not loaded');
+      return { success: false, error: 'EmailJS script not loaded' };
     }
+
+    // Use provided public key or default
+    const keyToUse = publicKey || credentials.publicKey;
     
-    window.emailjs.init(keyToUse);
+    if (!keyToUse) {
+      return { success: false, error: 'No public key provided' };
+    }
+
+    // Initialize EmailJS
+    emailjs.init(keyToUse);
     emailjsInitialized = true;
     
     console.log('[EmailJS] Initialized successfully');
     return { success: true };
   } catch (error) {
-    console.error('[EmailJS] Initialization failed:', error);
+    console.error('[EmailJS] Initialization error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -170,15 +161,21 @@ async function testEmailJSConnection() {
   }
 }
 
-// Get EmailJS status
+// Get EmailJS status for display
 function getEmailJSStatus() {
+  const scriptLoaded = checkEmailJSScript();
+  const publicKeyConfigured = !!credentials.publicKey;
+  const serviceIdConfigured = !!credentials.serviceId;
+  const templateIdConfigured = !!credentials.templateId;
+  const readyToSend = scriptLoaded && emailjsInitialized && publicKeyConfigured && serviceIdConfigured && templateIdConfigured;
+
   return {
-    loaded: emailjsLoaded,
+    scriptLoaded,
     initialized: emailjsInitialized,
-    hasCredentials: !!(credentials.serviceId && credentials.templateId),
-    publicKey: credentials.publicKey ? 'Configured' : 'Missing',
-    serviceId: credentials.serviceId || 'Not configured',
-    templateId: credentials.templateId || 'Not configured'
+    publicKey: publicKeyConfigured ? 'Configured' : 'Not configured',
+    serviceId: serviceIdConfigured ? 'Configured' : 'Not configured',
+    templateId: templateIdConfigured ? 'Configured' : 'Not configured',
+    readyToSend
   };
 }
 
@@ -198,16 +195,15 @@ function clearCredentials() {
   }
 }
 
-// Export the EmailJS integration
-export const EmailJSIntegration = {
-  loadEmailJSScript,
+// Export all functions for use in other modules
+export {
   initializeEmailJS,
-  loadCredentials,
-  saveCredentials,
   sendEmailWithEmailJS,
   sendBulkEmails,
   testEmailJSConnection,
   getEmailJSStatus,
+  saveCredentials,
+  loadCredentials,
   clearCredentials
 };
 

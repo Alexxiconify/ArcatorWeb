@@ -14,7 +14,13 @@ import {
 } from './firebase-init.js';
 import { setupThemesFirebase, applyTheme, getAvailableThemes } from './themes.js';
 import { loadNavbar } from './navbar.js';
-import { EmailJSIntegration } from './emailjs-integration.js';
+import { 
+  initializeEmailJS, 
+  sendEmailWithEmailJS, 
+  testEmailJSConnection, 
+  getEmailJSStatus, 
+  saveCredentials 
+} from './emailjs-integration.js';
 import {
   doc,
   getDoc,
@@ -27,7 +33,7 @@ import {
   query,
   orderBy,
   serverTimestamp // Ensure serverTimestamp is imported for Firestore operations
-} from 'firebase/firestore';
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { showMessageBox, showCustomConfirm } from './utils.js'; // Import message box and confirm utility
 
 // DOM elements - Initialize immediately after declaration
@@ -638,6 +644,19 @@ const updateAdminUI = async (user) => { // Changed to const arrow function
     // Initialize email management
     await populateEmailRecipients();
     await loadEmailHistory();
+    
+    // Initialize EmailJS automatically
+    try {
+      const initResult = await initializeEmailJS();
+      if (initResult.success) {
+        console.log('[EmailJS] Auto-initialized successfully');
+      } else {
+        console.warn('[EmailJS] Auto-initialization failed:', initResult.error);
+      }
+    } catch (error) {
+      console.warn('[EmailJS] Auto-initialization error:', error);
+    }
+    
     displayEmailJSStatus();
   } else {
     if (adminContent) adminContent.style.display = 'none';
@@ -1016,7 +1035,7 @@ async function sendEmail() {
     // Send emails using EmailJS
     const results = [];
     for (const recipient of recipients) {
-      const result = await EmailJSIntegration.sendEmailWithEmailJS(
+      const result = await sendEmailWithEmailJS(
         recipient,
         subject,
         content,
@@ -1397,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   document.getElementById('email-template-select').addEventListener('change', handleEmailTemplateChange);
   
   // EmailJS buttons
-  document.getElementById('test-emailjs-btn').addEventListener('click', testEmailJSConnection);
+  document.getElementById('test-emailjs-btn').addEventListener('click', testEmailJSConnectionHandler);
   document.getElementById('configure-emailjs-btn').addEventListener('click', configureEmailJS);
 });
 
@@ -1530,9 +1549,9 @@ function setupEventListeners() {
 }
 
 // Test EmailJS connection
-async function testEmailJSConnection() {
+async function testEmailJSConnectionHandler() {
   try {
-    const result = await EmailJSIntegration.testEmailJSConnection();
+    const result = await testEmailJSConnection();
     if (result.success) {
       showMessageBox(`✅ EmailJS connection successful! Credentials are valid.`, false);
       console.log('[EmailJS] Connection test successful:', result);
@@ -1550,59 +1569,45 @@ async function testEmailJSConnection() {
 
 // Get and display EmailJS status
 function displayEmailJSStatus() {
-  const status = EmailJSIntegration.getEmailJSStatus();
+  const status = getEmailJSStatus();
   const statusDisplay = document.getElementById('emailjs-status-display');
   
-  if (!statusDisplay) return;
-  
-  const statusHtml = `
-    <div class="grid grid-cols-2 gap-4 text-sm">
-      <div>
-        <strong>Script Loaded:</strong> 
-        <span class="${status.loaded ? 'text-green-400' : 'text-red-400'}">${status.loaded ? '✅ Yes' : '❌ No'}</span>
+  if (statusDisplay) {
+    statusDisplay.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div>Script Loaded: ${status.scriptLoaded ? '✅ Yes' : '❌ No'}</div>
+        <div>Initialized: ${status.initialized ? '✅ Yes' : '❌ No'}</div>
+        <div>Public Key: ${status.publicKey}</div>
+        <div>Service ID: ${status.serviceId}</div>
+        <div>Template ID: ${status.templateId}</div>
+        <div>Ready to Send: ${status.readyToSend ? '✅ Yes' : '❌ No'}</div>
       </div>
-      <div>
-        <strong>Initialized:</strong> 
-        <span class="${status.initialized ? 'text-green-400' : 'text-red-400'}">${status.initialized ? '✅ Yes' : '❌ No'}</span>
-      </div>
-      <div>
-        <strong>Public Key:</strong> 
-        <span class="${status.publicKey === 'Configured' ? 'text-green-400' : 'text-red-400'}">${status.publicKey}</span>
-      </div>
-      <div>
-        <strong>Service ID:</strong> 
-        <span class="${status.serviceId !== 'Not configured' ? 'text-green-400' : 'text-red-400'}">${status.serviceId}</span>
-      </div>
-      <div>
-        <strong>Template ID:</strong> 
-        <span class="${status.templateId !== 'Not configured' ? 'text-green-400' : 'text-red-400'}">${status.templateId}</span>
-      </div>
-      <div>
-        <strong>Ready to Send:</strong> 
-        <span class="${status.hasCredentials ? 'text-green-400' : 'text-red-400'}">${status.hasCredentials ? '✅ Yes' : '❌ No'}</span>
-      </div>
-    </div>
-  `;
-  
-  statusDisplay.innerHTML = statusHtml;
+    `;
+  }
 }
 
-// Configure EmailJS
-function configureEmailJS() {
-  const publicKey = prompt('Enter EmailJS Public Key:', 'o4CZtazWjPDVjPc1L');
-  if (!publicKey) return;
-  
-  const serviceId = prompt('Enter EmailJS Service ID:');
+// Configure EmailJS with user input
+async function configureEmailJS() {
+  const serviceId = prompt('Enter your EmailJS Service ID:');
   if (!serviceId) return;
   
-  const templateId = prompt('Enter EmailJS Template ID:');
+  const templateId = prompt('Enter your EmailJS Template ID:');
   if (!templateId) return;
   
-  const saved = EmailJSIntegration.saveCredentials(publicKey, serviceId, templateId);
-  if (saved) {
-    showMessageBox('✅ EmailJS credentials saved successfully!', false);
-    displayEmailJSStatus();
-  } else {
-    showMessageBox('❌ Failed to save EmailJS credentials.', true);
+  try {
+    // Save credentials
+    saveCredentials('o4CZtazWjPDVjPc1L', serviceId, templateId);
+    
+    // Initialize EmailJS
+    const result = await initializeEmailJS();
+    
+    if (result.success) {
+      showMessageBox('EmailJS configured successfully!', false);
+      displayEmailJSStatus();
+    } else {
+      showMessageBox(`EmailJS configuration failed: ${result.error}`, true);
+    }
+  } catch (error) {
+    showMessageBox(`Configuration error: ${error.message}`, true);
   }
 }
