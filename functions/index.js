@@ -10,7 +10,7 @@ const SMTP_SERVER_URL = 'http://apollo.arcator.co.uk:3001';
 const SMTP_SERVER_CONFIG = {
   host: 'smtp.gmail.com',
   port: 587,
-  user: 'noreply@arcator.co.uk',
+  user: 'no-reply.aractor@gmail.com',
   pass: 'ArcatorAppS3rver!2024'
 };
 
@@ -38,7 +38,7 @@ exports.sendEmail = functions.firestore
       // Prepare email data for SMTP server
       const smtpEmailData = {
         to: emailData.to,
-        from: emailData.from || 'noreply@arcator.co.uk',
+        from: emailData.from || 'no-reply.aractor@gmail.com',
         subject: emailData.subject,
         text: emailData.isHtml ? null : emailData.content,
         html: emailData.isHtml ? emailData.content : null,
@@ -113,7 +113,7 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
     // Send test email
     const testEmailData = {
       to: 'taylorallred04@gmail.com',
-      from: 'noreply@arcator.co.uk',
+      from: 'no-reply.aractor@gmail.com',
       subject: 'SMTP Server Test Email',
       text: 'This is a test email to verify SMTP server configuration.',
       html: '<p>This is a test email to verify SMTP server configuration.</p>',
@@ -218,4 +218,4 @@ exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
       smtpServerUrl: SMTP_SERVER_URL
     });
   }
-}); 
+});

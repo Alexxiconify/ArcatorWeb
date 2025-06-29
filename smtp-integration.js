@@ -70,7 +70,7 @@ async function sendEmailViaSMTP(emailData) {
     
     const emailDoc = {
       to: emailData.to,
-      from: emailData.from || 'noreply@arcator.co.uk',
+      from: emailData.from || 'no-reply.aractor@gmail.com',
       subject: emailData.subject,
       content: emailData.content || emailData.html || emailData.text || '',
       isHtml: !!emailData.isHtml || !!emailData.html,
