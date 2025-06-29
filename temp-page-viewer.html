@@ -259,8 +259,8 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #333;
-      color: white;
+      background-color: var(--color-modal-bg);
+      color: var(--color-modal-text);
       padding: 15px 30px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -273,10 +273,10 @@
       display: block;
     }
     .message-box.success {
-      background-color: #4CAF50; /* Green for success */
+      background-color: var(--color-message-box-bg-success);
     }
     .message-box.error {
-      background-color: #F44336; /* Red for error */
+      background-color: var(--color-message-box-bg-error);
     }
 
     .loading-spinner {
@@ -377,7 +377,7 @@
 
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen theme-dark">
+<body class="antialiased flex flex-col min-h-screen">
 <!-- Link back to forms.html -->
 <div class="w-full flex justify-center mt-4 mb-2">
   <a href="forms.html" class="btn-primary btn-blue px-6 py-2 rounded-full font-bold text-lg shadow hover:bg-blue-700 transition">← Back to Forum</a>
@@ -388,7 +388,7 @@
 
 <div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8">
   <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
-  <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
+  <p class="text-text-secondary text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
 
   <!-- Temporary Page Navigation -->
   <div id="temp-page-nav" class="temp-page-nav">
@@ -397,7 +397,7 @@
 
   <!-- Main content area for the temporary page -->
   <div id="page-display-content" class="html-content p-4 border border-input-border rounded-md bg-input-bg text-input-text">
-    <p class="text-center text-gray-400">Loading page content...</p>
+    <p class="text-center text-text-secondary">Loading page content...</p>
   </div>
 
   <!-- Comments Section -->
@@ -440,8 +440,8 @@
 
   <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
     <!-- Changed Tailwind bg- classes to semantic btn- classes -->
-    <a href="admin.html" class="inline-block btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
-    <a href="forms.html" class="inline-block btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
+    <a href="admin.html" class="inline-block btn-primary btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back to Admin Panel</a>
+    <a href="forms.html" class="inline-block btn-primary btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go to Forms Page</a>
   </div>
 </div>
 
@@ -1020,3 +1020,6 @@
   // Use DOMContentLoaded to ensure all HTML elements are available before script runs
   document.addEventListener('DOMContentLoaded', initTemporaryPageViewer);
 </script>
+
+</body>
+</html>
