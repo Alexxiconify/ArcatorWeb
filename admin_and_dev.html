@@ -205,60 +205,51 @@
               Email Management
             </summary>
             <div class="mt-4 w-full flex flex-col items-start">
-              <div class="bg-card p-4 rounded-lg shadow-md mb-6">
+              <div class="bg-card p-4 rounded-lg shadow-md mb-6 w-full">
                 <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">EmailJS Status</h4>
-                <div id="emailjs-status-display" class="text-xs text-text-secondary mb-4">
-                  <div>Loading EmailJS status...</div>
-                </div>
+                <div id="emailjs-status-display" class="text-xs text-text-secondary mb-4"></div>
                 <button type="button" id="test-emailjs-btn" class="btn-primary btn-purple mr-2">Test EmailJS Connection</button>
                 <button type="button" id="configure-emailjs-btn" class="btn-primary btn-blue">Configure EmailJS</button>
               </div>
-              
-              <div class="bg-card p-4 rounded-lg shadow-md mb-6">
+              <div class="bg-card p-4 rounded-lg shadow-md mb-6 w-full">
                 <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">SMTP Server Status</h4>
-                <div id="smtp-status-display" class="text-xs text-text-secondary mb-4">
-                  <div>Loading SMTP server status...</div>
-                </div>
+                <div id="smtp-status-display" class="text-xs text-text-secondary mb-4"></div>
                 <button type="button" id="test-smtp-btn" class="btn-primary btn-green">Test SMTP Connection</button>
               </div>
-              
-              <div class="bg-card p-6 rounded-lg shadow-md mb-6">
+              <div class="bg-card p-6 rounded-lg shadow-md mb-6 w-full">
                 <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Compose Email</h4>
                 <form id="email-compose-form" class="space-y-4">
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="space-y-2">
                       <label for="email-to-select" class="block text-sm font-medium text-text-primary">Recipients</label>
-                      <select id="email-to-select" multiple class="form-input h-24 text-sm">
+                      <select id="email-to-select" multiple class="form-input h-24 text-sm w-full">
                         <option value="" disabled>Select recipients...</option>
                       </select>
                       <p class="text-xs text-text-secondary">Hold Ctrl/Cmd to select multiple users</p>
                     </div>
                     <div class="space-y-2">
                       <label for="email-template-select" class="block text-sm font-medium text-text-primary">Template</label>
-                      <select id="email-template-select" class="form-input text-sm">
+                      <select id="email-template-select" class="form-input text-sm w-full">
                         <option value="default">Default Template</option>
                         <option value="generic">Generic Email</option>
                         <option value="passwordReset">Password Reset</option>
                       </select>
                     </div>
                   </div>
-                  
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="space-y-2">
                       <label for="email-subject" class="block text-sm font-medium text-text-primary">Subject</label>
-                      <input id="email-subject" type="text" placeholder="Enter subject..." required class="form-input text-sm"/>
+                      <input id="email-subject" type="text" placeholder="Enter subject..." required class="form-input text-sm w-full"/>
                     </div>
                     <div class="space-y-2">
                       <label for="email-from" class="block text-sm font-medium text-text-primary">From</label>
-                      <input id="email-from" type="email" value="noreply@arcator-web.firebaseapp.com" readonly class="form-input text-sm bg-gray-100" title="Sender address is fixed for security"/>
+                      <input id="email-from" type="email" value="noreply@arcator-web.firebaseapp.com" readonly class="form-input text-sm bg-gray-100 w-full" title="Sender address is fixed for security"/>
                     </div>
                   </div>
-                  
                   <div class="space-y-2">
                     <label for="email-content" class="block text-sm font-medium text-text-primary">Message</label>
-                    <textarea id="email-content" rows="6" placeholder="Enter your message here..." required class="form-input text-sm resize-none"></textarea>
+                    <textarea id="email-content" rows="6" placeholder="Enter your message here..." required class="form-input text-sm resize-none w-full"></textarea>
                   </div>
-                  
                   <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                       <label class="flex items-center space-x-2 text-sm text-text-secondary">
@@ -273,25 +264,24 @@
                   </div>
                 </form>
               </div>
-
-              <div class="bg-card p-6 rounded-lg shadow-md">
+              <div class="bg-card p-6 rounded-lg shadow-md w-full">
                 <h4 class="text-lg font-semibold text-text-primary mb-4 border-b border-dashed border-link pb-1">Email History</h4>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left table-auto text-xs">
                     <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs">Date</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Subject</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Recipients</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Status</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Method</th>
-                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                    </tr>
+                      <tr class="bg-table-th-bg">
+                        <th class="px-2 py-1 text-table-th-text text-xs">DATE</th>
+                        <th class="px-2 py-1 text-table-th-text text-xs">SUBJECT</th>
+                        <th class="px-2 py-1 text-table-th-text text-xs">RECIPIENTS</th>
+                        <th class="px-2 py-1 text-table-th-text text-xs">STATUS</th>
+                        <th class="px-2 py-1 text-table-th-text text-xs">METHOD</th>
+                        <th class="px-2 py-1 text-table-th-text text-xs">ACTIONS</th>
+                      </tr>
                     </thead>
                     <tbody id="email-history-tbody">
-                    <tr>
-                      <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td>
-                    </tr>
+                      <tr>
+                        <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No emails sent yet.</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -310,18 +300,18 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                  </tr>
+                    <tr class="bg-table-th-bg">
+                      <th class="px-2 py-1 text-table-th-text text-xs">UID</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Display Name</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Email</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                    </tr>
                   </thead>
                   <tbody id="user-list-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...</td>
-                  </tr>
+                    <tr>
+                      <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading users...</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -378,19 +368,19 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">Date</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">From</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">To</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Subject</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Content</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                  </tr>
+                    <tr class="bg-table-th-bg">
+                      <th class="px-2 py-1 text-table-th-text text-xs">Date</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">From</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">To</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Subject</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Content</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                    </tr>
                   </thead>
                   <tbody id="dm-history-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td>
-                  </tr>
+                    <tr>
+                      <td class="text-center py-4 text-text-secondary text-xs" colspan="6">No DMs found.</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -408,18 +398,18 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto text-xs">
                   <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">Form</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Comments</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Submissions</th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
-                  </tr>
+                    <tr class="bg-table-th-bg">
+                      <th class="px-2 py-1 text-table-th-text text-xs">Form</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Theme</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Comments</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Submissions</th>
+                      <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                    </tr>
                   </thead>
                   <tbody id="form-submissions-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading forms...</td>
-                  </tr>
+                    <tr>
+                      <td class="text-center py-4 text-text-secondary text-xs" colspan="5">Loading forms...</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -429,6 +419,7 @@
         </div>
       </div>
     </div>
+  </div>
 </section>
 
 
