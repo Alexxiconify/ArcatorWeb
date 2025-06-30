@@ -437,6 +437,7 @@
                           <div class="input-field">
                             <label for="edit-temp-page-content" class="form-label">Page Content (HTML allowed):</label>
                             <div id="edit-temp-page-content-container"></div>
+                            <textarea id="edit-temp-page-content" style="display:none"></textarea>
                           </div>
                         </div>
                       </div>
@@ -547,12 +548,13 @@
                       </div>
                     </div>
 
-                    <div id="custom-recipients-section" class="input-field" style="display: none">
+                    <div class="input-field" id="custom-recipients-section" style="display: none">
                       <label for="email-recipients" class="form-label">Select Recipients:</label>
                       <div class="bg-input-bg border border-input-border rounded-lg p-3 max-h-48 overflow-y-auto">
                         <div id="email-recipients-list" class="space-y-2">
                           <!-- Recipients will be populated here -->
                         </div>
+                        <input id="email-recipients" type="hidden" />
                       </div>
                     </div>
 
@@ -969,8 +971,10 @@
           <input id="edit-form-thema-name" type="text" class="form-input w-full" />
         </div>
         <div class="input-field">
-          <label for="edit-form-thema-description" class="form-label">Theme Description:</label>
-          <div id="edit-form-thema-description-container"></div>
+          <label for="edit-form-thema-description" class="form-label">Thema Description:</label>
+          <div class="emoji-input-container">
+            <textarea id="edit-form-thema-description" class="form-input w-full h-20"></textarea>
+          </div>
         </div>
         <div class="flex justify-end gap-2">
           <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">
@@ -983,6 +987,9 @@
       </form>
     </div>
   </div>
+
+  <!-- Load admin panel logic -->
+  <script type="module" src="admin.js"></script>
 </body>
 
 </html>
