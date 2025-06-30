@@ -736,6 +736,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Load footer
   loadFooter("current-year-forms");
 
+  // Ensure themata tab is active and visible by default
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  if (themataTabContent) themataTabContent.style.display = 'block';
+  if (allThematasTabBtn) allThematasTabBtn.classList.add('active');
+  if (dmTabContent) dmTabContent.style.display = 'none';
+  if (dmTabBtn) dmTabBtn.classList.remove('active');
+  renderThematas();
+
   // Create thema form
   createThemaForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
