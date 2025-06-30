@@ -195,305 +195,34 @@ export function setupCustomThemeManagement(
    */
   function createCustomThemeModal() {
     const modalHtml = `
-      <div id="custom-theme-modal" class="modal">
-        <div class="modal-content">
+      <div id="custom-theme-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
+        <div class="modal-content" style="width:98vw;max-width:900px;padding:1.5rem 1rem;box-sizing:border-box;">
           <span class="close-button">&times;</span>
-          <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">Manage Custom Themes</h3>
-          <form id="custom-theme-form">
-            <div class="input-field mb-6">
-              <label for="custom-theme-name" class="block text-gray-300 text-sm font-bold mb-2">
-                <span style="color: #EF4444;">*</span> Theme Name: <span class="text-gray-400 text-xs">(Required)</span>
-              </label>
-              <input type="text" id="custom-theme-name" placeholder="Enter a unique name for your theme..." required
-                     class="shadow appearance-none border rounded w-full py-3 px-4 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
-                     style="background: var(--color-input-bg); color: var(--color-input-text); border-color: var(--color-input-border); font-size: 1.1rem;">
-              <p class="text-gray-400 text-xs mt-1">Choose a descriptive name that helps you identify this theme (3-50 characters)</p>
+          <h3 id="custom-theme-modal-title" class="text-2xl font-bold mb-3 text-heading-card">Create Custom Theme</h3>
+          <form id="custom-theme-form" class="space-y-2">
+            <div class="input-field mb-2">
+              <label for="custom-theme-name" class="block mb-1">Theme Name:</label>
+              <input type="text" id="custom-theme-name" placeholder="My Awesome Theme" class="py-1 px-2 w-full rounded border border-input-border" required />
             </div>
-
-            <div class="input-field mb-4">
-              <label for="custom-theme-background-pattern" class="block text-gray-300 text-sm font-bold mb-2">Background Pattern:</label>
-              <select id="custom-theme-background-pattern" class="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" style="background: var(--color-input-bg); color: var(--color-input-text);">
+            <div id="custom-theme-color-inputs" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+              <!-- Color pickers will be injected here -->
+            </div>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <label for="custom-theme-background-pattern" class="block">Pattern:</label>
+              <select id="custom-theme-background-pattern" class="py-1 px-2 rounded border border-input-border">
                 <option value="none">None</option>
                 <option value="dots">Dots</option>
                 <option value="grid">Grid</option>
+                <option value="diagonal">Diagonal</option>
+                <option value="circles">Circles</option>
+                <option value="hexagons">Hexagons</option>
               </select>
             </div>
-
-            <div id="custom-theme-color-inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div class="color-input-group">
-                <label for="color-body-bg">Body Background:</label>
-                <div>
-                  <input type="text" id="color-body-bg" value="#1F2937" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-body-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-text-primary">Primary Text:</label>
-                <div>
-                  <input type="text" id="color-text-primary" value="#E5E7EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-text-primary" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-text-secondary">Secondary Text:</label>
-                <div>
-                  <input type="text" id="color-text-secondary" value="#9CA3AF" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-text-secondary" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-link">Link Color:</label>
-                <div>
-                  <input type="text" id="color-link" value="#60A5FA" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-link" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-bg-navbar">Navbar Background:</label>
-                <div>
-                  <input type="text" id="color-bg-navbar" value="#111827" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-bg-navbar" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-bg-content-section">Content Section BG:</label>
-                <div>
-                  <input type="text" id="color-bg-content-section" value="#1F2937" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-bg-content-section" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-bg-card">Card Background:</label>
-                <div>
-                  <input type="text" id="color-bg-card" value="#2D3748" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-bg-card" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-heading-main">Main Heading Color:</label>
-                <div>
-                  <input type="text" id="color-heading-main" value="#F9FAFB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-heading-main" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-heading-card">Card Heading Color:</label>
-                <div>
-                  <input type="text" id="color-heading-card" value="#93C5FD" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-heading-card" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-input-bg">Input Background:</label>
-                <div>
-                  <input type="text" id="color-input-bg" value="#374151" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-input-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-input-text">Input Text:</label>
-                <div>
-                  <input type="text" id="color-input-text" value="#E5E7EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-input-text" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-input-border">Input Border:</label>
-                <div>
-                  <input type="text" id="color-input-border" value="#4B5563" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-input-border" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-placeholder">Placeholder Text:</label>
-                <div>
-                  <input type="text" id="color-placeholder" value="#9CA3AF" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-placeholder" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-text">Button Text:</label>
-                <div>
-                  <input type="text" id="color-button-text" value="#FFFFFF" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-text" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-blue-bg">Blue Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-blue-bg" value="#3B82F6" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-blue-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-blue-hover">Blue Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-blue-hover" value="#2563EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-blue-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-green-bg">Green Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-green-bg" value="#10B981" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-green-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-green-hover">Green Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-green-hover" value="#059669" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-green-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-red-bg">Red Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-red-bg" value="#EF4444" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-red-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-red-hover">Red Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-red-hover" value="#DC2626" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-red-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-purple-bg">Purple Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-purple-bg" value="#9333EA" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-purple-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-purple-hover">Purple Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-purple-hover" value="#7E22CE" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-purple-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-yellow-bg">Yellow Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-yellow-bg" value="#FBBF24" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-yellow-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-yellow-hover">Yellow Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-yellow-hover" value="#D97706" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-yellow-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-orange-bg">Orange Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-orange-bg" value="#F97316" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-orange-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-orange-hover">Orange Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-orange-hover" value="#EA580C" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-orange-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-indigo-bg">Indigo Button BG:</label>
-                <div>
-                  <input type="text" id="color-button-indigo-bg" value="#6366F1" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-indigo-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-button-indigo-hover">Indigo Button Hover:</label>
-                <div>
-                  <input type="text" id="color-button-indigo-hover" value="#4F46E5" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-button-indigo-hover" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-table-th-bg">Table Header BG:</label>
-                <div>
-                  <input type="text" id="color-table-th-bg" value="#1F2937" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-table-th-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-table-th-text">Table Header Text:</label>
-                <div>
-                  <input type="text" id="color-table-th-text" value="#E5E7EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-table-th-text" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-table-td-border">Table Cell Border:</label>
-                <div>
-                  <input type="text" id="color-table-td-border" value="#4B5563" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-table-td-border" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-table-row-even-bg">Table Even Row BG:</label>
-                <div>
-                  <input type="text" id="color-table-row-even-bg" value="#374151" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-table-row-even-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-modal-bg">Modal Background:</label>
-                <div>
-                  <input type="text" id="color-modal-bg" value="#2D3748" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-modal-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-modal-text">Modal Text:</label>
-                <div>
-                  <input type="text" id="color-modal-text" value="#E5E7EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-modal-text" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-modal-input-bg">Modal Input BG:</label>
-                <div>
-                  <input type="text" id="color-modal-input-bg" value="#374151" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-modal-input-bg" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-modal-input-text">Modal Input Text:</label>
-                <div>
-                  <input type="text" id="color-modal-input-text" value="#E5E7EB" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-modal-input-text" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-message-box-bg-success">Message Success BG:</label>
-                <div>
-                  <input type="text" id="color-message-box-bg-success" value="#4CAF50" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-message-box-bg-success" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
-              <div class="color-input-group">
-                <label for="color-message-box-bg-error">Message Error BG:</label>
-                <div>
-                  <input type="text" id="color-message-box-bg-error" value="#F44336" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                  <input type="color" data-target="color-message-box-bg-error" style="background: var(--color-input-bg); color: var(--color-input-text);">
-                </div>
-              </div>
+            <div class="flex justify-end mt-2">
+              <button id="save-custom-theme-btn" class="btn-primary btn-blue px-4 py-2 rounded">Save Custom Theme</button>
             </div>
-            <button type="submit" id="save-custom-theme-btn" class="btn-primary btn-blue mt-4">Save Custom Theme</button>
           </form>
-
-          <h4 class="text-xl font-semibold text-gray-200 mt-6 mb-3">Your Custom Themes:</h4>
-          <ul id="custom-theme-list" class="list-disc list-inside text-gray-300 space-y-2">
-            <li>No custom themes yet.</li>
-          </ul>
+          <ul id="custom-theme-list" class="mt-4"></ul>
         </div>
       </div>
     `;
