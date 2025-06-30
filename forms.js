@@ -752,9 +752,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Tab navigation
   if (dmTabBtn && dmTabContent) {
     dmTabBtn.addEventListener('click', function () {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById('dm-tab-content').classList.add('active');
+      dmTabContent.style.display = 'block';
       this.classList.add('active');
       setupDmEventListenersSafe();
     });
