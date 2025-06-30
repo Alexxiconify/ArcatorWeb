@@ -1294,8 +1294,8 @@ select.w-full {
 }
 
 .bg-card {
-  background-color: var(--color-bg-card) !important;
-  transition: background-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* --- Forum Themata UI Tweaks --- */
@@ -1349,16 +1349,19 @@ select.w-full {
 
 /* PATCH: THEME-AWARE FORM INPUTS */
 .form-input {
-  background-color: var(--color-bg-card) !important;
-  color: var(--color-text-primary) !important;
-  border: none !important;
-  border-radius: 0.375rem !important;
+  width: 100% !important;
+  display: block !important;
+  box-sizing: border-box;
+}
+
+.bg-card {
   width: 100%;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  transition:
-    border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
+  box-sizing: border-box;
+}
+
+.text-text-primary {
+  width: 100%;
+  box-sizing: border-box;
 }
 .form-input:focus {
   outline: none;
