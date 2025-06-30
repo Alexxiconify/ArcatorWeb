@@ -556,6 +556,9 @@ async function renderTempPages() {
       await deleteTempPage(id);
     });
   });
+  
+  // Also update the table
+  await renderTempPagesTable();
 }
 
 function openEditTempPageModal(id, title, content) {
@@ -660,7 +663,7 @@ const updateAdminUI = async (user) => {
       loadUsers(),
       loadDMHistory(),
       loadFormsData(),
-      fetchAllTempPages(),
+      renderTempPagesTable(),
       populateEmailRecipients(),
       loadEmailHistory(),
       displayEmailJSStatus(),
@@ -1016,10 +1019,10 @@ async function loadEmailHistory() {
       const row = document.createElement("tr");
       row.className = "hover:bg-table-row-even-bg";
       row.innerHTML = `
-        <td class="px-4 py-2 text-text-secondary">${sentAt.toLocaleString()}</td>
-        <td class="px-4 py-2 text-text-primary text-xs">${escapeHtml(emailData.subject || "No subject")}</td>
-        <td class="px-4 py-2 text-text-secondary text-xs">${escapeHtml(recipients)}</td>
-        <td class="px-4 py-2">
+        <td class="px-2 py-1 text-text-secondary text-xs">${sentAt.toLocaleString()}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(emailData.subject || "No subject")}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(recipients)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
           <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
             emailData.status === "sent"
               ? "bg-green-100 text-green-800"
@@ -1030,8 +1033,8 @@ async function loadEmailHistory() {
             ${emailData.status || "unknown"}
           </span>
         </td>
-        <td class="px-4 py-2 text-text-secondary text-xs">${emailData.method || "Unknown"}</td>
-        <td class="px-4 py-2">
+        <td class="px-2 py-1 text-text-secondary text-xs">${emailData.method || "Unknown"}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
           <button class="btn-primary btn-blue text-xs px-3 py-1 rounded admin-action-btn" onclick="viewEmailDetails('${doc.id}')">View</button>
         </td>
       `;
@@ -1942,3 +1945,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     showMessageBox("Failed to initialize admin panel: " + error.message, true);
   }
 });
+
+async function renderTempPagesTable() {
+  const tbody = document.getElementById("temp-pages-tbody");
+  if (!tbody) return;
+
+  const pages = await fetchAllTempPages();
+  
+  if (pages.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td class="text-center py-4 text-text-secondary text-xs" colspan="2">No temporary pages found.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = pages
+    .map((page) => {
+      return `
+      <tr class="hover:bg-table-row-even-bg transition-colors">
+        <td class="px-2 py-1 text-text-primary text-xs font-medium">${escapeHtml(page.title)}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">
+          <div class="flex space-x-1">
+            <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" 
+               class="text-link hover:text-link transition-colors admin-action-btn" title="View Page">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            </a>
+            <button onclick="openEditTempPageModal('${page.id}', '${escapeHtml(page.title)}', '${escapeHtml(page.content)}')"
+                    class="text-link hover:text-link transition-colors admin-action-btn" title="Edit Page">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button onclick="deleteTempPage('${page.id}')"
+                    class="text-red-400 hover:text-red-300 transition-colors admin-action-btn" title="Delete Page">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    })
+    .join("");
+}

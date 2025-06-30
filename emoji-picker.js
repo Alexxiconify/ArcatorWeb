@@ -609,9 +609,9 @@ function insertMediaUrl(url, pickerId) {
 
   if (targetInput) {
     const extension = url.split(".").pop()?.toLowerCase();
-    const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
-    const videoExtensions = ["mp4", "webm", "ogg"];
-    const audioExtensions = ["mp3", "wav", "aac"];
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"];
+    const videoExtensions = ["mp4", "webm", "ogg", "avi", "mov", "mkv"];
+    const audioExtensions = ["mp3", "wav", "aac", "ogg", "flac"];
 
     let markdown;
     if (imageExtensions.includes(extension)) {
@@ -621,7 +621,19 @@ function insertMediaUrl(url, pickerId) {
     } else if (audioExtensions.includes(extension)) {
       markdown = `![Audio](${url})`;
     } else {
-      markdown = url;
+      // For URLs without clear extension, try to detect content type
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        const videoId = extractYouTubeVideoId(url);
+        if (videoId) {
+          markdown = `![YouTube Video](https://www.youtube.com/watch?v=${videoId})`;
+        } else {
+          markdown = url;
+        }
+      } else if (url.includes('giphy.com') || url.includes('tenor.com')) {
+        markdown = `![GIF](${url})`;
+      } else {
+        markdown = url;
+      }
     }
 
     insertAtCursor(targetInput, markdown);
@@ -783,12 +795,21 @@ function setupMediaPickerEventListeners(pickerId) {
       // Update active content
       tabContents.forEach((content) => {
         content.classList.remove("active");
-        if (content.id === `${targetTab}-tab`) {
+        if (content.id === `${pickerId}-${targetTab}-tab`) {
           content.classList.add("active");
         }
       });
     });
   });
+
+  // Initialize URL validation
+  initUrlValidation(pickerId);
+
+  // Initialize GIF search
+  initGifSearch(pickerId);
+
+  // Initialize YouTube validation
+  initYouTubeValidation(pickerId);
 }
 
 /**
@@ -929,6 +950,7 @@ window.createEmojiPickerHTML = createEmojiPickerHTML;
 window.createEmojiInputContainer = createEmojiInputContainer;
 window.initEmojiPicker = initEmojiPicker;
 window.markdownToHtml = markdownToHtml;
+window.hideEmojiPicker = hideEmojiPicker;
 
 // --- SPLIT PICKERS ---
 
@@ -973,6 +995,7 @@ export function createSimpleEmojiPickerHTML(pickerId = "emoji-picker") {
     <div id="${pickerId}" class="emoji-picker hidden">
       <div class="emoji-picker-header">
         <input type="text" id="${pickerId}-search" placeholder="Search emojis..." class="emoji-search">
+        <button type="button" class="close-button" onclick="hideEmojiPicker('${pickerId}')" title="Close">×</button>
       </div>
       <div class="emoji-list"></div>
     </div>
@@ -985,6 +1008,10 @@ export function createSimpleEmojiPickerHTML(pickerId = "emoji-picker") {
 export function createMediaPickerHTML(pickerId = "media-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
+      <div class="media-picker-header">
+        <span class="media-picker-title">Insert Media</span>
+        <button type="button" class="close-button" onclick="hideEmojiPicker('${pickerId}')" title="Close">×</button>
+      </div>
       <div class="media-picker-tabs">
         <button class="media-tab" data-tab="gif">🎬 GIF Search</button>
         <button class="media-tab active" data-tab="url">🔗 URL Paste</button>
@@ -1040,7 +1067,8 @@ window.toggleEmojiPicker = function (pickerId, type) {
         if (s) s.focus();
       }, 100);
     } else if (type === "media") {
-      // TODO: init media picker tabs/events if needed
+      // Initialize media picker functionality
+      setupMediaPickerEventListeners(pickerId);
     }
   }
 };
@@ -1059,7 +1087,7 @@ function renderGifResults(gifs, pickerId) {
     <div class="gif-item" style="display: inline-block; margin: 0.25rem; cursor: pointer; border-radius: 0.375rem; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;" 
          onmouseover="this.style.borderColor='var(--color-link)'" 
          onmouseout="this.style.borderColor='transparent'"
-         onclick="insertMediaUrl('${gif.original}', '${pickerId}')" 
+         onclick="insertGif('${gif.original}', '${pickerId}')" 
          title="${gif.title}">
       <img src="${gif.url}" alt="${gif.title}" style="max-width: 120px; max-height: 120px; display: block;" />
     </div>

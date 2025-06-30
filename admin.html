@@ -19,143 +19,6 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <!-- EmailJS Script -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-      /* Base styles using CSS variables */
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--color-body-bg);
-        color: var(--color-text-primary);
-        transition:
-          background-color 0.3s,
-          color 0.3s;
-      }
-
-      /* Hero banner background image */
-      .hero-banner {
-        background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 250px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .hero-banner::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1;
-      }
-
-      .hero-content {
-        position: relative;
-        z-index: 2;
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-      }
-
-      /* Collapsible header styling */
-      .collapsible-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
-
-      .collapsible-header h3 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-
-      .collapsible-header svg {
-        transition: transform 0.3s ease;
-      }
-
-      .collapsible-header svg.rotate-90 {
-        transform: rotate(90deg);
-      }
-
-      /* Styles for content sections to save vertical space */
-      .collapsible-content {
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-      }
-
-      /* Reduce vertical spacing for lists within collapsible sections */
-      .collapsible-content ul {
-        margin-bottom: 0.5rem;
-      }
-      .collapsible-content li {
-        margin-bottom: 0.25rem;
-      }
-
-      /* Styles for temporary page tabs */
-      .temp-page-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        border-bottom: 2px solid var(--color-input-border);
-        padding-bottom: 0.5rem;
-        overflow-x: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-link) var(--color-bg-navbar);
-      }
-
-      .temp-page-tabs::-webkit-scrollbar {
-        height: 8px;
-      }
-
-      .temp-page-tabs::-webkit-scrollbar-track {
-        background: var(--color-bg-navbar);
-        border-radius: 10px;
-      }
-
-      .temp-page-tabs::-webkit-scrollbar-thumb {
-        background-color: var(--color-link);
-        border-radius: 10px;
-        border: 2px solid var(--color-bg-navbar);
-      }
-
-      .temp-page-tab-button {
-        flex-shrink: 0;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        transition:
-          background-color 0.2s ease,
-          color 0.2s ease;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 150px;
-      }
-
-      .temp-page-tab-button.active {
-        font-weight: 600;
-      }
-
-      .main-section,
-      .admin-section,
-      .content-section {
-        background-color: var(--color-bg-content-section);
-        color: var(--color-text-primary);
-      }
-    </style>
   </head>
   <body class="antialiased">
     <!-- Navbar Placeholder -->
@@ -464,7 +327,7 @@
                               "temp-page-content-media-picker",
                               "textarea",
                               "Write your page content here... Use HTML for styling!",
-                              "form-input w-full h-32",
+                              "form-input w-full h-16",
                             );
                           }
                         });
@@ -809,7 +672,10 @@
                         />
                       </div>
 
-                      <div class="emoji-input-container">
+                      <div class="input-field">
+                        <label for="email-content" class="form-label"
+                          >Email Content:</label
+                        >
                         <div id="email-content-container"></div>
                         <script type="module">
                           import { createEmojiMediaInputContainer } from "./emoji-picker.js";
@@ -822,7 +688,7 @@
                                 "email-content-media-picker",
                                 "textarea",
                                 "Write your email content here...",
-                                "form-input w-full h-32 bg-input-bg text-input-text border-input-border",
+                                "form-input w-full h-32",
                               );
                             }
                           });
@@ -830,20 +696,20 @@
                       </div>
 
                       <div class="flex space-x-2">
-                        <button type="submit" class="btn-primary btn-blue">
+                        <button type="submit" class="btn-primary">
                           Send Email
                         </button>
                         <button
                           type="button"
                           id="preview-email-btn"
-                          class="btn-primary btn-blue"
+                          class="btn-primary"
                         >
                           Preview
                         </button>
                         <button
                           type="button"
                           id="save-draft-btn"
-                          class="btn-primary btn-blue"
+                          class="btn-primary"
                         >
                           Save Draft
                         </button>
