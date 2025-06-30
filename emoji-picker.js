@@ -330,32 +330,8 @@ export function createEmojiInputContainer(
   `;
 }
 
-/**
- * Initializes the emoji picker with all functionality.
- * @param {string} pickerId - The ID of the emoji picker element.
- * @param {string} type - The type of picker ('emoji' or 'media').
- */
-export function initEmojiPicker(pickerId = "emoji-picker", type = "emoji") {
-  const picker = document.getElementById(pickerId);
-  if (!picker) return;
-  if (type === "emoji") {
-    if (emojiData.length === 0)
-      loadEmojiData().then(() => {
-        filteredEmojis = emojiData;
-        renderEmojis(filteredEmojis, pickerId);
-        renderEmojiTabs(pickerId);
-        setupEmojiPickerEventListeners(pickerId);
-      });
-    else {
-      filteredEmojis = emojiData;
-      renderEmojis(filteredEmojis, pickerId);
-      renderEmojiTabs(pickerId);
-      setupEmojiPickerEventListeners(pickerId);
-    }
-  } else if (type === "media") {
-    setupMediaPickerEventListeners(pickerId);
-  }
-}
+// Emoji/media picker temporarily disabled
+export function initEmojiPicker() {}
 
 /**
  * Initializes the media picker functionality.
