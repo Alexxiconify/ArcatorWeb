@@ -757,19 +757,17 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   // Tab navigation
-  dmTabBtn?.addEventListener("click", async () => {
-    document
-      .querySelectorAll(".tab-content")
-      .forEach((el) => (el.style.display = "none"));
-    document
-      .querySelectorAll(".tab-btn")
-      .forEach((el) => el.classList.remove("active"));
-    dmTabContent.style.display = "block";
-    dmTabBtn.classList.add("active");
-
-    // Initialize DM functionality when tab is opened
-    await initializeDmTab();
-  });
+  if (dmTabBtn && dmTabContent) {
+    dmTabBtn.addEventListener('click', async () => {
+      await renderConversationsList();
+      setupDmEventListeners();
+    });
+    // If DM tab is active on load, initialize immediately
+    if (dmTabContent.classList.contains('active') || dmTabContent.style.display !== 'none') {
+      renderConversationsList();
+      setupDmEventListeners();
+    }
+  }
 
   const allThematasTabBtn = document.getElementById("tab-themata-all");
   allThematasTabBtn?.addEventListener("click", () => {
@@ -803,9 +801,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Initialize thematas
   renderThematas();
 
-  // Collapsible for Create New Théma
-  setupCollapsibleToggles();
-
   // Add a single event listener for .collapse-btn clicks:
   document.body.addEventListener("click", function(e) {
     if (e.target.closest && e.target.closest(".collapse-btn")) {
@@ -834,6 +829,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
     }
   });
+
+  // Wire up DM send message form
+  const sendMessageForm = document.getElementById("send-message-form");
+  if (sendMessageForm) {
+    sendMessageForm.addEventListener("submit", sendMessage);
+  }
 });
 
 // --- PATCH: REACTIONS ---
@@ -965,9 +966,6 @@ async function initializeDmTab() {
 }
 
 async function setupDmEventListeners() {
-  // DM-specific event listeners
-  attachDmEventListeners();
-
   // Sort conversations
   const sortSelect = document.getElementById("sort-conversations-by");
   if (sortSelect) {
@@ -976,7 +974,6 @@ async function setupDmEventListeners() {
       renderConversationsList();
     });
   }
-
   // Back to chats button
   const backBtn = document.getElementById("back-to-chats-btn");
   if (backBtn) {
@@ -984,29 +981,24 @@ async function setupDmEventListeners() {
       updateDmUiForNoConversationSelected();
     });
   }
-
   // Create conversation form - ensure it's properly connected
   const createForm = document.getElementById("create-conversation-form");
   if (createForm) {
-    // Remove any existing listeners to prevent duplicates
     createForm.removeEventListener("submit", handleCreateConversation);
     createForm.addEventListener("submit", handleCreateConversation);
   }
-
   // Click outside suggestions to hide them
   document.addEventListener("click", (event) => {
     const privateSuggestions = document.getElementById(
       "private-chat-suggestions",
     );
     const groupSuggestions = document.getElementById("group-chat-suggestions");
-
     if (
       privateSuggestions &&
       !event.target.closest(".recipient-input-container")
     ) {
       privateSuggestions.style.display = "none";
     }
-
     if (
       groupSuggestions &&
       !event.target.closest(".recipient-input-container")
@@ -1092,174 +1084,106 @@ function renderContent(content) {
 }
 
 // --- DM SYSTEM PLACEHOLDERS (to prevent ReferenceError) ---
-function initializeDmSystem() {
-  // TODO: Implement DM system initialization
-  console.log('initializeDmSystem() called (placeholder)');
-}
-function loadConversations() {
-  // TODO: Implement DM conversations loading
-  console.log('loadConversations() called (placeholder)');
-}
-function attachDmEventListeners() {
-  // TODO: Implement DM event listeners
-  console.log('attachDmEventListeners() called (placeholder)');
-}
-function renderConversationsList() {
-  // TODO: Implement DM conversation list rendering
-  console.log('renderConversationsList() called (placeholder)');
+// REMOVE these placeholder functions and wire up the real ones below
+// function initializeDmSystem() { ... }
+// function loadConversations() { ... }
+// function attachDmEventListeners() { ... }
+// function renderConversationsList() { ... }
+
+// --- DM SYSTEM: Minimal, robust, Teams-style ---
+// Firestore path: artifacts/{appId}/users/{userId}/dms/{conversationId}/messages/{messageId}
+
+// Helper: Get DM conversations for current user
+async function getDmConversations() {
+  if (!auth.currentUser) return [];
+  const dmsCol = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dms`);
+  const qDms = query(dmsCol, orderBy("lastMessageAt", "desc"));
+  const snap = await getDocs(qDms);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-// Ensure DM system initializes on DM tab click or if DM tab is active on load
-if (dmTabBtn && dmTabContent) {
-  dmTabBtn.addEventListener('click', () => {
-    initializeDmSystem();
-    setupDmEventListeners();
+// Helper: Get messages for a conversation
+async function getDmMessages(conversationId) {
+  if (!auth.currentUser) return [];
+  const msgsCol = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dms/${conversationId}/messages`);
+  const qMsgs = query(msgsCol, orderBy("createdAt", "asc"));
+  const snap = await getDocs(qMsgs);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Create a new DM conversation (private, single recipient)
+async function createConversation(type, groupName, groupImage) {
+  if (!auth.currentUser) return showMessageBox("Login required", true);
+  const myUid = auth.currentUser.uid;
+  const convId = [myUid, groupName].sort().join("_");
+  const myConvRef = doc(db, `artifacts/${appId}/users/${myUid}/dms`, convId);
+  const theirConvRef = doc(db, `artifacts/${appId}/users/${groupName}/dms`, convId);
+  const now = serverTimestamp();
+  await setDoc(myConvRef, { id: convId, otherUser: groupName, lastMessageAt: now }, { merge: true });
+  await setDoc(theirConvRef, { id: convId, otherUser: myUid, lastMessageAt: now }, { merge: true });
+  showMessageBox("Chat created");
+  await renderConversationsList();
+}
+
+// Render conversations list
+async function renderConversationsList() {
+  const list = document.getElementById("conversations-list");
+  if (!list) return;
+  const conversations = await getDmConversations();
+  list.innerHTML = conversations.length ? conversations.map(conv => `
+    <div class="conversation-item" data-conv-id="${conv.id}">
+      <div class="conversation-header">
+        <span class="conversation-name">${escapeHtml(conv.otherUser)}</span>
+        <span class="conversation-time text-xs">${conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleString() : ''}</span>
+      </div>
+    </div>
+  `).join('') : '<div class="text-center text-text-secondary">No conversations</div>';
+  // Click handler
+  list.querySelectorAll('.conversation-item').forEach(item => {
+    item.onclick = () => renderMessagesForConversation(item.dataset.convId);
   });
-  // If DM tab is active on load, initialize immediately
-  if (dmTabContent.classList.contains('active') || dmTabContent.style.display !== 'none') {
-    initializeDmSystem();
-    setupDmEventListeners();
-  }
 }
 
-// --- Unified collapsible toggle logic ---
-function setupCollapsibleToggles() {
-  // Théma
-  const toggleThemaBtn = document.getElementById("toggle-create-thema");
-  const createThemaCollapsible = document.getElementById("create-thema-collapsible");
-  if (toggleThemaBtn && createThemaCollapsible) {
-    toggleThemaBtn.onclick = () => {
-      createThemaCollapsible.style.display = createThemaCollapsible.style.display === "none" ? "block" : "none";
-    };
-  }
-  // Thread & Comment
-  document.body.addEventListener("click", (e) => {
-    if (e.target.classList.contains("toggle-create-thread") || e.target.classList.contains("toggle-add-comment")) {
-      const collapsible = e.target.nextElementSibling;
-      if (collapsible) collapsible.style.display = collapsible.style.display === "none" ? "block" : "none";
-    }
-  });
+// Render messages for a conversation
+async function renderMessagesForConversation(convId) {
+  const container = document.getElementById("conversation-messages-container");
+  if (!container) return;
+  const messages = await getDmMessages(convId);
+  container.innerHTML = messages.length ? messages.map(msg => `
+    <div class="message-bubble ${msg.sender === auth.currentUser.uid ? 'sent' : 'received'}">
+      <div class="message-author"><img src="${msg.senderPhoto || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}" alt="User">${escapeHtml(msg.senderName || msg.sender)}</div>
+      <div class="message-content">${escapeHtml(msg.content)}</div>
+      <div class="message-timestamp text-xs">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
+    </div>
+  `).join('') : '<div class="text-center text-text-secondary">No messages</div>';
+  // Set current conversation for sending
+  document.getElementById("selected-chat-dropdown").value = convId;
 }
 
-// --- Inline Edit Logic for Thema, Thread, Comment ---
-function makeEditable(cardElem, type, ids, oldTitle, oldDesc) {
-  // type: 'thema', 'thread', 'comment'
-  // ids: {themaId, threadId, commentId}
-  // oldTitle: for thema/thread, oldDesc: for thema/thread/comment
-  const titleElem = cardElem.querySelector('.font-bold');
-  const descElem = cardElem.querySelector('.thema-description, .comment-content');
-  if (!titleElem || !descElem) return;
-  // Save originals
-  const origTitle = titleElem.textContent;
-  const origDesc = descElem.textContent;
-  // Replace with inputs
-  titleElem.innerHTML = `<input class="form-input inline-edit-title" value="${escapeHtml(origTitle)}" style="font-weight:700;width:100%;margin-bottom:4px;">`;
-  descElem.innerHTML = `<textarea class="form-input inline-edit-desc" style="width:100%;min-height:32px;">${escapeHtml(origDesc)}</textarea>`;
-  // Move Save/Cancel to actions-right (top right)
-  let actions = cardElem.querySelector('.actions-right');
-  if (!actions) return;
-  actions.innerHTML = `
-    <button class="save-edit-btn btn-primary btn-blue" title="Save">✔</button>
-    <button class="cancel-edit-btn btn-primary btn-red" title="Cancel">✖</button>
-  `;
-  // Save handler
-  actions.querySelector('.save-edit-btn').onclick = async () => {
-    const newTitle = titleElem.querySelector('input')?.value.trim();
-    const newDesc = descElem.querySelector('textarea')?.value.trim();
-    if ((type !== 'comment' && (!newTitle || !newDesc)) || (type === 'comment' && !newDesc)) return showMessageBox('Fields required', true);
-    if (type === 'thema') {
-      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas`, ids.themaId), { name: newTitle, description: newDesc }, { merge: true });
-    } else if (type === 'thread') {
-      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads`, ids.threadId), { title: newTitle, initialComment: newDesc }, { merge: true });
-    } else if (type === 'comment') {
-      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads/${ids.threadId}/comments`, ids.commentId), { content: newDesc }, { merge: true });
-    }
-    showMessageBox('Saved.');
-    renderThematas();
+// Send message
+async function sendMessage(event) {
+  event.preventDefault();
+  if (!auth.currentUser) return showMessageBox("Login required", true);
+  const convId = document.getElementById("selected-chat-dropdown").value;
+  const input = document.getElementById("message-content-input");
+  const content = input?.value?.trim();
+  if (!convId || !content) return;
+  const myUid = auth.currentUser.uid;
+  const myProfile = window.currentUser || {};
+  const msg = {
+    sender: myUid,
+    senderName: myProfile.displayName || "Me",
+    senderPhoto: myProfile.photoURL || '',
+    content,
+    createdAt: serverTimestamp(),
   };
-  // Cancel handler
-  actions.querySelector('.cancel-edit-btn').onclick = () => {
-    titleElem.textContent = origTitle;
-    descElem.textContent = origDesc;
-    actions.innerHTML = '';
-    // Re-render edit/delete icons
-    if (type === 'thema' || type === 'thread' || type === 'comment') renderThematas();
-  };
-}
-
-// --- Unified Reddit-style card rendering for thema, thread, comment ---
-function renderRedditTree(thematas) {
-  return thematas.map(thema => {
-    const canEditThema = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy);
-    let themaConnectors = '';
-    // No connector for root
-    return `
-      <div class="reddit-card depth-0" data-thema-id="${thema.id}">
-        <div class="reddit-header flex items-center">
-          <span class="font-bold text-lg">${escapeHtml(thema.name)}</span>
-          <span class="thema-description text-text-secondary text-sm ml-2">${escapeHtml(thema.description)}</span>
-          <div class="actions-right ml-auto flex gap-2">
-            ${canEditThema ? `
-              <button class="edit-themata-btn icon-btn" title="Edit Themata">...</button>
-              <button class="delete-themata-btn icon-btn" title="Delete Themata">...</button>
-            ` : ''}
-          </div>
-        </div>
-        <div class="reddit-children">
-          ${thema.threads ? renderRedditThreads(thema.threads, 1) : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-function renderRedditThreads(threads, depth) {
-  return threads.map(thread => {
-    const canEditThread = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy);
-    let threadConnectors = depth > 0 ? `<div class='vertical-connector'></div><div class='horizontal-connector'></div>` : '';
-    return `
-      <div class="reddit-card depth-${depth}" data-thread-id="${thread.id}">
-        ${threadConnectors}
-        <div class="reddit-header flex items-center">
-          <span class="font-bold text-base">${escapeHtml(thread.title)}</span>
-          <span class="thread-description text-text-secondary text-sm ml-2">${escapeHtml(thread.initialComment)}</span>
-          <div class="actions-right ml-auto flex gap-2">
-            ${canEditThread ? `
-              <button class="edit-thread-btn icon-btn" title="Edit Thread">...</button>
-              <button class="delete-thread-btn icon-btn" title="Delete Thread">...</button>
-            ` : ''}
-          </div>
-        </div>
-        <div class="reddit-children">
-          ${thread.comments ? renderRedditComments(thread.comments, depth + 1) : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-function renderRedditComments(comments, depth) {
-  return comments.map(c => {
-    const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
-    let connectors = depth > 0 ? `<div class='vertical-connector'></div><div class='horizontal-connector'></div>` : '';
-    let photoURL = c.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
-    return `
-      <div class="reddit-card depth-${depth}" data-comment-id="${c.id}">
-        ${connectors}
-        <div class="reddit-header flex items-center">
-          <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0">
-          <span class="text-xs text-text-secondary">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
-          <div class="actions-right ml-auto flex gap-2">
-            ${canEdit ? `
-              <button class="edit-comment-btn icon-btn" title="Edit Comment">...</button>
-              <button class="delete-comment-btn icon-btn" title="Delete Comment">...</button>
-            ` : ''}
-          </div>
-        </div>
-        <div class="reddit-content text-sm mt-0.5 mb-0.5">${renderContent(c.content)}</div>
-        <div class="reddit-children">
-          ${c.children && c.children.length ? renderRedditComments(c.children, depth + 1) : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
+  // Add message to both users' collections
+  const msgId = Math.random().toString(36).slice(2);
+  const myMsgRef = doc(db, `artifacts/${appId}/users/${myUid}/dms/${convId}/messages`, msgId);
+  await setDoc(myMsgRef, msg);
+  // Optionally, add to recipient's collection as well
+  input.value = '';
+  await renderMessagesForConversation(convId);
+  await renderConversationsList();
 }
 
