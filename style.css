@@ -12,7 +12,7 @@
    ========================================================================== */
 
 html {
-  color: #222;
+  color: var(--color-text-primary, #222);
   font-size: 0.875em;
   line-height: 1.4;
 }
@@ -25,12 +25,12 @@ html {
  */
 
 ::-moz-selection {
-  background: #b3d4fc;
+  background: var(--color-link, #b3d4fc);
   text-shadow: none;
 }
 
 ::selection {
-  background: #b3d4fc;
+  background: var(--color-link, #b3d4fc);
   text-shadow: none;
 }
 
@@ -42,7 +42,7 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--color-input-border, #ccc);
   margin: 1em 0;
   padding: 0;
 }
@@ -188,8 +188,8 @@ textarea {
   *,
   *::before,
   *::after {
-    background: #fff !important;
-    color: #000 !important;
+    background: var(--color-bg-card, #fff) !important;
+    color: var(--color-text-primary, #000) !important;
     /* Black prints faster */
     box-shadow: none !important;
     text-shadow: none !important;
@@ -223,8 +223,17 @@ textarea {
 
   pre,
   blockquote {
-    border: 1px solid #999;
+    border: 1px solid var(--color-input-border, #999);
     page-break-inside: avoid;
+  }
+
+  /*
+   * Printing Tables:
+   * https://web.archive.org/web/20180815150934/http://css-discuss.incutio.com/wiki/Printing_Tables
+   */
+
+  thead {
+    display: table-header-group;
   }
 
   tr,
@@ -464,22 +473,22 @@ body,
   color: white;
 }
 .text-gray-400 {
-  color: #9ca3af;
+  color: var(--color-text-secondary, #9ca3af) !important;
 }
 .text-gray-500 {
-  color: #6b7280;
+  color: var(--color-text-secondary, #6b7280) !important;
 }
 .text-gray-600 {
-  color: #4b5563;
+  color: var(--color-text-secondary, #4b5563) !important;
 }
 .text-gray-700 {
-  color: #374151;
+  color: var(--color-text-secondary, #374151) !important;
 }
 .text-gray-800 {
-  color: #1f2937;
+  color: var(--color-text-secondary, #1f2937) !important;
 }
 .text-gray-900 {
-  color: #111827;
+  color: var(--color-text-secondary, #111827) !important;
 }
 
 /* Layout */
@@ -641,22 +650,22 @@ body,
 
 /* Hover states */
 .hover\:bg-blue-700:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-button-blue-hover, #1d4ed8) !important;
 }
 .hover\:bg-green-700:hover {
-  background-color: #15803d;
+  background-color: var(--color-button-green-hover, #15803d) !important;
 }
 .hover\:bg-red-700:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-button-red-hover, #b91c1c) !important;
 }
 .hover\:bg-indigo-700:hover {
-  background-color: #4338ca;
+  background-color: var(--color-button-purple-hover, #4338ca) !important;
 }
 .hover\:text-blue-300:hover {
-  color: #93c5fd;
+  color: var(--color-heading-card, #93c5fd) !important;
 }
 .hover\:text-red-300:hover {
-  color: #fca5a5;
+  color: var(--color-heading-main, #fca5a5) !important;
 }
 .hover\:underline:hover {
   text-decoration: underline;
@@ -736,6 +745,9 @@ body,
   cursor: pointer;
 }
 .select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 

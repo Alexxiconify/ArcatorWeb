@@ -133,10 +133,10 @@ export const shortcutDescriptions = {
 const pageUrls = {
   home: "index.html",
   about: "about.html",
-  servers: "servers.html",
-  community: "community.html",
-  interests: "interests.html",
-  games: "games.html",
+  servers: "servers-and-games.html",
+  community: null,
+  interests: null,
+  games: "servers-and-games.html",
   forms: "forms.html",
   dms: "forms.html#dms",
   "new-dm": "forms.html#dms",
@@ -303,16 +303,14 @@ function executeShortcut(shortcutKey) {
       window.location.href = "about.html";
       break;
     case "servers":
-      window.location.href = "servers.html";
+      window.location.href = "servers-and-games.html";
       break;
     case "community":
-      window.location.href = "community.html";
       break;
     case "interests":
-      window.location.href = "interests.html";
       break;
     case "games":
-      window.location.href = "games.html";
+      window.location.href = "servers-and-games.html";
       break;
     case "forms":
       window.location.href = "forms.html";
@@ -321,7 +319,7 @@ function executeShortcut(shortcutKey) {
       window.location.href = "forms.html#dms";
       break;
     case "new-dm":
-      window.location.href = "forms.html#new-dm";
+      window.location.href = "forms.html#dms";
       break;
     case "settings":
       window.location.href = "users.html";

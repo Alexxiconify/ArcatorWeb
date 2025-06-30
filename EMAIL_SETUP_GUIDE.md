@@ -65,7 +65,7 @@ firebase deploy --only functions
 
 ### 3.1 Browser Console Test
 
-1. Go to `admin_and_dev.html` in your browser
+1. Go to `admin.html` in your browser
 2. Open browser console (F12)
 3. Copy and paste the content from `test-email-browser.js`
 4. Press Enter to run the test
@@ -165,3 +165,9 @@ If you encounter issues:
 2. Verify SendGrid account status
 3. Test with the browser console script
 4. Check Firestore rules and permissions
+
+### 5. Configure on Your Website
+
+#### Option A: Use the Setup Page (Recommended)
+
+1. Open `admin.html` in your browser
