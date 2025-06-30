@@ -30,6 +30,8 @@
 .bg-green-600 { background-color: var(--color-button-green-bg) !important; color: var(--color-button-text) !important; }
 .hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
 .bg-red-600 { background-color: var(--color-button-red-bg) !important; color: var(--color-button-text) !important; }
+
+/*noinspection SpellCheckingInspection*/
 .hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
 .bg-purple-600 { background-color: var(--color-button-purple-bg) !important; color: var(--color-button-text) !important; }
 .hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
