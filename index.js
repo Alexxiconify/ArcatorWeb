@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const axios = require("axios");
 
 // Load sensitive configuration
-const config = require("../sensitive/functions-config");
+const config = require("./sensitive/functions-config");
 
 // Initialize Firebase Admin
 admin.initializeApp();
