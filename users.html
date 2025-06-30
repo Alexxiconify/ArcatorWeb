@@ -1813,6 +1813,8 @@
       applyTheme,
       applyCachedTheme,
     } from "./themes.js";
+    import { setupCustomThemeManagement } from './custom_theme_modal.js';
+    import { showMessageBox, showCustomConfirm } from './utils.js';
 
     // Apply cached theme immediately to prevent flash
     applyCachedTheme();
@@ -1836,6 +1838,18 @@
             `Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
           );
         }
+        // Setup custom theme modal trigger
+        setupCustomThemeManagement(
+          window.db,
+          auth,
+          window.appId || 'arcator-web',
+          showMessageBox,
+          null,
+          document.getElementById('theme-select'),
+          DEFAULT_THEME_NAME,
+          user,
+          showCustomConfirm
+        );
       });
     });
   </script>
