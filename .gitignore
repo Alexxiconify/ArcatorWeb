@@ -17,6 +17,9 @@ Thumbs.db
 # Development files and tools
 dev/
 
+# Sensitive files and folders
+sensitive/
+
 # EmailJS credentials and sensitive data
 emailjs_credentials.json
 .env
@@ -65,3 +68,6 @@ temp-*
 *token*
 *password*
 *credential*
+
+# Functions node_modules (if not using npm workspaces)
+functions/node_modules/

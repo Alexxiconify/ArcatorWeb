@@ -23,10 +23,9 @@ const firebaseConfig = {
   apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
   authDomain: "arcator-web.firebaseapp.com",
   projectId: "arcator-web",
-  storageBucket: "arcator-web.firebasestorage.app",
-  messagingSenderId: "1033082068049",
-  appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-  measurementId: "G-DJXNT1L7CM",
+  storageBucket: "arcator-web.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdefghijklmnop"
 };
 
 // Determine the correct appId for Firestore paths

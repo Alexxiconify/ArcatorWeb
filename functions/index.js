@@ -2,17 +2,11 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 
+// Load sensitive configuration
+const config = require("../sensitive/functions-config");
+
 // Initialize Firebase Admin
 admin.initializeApp();
-
-// SMTP Server configuration
-const SMTP_SERVER_URL = "http://apollo.arcator.co.uk:3001";
-const SMTP_SERVER_CONFIG = {
-  host: "smtp.gmail.com",
-  port: 587,
-  user: "no-reply.aractor@gmail.com",
-  pass: "ArcatorAppS3rver!2024",
-};
 
 /**
  * Cloud Function that triggers when a new document is added to email_history collection
@@ -43,7 +37,7 @@ exports.sendEmail = functions.firestore
       // Prepare email data for SMTP server
       const smtpEmailData = {
         to: emailData.to,
-        from: emailData.from || "no-reply.aractor@gmail.com",
+        from: emailData.from || config.SMTP_SERVER_CONFIG.user,
         subject: emailData.subject,
         text: emailData.isHtml ? null : emailData.content,
         html: emailData.isHtml ? emailData.content : null,
@@ -53,7 +47,7 @@ exports.sendEmail = functions.firestore
 
       // Send email using SMTP server REST API
       const response = await axios.post(
-        `${SMTP_SERVER_URL}/send-email`,
+        `${config.SMTP_SERVER_URL}/send-email`,
         smtpEmailData,
         {
           headers: {
@@ -118,7 +112,7 @@ async function updateEmailStatus(emailId, appId, status, message) {
 exports.testSMTP = functions.https.onRequest(async (req, res) => {
   try {
     // First check if SMTP server is healthy
-    const healthResponse = await axios.get(`${SMTP_SERVER_URL}/health`, {
+    const healthResponse = await axios.get(`${config.SMTP_SERVER_URL}/health`, {
       timeout: 10000,
     });
 
@@ -126,15 +120,15 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
 
     // Send test email
     const testEmailData = {
-      to: "taylorallred04@gmail.com",
-      from: "no-reply.aractor@gmail.com",
+      to: config.TEST_EMAIL.to,
+      from: config.TEST_EMAIL.from,
       subject: "SMTP Server Test Email",
       text: "This is a test email to verify SMTP server configuration.",
       html: "<p>This is a test email to verify SMTP server configuration.</p>",
     };
 
     const emailResponse = await axios.post(
-      `${SMTP_SERVER_URL}/send-email`,
+      `${config.SMTP_SERVER_URL}/send-email`,
       testEmailData,
       {
         headers: {
@@ -161,7 +155,7 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
     res.status(500).json({
       success: false,
       error: errorMessage,
-      smtpServerUrl: SMTP_SERVER_URL,
+      smtpServerUrl: config.SMTP_SERVER_URL,
     });
   }
 });
@@ -184,7 +178,7 @@ exports.sendBulkEmails = functions.https.onRequest(async (req, res) => {
 
     // Send bulk emails using SMTP server REST API
     const response = await axios.post(
-      `${SMTP_SERVER_URL}/send-bulk-emails`,
+      `${config.SMTP_SERVER_URL}/send-bulk-emails`,
       { emails },
       {
         headers: {
@@ -221,13 +215,13 @@ exports.sendBulkEmails = functions.https.onRequest(async (req, res) => {
  */
 exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
   try {
-    const response = await axios.get(`${SMTP_SERVER_URL}/health`, {
+    const response = await axios.get(`${config.SMTP_SERVER_URL}/health`, {
       timeout: 10000,
     });
 
     res.json({
       success: true,
-      smtpServerUrl: SMTP_SERVER_URL,
+      smtpServerUrl: config.SMTP_SERVER_URL,
       status: response.data,
     });
   } catch (error) {
@@ -236,7 +230,7 @@ exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message,
-      smtpServerUrl: SMTP_SERVER_URL,
+      smtpServerUrl: config.SMTP_SERVER_URL,
     });
   }
 });

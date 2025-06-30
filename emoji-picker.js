@@ -417,8 +417,10 @@ async function searchGifs(query, pickerId) {
   resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem;">Searching...</div>';
   
   try {
-    // Giphy API with public key
-    const apiKey = 'dc6zaTOxFJmzC'; // Giphy public beta key
+    // Load sensitive configuration
+    const config = await import('./sensitive/api-keys.js');
+    const apiKey = config.default.GIPHY_API_KEY;
+    
     const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=20&rating=pg`;
     
     const response = await fetch(url);

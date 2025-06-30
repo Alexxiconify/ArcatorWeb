@@ -175,16 +175,19 @@ export async function convertDiscordUrlToReliableCDN(discordURL) {
 
 // Upload image to ImgBB
 export async function uploadImageToImgBB(imageURL, albumId = null) {
-  const apiKey = "YOUR_IMGBB_API_KEY"; // Replace with actual key
-  if (!apiKey || apiKey === "YOUR_IMGBB_API_KEY") {
-    console.warn("ImgBB API key not configured");
-    return { success: false, error: "API key not configured" };
-  }
-
   try {
+    // Load sensitive configuration
+    const config = await import('./sensitive/api-keys.js');
+    const apiKey = config.default.IMGBB_API_KEY;
+    
+    if (!apiKey || apiKey === "YOUR_IMGBB_API_KEY") {
+      console.warn("ImgBB API key not configured");
+      return { success: false, error: "API key not configured" };
+    }
+
     const formData = new FormData();
-    formData.append("key", apiKey);
     formData.append("image", imageURL);
+    formData.append("key", apiKey);
     if (albumId) formData.append("album", albumId);
 
     const response = await fetch("https://api.imgbb.com/1/upload", {
