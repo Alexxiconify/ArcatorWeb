@@ -941,12 +941,10 @@ const commentHeaderClass = threadHeaderClass;
 
 // Firestore DM path: artifacts/{appId}/users/{userId}/dms/{conversationId}/messages/{messageId}
 
-// Util: get current user
 function getCurrentUser() {
   return window.currentUser || auth.currentUser || null;
 }
 
-// Util: get user profile (minimal)
 async function getUserProfile(uid) {
   try {
     return (await getUserProfileFromFirestore(uid)) || {displayName: 'Anonymous', photoURL: ''};
@@ -955,67 +953,83 @@ async function getUserProfile(uid) {
   }
 }
 
-// --- DM State ---
 let dmUnsubConvos = null;
 let dmUnsubMessages = null;
 let currentConversationId = null;
 
-// --- Render conversations list ---
 async function renderConversationsList() {
   const user = getCurrentUser();
-  if (!user) return;
-  const convosCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms`);
-  const q = query(convosCol, orderBy('lastMessageAt', 'desc'));
-  if (dmUnsubConvos) dmUnsubConvos();
-  dmUnsubConvos = onSnapshot(q, async (snap) => {
-    const list = document.getElementById('conversations-list');
-    if (!list) return;
-    list.innerHTML = '';
-    if (snap.empty) {
-      list.innerHTML = '<div class="text-center text-gray-400">No conversations</div>';
-      return;
-    }
-    for (const docSnap of snap.docs) {
-      const convo = docSnap.data();
-      const convoId = docSnap.id;
-      const otherUid = (convo.participants || []).find(uid => uid !== user.uid);
-      const otherProfile = otherUid ? await getUserProfile(otherUid) : {displayName: 'Group', photoURL: ''};
-      const div = document.createElement('div');
-      div.className = 'conversation-item' + (convoId === currentConversationId ? ' active' : '');
-      div.innerHTML = `<div class='conversation-header'><img src='${otherProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' class='conversation-avatar'><div class='conversation-info'><div class='conversation-name'>${escapeHtml(otherProfile.displayName)}</div><div class='conversation-preview'>${escapeHtml(convo.lastMessage || '')}</div></div></div>`;
-      div.onclick = () => openConversation(convoId);
-      list.appendChild(div);
-    }
-  });
+  const list = document.getElementById('conversations-list');
+  if (!user || !list) {
+    if (list) list.innerHTML = '<div class="text-center text-red-400">Not logged in</div>';
+    return;
+  }
+  try {
+    const convosCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms`);
+    const q = query(convosCol, orderBy('lastMessageAt', 'desc'));
+    if (dmUnsubConvos) dmUnsubConvos();
+    dmUnsubConvos = onSnapshot(q, async (snap) => {
+      list.innerHTML = '';
+      if (snap.empty) {
+        list.innerHTML = '<div class="text-center text-gray-400">No conversations</div>';
+        return;
+      }
+      for (const docSnap of snap.docs) {
+        const convo = docSnap.data();
+        const convoId = docSnap.id;
+        const otherUid = (convo.participants || []).find(uid => uid !== user.uid);
+        const otherProfile = otherUid ? await getUserProfile(otherUid) : {displayName: 'Group', photoURL: ''};
+        const div = document.createElement('div');
+        div.className = 'conversation-item' + (convoId === currentConversationId ? ' active' : '');
+        div.innerHTML = `<div class='conversation-header'><img src='${otherProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' class='conversation-avatar'><div class='conversation-info'><div class='conversation-name'>${escapeHtml(otherProfile.displayName)}</div><div class='conversation-preview'>${escapeHtml(convo.lastMessage || '')}</div></div></div>`;
+        div.onclick = () => openConversation(convoId);
+        list.appendChild(div);
+      }
+    }, err => {
+      list.innerHTML = '<div class="text-center text-red-400">Failed to load conversations</div>';
+    });
+  } catch (e) {
+    list.innerHTML = '<div class="text-center text-red-400">Error loading DMs</div>';
+  }
 }
 
-// --- Open conversation and render messages ---
 async function openConversation(convoId) {
   currentConversationId = convoId;
   renderConversationsList();
   const user = getCurrentUser();
-  if (!user) return;
-  const messagesCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms/${convoId}/messages`);
-  const q = query(messagesCol, orderBy('createdAt', 'asc'));
-  if (dmUnsubMessages) dmUnsubMessages();
-  dmUnsubMessages = onSnapshot(q, async (snap) => {
-    const container = document.getElementById('conversation-messages-container');
-    if (!container) return;
-    container.innerHTML = '';
-    for (const docSnap of snap.docs) {
-      const msg = docSnap.data();
-      const isOwn = msg.sender === user.uid;
-      const profile = await getUserProfile(msg.sender);
-      const div = document.createElement('div');
-      div.className = 'message-bubble ' + (isOwn ? 'sent' : 'received');
-      div.innerHTML = `<div class='message-author'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}'><span>${escapeHtml(profile.displayName)}</span></div><div class='message-content'>${escapeHtml(msg.content)}</div><div class='message-timestamp'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
-      container.appendChild(div);
-    }
-    container.scrollTop = container.scrollHeight;
-  });
+  const container = document.getElementById('conversation-messages-container');
+  if (!user || !container) {
+    if (container) container.innerHTML = '<div class="text-center text-red-400">Not logged in</div>';
+    return;
+  }
+  try {
+    const messagesCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms/${convoId}/messages`);
+    const q = query(messagesCol, orderBy('createdAt', 'asc'));
+    if (dmUnsubMessages) dmUnsubMessages();
+    dmUnsubMessages = onSnapshot(q, async (snap) => {
+      container.innerHTML = '';
+      if (snap.empty) {
+        container.innerHTML = '<div class="text-center text-gray-400">No messages yet</div>';
+        return;
+      }
+      for (const docSnap of snap.docs) {
+        const msg = docSnap.data();
+        const isOwn = msg.sender === user.uid;
+        const profile = await getUserProfile(msg.sender);
+        const div = document.createElement('div');
+        div.className = 'message-bubble ' + (isOwn ? 'sent' : 'received');
+        div.innerHTML = `<div class='message-author'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}'><span>${escapeHtml(profile.displayName)}</span></div><div class='message-content'>${escapeHtml(msg.content)}</div><div class='message-timestamp'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
+        container.appendChild(div);
+      }
+      container.scrollTop = container.scrollHeight;
+    }, err => {
+      container.innerHTML = '<div class="text-center text-red-400">Failed to load messages</div>';
+    });
+  } catch (e) {
+    container.innerHTML = '<div class="text-center text-red-400">Error loading messages</div>';
+  }
 }
 
-// --- Send message ---
 async function sendMessage(event) {
   event.preventDefault();
   const user = getCurrentUser();
@@ -1031,15 +1045,13 @@ async function sendMessage(event) {
   await setDoc(convoRef, {lastMessage: content, lastMessageAt: serverTimestamp()}, {merge: true});
 }
 
-// --- Create new conversation ---
 async function createConversation(event) {
   event.preventDefault();
   const user = getCurrentUser();
   if (!user) return;
-  const recipientInput = document.getElementById('new-chat-recipient');
+  const recipientInput = document.getElementById('private-chat-recipient');
   const recipientUid = recipientInput?.value?.trim();
   if (!recipientUid || recipientUid === user.uid) return showMessageBox('Invalid recipient', true);
-  // Create for both users
   const convoId = [user.uid, recipientUid].sort().join('_');
   const convoData = {participants: [user.uid, recipientUid], lastMessage: '', lastMessageAt: serverTimestamp()};
   await setDoc(doc(db, `artifacts/${appId}/users/${user.uid}/dms`, convoId), convoData);
@@ -1047,24 +1059,17 @@ async function createConversation(event) {
   openConversation(convoId);
 }
 
-// --- Setup DM event listeners ---
 function setupDmEventListeners() {
   const form = document.getElementById('send-message-form');
-  if (form) {
-    form.onsubmit = sendMessage;
-  }
+  if (form) form.onsubmit = sendMessage;
   const createForm = document.getElementById('create-conversation-form');
-  if (createForm) {
-    createForm.onsubmit = createConversation;
-  }
+  if (createForm) createForm.onsubmit = createConversation;
   renderConversationsList();
 }
 
-// --- Init DM tab on click ---
 dmTabBtn?.addEventListener('click', setupDmEventListeners);
 if (dmTabContent?.classList.contains('active') || dmTabContent?.style.display !== 'none') setupDmEventListeners();
 
-// --- Tab Persistence and Scroll to Top ---
 function setActiveTab(tabName) {
   localStorage.setItem("formsActiveTab", tabName);
   document.documentElement.scrollTop = 0;
@@ -1088,7 +1093,6 @@ window.showTab = function (tabName) {
   document.body.scrollTop = 0;
 };
 
-// On page load, restore last active tab and scroll to top
 window.addEventListener("DOMContentLoaded", () => {
   const tab = getActiveTab();
   window.showTab(tab);
