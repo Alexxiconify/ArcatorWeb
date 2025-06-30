@@ -1,17 +1,6 @@
 // navbar.js - Modern navbar component
-import {
-  auth,
-  db,
-  appId,
-  getUserProfileFromFirestore,
-  firebaseReadyPromise,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME,
-  onAuthStateChanged,
-  currentUser,
-} from "./firebase-init.js";
-import { applyTheme, getAvailableThemes } from "./themes.js";
-import { validatePhotoURL } from "./utils.js";
+import {auth, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore,} from "./firebase-init.js";
+import {applyTheme, getAvailableThemes} from "./themes.js";
 
 function hexToRgb(hex) {
   hex = hex.replace("#", "");
@@ -369,22 +358,33 @@ const navbarStyles = `
   .navbar-links {
     display: none;
   }
-  
   .navbar-mobile-toggle {
     display: block;
   }
-  
   .navbar-user {
     gap: 0.5rem;
   }
-  
   .navbar-auth-buttons {
     gap: 0.25rem;
   }
-  
   .navbar-auth-btn {
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
+  }
+  .navbar-mobile-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-navbar, #111827);
+    border-top: 1px solid var(--color-input-border, #4B5563);
+    padding: 1rem;
+    z-index: 1001;
+  }
+  .navbar-mobile-menu.show {
+    display: flex;
   }
 }
 
@@ -392,11 +392,11 @@ const navbarStyles = `
   .navbar-container {
     padding: 0 0.5rem;
   }
-  
+
   .navbar-logo {
     font-size: 1rem;
   }
-  
+
   .navbar-user-avatar {
     width: 32px;
     height: 32px;
@@ -433,13 +433,13 @@ function setupScrollEffects() {
   let lastScrollTop = 0;
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
+
     if (scrollTop > 50) {
       navbar.classList.add('scrolled');
     } else {
       navbar.classList.remove('scrolled');
     }
-    
+
     lastScrollTop = scrollTop;
   });
 }
@@ -447,12 +447,10 @@ function setupScrollEffects() {
 function setupMobileMenu() {
   const mobileToggle = document.querySelector('.navbar-mobile-toggle');
   const mobileMenu = document.querySelector('.navbar-mobile-menu');
-  
   if (mobileToggle && mobileMenu) {
     mobileToggle.addEventListener('click', () => {
       mobileMenu.classList.toggle('show');
     });
-    
     document.addEventListener('click', (e) => {
       if (!mobileToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
         mobileMenu.classList.remove('show');
@@ -488,7 +486,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
           </svg>
           Arcator
         </a>
-        
+
         <div class="navbar-links">
           <a href="about.html" class="navbar-link">
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -517,7 +515,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
             </a>
           ` : ''}
         </div>
-        
+
         <div class="navbar-user">
           ${isLoggedIn ? `
             <img src="${photoURL}" alt="${displayName}" class="navbar-user-avatar" onclick="toggleUserMenu()">
@@ -541,7 +539,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
               <a href="users.html" class="navbar-auth-btn secondary">Sign Up</a>
             </div>
           `}
-          
+
           <button class="navbar-mobile-toggle" onclick="toggleMobileMenu()">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
@@ -549,7 +547,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
           </button>
         </div>
       </div>
-      
+
       <div class="navbar-mobile-menu" id="mobile-menu">
         <a href="about.html" class="navbar-mobile-link">About</a>
         <a href="servers-and-games.html" class="navbar-mobile-link">Games</a>
@@ -567,32 +565,32 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   `;
 
   navbarPlaceholder.innerHTML = navbarHTML;
-  
+
   injectNavbarStyles();
   updateNavbarForTheme();
   setupScrollEffects();
   setupMobileMenu();
-  
+
   window.toggleUserMenu = () => {
     const menu = document.getElementById('user-menu');
     if (menu) menu.classList.toggle('show');
   };
-  
+
   window.toggleMobileMenu = () => {
     const menu = document.getElementById('mobile-menu');
     if (menu) menu.classList.toggle('show');
   };
-  
+
   // Close user menu when clicking outside
   document.addEventListener('click', (e) => {
     const userMenu = document.getElementById('user-menu');
     const userAvatar = document.querySelector('.navbar-user-avatar');
-    
+
     if (userMenu && userAvatar && !userAvatar.contains(e.target) && !userMenu.contains(e.target)) {
       userMenu.classList.remove('show');
     }
   });
-  
+
   window.signOut = async () => {
     try {
       await auth.signOut();
@@ -606,9 +604,9 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 async function applyUserTheme(userThemePreference, defaultThemeName) {
   try {
     const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || 
+    const themeToApply = allThemes.find(t => t.id === userThemePreference) ||
                         allThemes.find(t => t.id === defaultThemeName);
-    
+
     if (themeToApply) {
       applyTheme(themeToApply.id, themeToApply);
       updateNavbarForTheme();
@@ -622,7 +620,7 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
   try {
     await updateNavbarState(authUser, userProfile, defaultProfilePic);
     await applyUserTheme(userProfile?.themePreference, defaultThemeName);
-    
+
     // Set up auth state listener for automatic navbar updates
     auth.onAuthStateChanged(async (user) => {
       let profile = null;
@@ -641,8 +639,8 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
   if (!footerPlaceholder) return;
 
   const currentYear = new Date().getFullYear();
-  const yearText = yearElementId ? 
-    `<span id="${yearElementId}">${currentYear}</span>` : 
+  const yearText = yearElementId ?
+    `<span id="${yearElementId}">${currentYear}</span>` :
     currentYear;
 
   const footerHTML = `
@@ -650,20 +648,24 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
       <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
         <span class="text-sm">&copy; ${yearText} Arcator.co.uk</span>
         <div class="flex items-center gap-4 text-sm">
-          <a href="privacy.html" class="text-link hover:underline flex items-center gap-1" style="line-height:1;">
-            <svg viewBox="0 0 20 20" fill="currentColor" class="inline-block align-text-bottom" style="width:1em;height:1em;min-width:1em;min-height:1em;"><path d="M10 2C5.58 2 2 4.58 2 8.5c0 2.54 1.92 4.81 5.09 6.32.36.16.77.18 1.13.05.36-.13.65-.41.78-.77.13-.36.11-.77-.05-1.13C7.92 11.31 7 9.98 7 8.5c0-1.38 1.12-2.5 2.5-2.5S12 7.12 12 8.5c0 1.48-.92 2.81-2.95 4.47-.16.36-.18.77-.05 1.13.13.36.41.65.77.78.36.13.77.11 1.13-.05C16.08 13.31 18 11.04 18 8.5 18 4.58 14.42 2 10 2z"/></svg>
+          <a href="temp-page-viewer.html" class="text-link hover:underline flex items-center gap-1">
+            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4V4zm4 4h8v8H8V8z"/></svg>
+            Pages
+          </a>
+          <a href="privacy.html" class="text-link hover:underline flex items-center gap-1">
+            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Legal
           </a>
-          <a href="https://wiki.arcator.co.uk/" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener" style="line-height:1;">
-            <svg viewBox="0 0 20 20" fill="currentColor" class="inline-block align-text-bottom" style="width:1em;height:1em;min-width:1em;min-height:1em;"><path d="M4 4h12v2H4V4zm0 4h12v2H4V8zm0 4h8v2H4v-2z"/></svg>
+          <a href="https://wiki.arcator.co.uk/" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener">
+            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Wiki
           </a>
-          <a href="https://ssmp.arcator.co.uk/" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener" style="line-height:1;">
-            <svg viewBox="0 0 20 20" fill="currentColor" class="inline-block align-text-bottom" style="width:1em;height:1em;min-width:1em;min-height:1em;"><circle cx="10" cy="10" r="8"/><path d="M6 10a4 4 0 1 1 8 0 4 4 0 0 1-8 0z" fill="#fff"/></svg>
+          <a href="https://ssmp.arcator.co.uk/" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener">
+            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/></svg>
             SSMP
           </a>
-          <a href="https://hub.arcator.co.uk/#creative" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener" style="line-height:1;">
-            <svg viewBox="0 0 20 20" fill="currentColor" class="inline-block align-text-bottom" style="width:1em;height:1em;min-width:1em;min-height:1em;"><rect x="4" y="4" width="12" height="12" rx="2"/><path d="M8 8h4v4H8z" fill="#fff"/></svg>
+          <a href="https://hub.arcator.co.uk/#creative" class="text-link hover:underline flex items-center gap-1" target="_blank" rel="noopener">
+            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
             Hub
           </a>
         </div>
@@ -678,13 +680,13 @@ export async function forceRefreshNavbarState() {
   try {
     const user = auth.currentUser;
     let userProfile = null;
-    
+
     if (user) {
       userProfile = await getUserProfileFromFirestore(user.uid);
     }
-    
+
     await updateNavbarState(user, userProfile, DEFAULT_PROFILE_PIC);
-    
+
     // Also update theme if user has a preference
     if (userProfile?.themePreference) {
       await applyUserTheme(userProfile.themePreference, DEFAULT_THEME_NAME);

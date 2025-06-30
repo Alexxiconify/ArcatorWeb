@@ -1,186 +1,62 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Page Not Found - Arcator.co.uk</title>
-    <!-- Link to master.css for all styles -->
-    <link href="master.css" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Favicon link -->
-    <link rel="icon" type="image/png" href="favicon.png" />
-  </head>
 
-  <body class="antialiased">
-    <!-- Navbar Placeholder -->
-    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+<head>
+  <meta charset="utf-8">
+  <title>Page Not Found</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <style>
+    * {
+      line-height: 1.2;
+      margin: 0;
+    }
 
-    <!-- Hero Section with Background Image -->
-    <section
-      class="hero-banner rounded-b-lg shadow-xl"
-      style="margin-top: 64px"
-    >
-      <!-- Added margin-top to account for fixed navbar height -->
-      <div class="container mx-auto px-4 text-center hero-content">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
-          404 - Page Not Found
-        </h1>
-        <p class="text-xl md:text-2xl mb-8">
-          Oops! The page you're looking for doesn't exist.
-        </p>
-      </div>
-    </section>
+    html {
+      color: #888;
+      display: table;
+      font-family: sans-serif;
+      height: 100%;
+      text-align: center;
+      width: 100%;
+    }
 
-    <!-- Main Content Section -->
-    <section class="content-section">
-      <div class="container mx-auto px-4 mt-8">
-        <div class="max-w-4xl mx-auto text-center">
-          <!-- Error Message -->
-          <div class="bg-card p-8 rounded-lg shadow-md mb-8">
-            <div class="text-6xl mb-4">😕</div>
-            <h2 class="text-3xl font-bold text-heading-main mb-4">
-              Page Not Found
-            </h2>
-            <p class="text-lg text-text-secondary mb-6">
-              Sorry, but the page you were trying to view does not exist. It might have
-              been moved or deleted, or you might have mistyped the address.
-            </p>
-            <p class="text-text-secondary">
-              Don't worry though - you can still explore our community and find what you're looking for!
-            </p>
-          </div>
+    body {
+      display: table-cell;
+      vertical-align: middle;
+      margin: 2em auto;
+    }
 
-          <!-- Navigation Options -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="content-card text-center">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                🏠 Go Home
-              </h3>
-              <p class="text-text-secondary mb-4">
-                Return to our homepage and explore the main sections of our website.
-              </p>
-              <a href="index.html" class="btn-primary btn-blue">
-                Visit Homepage
-              </a>
-            </div>
-            
-            <div class="content-card text-center">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                💬 Join Discord
-              </h3>
-              <p class="text-text-secondary mb-4">
-                Connect with our community on Discord for help, updates, and discussions.
-              </p>
-              <a
-                href="https://discord.gg/GwArgw2"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-primary btn-indigo"
-              >
-                Join Our Discord
-              </a>
-            </div>
-          </div>
+    h1 {
+      color: #555;
+      font-size: 2em;
+      font-weight: 400;
+    }
 
-          <!-- Additional Help Options -->
-          <div class="bg-card p-6 rounded-lg shadow-md">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">
-              Need Help Finding Something?
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <a href="about.html" class="text-link hover:underline text-center">
-                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
-                  <div class="text-2xl mb-2">ℹ️</div>
-                  <div class="font-semibold">About Us</div>
-                  <div class="text-sm text-text-secondary">Learn about our community</div>
-                </div>
-              </a>
-              <a href="servers-and-games.html" class="text-link hover:underline text-center">
-                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
-                  <div class="text-2xl mb-2">🎮</div>
-                  <div class="font-semibold">Servers & Games</div>
-                  <div class="text-sm text-text-secondary">Explore our Minecraft servers</div>
-                </div>
-              </a>
-              <a href="forms.html" class="text-link hover:underline text-center">
-                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
-                  <div class="text-2xl mb-2">💬</div>
-                  <div class="font-semibold">Community</div>
-                  <div class="text-sm text-text-secondary">Join discussions and DMs</div>
-                </div>
-              </a>
-            </div>
-          </div>
+    p {
+      margin: 0 auto;
+      width: 280px;
+    }
 
-          <!-- Search Suggestion -->
-          <div class="mt-8 text-center">
-            <p class="text-text-secondary mb-4">
-              Can't find what you're looking for? Try using your browser's search function (Ctrl+F) 
-              or check our site navigation above.
-            </p>
-            <button 
-              onclick="history.back()" 
-              class="btn-primary btn-green"
-            >
-              ← Go Back
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+    @media only screen and (max-width: 280px) {
 
-    <!-- Footer Section -->
-    <div id="footer-placeholder"></div>
+      body,
+      p {
+        width: 95%;
+      }
 
-    <!-- External JavaScript modules -->
-    <script type="module" src="themes.js"></script>
-    <script type="module" src="custom_theme_modal.js"></script>
-    <script type="module" src="navbar.js"></script>
-    <script type="module" src="firebase-init.js"></script>
-    <!-- Ensure firebase-init.js is loaded first -->
-    <script type="module">
-      // Specific JavaScript for this page
-      import {
-        auth,
-        getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-        DEFAULT_THEME_NAME,
-      } from "./firebase-init.js";
-      import { loadNavbar, loadFooter } from "./navbar.js";
-      import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-      } from "./themes.js";
+      h1 {
+        font-size: 1.5em;
+        margin: 0 0 0.3em;
+      }
 
-      // Apply cached theme immediately to prevent flash
-      applyCachedTheme();
+    }
+  </style>
+</head>
 
-      firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-          let userProfile = null;
-          if (user) {
-            userProfile = await getUserProfileFromFirestore(user.uid);
-          }
-          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-          loadFooter("current-year-404");
-          const userThemePreference = userProfile?.themePreference;
-          const allThemes = await getAvailableThemes();
-          const themeToApply =
-            allThemes.find((t) => t.id === userThemePreference) ||
-            allThemes.find((t) => t.id === "dark");
-          if (themeToApply) {
-            applyTheme(themeToApply.id, themeToApply);
-            console.log(
-              `[404]: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-            );
-          }
-        });
-      });
-    </script>
-  </body>
+<body>
+<h1>Page Not Found</h1>
+<p>Sorry, but the page you were trying to view does not exist.</p>
+</body>
+
 </html>
+<!-- IE needs 512+ bytes: https://docs.microsoft.com/archive/blogs/ieinternals/friendly-http-error-pages -->

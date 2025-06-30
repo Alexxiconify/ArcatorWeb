@@ -601,7 +601,6 @@
     .form-checkbox {
       appearance: none;
       -webkit-appearance: none;
-      -moz-appearance: none;
       width: 1.25rem;
       height: 1.25rem;
       border: 2px solid var(--color-input-border);
@@ -1187,22 +1186,20 @@
 </head>
 
 <body class="antialiased">
-  <!-- Navbar Placeholder -->\
+<!-- Navbar Placeholder -->
   <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-  <div style="height: 56px"></div>
+<!-- Remove extra spacer div and reduce margin-top on hero -->
   <!-- Hero Section with Background Image -->
-  <section class="hero-banner rounded-b-lg shadow-xl">
-    <div class="container mx-auto px-4 text-center hero-content">
-      <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
-        User Account
-      </h1>
-      <p class="text-xl md:text-2xl mb-8">Manage your account or sign in</p>
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top:48px; min-height:160px;">
+  <div class="container mx-auto px-4 text-center hero-content" style="padding-top:1.5rem;padding-bottom:1.5rem;">
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-2 leading-tight">User Account</h1>
+    <p class="text-lg md:text-xl mb-4">Manage your account or sign in</p>
     </div>
   </section>
 
   <!-- Main Content Area -->
-  <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-    <div class="container mx-auto px-4">
+<section class="py-6 bg-content-section rounded-lg shadow-inner mx-2 my-4">
+  <div class="container mx-auto px-2">
       <div id="loading-spinner" class="flex justify-center items-center h-48" style="display: none">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
       </div>

@@ -203,8 +203,8 @@
 
         if (userProfile?.themePreference) {
           const allThemes = await getAvailableThemes();
-          const themeToApply = allThemes.find(t => t.id === userProfile.themePreference) || 
-                              allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+          const themeToApply = allThemes.find(t => t.id === userProfile.themePreference) ||
+                  allThemes.find(t => t.id === DEFAULT_THEME_NAME);
           if (themeToApply) {
             applyTheme(themeToApply.id, themeToApply);
           }
@@ -212,18 +212,18 @@
       });
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const copyButton = document.getElementById('copyIpButton');
       const ipElement = document.getElementById('minecraft-ip');
-      
+
       if (copyButton && ipElement) {
-        copyButton.addEventListener('click', function() {
-          navigator.clipboard.writeText(ipElement.textContent).then(function() {
+        copyButton.addEventListener('click', function () {
+          navigator.clipboard.writeText(ipElement.textContent).then(function () {
             copyButton.textContent = 'Copied!';
-            setTimeout(function() {
+            setTimeout(function () {
               copyButton.textContent = 'Copy IP';
             }, 2000);
-          }).catch(function(err) {
+          }).catch(function (err) {
             console.error('Could not copy text: ', err);
           });
         });
