@@ -997,24 +997,50 @@ async function renderConversationsTable() {
   const q = query(userDmsCol, orderBy('lastMessageAt', 'desc'));
   const snap = await getDocs(q);
   if (snap.empty) {
-    tableBody.innerHTML = `<tr><td colspan="4" class="text-center text-text-secondary py-4">No conversations found.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan=4 class="text-center text-text-secondary py-4">No conversations found.</td></tr>`;
     messagesContainer.style.display = 'none';
     return;
   }
   let html = '';
   let firstConvoId = null;
-  snap.forEach((docSnap, idx) => {
+  for (const [idx, docSnap] of snap.docs.entries()) {
     const convo = docSnap.data();
     const convoId = docSnap.id;
     if (idx === 0) firstConvoId = convoId;
     const isActive = currentConversationId === convoId;
-    html += `<tr class="conversation-row${isActive ? ' active' : ''}" data-convo-id="${convoId}">
-      <td class="font-semibold">${escapeHtml(convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat'))}</td>
-      <td>${(convo.participants || []).map(uid => `<span class='text-xs'>${uid}</span>`).join(', ')}</td>
-      <td><div class="conversation-preview">${convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : ''}</div><div class="conversation-time">${convo.lastMessageAt && convo.lastMessageAt.toDate ? new Date(convo.lastMessageAt.toDate()).toLocaleString() : ''}</div></td>
-      <td><button class="delete-conversation-btn" title="Delete" data-convo-id="${convoId}">🗑️</button></td>
+    // Fetch handles for participants (async, but render as loading first)
+    let participantsHtml = '<span class="text-xs text-gray-400">Loading...</span>';
+    (async () => {
+      const handles = await Promise.all((convo.participants || []).map(async uid => {
+        if (uid === user.uid) return '';
+        const p = await getUserProfile(uid);
+        return p && p.handle ? `@${escapeHtml(p.handle)}` : `<span class='text-xs text-gray-400'>unknown</span>`;
+      }));
+      const row = tableBody.querySelector(`.conversation-row[data-convo-id='${convoId}'] td:nth-child(2)`);
+      if (row) row.innerHTML = handles.filter(Boolean).join(', ');
+    })();
+    // Last message and date on same line, date in shorthand
+    let lastMsg = convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : '';
+    let lastDate = '';
+    if (convo.lastMessageAt && convo.lastMessageAt.toDate) {
+      const d = convo.lastMessageAt.toDate();
+      lastDate = `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}, ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    }
+    let photoURL = convo.image || convo.groupImage || '';
+    if (!photoURL && convo.participants && convo.participants.length > 1) {
+      const p = await getUserProfile(convo.participants.find(uid => uid !== user.uid));
+      photoURL = p.photoURL || '';
+    }
+    html += `<tr class="conversation-row${isActive ? ' active' : ''}" data-convo-id="${convoId}" style="font-size:0.95em;">
+      <td class="font-semibold"><img src="${photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}" alt="" class="dm-table-avatar" style="width:1.5em;height:1.5em;border-radius:50%;object-fit:cover;display:inline-block;margin-right:0.4em;vertical-align:middle;">${escapeHtml(convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat'))}</td>
+      <td>${participantsHtml}</td>
+      <td><span class="conversation-preview">${lastMsg}</span><span class="conversation-time">${lastDate}</span></td>
+      <td class="actions-cell">
+        <button class="edit-conversation-btn" title="Edit" data-convo-id="${convoId}">✏️</button>
+        <button class="delete-conversation-btn" title="Delete" data-convo-id="${convoId}">🗑️</button>
+      </td>
     </tr>`;
-  });
+  }
   tableBody.innerHTML = html;
   // Row click: load messages and show message area
   tableBody.querySelectorAll('.conversation-row').forEach(row => {
@@ -1036,6 +1062,34 @@ async function renderConversationsTable() {
         renderConversationsTable();
         messagesContainer.style.display = 'none';
       }
+    };
+  });
+  // Edit button
+  tableBody.querySelectorAll('.edit-conversation-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const convoId = btn.getAttribute('data-convo-id');
+      const user = getCurrentUser();
+      if (!user) return;
+      const convoRef = doc(db, `artifacts/${appId}/users/${user.uid}/dms`, convoId);
+      const convoSnap = await getDoc(convoRef);
+      if (!convoSnap.exists()) return;
+      const convo = convoSnap.data();
+      const oldName = convo.name || '';
+      const oldImage = convo.image || convo.groupImage || '';
+      const newName = prompt('Edit DM name:', oldName);
+      if (newName === null) return;
+      const newImage = prompt('Edit DM photo URL:', oldImage);
+      if (newImage === null) return;
+      // Update for all participants
+      for (const uid of convo.participants || []) {
+        await setDoc(doc(db, `artifacts/${appId}/users/${uid}/dms`, convoId), {
+          name: newName,
+          image: convo.type === 'private' ? newImage : undefined,
+          groupImage: convo.type === 'group' ? newImage : undefined,
+        }, {merge: true});
+      }
+      renderConversationsTable();
     };
   });
   // Auto-open the first conversation if none selected
@@ -1100,47 +1154,63 @@ async function createConversation(event) {
   event.preventDefault();
   const user = getCurrentUser();
   if (!user) return;
-  const name = document.getElementById('chat-name')?.value?.trim() || '';
-  const image = document.getElementById('chat-image')?.value?.trim() || '';
+  let name = document.getElementById('chat-name')?.value?.trim() || '';
+  let image = document.getElementById('chat-image')?.value?.trim() || '';
   const recipientsInput = document.getElementById('chat-recipients');
-  let recipients = recipientsInput?.value?.split(',').map(x => x.trim()).filter(Boolean) || [];
-  recipients = recipients.filter(uid => uid !== user.uid);
-  if (recipients.length > 1) {
-    recipients.unshift(user.uid);
-    const convoId = recipients.sort().join('_');
-    const convoData = {
-      participants: recipients,
-      name,
-      groupImage: image,
-      type: 'group',
-      createdBy: user.uid,
-      createdAt: serverTimestamp(),
-      lastMessage: '',
-      lastMessageAt: serverTimestamp(),
-    };
-    for (const uid of recipients) {
-      await setDoc(doc(db, `artifacts/${appId}/users/${uid}/dms`, convoId), convoData, {merge: true});
-    }
-    openConversation(convoId);
-  } else {
-    if (recipients.length !== 1 || recipients[0] === user.uid) return showMessageBox('Invalid recipient', true);
-    const recipientUid = recipients[0];
-    const convoId = [user.uid, recipientUid].sort().join('_');
-    const convoData = {
-      participants: [user.uid, recipientUid],
-      name,
-      image,
-      type: 'private',
-      createdBy: user.uid,
-      createdAt: serverTimestamp(),
-      lastMessage: '',
-      lastMessageAt: serverTimestamp(),
-    };
-    await setDoc(doc(db, `artifacts/${appId}/users/${user.uid}/dms`, convoId), convoData, {merge: true});
-    await setDoc(doc(db, `artifacts/${appId}/users/${recipientUid}/dms`, convoId), convoData, {merge: true});
-    openConversation(convoId);
+  let handles = recipientsInput?.value?.split(',').map(x => x.trim().replace(/^@/, '')).filter(Boolean) || [];
+  // Remove self from handles if present
+  handles = handles.filter(h => h !== (user.handle || user.displayName || user.uid));
+  // Convert handles to UIDs
+  const handleToUid = async (handle) => {
+    if (handle === (user.handle || user.displayName || user.uid)) return user.uid;
+    const p = await getUserProfileFromFirestore(handle);
+    return p && p.uid ? p.uid : handle;
+  };
+  const recipientUids = [];
+  for (const h of handles) {
+    const uid = await handleToUid(h);
+    if (uid && !recipientUids.includes(uid)) recipientUids.push(uid);
   }
+  // Auto-detect type
+  let type = 'private';
+  if (recipientUids.length > 1) type = 'group';
+  // Always include self for group
+  let allUids = type === 'group' ? [user.uid, ...recipientUids] : [user.uid, ...recipientUids];
+  // Fallbacks
+  if (!name) {
+    if (type === 'private') {
+      const p = await getUserProfile(recipientUids[0]);
+      name = p.displayName || p.handle || 'DM';
+    } else {
+      name = allUids.map(uid => uid === user.uid ? (user.displayName || user.uid) : uid).join(', ');
+    }
+  }
+  if (!image) {
+    if (type === 'private') {
+      const p = await getUserProfile(recipientUids[0]);
+      image = p.photoURL || '';
+    } else {
+      const p = await getUserProfile(recipientUids[0]);
+      image = p.photoURL || '';
+    }
+  }
+  const convoId = allUids.sort().join('_');
+  const convoData = {
+    participants: allUids,
+    name,
+    image,
+    type,
+    createdBy: user.uid,
+    createdAt: serverTimestamp(),
+    lastMessage: '',
+    lastMessageAt: serverTimestamp(),
+  };
+  for (const uid of allUids) {
+    await setDoc(doc(db, `artifacts/${appId}/users/${uid}/dms`, convoId), convoData, {merge: true});
+  }
+  openConversation(convoId);
 }
+
 async function openConversation(convoId) {
   currentConversationId = convoId;
   const user = getCurrentUser();
@@ -1172,14 +1242,21 @@ async function openConversation(convoId) {
           const handle = profile.handle ? `@${escapeHtml(profile.handle)}` : escapeHtml(msg.sender);
           const photoURL = profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
           const bubbleClass = isOwn ? 'sent own-message' : 'received';
-          html += `<div class="message-bubble ${bubbleClass}" style="max-width:80%;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};background:${isOwn ? '#2563eb22' : '#23272e'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.75em 1.1em;margin-bottom:0.5em;display:flex;align-items:flex-end;gap:0.5em;">
-            ${!isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
-            <div style="flex:1;min-width:0;">
-              <div class="message-author" style="font-size:0.9em;color:#888;${isOwn ? 'text-align:right;' : ''}">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></div>
-              <div class="message-content" style="font-size:1.05em;word-break:break-word;">${escapeHtml(msg.content)}</div>
-              <div class="message-timestamp" style="font-size:0.75em;color:#aaa;${isOwn ? 'text-align:right;' : ''}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
+          const msgId = docSnap.id;
+          html += `<div class="message-bubble ${bubbleClass}" style="max-width:70vw;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.5em 0.9em;margin-bottom:0.25em;display:flex;align-items:flex-start;gap:0.5em;position:relative;width:fit-content;height:fit-content;">
+            <div class="bubble-header">
+              <img src="${photoURL}" alt="User" class="dm-message-profile-pic">
+              <span class="message-author">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></span>
             </div>
-            ${isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
+            <div style="flex:1;min-width:0;">
+              <div class="message-content">${escapeHtml(msg.content)}</div>
+              <div class="message-timestamp">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
+            </div>
+            ${isOwn ? `<div class="bubble-actions" style="display:none;position:absolute;top:0.3em;right:0.7em;z-index:2;">
+              <button class="edit-msg-btn" data-msg-id="${msgId}" title="Edit" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1em;margin-right:0.2em;">✏️</button>
+              <button class="delete-msg-btn" data-msg-id="${msgId}" title="Delete" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1em;">🗑️</button>
+            </div>` : ''}
+            ${isOwn ? `<script>document.currentScript.previousElementSibling.parentElement.onmouseenter = function(){this.querySelector('.bubble-actions').style.display='block';};document.currentScript.previousElementSibling.parentElement.onmouseleave = function(){this.querySelector('.bubble-actions').style.display='none';};</script>` : ''}
           </div>`;
         }
       }
@@ -1195,6 +1272,28 @@ async function openConversation(convoId) {
       // Re-attach send message event
       const form = document.getElementById('send-message-form');
       if (form) form.onsubmit = sendMessage;
+      // Attach edit/delete handlers
+      container.querySelectorAll('.edit-msg-btn').forEach(btn => {
+        btn.onclick = async (e) => {
+          const msgId = btn.getAttribute('data-msg-id');
+          const msgDiv = btn.closest('.message-bubble');
+          const oldContent = msgDiv.querySelector('.message-content').textContent;
+          const newContent = prompt('Edit message:', oldContent);
+          if (newContent !== null && newContent.trim() && newContent !== oldContent) {
+            const msgRef = doc(db, `artifacts/${appId}/users/${user.uid}/dms/${convoId}/messages`, msgId);
+            await setDoc(msgRef, {content: newContent}, {merge: true});
+          }
+        };
+      });
+      container.querySelectorAll('.delete-msg-btn').forEach(btn => {
+        btn.onclick = async (e) => {
+          const msgId = btn.getAttribute('data-msg-id');
+          if (confirm('Delete this message?')) {
+            const msgRef = doc(db, `artifacts/${appId}/users/${user.uid}/dms/${convoId}/messages`, msgId);
+            await deleteDoc(msgRef);
+          }
+        };
+      });
     }, err => {
       container.innerHTML = '<div class="text-center text-red-400">Failed to load messages</div>';
       console.log('[dm] Failed to load messages', err);

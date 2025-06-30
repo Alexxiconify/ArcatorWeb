@@ -633,11 +633,11 @@
       <div class="container mx-auto px-4 text-center hero-content">
         <h1
           id="hero-title"
-          class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight"
+          class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main"
         >
           Community Forum
         </h1>
-        <p class="text-xl md:text-2xl mb-8">
+        <p class="text-xl md:text-2xl mb-8 text-heading-card">
           Connect, discuss, and share with the Arcator community
         </p>
       </div>
@@ -671,21 +671,34 @@
       </div>
 
       <!-- DM Content -->
-      <div id="dm-tab-content" class="tab-content" style="display: none">
+      <div class="tab-content bg-card text-text-primary border border-input-border rounded-lg shadow"
+           id="dm-tab-content"
+           style="display: none">
+        <!-- Create DM/Group DM Section -->
+        <div class="mb-4 flex flex-col gap-2 p-4 bg-card rounded-lg shadow w-full" id="create-dm-section"
+             style="margin-bottom:1em;">
+          <form class="flex flex-col md:flex-row gap-2 items-end w-full" id="create-conversation-form">
+            <select class="form-input w-32" id="chat-type-select">
+              <option value="private">Direct Message</option>
+              <option value="group">Group DM</option>
+            </select>
+            <input class="form-input flex-1 min-w-0" id="chat-name" placeholder="Chat name (optional)"/>
+            <input class="form-input flex-1 min-w-0" id="chat-recipients" placeholder="User handles, comma-separated"/>
+            <input class="form-input w-48" id="chat-image" placeholder="Photo URL (optional)" type="text"/>
+            <button class="btn-modern ml-auto" type="submit">Create</button>
+          </form>
+        </div>
         <!-- Combined Conversations and Messages Panel -->
-        <div class="lg:col-span-3" id="conversations-messages-panel">
+        <div class="lg:col-span-3 w-full" id="conversations-messages-panel">
           <div class="card-modern p-0 overflow-hidden">
             <!-- Conversations Table -->
             <div class="p-4 border-b border-input-border">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold">DMs</h3>
-              </div>
-              <table class="w-full text-left table-auto text-xs" id="conversations-table">
+              <table class="w-full text-left table-auto text-xs" id="conversations-table" style="width:100%;">
                 <thead>
                 <tr class="bg-table-th-bg">
                   <th class="px-2 py-1 text-table-th-text text-xs">Name</th>
                   <th class="px-2 py-1 text-table-th-text text-xs">Participants</th>
-                  <th class="px-2 py-1 text-table-th-text text-xs">Last Message</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Message</th>
                   <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
                 </tr>
                 </thead>
