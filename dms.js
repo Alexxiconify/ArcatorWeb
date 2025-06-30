@@ -1,30 +1,27 @@
 // dms.js: Handles Direct Messages and Group Chats.
 
-import { db, appId, getCurrentUser } from "./firebase-init.js";
+import {db, getCurrentUser} from "./firebase-init.js";
 import {
-  showMessageBox,
-  showCustomConfirm,
-  sanitizeHandle,
-  resolveHandlesToUids,
-  getUserProfileFromFirestore,
-  parseEmojis,
-  parseMentions,
-  renderMarkdownWithMedia,
   escapeHtml,
+  getUserProfileFromFirestore,
+  renderMarkdownWithMedia,
+  resolveHandlesToUids,
+  sanitizeHandle,
+  showCustomConfirm,
+  showMessageBox,
 } from "./utils.js";
 import {
-  collection,
-  doc,
   addDoc,
-  getDoc,
-  updateDoc,
+  collection,
   deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  where,
+  doc,
+  getDoc,
   getDocs,
+  onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
+  updateDoc,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -195,41 +192,32 @@ function renderUserCardList(type) {
     return;
   }
 
-  // Create table structure
-  const table = document.createElement("table");
-  table.className = "w-full border-collapse";
-  table.innerHTML = `
-    <thead>
-      <tr class="border-b border-input-border">
-        <th class="text-left p-2 font-semibold text-sm">Name</th>
-        <th class="text-left p-2 font-semibold text-sm">Handle</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${allUserProfiles
-        .map((profile) => {
-          const isSelected = selectedRecipients.has(profile.uid);
-          return `
-          <tr class="user-card-row ${isSelected ? "selected" : ""}" data-uid="${profile.uid}">
-            <td class="p-2 cursor-pointer hover:bg-input-border transition-colors">
-              <div class="flex items-center gap-2">
-                <img src="${profile.photoURL}" alt="${profile.displayName}" class="w-8 h-8 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-                <span class="font-medium">${escapeHtml(profile.displayName)}</span>
-              </div>
-            </td>
-            <td class="p-2 text-sm text-text-secondary cursor-pointer hover:bg-input-border transition-colors">
-              @${escapeHtml(profile.handle)}
-            </td>
-          </tr>
-        `;
-        })
-        .join("")}
-    </tbody>
-  `;
+  // Horizontal table: row 1 = names+pics, row 2 = handles
+  let nameRow = '<tr>';
+  let handleRow = '<tr>';
+  allUserProfiles.forEach((profile) => {
+    const isSelected = selectedRecipients.has(profile.uid);
+    nameRow += `
+      <td class="p-0 cursor-pointer hover:bg-input-border transition-colors${isSelected ? ' selected' : ''}" data-uid="${profile.uid}" style="padding:0 4px; vertical-align:middle;">
+        <span class="flex items-center justify-center gap-1" style="line-height:1.2;">
+          <img src="${profile.photoURL}" alt="${profile.displayName}" class="rounded-full object-cover" style="width:1em;height:1em;min-width:1em;min-height:1em;max-width:1em;max-height:1em;display:inline-block;vertical-align:middle;margin-right:0.25em;" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+          <span class="font-medium text-[11px] text-center leading-tight" style="display:inline;vertical-align:middle;">${escapeHtml(profile.displayName)}</span>
+        </span>
+      </td>
+    `;
+    handleRow += `
+      <td class="p-0 text-[10px] text-text-secondary text-center cursor-pointer hover:bg-input-border transition-colors${isSelected ? ' selected' : ''}" data-uid="${profile.uid}" style="padding:0 4px;">@${escapeHtml(profile.handle)}</td>
+    `;
+  });
+  nameRow += '</tr>';
+  handleRow += '</tr>';
 
+  const table = document.createElement("table");
+  table.className = "w-full border-collapse text-center";
+  table.innerHTML = `<tbody>${nameRow}${handleRow}</tbody>`;
   list.appendChild(table);
 
-  // Update input field with selected UUIDs
+  // Update input field with selected handles
   if (input) {
     const selectedHandles = Array.from(selectedRecipients.values()).map(
       (profile) => `@${profile.handle}`,
@@ -237,12 +225,11 @@ function renderUserCardList(type) {
     input.value = selectedHandles.join(", ");
   }
 
-  // Add click handlers to user rows
-  list.querySelectorAll(".user-card-row").forEach((row) => {
-    row.addEventListener("click", () => {
-      const uid = row.dataset.uid;
+  // Add click handlers to all cells
+  list.querySelectorAll("[data-uid]").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      const uid = cell.dataset.uid;
       const profile = allUserProfiles.find((p) => p.uid === uid);
-
       if (profile) {
         if (type === "private") {
           selectedRecipients.clear();
@@ -515,21 +502,21 @@ function openEditConversationModal(convId, convType, currentName) {
           <h3 class="text-lg font-bold">Edit ${convType === "group" ? "Group" : "Conversation"}</h3>
           <button class="close-edit-modal text-2xl hover:text-red-500 transition-colors">&times;</button>
         </div>
-        
+
         <form id="edit-conversation-form" class="space-y-4">
           <div class="form-group">
             <label class="form-label" for="edit-conversation-name">Name</label>
-            <input type="text" id="edit-conversation-name" class="form-input bg-card text-text-primary border-none rounded w-full" 
+            <input type="text" id="edit-conversation-name" class="form-input bg-card text-text-primary border-none rounded w-full"
                    value="${escapeHtml(currentName)}" required>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label" for="edit-conversation-image">${convType === "group" ? "Group" : "Conversation"} Image URL (optional)</label>
-            <input type="url" id="edit-conversation-image" class="form-input bg-card text-text-primary border-none rounded w-full" 
+            <input type="url" id="edit-conversation-image" class="form-input bg-card text-text-primary border-none rounded w-full"
                    value="${escapeHtml(currentImage || "")}" placeholder="https://example.com/image.png">
             <p class="text-xs text-text-secondary mt-1">Leave empty to use ${convType === "group" ? "default group icon" : "recipient's avatar"}</p>
           </div>
-          
+
           ${
             convType === "group"
               ? `
@@ -546,7 +533,7 @@ function openEditConversationModal(convId, convType, currentName) {
                       return `
                       <div class="flex items-center justify-between p-2 bg-input-border rounded" data-uid="${uid}">
                         <div class="flex items-center gap-2">
-                          <img src="${profile?.photoURL || DEFAULT_PROFILE_PIC}" alt="${profile?.displayName || "Unknown"}" 
+                          <img src="${profile?.photoURL || DEFAULT_PROFILE_PIC}" alt="${profile?.displayName || "Unknown"}"
                                class="w-6 h-6 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
                           <span class="text-sm">${escapeHtml(profile?.displayName || "Unknown User")}</span>
                           ${isCurrentUser ? '<span class="text-xs text-text-secondary">(You)</span>' : ""}
@@ -554,7 +541,7 @@ function openEditConversationModal(convId, convType, currentName) {
                         ${
                           !isCurrentUser
                             ? `
-                          <button type="button" class="remove-participant-btn text-red-500 hover:text-red-700 text-sm" 
+                          <button type="button" class="remove-participant-btn text-red-500 hover:text-red-700 text-sm"
                                   data-uid="${uid}" title="Remove participant">
                             Remove
                           </button>
@@ -567,12 +554,12 @@ function openEditConversationModal(convId, convType, currentName) {
                     .join("")}
                 </div>
               </div>
-              
+
               <div class="mt-3">
                 <label class="form-label text-sm">Add New Participants</label>
                 <div id="add-participants-list" class="user-list-scrollable max-h-32"></div>
                 <div class="recipient-input-container mt-2">
-                  <input id="add-participant-input" class="form-input bg-card text-text-primary border-none rounded w-full text-sm" 
+                  <input id="add-participant-input" class="form-input bg-card text-text-primary border-none rounded w-full text-sm"
                          placeholder="@username or handle" list="user-handles-list">
                   <div id="add-participant-suggestions" class="handle-suggestions" style="display: none;"></div>
                 </div>
@@ -581,7 +568,7 @@ function openEditConversationModal(convId, convType, currentName) {
           `
               : ""
           }
-          
+
           <div class="flex gap-2">
             <button type="submit" class="btn-modern flex-1">Save Changes</button>
             <button type="button" class="btn-modern flex-1 close-edit-modal">Cancel</button>
@@ -1299,7 +1286,7 @@ function addParticipantToGroup(uid, profile) {
   const participantHtml = `
     <div class="flex items-center justify-between p-2 bg-input-border rounded" data-uid="${uid}">
       <div class="flex items-center gap-2">
-        <img src="${profile.photoURL}" alt="${profile.displayName}" 
+        <img src="${profile.photoURL}" alt="${profile.displayName}"
              class="w-6 h-6 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
         <span class="text-sm">${escapeHtml(profile.displayName)}</span>
         ${isCurrentUser ? '<span class="text-xs text-text-secondary">(You)</span>' : ""}
@@ -1307,7 +1294,7 @@ function addParticipantToGroup(uid, profile) {
       ${
         !isCurrentUser
           ? `
-        <button type="button" class="remove-participant-btn text-red-500 hover:text-red-700 text-sm" 
+        <button type="button" class="remove-participant-btn text-red-500 hover:text-red-700 text-sm"
                 data-uid="${uid}" title="Remove participant">
           Remove
         </button>
@@ -1786,9 +1773,9 @@ export function renderConversationsList() {
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-input-border">
-            <th class="text-left p-2 font-semibold text-sm">Conversation</th>
-            <th class="text-right p-2 font-semibold text-sm">Last Message</th>
-            <th class="text-center p-2 font-semibold text-sm w-20">Actions</th>
+            <th class="text-left p-1 font-semibold text-xs">Conversation</th>
+            <th class="text-right p-1 font-semibold text-xs">Last Message</th>
+            <th class="text-center p-1 font-semibold text-xs w-16">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -1817,7 +1804,6 @@ export function renderConversationsList() {
                   conv.groupImage ||
                   "https://placehold.co/40x40/1F2937/E5E7EB?text=GC";
               } else {
-                // For private chats, use custom image if set, otherwise use other user's avatar
                 avatarUrl =
                   conv.privateImage ||
                   conv.otherUserAvatar ||
@@ -1825,29 +1811,27 @@ export function renderConversationsList() {
               }
 
               return `
-              <tr class="conversation-row ${isActive ? "active" : ""}" data-conversation-id="${conv.id}">
-                <td class="p-2 cursor-pointer hover:bg-input-border transition-colors">
-                  <div class="flex items-center gap-2">
-                    <img src="${avatarUrl}" alt="${escapeHtml(displayName)}" class="w-8 h-8 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
-                    <div class="flex-1">
-                      <div class="font-medium">${escapeHtml(displayName)}</div>
-                      ${conv.type === "group" ? '<span class="text-xs opacity-60">👥</span>' : ""}
+              <tr class="conversation-row${isActive ? " active" : ""}" data-conversation-id="${conv.id}" style="height:32px;min-height:32px;">
+                <td class="p-1 cursor-pointer hover:bg-input-border transition-colors align-middle" style="vertical-align:middle;">
+                  <div class="flex items-center gap-1" style="min-height:24px;">
+                    <img src="${avatarUrl}" alt="${escapeHtml(displayName)}" class="w-6 h-6 rounded-full object-cover" style="width:24px;height:24px;min-width:24px;min-height:24px;max-width:24px;max-height:24px;" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
+                    <div class="flex-1 flex items-center gap-1">
+                      <span class="font-medium text-xs">${escapeHtml(displayName)}</span>
+                      ${conv.type === "group" ? '<span class="text-xs ml-1" style="font-size:1.1em;">👥</span>' : ""}
                     </div>
                   </div>
                 </td>
-                <td class="p-2 text-right text-sm text-text-secondary cursor-pointer hover:bg-input-border transition-colors">
-                  ${lastMessageTime}
-                </td>
-                <td class="p-2 text-center">
+                <td class="p-1 text-xs text-text-secondary text-right align-middle" style="vertical-align:middle;">${lastMessageTime}</td>
+                <td class="p-1 text-center align-middle" style="vertical-align:middle;">
                   <div class="flex items-center justify-center gap-1">
-                    <button class="edit-conversation-btn p-1 rounded hover:bg-input-border transition-colors" 
-                            data-conversation-id="${conv.id}" 
+                    <button class="edit-conversation-btn p-0.5 rounded hover:bg-input-border transition-colors"
+                            data-conversation-id="${conv.id}"
                             data-conversation-type="${conv.type}"
                             data-current-name="${escapeHtml(displayName)}"
                             title="Edit conversation name">
                       ✏️
                     </button>
-                    <button class="delete-conversation-btn p-1 rounded hover:bg-red-500 hover:text-white transition-colors" 
+                    <button class="delete-conversation-btn p-0.5 rounded hover:bg-red-500 hover:text-white transition-colors"
                             data-conversation-id="${conv.id}"
                             title="Delete conversation">
                       🗑️
@@ -2208,6 +2192,10 @@ async function renderConversationMessages(convId) {
             <div class="flex items-center gap-1 mb-1">
               <img src="${senderAvatar}" alt="${escapeHtml(senderName)}" class="w-5 h-5 rounded-full object-cover" onerror="this.src='${DEFAULT_PROFILE_PIC}'">
               <span class="text-[11px] text-text-secondary">${escapeHtml(senderName)}</span>
+              ${isOwn ? `<span class="flex ml-auto gap-1">
+                <button class="edit-message-btn text-xs ml-2" data-message-id="${message.id}" title="Edit">✏️</button>
+                <button class="delete-message-btn text-xs ml-1" data-message-id="${message.id}" title="Delete">🗑️</button>
+              </span>` : ""}
             </div>
             <div class="message-content text-base">${renderContent(message.content)}</div>
           </div>
@@ -2215,14 +2203,6 @@ async function renderConversationMessages(convId) {
             <span>${sentTime}</span>
             ${updatedTime && updatedTime !== sentTime ? `<span class="text-blue-400">Updated: ${updatedTime}</span>` : ""}
             ${editedIndicator}
-            ${
-              isOwn
-                ? `
-              <button class="edit-message-btn ml-2" data-message-id="${message.id}" title="Edit">✏️</button>
-              <button class="delete-message-btn ml-1" data-message-id="${message.id}" title="Delete">🗑️</button>
-            `
-                : ""
-            }
           </div>
         </div>
       </div>
@@ -2487,14 +2467,14 @@ function openEditMessageModal(messageId) {
           <h3 class="text-lg font-bold">Edit Message</h3>
           <button class="close-edit-message-modal text-2xl hover:text-red-500 transition-colors">&times;</button>
         </div>
-        
+
         <form id="edit-message-form" class="space-y-4">
           <div class="form-group">
             <label class="form-label" for="edit-message-content">Message</label>
-            <textarea id="edit-message-content" class="form-input bg-card text-text-primary border-none rounded w-full" 
+            <textarea id="edit-message-content" class="form-input bg-card text-text-primary border-none rounded w-full"
                      rows="4" required>${escapeHtml(message.content)}</textarea>
           </div>
-          
+
           <div class="flex gap-2">
             <button type="submit" class="btn-modern flex-1">Save Changes</button>
             <button type="button" class="btn-modern flex-1 close-edit-message-modal">Cancel</button>

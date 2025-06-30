@@ -25,11 +25,13 @@ export async function loadEmojiData() {
   try {
     const response = await fetch("./emojii.json");
     emojiData = await response.json();
+    filteredEmojis = emojiData;
     console.log("Emoji data loaded:", emojiData.length, "emojis");
     return emojiData;
   } catch (error) {
     console.error("Failed to load emoji data:", error);
     emojiData = [];
+    filteredEmojis = [];
     return [];
   }
 }
@@ -53,32 +55,27 @@ export function toggleEmojiPicker(pickerId = "emoji-picker") {
  */
 export function showEmojiPicker(pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
-  const emojiList = document.getElementById("emoji-list");
-
   if (!picker) {
     console.error("Emoji picker element not found:", pickerId);
     return;
   }
-
   picker.classList.remove("hidden");
-
-  // Load emojis if not already loaded
   if (emojiData.length === 0) {
     loadEmojiData().then(() => {
-      renderEmojis(emojiData, pickerId);
+      filteredEmojis = emojiData;
+      renderEmojis(filteredEmojis, pickerId);
+      renderEmojiTabs(pickerId);
       positionEmojiPicker(pickerId);
     });
   } else {
-    renderEmojis(emojiData, pickerId);
+    filteredEmojis = emojiData;
+    renderEmojis(filteredEmojis, pickerId);
+    renderEmojiTabs(pickerId);
     positionEmojiPicker(pickerId);
   }
-
-  // Focus on search input
   setTimeout(() => {
-    const searchInput = document.getElementById("emoji-search");
-    if (searchInput) {
-      searchInput.focus();
-    }
+    const searchInput = picker.querySelector(".emoji-search");
+    if (searchInput) searchInput.focus();
   }, 100);
 }
 
@@ -156,14 +153,11 @@ export function hideEmojiPicker(pickerId = "emoji-picker") {
 export function renderEmojis(emojis, pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   const emojiList = picker?.querySelector(".emoji-list");
-
   if (!emojiList) {
     console.error("Emoji list element not found in picker:", pickerId);
     return;
   }
-
-  // Filter by category
-  const filtered = emojis.filter(e => (e.category || 'other') === currentCategory);
+  const filtered = (filteredEmojis.length ? filteredEmojis : emojiData).filter(e => (e.category || 'other') === currentCategory);
   const cols = 8;
   let html = '<table class="emoji-table"><tbody>';
   for (let i = 0; i < filtered.length; i += cols) {
@@ -246,10 +240,11 @@ export function filterEmojis(searchTerm, pickerId = "emoji-picker") {
     filteredEmojis = emojiData;
   } else {
     filteredEmojis = emojiData.filter((emoji) =>
-      emoji.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      emoji.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
   renderEmojis(filteredEmojis, pickerId);
+  renderEmojiTabs(pickerId);
 }
 
 /**
@@ -355,14 +350,17 @@ export function initEmojiPicker(pickerId = "emoji-picker", type = "emoji") {
   if (type === "emoji") {
     if (emojiData.length === 0)
       loadEmojiData().then(() => {
-        renderEmojis(emojiData, pickerId);
+        filteredEmojis = emojiData;
+        renderEmojis(filteredEmojis, pickerId);
         renderEmojiTabs(pickerId);
+        setupEmojiPickerEventListeners(pickerId);
       });
     else {
-      renderEmojis(emojiData, pickerId);
+      filteredEmojis = emojiData;
+      renderEmojis(filteredEmojis, pickerId);
       renderEmojiTabs(pickerId);
+      setupEmojiPickerEventListeners(pickerId);
     }
-    setupEmojiPickerEventListeners(pickerId);
   } else if (type === "media") {
     setupMediaPickerEventListeners(pickerId);
   }
@@ -863,19 +861,18 @@ function insertAtCursor(input, text) {
  * @param {string} pickerId - The ID of the emoji picker element.
  */
 function setupEmojiPickerEventListeners(pickerId) {
-  // Setup emoji search functionality
-  const emojiSearch = document.getElementById("emoji-search");
+  // Use pickerId for search input
+  const emojiSearch = document.getElementById(`${pickerId}-search`);
   if (emojiSearch) {
+    emojiSearch.classList.add('form-input', 'bg-card', 'text-text-primary', 'border-none', 'rounded', 'w-full');
     emojiSearch.addEventListener("input", (e) => {
       filterEmojis(e.target.value, pickerId);
     });
   }
-
   // Close emoji picker when clicking outside
   document.addEventListener("click", (e) => {
     const picker = document.getElementById(pickerId);
-    const pickerBtn = document.querySelector(".emoji-picker-btn");
-
+    const pickerBtn = document.querySelector(`.emoji-picker-btn[onclick*='${pickerId}']`);
     if (
       picker &&
       !picker.classList.contains("hidden") &&

@@ -468,6 +468,9 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 240px !important; /* Fixed height for all pickers */
+  max-height: 240px !important;
+  min-height: 240px !important;
   /* Always bottom, full width */
 }
 
@@ -478,5 +481,8 @@ textarea {
     width: 100vw;
     border-radius: 0.75rem 0.75rem 0 0;
     padding: 0.25rem 0 0.5rem 0;
+    height: 240px !important;
+    max-height: 240px !important;
+    min-height: 240px !important;
   }
 }
