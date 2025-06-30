@@ -393,6 +393,18 @@ textarea {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.btn-primary span, .btn-modern span {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1em;
+  vertical-align: baseline;
+}
+.btn-primary span.emoji, .btn-modern span.emoji {
+  font-size: 1.1em;
+  vertical-align: baseline;
+  margin-right: 0.4em;
+}
+
 /* Print styles */
 @media print {
   *,

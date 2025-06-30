@@ -190,18 +190,14 @@
   <!-- Main Content Section -->
   <div class="container mx-auto px-4 mt-8">
     <div class="tab-container">
-      <button class="tab-button active" onclick="showTab('about')">
-        About
-      </button>
-      <button class="tab-button" onclick="showTab('discord')">Discord</button>
-      <button class="tab-button" onclick="showTab('census')">Census</button>
-      <button class="tab-button" onclick="showTab('infrastructure')">
-        Infrastructure
-      </button>
+      <button class="tab-btn active" data-tab="about" id="tab-about">About</button>
+      <button class="tab-btn" data-tab="discord" id="tab-discord">Discord</button>
+      <button class="tab-btn" data-tab="census" id="tab-census">Census</button>
+      <button class="tab-btn" data-tab="infrastructure" id="tab-infrastructure">Infrastructure</button>
     </div>
   </div>
 
-  <div class="tab-content active" id="about-tab">
+  <div class="tab-content" id="about-tab-content">
     <!-- About content from original about.html -->
     <section class="content-section">
       <div class="container mx-auto px-4">
@@ -305,7 +301,7 @@
     </section>
   </div>
 
-  <div class="tab-content" id="discord-tab">
+  <div class="tab-content" id="discord-tab-content" style="display:none">
     <!-- Community content from original community.html -->
     <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
       <div class="container mx-auto px-4">
@@ -469,7 +465,7 @@
     </section>
   </div>
 
-  <div class="tab-content" id="census-tab">
+  <div class="tab-content" id="census-tab-content" style="display:none">
     <!-- Interests content with Google Sheets data table -->
     <section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
       <div class="container mx-auto px-4">
@@ -573,7 +569,7 @@
     </section>
   </div>
 
-  <div class="tab-content" id="infrastructure-tab">
+  <div class="tab-content" id="infrastructure-tab-content" style="display:none">
     <!-- Infrastructure content from original infrastructure.html -->
     <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
       <div class="container mx-auto px-4">
@@ -632,15 +628,9 @@
   <script src="app.js" type="module"></script>
   <script type="module">
     import { initializePage } from './core.js';
+    import { setupTabs } from './core.js';
     initializePage('about');
-  </script>
-  <script>
-    function showTab(tab) {
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-      document.querySelector(`[onclick*="showTab('${tab}')"]`).classList.add('active');
-      document.getElementById(`${tab}-tab`).classList.add('active');
-    }
+    setupTabs('.tab-btn', '.tab-content');
   </script>
 </body>
 
