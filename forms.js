@@ -324,30 +324,34 @@ function flattenCommentTree(comments, depth = 0) {
   return flat;
 }
 
-// --- Render flat, indented comment list ---
+// --- Render flat, Reddit-like comment list with connecting line ---
 function renderFlatCommentList(flatComments, themaId, threadId) {
   return flatComments.map(c => {
     const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
     let photoURL = c.photoURL;
     if (!photoURL || photoURL === 'null' || photoURL === 'undefined') photoURL = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+    // Add a vertical line for depth > 0
+    const border = c.depth > 0 ? 'border-l-4 border-blue-700 pl-4' : '';
     return `
-      <div class="thread-header flex items-center gap-3 bg-card text-text-primary ml-${c.depth * 4} border-l-2 border-gray-700" data-comment-id="${c.id}" style="position:relative;">
-        <div class="flex gap-2 items-center">
-          ${canEdit ? `
-            <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">...</button>
-            <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">...</button>
-          ` : ""}
-          <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV'">
-        </div>
-        <div class="flex flex-col justify-center flex-1">
-          <span class="text-xs text-text-secondary">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
-          <p class="comment-content text-sm mt-1 mb-0">${renderContent(c.content)}</p>
-          <div class="flex items-center justify-between mt-1 w-full">
-            <div class="reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
-            <span class="meta-info text-xs ml-4" style="margin-left:auto;">${c.createdAt}</span>
+      <div class="thread-header flex items-start bg-card text-text-primary mb-2 p-3 rounded-lg shadow-sm ${border}" data-comment-id="${c.id}" style="position:relative;min-height:40px;">
+        <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV'">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-text-secondary truncate">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
+            <div class="flex gap-1 ml-2">
+              ${canEdit ? `
+                <button class="edit-comment-btn btn-primary btn-blue p-1 text-xs" title="Edit Comment">✎</button>
+                <button class="delete-comment-btn btn-primary btn-red p-1 text-xs" title="Delete Comment">🗑</button>
+              ` : ""}
+            </div>
           </div>
-          <div class="flex gap-2 mt-1">
-            <button class="reply-comment-btn btn-primary btn-blue text-xs" data-comment-id="${c.id}">Reply</button>
+          <div class="text-sm mt-0.5 mb-0.5 comment-content">${renderContent(c.content)}</div>
+          <div class="flex items-center justify-between mt-1 w-full">
+            <div class="flex items-center gap-2 reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
+            <span class="meta-info text-xs text-right ml-2 whitespace-nowrap">${c.createdAt}</span>
+          </div>
+          <div class="flex justify-end mt-1">
+            <button class="reply-comment-btn btn-primary btn-blue text-xs px-2 py-0.5" data-comment-id="${c.id}">Reply</button>
             <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
           </div>
         </div>
@@ -393,13 +397,11 @@ async function loadCommentsForThread(themaId, threadId) {
     const flat = flattenCommentTree(tree);
     let html = '';
     if (flat.length === 0) {
-      html = `<div class="flex items-center gap-4 no-comments-row">
-        <div class="no-comments text-sm text-gray-500 mb-0">No comments yet.</div>
-        <form class="add-comment-form flex flex-row items-center gap-2 ml-4" data-thema-id="${themaId}" data-thread-id="${threadId}" style="margin-bottom:0;">
-          <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
-          <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
-        </form>
-      </div>`;
+      html = `<div class="flex items-center gap-4 no-comments-row w-full">
+        <button class="toggle-add-comment btn-primary btn-blue mb-0 mr-4">＋ Add Comment</button>
+        <div class="flex-1 text-center no-comments text-sm text-gray-500 mb-0">No comments yet.</div>
+      </div>
+      <div class="add-comment-collapsible" style="display:none;"></div>`;
     } else {
       html = renderFlatCommentList(flat, themaId, threadId);
       html += `
@@ -415,7 +417,24 @@ async function loadCommentsForThread(themaId, threadId) {
       `;
     }
     commentsContainer.innerHTML = html;
-    setupCommentEventListeners(themaId, threadId);
+    // Attach toggle for empty state
+    if (flat.length === 0) {
+      const btn = commentsContainer.querySelector('.toggle-add-comment');
+      const formDiv = commentsContainer.querySelector('.add-comment-collapsible');
+      if (btn && formDiv) {
+        btn.onclick = () => {
+          btn.style.display = 'none';
+          formDiv.style.display = 'block';
+          formDiv.innerHTML = `<form class=\"add-comment-form flex flex-row items-center gap-2 ml-0\" data-thema-id=\"${themaId}\" data-thread-id=\"${threadId}\" style=\"margin-bottom:0;\">
+            <textarea class=\"form-input flex-1 min-w-0 mb-0 text-sm\" placeholder=\"Add a comment...\" rows=\"1\" required style=\"margin-bottom:0; min-width:120px; resize:vertical;\"></textarea>
+            <button type=\"submit\" class=\"btn-primary btn-blue text-sm ml-0\" style=\"margin-bottom:0;\">Add Comment</button>
+          </form>`;
+          setupCommentEventListeners(themaId, threadId);
+        };
+      }
+    } else {
+      setupCommentEventListeners(themaId, threadId);
+    }
   });
 }
 
