@@ -2206,9 +2206,6 @@ window.onload = async function () {
     // Setup event listeners
     setupEventListeners();
 
-    // Show settings section by default
-    showSection(settingsContent);
-
     hideLoading(); // Hide spinner
   } catch (error) {
     console.error("Error in user-main.js initialization:", error);
