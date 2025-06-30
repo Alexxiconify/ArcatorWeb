@@ -199,30 +199,107 @@ export function setupCustomThemeManagement(
         <div class="modal-content" style="width:98vw;max-width:900px;padding:1.5rem 1rem;box-sizing:border-box;">
           <span class="close-button">&times;</span>
           <h3 id="custom-theme-modal-title" class="text-2xl font-bold mb-3 text-heading-card">Create Custom Theme</h3>
-          <form id="custom-theme-form" class="space-y-2">
-            <div class="input-field mb-2">
+          <form id="custom-theme-form" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div class="input-field mb-2 col-span-2">
               <label for="custom-theme-name" class="block mb-1">Theme Name:</label>
-              <input type="text" id="custom-theme-name" placeholder="My Awesome Theme" class="py-1 px-2 w-full rounded border border-input-border" required />
+              <input id="custom-theme-name" class="form-input w-full" maxlength="32" required />
             </div>
-            <div id="custom-theme-color-inputs" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-              <!-- Color pickers will be injected here -->
+            <div class="input-field">
+              <label>Body BG</label>
+              <input type="color" id="theme-body-bg" />
             </div>
-            <div class="flex flex-wrap gap-2 mb-2">
-              <label for="custom-theme-background-pattern" class="block">Pattern:</label>
-              <select id="custom-theme-background-pattern" class="py-1 px-2 rounded border border-input-border">
-                <option value="none">None</option>
-                <option value="dots">Dots</option>
-                <option value="grid">Grid</option>
-                <option value="diagonal">Diagonal</option>
-                <option value="circles">Circles</option>
-                <option value="hexagons">Hexagons</option>
-              </select>
+            <div class="input-field">
+              <label>Card BG</label>
+              <input type="color" id="theme-card-bg" />
             </div>
-            <div class="flex justify-end mt-2">
-              <button id="save-custom-theme-btn" class="btn-primary btn-blue px-4 py-2 rounded">Save Custom Theme</button>
+            <div class="input-field">
+              <label>Navbar BG</label>
+              <input type="color" id="theme-navbar-bg" />
+            </div>
+            <div class="input-field">
+              <label>Content Section BG</label>
+              <input type="color" id="theme-content-section-bg" />
+            </div>
+            <div class="input-field">
+              <label>Heading Main</label>
+              <input type="color" id="theme-heading-main" />
+            </div>
+            <div class="input-field">
+              <label>Heading Card</label>
+              <input type="color" id="theme-heading-card" />
+            </div>
+            <div class="input-field">
+              <label>Text Primary</label>
+              <input type="color" id="theme-text-primary" />
+            </div>
+            <div class="input-field">
+              <label>Text Secondary</label>
+              <input type="color" id="theme-text-secondary" />
+            </div>
+            <div class="input-field">
+              <label>Link</label>
+              <input type="color" id="theme-link" />
+            </div>
+            <div class="input-field">
+              <label>Button Blue</label>
+              <input type="color" id="theme-button-blue-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Green</label>
+              <input type="color" id="theme-button-green-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Red</label>
+              <input type="color" id="theme-button-red-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Purple</label>
+              <input type="color" id="theme-button-purple-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Yellow</label>
+              <input type="color" id="theme-button-yellow-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Indigo</label>
+              <input type="color" id="theme-button-indigo-bg" />
+            </div>
+            <div class="input-field">
+              <label>Button Text</label>
+              <input type="color" id="theme-button-text" />
+            </div>
+            <div class="input-field">
+              <label>Input BG</label>
+              <input type="color" id="theme-input-bg" />
+            </div>
+            <div class="input-field">
+              <label>Input Border</label>
+              <input type="color" id="theme-input-border" />
+            </div>
+            <div class="input-field">
+              <label>Input Text</label>
+              <input type="color" id="theme-input-text" />
+            </div>
+            <div class="input-field">
+              <label>Table TH BG</label>
+              <input type="color" id="theme-table-th-bg" />
+            </div>
+            <div class="input-field">
+              <label>Table TH Text</label>
+              <input type="color" id="theme-table-th-text" />
+            </div>
+            <div class="input-field">
+              <label>Table TD Border</label>
+              <input type="color" id="theme-table-td-border" />
+            </div>
+            <div class="input-field">
+              <label>Table Row Even BG</label>
+              <input type="color" id="theme-table-row-even-bg" />
+            </div>
+            <div class="input-field col-span-2 text-right">
+              <button type="submit" class="btn-primary btn-blue">Save Theme</button>
             </div>
           </form>
-          <ul id="custom-theme-list" class="mt-4"></ul>
         </div>
       </div>
     `;
