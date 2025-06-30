@@ -198,20 +198,36 @@
         if (user) {
           userProfile = await getUserProfileFromFirestore(user.uid);
         }
-        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-        loadFooter("current-year-index");
-        const userThemePreference = userProfile?.themePreference;
-        const allThemes = await getAvailableThemes();
-        const themeToApply =
-          allThemes.find((t) => t.id === userThemePreference) ||
-          allThemes.find((t) => t.id === "dark");
-        if (themeToApply) {
-          applyTheme(themeToApply.id, themeToApply);
-          console.log(
-            `Index page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-          );
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+        loadFooter();
+
+        if (userProfile?.themePreference) {
+          const allThemes = await getAvailableThemes();
+          const themeToApply = allThemes.find(t => t.id === userProfile.themePreference) || 
+                              allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+          }
         }
       });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const copyButton = document.getElementById('copyIpButton');
+      const ipElement = document.getElementById('minecraft-ip');
+      
+      if (copyButton && ipElement) {
+        copyButton.addEventListener('click', function() {
+          navigator.clipboard.writeText(ipElement.textContent).then(function() {
+            copyButton.textContent = 'Copied!';
+            setTimeout(function() {
+              copyButton.textContent = 'Copy IP';
+            }, 2000);
+          }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+          });
+        });
+      }
     });
   </script>
 </body>

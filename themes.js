@@ -1,8 +1,4 @@
-// themes.js - Handles theme management, including loading default and custom themes,
-// applying themes, and interacting with Firestore for custom theme storage.
-
-// Imports from firebase-init.js for Firebase instances and constants
-// Import db, auth, and appId directly as they are now globally exported from firebase-init.js
+// themes.js - Theme management system
 import {
   db,
   auth,
@@ -10,14 +6,14 @@ import {
   firebaseReadyPromise,
   DEFAULT_THEME_NAME,
 } from "./firebase-init.js";
-import { showMessageBox } from "./utils.js"; // For showing messages
+import { showMessageBox } from "./utils.js";
 
 import {
   collection,
   doc,
   getDoc,
   setDoc,
-  deleteDoc, // Added deleteDoc import
+  deleteDoc,
   getDocs,
   query,
   where,
@@ -26,20 +22,10 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Global variables for Firebase instances
-// These are not strictly necessary if using direct imports from firebase-init.js
-// but are kept for consistency with the pattern if other parts of themes.js rely on them.
-let themesDb = null;
-let themesAuth = null;
-let themesAppId = null;
-
-// Cache for available themes
 let availableThemesCache = [];
-
-// Theme caching constants
 const THEME_CACHE_KEY = "arcator_user_theme_preference";
 const THEME_CACHE_TIMESTAMP_KEY = "arcator_theme_cache_timestamp";
-const THEME_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const THEME_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 const defaultThemes = [
   {
@@ -207,7 +193,7 @@ const defaultThemes = [
       "--color-input-border": "#475569",
       "--color-placeholder": "#94A3B8",
       "--color-link": "#60A5FA",
-      "--color-heading-main": "#F9FAFB",
+      "--color-heading-main": "#F8FAFC",
       "--color-heading-card": "#E2E8F0",
       "--color-button-blue-bg": "#3B82F6",
       "--color-button-blue-hover": "#2563EB",
@@ -223,7 +209,7 @@ const defaultThemes = [
       "--color-button-indigo-hover": "#4F46E5",
       "--color-button-text": "#FFFFFF",
       "--color-table-th-bg": "#334155",
-      "--color-table-th-text": "#F9FAFB",
+      "--color-table-th-text": "#F8FAFC",
       "--color-table-td-border": "#475569",
       "--color-table-row-even-bg": "#1e293b",
       "--color-modal-bg": "#334155",
@@ -248,7 +234,7 @@ const defaultThemes = [
       "--color-text-secondary": "#CCCCCC",
       "--color-bg-navbar": "#000000",
       "--color-bg-card": "#1a1a1a",
-      "--color-bg-content-section": "#2a2a2a",
+      "--color-bg-content-section": "#2d2d2d",
       "--color-bg-ip-box": "#000000",
       "--color-border-ip-box": "#FFFFFF",
       "--color-input-bg": "#1a1a1a",
@@ -258,342 +244,134 @@ const defaultThemes = [
       "--color-link": "#FFFF00",
       "--color-heading-main": "#FFFFFF",
       "--color-heading-card": "#FFFFFF",
-      "--color-button-blue-bg": "#FFFF00",
-      "--color-button-blue-hover": "#FFFF00",
-      "--color-button-green-bg": "#00FF00",
-      "--color-button-green-hover": "#00FF00",
-      "--color-button-red-bg": "#FF0000",
-      "--color-button-red-hover": "#FF0000",
-      "--color-button-purple-bg": "#FF00FF",
-      "--color-button-purple-hover": "#FF00FF",
-      "--color-button-yellow-bg": "#FFFF00",
-      "--color-button-yellow-hover": "#FFFF00",
-      "--color-button-indigo-bg": "#00FFFF",
-      "--color-button-indigo-hover": "#00FFFF",
-      "--color-button-text": "#000000",
-      "--color-table-th-bg": "#2a2a2a",
+      "--color-button-blue-bg": "#0066CC",
+      "--color-button-blue-hover": "#0052A3",
+      "--color-button-green-bg": "#00CC00",
+      "--color-button-green-hover": "#00A300",
+      "--color-button-red-bg": "#CC0000",
+      "--color-button-red-hover": "#A30000",
+      "--color-button-purple-bg": "#6600CC",
+      "--color-button-purple-hover": "#5200A3",
+      "--color-button-yellow-bg": "#CCCC00",
+      "--color-button-yellow-hover": "#A3A300",
+      "--color-button-indigo-bg": "#0000CC",
+      "--color-button-indigo-hover": "#0000A3",
+      "--color-button-text": "#FFFFFF",
+      "--color-table-th-bg": "#2d2d2d",
       "--color-table-th-text": "#FFFFFF",
       "--color-table-td-border": "#FFFFFF",
       "--color-table-row-even-bg": "#1a1a1a",
-      "--color-modal-bg": "#2a2a2a",
+      "--color-modal-bg": "#2d2d2d",
       "--color-modal-text": "#FFFFFF",
       "--color-modal-input-bg": "#1a1a1a",
       "--color-modal-input-text": "#FFFFFF",
-      "--color-message-box-bg-success": "#00FF00",
-      "--color-message-box-bg-error": "#FF0000",
+      "--color-message-box-bg-success": "#00CC00",
+      "--color-message-box-bg-error": "#CC0000",
       "--color-settings-card-bg": "#1a1a1a",
       "--color-settings-card-border": "#FFFFFF",
-      "--color-table-col-even": "#2a2a2a",
+      "--color-table-col-even": "#2d2d2d",
       "--color-table-col-odd": "#1a1a1a",
     },
   },
 ];
 
-/**
- * Initializes Firebase instances for the themes module.
- * This function's parameters are now optional, as it attempts to use the globally exported
- * `db`, `auth`, and `appId` from `firebase-init.js` if not explicitly passed.
- * @param {object} [firestoreDb] - The Firestore DB instance (optional).
- * @param {object} [firebaseAuth] - The Firebase Auth instance (optional).
- * @param {string} [appIdentifier] - The application ID (optional).
- */
 export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
-  // Store Firebase instances for use in theme operations
-  themesDb = firestoreDb;
-  themesAuth = firebaseAuth;
-  themesAppId = appIdentifier;
+  // Legacy function for backward compatibility
+  return true;
 }
 
-/**
- * Fetches custom themes from Firestore.
- * @returns {Promise<Array>} Array of custom theme objects.
- */
 async function fetchCustomThemes() {
-  await firebaseReadyPromise;
-  const firestoreDb = themesDb || db;
-  const firebaseAuth = themesAuth || auth;
-  const appIdentifier = themesAppId || appId;
-  if (!firestoreDb || !firebaseAuth || !appIdentifier) {
-    console.error("Firestore DB not initialized for fetchCustomThemes.");
-    return [];
-  }
   try {
-    const customThemesRef = collection(
-      firestoreDb,
-      `artifacts/${appIdentifier}/public/data/custom_themes`,
+    await firebaseReadyPromise;
+    if (!db) return [];
+
+    const customThemesQuery = query(
+      collection(db, `artifacts/${appId}/public/data/custom_themes`),
+      where("isActive", "==", true)
     );
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Firestore query timeout")), 5000),
-    );
-    const queryPromise = getDocs(customThemesRef);
-    const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
-    const customThemes = [];
-    querySnapshot.forEach((doc) => {
-      const themeData = doc.data();
-      customThemes.push({
-        id: doc.id,
-        name: themeData.name || "Unnamed Theme",
-        variables: themeData.variables || {},
-        backgroundPattern: themeData.backgroundPattern || "none",
-        isCustom: true,
-        createdAt: themeData.createdAt,
-        updatedAt: themeData.updatedAt,
-        authorUid: themeData.authorUid,
-        authorDisplayName: themeData.authorDisplayName,
-        authorEmail: themeData.authorEmail,
-      });
-    });
-    return customThemes;
+    const querySnapshot = await getDocs(customThemesQuery);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      isCustom: true
+    }));
   } catch (error) {
-    console.warn("Error in fetchCustomThemes:", error);
+    console.error("Error fetching custom themes:", error);
     return [];
   }
 }
 
-/**
- * Returns all available themes (default + custom).
- * @param {boolean} [forceRefresh=false] - Force refresh the cache.
- * @returns {Promise<Array>} Array of all available theme objects.
- */
 export async function getAvailableThemes(forceRefresh = false) {
-  await firebaseReadyPromise;
-  if (!forceRefresh && availableThemesCache.length > 0)
+  if (availableThemesCache.length > 0 && !forceRefresh) {
     return availableThemesCache;
-  try {
-    let customThemes = [];
-    try {
-      customThemes = await fetchCustomThemes();
-    } catch (customThemeError) {
-      console.warn(
-        "Failed to fetch custom themes, using defaults only:",
-        customThemeError,
-      );
-      customThemes = [];
-    }
-    const allThemes = [...defaultThemes, ...customThemes];
-    availableThemesCache = allThemes;
-    return allThemes;
-  } catch (error) {
-    console.error("Error fetching themes:", error);
-    availableThemesCache = defaultThemes;
-    return defaultThemes;
   }
+
+  const customThemes = await fetchCustomThemes();
+  availableThemesCache = [...defaultThemes, ...customThemes];
+  return availableThemesCache;
 }
 
-/**
- * Applies a theme to the document.
- * @param {string} themeId - The ID of the theme to apply.
- * @param {object} [themeProperties] - Optional theme properties object.
- */
 export function applyTheme(themeId, themeProperties) {
-  const root = document.documentElement;
-
-  // Remove existing theme classes
-  root.classList.remove(
-    "theme-dark",
-    "theme-light",
-    "theme-arcator-green",
-    "theme-ocean-blue",
-    "theme-high-contrast",
-  );
-
-  // Only add theme class for built-in themes (not custom themes)
-  if (themeProperties && themeProperties.isCustom) {
-    // For custom themes, don't add a CSS class since they don't have predefined CSS
-    // Add a custom theme indicator to the body for navbar detection
-    document.body.classList.add("custom-theme");
-    console.log(`Applying custom theme: ${themeId}`);
-  } else {
-    // Add new theme class for built-in themes
-    // Remove custom theme indicator
-    document.body.classList.remove("custom-theme");
-    root.classList.add(`theme-${themeId}`);
-    console.log(`Applying built-in theme: ${themeId}`);
-  }
-
-  // Apply CSS variables if theme properties are provided
-  if (themeProperties && themeProperties.variables) {
-    Object.entries(themeProperties.variables).forEach(([property, value]) => {
-      root.style.setProperty(property, value);
-    });
-    console.log(
-      `Applied ${Object.keys(themeProperties.variables).length} CSS variables for theme: ${themeId}`,
-    );
-  }
-
-  // Apply CSS variables if theme properties are provided (legacy format)
-  if (themeProperties && themeProperties.colors) {
-    Object.entries(themeProperties.colors).forEach(([property, value]) => {
-      root.style.setProperty(property, value);
-    });
-    console.log(
-      `Applied ${Object.keys(themeProperties.colors).length} legacy color variables for theme: ${themeId}`,
-    );
-  }
-
-  // Apply background pattern if specified
-  if (themeProperties && themeProperties.backgroundPattern) {
-    if (themeProperties.backgroundPattern === "none") {
-      document.body.style.backgroundImage = "none";
-    } else if (themeProperties.backgroundPattern === "dots") {
-      document.body.style.backgroundImage =
-        "linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent)";
-      document.body.style.backgroundSize = "20px 20px";
-      document.body.style.backgroundAttachment = "fixed";
-    } else if (themeProperties.backgroundPattern === "grid") {
-      document.body.style.backgroundImage =
-        "linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px)";
-      document.body.style.backgroundSize = "40px 40px";
-      document.body.style.backgroundAttachment = "fixed";
-    }
-    console.log(
-      `Applied background pattern: ${themeProperties.backgroundPattern}`,
-    );
-  }
-
-  // Apply font family if specified
-  if (
-    themeProperties &&
-    themeProperties.variables &&
-    themeProperties.variables["--font-family-body"]
-  ) {
-    document.body.style.fontFamily =
-      themeProperties.variables["--font-family-body"];
-    console.log(
-      `Applied font family: ${themeProperties.variables["--font-family-body"]}`,
-    );
-  }
-
-  // Cache the theme preference for future page loads
-  const currentUser = auth.currentUser;
-  cacheUserTheme(themeId, currentUser ? currentUser.uid : null);
-
-  // Dispatch theme change event for components that need to update
-  const themeChangeEvent = new CustomEvent("themeChanged", {
-    detail: {
-      themeId: themeId,
-      themeProperties: themeProperties,
-    },
-  });
-  document.dispatchEvent(themeChangeEvent);
-
-  console.log(`Theme applied successfully: ${themeId}`);
-}
-
-/**
- * Saves a custom theme to Firestore.
- * @param {object} themeData - The theme data to save.
- * @returns {Promise<string|boolean>} Document ID on success, false on failure.
- */
-export async function saveCustomTheme(themeData) {
-  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
-  const firestoreDb = themesDb || db;
-  const firebaseAuth = themesAuth || auth;
-  const appIdentifier = themesAppId || appId;
-
-  if (!firestoreDb || !firebaseAuth || !appIdentifier) {
-    console.error("Firebase instances not initialized for saveCustomTheme.");
+  if (!themeProperties || !themeProperties.colors) {
+    console.error("Invalid theme properties provided");
     return false;
   }
 
+  const root = document.documentElement;
+  const colors = themeProperties.colors;
+
+  Object.entries(colors).forEach(([property, value]) => {
+    root.style.setProperty(property, value);
+  });
+
+  if (themeProperties.backgroundPattern) {
+    root.className = root.className.replace(/pattern-\w+/g, '');
+    root.classList.add(`pattern-${themeProperties.backgroundPattern}`);
+  }
+
+  document.body.className = document.body.className.replace(/theme-\w+/g, '');
+  document.body.classList.add(`theme-${themeId}`);
+
+  localStorage.setItem(THEME_CACHE_KEY, themeId);
+  localStorage.setItem(THEME_CACHE_TIMESTAMP_KEY, Date.now().toString());
+
+  return true;
+}
+
+export async function saveCustomTheme(themeData) {
   try {
-    // Validate theme data
-    if (!themeData.name || !themeData.variables) {
-      console.error("Invalid theme data: missing name or variables");
-      return false;
-    }
+    await firebaseReadyPromise;
+    if (!db || !auth.currentUser) return false;
 
-    // Validate color values
-    const validatedColors = {};
-    for (const [key, value] of Object.entries(themeData.variables)) {
-      if (key.startsWith("--color-") && value) {
-        // Basic hex color validation
-        if (/^#[0-9A-F]{6}$/i.test(value)) {
-          validatedColors[key] = value;
-        } else {
-          console.warn(`Invalid color value for ${key}: ${value}`);
-        }
-      } else {
-        validatedColors[key] = value;
-      }
-    }
-
-    const customThemesCol = collection(
-      firestoreDb,
-      `artifacts/${appIdentifier}/public/data/custom_themes`,
-    );
-    const currentUser = firebaseAuth.currentUser;
-
-    if (!currentUser) {
-      console.error("No authenticated user for saving custom theme");
-      return false;
-    }
-
-    const themeToSave = {
-      name: themeData.name,
-      variables: validatedColors,
-      backgroundPattern: themeData.backgroundPattern || "none",
-      isCustom: true,
-      authorUid: currentUser.uid,
-      authorDisplayName: currentUser.displayName || "Unknown User",
-      authorEmail: currentUser.email || null,
+    const themeDoc = {
+      ...themeData,
+      createdBy: auth.currentUser.uid,
+      createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      isActive: true,
     };
 
-    let docId;
-    if (themeData.id) {
-      // Update existing theme
-      const themeDocRef = doc(
-        firestoreDb,
-        `artifacts/${appIdentifier}/public/data/custom_themes`,
-        themeData.id,
-      );
-      await updateDoc(themeDocRef, themeToSave);
-      docId = themeData.id;
-    } else {
-      // Create new theme
-      themeToSave.createdAt = serverTimestamp();
-      const docRef = await addDoc(customThemesCol, themeToSave);
-      docId = docRef.id;
-    }
+    const docRef = await addDoc(
+      collection(db, `artifacts/${appId}/public/data/custom_themes`),
+      themeDoc
+    );
 
-    // Clear cache to force refresh
     availableThemesCache = [];
-
-    return docId;
+    return docRef.id;
   } catch (error) {
     console.error("Error saving custom theme:", error);
     return false;
   }
 }
 
-/**
- * Deletes a custom theme from Firestore.
- * @param {string} themeId - The ID of the theme to delete.
- * @returns {Promise<boolean>} Success status.
- */
 export async function deleteCustomTheme(themeId) {
-  // Use the proper Firebase instances - fall back to global ones if themesDb/themesAuth not set
-  const firestoreDb = themesDb || db;
-  const firebaseAuth = themesAuth || auth;
-  const appIdentifier = themesAppId || appId;
-
-  if (!firestoreDb || !firebaseAuth.currentUser) {
-    console.error(
-      "Not authenticated or database not ready for deleteCustomTheme.",
-    );
-    return false;
-  }
-
-  const themeDocRef = doc(
-    firestoreDb,
-    `artifacts/${appIdentifier}/public/data/custom_themes`,
-    themeId,
-  );
   try {
-    await deleteDoc(themeDocRef);
-    availableThemesCache = []; // Clear cache
-    console.log(`Deleted custom theme: ${themeId}`);
+    await firebaseReadyPromise;
+    if (!db) return false;
+
+    await deleteDoc(doc(db, `artifacts/${appId}/public/data/custom_themes`, themeId));
+    availableThemesCache = availableThemesCache.filter(theme => theme.id !== themeId);
     return true;
   } catch (error) {
     console.error("Error deleting custom theme:", error);
@@ -601,181 +379,72 @@ export async function deleteCustomTheme(themeId) {
   }
 }
 
-/**
- * Initialize themes globally for all pages
- */
 export async function initializeGlobalThemes() {
   try {
-    // Wait for Firebase to be ready
     await firebaseReadyPromise;
+    if (!db) return false;
 
-    // Setup themes module
-    setupThemesFirebase();
-
-    // Get available themes
-    const themes = await getAvailableThemes();
-
-    // Determine which theme to apply
-    let themeToApply = themes.find((t) => t.id === DEFAULT_THEME_NAME);
-
-    // If user is logged in, try to get their theme preference
-    if (auth.currentUser) {
-      // Import getUserProfileFromFirestore dynamically to avoid circular imports
-      const { getUserProfileFromFirestore } = await import(
-        "./firebase-init.js"
-      );
-      const userProfile = await getUserProfileFromFirestore(
-        auth.currentUser.uid,
-      );
-      if (userProfile && userProfile.themePreference) {
-        const userTheme = themes.find(
-          (t) => t.id === userProfile.themePreference,
-        );
-        if (userTheme) {
-          themeToApply = userTheme;
-        }
-      }
+    const themesCollection = collection(db, `artifacts/${appId}/public/data/custom_themes`);
+    const querySnapshot = await getDocs(themesCollection);
+    
+    if (querySnapshot.empty) {
+      return true;
     }
 
-    // Apply the theme
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Global theme applied: ${themeToApply.name}`);
-    }
+    return true;
   } catch (error) {
     console.error("Error initializing global themes:", error);
-    // Fallback to default theme
-    const themes = await getAvailableThemes();
-    const defaultTheme = themes.find((t) => t.id === DEFAULT_THEME_NAME);
-    if (defaultTheme) {
-      applyTheme(defaultTheme.id, defaultTheme);
-    }
-  }
-}
-
-/**
- * Cache user's theme preference in localStorage
- * @param {string} themeId - The theme ID to cache
- * @param {string} userId - The user's UID (optional, for user-specific caching)
- */
-export function cacheUserTheme(themeId, userId = null) {
-  try {
-    const cacheData = {
-      themeId: themeId,
-      userId: userId,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(cacheData));
-    console.log(
-      `Cached theme preference: ${themeId} for user: ${userId || "anonymous"}`,
-    );
-  } catch (error) {
-    console.warn("Failed to cache theme preference:", error);
-  }
-}
-
-/**
- * Get cached theme preference from localStorage
- * @param {string} userId - The user's UID (optional, for user-specific caching)
- * @returns {string|null} The cached theme ID or null if not found/expired
- */
-export function getCachedTheme(userId = null) {
-  try {
-    const cached = localStorage.getItem(THEME_CACHE_KEY);
-    if (!cached) return null;
-
-    const cacheData = JSON.parse(cached);
-    const now = Date.now();
-
-    // Check if cache is expired
-    if (now - cacheData.timestamp > THEME_CACHE_DURATION) {
-      localStorage.removeItem(THEME_CACHE_KEY);
-      return null;
-    }
-
-    // If userId is provided, only return cache if it matches
-    if (userId && cacheData.userId !== userId) {
-      return null;
-    }
-
-    console.log(`Retrieved cached theme: ${cacheData.themeId}`);
-    return cacheData.themeId;
-  } catch (error) {
-    console.warn("Failed to retrieve cached theme:", error);
-    return null;
-  }
-}
-
-/**
- * Clear cached theme preference
- */
-export function clearCachedTheme() {
-  try {
-    localStorage.removeItem(THEME_CACHE_KEY);
-    console.log("Cleared cached theme preference");
-  } catch (error) {
-    console.warn("Failed to clear cached theme:", error);
-  }
-}
-
-/**
- * Apply cached theme immediately on page load to prevent flash
- * @returns {Promise<boolean>} True if cached theme was applied, false otherwise
- */
-export async function applyCachedTheme() {
-  try {
-    const cachedThemeId = getCachedTheme();
-    if (!cachedThemeId) return false;
-
-    // Get available themes with better error handling
-    let themes = [];
-    try {
-      themes =
-        availableThemesCache.length > 0
-          ? availableThemesCache
-          : await getAvailableThemes();
-    } catch (themeError) {
-      console.warn(
-        "Failed to get available themes for cached theme application:",
-        themeError,
-      );
-      // Try to use default themes as fallback
-      themes = defaultThemes;
-    }
-
-    const themeToApply = themes.find((t) => t.id === cachedThemeId);
-
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Applied cached theme: ${cachedThemeId}`);
-      return true;
-    } else {
-      console.warn(
-        `Cached theme ${cachedThemeId} not found in available themes`,
-      );
-      return false;
-    }
-  } catch (error) {
-    console.warn("Failed to apply cached theme:", error);
     return false;
   }
 }
 
-// Initialize themesDb with the global db instance when Firebase is ready
-async function initializeThemesDb() {
-  try {
-    await firebaseReadyPromise;
-    themesDb = db;
-    themesAuth = auth;
-    themesAppId = appId;
-    console.log("Themes Firebase instances initialized");
-  } catch (error) {
-    console.error("Error initializing themes Firebase instances:", error);
-  }
+export function cacheUserTheme(themeId, userId = null) {
+  const cacheKey = userId ? `${THEME_CACHE_KEY}_${userId}` : THEME_CACHE_KEY;
+  const timestampKey = userId ? `${THEME_CACHE_TIMESTAMP_KEY}_${userId}` : THEME_CACHE_TIMESTAMP_KEY;
+  
+  localStorage.setItem(cacheKey, themeId);
+  localStorage.setItem(timestampKey, Date.now().toString());
 }
 
-// Call initialization
-initializeThemesDb();
+export function getCachedTheme(userId = null) {
+  const cacheKey = userId ? `${THEME_CACHE_KEY}_${userId}` : THEME_CACHE_KEY;
+  const timestampKey = userId ? `${THEME_CACHE_TIMESTAMP_KEY}_${userId}` : THEME_CACHE_TIMESTAMP_KEY;
+  
+  const cachedTheme = localStorage.getItem(cacheKey);
+  const timestamp = localStorage.getItem(timestampKey);
+  
+  if (!cachedTheme || !timestamp) return null;
+  
+  const age = Date.now() - parseInt(timestamp);
+  if (age > THEME_CACHE_DURATION) {
+    localStorage.removeItem(cacheKey);
+    localStorage.removeItem(timestampKey);
+    return null;
+  }
+  
+  return cachedTheme;
+}
 
-// Don't automatically initialize themes when script loads
-// Let individual pages call this explicitly if needed
+export function clearCachedTheme() {
+  const keys = Object.keys(localStorage);
+  keys.forEach(key => {
+    if (key.startsWith(THEME_CACHE_KEY) || key.startsWith(THEME_CACHE_TIMESTAMP_KEY)) {
+      localStorage.removeItem(key);
+    }
+  });
+}
+
+export async function applyCachedTheme() {
+  const cachedThemeId = getCachedTheme();
+  if (!cachedThemeId) return false;
+
+  const themes = await getAvailableThemes();
+  const theme = themes.find(t => t.id === cachedThemeId);
+  
+  if (theme) {
+    applyTheme(theme.id, theme);
+    return true;
+  }
+  
+  return false;
+}

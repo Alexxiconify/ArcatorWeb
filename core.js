@@ -1,10 +1,4 @@
-// core.js - Essential functionality consolidated into a single module
-// This file combines Firebase, themes, navigation, and utilities to reduce imports
-
-// ============================================================================
-// FIREBASE INITIALIZATION
-// ============================================================================
-
+// core.js - Essential functionality
 import {
   initializeApp,
   getApps,
@@ -31,24 +25,19 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import Firebase configuration from sensitive folder
 import { firebaseConfig } from "./sensitive/firebase-config.js";
 
-// Determine appId for Firestore paths
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
 export const appId = canvasAppId || firebaseConfig.projectId || "default-app-id";
 
-// Firebase instances
 export let app;
 export let auth;
 export let db;
 export let firebaseReadyPromise;
 
-// Constants
 export const DEFAULT_PROFILE_PIC = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
 export const DEFAULT_THEME_NAME = "dark";
 
-// Initialize Firebase
 async function setupFirebaseCore() {
   if (getApps().length === 0) {
     let finalFirebaseConfig = firebaseConfig;
@@ -69,8 +58,6 @@ async function setupFirebaseCore() {
     app = initializeApp(finalFirebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    
-    console.log("Firebase initialized successfully");
   } else {
     app = getApp();
     auth = getAuth(app);
@@ -78,23 +65,12 @@ async function setupFirebaseCore() {
   }
 }
 
-// Initialize Firebase immediately
 firebaseReadyPromise = setupFirebaseCore();
-
-// ============================================================================
-// THEME MANAGEMENT REMOVED
-// All theme logic is handled by themes.js. Do not define or use applyTheme, applyCachedTheme, getAvailableThemes, or getCurrentTheme here.
-// ============================================================================
-
-// ============================================================================
-// NAVIGATION & LAYOUT
-// ============================================================================
 
 export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTheme) {
   const navbarPlaceholder = document.getElementById("navbar-placeholder");
   if (!navbarPlaceholder) return;
 
-  // Import navbar functionality dynamically to avoid circular dependencies
   const { loadNavbar: loadNavbarFunction } = await import("./navbar.js");
   await loadNavbarFunction(user, userProfile, defaultProfilePic, defaultTheme);
 }
@@ -121,10 +97,6 @@ export function loadFooter(yearElementId) {
   `;
 }
 
-// ============================================================================
-// FIREBASE UTILITIES
-// ============================================================================
-
 export async function getUserProfileFromFirestore(uid) {
   try {
     const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
@@ -148,36 +120,23 @@ export async function setUserProfileInFirestore(uid, profileData) {
   }
 }
 
-// ============================================================================
-// PAGE INITIALIZATION
-// ============================================================================
-
 export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
   const initFunction = async () => {
-    console.log(`${pageName}: Initialization started.`);
-
-    // Wait for Firebase to be ready
     await firebaseReadyPromise;
-    console.log(`${pageName}: Firebase ready.`);
 
-    // Load navbar
     let userProfile = null;
     if (auth.currentUser) {
       userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
     await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-    console.log(`${pageName}: Navbar loaded.`);
 
-    // Set current year for footer
     if (yearElementId) {
       const currentYearElement = document.getElementById(yearElementId);
       if (currentYearElement) {
         currentYearElement.textContent = new Date().getFullYear();
-        console.log(`${pageName}: Current year set for footer.`);
       }
     }
 
-    // Apply theme
     onAuthStateChanged(auth, async (user) => {
       let userThemePreference = null;
       if (user) {
@@ -188,8 +147,6 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
-
-    console.log(`${pageName}: Page initialization complete.`);
   };
 
   if (useWindowLoad) {
@@ -203,28 +160,21 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
   }
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
 export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
   const tabButtons = document.querySelectorAll(tabButtonSelector);
   const tabContents = document.querySelectorAll(tabContentSelector);
 
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
+      const targetId = button.getAttribute('data-tab') || button.textContent.toLowerCase();
       
-      // Remove active class from all buttons and contents
       tabButtons.forEach(btn => btn.classList.remove('active'));
       tabContents.forEach(content => content.classList.remove('active'));
       
-      // Add active class to clicked button and corresponding content
       button.classList.add('active');
-      const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetTab}"]`);
-      if (targetContent) {
-        targetContent.classList.add('active');
-      }
+      const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetId}"]`) ||
+                           document.getElementById(`${targetId}-tab`);
+      if (targetContent) targetContent.classList.add('active');
     });
   });
 }
