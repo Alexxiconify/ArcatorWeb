@@ -32,6 +32,7 @@ const themaList = document.getElementById("thema-boxes");
 const dmTabBtn = document.getElementById("tab-dms");
 const dmTabContent = document.getElementById("dm-tab-content");
 const themataTabContent = document.getElementById("thema-all-tab-content");
+const allThematasTabBtn = document.getElementById("tab-themata-all");
 
 let unsubscribeThematas = null;
 
@@ -736,7 +737,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Load footer
   loadFooter("current-year-forms");
 
-  // Ensure themata tab is active and visible by default
+  // Move this block to the end of DOMContentLoaded to ensure all variables are initialized
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   if (themataTabContent) themataTabContent.style.display = 'block';
@@ -758,29 +759,33 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  // Tab navigation
-  if (dmTabBtn && dmTabContent) {
-    dmTabBtn.addEventListener('click', function () {
+  // Hash-based tab navigation
+  function activateTabFromHash() {
+    const hash = window.location.hash;
+    if (hash === '#dm') {
       document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      dmTabContent.style.display = 'block';
-      this.classList.add('active');
+      if (dmTabContent) dmTabContent.style.display = 'block';
+      if (dmTabBtn) dmTabBtn.classList.add('active');
       setupDmEventListenersSafe();
-    });
+    } else {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      if (themataTabContent) themataTabContent.style.display = 'block';
+      if (allThematasTabBtn) allThematasTabBtn.classList.add('active');
+      renderThematas();
+    }
   }
-
-  const allThematasTabBtn = document.getElementById("tab-themata-all");
-  allThematasTabBtn?.addEventListener("click", () => {
-    document
-      .querySelectorAll(".tab-content")
-      .forEach((el) => (el.style.display = "none"));
-    document
-      .querySelectorAll(".tab-btn")
-      .forEach((el) => el.classList.remove("active"));
-    themataTabContent.style.display = "block";
-    allThematasTabBtn.classList.add("active");
-    renderThematas();
+  window.addEventListener('hashchange', activateTabFromHash);
+  // Tab button click handlers update hash
+  dmTabBtn?.addEventListener('click', function () {
+    window.location.hash = '#dm';
   });
+  allThematasTabBtn?.addEventListener('click', function () {
+    window.location.hash = '#thema';
+  });
+  // Activate tab on load
+  activateTabFromHash();
 
   // Collapsible sections
   document.querySelectorAll(".collapsible-header").forEach((header) => {
@@ -982,6 +987,58 @@ function waitForUserAuthReady(callback) {
   }
 }
 
+// --- Render conversations as table ---
+async function renderConversationsTable() {
+  const user = getCurrentUser();
+  const tableBody = document.getElementById('conversations-table-body');
+  if (!user || !tableBody) return;
+  const userDmsCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms`);
+  const q = query(userDmsCol, orderBy('lastMessageAt', 'desc'));
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    tableBody.innerHTML = `<tr><td colspan="4" class="text-center text-text-secondary py-4">No conversations found.</td></tr>`;
+    return;
+  }
+  let html = '';
+  snap.forEach(docSnap => {
+    const convo = docSnap.data();
+    const convoId = docSnap.id;
+    const name = convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat');
+    const participants = (convo.participants || []).map(uid => `<span class='text-xs'>${uid}</span>`).join(', ');
+    const lastMsg = convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : '';
+    const lastAt = convo.lastMessageAt && convo.lastMessageAt.toDate ? new Date(convo.lastMessageAt.toDate()).toLocaleString() : '';
+    html += `<tr class="conversation-row${currentConversationId === convoId ? ' active' : ''}" data-convo-id="${convoId}">
+      <td class="font-semibold">${escapeHtml(name)}</td>
+      <td>${participants}</td>
+      <td><div class="conversation-preview">${lastMsg}</div><div class="conversation-time">${lastAt}</div></td>
+      <td><button class="delete-conversation-btn" title="Delete" data-convo-id="${convoId}">🗑️</button></td>
+    </tr>`;
+  });
+  tableBody.innerHTML = html;
+  // Row click: load messages
+  tableBody.querySelectorAll('.conversation-row').forEach(row => {
+    row.onclick = () => {
+      const convoId = row.getAttribute('data-convo-id');
+      openConversation(convoId);
+      tableBody.querySelectorAll('.conversation-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+    };
+  });
+  // Delete button
+  tableBody.querySelectorAll('.delete-conversation-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const convoId = btn.getAttribute('data-convo-id');
+      if (await showCustomConfirm('Delete this conversation?', 'This cannot be undone.')) {
+        await deleteConversation(convoId);
+        renderConversationsTable();
+        document.getElementById('conversation-messages-container').innerHTML = '';
+      }
+    };
+  });
+}
+
+// Patch DM event setup to use new table
 function setupDmEventListenersSafe() {
   waitForUserAuthReady(() => {
     showDmSections();
@@ -989,8 +1046,7 @@ function setupDmEventListenersSafe() {
     if (form) form.onsubmit = sendMessage;
     const createForm = document.getElementById('create-conversation-form');
     if (createForm) createForm.onsubmit = createConversation;
-    renderConversationsList?.(true);
-    renderConversationDropdown?.();
+    renderConversationsTable();
   });
 }
 
@@ -1157,3 +1213,4 @@ async function deleteConversation(convoId) {
 function renderContent(text) { return escapeHtml(text); }
 function renderConversationsList() {}
 function renderConversationDropdown() {}
+

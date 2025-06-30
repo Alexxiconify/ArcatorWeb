@@ -673,74 +673,36 @@
       <!-- DM Content -->
       <div id="dm-tab-content" class="tab-content" style="display: none">
         <!-- Combined Conversations and Messages Panel -->
-        <div id="dm-panel" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <!-- Create New Conversation -->
-          <div class="lg:col-span-1">
-            <div class="card-modern p-4">
-              <h3 class="text-lg font-bold mb-4">Create New Chat</h3>
-              <form id="create-conversation-form" class="space-y-4">
-                <div class="form-group">
-                  <label class="form-label" for="chat-type-value" id="chat-type-label">Chat Type</label>
-                  <input class="form-input bg-card text-text-primary border-none rounded w-full" id="chat-type-value"
-                         readonly style="background:var(--color-bg-card);pointer-events:none;opacity:0.7;"
-                         value="Private Chat"/>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="chat-name">Conversation Name (optional)</label>
-                  <input class="form-input bg-card text-text-primary border-none rounded w-full" id="chat-name"
-                         placeholder="Enter conversation or group name"/>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="chat-image">Conversation Image URL (optional)</label>
-                  <input class="form-input bg-card text-text-primary border-none rounded w-full" id="chat-image"
-                         placeholder="https://example.com/image.png or leave empty for default"/>
-                </div>
-                <div class="form-group" id="recipients-field">
-                  <label class="form-label" for="chat-recipients">Recipient(s)</label>
-                  <div class="user-list-scrollable" id="chat-recipient-list"></div>
-                  <div class="recipient-input-container">
-                    <input class="form-input bg-card text-text-primary border-none rounded w-full" id="chat-recipients"
-                           list="user-handles-list" placeholder="@username or @user1, @user2 for group"/>
-                    <div class="handle-suggestions" id="chat-suggestions"></div>
-                  </div>
-                  <div class="recipients-container empty" id="chat-recipients-bubbles"></div>
-                </div>
-                <button class="btn-modern w-full" type="submit"><span>Create Chat</span></button>
-              </form>
+        <div class="lg:col-span-3" id="conversations-messages-panel">
+          <div class="card-modern p-0 overflow-hidden">
+            <!-- Conversations Table -->
+            <div class="p-4 border-b border-input-border">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold">Conversations</h3>
+              </div>
+              <table class="w-full text-left table-auto text-xs" id="conversations-table">
+                <thead>
+                <tr class="bg-table-th-bg">
+                  <th class="px-2 py-1 text-table-th-text text-xs">Name</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Participants</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Last Message</th>
+                  <th class="px-2 py-1 text-table-th-text text-xs">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="conversations-table-body">
+                <!-- DMs will be loaded here -->
+                </tbody>
+              </table>
             </div>
-          </div>
-
-          <!-- Combined Conversations and Messages -->
-          <div id="conversations-messages-panel" class="lg:col-span-3">
-            <div class="card-modern p-0 overflow-hidden">
-              <!-- Conversations List -->
-              <div class="p-4 border-b border-input-border">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg font-bold">Conversations</h3>
-                </div>
-
-                <div
-                  id="conversations-list"
-                  class="space-y-2 max-h-64 overflow-y-auto">
-                  <!-- Conversations will be loaded here -->
-                </div>
-
-              <!-- Messages Container -->
-              <div
-                id="conversation-messages-container"
-                class="h-96 overflow-y-auto p-4">
-              </div>
-              <!-- Message Input with Chat Selector -->
-              <div
-                id="message-input-area"
-                class="p-4 border-t border-input-border"
-              >
-                <form class="flex flex-row gap-2 items-end w-full" id="send-message-form">
-                  <input class="form-input bg-card text-text-primary border-none rounded w-full flex-1"
-                         id="message-content-input" placeholder="Type a message..."/>
-                  <button class="btn-modern ml-auto" type="submit">➤</button>
-                </form>
-              </div>
+            <!-- Messages Container -->
+            <div class="h-96 overflow-y-auto p-4" id="conversation-messages-container"></div>
+            <!-- Message Input with Chat Selector -->
+            <div class="p-4 border-t border-input-border" id="message-input-area">
+              <form class="flex flex-row gap-2 items-end w-full" id="send-message-form">
+                <input class="form-input bg-card text-text-primary border-none rounded w-full flex-1"
+                       id="message-content-input" placeholder="Type a message..."/>
+                <button class="btn-modern ml-auto" type="submit">➤</button>
+              </form>
             </div>
           </div>
         </div>
