@@ -199,11 +199,6 @@ body {
   box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
 }
 
-.minecraft-ip-box {
-  border: 2px solid var(--color-input-border);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
 .text-white {
   color: white !important;
 }
@@ -1166,11 +1161,6 @@ body {
 .server-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.minecraft-ip-box {
-  border: 2px solid var(--color-input-border);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
 .text-white {

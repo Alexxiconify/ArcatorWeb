@@ -1,11 +1,11 @@
+@import url('theme_variables.css');
+@import url('forms.css');
+@import url('page-specific.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* master.css - Consolidated CSS */
-@import url('theme_variables.css');
-@import url('forms.css');
-@import url('page-specific.css');
 
 /* Theme-aware utility classes */
 .bg-content-section { background-color: var(--color-bg-content-section); }
