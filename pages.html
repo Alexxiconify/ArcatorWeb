@@ -1044,10 +1044,10 @@
   </style>
 </head>
 <body>
-  <div class="container mx-auto px-4 flex flex-col md:flex-row items-center mt-6 mb-0">
+  <div class="flex flex-col md:flex-row items-center mt-6 mb-0">
     <div class="flex-1">
-      <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 0;">
-        <div class="container mx-auto px-4 text-center hero-content">
+      <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 0; width: 100vw; max-width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;">
+        <div class="text-center hero-content" style="max-width: 100vw;">
           <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
           <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
         </div>
@@ -1067,6 +1067,7 @@
     import { firebaseConfig } from './sensitive/firebase-config.js';
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { loadNavbar } from './navbar.js';
+    import { auth, getUserProfileFromFirestore } from './firebase-init.js';
     // Init theme/navbar/footer
     initializePage('pages');
     loadFooter();
@@ -1122,7 +1123,18 @@
         html += '<div class="comments-list">';
         snap.forEach(doc => {
           const c = doc.data();
-          html += `<div class="comment-item"><div class="comment-header"><span class="comment-author-name">${c.author || 'Anonymous'}</span><span class="comment-timestamp">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</span></div><div class="comment-content">${c.content || ''}</div></div>`;
+          html += `<div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">
+                <img class="comment-author-avatar" src="${c.authorPhotoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + (c.authorUid || 'anon')}" alt="avatar">
+                <span class="comment-author-info">
+                  <span class="comment-author-name">${c.authorName || 'Anonymous'}</span>
+                  <span class="comment-timestamp">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</span>
+                </span>
+              </span>
+            </div>
+            <div class="comment-content">${c.content || ''}</div>
+          </div>`;
         });
         html += '</div>';
       }
@@ -1133,9 +1145,19 @@
         const input = document.getElementById('comment-input');
         const content = input.value.trim();
         if (!content) return;
+        let user = auth.currentUser;
+        let authorName = 'Anonymous', authorPhotoURL = '', authorUid = '';
+        if (user) {
+          authorUid = user.uid;
+          const profile = await getUserProfileFromFirestore(user.uid);
+          authorName = profile?.displayName || user.displayName || 'User';
+          authorPhotoURL = profile?.photoURL || user.photoURL || '';
+        }
         await addDoc(collection(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`), {
           content,
-          author: 'Anonymous',
+          authorName,
+          authorPhotoURL,
+          authorUid,
           createdAt: serverTimestamp(),
         });
         input.value = '';
