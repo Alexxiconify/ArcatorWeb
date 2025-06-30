@@ -12,38 +12,128 @@
     />
     <!-- Favicon link -->
     <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
-      body {
-        background-color: var(--color-body-bg);
-        color: var(--color-text-primary);
-        font-family: "Inter", sans-serif;
-        transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
-      }
-    </style>
   </head>
 
-  <body>
+  <body class="antialiased">
     <!-- Navbar Placeholder -->
     <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-    <h1>404 - Page Not Found</h1>
-    <p>
-      Sorry, but the page you were trying to view does not exist. It might have
-      been moved or deleted, or you might have mistyped the address.
-    </p>
+    <!-- Hero Section with Background Image -->
+    <section
+      class="hero-banner rounded-b-lg shadow-xl"
+      style="margin-top: 64px"
+    >
+      <!-- Added margin-top to account for fixed navbar height -->
+      <div class="container mx-auto px-4 text-center hero-content">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+          404 - Page Not Found
+        </h1>
+        <p class="text-xl md:text-2xl mb-8">
+          Oops! The page you're looking for doesn't exist.
+        </p>
+      </div>
+    </section>
 
-    <div class="button-group">
-      <a href="index.html" class="btn-primary btn-blue">Go to Homepage</a>
-      <a
-        href="https://discord.gg/GwArgw2"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="btn-primary btn-indigo"
-        >Join Our Discord</a
-      >
-    </div>
+    <!-- Main Content Section -->
+    <section class="content-section">
+      <div class="container mx-auto px-4 mt-8">
+        <div class="max-w-4xl mx-auto text-center">
+          <!-- Error Message -->
+          <div class="bg-card p-8 rounded-lg shadow-md mb-8">
+            <div class="text-6xl mb-4">😕</div>
+            <h2 class="text-3xl font-bold text-heading-main mb-4">
+              Page Not Found
+            </h2>
+            <p class="text-lg text-text-secondary mb-6">
+              Sorry, but the page you were trying to view does not exist. It might have
+              been moved or deleted, or you might have mistyped the address.
+            </p>
+            <p class="text-text-secondary">
+              Don't worry though - you can still explore our community and find what you're looking for!
+            </p>
+          </div>
+
+          <!-- Navigation Options -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="content-card text-center">
+              <h3 class="text-2xl font-bold text-heading-card mb-3">
+                🏠 Go Home
+              </h3>
+              <p class="text-text-secondary mb-4">
+                Return to our homepage and explore the main sections of our website.
+              </p>
+              <a href="index.html" class="btn-primary btn-blue">
+                Visit Homepage
+              </a>
+            </div>
+            
+            <div class="content-card text-center">
+              <h3 class="text-2xl font-bold text-heading-card mb-3">
+                💬 Join Discord
+              </h3>
+              <p class="text-text-secondary mb-4">
+                Connect with our community on Discord for help, updates, and discussions.
+              </p>
+              <a
+                href="https://discord.gg/GwArgw2"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-primary btn-indigo"
+              >
+                Join Our Discord
+              </a>
+            </div>
+          </div>
+
+          <!-- Additional Help Options -->
+          <div class="bg-card p-6 rounded-lg shadow-md">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Need Help Finding Something?
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a href="about.html" class="text-link hover:underline text-center">
+                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
+                  <div class="text-2xl mb-2">ℹ️</div>
+                  <div class="font-semibold">About Us</div>
+                  <div class="text-sm text-text-secondary">Learn about our community</div>
+                </div>
+              </a>
+              <a href="servers-and-games.html" class="text-link hover:underline text-center">
+                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
+                  <div class="text-2xl mb-2">🎮</div>
+                  <div class="font-semibold">Servers & Games</div>
+                  <div class="text-sm text-text-secondary">Explore our Minecraft servers</div>
+                </div>
+              </a>
+              <a href="forms.html" class="text-link hover:underline text-center">
+                <div class="p-4 rounded-lg hover:bg-table-row-even-bg transition-colors">
+                  <div class="text-2xl mb-2">💬</div>
+                  <div class="font-semibold">Community</div>
+                  <div class="text-sm text-text-secondary">Join discussions and DMs</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Search Suggestion -->
+          <div class="mt-8 text-center">
+            <p class="text-text-secondary mb-4">
+              Can't find what you're looking for? Try using your browser's search function (Ctrl+F) 
+              or check our site navigation above.
+            </p>
+            <button 
+              onclick="history.back()" 
+              class="btn-primary btn-green"
+            >
+              ← Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
 
     <!-- External JavaScript modules -->
     <script type="module" src="themes.js"></script>
