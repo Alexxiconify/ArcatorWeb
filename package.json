@@ -5,10 +5,7 @@
   "main": "smtp-server.js",
   "scripts": {
     "start": "node smtp-server.js",
-    "dev": "tailwindcss -i ./input.css -o ./style.css --watch",
-    "test": "node test-smtp.js",
-    "build": "tailwindcss -i ./input.css -o ./style.css --minify",
-    "watch": "tailwindcss -i ./input.css -o ./style.css --watch"
+    "test": "node test-smtp.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",

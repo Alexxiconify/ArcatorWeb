@@ -5,7 +5,7 @@
 // CORE MODULES
 // ============================================================================
 
-// Core functionality
+// Core functionality (Firebase, themes, navigation)
 export * from './core.js';
 
 // Firebase and authentication
@@ -28,26 +28,35 @@ export * from './utils.js';
 // FEATURE MODULES
 // ============================================================================
 
-// Page-specific functionality
-export * from './admin.js';
+// Forms and community features
 export * from './forms.js';
-export * from './dms.js';
-export * from './user-main.js';
-export * from './emoji-picker.js';
-export * from './announcements.js';
-export * from './app.js';
 
-// Email functionality
-export * from './emailjs-integration.js';
-export * from './smtp-integration.js';
-export * from './smtp-server.js';
+// Direct messaging system
+export * from './dms.js';
+
+// Admin functionality
+export * from './admin.js';
+
+// User management
+export * from './user-main.js';
+
+// Announcements
+export * from './announcements.js';
 
 // Custom theme management
 export * from './custom_theme_modal.js';
 
-// Page initialization
-export * from './page-init.js';
+// Emoji picker
+export * from './emoji-picker.js';
 
-// Data management
-export * from './update-census-data.js';
-export * from './interests.js'; 
+// Email integration
+export * from './emailjs-integration.js';
+
+// SMTP integration
+export * from './smtp-integration.js';
+
+// SMTP server
+export * from './smtp-server.js';
+
+// App functionality
+export * from './app.js'; 

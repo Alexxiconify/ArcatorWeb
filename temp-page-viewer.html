@@ -9,9 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Link to the CSS variables for theming -->
   <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to common.css for shared styles -->
-  <link href="common.css" rel="stylesheet">
-  <!-- Markdown renderer (Marked.js) - Keep this for potential future use or if any content might still be markdown -->
+  <!-- Link to master.css for all styles -->
+  <link href="master.css" rel="stylesheet">
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -37,6 +36,38 @@
     .content-section {
       background-color: var(--color-bg-content-section);
       color: var(--color-text-primary);
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
 
     /* Loading skeleton */
@@ -1015,7 +1046,7 @@
 <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 <div style="height: 56px;"></div>
 <!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl">
+<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px">
   <div class="container mx-auto px-4 text-center hero-content">
     <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
     <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
@@ -1615,84 +1646,74 @@
    * Initializes the temporary page viewer.
    */
   async function initTemporaryPageViewer() {
-    // Ensure Firebase is initialized and ready before proceeding
-    await firebaseReadyPromise;
-
-    // Setup themes integration using the imported function
-    setupThemesFirebase(db, auth, appId);
-
     // Apply cached theme immediately to prevent flash
-    applyCachedTheme().then(cachedApplied => {
-      if (cachedApplied) {
-        console.log('Temp page viewer: Applied cached theme');
+    applyCachedTheme();
+
+    firebaseReadyPromise.then(async () => {
+      let userProfile = null;
+      if (auth.currentUser) {
+        userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
       }
-    });
-
-    // Get user profile and apply theme
-    let userProfile = null;
-    if (auth.currentUser) {
-      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
-    }
-
-    // Load navbar dynamically
-    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-
-    // Load footer
-    loadFooter('current-year-temp-page');
-
-    // Apply user's theme preference
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(`Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`);
-    }
-
-    // Setup comment form
-    addCommentForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const content = document.getElementById('comment-content').value.trim();
-      if (content) {
-        addComment(content);
+      await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, "dark");
+      loadFooter("current-year-temp-page");
+      const userThemePreference = userProfile?.themePreference;
+      const allThemes = await getAvailableThemes();
+      const themeToApply =
+        allThemes.find((t) => t.id === userThemePreference) ||
+        allThemes.find((t) => t.id === "dark");
+      if (themeToApply) {
+        applyTheme(themeToApply.id, themeToApply);
+        console.log(
+          `Temp page viewer: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+        );
       }
+
+      // Setup comment form
+      addCommentForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const content = document.getElementById("comment-content").value.trim();
+        if (content) {
+          addComment(content);
+        }
+      });
+
+      // Initialize emoji picker for comments
+      initEmojiPicker("comment-emoji-picker");
+
+      allTemporaryPages = await fetchAllTemporaryPages();
+
+      if (allTemporaryPages.length === 0) {
+        pageDisplayTitle.textContent = "No Pages Found";
+        pageDisplayContent.innerHTML =
+          '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
+        pageHtmlTitle.textContent = "No Pages";
+        pageUpdatedAt.textContent = "N/A";
+        return;
+      }
+
+      // Create navigation tabs
+      tempPageNav.innerHTML = "";
+      allTemporaryPages.forEach((page) => {
+        const button = document.createElement("button");
+        button.textContent = page.title;
+        button.dataset.pageId = page.id;
+        button.classList.add("temp-page-nav-button");
+        button.addEventListener("click", () => displayPage(page));
+        tempPageNav.appendChild(button);
+      });
+
+      // Determine which page to display initially
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageIdFromUrl = urlParams.get("id");
+
+      let initialPage = null;
+      if (pageIdFromUrl) {
+        initialPage = allTemporaryPages.find((page) => page.id === pageIdFromUrl);
+      }
+
+      // If no specific page from URL or page not found, display the first page
+      displayPage(initialPage || allTemporaryPages[0]);
     });
-
-    // Initialize emoji picker for comments
-    initEmojiPicker('comment-emoji-picker');
-
-    allTemporaryPages = await fetchAllTemporaryPages();
-
-    if (allTemporaryPages.length === 0) {
-      pageDisplayTitle.textContent = 'No Pages Found';
-      pageDisplayContent.innerHTML = '<p class="text-red-400 text-center">No temporary pages have been created yet. Go to Admin to create some.</p>';
-      pageHtmlTitle.textContent = 'No Pages';
-      pageUpdatedAt.textContent = 'N/A';
-      return;
-    }
-
-    // Create navigation tabs
-    tempPageNav.innerHTML = '';
-    allTemporaryPages.forEach(page => {
-      const button = document.createElement('button');
-      button.textContent = page.title;
-      button.dataset.pageId = page.id;
-      button.classList.add('temp-page-nav-button');
-      button.addEventListener('click', () => displayPage(page));
-      tempPageNav.appendChild(button);
-    });
-
-    // Determine which page to display initially
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageIdFromUrl = urlParams.get('id');
-
-    let initialPage = null;
-    if (pageIdFromUrl) {
-      initialPage = allTemporaryPages.find(page => page.id === pageIdFromUrl);
-    }
-
-    // If no specific page from URL or page not found, display the first page
-    displayPage(initialPage || allTemporaryPages[0]);
   }
 
   // Make functions globally available

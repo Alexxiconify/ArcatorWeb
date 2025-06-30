@@ -200,7 +200,7 @@ export function applyCachedTheme() {
 }
 
 export function getAvailableThemes() {
-  return Promise.resolve(defaultThemes);
+  return defaultThemes;
 }
 
 export function getCurrentTheme() {
@@ -208,160 +208,60 @@ export function getCurrentTheme() {
 }
 
 // ============================================================================
-// NAVIGATION AND LAYOUT
+// NAVIGATION & LAYOUT
 // ============================================================================
 
-// Navbar and footer loading
 export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTheme) {
   const navbarPlaceholder = document.getElementById("navbar-placeholder");
   if (!navbarPlaceholder) return;
-  
-  // Simple navbar template
-  const navbarHTML = `
-    <nav class="bg-navbar-footer text-text-primary shadow-lg fixed top-0 left-0 right-0 z-50">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-8">
-            <a href="index.html" class="text-xl font-bold text-heading-main">Arcator.co.uk</a>
-            <div class="hidden md:flex space-x-6">
-              <a href="about.html" class="text-text-secondary hover:text-text-primary transition-colors">About</a>
-              <a href="servers-and-games.html" class="text-text-secondary hover:text-text-primary transition-colors">Servers & Games</a>
-              <a href="forms.html" class="text-text-secondary hover:text-text-primary transition-colors">Community</a>
-              <a href="users.html" class="text-text-secondary hover:text-text-primary transition-colors">Account</a>
-            </div>
-          </div>
-          <div class="flex items-center space-x-4">
-            ${user ? `
-              <img src="${userProfile?.photoURL || defaultProfilePic}" alt="Profile" class="w-8 h-8 rounded-full">
-              <span class="text-text-secondary">${userProfile?.displayName || user.email}</span>
-            ` : `
-              <a href="users.html" class="btn-primary btn-blue">Login</a>
-            `}
-          </div>
-        </div>
-      </div>
-    </nav>
-  `;
-  
-  navbarPlaceholder.innerHTML = navbarHTML;
+
+  // Import navbar functionality dynamically to avoid circular dependencies
+  const { loadNavbar: loadNavbarFunction } = await import("./navbar.js");
+  await loadNavbarFunction(user, userProfile, defaultProfilePic, defaultTheme);
 }
 
 export function loadFooter(yearElementId) {
   const footerPlaceholder = document.getElementById("footer-placeholder");
   if (!footerPlaceholder) return;
-  
+
   const currentYear = new Date().getFullYear();
-  const footerHTML = `
+  
+  footerPlaceholder.innerHTML = `
     <footer class="bg-navbar-footer text-text-secondary py-8 mt-16">
-      <div class="container mx-auto px-4 text-center">
-        <p>&copy; ${currentYear} Arcator.co.uk. All rights reserved.</p>
-        <div class="mt-4 space-x-4">
-          <a href="privacy.html" class="text-link hover:underline">Privacy Policy</a>
-          <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Discord</a>
+      <div class="container mx-auto px-4">
+        <div class="text-center">
+          <p>&copy; ${yearElementId ? currentYear : "2024"} Arcator.co.uk. All rights reserved.</p>
+          <div class="mt-4 space-x-4">
+            <a href="privacy.html" class="text-link hover:underline">Privacy Policy</a>
+            <a href="about.html" class="text-link hover:underline">About</a>
+            <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">Discord</a>
+          </div>
         </div>
       </div>
     </footer>
   `;
-  
-  footerPlaceholder.innerHTML = footerHTML;
 }
 
 // ============================================================================
-// UTILITIES
+// FIREBASE UTILITIES
 // ============================================================================
 
-// Message box functionality
-export function showMessageBox(message, isError = false, allowHtml = false) {
-  const messageBox = document.getElementById("message-box");
-  if (!messageBox) return;
-  
-  messageBox.className = `message-box ${isError ? "error" : "success"}`;
-  if (allowHtml) {
-    messageBox.innerHTML = message;
-  } else {
-    messageBox.textContent = message;
-  }
-  
-  messageBox.style.display = "block";
-  setTimeout(() => {
-    messageBox.style.display = "none";
-  }, 5000);
-}
-
-// Custom confirmation dialog
-export function showCustomConfirm(message, submessage = "") {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("custom-confirm-modal");
-    if (!modal) {
-      resolve(false);
-      return;
-    }
-    
-    const messageEl = document.getElementById("confirm-message");
-    const submessageEl = document.getElementById("confirm-submessage");
-    const yesBtn = document.getElementById("confirm-yes");
-    const noBtn = document.getElementById("confirm-no");
-    
-    if (messageEl) messageEl.textContent = message;
-    if (submessageEl) submessageEl.textContent = submessage;
-    
-    const handleYes = () => {
-      modal.style.display = "none";
-      yesBtn.removeEventListener("click", handleYes);
-      noBtn.removeEventListener("click", handleNo);
-      resolve(true);
-    };
-    
-    const handleNo = () => {
-      modal.style.display = "none";
-      yesBtn.removeEventListener("click", handleYes);
-      noBtn.removeEventListener("click", handleNo);
-      resolve(false);
-    };
-    
-    yesBtn.addEventListener("click", handleYes);
-    noBtn.addEventListener("click", handleNo);
-    modal.style.display = "flex";
-  });
-}
-
-// HTML escaping
-export function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// User profile management
 export async function getUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise;
-  if (!db) {
-    console.error("Firestore DB not initialized");
+  try {
+    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
+    return userDoc.exists() ? userDoc.data() : null;
+  } catch (error) {
+    console.error("Error getting user profile:", error);
     return null;
   }
-  
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
-  try {
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-      return docSnap.data();
-    }
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-  }
-  return null;
 }
 
 export async function setUserProfileInFirestore(uid, profileData) {
-  await firebaseReadyPromise;
-  if (!db) {
-    console.error("Firestore DB not initialized");
-    return false;
-  }
-  
-  const userDocRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
   try {
-    await setDoc(userDocRef, profileData, { merge: true });
+    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid), {
+      ...profileData,
+      updatedAt: serverTimestamp(),
+    });
     return true;
   } catch (error) {
     console.error("Error setting user profile:", error);
@@ -375,40 +275,44 @@ export async function setUserProfileInFirestore(uid, profileData) {
 
 export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
   const initFunction = async () => {
-    try {
-      await firebaseReadyPromise;
-      
-      // Apply cached theme immediately
-      applyCachedTheme();
-      
-      // Listen for auth state changes
-      onAuthStateChanged(auth, async (user) => {
-        let userProfile = null;
-        if (user) {
-          userProfile = await getUserProfileFromFirestore(user.uid);
-        }
-        
-        // Load navbar and footer
-        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-        loadFooter(yearElementId || `current-year-${pageName.toLowerCase()}`);
-        
-        // Apply user's theme preference
-        const userThemePreference = userProfile?.themePreference;
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userThemePreference) || 
-                           allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-        
-        if (themeToApply) {
-          applyTheme(themeToApply.id, themeToApply);
-        }
-      });
-      
-      console.log(`${pageName} page initialized successfully`);
-    } catch (error) {
-      console.error(`Error initializing ${pageName} page:`, error);
+    console.log(`${pageName}: Initialization started.`);
+
+    // Wait for Firebase to be ready
+    await firebaseReadyPromise;
+    console.log(`${pageName}: Firebase ready.`);
+
+    // Load navbar
+    let userProfile = null;
+    if (auth.currentUser) {
+      userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
     }
+    await loadNavbar(auth.currentUser, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
+    console.log(`${pageName}: Navbar loaded.`);
+
+    // Set current year for footer
+    if (yearElementId) {
+      const currentYearElement = document.getElementById(yearElementId);
+      if (currentYearElement) {
+        currentYearElement.textContent = new Date().getFullYear();
+        console.log(`${pageName}: Current year set for footer.`);
+      }
+    }
+
+    // Apply theme
+    onAuthStateChanged(auth, async (user) => {
+      let userThemePreference = null;
+      if (user) {
+        const userProfile = await getUserProfileFromFirestore(user.uid);
+        userThemePreference = userProfile?.themePreference;
+      }
+      const allThemes = getAvailableThemes();
+      const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+      applyTheme(themeToApply.id, themeToApply);
+    });
+
+    console.log(`${pageName}: Page initialization complete.`);
   };
-  
+
   if (useWindowLoad) {
     window.onload = initFunction;
   } else {
@@ -421,19 +325,27 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
 }
 
 // ============================================================================
-// TAB FUNCTIONALITY
+// UTILITY FUNCTIONS
 // ============================================================================
 
 export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
-  document.querySelectorAll(tabButtonSelector).forEach(button => {
-    button.addEventListener('click', function(event) {
-      document.querySelectorAll(tabButtonSelector).forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll(tabContentSelector).forEach(tab => tab.classList.remove('active'));
+  const tabButtons = document.querySelectorAll(tabButtonSelector);
+  const tabContents = document.querySelectorAll(tabContentSelector);
+
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetTab = button.getAttribute('data-tab');
       
-      this.classList.add('active');
-      const tabName = this.getAttribute('data-tab') || this.textContent.trim().toLowerCase();
-      const tab = document.getElementById(tabName + '-tab');
-      if (tab) tab.classList.add('active');
+      // Remove active class from all buttons and contents
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Add active class to clicked button and corresponding content
+      button.classList.add('active');
+      const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetTab}"]`);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
     });
   });
 }
