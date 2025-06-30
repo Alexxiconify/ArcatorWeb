@@ -292,88 +292,98 @@ async function loadThreadsForThema(themaId) {
   });
 }
 
-// Load comments for thread inline (real-time)
+// --- Helper: Build comment tree by parentId ---
+function buildCommentTree(comments) {
+  const map = new Map();
+  const roots = [];
+  comments.forEach(c => {
+    c.children = [];
+    map.set(c.id, c);
+  });
+  comments.forEach(c => {
+    if (c.parentId) {
+      const parent = map.get(c.parentId);
+      if (parent) parent.children.push(c);
+      else roots.push(c); // orphaned
+    } else {
+      roots.push(c);
+    }
+  });
+  return roots;
+}
+
+// --- Recursive render ---
+function renderCommentTree(comments, level, themaId, threadId) {
+  return comments.map(c => {
+    const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
+    const photoURL = c.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+    return `
+      <div class="thread-header flex items-center gap-3 bg-card text-text-primary ml-${level * 4} border-l-2 border-gray-700" data-comment-id="${c.id}" style="position:relative;">
+        <div class="actions-right absolute top-2 right-2 flex gap-2 z-10">
+          ${canEdit ? `
+            <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">...</button>
+            <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">...</button>
+          ` : ""}
+        </div>
+        <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+        <div class="flex flex-col justify-center flex-1">
+          <span class="text-xs text-text-secondary">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
+          <p class="comment-content text-sm mt-1 mb-0">${renderContent(c.content)}</p>
+          <div class="flex items-center justify-between mt-1 w-full">
+            <div class="reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
+            <span class="meta-info text-xs ml-4" style="margin-left:auto;">${c.createdAt}</span>
+          </div>
+          <div class="flex gap-2 mt-1">
+            <button class="reply-comment-btn btn-primary btn-blue text-xs" data-comment-id="${c.id}">Reply</button>
+            <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
+          </div>
+          ${c.children && c.children.length ? renderCommentTree(c.children, level + 1, themaId, threadId) : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- Update loadCommentsForThread to use tree ---
 async function loadCommentsForThread(themaId, threadId) {
   if (!db) return;
-
   const commentsContainer = document.querySelector(
-    `[data-thread-id="${threadId}"] .thread-comments`,
+    `.thread-comments[data-thread-id="${threadId}"]`,
   );
   if (!commentsContainer) return;
-
-  // Remove previous listener if any
   if (commentsContainer._unsubscribeComments) {
     commentsContainer._unsubscribeComments();
     commentsContainer._unsubscribeComments = null;
   }
-
   const commentsCol = collection(
     db,
     `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`,
   );
   const q = query(commentsCol, orderBy("createdAt", "asc"));
-
   commentsContainer._unsubscribeComments = onSnapshot(q, async (commentsSnapshot) => {
-    let commentsHtml = [];
-    if (commentsSnapshot.empty) {
-      commentsHtml.push(
-        '<div class="no-comments text-sm text-gray-500">No comments yet.</div>',
-      );
+    const comments = [];
+    commentsSnapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      comments.push({
+        id: docSnap.id,
+        content: d.content,
+        createdAt: d.createdAt ? new Date(d.createdAt.toDate()).toLocaleString() : "N/A",
+        createdBy: d.createdBy,
+        displayName: d.creatorDisplayName || "Anonymous",
+        handle: d.creatorHandle || "user",
+        photoURL: d.creatorPhotoURL,
+        reactions: d.reactions || {},
+        parentId: d.parentId || null,
+      });
+    });
+    const tree = buildCommentTree(comments);
+    let html = '';
+    if (tree.length === 0) {
+      html = '<div class="no-comments text-sm text-gray-500">No comments yet.</div>';
     } else {
-      commentsHtml.push('<div class="comments-list space-y-2">');
-      for (const commentDoc of commentsSnapshot.docs) {
-        const comment = commentDoc.data();
-        const createdAt = comment.createdAt
-          ? new Date(comment.createdAt.toDate()).toLocaleString()
-          : "N/A";
-        let userProfile = {
-          displayName: comment.creatorDisplayName || "Anonymous",
-          photoURL: null,
-        };
-        if (comment.createdBy) {
-          try {
-            userProfile =
-              (await getUserProfileFromFirestore(comment.createdBy)) ||
-              userProfile;
-          } catch {}
-        }
-        const photoURL =
-          userProfile.photoURL ||
-          "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
-        const canEditComment = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy));
-        const commentCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Comment" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
-        commentsHtml.push(`
-          <div class="thread-header flex items-center gap-3 bg-card text-text-primary" data-comment-id="${commentDoc.id}" style="position:relative;">
-            <div class="actions-right absolute top-2 right-2 flex gap-2 z-10">
-              ${canEditComment ? `
-                <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
-              ` : ""}
-            </div>
-            ${commentCollapseBtn}
-            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-            <div class="flex flex-col justify-center flex-1">
-              <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
-              <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
-              <div class="flex items-center justify-between mt-1 w-full">
-                <div class="reactions-bar">${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}</div>
-                <span class="meta-info text-xs ml-4" style="margin-left:auto;">${createdAt}</span>
-              </div>
-            </div>
-          </div>
-        `);
-      }
-      commentsHtml.push("</div>");
+      html = renderCommentTree(tree, 0, themaId, threadId);
     }
-    commentsHtml.push(`
+    html += `
       <div class="add-comment-section mt-3">
         <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
         <div class="add-comment-collapsible" style="display:none;">
@@ -383,8 +393,8 @@ async function loadCommentsForThread(themaId, threadId) {
           </form>
         </div>
       </div>
-    `);
-    commentsContainer.innerHTML = commentsHtml.join("");
+    `;
+    commentsContainer.innerHTML = html;
     setupCommentEventListeners(themaId, threadId);
   });
 }
@@ -538,25 +548,25 @@ async function addCommentThread(themaId, title, initialComment) {
   }
 }
 
-// Add comment
-async function addComment(themaId, threadId, content) {
+// In addComment, accept parentId and set it in Firestore
+async function addComment(themaId, threadId, content, parentId = null) {
   if (!auth.currentUser) {
     showMessageBox("You must be logged in to add a comment.", true);
     return;
   }
-
   try {
     const commentsCol = collection(
       db,
       `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`,
     );
     await addDoc(commentsCol, {
-      content: content,
+      content,
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid,
-      creatorDisplayName: window.currentUser
-        ? window.currentUser.displayName
-        : "Anonymous",
+      creatorDisplayName: window.currentUser ? window.currentUser.displayName : "Anonymous",
+      creatorHandle: window.currentUser ? window.currentUser.handle : "user",
+      creatorPhotoURL: window.currentUser ? window.currentUser.photoURL : null,
+      parentId,
     });
     showMessageBox("Comment posted successfully!", false);
   } catch (error) {
