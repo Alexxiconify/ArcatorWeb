@@ -2,199 +2,109 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Arcator.co.uk - Minecraft Community Since 2010</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arcator.co.uk - Minecraft Community</title>
+    <!-- Link to master.css for all styles -->
+    <link href="master.css" rel="stylesheet" />
     <!-- Google Fonts - Inter -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Link to master.css for all styles -->
-    <link href="master.css" rel="stylesheet" />
-
-    <style>
-      /* Base styles, will be overridden by CSS variables from themes.js */
-      body {
-        font-family: "Inter", sans-serif;
-        transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
-        background-color: var(--color-body-bg);
-        color: var(--color-text-primary);
-      }
-
-      /* Hero Banner styles - common for all themes, retains background image */
-      .hero-banner {
-        background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 400px;
-        /* Increased height for visual impact */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .hero-banner::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        /* Dark overlay for text readability */
-        z-index: 1;
-      }
-
-      .hero-content {
-        position: relative;
-        z-index: 2;
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-      }
-
-      /* Feature card specific styling */
-      .feature-card {
-        border-radius: 0.75rem;
-        padding: 2rem;
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-        transition:
-          transform 0.3s ease-in-out,
-          box-shadow 0.3s ease-in-out;
-      }
-
-      .feature-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
-      }
-
-      .minecraft-ip-box {
-        border: 2px solid var(--color-border-ip-box);
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-      }
-
-      .text-white {
-        /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
-        color: white !important;
-      }
-    </style>
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
   </head>
 
   <body class="antialiased">
     <!-- Navbar Placeholder -->
-    <div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
+    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
-    <!-- Hero Section with Background Image and Call to Action -->
-    <section
-      class="hero-banner rounded-b-lg shadow-xl"
-      style="margin-top: 64px"
-    >
-      <!-- Added margin-top to account for fixed navbar height -->
+    <!-- Hero Section with Background Image -->
+    <section class="hero-banner rounded-b-lg shadow-xl">
       <div class="container mx-auto px-4 text-center hero-content">
-        <h1 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight">
-          Arcator.co.uk
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+          Welcome to Arcator.co.uk
         </h1>
-        <p class="text-xl md:text-3xl mb-8">Your Minecraft Home Since 2010</p>
-        <div class="space-y-4 sm:space-y-0 sm:space-x-4">
-          <a
-            class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-            href="servers-and-games.html"
-            >Explore Games</a
-          >
-          <a
-            class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-            href="https://discord.gg/GwArgw2"
-            rel="noopener noreferrer"
-            target="_blank"
-            >Join Our Discord</a
-          >
-          <a
-            class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-            href="about.html"
-            >Learn More About Us</a
-          >
+        <p class="text-xl md:text-2xl mb-8">
+          Your Minecraft Community Since 2010
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+          <a href="about.html" class="btn-primary btn-blue">Learn More</a>
+          <a href="servers-and-games.html" class="btn-primary btn-green">Join Our Servers</a>
         </div>
       </div>
     </section>
 
-    <!-- About Section -->
-    <section
-      class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center"
-      id="about"
-    >
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main mb-6">
-          About Arcator.co.uk
-        </h2>
-        <p
-          class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8"
-        >
-          Arcator is a Minecraft community established in 2010. We provide a
-          stable, fun environment for players to enjoy various Minecraft
-          experiences while fostering a friendly community.
-        </p>
+    <!-- Main Content Section -->
+    <section class="content-section">
+      <div class="container mx-auto px-4 mt-8">
+        <div class="max-w-6xl mx-auto">
+          <!-- Welcome Message -->
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-heading-main mb-6">
+              Join Our Thriving Community
+            </h2>
+            <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto">
+              Arcator.co.uk has been providing a stable, engaging Minecraft experience since 2010. 
+              Join thousands of players in our community-driven servers and make lasting friendships.
+            </p>
+          </div>
 
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-          Diverse Server Experiences
-        </h3>
-        <p class="text-text-secondary">
-          From survival to creative building and mini-games, our servers cater
-          to all playstyles.
-        </p>
-      </div>
-      <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-          Robust & Reliable Infrastructure
-        </h3>
-        <p class="text-text-secondary">
-          Powered by dedicated hardware, our servers ensure smooth, low-lag
-          gameplay with excellent uptime.
-        </p>
-      </div>
-      <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-          Engaged & Friendly Community
-        </h3>
-        <p class="text-text-secondary">
-          Join our Discord, participate in events, and connect with fellow
-          Minecraft enthusiasts.
-        </p>
-      </div>
-    </section>
+          <!-- Feature Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="content-card text-center">
+              <div class="text-4xl mb-4">🎮</div>
+              <h3 class="text-2xl font-bold text-heading-card mb-3">Multiple Servers</h3>
+              <p class="text-text-secondary">
+                Choose from our variety of Minecraft servers, each offering unique gameplay experiences.
+              </p>
+            </div>
+            
+            <div class="content-card text-center">
+              <div class="text-4xl mb-4">👥</div>
+              <h3 class="text-2xl font-bold text-heading-card mb-3">Active Community</h3>
+              <p class="text-text-secondary">
+                Connect with fellow players through our Discord server and community forums.
+              </p>
+            </div>
+            
+            <div class="content-card text-center">
+              <div class="text-4xl mb-4">🛡️</div>
+              <h3 class="text-2xl font-bold text-heading-card mb-3">Safe Environment</h3>
+              <p class="text-text-secondary">
+                Enjoy a moderated, family-friendly environment with dedicated staff support.
+              </p>
+            </div>
+          </div>
 
-    <!-- Join Us Section -->
-    <section
-      class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center"
-      id="join-us"
-    >
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main mb-6">
-          Join Minecraft Server!
-        </h2>
-        <p
-          class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8"
-        >
-          Ready to start your Minecraft adventure?
-        </p>
-        <div
-          class="minecraft-ip-box bg-card p-6 rounded-lg max-w-lg mx-auto shadow-xl"
-        >
-          <p class="text-3xl font-extrabold text-green-400 mb-4">Server IP:</p>
-          <div
-            class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4"
-          >
-            <span
-              class="bg-gray-600 text-white text-2xl font-semibold px-6 py-3 rounded-md select-all"
-              id="minecraft-ip"
-              >arcator.co.uk</span
-            >
-            <button class="copy-button" id="copyIpButton">Copy IP</button>
+          <!-- Quick Links -->
+          <div class="text-center">
+            <h3 class="text-3xl font-bold text-heading-main mb-8">Quick Links</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <a href="about.html" class="content-card text-center hover:shadow-lg transition-shadow">
+                <div class="text-3xl mb-3">ℹ️</div>
+                <h4 class="text-xl font-semibold text-heading-card mb-2">About Us</h4>
+                <p class="text-text-secondary text-sm">Learn about our community and history</p>
+              </a>
+              
+              <a href="servers-and-games.html" class="content-card text-center hover:shadow-lg transition-shadow">
+                <div class="text-3xl mb-3">🎯</div>
+                <h4 class="text-xl font-semibold text-heading-card mb-2">Servers & Games</h4>
+                <p class="text-text-secondary text-sm">Explore our Minecraft servers</p>
+              </a>
+              
+              <a href="forms.html" class="content-card text-center hover:shadow-lg transition-shadow">
+                <div class="text-3xl mb-3">💬</div>
+                <h4 class="text-xl font-semibold text-heading-card mb-2">Community</h4>
+                <p class="text-text-secondary text-sm">Join discussions and connect</p>
+              </a>
+              
+              <a href="users.html" class="content-card text-center hover:shadow-lg transition-shadow">
+                <div class="text-3xl mb-3">👤</div>
+                <h4 class="text-xl font-semibold text-heading-card mb-2">Account</h4>
+                <p class="text-text-secondary text-sm">Manage your profile and settings</p>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -203,47 +113,15 @@
     <!-- Footer Section -->
     <div id="footer-placeholder"></div>
 
-    <!-- Firebase SDKs and Main Script -->
-    <script src="app.js" type="module"></script>
+    <!-- Message Box Element -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Consolidated JavaScript -->
     <script type="module">
-      import {
-        auth,
-        getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-        DEFAULT_THEME_NAME,
-      } from "./firebase-init.js";
-      import { loadNavbar, loadFooter } from "./navbar.js";
-      import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-      } from "./themes.js";
-
-      // Apply cached theme immediately to prevent flash
-      applyCachedTheme();
-
-      firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-          let userProfile = null;
-          if (user) {
-            userProfile = await getUserProfileFromFirestore(user.uid);
-          }
-          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-          loadFooter("current-year-index");
-          const userThemePreference = userProfile?.themePreference;
-          const allThemes = await getAvailableThemes();
-          const themeToApply =
-            allThemes.find((t) => t.id === userThemePreference) ||
-            allThemes.find((t) => t.id === "dark");
-          if (themeToApply) {
-            applyTheme(themeToApply.id, themeToApply);
-            console.log(
-              `Index page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-            );
-          }
-        });
-      });
+      import { initializePage } from './core.js';
+      
+      // Initialize the home page
+      initializePage('Home', 'current-year-home');
     </script>
   </body>
 </html>

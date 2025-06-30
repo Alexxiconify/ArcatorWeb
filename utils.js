@@ -537,3 +537,16 @@ export function renderMarkdownWithMedia(content, targetElement) {
     targetElement.innerHTML = escapeHtml(processedContent);
   }
 }
+
+export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
+  document.querySelectorAll(tabButtonSelector).forEach(button => {
+    button.addEventListener('click', function(event) {
+      document.querySelectorAll(tabButtonSelector).forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll(tabContentSelector).forEach(tab => tab.classList.remove('active'));
+      this.classList.add('active');
+      const tabName = this.getAttribute('data-tab') || this.textContent.trim().toLowerCase();
+      const tab = document.getElementById(tabName + '-tab');
+      if (tab) tab.classList.add('active');
+    });
+  });
+}

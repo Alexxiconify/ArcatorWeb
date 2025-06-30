@@ -4,220 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Legal - Arcator.co.uk</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to master.css for all styles -->
+    <link href="master.css" rel="stylesheet" />
     <!-- Google Fonts - Inter -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Link to master.css for all styles -->
-    <link href="master.css" rel="stylesheet" />
     <!-- Favicon link -->
     <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
-      /* Base styles, will be overridden by CSS variables from themes.js */
-      body {
-        font-family: "Inter", sans-serif;
-        transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
-        background-color: var(--color-body-bg);
-        color: var(--color-text-primary);
-      }
-      /* Hero Banner styles - common for all themes, retains background image */
-      .hero-banner {
-        background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 400px;
-        /* Increased height for visual impact */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-      .hero-banner::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        /* Dark overlay for text readability */
-        z-index: 1;
-      }
-      .hero-content {
-        position: relative;
-        z-index: 2;
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-      }
-
-      /* Feature card specific styling */
-      .feature-card {
-        border-radius: 0.75rem;
-        padding: 2rem;
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-        transition:
-          transform 0.3s ease-in-out,
-          box-shadow 0.3s ease-in-out;
-      }
-
-      .feature-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
-      }
-
-      .minecraft-ip-box {
-        border: 2px solid var(--color-border-ip-box);
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-      }
-
-      .text-white {
-        /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
-        color: white !important;
-      }
-
-      /* Content section styling */
-      .content-section {
-        border-radius: 0.75rem;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 2rem;
-        margin: 2rem 1rem;
-      }
-
-      .content-card {
-        border: 1px solid var(--color-input-border);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease-in-out;
-      }
-
-      .content-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-      }
-
-      /* List styling */
-      .feature-list {
-        list-style-type: disc;
-        list-style-position: inside;
-      }
-
-      .feature-list li {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-      }
-
-      .feature-list .highlight {
-        font-weight: 600;
-      }
-
-      .tab-container {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        border-bottom: 2px solid var(--color-input-border);
-      }
-
-      .tab-button {
-        border: none;
-        padding: 1rem 2rem;
-        margin: 0 0.5rem;
-        border-radius: 0.75rem 0.75rem 0 0;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: all 0.3s;
-        border-bottom: 3px solid transparent;
-        background-color: var(--color-bg-card);
-        color: var(--color-text-primary);
-      }
-
-      .tab-button.active {
-        border-bottom-color: var(--color-link);
-        background-color: var(--color-bg-content-section);
-      }
-
-      .tab-content {
-        display: none;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Legal content styling */
-      .legal-content {
-        color: var(--color-text-primary);
-      }
-
-      .legal-content h2 {
-        color: var(--color-heading-main);
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        margin-top: 2rem;
-      }
-
-      .legal-content h3 {
-        color: var(--color-heading-card);
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        margin-top: 1.5rem;
-      }
-
-      .legal-content p {
-        color: var(--color-text-secondary);
-        margin-bottom: 1rem;
-        line-height: 1.6;
-      }
-
-      .legal-content ul {
-        color: var(--color-text-secondary);
-        margin-bottom: 1rem;
-        padding-left: 1.5rem;
-      }
-
-      .legal-content li {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-      }
-
-      @media (max-width: 768px) {
-        .tab-container {
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .tab-button {
-          margin: 0.25rem 0;
-          border-radius: 0.5rem;
-          width: 100%;
-          max-width: 300px;
-        }
-
-        .tab-button.active {
-          border-bottom-color: transparent;
-        }
-      }
-    </style>
   </head>
   <body class="antialiased">
     <!-- Navbar Placeholder -->
     <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
     <!-- Hero Section -->
-    <section
-      class="hero-banner rounded-b-lg shadow-xl"
-      style="margin-top: 64px"
-    >
+    <section class="hero-banner rounded-b-lg shadow-xl">
       <div class="container mx-auto px-4 text-center hero-content">
         <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
           Legal Information
@@ -229,17 +31,14 @@
     </section>
 
     <!-- Main Content Section -->
-    <section
-      id="legal-main-content"
-      class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200"
-    >
-      <div class="container mx-auto px-4">
+    <section class="content-section">
+      <div class="container mx-auto px-4 mt-8">
         <!-- Tab Navigation -->
         <div class="tab-container">
-          <button class="tab-button active" onclick="showTab('privacy')">
+          <button class="tab-button active" data-tab="privacy">
             Privacy Policy
           </button>
-          <button class="tab-button" onclick="showTab('terms')">
+          <button class="tab-button" data-tab="terms">
             Terms of Service
           </button>
         </div>
@@ -377,85 +176,19 @@
     <!-- Footer Section -->
     <div id="footer-placeholder"></div>
 
-    <!-- JavaScript for tab functionality -->
-    <script>
-      function showTab(tabName) {
-        // Hide all tab contents
-        const tabContents = document.querySelectorAll(".tab-content");
-        tabContents.forEach((content) => content.classList.remove("active"));
+    <!-- Message Box Element -->
+    <div id="message-box" class="message-box"></div>
 
-        // Remove active class from all tab buttons
-        const tabButtons = document.querySelectorAll(".tab-button");
-        tabButtons.forEach((button) => button.classList.remove("active"));
-
-        // Show selected tab content
-        document.getElementById(tabName + "-tab").classList.add("active");
-
-        // Add active class to clicked button
-        event.target.classList.add("active");
-      }
-    </script>
-
-    <!-- Firebase SDKs and Main Script -->
+    <!-- Consolidated JavaScript -->
     <script type="module">
-      import {
-        auth,
-        getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-        DEFAULT_THEME_NAME,
-      } from "./firebase-init.js";
-      import { loadNavbar, loadFooter } from "./navbar.js";
-      import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-      } from "./themes.js";
-
-      window.showTab = function (tabName) {
-        const tabContents = document.querySelectorAll(".tab-content");
-        tabContents.forEach((content) => content.classList.remove("active"));
-        const tabButtons = document.querySelectorAll(".tab-button");
-        tabButtons.forEach((button) => button.classList.remove("active"));
-        document.getElementById(tabName + "-tab").classList.add("active");
-        event.target.classList.add("active");
-      };
-
-      // Apply cached theme immediately to prevent flash
-      applyCachedTheme().then((cachedApplied) => {
-        if (cachedApplied) {
-          // Show content immediately if cached theme was applied
-          document
-            .getElementById("legal-main-content")
-            .classList.remove("opacity-0");
-        }
-      });
-
-      firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-          let userProfile = null;
-          if (user) {
-            userProfile = await getUserProfileFromFirestore(user.uid);
-          }
-          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-          loadFooter("current-year-legal");
-
-          // Apply user's theme preference
-          const userThemePreference = userProfile?.themePreference;
-          const allThemes = await getAvailableThemes();
-          const themeToApply =
-            allThemes.find((t) => t.id === userThemePreference) ||
-            allThemes.find((t) => t.id === "dark");
-          if (themeToApply) {
-            applyTheme(themeToApply.id, themeToApply);
-            document
-              .getElementById("legal-main-content")
-              .classList.remove("opacity-0");
-            console.log(
-              `Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-            );
-          }
-        });
+      import { initializePage, setupTabs } from './core.js';
+      
+      // Initialize the privacy/legal page
+      initializePage('Legal', 'current-year-privacy');
+      
+      // Setup tabs after page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        setupTabs();
       });
     </script>
   </body>

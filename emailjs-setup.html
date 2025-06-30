@@ -4,519 +4,160 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EmailJS Setup - Arcator.co.uk</title>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Link to master.css for all styles -->
     <link href="master.css" rel="stylesheet" />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--color-body-bg);
-        color: var(--color-text-primary);
-        padding: 2rem;
-        transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
-      }
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        background-color: var(--color-bg-card);
-        padding: 2rem;
-        border-radius: 0.75rem;
-        border: 1px solid var(--color-input-border);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      }
-      .form-group {
-        margin-bottom: 1.5rem;
-      }
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--color-text-primary);
-      }
-      input,
-      textarea,
-      select {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--color-input-border);
-        border-radius: 0.5rem;
-        background-color: var(--color-input-bg);
-        color: var(--color-input-text);
-        transition: border-color 0.2s ease;
-      }
-      input:focus,
-      textarea:focus,
-      select:focus {
-        outline: none;
-        border-color: var(--color-link);
-        box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
-      }
-      button {
-        background: linear-gradient(
-          135deg,
-          var(--color-button-blue-bg) 0%,
-          var(--color-button-blue-hover) 100%
-        );
-        color: var(--color-button-text);
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.2s ease-in-out;
-      }
-      button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-      .success {
-        color: #10b981;
-        background-color: #064e3b;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        border: 1px solid #10b981;
-      }
-      .error {
-        color: #ef4444;
-        background-color: #7f1d1d;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        border: 1px solid #ef4444;
-      }
-      .warning {
-        color: #f59e0b;
-        background-color: #78350f;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        border: 1px solid #f59e0b;
-      }
-      .setup-section {
-        background-color: var(--color-bg-content-section);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-top: 2rem;
-        border: 1px solid var(--color-input-border);
-      }
-      .setup-section h3 {
-        color: var(--color-heading-card);
-        margin-bottom: 1rem;
-      }
-      .setup-section ol {
-        color: var(--color-text-secondary);
-        line-height: 1.6;
-      }
-      .setup-section a {
-        color: var(--color-link);
-        text-decoration: none;
-      }
-      .setup-section a:hover {
-        text-decoration: underline;
-      }
-      .credentials-section {
-        background-color: var(--color-bg-content-section);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        border: 1px solid var(--color-input-border);
-      }
-      .credentials-section h4 {
-        color: var(--color-heading-card);
-        margin-bottom: 1rem;
-      }
-      .test-results {
-        margin-top: 1rem;
-      }
-      .template-preview {
-        background-color: var(--color-bg-content-section);
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        border: 1px solid var(--color-input-border);
-        font-family: monospace;
-        white-space: pre-wrap;
-      }
-    </style>
+    <!-- Google Fonts - Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- EmailJS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   </head>
-  <body>
-    <div class="container">
-      <h1 style="color: var(--color-heading-main); margin-bottom: 1rem">
-        EmailJS Email System Setup
-      </h1>
-      <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-        This page helps you set up EmailJS as an alternative to Cloud Functions
-        for sending emails from Arcator.co.uk.
-      </p>
 
-      <!-- Setup Instructions -->
-      <div class="setup-section">
-        <h3>📋 Setup Instructions</h3>
-        <ol>
-          <li>
-            Go to
-            <a
-              href="https://www.emailjs.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              >EmailJS.com</a
-            >
-            and create a free account
-          </li>
-          <li>
-            Add your email service (Gmail, Outlook, etc.) in the Email Services
-            section
-          </li>
-          <li>Create an email template in the Email Templates section</li>
-          <li>Get your credentials from the Account → API Keys section</li>
-          <li>Update the credentials below and test the connection</li>
-        </ol>
+  <body class="antialiased">
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+
+    <!-- Hero Section with Background Image -->
+    <section class="hero-banner rounded-b-lg shadow-xl">
+      <div class="container mx-auto px-4 text-center hero-content">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+          EmailJS Setup
+        </h1>
+        <p class="text-xl md:text-2xl mb-8">
+          Configure Email Services for Your Website
+        </p>
       </div>
+    </section>
 
-      <!-- Credentials Configuration -->
-      <div class="credentials-section">
-        <h4>🔑 EmailJS Credentials</h4>
-        <div class="form-group">
-          <label for="public-key">Public Key:</label>
-          <input
-            type="text"
-            id="public-key"
-            placeholder="Enter your EmailJS Public Key"
-            value="o4CZtazWjPDVjPc1L"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="service-id">Service ID:</label>
-          <input
-            type="text"
-            id="service-id"
-            placeholder="Enter your EmailJS Service ID"
-            value="service_7pm3neh"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="template-id">Template ID:</label>
-          <input
-            type="text"
-            id="template-id"
-            placeholder="Enter your EmailJS Template ID"
-            value="template_1gv17ca"
-          />
-        </div>
-
-        <button type="button" onclick="saveCredentials()">
-          Save Credentials
-        </button>
-        <button
-          type="button"
-          onclick="loadCredentials()"
-          style="margin-left: 0.5rem"
-        >
-          Load Saved
-        </button>
-      </div>
-
-      <!-- Test Email Form -->
-      <div class="credentials-section">
-        <h4>📧 Test Email Sending</h4>
-        <form id="email-form">
-          <div class="form-group">
-            <label for="to">To:</label>
-            <input
-              type="email"
-              id="to"
-              value="taylorallred04@gmail.com"
-              required
-            />
+    <!-- Main Content Section -->
+    <section class="content-section">
+      <div class="container mx-auto px-4 mt-8">
+        <div class="max-w-4xl mx-auto">
+          <!-- Setup Instructions -->
+          <div class="content-card mb-8">
+            <h2 class="text-3xl font-bold text-heading-main mb-6">Setup Instructions</h2>
+            <div class="space-y-4 text-text-secondary">
+              <p>
+                Follow these steps to configure EmailJS for your website:
+              </p>
+              <ol class="list-decimal list-inside space-y-2 ml-4">
+                <li>Sign up for a free account at <a href="https://www.emailjs.com/" target="_blank" rel="noopener noreferrer" class="text-link hover:underline">EmailJS.com</a></li>
+                <li>Create an email service (Gmail, Outlook, or custom SMTP)</li>
+                <li>Create an email template</li>
+                <li>Get your Public Key from the EmailJS dashboard</li>
+                <li>Enter your Public Key below and test the connection</li>
+              </ol>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="subject">Subject:</label>
-            <input
-              type="text"
-              id="subject"
-              value="Test Email from Arcator.co.uk"
-              required
-            />
+          <!-- Configuration Form -->
+          <div class="content-card mb-8">
+            <h2 class="text-3xl font-bold text-heading-main mb-6">Configuration</h2>
+            <form id="emailjs-setup-form" class="space-y-6">
+              <div class="input-field">
+                <label for="public-key" class="form-label">EmailJS Public Key</label>
+                <input id="public-key" type="text" class="form-input w-full" placeholder="Enter your EmailJS Public Key" />
+                <p class="text-sm text-text-secondary mt-1">
+                  Find this in your EmailJS dashboard under Account → API Keys
+                </p>
+              </div>
+
+              <div class="input-field">
+                <label for="service-id" class="form-label">Service ID</label>
+                <input id="service-id" type="text" class="form-input w-full" placeholder="Enter your EmailJS Service ID" />
+                <p class="text-sm text-text-secondary mt-1">
+                  Find this in your EmailJS dashboard under Email Services
+                </p>
+              </div>
+
+              <div class="input-field">
+                <label for="template-id" class="form-label">Template ID</label>
+                <input id="template-id" type="text" class="form-input w-full" placeholder="Enter your EmailJS Template ID" />
+                <p class="text-sm text-text-secondary mt-1">
+                  Find this in your EmailJS dashboard under Email Templates
+                </p>
+              </div>
+
+              <div class="flex space-x-4">
+                <button type="submit" class="btn-primary btn-blue">Save Configuration</button>
+                <button type="button" id="test-connection-btn" class="btn-primary btn-green">Test Connection</button>
+                <button type="button" id="load-saved-btn" class="btn-primary btn-purple">Load Saved</button>
+              </div>
+            </form>
           </div>
 
-          <div class="form-group">
-            <label for="message">Message:</label>
-            <textarea id="message" rows="6" required>
-Hello! This is a test email from Arcator.co.uk using EmailJS.
+          <!-- Test Email Form -->
+          <div class="content-card mb-8">
+            <h2 class="text-3xl font-bold text-heading-main mb-6">Test Email</h2>
+            <form id="test-email-form" class="space-y-6">
+              <div class="input-field">
+                <label for="test-email-to" class="form-label">To Email</label>
+                <input id="test-email-to" type="email" class="form-input w-full" placeholder="recipient@example.com" />
+              </div>
 
-This email was sent using the EmailJS integration as an alternative to Cloud Functions.
+              <div class="input-field">
+                <label for="test-email-subject" class="form-label">Subject</label>
+                <input id="test-email-subject" type="text" class="form-input w-full" placeholder="Test Email Subject" />
+              </div>
 
-Best regards,
-Arcator.co.uk Team</textarea
-            >
+              <div class="input-field">
+                <label for="test-email-message" class="form-label">Message</label>
+                <textarea id="test-email-message" class="form-input w-full h-32" placeholder="Enter your test message here..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary btn-blue">Send Test Email</button>
+            </form>
           </div>
 
-          <button type="submit">Send Test Email</button>
-        </form>
+          <!-- Results Section -->
+          <div id="results-section" class="content-card" style="display: none;">
+            <h2 class="text-3xl font-bold text-heading-main mb-6">Results</h2>
+            <div id="results-content" class="space-y-4">
+              <!-- Results will be displayed here -->
+            </div>
+          </div>
 
-        <div id="result"></div>
-      </div>
-
-      <!-- Template Preview -->
-      <div class="credentials-section">
-        <h4>📝 EmailJS Template Configuration</h4>
-        <p style="color: var(--color-text-secondary); margin-bottom: 1rem">
-          Your EmailJS templates should include these variables:
-        </p>
-        <div class="template-preview">
-          { "to_email": "{{to_email}}", "subject": "{{subject}}", "message":
-          "{{message}}", "from_name": "{{from_name}}", "from_email":
-          "{{from_email}}", "reply_to": "{{reply_to}}" }
+          <!-- Quick Links -->
+          <div class="text-center mt-12">
+            <h3 class="text-2xl font-bold text-heading-main mb-6">Need Help?</h3>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+              <a href="https://www.emailjs.com/docs/" target="_blank" rel="noopener noreferrer" class="btn-primary btn-blue">
+                EmailJS Documentation
+              </a>
+              <a href="https://discord.gg/GwArgw2" target="_blank" rel="noopener noreferrer" class="btn-primary btn-green">
+                Get Help on Discord
+              </a>
+              <a href="admin.html" class="btn-primary btn-purple">
+                Back to Admin
+              </a>
+            </div>
+          </div>
         </div>
-        <div
-          style="
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: var(--color-bg-content-section);
-            border-radius: 0.5rem;
-            border: 1px solid var(--color-input-border);
-          "
-        >
-          <h5 style="color: var(--color-heading-card); margin-bottom: 0.5rem">
-            Available Templates:
-          </h5>
-          <ul
-            style="
-              color: var(--color-text-secondary);
-              font-size: 0.9em;
-              margin: 0;
-              padding-left: 1.5rem;
-            "
-          >
-            <li><strong>Default Template:</strong> template_1gv17ca</li>
-            <li><strong>Generic Email:</strong> template_tt7qx39</li>
-            <li><strong>Password Reset:</strong> template_hgysk9k</li>
-          </ul>
-        </div>
-        <p
-          style="
-            color: var(--color-text-secondary);
-            margin-top: 1rem;
-            font-size: 0.9em;
-          "
-        >
-          <strong>Note:</strong> The admin panel now supports multiple EmailJS
-          templates. You can choose which template to use when sending emails.
-        </p>
       </div>
+    </section>
 
-      <!-- Integration Instructions -->
-      <div class="setup-section">
-        <h3>🔗 Integration with Admin Panel</h3>
-        <p style="color: var(--color-text-secondary)">
-          The admin panel is now configured to support multiple EmailJS
-          templates. Once EmailJS is configured:
-        </p>
-        <ol>
-          <li>Your credentials are automatically saved and loaded</li>
-          <li>Choose from multiple EmailJS templates when sending emails</li>
-          <li>All templates use the same variables for consistency</li>
-          <li>
-            No additional configuration needed - just test the integration
-          </li>
-        </ol>
-        <p
-          style="
-            color: var(--color-text-secondary);
-            margin-top: 1rem;
-            font-size: 0.9em;
-          "
-        >
-          <strong>Current Setup:</strong> Service ID: service_7pm3neh<br />
-          <strong>Templates:</strong> Default (template_1gv17ca), Generic
-          (template_tt7qx39), Password Reset (template_hgysk9k)
-        </p>
-      </div>
-    </div>
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
 
-    <script>
-      // EmailJS Configuration
-      let emailjsInitialized = false;
+    <!-- Message Box Element -->
+    <div id="message-box" class="message-box"></div>
 
-      // Initialize EmailJS with credentials
-      function initializeEmailJS(publicKey) {
-        if (!publicKey || publicKey === "YOUR_PUBLIC_KEY") {
-          return false;
-        }
-
-        try {
-          emailjs.init(publicKey);
-          emailjsInitialized = true;
-          console.log("EmailJS initialized successfully");
-          return true;
-        } catch (error) {
-          console.error("Failed to initialize EmailJS:", error);
-          return false;
-        }
-      }
-
-      // Save credentials to localStorage
-      function saveCredentials() {
-        const publicKey = document.getElementById("public-key").value.trim();
-        const serviceId = document.getElementById("service-id").value.trim();
-        const templateId = document.getElementById("template-id").value.trim();
-
-        if (!publicKey || !serviceId || !templateId) {
-          showResult("Please fill in all credential fields", "error");
-          return;
-        }
-
-        const credentials = {
-          publicKey: publicKey,
-          serviceId: serviceId,
-          templateId: templateId,
-          savedAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem(
-          "emailjs_credentials",
-          JSON.stringify(credentials),
-        );
-        showResult("Credentials saved successfully!", "success");
-
-        // Initialize EmailJS with the new credentials
-        initializeEmailJS(publicKey);
-      }
-
-      // Load credentials from localStorage
-      function loadCredentials() {
-        const saved = localStorage.getItem("emailjs_credentials");
-        if (saved) {
-          try {
-            const credentials = JSON.parse(saved);
-            document.getElementById("public-key").value =
-              credentials.publicKey || "";
-            document.getElementById("service-id").value =
-              credentials.serviceId || "";
-            document.getElementById("template-id").value =
-              credentials.templateId || "";
-
-            // Initialize EmailJS
-            if (initializeEmailJS(credentials.publicKey)) {
-              showResult(
-                "Credentials loaded and EmailJS initialized!",
-                "success",
-              );
-            } else {
-              showResult(
-                "Credentials loaded but EmailJS initialization failed",
-                "warning",
-              );
-            }
-          } catch (error) {
-            showResult("Failed to load saved credentials", "error");
-          }
-        } else {
-          showResult("No saved credentials found", "warning");
-        }
-      }
-
-      // Show result message
-      function showResult(message, type) {
-        const resultDiv = document.getElementById("result");
-        resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
-
-        // Auto-hide success messages after 5 seconds
-        if (type === "success") {
-          setTimeout(() => {
-            resultDiv.innerHTML = "";
-          }, 5000);
-        }
-      }
-
-      // Send email using EmailJS
-      async function sendEmailWithEmailJS(toEmail, subject, message) {
-        if (!emailjsInitialized) {
-          throw new Error(
-            "EmailJS not initialized. Please save your credentials first.",
-          );
-        }
-
-        const serviceId = document.getElementById("service-id").value.trim();
-        const templateId = document.getElementById("template-id").value.trim();
-
-        if (!serviceId || !templateId) {
-          throw new Error("Service ID or Template ID not configured");
-        }
-
-        const templateParams = {
-          to_email: toEmail,
-          subject: subject,
-          message: message,
-          from_name: "Arcator.co.uk",
-          from_email: "noreply@arcator-web.firebaseapp.com",
-          reply_to: "noreply@arcator-web.firebaseapp.com",
-        };
-
-        return await emailjs.send(serviceId, templateId, templateParams);
-      }
-
-      // Handle form submission
-      document
-        .getElementById("email-form")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-
-          const toEmail = document.getElementById("to").value.trim();
-          const subject = document.getElementById("subject").value.trim();
-          const message = document.getElementById("message").value.trim();
-
-          if (!toEmail || !subject || !message) {
-            showResult("Please fill in all fields", "error");
-            return;
-          }
-
-          showResult("Sending email...", "warning");
-
-          try {
-            const response = await sendEmailWithEmailJS(
-              toEmail,
-              subject,
-              message,
-            );
-            showResult(
-              "✅ Email sent successfully! Check your inbox.",
-              "success",
-            );
-            console.log("Email sent successfully:", response);
-
-            // Clear form on success
-            document.getElementById("email-form").reset();
-            document.getElementById("to").value = "taylorallred04@gmail.com";
-          } catch (error) {
-            showResult(
-              `❌ Failed to send email: ${error.text || error.message}`,
-              "error",
-            );
-            console.error("Email sending error:", error);
-          }
-        });
-
-      // Load credentials on page load
-      document.addEventListener("DOMContentLoaded", function () {
-        loadCredentials();
+    <!-- Consolidated JavaScript -->
+    <script type="module">
+      import { initializePage } from './core.js';
+      import { initializeEmailJSSetup } from './emailjs-setup.js';
+      
+      // Initialize the emailjs setup page
+      initializePage('EmailJS Setup', 'current-year-emailjs');
+      
+      // Initialize emailjs-specific functionality
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeEmailJSSetup();
       });
-
-      // Export functions for use in other scripts
-      window.EmailJSHelper = {
-        initialize: initializeEmailJS,
-        sendEmail: sendEmailWithEmailJS,
-        isInitialized: () => emailjsInitialized,
-        getCredentials: () => {
-          const saved = localStorage.getItem("emailjs_credentials");
-          return saved ? JSON.parse(saved) : null;
-        },
-      };
     </script>
   </body>
 </html>
