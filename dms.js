@@ -1492,30 +1492,37 @@ export async function createConversation(
   }
 
   // Use selected recipients if available, otherwise fall back to participantHandles
-  let participantUids = [];
-
+  let resolvedUids;
   if (selectedRecipients.size > 0) {
-    // Use selected recipients
-    participantUids = Array.from(selectedRecipients.keys());
+    resolvedUids = Array.from(selectedRecipients.keys());
   } else {
-    // Fall back to old method with handle resolution
     const uniqueParticipantHandles = new Set(
       participantHandles.map((h) =>
         sanitizeHandle(h.startsWith("@") ? h.substring(1) : h),
       ),
     );
     uniqueParticipantHandles.add(currentUser.handle);
-    participantUids = await resolveHandlesToUids(
+    resolvedUids = await resolveHandlesToUids(
       Array.from(uniqueParticipantHandles),
     );
   }
-
-  // Add current user to participants
-  if (!participantUids.includes(currentUser.uid)) {
-    participantUids.push(currentUser.uid);
+  if (!resolvedUids.includes(currentUser.uid)) {
+    resolvedUids.push(currentUser.uid);
+  }
+  if (resolvedUids.length === 0) {
+    showMessageBox(
+      "Please provide at least one valid participant handle.",
+      true,
+    );
+    return;
   }
 
-  if (participantUids.length === 0) {
+  // Add current user to participants
+  if (!resolvedUids.includes(currentUser.uid)) {
+    resolvedUids.push(currentUser.uid);
+  }
+
+  if (resolvedUids.length === 0) {
     showMessageBox(
       "Please provide at least one valid participant handle.",
       true,
@@ -1525,7 +1532,7 @@ export async function createConversation(
 
   // Specific validation for private chat (can be self-DM or 1-to-1 with another user)
   if (type === "private") {
-    if (participantUids.length > 2) {
+    if (resolvedUids.length > 2) {
       showMessageBox(
         "Private chats can only have yourself and/or one other participant.",
         true,
@@ -1534,7 +1541,7 @@ export async function createConversation(
     }
   }
   // Group chat must have at least 2 distinct participants (including self)
-  else if (type === "group" && participantUids.length < 2) {
+  else if (type === "group" && resolvedUids.length < 2) {
     showMessageBox(
       "Group chats require at least two participants (including yourself).",
       true,
@@ -1550,7 +1557,7 @@ export async function createConversation(
 
   const conversationData = {
     type: type,
-    participants: participantUids.sort(), // Store sorted UIDs for consistency
+    participants: resolvedUids.sort(), // Store sorted UIDs for consistency
     name:
       type === "group"
         ? groupName.trim() || "Unnamed Group"

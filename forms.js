@@ -249,10 +249,10 @@ async function loadThreadsForThema(themaId) {
         threadsHtml.push(`
           <div class="thread-item ${cardClass} p-3" data-thread-id="${threadDoc.id}">
             <div class="thread-header flex items-center gap-3">
-              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2">
-              <div>
-                <h5 class="text-lg font-semibold">${escapeHtml(thread.title)}</h5>
-                <span class="text-xs text-text-secondary">by ${escapeHtml(userProfile.displayName || "Anonymous")}</span>
+              <img src="${photoURL}" alt="User" class="w-10 h-10 rounded-full object-cover mr-2" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+              <div class="flex flex-col justify-center">
+                <h5 class="text-lg font-semibold leading-tight mb-0.5">${escapeHtml(thread.title)}</h5>
+                <span class="text-xs text-text-secondary">by ${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
               </div>
               <div class="thread-actions ml-auto">
                 ${
@@ -350,10 +350,10 @@ async function loadCommentsForThread(themaId, threadId) {
         commentsHtml.push(`
           <div class="${commentClass}" data-comment-id="${commentDoc.id}">
             <div class="${commentHeaderClass}">
-              <img src="${photoURL}" alt="User" class="w-7 h-7 rounded-full object-cover mr-2">
-              <div>
-                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")}</span>
-                <p class="comment-content text-sm mt-1">${renderContent(comment.content)}</p>
+              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+              <div class="flex flex-col justify-center">
+                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+                <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
               </div>
               <div class="comment-actions ml-auto">
                 ${

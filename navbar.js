@@ -511,10 +511,10 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
   const isLoggedIn = !!authUser;
   const displayName = userProfile?.displayName || authUser?.displayName || 'Anonymous';
-  const photoURL = userProfile?.photoURL || authUser?.photoURL || defaultProfilePic;
+  // Inline photoURL usage where needed
   const isAdmin = userProfile?.isAdmin || false;
 
-  const navbarHTML = `
+  navbarPlaceholder.innerHTML = `
     <nav class="navbar-bg">
       <div class="navbar-container">
         <a href="index.html" class="navbar-logo">
@@ -553,7 +553,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
         <div class="navbar-user">
           ${isLoggedIn ? `
-            <a href="users.html"><img src="${photoURL}" alt="${displayName}" class="navbar-user-avatar" /></a>
+            <a href="users.html"><img src="${userProfile?.photoURL || authUser?.photoURL || defaultProfilePic}" alt="${displayName}" class="navbar-user-avatar" /></a>
           ` : `
             <a href="users.html" class="navbar-auth-btn primary">Sign In/Up</a>
           `}
@@ -561,8 +561,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
       </div>
     </nav>
   `;
-
-  navbarPlaceholder.innerHTML = navbarHTML;
 
   injectNavbarStyles();
   updateNavbarForTheme();
@@ -612,7 +610,7 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
     `<span id="${yearElementId}">${currentYear}</span>` :
     currentYear;
 
-  const footerHTML = `
+  footerPlaceholder.innerHTML = `
     <footer class="bg-navbar-footer text-text-secondary py-6 border-t border-input-border text-center">
       <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
         <span class="text-sm">&copy; ${yearText} Arcator.co.uk</span>
@@ -641,8 +639,6 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
       </div>
     </footer>
   `;
-
-  footerPlaceholder.innerHTML = footerHTML;
 }
 
 export async function forceRefreshNavbarState() {

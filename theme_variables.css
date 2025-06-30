@@ -52,6 +52,15 @@
   --font-family-body: "Inter", sans-serif;
 
   --color-hero-shadow: rgba(0, 0, 0, 0.7);
+
+  --color-border-ip-box: #4B5563;
+
+  --color-btn-bg: #2563eb;
+  --color-btn-text: #fff;
+  --color-btn-hover-bg: #1d4ed8;
+  --color-btn-hover-text: #fff;
+  --color-btn-active-bg: #1e40af;
+  --color-btn-active-text: #fff;
 }
 
 /* --- Theme Specific Variable Overrides --- */

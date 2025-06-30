@@ -466,5 +466,13 @@ export function setupCustomThemeManagement(
         textInput.nextElementSibling.value = value; // Update associated color picker
       }
     }
+
+    // Set values for all fields in the modal
+    Object.entries(themeToEdit).forEach(([key, value]) => {
+      const el = customThemeModal.querySelector(`[name="${key}"]`);
+      if (el) {
+        el.value = value;
+      } // else: field missing, skip
+    });
   }
 }

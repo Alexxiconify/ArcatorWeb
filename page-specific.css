@@ -66,28 +66,17 @@ body {
 }
 
 /* Improved button design */
-.btn-modern {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  text-decoration: none;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+.btn-primary, .btn-modern, .btn-blue, .btn-red, .btn-green, .btn-purple, .btn-orange, .btn-indigo, .btn-yellow {
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.15s;
 }
-
-.btn-modern:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px;
+.btn-primary:hover, .btn-modern:hover, .btn-blue:hover, .btn-red:hover, .btn-green:hover, .btn-purple:hover, .btn-orange:hover, .btn-indigo:hover, .btn-yellow:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  filter: brightness(1.05);
 }
-
-.btn-modern:active {
-  transform: translateY(0);
+.btn-primary:active, .btn-modern:active, .btn-blue:active, .btn-red:active, .btn-green:active, .btn-purple:active, .btn-orange:active, .btn-indigo:active, .btn-yellow:active {
+  filter: brightness(0.97);
 }
 
 /* Tab design */
