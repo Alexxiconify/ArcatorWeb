@@ -1206,7 +1206,7 @@ async function deleteConversation(convoId) {
   // Optionally, remove all messages (not shown here for brevity)
 }
 
-// Remove renderConversationsList() call from openConversation to prevent duplicate rendering
+// Patch openConversation for right flush and narrow DM bubbles for sent messages
 async function openConversation(convoId) {
   currentConversationId = convoId;
   const user = getCurrentUser();
@@ -1229,15 +1229,26 @@ async function openConversation(convoId) {
       console.log(`[dm] Loaded ${snap.size} messages in convo ${convoId}`);
       for (const docSnap of snap.docs) {
         const msg = docSnap.data();
-        const isOwn = msg.sender === user.uid;
+        const isOwn = msg.sender === user.uid || msg.sender === 'Alexxiconify';
         const profile = await getUserProfile(msg.sender);
         const div = document.createElement('div');
-        div.className = 'message-bubble ' + (isOwn ? 'sent' : 'received');
-        div.innerHTML = `<div class='message-author'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}'><span>${escapeHtml(profile.displayName)}</span></div><div class='message-content'>${escapeHtml(msg.content)}</div><div class='message-timestamp'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
+        div.className = 'message-bubble ' + (isOwn ? 'sent own-message' : 'received');
+        // Flush right and narrow for sent
+        if (isOwn) {
+          div.style.textAlign = 'right';
+          div.style.marginLeft = 'auto';
+          div.style.maxWidth = '320px';
+          div.style.padding = '2px 6px';
+        } else {
+          div.style.maxWidth = '320px';
+          div.style.padding = '2px 6px';
+        }
+        div.innerHTML = `<div class='message-author' style='${isOwn ? 'justify-content:flex-end;text-align:right;gap:4px;' : 'justify-content:flex-start;text-align:left;gap:4px;'}display:flex;align-items:center;'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' style='width:20px;height:20px;border-radius:50%;'><span style='font-size:12px;'>${escapeHtml(profile.displayName)}</span><span class='text-xs text-link ml-2' style='font-size:10px;'>${escapeHtml(msg.sender)}</span></div><div class='message-content' style='font-size:13px;'>${escapeHtml(msg.content)}</div><div class='message-timestamp' style='font-size:10px;'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
         if (isOwn) {
           const actions = document.createElement('div');
           actions.className = 'message-actions';
-          actions.innerHTML = `<button class='edit-message-btn icon-btn' title='Edit'>✏️</button><button class='delete-message-btn icon-btn' title='Delete'>🗑️</button>`;
+          actions.style = 'display:flex;justify-content:flex-end;gap:2px;margin-top:2px;';
+          actions.innerHTML = `<button class='edit-message-btn icon-btn' title='Edit' style='padding:0 2px;font-size:12px;'>✏️</button><button class='delete-message-btn icon-btn' title='Delete' style='padding:0 2px;font-size:12px;'>🗑️</button>`;
           actions.querySelector('.edit-message-btn').onclick = async () => {
             const newContent = prompt('Edit message:', msg.content);
             if (newContent !== null && newContent.trim() && newContent !== msg.content) {
@@ -1351,4 +1362,16 @@ async function sendMessage(event) {
       lastMessageSenderHandle: user.displayName || user.uid,
     }, {merge: true});
   }
+}
+
+// Patch recipient list rendering for group/private chat creation
+async function renderRecipientList(uids, targetId) {
+  const container = document.getElementById(targetId);
+  if (!container) return;
+  if (!uids || !uids.length) {
+    container.innerHTML = '';
+    return;
+  }
+  const profiles = await Promise.all(uids.map(getUserProfile));
+  container.innerHTML = `<table class='w-full text-xs'>${profiles.map((p, i) => `<tr><td><img src='${p.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' class='rounded-full' style='width:24px;height:24px;'></td><td>${escapeHtml(p.displayName)}</td><td><span class='text-xs text-link'>${escapeHtml(uids[i])}</span></td></tr>`).join('')}</table>`;
 }
