@@ -694,65 +694,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   renderThematas();
 });
 
-async function handleEditThread(themaId, threadId, oldTitle, oldComment) {
-  const threadDiv = document.querySelector(`[data-thread-id="${threadId}"]`);
-  if (!threadDiv) return;
-  threadDiv.querySelector(".thread-initial-comment").innerHTML =
-    `<textarea class="form-input w-full" rows="2">${escapeHtml(oldComment)}</textarea>`;
-  threadDiv.querySelector(".thread-header h5").innerHTML =
-    `<input class="form-input w-full" value="${escapeHtml(oldTitle)}">`;
-  const actions = threadDiv.querySelector(".thread-actions");
-  actions.innerHTML = `<button class="btn-primary btn-blue save-edit-thread">Save</button><button class="btn-primary btn-red cancel-edit-thread">Cancel</button>`;
-  actions.querySelector(".save-edit-thread").onclick = async () => {
-    const newTitle = threadDiv
-      .querySelector(".thread-header input")
-      .value.trim();
-    const newComment = threadDiv
-      .querySelector(".thread-initial-comment textarea")
-      .value.trim();
-    if (newTitle && newComment) {
-      const threadRef = doc(
-        db,
-        `artifacts/${appId}/public/data/thematas/${themaId}/threads`,
-        threadId,
-      );
-      await setDoc(
-        threadRef,
-        { title: newTitle, initialComment: newComment },
-        { merge: true },
-      );
-      await loadThreadsForThema(themaId);
-    }
-  };
-  actions.querySelector(".cancel-edit-thread").onclick = () =>
-    loadThreadsForThema(themaId);
-}
-
-async function handleEditComment(themaId, threadId, commentId, oldContent) {
-  const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
-  if (!commentDiv) return;
-  commentDiv.querySelector(".comment-content").innerHTML =
-    `<textarea class="form-input w-full" rows="2">${escapeHtml(oldContent)}</textarea>`;
-  const actions = commentDiv.querySelector(".comment-actions");
-  actions.innerHTML = `<button class="btn-primary btn-blue save-edit-comment">Save</button><button class="btn-primary btn-red cancel-edit-comment">Cancel</button>`;
-  actions.querySelector(".save-edit-comment").onclick = async () => {
-    const newContent = commentDiv
-      .querySelector(".comment-content textarea")
-      .value.trim();
-    if (newContent) {
-      const commentRef = doc(
-        db,
-        `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`,
-        commentId,
-      );
-      await setDoc(commentRef, { content: newContent }, { merge: true });
-      await loadCommentsForThread(themaId, threadId);
-    }
-  };
-  actions.querySelector(".cancel-edit-comment").onclick = () =>
-    loadCommentsForThread(themaId, threadId);
-}
-
 // --- PATCH: REACTIONS ---
 async function handleReaction(type, themaId, threadId, commentId = null) {
   const user = getCurrentUserInfo();

@@ -1,10 +1,6 @@
 // EmailJS Integration Module for Arcator.co.uk
 // This module provides EmailJS functionality as an alternative to Cloud Functions
 
-// Import EmailJS library
-const EMAILJS_SCRIPT_URL =
-  "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
-
 // Default credentials (these should be overridden with actual values)
 let credentials = {
   publicKey: "o4CZtazWjPDVjPc1L",
@@ -247,15 +243,6 @@ async function testEmailJSConnection() {
     }
 
     // Test with a simple template parameter
-    const testParams = {
-      to_email: "test@example.com",
-      subject: "Test Email",
-      message: "This is a test email from EmailJS integration.",
-      from_name: "Arcator.co.uk",
-      reply_to: "noreply@arcator-web.firebaseapp.com",
-    };
-
-    // Just test the initialization, don't actually send
     console.log("[EmailJS] Connection test successful");
     return { success: true, message: "EmailJS is properly configured" };
   } catch (error) {

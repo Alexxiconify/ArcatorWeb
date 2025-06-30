@@ -275,7 +275,7 @@ const defaultThemes = [
   },
 ];
 
-export function setupThemesFirebase(firestoreDb, firebaseAuth, appIdentifier) {
+export function setupThemesFirebase() {
   // Legacy function for backward compatibility
   return true;
 }

@@ -511,8 +511,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
 
   const isLoggedIn = !!authUser;
   const displayName = userProfile?.displayName || authUser?.displayName || 'Anonymous';
-  // Inline photoURL usage where needed
-  const isAdmin = userProfile?.isAdmin || false;
 
   navbarPlaceholder.innerHTML = `
     <nav class="navbar-bg">
@@ -601,7 +599,7 @@ export async function loadNavbar(authUser, userProfile, defaultProfilePic, defau
   }
 }
 
-export async function loadFooter(yearElementId = null, additionalLinks = []) {
+export async function loadFooter(yearElementId = null) {
   const footerPlaceholder = document.getElementById('footer-placeholder');
   if (!footerPlaceholder) return;
 
