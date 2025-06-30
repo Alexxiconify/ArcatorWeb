@@ -1,0 +1,24 @@
+<script type="module">
+  import { db, appId } from './firebase-init.js';
+  import { showMessageBox } from './utils.js';
+  async function loadTempPage() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+      document.body.innerHTML = '<div class="text-center mt-12 text-red-500">No page ID provided.</div>';
+      return;
+    }
+    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+    const pageRef = doc(db, `artifacts/${appId}/public/data/temp_pages`, id);
+    const pageSnap = await getDoc(pageRef);
+    if (!pageSnap.exists()) {
+      document.body.innerHTML = '<div class="text-center mt-12 text-red-500">Page not found.</div>';
+      return;
+    }
+    const page = pageSnap.data();
+    document.title = page.title + ' - Arcator.co.uk';
+    document.getElementById('page-title').textContent = page.title;
+    document.getElementById('page-content').innerHTML = page.content;
+  }
+  loadTempPage();
+</script> 

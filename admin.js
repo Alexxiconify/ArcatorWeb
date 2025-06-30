@@ -527,7 +527,7 @@ async function renderTempPages() {
     li.innerHTML = `
       <span class="font-semibold break-all md:w-3/5">${escapeHtml(page.title)}</span>
       <div class="mt-2 md:mt-0 md:w-2/5 md:text-right flex space-x-1 justify-end">
-        <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-link hover:underline text-sm mr-2 view-temp-page">View</a>
+        <a href="pages.html?id=${page.id}" target="_blank" rel="noopener noreferrer" class="text-link hover:underline text-sm mr-2 view-temp-page">View</a>
         <button class="text-link hover:text-link transition-colors admin-action-btn edit-temp-page-btn" data-id="${page.id}" data-title="${encodeURIComponent(page.title)}" data-content="${encodeURIComponent(page.content)}" title="Edit Temp Page">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -1932,7 +1932,7 @@ async function renderTempPagesTable() {
         <td class="px-2 py-1 text-text-primary text-xs font-medium">${escapeHtml(page.title)}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
-            <a href="temp-page-viewer.html?id=${page.id}" target="_blank" rel="noopener noreferrer" 
+            <a href="pages.html?id=${page.id}" target="_blank" rel="noopener noreferrer" 
                class="text-link hover:text-link transition-colors admin-action-btn" title="View Page">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>

@@ -531,7 +531,7 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
             </svg>
             About
           </a>
-          <a href="servers-and-games.html" class="navbar-link">
+          <a href="games.html" class="navbar-link">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 10 19.5 10s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
             </svg>
@@ -617,7 +617,7 @@ export async function loadFooter(yearElementId = null, additionalLinks = []) {
       <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
         <span class="text-sm">&copy; ${yearText} Arcator.co.uk</span>
         <div class="flex items-center gap-4 text-sm">
-          <a href="temp-page-viewer.html" class="text-link hover:underline flex items-center gap-1">
+          <a href="pages.html" class="text-link hover:underline flex items-center gap-1">
             <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4V4zm4 4h8v8H8V8z"/></svg>
             Pages
           </a>
@@ -674,9 +674,9 @@ function renderMobileFooterNavbar() {
   footer.innerHTML = `
     <a href="index.html" class="footer-link">Home</a>
     <a href="about.html" class="footer-link">About</a>
-    <a href="servers-and-games.html" class="footer-link">Servers</a>
+    <a href="games.html" class="footer-link">Servers</a>
     <a href="users.html" class="footer-link">Users</a>
-    <a href="temp-page-viewer.html" class="footer-link">Pages</a>
+    <a href="pages.html" class="footer-link">Pages</a>
     <a href="privacy.html" class="footer-link">Legal</a>
     <a href="https://wiki.arcator.co.uk/" class="footer-link" target="_blank" rel="noopener">Wiki</a>
     <a href="https://ssmp.arcator.co.uk/" class="footer-link" target="_blank" rel="noopener">SSMP</a>

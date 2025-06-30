@@ -95,10 +95,10 @@ export const shortcutDescriptions = {
 const pageUrls = {
   home: "index.html",
   about: "about.html",
-  servers: "servers-and-games.html",
+  servers: "games.html",
   community: null,
   interests: null,
-  games: "servers-and-games.html",
+  games: "games.html",
   forms: "forms.html",
   dms: "forms.html#dms",
   "new-dm": "forms.html#dms",
