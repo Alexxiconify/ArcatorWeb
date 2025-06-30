@@ -346,13 +346,13 @@ function renderNestedComments(comments, themaId, threadId, depth = 0) {
           </div>
           <div class="text-sm mt-0.5 mb-0.5 comment-content">${renderContent(c.content)}</div>
           <div class="flex items-center justify-between mt-1 w-full">
-            <div class="flex items-center gap-2 reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
+            <div class="flex items-center gap-2">
+              <button class="reply-comment-btn btn-primary btn-blue text-xs px-2 py-0.5" data-comment-id="${c.id}">Reply</button>
+              <div class="flex items-center gap-2 reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
+            </div>
             <span class="meta-info text-xs text-right ml-2 whitespace-nowrap">${c.createdAt}</span>
           </div>
-          <div class="flex justify-end mt-1">
-            <button class="reply-comment-btn btn-primary btn-blue text-xs px-2 py-0.5" data-comment-id="${c.id}">Reply</button>
-            <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
-          </div>
+          <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
           ${c.children && c.children.length ? `<div class="mt-2">${renderNestedComments(c.children, themaId, threadId, depth + 1)}</div>` : ''}
         </div>
       </div>

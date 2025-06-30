@@ -475,4 +475,17 @@ export function setupCustomThemeManagement(
       } // else: field missing, skip
     });
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("create-custom-theme-btn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        let modal = document.getElementById("custom-theme-modal");
+        if (!modal) {
+          modal = createCustomThemeModal();
+        }
+        modal.style.display = "flex";
+      });
+    }
+  });
 }
