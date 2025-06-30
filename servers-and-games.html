@@ -194,14 +194,14 @@
     <!-- Tab Navigation -->
     <div class="container mx-auto px-4 mt-8">
       <div class="tab-container">
-        <button class="tab-btn active" id="tab-servers">Servers</button>
-        <button class="tab-btn" id="tab-games">Games</button>
-        <button class="tab-btn" id="tab-events">Events</button>
+        <button class="tab-btn active" data-tab="servers" id="tab-servers">Servers</button>
+        <button class="tab-btn" data-tab="games" id="tab-games">Games</button>
+        <button class="tab-btn" data-tab="events" id="tab-events">Events</button>
       </div>
     </div>
 
     <!-- Servers Tab Content -->
-    <div class="tab-content" id="servers-tab-content">
+    <div class="tab-content active" data-tab="servers" id="servers-tab-content">
       <section class="content-section">
         <h2 class="text-3xl font-bold text-heading-main mb-6">Our Servers</h2>
         <ul class="feature-list">
@@ -214,7 +214,7 @@
     </div>
 
     <!-- Games Tab Content -->
-    <div class="tab-content" id="games-tab-content" style="display:none">
+    <div class="tab-content" data-tab="games" id="games-tab-content">
       <section class="content-section">
         <h2 class="text-3xl font-bold text-heading-main mb-6">Games</h2>
         <ul class="feature-list">
@@ -226,7 +226,7 @@
     </div>
 
     <!-- Events Tab Content -->
-    <div class="tab-content" id="events-tab-content" style="display:none">
+    <div class="tab-content" data-tab="events" id="events-tab-content">
       <section class="content-section">
         <h2 class="text-3xl font-bold text-heading-main mb-6">Events</h2>
         <ul class="feature-list">
