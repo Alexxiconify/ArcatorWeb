@@ -4,30 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Arcator.co.uk</title>
-    <!-- Production Tailwind CSS -->
-    <link rel="stylesheet" href="style.css" />
+    <!-- Link to master.css for all styles -->
+    <link href="master.css" rel="stylesheet" />
     <!-- Google Fonts - Inter and others -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Link to the CSS variables -->
-    <link rel="stylesheet" href="theme_variables.css" />
-    <!-- Link to common.css for shared styles -->
-    <link href="common.css" rel="stylesheet" />
     <!-- Favicon link -->
     <link rel="icon" type="image/png" href="favicon.png" />
     <!-- EmailJS Script -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   </head>
-  <body class="antialiased">
+  <body class="antialiased font-family-inter">
     <!-- Navbar Placeholder -->
     <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
     <!-- Hero Section -->
     <section
       class="hero-banner rounded-b-lg shadow-xl"
-      style="margin-top: 64px"
+      mt-16
     >
       <div class="container mx-auto px-4 text-center hero-content">
         <h1
@@ -54,7 +50,7 @@
         <div
           class="text-center bg-card p-8 rounded-lg shadow-md mb-8"
           id="login-required-message"
-          style="display: none"
+          hidden
         >
           <h2 class="text-4xl font-bold text-heading-main mb-6">
             Access Denied
@@ -69,11 +65,11 @@
         <!-- Admin Guides section (first) -->
         <div
           class="settings-section"
-          style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+          w-full max-w-full mb-8
         >
           <div
             class="settings-card"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <details open>
               <summary
@@ -127,11 +123,11 @@
         <div id="admin-content">
           <div
             class="settings-section"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <div
               class="settings-card"
-              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+              w-full max-w-full mb-8
             >
               <details open>
                 <summary
@@ -179,11 +175,11 @@
           </div>
           <div
             class="settings-section"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <div
               class="settings-card"
-              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+              w-full max-w-full mb-8
             >
               <details open>
                 <summary
@@ -234,11 +230,11 @@
           </div>
           <div
             class="settings-section"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <div
               class="settings-card"
-              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+              w-full max-w-full mb-8
             >
               <details open>
                 <summary
@@ -286,11 +282,11 @@
           </div>
           <div
             class="settings-section"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <div
               class="settings-card"
-              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+              w-full max-w-full mb-8
             >
               <details open>
                 <summary
@@ -380,15 +376,10 @@
                   <div
                     id="edit-temp-page-modal"
                     class="modal"
-                    style="display: none"
+                    hidden
                   >
                     <div
                       class="modal-content"
-                      style="
-                        max-width: 800px;
-                        max-height: 85vh;
-                        overflow-y: auto;
-                      "
                     >
                       <div class="flex justify-between items-center mb-6">
                         <h3 class="text-2xl font-bold text-heading-card">
@@ -603,11 +594,11 @@
           </div>
           <div
             class="settings-section"
-            style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+            w-full max-w-full mb-8
           >
             <div
               class="settings-card"
-              style="width: 100%; max-width: 100%; margin-bottom: 2rem"
+              w-full max-w-full mb-8
             >
               <details open>
                 <summary
@@ -860,10 +851,9 @@
     </script>
 
     <!-- Edit User Modal -->
-    <div id="edit-user-modal" class="modal" style="display: none">
+    <div id="edit-user-modal" class="modal" hidden>
       <div
         class="modal-content"
-        style="max-width: 800px; max-height: 85vh; overflow-y: auto"
       >
         <div class="flex justify-between items-center mb-6">
           <h3 class="text-2xl font-bold text-heading-card">
@@ -1228,7 +1218,7 @@
     </div>
 
     <!-- Edit DM Modal -->
-    <div id="edit-dm-modal" class="modal" style="display: none">
+    <div id="edit-dm-modal" class="modal" hidden>
       <div class="modal-content" style="max-width: 600px">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-bold text-heading-card">
@@ -1300,7 +1290,7 @@
     </div>
 
     <!-- Edit Form Modal -->
-    <div id="edit-form-modal" class="modal" style="display: none">
+    <div id="edit-form-modal" class="modal" hidden>
       <div class="modal-content" style="max-width: 700px">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
@@ -1358,5 +1348,14 @@
         </form>
       </div>
     </div>
+
+    <script type="module">
+      import { applyTheme, getAvailableThemes } from './themes.js';
+      import { DEFAULT_THEME_NAME } from './firebase-init.js';
+      getAvailableThemes().then(themes => {
+        const darkTheme = themes.find(t => t.id === 'dark');
+        if (darkTheme) applyTheme('dark', darkTheme);
+      });
+    </script>
   </body>
 </html>

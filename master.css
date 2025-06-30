@@ -1,0 +1,10 @@
+/* master.css - Combined CSS file for the entire project */
+
+/* Import all CSS files in the correct order */
+@import url('theme_variables.css');
+@import url('common-styling.css');
+@import url('common.css');
+@import url('style.css');
+@import url('forms.css');
+
+/* Additional global overrides and fixes can go here */ 
