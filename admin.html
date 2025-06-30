@@ -368,24 +368,8 @@
                     <input id="temp-page-title" placeholder="Enter page title" type="text" class="form-input w-full" />
                   </div>
                   <div class="input-field w-full">
-                    <label for="temp-page-content" class="form-label">Page Content (HTML allowed):</label>
-                    <div id="temp-page-content-container"></div>
-                    <script type="module">
-                      import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                      document.addEventListener('DOMContentLoaded', () => {
-                        const container = document.getElementById('temp-page-content-container');
-                        if (container) {
-                          container.innerHTML = createEmojiMediaInputContainer(
-                            "temp-page-content",
-                            "temp-page-content-emoji-picker",
-                            "temp-page-content-media-picker",
-                            "textarea",
-                            "Write your page content here... Use HTML for styling!",
-                            "form-input w-full h-32",
-                          );
-                        }
-                      });
-                    </script>
+                    <label for="temp-page-content" class="form-label">Page Content:</label>
+                    <textarea id="temp-page-content" placeholder="Enter page content" class="form-input w-full" rows="4"></textarea>
                   </div>
                   <div class="flex items-center gap-4 mb-4">
                     <div class="checkbox-container mb-0">
@@ -453,22 +437,6 @@
                           <div class="input-field">
                             <label for="edit-temp-page-content" class="form-label">Page Content (HTML allowed):</label>
                             <div id="edit-temp-page-content-container"></div>
-                            <script type="module">
-                              import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                              document.addEventListener('DOMContentLoaded', () => {
-                                const container = document.getElementById('edit-temp-page-content-container');
-                                if (container) {
-                                  container.innerHTML = createEmojiMediaInputContainer(
-                                    "edit-temp-page-content",
-                                    "edit-temp-page-content-emoji-picker",
-                                    "edit-temp-page-content-media-picker",
-                                    "textarea",
-                                    "Write your page content here... Use HTML for styling!",
-                                    "form-input w-full h-48",
-                                  );
-                                }
-                              });
-                            </script>
                           </div>
                         </div>
                       </div>
@@ -594,24 +562,13 @@
                         class="form-input w-full" />
                     </div>
 
+                    <div class="input-field">
+                      <label for="email-body" class="form-label">Email Body:</label>
+                      <textarea id="email-body" placeholder="Enter email body" class="form-input w-full" rows="4"></textarea>
+                    </div>
+
                     <div class="emoji-input-container">
                       <div id="email-content-container"></div>
-                      <script type="module">
-                        import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-                        document.addEventListener('DOMContentLoaded', () => {
-                          const container = document.getElementById('email-content-container');
-                          if (container) {
-                            container.innerHTML = createEmojiMediaInputContainer(
-                              "email-content",
-                              "email-content-emoji-picker",
-                              "email-content-media-picker",
-                              "textarea",
-                              "Write your email content here...",
-                              "form-input w-full h-32 bg-input-bg text-input-text border-input-border",
-                            );
-                          }
-                        });
-                      </script>
                     </div>
 
                     <div class="flex space-x-2">
@@ -701,8 +658,6 @@
   <script type="module" src="firebase-init.js"></script>
   <script type="module" src="themes.js"></script>
   <script type="module" src="custom_theme_modal.js"></script>
-  <script src="emoji-picker.js" type="module"></script>
-  <script type="module" src="admin.js"></script>
   <script type="module">
     import {
       auth,
@@ -717,7 +672,6 @@
       applyTheme,
       applyCachedTheme,
     } from "./themes.js";
-    import { initEmojiPicker } from "./emoji-picker.js";
 
     // Apply cached theme immediately to prevent flash
     applyCachedTheme();
@@ -743,20 +697,6 @@
         if (themeToApply) {
           applyTheme(themeToApply.id, themeToApply);
         }
-
-        // Initialize all emoji pickers
-        const emojiPickers = [
-          "temp-page-content-emoji-picker",
-          "edit-temp-page-content-emoji-picker",
-          "email-content-emoji-picker",
-          "edit-user-custom-css-emoji-picker",
-          "edit-dm-content-emoji-picker",
-          "edit-form-thema-description-emoji-picker",
-        ];
-
-        emojiPickers.forEach((pickerId) => {
-          initEmojiPicker(pickerId);
-        });
       });
     });
   </script>
@@ -956,19 +896,6 @@
             <div class="emoji-input-container">
               <textarea id="edit-user-custom-css" placeholder="Enter custom CSS code..."
                 class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text"></textarea>
-              <button type="button" class="emoji-picker-btn"
-                onclick="toggleEmojiPicker('edit-user-custom-css-emoji-picker')" title="Add emoji">
-                😊
-              </button>
-            </div>
-            <div id="edit-user-custom-css-emoji-picker" class="emoji-picker hidden">
-              <div class="emoji-picker-header">
-                <input type="text" id="edit-user-custom-css-emoji-search" placeholder="Search emojis..."
-                  class="emoji-search" />
-              </div>
-              <div id="edit-user-custom-css-emoji-list" class="emoji-list">
-                <!-- Emojis will be loaded here -->
-              </div>
             </div>
           </div>
         </div>
@@ -1013,19 +940,6 @@
           <label for="edit-dm-content" class="form-label">Content:</label>
           <div class="emoji-input-container">
             <textarea id="edit-dm-content" class="form-input w-full h-32"></textarea>
-            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('edit-dm-content-emoji-picker')"
-              title="Add emoji">
-              😊
-            </button>
-          </div>
-          <div id="edit-dm-content-emoji-picker" class="emoji-picker hidden">
-            <div class="emoji-picker-header">
-              <input type="text" id="edit-dm-content-emoji-search" placeholder="Search emojis..."
-                class="emoji-search" />
-            </div>
-            <div id="edit-dm-content-emoji-list" class="emoji-list">
-              <!-- Emojis will be loaded here -->
-            </div>
           </div>
         </div>
         <div class="flex justify-end gap-2">
@@ -1057,22 +971,6 @@
         <div class="input-field">
           <label for="edit-form-thema-description" class="form-label">Theme Description:</label>
           <div id="edit-form-thema-description-container"></div>
-          <script type="module">
-            import { createEmojiMediaInputContainer } from "./emoji-picker.js";
-            document.addEventListener('DOMContentLoaded', () => {
-              const container = document.getElementById('edit-form-thema-description-container');
-              if (container) {
-                container.innerHTML = createEmojiMediaInputContainer(
-                  "edit-form-thema-description",
-                  "edit-form-thema-description-emoji-picker",
-                  "edit-form-thema-description-media-picker",
-                  "textarea",
-                  "Edit theme description...",
-                  "form-input w-full h-24",
-                );
-              }
-            });
-          </script>
         </div>
         <div class="flex justify-end gap-2">
           <button type="button" id="cancel-edit-form-btn" class="btn-primary btn-red">

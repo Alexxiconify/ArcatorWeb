@@ -1083,18 +1083,6 @@
             <textarea id="comment-content" name="content" rows="4"
               placeholder="Write your comment here... Use :emoji_name: for emojis!" required
               class="bg-input-bg text-input-text border-input-border"></textarea>
-            <button type="button" class="emoji-picker-btn" onclick="toggleEmojiPicker('comment-emoji-picker')"
-              title="Add emoji">
-              😊
-            </button>
-          </div>
-          <div id="comment-emoji-picker" class="emoji-picker hidden">
-            <div class="emoji-picker-header">
-              <input type="text" id="comment-emoji-search" placeholder="Search emojis..." class="emoji-search">
-            </div>
-            <div id="comment-emoji-list" class="emoji-list">
-              <!-- Emojis will be loaded here -->
-            </div>
           </div>
         </div>
         <button type="submit" class="btn-modern btn-blue">
@@ -1137,7 +1125,6 @@
 <script src="themes.js" type="module"></script>
 <script src="custom_theme_modal.js" type="module"></script>
 <script src="navbar.js" type="module"></script>
-<script src="emoji-picker.js" type="module"></script>
 <script type="module">
   import { db, auth, appId, firebaseReadyPromise, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, currentUser } from './firebase-init.js';
   import { setupThemesFirebase, applyTheme, getAvailableThemes, applyCachedTheme } from './themes.js';
@@ -1676,9 +1663,6 @@
           addComment(content);
         }
       });
-
-      // Initialize emoji picker for comments
-      initEmojiPicker("comment-emoji-picker");
 
       allTemporaryPages = await fetchAllTemporaryPages();
 
