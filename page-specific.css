@@ -1146,4 +1146,56 @@ body {
   border: 1px solid var(--color-input-border);
   border-radius: 0.5rem;
   background: var(--color-input-bg);
+}
+
+/* Servers and Games page specific styles */
+.game-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  background-color: var(--color-bg-card);
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.server-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  background-color: var(--color-bg-card);
+}
+
+.server-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.minecraft-ip-box {
+  border: 2px solid var(--color-border-ip-box);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.text-white {
+  color: white !important;
+}
+
+.text-teal-300 {
+  color: var(--color-link) !important;
+}
+
+.text-orange-400 {
+  color: var(--color-button-yellow-hover) !important;
+}
+
+.text-purple-300 {
+  color: var(--color-button-purple-bg) !important;
 } 

@@ -3,168 +3,1239 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Community - Arcator.co.uk</title>
-    <!-- Link to master.css for all styles -->
-    <link href="master.css" rel="stylesheet" />
+    <title>Forms - Arcator.co.uk</title>
+    <!-- Production Tailwind CSS -->
+    <link rel="stylesheet" href="style.css" />
     <!-- Google Fonts - Inter -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Favicon link -->
-    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- Link to theme_variables.css for centralized CSS variables -->
+    <link rel="stylesheet" href="theme_variables.css" />
+    <!-- Link to common.css for shared styles -->
+    <link href="common.css" rel="stylesheet" />
+    <!-- Critical CSS inline for faster rendering -->
+    <style>
+      /* Critical CSS for immediate rendering */
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+        line-height: 1.6;
+        background-color: var(--color-body-bg);
+        color: var(--color-text-primary);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      .main-section,
+      .forum-section,
+      .content-section {
+        background-color: var(--color-bg-content-section);
+        color: var(--color-text-primary);
+      }
+
+      /* Loading skeleton */
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #374151 25%,
+          #4b5563 50%,
+          #374151 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 0.375rem;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* Smooth transitions */
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Modern card design */
+      .card-modern {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .card-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px;
+      }
+
+      /* Improved button design */
+      .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        text-decoration: none;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+
+      .btn-modern:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px;
+      }
+
+      .btn-modern:active {
+        transform: translateY(0);
+      }
+
+      /* Tab design */
+      .tab-container {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-input-border);
+      }
+
+      .tab-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease-in-out;
+        border: none;
+        cursor: pointer;
+        background: transparent;
+      }
+
+      .tab-btn.active {
+        box-shadow: 0 2px 8px;
+      }
+
+      /* Status indicator */
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-input-border);
+        margin: 1rem auto;
+        max-width: 300px;
+      }
+
+      .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+      }
+
+      .status-dot.online {
+        background: #10b981;
+      }
+
+      .status-dot.loading {
+        background: #f59e0b;
+      }
+
+      .status-dot.offline {
+        background: #6b7280;
+      }
+
+      /* Form improvements */
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Collapsible sections */
+      .collapsible {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 1rem;
+      }
+
+      .collapsible-header {
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background-color 0.2s ease-in-out;
+      }
+
+      .collapsible-content {
+        padding: 1.5rem;
+      }
+
+      /* Loading states */
+      .loading-spinner {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 2px solid var(--color-input-border);
+        border-radius: 50%;
+        border-top-color: var(--color-link);
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .tab-container {
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .tab-btn {
+          width: 100%;
+          text-align: center;
+        }
+
+        .collapsible-header {
+          padding: 0.75rem 1rem;
+        }
+
+        .collapsible-content {
+          padding: 1rem;
+        }
+      }
+
+      /* Message box styling */
+      .message-box {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s ease,
+          visibility 0.3s ease;
+      }
+
+      .message-box.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .message-box.error {
+        background-color: var(--color-button-red-bg);
+      }
+
+      .message-box.success {
+        background-color: var(--color-button-green-bg);
+      }
+
+      /* Custom confirm modal styling */
+      .custom-confirm-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        display: none;
+      }
+
+      .custom-confirm-modal .modal-content {
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px;
+        text-align: center;
+        position: relative;
+        max-width: 400px;
+        width: 90%;
+      }
+
+      .custom-confirm-modal .close-button {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .custom-confirm-modal .close-button:hover,
+      .custom-confirm-modal .close-button:focus {
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      /* DM chat bubbles */
+      .dm-bubble-in {
+        border-radius: 1.2em 1.2em 1.2em 0.4em;
+        padding: 0.75em 1.1em;
+        margin-bottom: 0.1em;
+        box-shadow: 0 2px 8px;
+        max-width: 80%;
+        word-break: break-word;
+      }
+
+      .dm-bubble-out {
+        border-radius: 1.2em 1.2em 0.4em 1.2em;
+        padding: 0.75em 1.1em;
+        margin-bottom: 0.1em;
+        box-shadow: 0 2px 8px;
+        max-width: 80%;
+        word-break: break-word;
+      }
+
+      .thema-item,
+      .thread-item,
+      .comment-item {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .comment-item {
+        padding-left: 1.5rem;
+      }
+
+      .meta-info {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+      }
+
+      .thema-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+      }
+
+      .thema-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .thema-actions button {
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        height: 2rem;
+      }
+
+      .thema-threads {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-input-border);
+      }
+
+      .thread-item {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .thread-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+      }
+
+      .thread-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .thread-actions button {
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5rem;
+        height: 1.5rem;
+      }
+
+      .thread-comments {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-input-border);
+      }
+
+      .comment-item {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .comment-content {
+        flex: 1;
+        margin: 0;
+      }
+
+      .comment-actions {
+        display: flex;
+        gap: 0.25rem;
+        flex-shrink: 0;
+      }
+
+      .comment-actions button {
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5rem;
+        height: 1.5rem;
+      }
+
+      .create-thread-section,
+      .add-comment-section {
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .create-thread-form,
+      .add-comment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .create-thread-form input,
+      .create-thread-form textarea,
+      .add-comment-form textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--color-input-border);
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+      }
+
+      .create-thread-form input:focus,
+      .create-thread-form textarea:focus,
+      .add-comment-form textarea:focus {
+        outline: none;
+        border-color: var(--color-link);
+        box-shadow: 0 0 0 2px;
+      }
+
+      .create-thread-form button,
+      .add-comment-form button {
+        align-self: flex-start;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+      }
+
+      .no-threads,
+      .no-comments {
+        text-align: center;
+        font-style: italic;
+        padding: 1rem;
+      }
+
+      .threads-loading,
+      .comments-loading {
+        text-align: center;
+        padding: 1rem;
+      }
+
+      .error {
+        text-align: center;
+        padding: 1rem;
+      }
+
+      .user-card .user-avatar {
+        width: 1.5rem;
+        height: 1.5rem;
+        min-width: 1.5rem;
+        min-height: 1.5rem;
+        max-width: 1.5rem;
+        max-height: 1.5rem;
+      }
+    </style>
+
+    <!-- Non-critical resources -->
+    <link href="theme_variables.css" rel="stylesheet" />
+    <link href="favicon.png" rel="icon" type="image/png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
 
-  <body class="antialiased">
+  <body>
     <!-- Navbar Placeholder -->
-    <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
+    <div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
 
-    <!-- Hero Section with Background Image -->
-    <section class="hero-banner rounded-b-lg shadow-xl">
+    <!-- Hero Section -->
+    <section
+      class="hero-banner rounded-b-lg shadow-xl"
+      style="
+        margin-top: 64px;
+        background-image: url(&quot;https://jylina.arcator.co.uk/standalone/img/creativespawn.png&quot;);
+        background-size: cover;
+        background-position: center;
+        min-height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      "
+    >
+      <div
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+        "
+      ></div>
       <div class="container mx-auto px-4 text-center hero-content">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
-          Community
+        <h1
+          id="hero-title"
+          class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight"
+        >
+          Community Forum
         </h1>
         <p class="text-xl md:text-2xl mb-8">
-          Connect, Share, and Engage with Fellow Players
+          Connect, discuss, and share with the Arcator community
         </p>
       </div>
     </section>
+    <!-- Main Content Container -->
+    <div class="container mx-auto px-4 py-8">
+      <!-- Tab Navigation -->
+      <div class="tab-container">
+        <button class="tab-btn active" id="tab-themata-all">
+          <span>📚 Thémata</span>
+        </button>
+        <button class="tab-btn" id="tab-dms">
+          <span>💬 Direct Messages</span>
+        </button>
+      </div>
 
-    <!-- Main Content Section -->
-    <section class="content-section">
-      <div class="container mx-auto px-4 mt-8">
-        <div class="max-w-6xl mx-auto">
-          <!-- Welcome Message -->
-          <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-heading-main mb-6">
-              Join the Discussion
-            </h2>
-            <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto">
-              Share your thoughts, ask questions, and connect with other community members. 
-              Choose a topic that interests you or start a new conversation.
-            </p>
+      <!-- Thémata Content -->
+      <div id="thema-all-tab-content" class="tab-content">
+        <!-- Create New Théma -->
+        <div id="create-thema-section" class="collapsible">
+          <div class="collapsible-header">
+            <h2 class="text-xl font-bold">✨ Create New Théma</h2>
+            <span class="material-icons">expand_more</span>
           </div>
-
-          <!-- Community Topics -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">🎮</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">Gaming</h3>
-              <p class="text-text-secondary mb-4">
-                Discuss Minecraft strategies, share builds, and talk about other games.
-              </p>
-              <a href="#gaming" class="btn-primary btn-blue">Join Discussion</a>
-            </div>
-            
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">🏗️</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">Building</h3>
-              <p class="text-text-secondary mb-4">
-                Share your creations, get feedback, and learn building techniques.
-              </p>
-              <a href="#building" class="btn-primary btn-green">Join Discussion</a>
-            </div>
-            
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">💬</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">General Chat</h3>
-              <p class="text-text-secondary mb-4">
-                Casual conversations about anything and everything.
-              </p>
-              <a href="#general" class="btn-primary btn-purple">Join Discussion</a>
-            </div>
-            
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">🛠️</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">Technical</h3>
-              <p class="text-text-secondary mb-4">
-                Server issues, mods, plugins, and technical discussions.
-              </p>
-              <a href="#technical" class="btn-primary btn-yellow">Join Discussion</a>
-            </div>
-            
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">🎉</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">Events</h3>
-              <p class="text-text-secondary mb-4">
-                Server events, competitions, and community activities.
-              </p>
-              <a href="#events" class="btn-primary btn-indigo">Join Discussion</a>
-            </div>
-            
-            <div class="content-card text-center">
-              <div class="text-4xl mb-4">💡</div>
-              <h3 class="text-2xl font-bold text-heading-card mb-3">Suggestions</h3>
-              <p class="text-text-secondary mb-4">
-                Share ideas for improving the server and community.
-              </p>
-              <a href="#suggestions" class="btn-primary btn-red">Join Discussion</a>
-            </div>
+          <div class="collapsible-content">
+            <form class="space-y-4" id="create-thema-form">
+              <div class="form-group">
+                <label class="form-label" for="new-thema-name"
+                  >Théma Name</label
+                >
+                <input
+                  class="form-input bg-card text-text-primary border-none rounded w-full"
+                  id="new-thema-name"
+                  placeholder="Theme title"
+                  required
+                  type="text"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="new-thema-description"
+                  >Description</label
+                >
+                <div id="new-thema-description-container"></div>
+                <script type="module">
+                  import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                  document.addEventListener('DOMContentLoaded', () => {
+                    const container = document.getElementById('new-thema-description-container');
+                    if (container) {
+                      container.innerHTML = createEmojiMediaInputContainer(
+                        "new-thema-description",
+                        "thema-description-emoji-picker",
+                        "thema-description-media-picker",
+                        "textarea",
+                        "Briefly describe this théma.",
+                        "form-input bg-card text-text-primary border-none rounded w-full",
+                      );
+                    }
+                  });
+                </script>
+              </div>
+              <button class="btn-modern" type="submit">
+                <span>Create Théma</span>
+              </button>
+            </form>
           </div>
+        </div>
 
-          <!-- Community Guidelines -->
-          <div class="content-card mb-12">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">Community Guidelines</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 class="text-lg font-semibold text-text-primary mb-2">Be Respectful</h4>
-                <p class="text-text-secondary text-sm">
-                  Treat others with kindness and respect. No harassment, bullying, or hate speech.
-                </p>
-              </div>
-              <div>
-                <h4 class="text-lg font-semibold text-text-primary mb-2">Stay On Topic</h4>
-                <p class="text-text-secondary text-sm">
-                  Keep discussions relevant to the chosen topic and community interests.
-                </p>
-              </div>
-              <div>
-                <h4 class="text-lg font-semibold text-text-primary mb-2">No Spam</h4>
-                <p class="text-text-secondary text-sm">
-                  Avoid excessive posting, advertising, or off-topic content.
-                </p>
-              </div>
-              <div>
-                <h4 class="text-lg font-semibold text-text-primary mb-2">Follow Rules</h4>
-                <p class="text-text-secondary text-sm">
-                  Respect server rules and moderator decisions. Report violations appropriately.
-                </p>
-              </div>
-            </div>
+        <!-- All Thémata -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <h2 class="text-xl font-bold">📋 All Thémata</h2>
+            <span class="material-icons">expand_more</span>
           </div>
-
-          <!-- Quick Links -->
-          <div class="text-center">
-            <h3 class="text-3xl font-bold text-heading-main mb-8">Quick Links</h3>
-            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8">
-              <a href="https://discord.gg/GwArgw2" class="btn-primary btn-blue" target="_blank" rel="noopener noreferrer">
-                Join Our Discord
-              </a>
-              <a href="about.html" class="btn-primary btn-green">
-                About Our Community
-              </a>
-              <a href="servers-and-games.html" class="btn-primary btn-purple">
-                Our Servers
-              </a>
+          <div class="collapsible-content">
+            <div class="space-y-4" id="thema-boxes">
+              <!-- Loading skeleton -->
+              <div class="card-modern p-6">
+                <div class="skeleton h-6 w-1/3 mb-4"></div>
+                <div class="skeleton h-4 w-full mb-2"></div>
+                <div class="skeleton h-4 w-2/3"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- Footer Section -->
-    <div id="footer-placeholder"></div>
+      <!-- DM Content -->
+      <div id="dm-tab-content" class="tab-content" style="display: none">
+        <!-- Combined Conversations and Messages Panel -->
+        <div id="dm-panel" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Create New Conversation -->
+          <div class="lg:col-span-1">
+            <div class="card-modern p-4">
+              <h3 class="text-lg font-bold mb-4">Create New Chat</h3>
+              <form id="create-conversation-form" class="space-y-4">
+                <div class="form-group">
+                  <label class="form-label" for="new-chat-type"
+                    >Chat Type</label
+                  >
+                  <select
+                    id="new-chat-type"
+                    class="form-input bg-card text-text-primary border-none rounded w-full"
+                  >
+                    <option value="private">Private Chat</option>
+                    <option value="group">Group Chat</option>
+                  </select>
+                </div>
 
-    <!-- Message Box Element -->
+                <!-- Private Chat Fields -->
+                <div id="private-chat-fields" class="space-y-4">
+                  <div class="form-group">
+                    <label class="form-label" for="private-chat-name"
+                      >Conversation Name (optional)</label
+                    >
+                    <input
+                      id="private-chat-name"
+                      class="form-input bg-card text-text-primary border-none rounded w-full"
+                      placeholder="Enter conversation name"
+                    />
+                    <p class="text-xs text-text-secondary mt-1">
+                      Leave empty to use recipient's name
+                    </p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="private-chat-image"
+                      >Conversation Image URL (optional)</label
+                    >
+                    <input
+                      id="private-chat-image"
+                      class="form-input bg-card text-text-primary border-none rounded w-full"
+                      placeholder="https://example.com/conversation-image.png"
+                    />
+                    <p class="text-xs text-text-secondary mt-1">
+                      Leave empty to use recipient's avatar
+                    </p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="private-chat-recipient"
+                      >Recipient</label
+                    >
+                    <div
+                      id="private-chat-recipient-list"
+                      class="user-list-scrollable"
+                    ></div>
+                    <div class="recipient-input-container">
+                      <input
+                        id="private-chat-recipient"
+                        class="form-input bg-card text-text-primary border-none rounded w-full"
+                        placeholder="@username or handle"
+                        list="user-handles-list"
+                      />
+                      <div
+                        id="private-chat-suggestions"
+                        class="handle-suggestions"
+                        style="display: none"
+                      ></div>
+                    </div>
+                    <div
+                      id="private-chat-recipients"
+                      class="recipients-container empty"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- Group Chat Fields -->
+                <div id="group-chat-fields" class="space-y-4 hidden">
+                  <div class="form-group">
+                    <label class="form-label" for="group-chat-name"
+                      >Group Name</label
+                    >
+                    <input
+                      id="group-chat-name"
+                      class="form-input bg-card text-text-primary border-none rounded w-full"
+                      placeholder="Enter group name"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="group-chat-image"
+                      >Group Image URL (optional)</label
+                    >
+                    <input
+                      id="group-chat-image"
+                      class="form-input bg-card text-text-primary border-none rounded w-full"
+                      placeholder="https://example.com/group-image.png"
+                    />
+                    <p class="text-xs text-text-secondary mt-1">
+                      Leave empty to use default group icon
+                    </p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="group-chat-participants"
+                      >Participants</label
+                    >
+                    <div
+                      id="group-chat-recipient-list"
+                      class="user-list-scrollable"
+                    ></div>
+                    <div class="recipient-input-container">
+                      <input
+                        id="group-chat-participants"
+                        class="form-input bg-card text-text-primary border-none rounded w-full"
+                        placeholder="@user1, @user2, @user3"
+                        list="user-handles-list"
+                      />
+                      <div
+                        id="group-chat-suggestions"
+                        class="handle-suggestions"
+                        style="display: none"
+                      ></div>
+                    </div>
+                    <div
+                      id="group-chat-recipients"
+                      class="recipients-container empty"
+                    ></div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-modern w-full">
+                  <span>Create Chat</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Combined Conversations and Messages -->
+          <div id="conversations-messages-panel" class="lg:col-span-3">
+            <div class="card-modern p-0 overflow-hidden">
+              <!-- Conversations List -->
+              <div class="p-4 border-b border-input-border">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold">Conversations</h3>
+                  <select
+                    id="sort-conversations-by"
+                    class="form-input bg-card text-text-primary border-none rounded text-sm"
+                  >
+                    <option value="lastMessageAt_desc">Latest Message</option>
+                    <option value="createdAt_desc">Newest First</option>
+                    <option value="createdAt_asc">Oldest First</option>
+                    <option value="otherUsername_asc">Name A-Z</option>
+                    <option value="otherUsername_desc">Name Z-A</option>
+                    <option value="groupName_asc">Group Name A-Z</option>
+                    <option value="groupName_desc">Group Name Z-A</option>
+                  </select>
+                </div>
+
+                <div
+                  id="conversations-list"
+                  class="space-y-2 max-h-64 overflow-y-auto"
+                >
+                  <!-- Conversations will be loaded here -->
+                </div>
+
+                <div
+                  id="no-conversations-message"
+                  class="teams-empty-state"
+                  style="display: none"
+                >
+                  <div class="empty-icon">💬</div>
+                  <h3>No conversations yet</h3>
+                  <p>Create a new chat to get started!</p>
+                </div>
+              </div>
+
+              <!-- Messages Container -->
+              <div
+                id="conversation-messages-container"
+                class="h-96 overflow-y-auto p-4"
+              >
+                <!-- Messages will be loaded here -->
+              </div>
+
+              <div id="no-messages-message" class="teams-empty-state">
+                <div class="empty-icon">💭</div>
+                <h3>No messages yet</h3>
+                <p>Start the conversation!</p>
+              </div>
+
+              <!-- Message Input with Chat Selector -->
+              <div
+                id="message-input-area"
+                class="p-4 border-t border-input-border"
+              >
+                <form id="send-message-form" class="space-y-3">
+                  <div class="flex items-center gap-2">
+                    <label
+                      class="form-label text-sm"
+                      for="selected-chat-dropdown"
+                      >Send to:</label
+                    >
+                    <select
+                      id="selected-chat-dropdown"
+                      class="form-input bg-card text-text-primary border-none rounded text-sm flex-1"
+                    >
+                      <option value="">Select a conversation...</option>
+                    </select>
+                  </div>
+                  <div class="flex gap-2">
+                    <div class="emoji-input-container flex-1" id="dm-message-input-container"></div>
+                    <button type="submit" class="btn-modern">
+                      <span>➤</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Handles Datalist for autocomplete -->
+        <datalist id="user-handles-list">
+          <!-- User handles will be populated here -->
+        </datalist>
+      </div>
+
+      <!-- Dynamic Théma Thread Sections -->
+      <div id="thema-tab-contents"></div>
+
+      <!-- Threads Section (hidden by default) -->
+      <div id="threads-section" class="tab-content" style="display: none">
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <h2 class="text-xl font-bold" id="current-thema-title">
+              Théma: Loading...
+            </h2>
+            <span class="material-icons">expand_less</span>
+          </div>
+          <div class="collapsible-content">
+            <p class="text-text-secondary mb-4" id="current-thema-description">
+              Loading description...
+            </p>
+
+            <!-- Create New Thread -->
+            <div class="card-modern p-4 mb-4">
+              <h3 class="text-lg font-bold mb-4">Create New Thread</h3>
+              <form id="create-thread-form" class="space-y-4">
+                <div class="form-group">
+                  <label class="form-label" for="new-thread-title"
+                    >Thread Title</label
+                  >
+                  <input
+                    class="form-input"
+                    id="new-thread-title"
+                    placeholder="Enter thread title"
+                    required
+                    type="text"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-thread-initial-comment"
+                    >Initial Comment</label
+                  >
+                  <div id="new-thread-initial-comment-container"></div>
+                  <script type="module">
+                    import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                    document.addEventListener('DOMContentLoaded', () => {
+                      const container = document.getElementById('new-thread-initial-comment-container');
+                      if (container) {
+                        container.innerHTML = createEmojiMediaInputContainer(
+                          "new-thread-initial-comment",
+                          "thread-comment-emoji-picker",
+                          "thread-comment-media-picker",
+                          "textarea",
+                          "Start the discussion...",
+                          "form-input",
+                        );
+                      }
+                    });
+                  </script>
+                </div>
+                <button class="btn-modern" type="submit">
+                  <span>Create Thread</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Threads List -->
+            <div class="space-y-4" id="thread-list">
+              <!-- Threads will be loaded here -->
+            </div>
+
+            <button class="btn-modern mt-4" id="back-to-thematas-btn">
+              <span>← Back to Thémata</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Section (hidden by default) -->
+      <div id="comments-section" class="tab-content" style="display: none">
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <h2 class="text-xl font-bold" id="current-thread-title">
+              Thread: Loading...
+            </h2>
+            <span class="material-icons">expand_less</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="card-modern p-4 mb-4">
+              <h3 class="text-lg font-bold mb-2">Initial Comment</h3>
+              <p
+                class="text-text-secondary"
+                id="current-thread-initial-comment"
+              >
+                Loading initial comment...
+              </p>
+            </div>
+
+            <!-- Add Comment -->
+            <div class="card-modern p-4 mb-4">
+              <h3 class="text-lg font-bold mb-4">Add Comment</h3>
+              <form id="add-comment-form" class="space-y-4">
+                <div class="form-group">
+                  <label class="form-label" for="new-comment-content"
+                    >Your Comment</label
+                  >
+                  <div id="new-comment-content-container"></div>
+                  <script type="module">
+                    import { createEmojiMediaInputContainer } from "./emoji-picker.js";
+                    document.addEventListener('DOMContentLoaded', () => {
+                      const container = document.getElementById('new-comment-content-container');
+                      if (container) {
+                        container.innerHTML = createEmojiMediaInputContainer(
+                          "new-comment-content",
+                          "comment-emoji-picker",
+                          "comment-media-picker",
+                          "textarea",
+                          "Share your thoughts...",
+                          "form-input",
+                        );
+                      }
+                    });
+                  </script>
+                </div>
+                <button class="btn-modern" type="submit">
+                  <span>Add Comment</span>
+                </button>
+              </form>
+            </div>
+            <!-- Comments List -->
+            <div class="space-y-4" id="comment-list">
+              <!-- Comments will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Box -->
     <div id="message-box" class="message-box"></div>
 
-    <!-- Consolidated JavaScript -->
+    <!-- Custom Confirmation Modal -->
+    <div id="custom-confirm-modal" class="custom-confirm-modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <p class="mb-4 text-lg" id="confirm-message"></p>
+        <p class="mb-6 text-sm text-gray-400" id="confirm-submessage"></p>
+        <button class="btn-modern mr-4" id="confirm-yes">Yes</button>
+        <button class="btn-modern" id="confirm-no">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Edit Form Modal -->
+    <div id="edit-form-modal" class="modal" style="display: none">
+      <div class="modal-content bg-card" style="max-width: 700px">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
+          <button
+            class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary"
+          >
+            &times;
+          </button>
+        </div>
+        <form id="edit-form-form" class="space-y-4">
+          <div class="input-field">
+            <label for="edit-form-thema-name" class="form-label"
+              >Thema Name:</label
+            >
+            <input
+              id="edit-form-thema-name"
+              type="text"
+              class="form-input w-full"
+            />
+          </div>
+          <div class="input-field">
+            <label for="edit-form-thema-title" class="form-label"
+              >Thema Title:</label
+            >
+            <input
+              id="edit-form-thema-title"
+              type="text"
+              class="form-input w-full"
+            />
+          </div>
+          <div class="input-field">
+            <label for="edit-form-thema-description" class="form-label"
+              >Thema Description:</label
+            >
+            <div class="emoji-input-container">
+              <textarea
+                id="edit-form-thema-description"
+                class="form-input w-full h-20"
+              ></textarea>
+              <button
+                type="button"
+                class="emoji-picker-btn"
+                onclick="toggleEmojiPicker('edit-thema-description-emoji-picker')"
+                title="Add emoji"
+              >
+                😊
+              </button>
+            </div>
+            <div
+              id="edit-thema-description-emoji-picker"
+              class="emoji-picker hidden"
+            >
+              <div class="emoji-picker-header">
+                <input
+                  type="text"
+                  id="edit-thema-description-emoji-search"
+                  placeholder="Search emojis..."
+                  class="emoji-search"
+                />
+              </div>
+              <div id="edit-thema-description-emoji-list" class="emoji-list">
+                <!-- Emojis will be loaded here -->
+              </div>
+            </div>
+          </div>
+          <div class="input-field">
+            <label for="edit-form-comments" class="form-label">Comments:</label>
+            <div class="emoji-input-container">
+              <textarea
+                id="edit-form-comments"
+                class="form-input w-full h-24"
+              ></textarea>
+              <button
+                type="button"
+                class="emoji-picker-btn"
+                onclick="toggleEmojiPicker('edit-comments-emoji-picker')"
+                title="Add emoji"
+              >
+                😊
+              </button>
+            </div>
+            <div id="edit-comments-emoji-picker" class="emoji-picker hidden">
+              <div class="emoji-picker-header">
+                <input
+                  type="text"
+                  id="edit-comments-emoji-search"
+                  placeholder="Search emojis..."
+                  class="emoji-search"
+                />
+              </div>
+              <div id="edit-comments-emoji-list" class="emoji-list">
+                <!-- Emojis will be loaded here -->
+              </div>
+            </div>
+          </div>
+          <div class="input-field">
+            <label for="edit-form-submissions" class="form-label"
+              >Submissions:</label
+            >
+            <div class="emoji-input-container">
+              <textarea
+                id="edit-form-submissions"
+                class="form-input w-full h-24"
+              ></textarea>
+              <button
+                type="button"
+                class="emoji-picker-btn"
+                onclick="toggleEmojiPicker('edit-submissions-emoji-picker')"
+                title="Add emoji"
+              >
+                😊
+              </button>
+            </div>
+            <div id="edit-submissions-emoji-picker" class="emoji-picker hidden">
+              <div class="emoji-picker-header">
+                <input
+                  type="text"
+                  id="edit-submissions-emoji-search"
+                  placeholder="Search emojis..."
+                  class="emoji-search"
+                />
+              </div>
+              <div id="edit-submissions-emoji-list" class="emoji-list">
+                <!-- Emojis will be loaded here -->
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              id="cancel-edit-form-btn"
+              class="btn-primary btn-red"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary btn-blue">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Loading elements for forms.js compatibility -->
+    <div id="forms-content" style="display: none"></div>
+    <div id="loading-spinner" style="display: none"></div>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="app.js" type="module"></script>
+    <script type="module" src="forms.js"></script>
+    <script src="emoji-picker.js" type="module"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"
+    ></script>
+
     <script type="module">
-      import { initializePage } from './core.js';
-      
-      // Initialize the forms/community page
-      initializePage('Community', 'current-year-forms');
+      import {
+        auth,
+        getUserProfileFromFirestore,
+        firebaseReadyPromise,
+        DEFAULT_PROFILE_PIC,
+        DEFAULT_THEME_NAME,
+      } from "./firebase-init.js";
+      import { loadNavbar, loadFooter } from "./navbar.js";
+      import {
+        getAvailableThemes,
+        applyTheme,
+        applyCachedTheme,
+      } from "./themes.js";
+      import { initEmojiPicker } from "./emoji-picker.js";
+
+      // Apply cached theme immediately to prevent flash
+      applyCachedTheme();
+
+      firebaseReadyPromise.then(() => {
+        auth.onAuthStateChanged(async (user) => {
+          let userProfile = null;
+          if (user) {
+            userProfile = await getUserProfileFromFirestore(user.uid);
+          }
+          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+          loadFooter("current-year-forms");
+          const userThemePreference = userProfile?.themePreference;
+          const allThemes = await getAvailableThemes();
+          const themeToApply =
+            allThemes.find((t) => t.id === userThemePreference) ||
+            allThemes.find((t) => t.id === "dark");
+          if (themeToApply) {
+            applyTheme(themeToApply.id, themeToApply);
+            console.log(
+              `Forms page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+            );
+          }
+
+          // Initialize all emoji pickers
+          const emojiPickers = [
+            "thema-description-emoji-picker",
+            "thread-comment-emoji-picker",
+            "comment-emoji-picker",
+            "dm-message-emoji-picker",
+            "edit-thema-description-emoji-picker",
+            "edit-comments-emoji-picker",
+            "edit-submissions-emoji-picker",
+          ];
+
+          emojiPickers.forEach((pickerId) => {
+            initEmojiPicker(pickerId);
+          });
+        });
+      });
     </script>
   </body>
 </html>
