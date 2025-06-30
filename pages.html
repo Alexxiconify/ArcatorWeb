@@ -1053,79 +1053,59 @@
   </div>
 </section>
 
-<div class="container mx-auto px-4 py-8 max-w-4xl bg-card rounded-lg shadow-xl mt-20 mb-8">
-  <h1 class="text-4xl font-bold mb-2 text-heading-main" id="page-display-title"></h1>
-  <p class="text-gray-400 text-sm mb-4">Last updated: <span id="page-updated-at"></span></p>
-
-  <!-- Temporary Page Navigation -->
-  <div id="temp-page-nav" class="temp-page-nav">
-    <!-- Buttons will be dynamically inserted here by JavaScript -->
-  </div>
-
-  <!-- Main content area for the temporary page -->
-  <div id="page-display-content" class="html-content markdown-content p-4 border border-input-border rounded-md">
-    <p class="text-center text-gray-400">Loading page content...</p>
-  </div>
-
-  <!-- Comments Section -->
-  <div class="comments-section mt-8">
-    <div class="comments-header mb-4">
-      <h3 class="text-xl font-semibold text-heading-main">Comments</h3>
-      <p class="text-sm text-text-secondary">Share your thoughts on this page</p>
-    </div>
-
-    <!-- Add Comment Form -->
-    <div class="add-comment-section bg-input-bg">
-      <form id="add-comment-form" class="add-comment-form">
-        <div class="form-group">
-          <label for="comment-content" class="form-label text-text-primary">Your Comment</label>
-          <div class="emoji-input-container">
-            <textarea id="comment-content" name="content" rows="4"
-              placeholder="Write your comment here... Use :emoji_name: for emojis!" required
-              class="bg-input-bg text-input-text border-input-border"></textarea>
-          </div>
-        </div>
-        <button type="submit" class="btn-modern btn-blue">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8">
-            </path>
-          </svg>
-          Post Comment
-        </button>
-      </form>
-    </div>
-
-    <!-- Comments List -->
-    <div id="comments-list" class="comments-list mt-6">
-      <div class="comments-loading">
-        <div class="loading-spinner"></div>
-        <p class="text-text-secondary mt-2">Loading comments...</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-    <a href="admin_and_dev.html"
-      class="inline-block btn-blue text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300 ease-in-out text-center">Back
-      to Admin Panel</a>
-    <a href="forms.html"
-      class="inline-block btn-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition duration-300 ease-in-out text-center">Go
-      to Forms Page</a>
-  </div>
+<div class="container mx-auto px-4 mt-8">
+  <div id="dynamic-page-content" class="dynamic-page-content"></div>
 </div>
-
-<!-- Footer Section (consistent with admin_and_dev.html) -->
 <div id="footer-placeholder"></div>
-
-<!-- Message Box Element -->
-<div id="message-box" class="message-box"></div>
-
-<!-- External JavaScript modules -->
-<script src="firebase-init.js" type="module"></script>
-<script src="themes.js" type="module"></script>
-<script src="custom_theme_modal.js" type="module"></script>
-<script src="navbar.js" type="module"></script>
+<script src="app.js" type="module"></script>
 <script type="module">
-  import { initializePage } from './core.js';
-  initializePage('temp-page-viewer');
+  import { initializePage, loadFooter } from './core.js';
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { firebaseConfig } from './sensitive/firebase-config.js';
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  // Init theme/navbar/footer
+  initializePage('pages');
+  loadFooter();
+  // Firestore init
+  let app, db;
+  if (!getApps().length) app = initializeApp(firebaseConfig);
+  else app = getApps()[0];
+  db = getFirestore(app);
+  // Load temp page by ID
+  async function loadTempPage() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const contentDiv = document.getElementById('dynamic-page-content');
+    if (!id) {
+      // List of available temp pages
+      const tempPages = [
+        { id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1' },
+        { id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2' },
+      ];
+      contentDiv.innerHTML = `
+        <div class="text-center text-xl mt-12 mb-8">Select a page to view:</div>
+        <div class="temp-page-nav justify-center">
+          ${tempPages
+            .map(
+              (p) => `<a class="btn-modern" href="pages.html?id=${p.id}">${p.title} <span class='text-xs text-gray-400 ml-2'>(${p.id})</span></a>`
+            )
+            .join('')}
+        </div>
+      `;
+      return;
+    }
+    const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      contentDiv.innerHTML = '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
+      return;
+    }
+    const data = snap.data();
+    contentDiv.innerHTML = `
+      <div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
+      <div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
+      <div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
+    `;
+  }
+  loadTempPage();
 </script>
