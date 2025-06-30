@@ -39,7 +39,6 @@ export * from './app.js';
 
 // Email functionality
 export * from './emailjs-integration.js';
-export * from './emailjs-setup.js';
 export * from './smtp-integration.js';
 export * from './smtp-server.js';
 

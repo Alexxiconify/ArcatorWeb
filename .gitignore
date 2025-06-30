@@ -14,6 +14,9 @@ ehthumbs.db
 Thumbs.db
 .git/
 
+# Development files and tools
+dev/
+
 # EmailJS credentials and sensitive data
 emailjs_credentials.json
 .env
