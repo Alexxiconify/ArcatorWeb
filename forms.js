@@ -135,6 +135,19 @@ function renderThematas() {
       const header = document.createElement("div");
       header.className = "flex items-center justify-between mb-2";
 
+      const collapseBtn = document.createElement("button");
+      collapseBtn.className = "collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1";
+      collapseBtn.innerHTML = `<svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      collapseBtn.title = "Collapse/Expand Théma";
+      let collapsed = false;
+      collapseBtn.onclick = () => {
+        collapsed = !collapsed;
+        const chevron = collapseBtn.querySelector('.chevron');
+        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+        threadsDiv.style.display = collapsed ? "none" : "block";
+      };
+      header.prepend(collapseBtn);
+
       const titleBox = document.createElement("div");
       titleBox.innerHTML = `
         <span class="font-bold text-lg">${escapeHtml(thema.name)}</span>
@@ -164,18 +177,6 @@ function renderThematas() {
       if (canEditThema) {
         actions.append(editBtn, delBtn);
       }
-
-      const collapseBtn = document.createElement("button");
-      collapseBtn.className = "collapse-btn text-xs text-link ml-2";
-      collapseBtn.innerHTML = "&#8722;"; // minus sign
-      collapseBtn.title = "Collapse/Expand Théma";
-      let collapsed = false;
-      collapseBtn.onclick = () => {
-        collapsed = !collapsed;
-        collapseBtn.innerHTML = collapsed ? "&#9654;" : "&#8722;"; // right arrow or minus
-        threadsDiv.style.display = collapsed ? "none" : "block";
-      };
-      header.appendChild(collapseBtn);
 
       header.append(titleBox, actions);
       li.append(header);
@@ -214,7 +215,7 @@ async function loadThreadsForThema(themaId) {
     let threadsHtml = [];
     threadsHtml.push(`
       <div class="create-thread-section mb-2">
-        <button type="button" class="toggle-create-thread btn-primary btn-blue mb-2">＋ New Thread</button>
+        <button type="button" class="toggle-create-thread text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1 mb-2">＋ New Thread</button>
         <div class="create-thread-collapsible" style="display:none;">
           <form class="create-thread-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" style="margin-bottom:0;">
             <input type="text" class="form-input flex-1 min-w-0 mb-0" placeholder="Thread title" required style="margin-bottom:0; min-width:120px;" />
@@ -250,16 +251,16 @@ async function loadThreadsForThema(themaId) {
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
         const canEditThread = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy));
-        const threadCollapseBtn = `<button class="collapse-btn text-xs text-link ml-2" title="Collapse/Expand Thread">&#8722;</button>`;
+        const threadCollapseBtn = `<button class="collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
         threadsHtml.push(`
           <div class="${commentClass}" data-thread-id="${threadDoc.id}">
-            <div class="${commentHeaderClass}">
+            <div class="${threadHeaderClass}">
+              ${threadCollapseBtn}
               <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
               <div class="flex flex-col justify-center">
+                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
                 <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title)}</span>
                 <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment)}</p>
-                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
-                <p class="meta-info text-xs mt-auto text-left">Created on ${createdAt}</p>
               </div>
               <div class="comment-actions ml-auto">
                 ${canEditThread ? `
@@ -276,8 +277,9 @@ async function loadThreadsForThema(themaId) {
                 ` : ""}
               </div>
             </div>
-            <div class="reactions-bar mt-1">
-              ${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}
+            <div class="flex justify-between items-center mt-2">
+              <div class="reactions-bar">${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}</div>
+              <p class="meta-info text-xs text-right">Created on ${createdAt}</p>
             </div>
             <div class="thread-comments" data-thread-id="${threadDoc.id}">
               <div class="comments-loading">Loading comments...</div>
@@ -345,15 +347,15 @@ async function loadCommentsForThread(themaId, threadId) {
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
         const canEditComment = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy));
-        const commentCollapseBtn = `<button class="collapse-btn text-xs text-link ml-2" title="Collapse/Expand Comment">&#8722;</button>`;
+        const commentCollapseBtn = `<button class="collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1" title="Collapse/Expand Comment" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
         commentsHtml.push(`
           <div class="${commentClass}" data-comment-id="${commentDoc.id}">
             <div class="${commentHeaderClass}">
+              ${commentCollapseBtn}
               <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
               <div class="flex flex-col justify-center">
                 <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
                 <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
-                <p class="meta-info text-xs mt-auto text-left">Posted on ${createdAt}</p>
               </div>
               <div class="comment-actions ml-auto">
                 ${canEditComment ? `
@@ -370,8 +372,9 @@ async function loadCommentsForThread(themaId, threadId) {
                 ` : ""}
               </div>
             </div>
-            <div class="reactions-bar mt-1">
-              ${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}
+            <div class="flex justify-between items-center mt-2">
+              <div class="reactions-bar">${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}</div>
+              <p class="meta-info text-xs text-right">Posted on ${createdAt}</p>
             </div>
           </div>
         `);
@@ -380,7 +383,7 @@ async function loadCommentsForThread(themaId, threadId) {
     }
     commentsHtml.push(`
       <div class="add-comment-section mt-3">
-        <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
+        <button type="button" class="toggle-add-comment text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1 mb-2">＋ Add Comment</button>
         <div class="add-comment-collapsible" style="display:none;">
           <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
             <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
@@ -425,8 +428,8 @@ function setupThreadEventListeners(themaId) {
       const threadId = threadElem.dataset.threadId;
       const titleElem = threadElem.querySelector(".font-bold");
       const descElem = threadElem.querySelector(".comment-content");
-      const oldTitle = titleElem.textContent;
-      const oldDesc = descElem.textContent;
+      const oldTitle = titleElem ? titleElem.textContent : "";
+      const oldDesc = descElem ? descElem.textContent : "";
       const newTitle = prompt("Edit thread title:", oldTitle);
       if (newTitle === null) return;
       const newDesc = prompt("Edit thread description:", oldDesc);
@@ -635,8 +638,8 @@ async function deleteComment(themaId, threadId, commentId) {
 
 // Edit thema modal (placeholder)
 function openEditThemaModal(themaId, thema) {
-  const oldName = thema.name;
-  const oldDesc = thema.description;
+  const oldName = thema.name || "";
+  const oldDesc = thema.description || "";
   const newName = prompt("Edit Théma name:", oldName);
   if (newName === null) return;
   const newDesc = prompt("Edit Théma description:", oldDesc);
@@ -743,36 +746,62 @@ document.addEventListener("DOMContentLoaded", async function () {
   // After rendering threads, add event listeners for thread collapse
   setTimeout(() => {
     document.querySelectorAll('.threads-list .collapse-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.onclick = function() {
         const card = this.closest('.comment-item');
-        const content = card.querySelector('.thread-comments, .reactions-bar, .meta-info');
-        if (!content) return;
-        if (content.style.display === 'none') {
-          content.style.display = '';
-          btn.innerHTML = '&#8722;';
-        } else {
-          content.style.display = 'none';
-          btn.innerHTML = '&#9654;';
-        }
-      });
+        if (!card) return;
+        const header = card.querySelector('.thread-header');
+        let collapsed = false;
+        // Toggle all siblings after header
+        let foundHeader = false;
+        Array.from(card.children).forEach(child => {
+          if (child === header) {
+            foundHeader = true;
+            return;
+          }
+          if (foundHeader) {
+            if (child.style.display === 'none') {
+              child.style.display = '';
+              collapsed = false;
+            } else {
+              child.style.display = 'none';
+              collapsed = true;
+            }
+          }
+        });
+        const chevron = this.querySelector('.chevron');
+        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+      };
     });
   }, 0);
 
   // After rendering comments, add event listeners for comment collapse
   setTimeout(() => {
     document.querySelectorAll('.comments-list .collapse-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.onclick = function() {
         const card = this.closest('.comment-item');
-        const content = card.querySelector('.comment-content, .reactions-bar, .meta-info');
-        if (!content) return;
-        if (content.style.display === 'none') {
-          content.style.display = '';
-          btn.innerHTML = '&#8722;';
-        } else {
-          content.style.display = 'none';
-          btn.innerHTML = '&#9654;';
-        }
-      });
+        if (!card) return;
+        const header = card.querySelector('.thread-header');
+        let collapsed = false;
+        // Toggle all siblings after header
+        let foundHeader = false;
+        Array.from(card.children).forEach(child => {
+          if (child === header) {
+            foundHeader = true;
+            return;
+          }
+          if (foundHeader) {
+            if (child.style.display === 'none') {
+              child.style.display = '';
+              collapsed = false;
+            } else {
+              child.style.display = 'none';
+              collapsed = true;
+            }
+          }
+        });
+        const chevron = this.querySelector('.chevron');
+        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+      };
     });
   }, 0);
 });
