@@ -1692,22 +1692,9 @@
                     <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox" />
                     <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                    <button class="btn-primary btn-green" id="export-data-btn">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                      </svg>
-                      Export My Data
-                    </button>
-                    <button class="btn-primary btn-purple" id="import-data-btn">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                      </svg>
-                      Import Data
-                    </button>
+                  <div class="flex flex-row gap-2 mt-2 w-full">
+                    <button class="btn-primary btn-green flex-1" id="export-data-btn">Export My Data</button>
+                    <button class="btn-primary btn-purple flex-1" id="import-data-btn">Import Data</button>
                   </div>
                   <div class="input-field mt-2">
                     <label for="data-retention-select">Data Retention Period:</label>

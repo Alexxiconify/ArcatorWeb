@@ -231,11 +231,16 @@
 }
 
 .message-bubble .message-author img {
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--color-input-border);
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem !important;
+  min-height: 1.5rem !important;
+  max-width: 1.5rem !important;
+  max-height: 1.5rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid var(--color-input-border) !important;
+  box-sizing: border-box !important;
 }
 
 .message-bubble .message-content {
@@ -1581,11 +1586,16 @@ select.w-full {
 }
 
 .message-bubble .message-author img {
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--color-input-border);
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem !important;
+  min-height: 1.5rem !important;
+  max-width: 1.5rem !important;
+  max-height: 1.5rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid var(--color-input-border) !important;
+  box-sizing: border-box !important;
 }
 
 .message-bubble .message-content {
