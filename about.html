@@ -197,7 +197,7 @@
     </div>
   </div>
 
-  <div class="tab-content" id="about-tab-content">
+  <div class="tab-content active" id="about-tab-content">
     <!-- About content from original about.html -->
     <section class="content-section">
       <div class="container mx-auto px-4">
@@ -629,8 +629,10 @@
   <script type="module">
     import { initializePage } from './core.js';
     import { setupTabs } from './core.js';
+    import { loadFooter } from './navbar.js';
     initializePage('about');
     setupTabs('.tab-btn', '.tab-content');
+    loadFooter();
   </script>
 </body>
 
