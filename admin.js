@@ -52,7 +52,6 @@ const loginRequiredMessage = document.getElementById("login-required-message");
 const adminContent = document.getElementById("admin-content");
 
 // User Management DOM elements
-const userListTbody = document.getElementById("user-list-tbody");
 const editUserModal = document.getElementById("edit-user-modal");
 const editUserDisplayNameInput = document.getElementById(
   "edit-user-display-name",
@@ -139,10 +138,6 @@ const emailRecipientTypeSelect = document.getElementById(
   "email-recipient-type",
 );
 const emailTemplateSelect = document.getElementById("email-template-select");
-const emailRecipientsSection = document.getElementById(
-  "custom-recipients-section",
-);
-const emailRecipientsList = document.getElementById("email-recipients-list");
 const emailSubjectInput = document.getElementById("email-subject");
 const emailContentTextarea = document.getElementById("email-content");
 const emailComposeForm = document.getElementById("email-compose-form");

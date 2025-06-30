@@ -50,7 +50,6 @@ import { applyTheme, getAvailableThemes } from "./themes.js";
 
 let keyboardShortcuts = {};
 let isRecordingShortcut = false;
-let currentRecordingShortcut = null;
 let disabledShortcuts = new Set();
 let shortcutKeyToName = {};
 

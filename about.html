@@ -167,6 +167,47 @@
         border-bottom-color: transparent;
       }
     }
+
+    /* Button layout fix for about.html */
+    .about-btn-row {
+      display: flex;
+      flex-direction: row;
+      gap: 1.5rem;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+    .about-btn-row .btn-modern {
+      min-width: 200px;
+      max-width: 320px;
+      flex: 1 1 200px;
+      margin: 0;
+      min-height: 56px;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    @media (max-width: 640px) {
+      .about-btn-row {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .about-btn-row .btn-modern {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
   </style>
 </head>
 
@@ -277,7 +318,7 @@
             of a welcoming community that shares your love for creativity and
             adventure.
           </p>
-          <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+          <div class="about-btn-row">
             <a href="https://discord.gg/arcator" target="_blank" rel="noopener noreferrer" class="btn-modern btn-blue">Join Our Discord</a>
             <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank" class="btn-modern btn-green">View Community Interests</a>
           </div>
@@ -287,7 +328,7 @@
           <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
             Online Maps
           </h2>
-          <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+          <div class="about-btn-row">
             <a href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer" target="_blank" class="btn-modern btn-blue">Bluemap SSMP</a>
             <a href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer" target="_blank" class="btn-modern btn-blue">Bluemap Hub</a>
           </div>
@@ -316,7 +357,7 @@
             everyone.
           </p>
         </div>
-        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-12">
+        <div class="about-btn-row">
           <a href="https://discord.gg/arcator" target="_blank" rel="noopener noreferrer" class="btn-modern btn-blue">Join Our Discord</a>
           <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank" class="btn-modern btn-green">View Community Interests</a>
         </div>
@@ -587,22 +628,22 @@
           <table class="min-w-full bg-card">
             <thead>
               <tr class="bg-table-th-bg text-table-th-text">
-                <th class="py-3 px-6 text-xl">Hostname</th>
-                <th class="py-3 px-6 text-xl">Primary Role</th>
+                <th class="py-3 px-6 text-xl text-left">Hostname</th>
+                <th class="py-3 px-6 text-xl text-left">Primary Role</th>
               </tr>
             </thead>
             <tbody>
               <tr class="text-text-primary border-t border-table-td-border">
-                <td>jylina</td>
-                <td>Main Minecraft Server Host (s1)</td>
+                <td class="text-left">jylina</td>
+                <td class="text-left">Main Minecraft Server Host (s1)</td>
               </tr>
               <tr class="text-text-primary bg-table-row-even-bg border-t border-table-td-border">
-                <td>thoth</td>
-                <td>Raspberry Pi Minecraft Server (s2) / Backup Services</td>
+                <td class="text-left">thoth</td>
+                <td class="text-left">Raspberry Pi Minecraft Server (s2) / Backup Services</td>
               </tr>
               <tr class="text-text-primary border-t border-table-td-border">
-                <td>sputnik</td>
-                <td>Web Server / Load Balancer (s9)</td>
+                <td class="text-left">sputnik</td>
+                <td class="text-left">Web Server / Load Balancer (s9)</td>
               </tr>
             </tbody>
           </table>
