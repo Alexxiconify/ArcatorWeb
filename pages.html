@@ -1043,69 +1043,73 @@
     }
   </style>
 </head>
-<div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-<div style="height: 56px;"></div>
-<!-- Hero Section with Background Image -->
-<section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
-    <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
-  </div>
-</section>
-
-<div class="container mx-auto px-4 mt-8">
-  <div id="dynamic-page-content" class="dynamic-page-content"></div>
-</div>
-<div id="footer-placeholder"></div>
-<script src="app.js" type="module"></script>
-<script type="module">
-  import { initializePage, loadFooter } from './core.js';
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { firebaseConfig } from './sensitive/firebase-config.js';
-  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  // Init theme/navbar/footer
-  initializePage('pages');
-  loadFooter();
-  // Firestore init
-  let app, db;
-  if (!getApps().length) app = initializeApp(firebaseConfig);
-  else app = getApps()[0];
-  db = getFirestore(app);
-  // Load temp page by ID
-  async function loadTempPage() {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const contentDiv = document.getElementById('dynamic-page-content');
-    if (!id) {
-      // List of available temp pages
-      const tempPages = [
-        { id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1' },
-        { id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2' },
-      ];
-      contentDiv.innerHTML = `
-        <div class="text-center text-xl mt-12 mb-8">Select a page to view:</div>
-        <div class="temp-page-nav justify-center">
-          ${tempPages
-            .map(
-              (p) => `<a class="btn-modern" href="pages.html?id=${p.id}">${p.title} <span class='text-xs text-gray-400 ml-2'>(${p.id})</span></a>`
-            )
-            .join('')}
+<body>
+  <div class="container mx-auto px-4 flex flex-col md:flex-row items-center mt-6 mb-0">
+    <div class="flex-1">
+      <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 0;">
+        <div class="container mx-auto px-4 text-center hero-content">
+          <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
+          <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
         </div>
+      </section>
+    </div>
+    <div id="navbar-placeholder" class="ml-0 md:ml-8 w-full md:w-auto"></div>
+  </div>
+  <div class="container mx-auto px-4 mt-8">
+    <div id="dynamic-page-content" class="dynamic-page-content"></div>
+  </div>
+  <div id="footer-placeholder"></div>
+  <script src="app.js" type="module"></script>
+  <script type="module">
+    import { initializePage, loadFooter } from './core.js';
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { firebaseConfig } from './sensitive/firebase-config.js';
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { loadNavbar } from './navbar.js';
+    // Init theme/navbar/footer
+    initializePage('pages');
+    loadFooter();
+    loadNavbar();
+    // Firestore init
+    let app, db;
+    if (!getApps().length) app = initializeApp(firebaseConfig);
+    else app = getApps()[0];
+    db = getFirestore(app);
+    // Temp pages list
+    const tempPages = [
+      { id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1' },
+      { id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2' },
+    ];
+    // Render nav tabs
+    function renderTempPageNav(currentId) {
+      return `<div class="temp-page-nav justify-center mb-8">${tempPages.map(p => `<a class="btn-modern${p.id===currentId? ' active' : ''}" href="pages.html?id=${p.id}" onclick="event.preventDefault(); window.setTempPage('${p.id}')">${p.title} <span class='text-xs text-gray-400 ml-2'>(${p.id})</span></a>`).join('')}</div>`;
+    }
+    // Load temp page by ID
+    async function loadTempPage(id) {
+      const contentDiv = document.getElementById('dynamic-page-content');
+      if (!id) id = tempPages[0].id;
+      contentDiv.innerHTML = renderTempPageNav(id) + '<div class="text-center text-xl mt-12 mb-8">Loading...</div>';
+      const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        contentDiv.innerHTML = renderTempPageNav(id) + '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
+        return;
+      }
+      const data = snap.data();
+      contentDiv.innerHTML = renderTempPageNav(id) + `
+        <div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
+        <div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
+        <div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
       `;
-      return;
     }
-    const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-      contentDiv.innerHTML = '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
-      return;
-    }
-    const data = snap.data();
-    contentDiv.innerHTML = `
-      <div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
-      <div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
-      <div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
-    `;
-  }
-  loadTempPage();
-</script>
+    // Expose for nav tab click
+    window.setTempPage = function(id) {
+      history.replaceState(null, '', `pages.html?id=${id}`);
+      loadTempPage(id);
+    };
+    // On load
+    const params = new URLSearchParams(window.location.search);
+    let id = params.get('id');
+    loadTempPage(id);
+  </script>
+</body>
