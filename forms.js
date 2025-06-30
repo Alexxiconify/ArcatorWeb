@@ -135,17 +135,14 @@ function renderThematas() {
       const header = document.createElement("div");
       header.className = "flex items-center justify-between mb-2";
 
-      const collapseBtn = document.createElement("button");
-      collapseBtn.className = "collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1";
+      const collapseBtn = document.createElement("span");
+      collapseBtn.className = "collapse-btn";
       collapseBtn.innerHTML = `<svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       collapseBtn.title = "Collapse/Expand Théma";
-      let collapsed = false;
-      collapseBtn.onclick = () => {
-        collapsed = !collapsed;
-        const chevron = collapseBtn.querySelector('.chevron');
-        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-        threadsDiv.style.display = collapsed ? "none" : "block";
-      };
+      collapseBtn.style.cursor = "pointer";
+      collapseBtn.style.display = "inline-flex";
+      collapseBtn.style.alignItems = "center";
+      collapseBtn.style.marginRight = "4px";
       header.prepend(collapseBtn);
 
       const titleBox = document.createElement("div");
@@ -155,7 +152,7 @@ function renderThematas() {
       `;
 
       const actions = document.createElement("div");
-      actions.className = "flex items-center gap-2";
+      actions.className = "actions-right absolute top-2 right-2 flex gap-2 z-10";
 
       const editBtn = document.createElement("button");
       editBtn.className =
@@ -215,7 +212,7 @@ async function loadThreadsForThema(themaId) {
     let threadsHtml = [];
     threadsHtml.push(`
       <div class="create-thread-section mb-2">
-        <button type="button" class="toggle-create-thread text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1 mb-2">＋ New Thread</button>
+        <button type="button" class="toggle-create-thread btn-primary btn-blue mb-2">＋ New Thread</button>
         <div class="create-thread-collapsible" style="display:none;">
           <form class="create-thread-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" style="margin-bottom:0;">
             <input type="text" class="form-input flex-1 min-w-0 mb-0" placeholder="Thread title" required style="margin-bottom:0; min-width:120px;" />
@@ -251,40 +248,37 @@ async function loadThreadsForThema(themaId) {
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
         const canEditThread = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy));
-        const threadCollapseBtn = `<button class="collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+        const threadCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         threadsHtml.push(`
-          <div class="${commentClass}" data-thread-id="${threadDoc.id}">
-            <div class="${threadHeaderClass}">
-              ${threadCollapseBtn}
-              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-              <div class="flex flex-col justify-center">
+          <div class="thread-header flex items-center gap-3 bg-card text-text-primary" data-thread-id="${threadDoc.id}" style="position:relative;">
+            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+            <div class="flex flex-col justify-center flex-1">
+              <div class="flex items-center w-full">
                 <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
-                <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title)}</span>
-                <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment)}</p>
+                <div class="flex gap-2 ml-auto">
+                  ${canEditThread ? `
+                    <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  ` : ""}
+                </div>
               </div>
-              <div class="comment-actions ml-auto">
-                ${canEditThread ? `
-                  <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                ` : ""}
+              <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title)}</span>
+              <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment)}</p>
+              <div class="flex items-center justify-between mt-1 w-full">
+                <div class="reactions-bar">${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}</div>
+                <span class="meta-info text-xs ml-4" style="margin-left:auto;">${createdAt}</span>
               </div>
-            </div>
-            <div class="flex justify-between items-center mt-2">
-              <div class="reactions-bar">${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}</div>
-              <p class="meta-info text-xs text-right">Created on ${createdAt}</p>
-            </div>
-            <div class="thread-comments" data-thread-id="${threadDoc.id}">
-              <div class="comments-loading">Loading comments...</div>
             </div>
           </div>
+          <div class="thread-comments" data-thread-id="${threadDoc.id}"></div>
         `);
       }
       threadsHtml.push("</div>");
@@ -347,34 +341,32 @@ async function loadCommentsForThread(themaId, threadId) {
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
         const canEditComment = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy));
-        const commentCollapseBtn = `<button class="collapse-btn text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1" title="Collapse/Expand Comment" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+        const commentCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Comment" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         commentsHtml.push(`
-          <div class="${commentClass}" data-comment-id="${commentDoc.id}">
-            <div class="${commentHeaderClass}">
-              ${commentCollapseBtn}
-              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-              <div class="flex flex-col justify-center">
-                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
-                <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
-              </div>
-              <div class="comment-actions ml-auto">
-                ${canEditComment ? `
-                  <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                ` : ""}
-              </div>
+          <div class="thread-header flex items-center gap-3 bg-card text-text-primary" data-comment-id="${commentDoc.id}" style="position:relative;">
+            <div class="actions-right absolute top-2 right-2 flex gap-2 z-10">
+              ${canEditComment ? `
+                <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              ` : ""}
             </div>
-            <div class="flex justify-between items-center mt-2">
-              <div class="reactions-bar">${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}</div>
-              <p class="meta-info text-xs text-right">Posted on ${createdAt}</p>
+            ${commentCollapseBtn}
+            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+            <div class="flex flex-col justify-center flex-1">
+              <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+              <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
+              <div class="flex items-center justify-between mt-1 w-full">
+                <div class="reactions-bar">${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}</div>
+                <span class="meta-info text-xs ml-4" style="margin-left:auto;">${createdAt}</span>
+              </div>
             </div>
           </div>
         `);
@@ -383,7 +375,7 @@ async function loadCommentsForThread(themaId, threadId) {
     }
     commentsHtml.push(`
       <div class="add-comment-section mt-3">
-        <button type="button" class="toggle-add-comment text-link bg-transparent p-0 m-0 shadow-none border-none flex items-center gap-1 mb-2">＋ Add Comment</button>
+        <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
         <div class="add-comment-collapsible" style="display:none;">
           <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
             <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
@@ -480,10 +472,24 @@ function setupCommentEventListeners(themaId, threadId) {
       const commentId = commentElem.dataset.commentId;
       const contentElem = commentElem.querySelector(".comment-content");
       const oldContent = contentElem.textContent;
-      const newContent = prompt("Edit comment:", oldContent);
-      if (newContent === null) return;
-      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId), { content: newContent }, { merge: true });
-      showMessageBox("Comment updated.");
+      // Replace with input field and Save/Cancel
+      contentElem.innerHTML = `<textarea id="edit-comment-content" class="form-input w-full" rows="2">${escapeHtml(oldContent)}</textarea>
+        <div class='flex gap-2 mt-1'>
+          <button class='save-edit-comment-btn btn-primary btn-blue text-xs'>Save</button>
+          <button class='cancel-edit-comment-btn btn-primary btn-red text-xs'>Cancel</button>
+        </div>`;
+      // Save handler
+      contentElem.querySelector('.save-edit-comment-btn').onclick = async () => {
+        const newContent = contentElem.querySelector('#edit-comment-content').value.trim();
+        if (!newContent) return showMessageBox('Content required', true);
+        await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId), { content: newContent }, { merge: true });
+        showMessageBox('Comment updated.');
+        await loadCommentsForThread(themaId, threadId);
+      };
+      // Cancel handler
+      contentElem.querySelector('.cancel-edit-comment-btn').onclick = () => {
+        contentElem.textContent = oldContent;
+      };
     });
   });
 
@@ -714,96 +720,36 @@ document.addEventListener("DOMContentLoaded", async function () {
   renderThematas();
 
   // Collapsible for Create New Théma
-  const toggleThemaBtn = document.getElementById("toggle-create-thema");
-  const createThemaCollapsible = document.getElementById("create-thema-collapsible");
-  if (toggleThemaBtn && createThemaCollapsible) {
-    toggleThemaBtn.addEventListener("click", () => {
-      createThemaCollapsible.style.display = createThemaCollapsible.style.display === "none" ? "block" : "none";
-    });
-  }
+  setupCollapsibleToggles();
 
-  // In thread and comment rendering, wrap creation forms in collapsible containers with toggle buttons
-  // Thread creation:
-  setTimeout(() => {
-    document.querySelectorAll('.toggle-create-thread').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const collapsible = this.nextElementSibling;
-        if (collapsible) collapsible.style.display = collapsible.style.display === 'none' ? 'block' : 'none';
+  // Add a single event listener for .collapse-btn clicks:
+  document.body.addEventListener("click", function(e) {
+    if (e.target.closest && e.target.closest(".collapse-btn")) {
+      const btn = e.target.closest(".collapse-btn");
+      // Find the card (thema, thread, or comment)
+      const card = btn.closest(".thema-item, .thread-item, .comment-item");
+      if (!card) return;
+      // Find the header (first child with class thread-header or comment-header or flex)
+      let header = card.querySelector(".thread-header, .comment-header, .flex");
+      if (!header) header = card.firstElementChild;
+      let collapsed = false;
+      let foundHeader = false;
+      Array.from(card.children).forEach(child => {
+        if (child === header) { foundHeader = true; return; }
+        if (foundHeader) {
+          if (child.style.display === 'none') {
+            child.style.display = '';
+            collapsed = false;
+          } else {
+            child.style.display = 'none';
+            collapsed = true;
+          }
+        }
       });
-    });
-  }, 0);
-
-  // Comment creation:
-  setTimeout(() => {
-    document.querySelectorAll('.toggle-add-comment').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const collapsible = this.nextElementSibling;
-        if (collapsible) collapsible.style.display = collapsible.style.display === 'none' ? 'block' : 'none';
-      });
-    });
-  }, 0);
-
-  // After rendering threads, add event listeners for thread collapse
-  setTimeout(() => {
-    document.querySelectorAll('.threads-list .collapse-btn').forEach(btn => {
-      btn.onclick = function() {
-        const card = this.closest('.comment-item');
-        if (!card) return;
-        const header = card.querySelector('.thread-header');
-        let collapsed = false;
-        // Toggle all siblings after header
-        let foundHeader = false;
-        Array.from(card.children).forEach(child => {
-          if (child === header) {
-            foundHeader = true;
-            return;
-          }
-          if (foundHeader) {
-            if (child.style.display === 'none') {
-              child.style.display = '';
-              collapsed = false;
-            } else {
-              child.style.display = 'none';
-              collapsed = true;
-            }
-          }
-        });
-        const chevron = this.querySelector('.chevron');
-        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-      };
-    });
-  }, 0);
-
-  // After rendering comments, add event listeners for comment collapse
-  setTimeout(() => {
-    document.querySelectorAll('.comments-list .collapse-btn').forEach(btn => {
-      btn.onclick = function() {
-        const card = this.closest('.comment-item');
-        if (!card) return;
-        const header = card.querySelector('.thread-header');
-        let collapsed = false;
-        // Toggle all siblings after header
-        let foundHeader = false;
-        Array.from(card.children).forEach(child => {
-          if (child === header) {
-            foundHeader = true;
-            return;
-          }
-          if (foundHeader) {
-            if (child.style.display === 'none') {
-              child.style.display = '';
-              collapsed = false;
-            } else {
-              child.style.display = 'none';
-              collapsed = true;
-            }
-          }
-        });
-        const chevron = this.querySelector('.chevron');
-        if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-      };
-    });
-  }, 0);
+      const chevron = btn.querySelector('.chevron');
+      if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
+  });
 });
 
 // --- PATCH: REACTIONS ---
@@ -1090,5 +1036,70 @@ if (dmTabBtn && dmTabContent) {
     initializeDmSystem();
     setupDmEventListeners();
   }
+}
+
+// --- Unified collapsible toggle logic ---
+function setupCollapsibleToggles() {
+  // Théma
+  const toggleThemaBtn = document.getElementById("toggle-create-thema");
+  const createThemaCollapsible = document.getElementById("create-thema-collapsible");
+  if (toggleThemaBtn && createThemaCollapsible) {
+    toggleThemaBtn.onclick = () => {
+      createThemaCollapsible.style.display = createThemaCollapsible.style.display === "none" ? "block" : "none";
+    };
+  }
+  // Thread & Comment
+  document.body.addEventListener("click", (e) => {
+    if (e.target.classList.contains("toggle-create-thread") || e.target.classList.contains("toggle-add-comment")) {
+      const collapsible = e.target.nextElementSibling;
+      if (collapsible) collapsible.style.display = collapsible.style.display === "none" ? "block" : "none";
+    }
+  });
+}
+
+// --- Inline Edit Logic for Thema, Thread, Comment ---
+function makeEditable(cardElem, type, ids, oldTitle, oldDesc) {
+  // type: 'thema', 'thread', 'comment'
+  // ids: {themaId, threadId, commentId}
+  // oldTitle: for thema/thread, oldDesc: for thema/thread/comment
+  const titleElem = cardElem.querySelector('.font-bold');
+  const descElem = cardElem.querySelector('.thema-description, .comment-content');
+  if (!titleElem || !descElem) return;
+  // Save originals
+  const origTitle = titleElem.textContent;
+  const origDesc = descElem.textContent;
+  // Replace with inputs
+  titleElem.innerHTML = `<input class="form-input inline-edit-title" value="${escapeHtml(origTitle)}" style="font-weight:700;width:100%;margin-bottom:4px;">`;
+  descElem.innerHTML = `<textarea class="form-input inline-edit-desc" style="width:100%;min-height:32px;">${escapeHtml(origDesc)}</textarea>`;
+  // Move Save/Cancel to actions-right (top right)
+  let actions = cardElem.querySelector('.actions-right');
+  if (!actions) return;
+  actions.innerHTML = `
+    <button class="save-edit-btn btn-primary btn-blue" title="Save">✔</button>
+    <button class="cancel-edit-btn btn-primary btn-red" title="Cancel">✖</button>
+  `;
+  // Save handler
+  actions.querySelector('.save-edit-btn').onclick = async () => {
+    const newTitle = titleElem.querySelector('input')?.value.trim();
+    const newDesc = descElem.querySelector('textarea')?.value.trim();
+    if ((type !== 'comment' && (!newTitle || !newDesc)) || (type === 'comment' && !newDesc)) return showMessageBox('Fields required', true);
+    if (type === 'thema') {
+      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas`, ids.themaId), { name: newTitle, description: newDesc }, { merge: true });
+    } else if (type === 'thread') {
+      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads`, ids.threadId), { title: newTitle, initialComment: newDesc }, { merge: true });
+    } else if (type === 'comment') {
+      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads/${ids.threadId}/comments`, ids.commentId), { content: newDesc }, { merge: true });
+    }
+    showMessageBox('Saved.');
+    renderThematas();
+  };
+  // Cancel handler
+  actions.querySelector('.cancel-edit-btn').onclick = () => {
+    titleElem.textContent = origTitle;
+    descElem.textContent = origDesc;
+    actions.innerHTML = '';
+    // Re-render edit/delete icons
+    if (type === 'thema' || type === 'thread' || type === 'comment') renderThematas();
+  };
 }
 
