@@ -1182,15 +1182,41 @@
       };
       // Add event listeners for edit/delete
       document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.onclick = (e) => {
+        btn.onclick = async (e) => {
           e.preventDefault();
-          // TODO: Implement edit comment logic
+          const commentId = btn.getAttribute('data-id');
+          const commentDiv = btn.closest('.comment-item');
+          const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+          const c = cSnap.data();
+          let user = auth.currentUser;
+          let isAdminUser = user && isAdmin(user);
+          if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
+          // Replace content with edit form
+          const origContent = c.content || '';
+          commentDiv.querySelector('.comment-content').innerHTML = `<form class='comment-edit-form'><textarea class='edit-comment-textarea'>${origContent}</textarea><div class='edit-actions'><button type='submit' class='save-edit-btn'>Save</button><button type='button' class='cancel-edit-btn'>Cancel</button></div></form>`;
+          const form = commentDiv.querySelector('.comment-edit-form');
+          form.onsubmit = async (ev) => {
+            ev.preventDefault();
+            const newContent = form.querySelector('.edit-comment-textarea').value.trim();
+            if (!newContent) return;
+            await setDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId), { content: newContent }, { merge: true });
+            await loadComments(pageId);
+          };
+          form.querySelector('.cancel-edit-btn').onclick = () => { loadComments(pageId); };
         };
       });
       document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = (e) => {
+        btn.onclick = async (e) => {
           e.preventDefault();
-          // TODO: Implement delete comment logic
+          const commentId = btn.getAttribute('data-id');
+          const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+          const c = cSnap.data();
+          let user = auth.currentUser;
+          let isAdminUser = user && isAdmin(user);
+          if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
+          if (!confirm('Delete this comment?')) return;
+          await deleteDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+          await loadComments(pageId);
         };
       });
     }
@@ -1212,7 +1238,7 @@
       const id = getCurrentPageId();
       let isAdminUser = user && isAdmin(user);
       document.getElementById('dynamic-page-content').innerHTML = renderTempPageNav(id, isAdminUser);
-      loadTempPage(id);
+      await loadTempPage(id);
     });
     // Admin controls
     const ADMIN_UIDS = [
