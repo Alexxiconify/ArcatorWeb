@@ -393,21 +393,27 @@ async function loadCommentsForThread(themaId, threadId) {
     const flat = flattenCommentTree(tree);
     let html = '';
     if (flat.length === 0) {
-      html = '<div class="no-comments text-sm text-gray-500">No comments yet.</div>';
+      html = `<div class="flex items-center gap-4 no-comments-row">
+        <div class="no-comments text-sm text-gray-500 mb-0">No comments yet.</div>
+        <form class="add-comment-form flex flex-row items-center gap-2 ml-4" data-thema-id="${themaId}" data-thread-id="${threadId}" style="margin-bottom:0;">
+          <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
+          <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
+        </form>
+      </div>`;
     } else {
       html = renderFlatCommentList(flat, themaId, threadId);
-    }
-    html += `
-      <div class="add-comment-section mt-3">
-        <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
-        <div class="add-comment-collapsible" style="display:none;">
-          <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
-            <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
-            <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
-          </form>
+      html += `
+        <div class="add-comment-section mt-3">
+          <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
+          <div class="add-comment-collapsible" style="display:none;">
+            <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
+              <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
+              <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
+            </form>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
     commentsContainer.innerHTML = html;
     setupCommentEventListeners(themaId, threadId);
   });
@@ -472,7 +478,7 @@ function setupThreadEventListeners(themaId) {
 // Setup comment event listeners
 function setupCommentEventListeners(themaId, threadId) {
   const commentsContainer = document.querySelector(
-    `[data-thread-id="${threadId}"] .thread-comments`,
+    `.thread-comments[data-thread-id="${threadId}"]`,
   );
   if (!commentsContainer) return;
 
@@ -481,7 +487,6 @@ function setupCommentEventListeners(themaId, threadId) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const commentInput = form.querySelector("textarea");
-
       if (commentInput.value.trim()) {
         await addComment(themaId, threadId, commentInput.value.trim());
         commentInput.value = "";
