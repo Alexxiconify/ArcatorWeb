@@ -1,31 +1,23 @@
 /* forms.js: Forum-specific functionality for thémata, threads, and comments */
 
 // Import existing modules
-import {
-  auth,
-  db,
-  appId,
-  getUserProfileFromFirestore,
-  setUserProfileInFirestore,
-} from "./firebase-init.js";
-import { showMessageBox, showCustomConfirm } from "./utils.js";
-import { loadFooter } from "./navbar.js";
-import { renderMarkdownWithMedia, escapeHtml } from "./utils.js";
+import {appId, auth, db, getUserProfileFromFirestore,} from "./firebase-init.js";
+import {escapeHtml, renderMarkdownWithMedia, showCustomConfirm, showMessageBox} from "./utils.js";
+import {loadFooter} from "./navbar.js";
 
 // Import Firebase functions
 import {
+  addDoc,
+  collection,
+  deleteDoc,
   doc,
   getDoc,
-  setDoc,
-  deleteDoc,
-  collection,
-  query,
-  orderBy,
-  addDoc,
-  serverTimestamp,
-  onSnapshot,
   getDocs,
-  where,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // DOM elements
@@ -924,8 +916,8 @@ function renderReactionButtons(reactions, themaId, threadId, commentId = null) {
         : "reaction-btn";
 
       return `
-      <button class="${buttonClass}" 
-              onclick="handleReaction('${type}', '${themaId}', '${threadId}'${commentId ? `, '${commentId}'` : ""})" 
+      <button class="${buttonClass}"
+              onclick="handleReaction('${type}', '${themaId}', '${threadId}'${commentId ? `, '${commentId}'` : ""})"
               title="${label}">
         ${type} <span class="reaction-count text-text-secondary">${count}</span>
       </button>
@@ -945,97 +937,132 @@ const threadHeaderClass =
   "thread-header flex items-center gap-3 bg-card text-text-primary";
 const commentHeaderClass = threadHeaderClass;
 
-// DM Tab Functionality
-async function initializeDmTab() {
-  console.log("Initializing DM tab...");
+// --- DM SYSTEM ---
 
+// Firestore DM path: artifacts/{appId}/users/{userId}/dms/{conversationId}/messages/{messageId}
+
+// Util: get current user
+function getCurrentUser() {
+  return window.currentUser || auth.currentUser || null;
+}
+
+// Util: get user profile (minimal)
+async function getUserProfile(uid) {
   try {
-    // Initialize DM functionality
-    await initializeDmSystem();
-
-    // Set up event listeners for DM tab
-    setupDmEventListeners();
-
-    // Load initial conversations
-    await loadConversations();
-
-    console.log("DM tab initialized successfully");
-  } catch (error) {
-    console.error("Error initializing DM tab:", error);
+    return (await getUserProfileFromFirestore(uid)) || {displayName: 'Anonymous', photoURL: ''};
+  } catch {
+    return {displayName: 'Anonymous', photoURL: ''};
   }
 }
 
-async function setupDmEventListeners() {
-  // Sort conversations
-  const sortSelect = document.getElementById("sort-conversations-by");
-  if (sortSelect) {
-    sortSelect.addEventListener("change", () => {
-      currentSortOption = sortSelect.value;
-      renderConversationsList();
-    });
-  }
-  // Back to chats button
-  const backBtn = document.getElementById("back-to-chats-btn");
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      updateDmUiForNoConversationSelected();
-    });
-  }
-  // Create conversation form - ensure it's properly connected
-  const createForm = document.getElementById("create-conversation-form");
-  if (createForm) {
-    createForm.removeEventListener("submit", handleCreateConversation);
-    createForm.addEventListener("submit", handleCreateConversation);
-  }
-  // Click outside suggestions to hide them
-  document.addEventListener("click", (event) => {
-    const privateSuggestions = document.getElementById(
-      "private-chat-suggestions",
-    );
-    const groupSuggestions = document.getElementById("group-chat-suggestions");
-    if (
-      privateSuggestions &&
-      !event.target.closest(".recipient-input-container")
-    ) {
-      privateSuggestions.style.display = "none";
+// --- DM State ---
+let dmUnsubConvos = null;
+let dmUnsubMessages = null;
+let currentConversationId = null;
+
+// --- Render conversations list ---
+async function renderConversationsList() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const convosCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms`);
+  const q = query(convosCol, orderBy('lastMessageAt', 'desc'));
+  if (dmUnsubConvos) dmUnsubConvos();
+  dmUnsubConvos = onSnapshot(q, async (snap) => {
+    const list = document.getElementById('conversations-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (snap.empty) {
+      list.innerHTML = '<div class="text-center text-gray-400">No conversations</div>';
+      return;
     }
-    if (
-      groupSuggestions &&
-      !event.target.closest(".recipient-input-container")
-    ) {
-      groupSuggestions.style.display = "none";
+    for (const docSnap of snap.docs) {
+      const convo = docSnap.data();
+      const convoId = docSnap.id;
+      const otherUid = (convo.participants || []).find(uid => uid !== user.uid);
+      const otherProfile = otherUid ? await getUserProfile(otherUid) : {displayName: 'Group', photoURL: ''};
+      const div = document.createElement('div');
+      div.className = 'conversation-item' + (convoId === currentConversationId ? ' active' : '');
+      div.innerHTML = `<div class='conversation-header'><img src='${otherProfile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' class='conversation-avatar'><div class='conversation-info'><div class='conversation-name'>${escapeHtml(otherProfile.displayName)}</div><div class='conversation-preview'>${escapeHtml(convo.lastMessage || '')}</div></div></div>`;
+      div.onclick = () => openConversation(convoId);
+      list.appendChild(div);
     }
   });
 }
 
-// Local handleCreateConversation function that updates input fields
-async function handleCreateConversation(event) {
-  event.preventDefault();
-
-  const typeSelect = document.getElementById("new-chat-type");
-  const groupNameInput = document.getElementById("group-chat-name");
-  const groupImageInput = document.getElementById("group-chat-image");
-
-  const type = typeSelect?.value || "private";
-  let groupName = "";
-  let groupImage = "";
-
-  if (type === "group") {
-    groupName = groupNameInput?.value?.trim() || "";
-    groupImage = groupImageInput?.value?.trim() || "";
-  }
-
-  // Check if we have selected recipients
-  if (selectedRecipients.size === 0) {
-    showMessageBox("Please select at least one recipient for the chat.", true);
-    return;
-  }
-
-  await createConversation(type, [], groupName, groupImage);
+// --- Open conversation and render messages ---
+async function openConversation(convoId) {
+  currentConversationId = convoId;
+  renderConversationsList();
+  const user = getCurrentUser();
+  if (!user) return;
+  const messagesCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms/${convoId}/messages`);
+  const q = query(messagesCol, orderBy('createdAt', 'asc'));
+  if (dmUnsubMessages) dmUnsubMessages();
+  dmUnsubMessages = onSnapshot(q, async (snap) => {
+    const container = document.getElementById('conversation-messages-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (const docSnap of snap.docs) {
+      const msg = docSnap.data();
+      const isOwn = msg.sender === user.uid;
+      const profile = await getUserProfile(msg.sender);
+      const div = document.createElement('div');
+      div.className = 'message-bubble ' + (isOwn ? 'sent' : 'received');
+      div.innerHTML = `<div class='message-author'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}'><span>${escapeHtml(profile.displayName)}</span></div><div class='message-content'>${escapeHtml(msg.content)}</div><div class='message-timestamp'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
+      container.appendChild(div);
+    }
+    container.scrollTop = container.scrollHeight;
+  });
 }
 
-// Make handleReaction globally accessible
-window.handleReaction = handleReaction;
+// --- Send message ---
+async function sendMessage(event) {
+  event.preventDefault();
+  const user = getCurrentUser();
+  if (!user || !currentConversationId) return;
+  const input = document.getElementById('message-content-input');
+  if (!input || !input.value.trim()) return;
+  const content = input.value.trim();
+  input.value = '';
+  const convoRef = doc(db, `artifacts/${appId}/users/${user.uid}/dms`, currentConversationId);
+  const msgCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms/${currentConversationId}/messages`);
+  const msg = {content, sender: user.uid, createdAt: serverTimestamp()};
+  await addDoc(msgCol, msg);
+  await setDoc(convoRef, {lastMessage: content, lastMessageAt: serverTimestamp()}, {merge: true});
+}
+
+// --- Create new conversation ---
+async function createConversation(event) {
+  event.preventDefault();
+  const user = getCurrentUser();
+  if (!user) return;
+  const recipientInput = document.getElementById('new-chat-recipient');
+  const recipientUid = recipientInput?.value?.trim();
+  if (!recipientUid || recipientUid === user.uid) return showMessageBox('Invalid recipient', true);
+  // Create for both users
+  const convoId = [user.uid, recipientUid].sort().join('_');
+  const convoData = {participants: [user.uid, recipientUid], lastMessage: '', lastMessageAt: serverTimestamp()};
+  await setDoc(doc(db, `artifacts/${appId}/users/${user.uid}/dms`, convoId), convoData);
+  await setDoc(doc(db, `artifacts/${appId}/users/${recipientUid}/dms`, convoId), convoData);
+  openConversation(convoId);
+}
+
+// --- Setup DM event listeners ---
+function setupDmEventListeners() {
+  const form = document.getElementById('send-message-form');
+  if (form) {
+    form.onsubmit = sendMessage;
+  }
+  const createForm = document.getElementById('create-conversation-form');
+  if (createForm) {
+    createForm.onsubmit = createConversation;
+  }
+  renderConversationsList();
+}
+
+// --- Init DM tab on click ---
+dmTabBtn?.addEventListener('click', setupDmEventListeners);
+if (dmTabContent?.classList.contains('active') || dmTabContent?.style.display !== 'none') setupDmEventListeners();
 
 // --- Tab Persistence and Scroll to Top ---
 function setActiveTab(tabName) {
@@ -1082,10 +1109,3 @@ function renderContent(content) {
   renderMarkdownWithMedia(content, tempDiv);
   return tempDiv.innerHTML;
 }
-
-// --- DM SYSTEM PLACEHOLDERS (to prevent ReferenceError) ---
-// REMOVE these placeholder functions and wire up the real ones below
-// function initializeDmSystem() { ... }
-// function loadConversations() { ... }
-// function attachDmEventListeners() { ... }
-// function renderConversationsList() { ... }
