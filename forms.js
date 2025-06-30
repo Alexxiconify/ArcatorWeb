@@ -155,19 +155,15 @@ function renderThematas() {
       actions.className = "actions-right absolute top-2 right-2 flex gap-2 z-10";
 
       const editBtn = document.createElement("button");
-      editBtn.className =
-        "edit-themata-btn text-blue-400 hover:text-blue-300 p-1";
+      editBtn.className = "edit-themata-btn icon-btn";
       editBtn.title = "Edit Themata";
-      editBtn.innerHTML =
-        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+      editBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
       editBtn.onclick = () => openEditThemaModal(themaId, thema);
 
       const delBtn = document.createElement("button");
-      delBtn.className =
-        "delete-themata-btn text-red-400 hover:text-red-300 p-1";
+      delBtn.className = "delete-themata-btn icon-btn";
       delBtn.title = "Delete Themata";
-      delBtn.innerHTML =
-        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+      delBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
       delBtn.onclick = () => deleteThemaAndSubcollections(themaId);
 
       const canEditThema = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy));
@@ -255,15 +251,15 @@ async function loadThreadsForThema(themaId) {
             <div class="flex flex-col justify-center flex-1">
               <div class="flex items-center w-full">
                 <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
-                <div class="flex gap-2 ml-auto">
+                <div class="flex gap-2 ml-auto actions-right">
                   ${canEditThread ? `
-                    <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="edit-thread-btn icon-btn" title="Edit Thread">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </button>
-                    <button class="delete-thread-btn btn-primary btn-red" title="Delete Thread">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="delete-thread-btn icon-btn" title="Delete Thread">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
@@ -324,24 +320,27 @@ function flattenCommentTree(comments, depth = 0) {
   return flat;
 }
 
-// --- Render flat, Reddit-like comment list with connecting line ---
-function renderFlatCommentList(flatComments, themaId, threadId) {
-  return flatComments.map(c => {
+// --- Render nested Reddit-style comment tree ---
+function renderNestedComments(comments, themaId, threadId, depth = 0) {
+  return comments.map(c => {
     const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
     let photoURL = c.photoURL;
     if (!photoURL || photoURL === 'null' || photoURL === 'undefined') photoURL = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
-    // Add a vertical line for depth > 0
-    const border = c.depth > 0 ? 'border-l-4 border-blue-700 pl-4' : '';
+    let connectors = '';
+    if (depth > 0) {
+      connectors = `<div class='vertical-connector'></div><div class='horizontal-connector'></div>`;
+    }
     return `
-      <div class="thread-header flex items-start bg-card text-text-primary mb-2 p-3 rounded-lg shadow-sm ${border}" data-comment-id="${c.id}" style="position:relative;min-height:40px;">
+      <div class="thread-header depth-${depth} flex items-start text-text-primary mb-2 p-3" data-comment-id="${c.id}" style="position:relative;min-height:40px;">
+        ${connectors}
         <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV'">
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between">
             <span class="text-xs text-text-secondary truncate">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
-            <div class="flex gap-1 ml-2">
+            <div class="flex gap-1 ml-2 actions-right">
               ${canEdit ? `
-                <button class="edit-comment-btn btn-primary btn-blue p-1 text-xs" title="Edit Comment">✎</button>
-                <button class="delete-comment-btn btn-primary btn-red p-1 text-xs" title="Delete Comment">🗑</button>
+                <button class="edit-comment-btn icon-btn" title="Edit Comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                <button class="delete-comment-btn icon-btn" title="Delete Comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
               ` : ""}
             </div>
           </div>
@@ -354,13 +353,14 @@ function renderFlatCommentList(flatComments, themaId, threadId) {
             <button class="reply-comment-btn btn-primary btn-blue text-xs px-2 py-0.5" data-comment-id="${c.id}">Reply</button>
             <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
           </div>
+          ${c.children && c.children.length ? `<div class="mt-2">${renderNestedComments(c.children, themaId, threadId, depth + 1)}</div>` : ''}
         </div>
       </div>
     `;
   }).join('');
 }
 
-// --- Update loadCommentsForThread to use flat list ---
+// --- Update loadCommentsForThread to use nested rendering ---
 async function loadCommentsForThread(themaId, threadId) {
   if (!db) return;
   const commentsContainer = document.querySelector(
@@ -403,7 +403,7 @@ async function loadCommentsForThread(themaId, threadId) {
       </div>
       <div class="add-comment-collapsible" style="display:none;"></div>`;
     } else {
-      html = renderFlatCommentList(flat, themaId, threadId);
+      html = renderNestedComments(tree, themaId, threadId);
       html += `
         <div class="add-comment-section mt-3">
           <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
@@ -537,6 +537,42 @@ function setupCommentEventListeners(themaId, threadId) {
       // Cancel handler
       contentElem.querySelector('.cancel-edit-comment-btn').onclick = () => {
         contentElem.textContent = oldContent;
+      };
+    });
+  });
+
+  // Reply button logic
+  commentsContainer.querySelectorAll(".reply-comment-btn").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const commentId = button.dataset.commentId;
+      const replyFormDiv = commentsContainer.querySelector(`#reply-form-${commentId}`);
+      if (!replyFormDiv) return;
+      // If already open, do nothing
+      if (replyFormDiv.style.display === "block") return;
+      // Hide all other reply forms
+      commentsContainer.querySelectorAll('.reply-form-container').forEach(div => { div.style.display = 'none'; div.innerHTML = ''; });
+      replyFormDiv.style.display = "block";
+      replyFormDiv.innerHTML = `<form class='reply-form flex flex-row items-center gap-2 ml-0' data-parent-id='${commentId}' style='margin-bottom:0;'>
+        <textarea class='form-input flex-1 min-w-0 mb-0 text-sm' placeholder='Reply...' rows='1' required style='margin-bottom:0; min-width:120px; resize:vertical;'></textarea>
+        <button type='submit' class='btn-primary btn-blue text-sm ml-0' style='margin-bottom:0;'>Reply</button>
+        <button type='button' class='btn-primary btn-red text-sm ml-0 cancel-reply-btn' style='margin-bottom:0;'>Cancel</button>
+      </form>`;
+      // Submit handler
+      const form = replyFormDiv.querySelector('form');
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const textarea = form.querySelector('textarea');
+        if (textarea.value.trim()) {
+          await addComment(themaId, threadId, textarea.value.trim(), commentId);
+          replyFormDiv.style.display = 'none';
+          replyFormDiv.innerHTML = '';
+        }
+      };
+      // Cancel handler
+      form.querySelector('.cancel-reply-btn').onclick = () => {
+        replyFormDiv.style.display = 'none';
+        replyFormDiv.innerHTML = '';
       };
     });
   });
@@ -1149,5 +1185,81 @@ function makeEditable(cardElem, type, ids, oldTitle, oldDesc) {
     // Re-render edit/delete icons
     if (type === 'thema' || type === 'thread' || type === 'comment') renderThematas();
   };
+}
+
+// --- Unified Reddit-style card rendering for thema, thread, comment ---
+function renderRedditTree(thematas) {
+  return thematas.map(thema => {
+    const canEditThema = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy);
+    let themaConnectors = '';
+    // No connector for root
+    return `
+      <div class="reddit-card depth-0" data-thema-id="${thema.id}">
+        <div class="reddit-header flex items-center">
+          <span class="font-bold text-lg">${escapeHtml(thema.name)}</span>
+          <span class="thema-description text-text-secondary text-sm ml-2">${escapeHtml(thema.description)}</span>
+          <div class="actions-right ml-auto flex gap-2">
+            ${canEditThema ? `
+              <button class="edit-themata-btn icon-btn" title="Edit Themata">...</button>
+              <button class="delete-themata-btn icon-btn" title="Delete Themata">...</button>
+            ` : ''}
+          </div>
+        </div>
+        <div class="reddit-children">
+          ${thema.threads ? renderRedditThreads(thema.threads, 1) : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function renderRedditThreads(threads, depth) {
+  return threads.map(thread => {
+    const canEditThread = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy);
+    let threadConnectors = depth > 0 ? `<div class='vertical-connector'></div><div class='horizontal-connector'></div>` : '';
+    return `
+      <div class="reddit-card depth-${depth}" data-thread-id="${thread.id}">
+        ${threadConnectors}
+        <div class="reddit-header flex items-center">
+          <span class="font-bold text-base">${escapeHtml(thread.title)}</span>
+          <span class="thread-description text-text-secondary text-sm ml-2">${escapeHtml(thread.initialComment)}</span>
+          <div class="actions-right ml-auto flex gap-2">
+            ${canEditThread ? `
+              <button class="edit-thread-btn icon-btn" title="Edit Thread">...</button>
+              <button class="delete-thread-btn icon-btn" title="Delete Thread">...</button>
+            ` : ''}
+          </div>
+        </div>
+        <div class="reddit-children">
+          ${thread.comments ? renderRedditComments(thread.comments, depth + 1) : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function renderRedditComments(comments, depth) {
+  return comments.map(c => {
+    const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
+    let connectors = depth > 0 ? `<div class='vertical-connector'></div><div class='horizontal-connector'></div>` : '';
+    let photoURL = c.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+    return `
+      <div class="reddit-card depth-${depth}" data-comment-id="${c.id}">
+        ${connectors}
+        <div class="reddit-header flex items-center">
+          <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0">
+          <span class="text-xs text-text-secondary">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
+          <div class="actions-right ml-auto flex gap-2">
+            ${canEdit ? `
+              <button class="edit-comment-btn icon-btn" title="Edit Comment">...</button>
+              <button class="delete-comment-btn icon-btn" title="Delete Comment">...</button>
+            ` : ''}
+          </div>
+        </div>
+        <div class="reddit-content text-sm mt-0.5 mb-0.5">${renderContent(c.content)}</div>
+        <div class="reddit-children">
+          ${c.children && c.children.length ? renderRedditComments(c.children, depth + 1) : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
