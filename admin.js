@@ -1,4 +1,4 @@
-// admin_and_dev.js: Handles Admin page functionality.
+// admin.js: Handles Admin page functionality.
 /* global EasyMDE */ // Declare EasyMDE as a global variable
 
 // Import Firebase instances and user functions from the centralized init file
@@ -44,7 +44,7 @@ import {
   orderBy,
   serverTimestamp, // Ensure serverTimestamp is imported for Firestore operations
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { showMessageBox, showCustomConfirm } from "./utils.js"; // Import message box and confirm utility
+import { showMessageBox, showCustomConfirm, escapeHtml } from "./utils.js"; // Import message box and confirm utility
 
 // DOM elements - Initialize immediately after declaration
 const loadingSpinner = document.getElementById("loading-spinner");
@@ -231,9 +231,9 @@ async function renderUserList() {
       return `
       <tr class="hover:bg-table-row-even-bg transition-colors">
         <td class="px-2 py-1 text-text-primary text-xs font-mono">${user.uid.substring(0, 8)}...</td>
-        <td class="px-2 py-1 text-text-primary text-xs">${escapeHtml(displayName)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(email)}</td>
-        <td class="px-2 py-1 text-text-secondary text-xs">${escapeHtml(theme)}</td>
+        <td class="px-2 py-1 text-text-primary text-xs">${displayName}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${email}</td>
+        <td class="px-2 py-1 text-text-secondary text-xs">${theme}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
             <button 
@@ -246,7 +246,7 @@ async function renderUserList() {
               </svg>
             </button>
             <button 
-              onclick="deleteUserProfile('${user.uid}', '${escapeHtml(displayName)}')"
+              onclick="deleteUserProfile('${user.uid}', '${displayName}')"
               class="text-red-400 hover:text-red-300 transition-colors admin-action-btn"
               title="Delete Profile"
             >
@@ -1236,13 +1236,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     testSmtpBtn.addEventListener("click", testSMTPServerConnectionHandler);
   }
 });
-
-// Utility function to escape HTML
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 // Global function for delete user profile
 window.deleteUserProfile = async function (uid, displayName) {

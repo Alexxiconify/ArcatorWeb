@@ -10,7 +10,7 @@ import {
 } from "./firebase-init.js";
 import { showMessageBox, showCustomConfirm } from "./utils.js";
 import { loadFooter } from "./navbar.js";
-import { renderMarkdownWithMedia } from "./utils.js";
+import { renderMarkdownWithMedia, escapeHtml } from "./utils.js";
 
 // Import DM functionality
 import {
@@ -62,13 +62,6 @@ let unsubscribeThematas = null;
 
 // DM Tab Functionality
 let currentSortOption = "lastMessageAt_desc";
-
-// Utility: escape HTML for safe rendering
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 // Helper: get current user info
 function getCurrentUserInfo() {

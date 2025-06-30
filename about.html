@@ -615,6 +615,7 @@
         applyTheme,
         applyCachedTheme,
       } from "./themes.js";
+      import { escapeHtml } from "./utils.js";
 
       window.showTab = function (tabName, event) {
         const tabContents = document.querySelectorAll(".tab-content");
@@ -901,13 +902,6 @@
         sortData(currentSort.column, currentSort.direction);
         renderInterestsTable();
       };
-
-      // Utility functions
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
 
       function debounce(func, wait) {
         let timeout;

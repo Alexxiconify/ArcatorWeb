@@ -9,8 +9,8 @@ import {
   getUserProfileFromFirestore,
   parseEmojis,
   parseMentions,
-  escapeHtml,
   renderMarkdownWithMedia,
+  escapeHtml,
 } from "./utils.js";
 import {
   collection,
