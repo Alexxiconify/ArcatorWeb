@@ -1,11 +1,615 @@
-/* master.css - Combined CSS file for the entire project */
+/* master.css - Consolidated CSS file for the entire project */
 
-/* Import all CSS files in the correct order */
+/* ============================================================================
+   THEME VARIABLES
+   ============================================================================ */
 @import url('theme_variables.css');
-@import url('common-styling.css');
-@import url('common.css');
-@import url('style.css');
+
+/* ============================================================================
+   FORMS-SPECIFIC STYLES
+   ============================================================================ */
 @import url('forms.css');
+
+/* ============================================================================
+   PAGE-SPECIFIC STYLES
+   ============================================================================ */
 @import url('page-specific.css');
 
-/* Additional global overrides and fixes can go here */ 
+/* ============================================================================
+   GLOBAL UTILITY CLASSES
+   ============================================================================ */
+
+/* Theme-aware utility classes */
+.bg-content-section { background-color: var(--color-bg-content-section); }
+.bg-card { background-color: var(--color-bg-card); }
+.bg-navbar-footer { background-color: var(--color-bg-navbar); }
+.text-heading-main { color: var(--color-heading-main); }
+.text-heading-card { color: var(--color-heading-card); }
+.text-text-primary { color: var(--color-text-primary); }
+.text-text-secondary { color: var(--color-text-secondary); }
+.text-link { color: var(--color-link); }
+.hover\:text-link:hover { color: var(--color-link); }
+
+/* Table specific theming */
+.bg-table-th-bg { background-color: var(--color-table-th-bg); }
+.text-table-th-text { color: var(--color-table-th-text); }
+.border-table-td-border { border-color: var(--color-table-td-border); }
+.bg-table-row-even-bg { background-color: var(--color-table-row-even-bg); }
+
+/* Button styling */
+.bg-blue-600 { background-color: var(--color-button-blue-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--color-button-blue-hover) !important; }
+.bg-green-600 { background-color: var(--color-button-green-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-green-700:hover { background-color: var(--color-button-green-hover) !important; }
+.bg-red-600 { background-color: var(--color-button-red-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-red-700:hover { background-color: var(--color-button-red-hover) !important; }
+.bg-purple-600 { background-color: var(--color-button-purple-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-purple-700:hover { background-color: var(--color-button-purple-hover) !important; }
+.bg-yellow-600 { background-color: var(--color-button-yellow-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-yellow-700:hover { background-color: var(--color-button-yellow-hover) !important; }
+.bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; color: var(--color-button-text) !important; }
+.hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+
+/* Legacy Tailwind class overrides for theme compatibility */
+.bg-gray-800 { background-color: var(--color-bg-content-section) !important; }
+.bg-gray-700 { background-color: var(--color-bg-card) !important; }
+.bg-gray-900 { background-color: var(--color-bg-navbar) !important; }
+.text-gray-300 { color: var(--color-text-secondary) !important; }
+.text-gray-400 { color: var(--color-text-secondary) !important; }
+.text-gray-50 { color: var(--color-text-primary) !important; }
+.text-gray-100 { color: var(--color-text-primary) !important; }
+.text-red-400 { color: var(--color-heading-main) !important; }
+.text-blue-300 { color: var(--color-heading-card) !important; }
+.text-yellow-300 { color: var(--color-button-yellow-bg) !important; }
+.text-green-300 { color: var(--color-button-green-bg) !important; }
+.text-purple-400 { color: var(--color-button-purple-bg) !important; }
+.hover\:text-white:hover { color: var(--color-text-primary) !important; }
+
+/* ============================================================================
+   HERO BANNER STYLES
+   ============================================================================ */
+
+.hero-banner {
+  background: linear-gradient(135deg, var(--color-bg-navbar) 0%, var(--color-bg-content-section) 100%);
+  background-image: 
+    linear-gradient(135deg, rgba(17, 24, 39, 0.8) 0%, rgba(31, 41, 55, 0.6) 100%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" fill="none"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  min-height: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-top: 64px; /* Account for fixed navbar */
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.4) 0%, rgba(31, 41, 55, 0.3) 100%);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .hero-banner {
+    min-height: 250px;
+    height: 250px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .hero-content p {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* ============================================================================
+   BASE STYLES (from style.css - HTML5 Boilerplate)
+   ============================================================================ */
+
+/* HTML5 Boilerplate v9.0.1 | MIT License | https://html5boilerplate.com/ */
+/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
+
+html {
+  color: var(--color-text-primary, #222);
+  font-size: 0.875em;
+  line-height: 1.4;
+}
+
+::-moz-selection {
+  background: var(--color-link, #b3d4fc);
+  text-shadow: none;
+}
+
+::selection {
+  background: var(--color-link, #b3d4fc);
+  text-shadow: none;
+}
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid var(--color-input-border, #ccc);
+  margin: 1em 0;
+  padding: 0;
+}
+
+audio, canvas, iframe, img, svg, video {
+  vertical-align: middle;
+}
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.hidden, [hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.visually-hidden.focusable:active,
+.visually-hidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  white-space: inherit;
+  width: auto;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.clearfix::before,
+.clearfix::after {
+  content: "";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+/* ============================================================================
+   LAYOUT & CONTAINER CLASSES
+   ============================================================================ */
+
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+/* ============================================================================
+   FLEXBOX & GRID UTILITIES
+   ============================================================================ */
+
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* ============================================================================
+   SPACING UTILITIES
+   ============================================================================ */
+
+.space-x-1 > * + * {
+  margin-left: 0.25rem;
+}
+
+.space-x-2 > * + * {
+  margin-left: 0.5rem;
+}
+
+.space-x-4 > * + * {
+  margin-left: 1rem;
+}
+
+.space-y-1 > * + * {
+  margin-top: 0.25rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gap-1 {
+  gap: 0.25rem;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+/* ============================================================================
+   TYPOGRAPHY UTILITIES
+   ============================================================================ */
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* ============================================================================
+   MESSAGE BOX STYLES
+   ============================================================================ */
+
+.message-box {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 600;
+  z-index: 1000;
+  max-width: 400px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+.message-box.success {
+  background-color: #10b981;
+}
+
+.message-box.error {
+  background-color: #ef4444;
+}
+
+/* ============================================================================
+   FORM ELEMENTS STYLES
+   ============================================================================ */
+
+.input-field input,
+.input-field textarea,
+.input-field select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 0.875rem;
+}
+
+.input-field input:focus,
+.input-field textarea:focus,
+.input-field select:focus {
+  outline: none;
+  border-color: var(--color-link);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-field input::placeholder,
+.input-field textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* ============================================================================
+   MODAL STYLES
+   ============================================================================ */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: var(--color-bg-card);
+  margin: auto;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+}
+
+.close-button:hover {
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   LOADING SPINNER STYLES
+   ============================================================================ */
+
+.loading-spinner {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-input-border);
+  border-radius: 50%;
+  border-top-color: var(--color-link);
+  animation: spin 1s linear infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   BUTTON STYLES
+   ============================================================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: var(--color-bg-card, #fff) !important;
+    color: var(--color-text-primary, #000) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+} 
