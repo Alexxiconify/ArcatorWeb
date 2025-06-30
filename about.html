@@ -632,10 +632,17 @@
 
   <div id="footer-placeholder"></div>
   <script src="app.js" type="module"></script>
-  <script src="about.js" type="module"></script>
   <script type="module">
     import { initializePage } from './core.js';
     initializePage('about');
+  </script>
+  <script>
+    function showTab(tab) {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.querySelector(`[onclick*="showTab('${tab}')"]`).classList.add('active');
+      document.getElementById(`${tab}-tab`).classList.add('active');
+    }
   </script>
 </body>
 
