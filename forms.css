@@ -63,21 +63,30 @@
 }
 
 .reaction-btn {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-input-border);
-  transition: all 0.2s ease;
-  cursor: pointer;
+  background: var(--color-bg-card) !important;
+  color: var(--color-link) !important;
+  border: 1px solid var(--color-input-border) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-right: 0.25rem;
+  transition: background 0.2s, color 0.2s, border 0.2s;
 }
-
 .reaction-btn:hover {
-  background: var(--color-link-hover);
-  transform: scale(1.05);
+  background: var(--color-link) !important;
+  color: var(--color-bg-card) !important;
+  border-color: var(--color-link) !important;
 }
-
 .reaction-btn.reacted {
-  background: var(--color-link);
-  color: white;
-  border-color: var(--color-link);
+  background: var(--color-link) !important;
+  color: var(--color-bg-card) !important;
+  border-color: var(--color-link) !important;
+}
+.reaction-count {
+  color: var(--color-text-secondary) !important;
+  margin-left: 0.25em;
+  font-size: 0.95em;
 }
 
 .add-reaction-btn {
@@ -1136,27 +1145,30 @@
   gap: 0.5rem;
 }
 .reaction-btn {
-  background: #23272e;
-  color: #bfc7d5;
-  border: 1px solid #333a;
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 1.1em;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  display: inline-flex;
-  align-items: center;
+  background: var(--color-bg-card) !important;
+  color: var(--color-link) !important;
+  border: 1px solid var(--color-input-border) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-right: 0.25rem;
+  transition: background 0.2s, color 0.2s, border 0.2s;
 }
 .reaction-btn:hover {
-  background: #1a1d22;
-  color: #fff;
+  background: var(--color-link) !important;
+  color: var(--color-bg-card) !important;
+  border-color: var(--color-link) !important;
+}
+.reaction-btn.reacted {
+  background: var(--color-link) !important;
+  color: var(--color-bg-card) !important;
+  border-color: var(--color-link) !important;
 }
 .reaction-count {
-  margin-left: 3px;
+  color: var(--color-text-secondary) !important;
+  margin-left: 0.25em;
   font-size: 0.95em;
-  color: #7dd3fc;
 }
 
 /* Edit/Delete icon buttons */

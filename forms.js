@@ -160,7 +160,23 @@ function renderThematas() {
         '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
       delBtn.onclick = () => deleteThemaAndSubcollections(themaId);
 
-      actions.append(editBtn, delBtn);
+      const canEditThema = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy));
+      if (canEditThema) {
+        actions.append(editBtn, delBtn);
+      }
+
+      const collapseBtn = document.createElement("button");
+      collapseBtn.className = "collapse-btn text-xs text-link ml-2";
+      collapseBtn.innerHTML = "&#8722;"; // minus sign
+      collapseBtn.title = "Collapse/Expand Théma";
+      let collapsed = false;
+      collapseBtn.onclick = () => {
+        collapsed = !collapsed;
+        collapseBtn.innerHTML = collapsed ? "&#9654;" : "&#8722;"; // right arrow or minus
+        threadsDiv.style.display = collapsed ? "none" : "block";
+      };
+      header.appendChild(collapseBtn);
+
       header.append(titleBox, actions);
       li.append(header);
 
@@ -175,34 +191,39 @@ function renderThematas() {
   });
 }
 
-// Load threads for thema inline
+// Load threads for thema inline (real-time)
 async function loadThreadsForThema(themaId) {
   if (!db) return;
 
   const threadsContainer = document.querySelector(`#threads-for-${themaId}`);
   if (!threadsContainer) return;
 
-  try {
-    const threadsCol = collection(
-      db,
-      `artifacts/${appId}/public/data/thematas/${themaId}/threads`,
-    );
-    const q = query(threadsCol, orderBy("createdAt", "desc"));
-    const threadsSnapshot = await getDocs(q);
+  // Remove previous listener if any
+  if (threadsContainer._unsubscribeThreads) {
+    threadsContainer._unsubscribeThreads();
+    threadsContainer._unsubscribeThreads = null;
+  }
 
+  const threadsCol = collection(
+    db,
+    `artifacts/${appId}/public/data/thematas/${themaId}/threads`,
+  );
+  const q = query(threadsCol, orderBy("createdAt", "desc"));
+
+  threadsContainer._unsubscribeThreads = onSnapshot(q, async (threadsSnapshot) => {
     let threadsHtml = [];
-    // Always show create thread form
     threadsHtml.push(`
-      <div class="create-thread-section mb-4">
-        <h4 class="text-lg font-bold mb-2">Create New Thread</h4>
-        <form class="create-thread-form space-y-2" data-thema-id="${themaId}">
-          <input type="text" class="${inputClass}" placeholder="Thread title" required>
-          <textarea class="${textareaClass}" placeholder="Initial comment" rows="3" required></textarea>
-          <button type="submit" class="btn-primary btn-blue">Create Thread</button>
-        </form>
+      <div class="create-thread-section mb-2">
+        <button type="button" class="toggle-create-thread btn-primary btn-blue mb-2">＋ New Thread</button>
+        <div class="create-thread-collapsible" style="display:none;">
+          <form class="create-thread-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" style="margin-bottom:0;">
+            <input type="text" class="form-input flex-1 min-w-0 mb-0" placeholder="Thread title" required style="margin-bottom:0; min-width:120px;" />
+            <textarea class="form-input flex-1 min-w-0 mb-0" placeholder="Initial comment" rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;" ></textarea>
+            <button type="submit" class="btn-primary btn-blue ml-0" style="margin-bottom:0;">Create</button>
+          </form>
+        </div>
       </div>
     `);
-
     if (threadsSnapshot.empty) {
       threadsHtml.push(
         '<div class="no-threads">No threads yet. Be the first to start one!</div>',
@@ -214,7 +235,6 @@ async function loadThreadsForThema(themaId) {
         const createdAt = thread.createdAt
           ? new Date(thread.createdAt.toDate()).toLocaleString()
           : "N/A";
-        // Fetch user profile for thread creator
         let userProfile = {
           displayName: thread.creatorDisplayName || "Anonymous",
           photoURL: null,
@@ -229,18 +249,20 @@ async function loadThreadsForThema(themaId) {
         const photoURL =
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+        const canEditThread = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy));
+        const threadCollapseBtn = `<button class="collapse-btn text-xs text-link ml-2" title="Collapse/Expand Thread">&#8722;</button>`;
         threadsHtml.push(`
-          <div class="thread-item ${cardClass} p-3" data-thread-id="${threadDoc.id}">
-            <div class="thread-header flex items-center gap-3">
-              <img src="${photoURL}" alt="User" class="w-10 h-10 rounded-full object-cover mr-2" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+          <div class="${commentClass}" data-thread-id="${threadDoc.id}">
+            <div class="${commentHeaderClass}">
+              <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
               <div class="flex flex-col justify-center">
-                <h5 class="text-lg font-semibold leading-tight mb-0.5">${escapeHtml(thread.title)}</h5>
-                <span class="text-xs text-text-secondary">by ${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+                <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title)}</span>
+                <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment)}</p>
+                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+                <p class="meta-info text-xs mt-auto text-left">Created on ${createdAt}</p>
               </div>
-              <div class="thread-actions ml-auto">
-                ${
-                  window.currentUser && window.currentUser.isAdmin
-                    ? `
+              <div class="comment-actions ml-auto">
+                ${canEditThread ? `
                   <button class="edit-thread-btn btn-primary btn-blue" title="Edit Thread">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -251,16 +273,12 @@ async function loadThreadsForThema(themaId) {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                   </button>
-                `
-                    : ""
-                }
+                ` : ""}
               </div>
             </div>
-            <p class="thread-initial-comment text-sm mt-2">${renderContent(thread.initialComment)}</p>
-            <div class="reactions-bar mt-2">
+            <div class="reactions-bar mt-1">
               ${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}
             </div>
-            <p class="meta-info text-xs mt-2">Created on ${createdAt}</p>
             <div class="thread-comments" data-thread-id="${threadDoc.id}">
               <div class="comments-loading">Loading comments...</div>
             </div>
@@ -270,22 +288,15 @@ async function loadThreadsForThema(themaId) {
       threadsHtml.push("</div>");
     }
     threadsContainer.innerHTML = threadsHtml.join("");
-
     // Load comments for each thread
     for (const threadDoc of threadsSnapshot.docs) {
       await loadCommentsForThread(themaId, threadDoc.id);
     }
-
-    // Add event listeners
     setupThreadEventListeners(themaId);
-  } catch (error) {
-    console.error("Error loading threads for thema:", themaId, error);
-    threadsContainer.innerHTML =
-      '<div class="error">Error loading threads</div>';
-  }
+  });
 }
 
-// Load comments for thread inline
+// Load comments for thread inline (real-time)
 async function loadCommentsForThread(themaId, threadId) {
   if (!db) return;
 
@@ -294,16 +305,20 @@ async function loadCommentsForThread(themaId, threadId) {
   );
   if (!commentsContainer) return;
 
-  try {
-    const commentsCol = collection(
-      db,
-      `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`,
-    );
-    const q = query(commentsCol, orderBy("createdAt", "asc"));
-    const commentsSnapshot = await getDocs(q);
+  // Remove previous listener if any
+  if (commentsContainer._unsubscribeComments) {
+    commentsContainer._unsubscribeComments();
+    commentsContainer._unsubscribeComments = null;
+  }
 
+  const commentsCol = collection(
+    db,
+    `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`,
+  );
+  const q = query(commentsCol, orderBy("createdAt", "asc"));
+
+  commentsContainer._unsubscribeComments = onSnapshot(q, async (commentsSnapshot) => {
     let commentsHtml = [];
-
     if (commentsSnapshot.empty) {
       commentsHtml.push(
         '<div class="no-comments text-sm text-gray-500">No comments yet.</div>',
@@ -315,7 +330,6 @@ async function loadCommentsForThread(themaId, threadId) {
         const createdAt = comment.createdAt
           ? new Date(comment.createdAt.toDate()).toLocaleString()
           : "N/A";
-        // Fetch user profile for comment creator
         let userProfile = {
           displayName: comment.creatorDisplayName || "Anonymous",
           photoURL: null,
@@ -330,18 +344,19 @@ async function loadCommentsForThread(themaId, threadId) {
         const photoURL =
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+        const canEditComment = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === comment.createdBy));
+        const commentCollapseBtn = `<button class="collapse-btn text-xs text-link ml-2" title="Collapse/Expand Comment">&#8722;</button>`;
         commentsHtml.push(`
           <div class="${commentClass}" data-comment-id="${commentDoc.id}">
             <div class="${commentHeaderClass}">
               <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
               <div class="flex flex-col justify-center">
-                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
                 <p class="comment-content text-sm mt-1 mb-0">${renderContent(comment.content)}</p>
+                <p class="meta-info text-xs mt-auto text-left">Posted on ${createdAt}</p>
               </div>
               <div class="comment-actions ml-auto">
-                ${
-                  window.currentUser && window.currentUser.isAdmin
-                    ? `
+                ${canEditComment ? `
                   <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -352,38 +367,31 @@ async function loadCommentsForThread(themaId, threadId) {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                   </button>
-                `
-                    : ""
-                }
+                ` : ""}
               </div>
             </div>
             <div class="reactions-bar mt-1">
               ${renderReactionButtons(comment.reactions, themaId, threadId, commentDoc.id)}
             </div>
-            <p class="meta-info text-xs mt-1">Posted on ${createdAt}</p>
           </div>
         `);
       }
       commentsHtml.push("</div>");
     }
-
-    // Add comment form
     commentsHtml.push(`
       <div class="add-comment-section mt-3">
-        <form class="add-comment-form space-y-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
-          <textarea class="${textareaClass} text-sm" placeholder="Add a comment..." rows="2" required></textarea>
-          <button type="submit" class="btn-primary btn-blue text-sm">Add Comment</button>
-        </form>
+        <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
+        <div class="add-comment-collapsible" style="display:none;">
+          <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
+            <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
+            <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
+          </form>
+        </div>
       </div>
     `);
-
     commentsContainer.innerHTML = commentsHtml.join("");
     setupCommentEventListeners(themaId, threadId);
-  } catch (error) {
-    console.error("Error loading comments for thread:", threadId, error);
-    commentsContainer.innerHTML =
-      '<div class="error text-sm">Error loading comments</div>';
-  }
+  });
 }
 
 // Setup thread event listeners
@@ -412,8 +420,19 @@ function setupThreadEventListeners(themaId) {
 
   // Thread actions
   threadsContainer.querySelectorAll(".edit-thread-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      showMessageBox("Edit functionality coming soon!", false);
+    button.addEventListener("click", async (event) => {
+      const threadElem = event.target.closest("[data-thread-id]");
+      const threadId = threadElem.dataset.threadId;
+      const titleElem = threadElem.querySelector(".font-bold");
+      const descElem = threadElem.querySelector(".comment-content");
+      const oldTitle = titleElem.textContent;
+      const oldDesc = descElem.textContent;
+      const newTitle = prompt("Edit thread title:", oldTitle);
+      if (newTitle === null) return;
+      const newDesc = prompt("Edit thread description:", oldDesc);
+      if (newDesc === null) return;
+      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId), { title: newTitle, initialComment: newDesc }, { merge: true });
+      showMessageBox("Thread updated.");
     });
   });
 
@@ -453,8 +472,15 @@ function setupCommentEventListeners(themaId, threadId) {
 
   // Comment actions
   commentsContainer.querySelectorAll(".edit-comment-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      showMessageBox("Edit functionality coming soon!", false);
+    button.addEventListener("click", async (event) => {
+      const commentElem = event.target.closest("[data-comment-id]");
+      const commentId = commentElem.dataset.commentId;
+      const contentElem = commentElem.querySelector(".comment-content");
+      const oldContent = contentElem.textContent;
+      const newContent = prompt("Edit comment:", oldContent);
+      if (newContent === null) return;
+      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads/${threadId}/comments`, commentId), { content: newContent }, { merge: true });
+      showMessageBox("Comment updated.");
     });
   });
 
@@ -600,6 +626,7 @@ async function deleteComment(themaId, threadId, commentId) {
       ),
     );
     showMessageBox("Comment deleted successfully!", false);
+    await loadCommentsForThread(themaId, threadId);
   } catch (error) {
     console.error("Error deleting comment:", error);
     showMessageBox(`Error deleting comment: ${error.message}`, true);
@@ -608,7 +635,14 @@ async function deleteComment(themaId, threadId, commentId) {
 
 // Edit thema modal (placeholder)
 function openEditThemaModal(themaId, thema) {
-  showMessageBox(`Edit functionality coming soon for: ${thema.name}`, false);
+  const oldName = thema.name;
+  const oldDesc = thema.description;
+  const newName = prompt("Edit Théma name:", oldName);
+  if (newName === null) return;
+  const newDesc = prompt("Edit Théma description:", oldDesc);
+  if (newDesc === null) return;
+  setDoc(doc(db, `artifacts/${appId}/public/data/thematas`, themaId), { name: newName, description: newDesc }, { merge: true });
+  showMessageBox("Théma updated.");
 }
 
 // Initialize page
@@ -675,6 +709,72 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Initialize thematas
   renderThematas();
+
+  // Collapsible for Create New Théma
+  const toggleThemaBtn = document.getElementById("toggle-create-thema");
+  const createThemaCollapsible = document.getElementById("create-thema-collapsible");
+  if (toggleThemaBtn && createThemaCollapsible) {
+    toggleThemaBtn.addEventListener("click", () => {
+      createThemaCollapsible.style.display = createThemaCollapsible.style.display === "none" ? "block" : "none";
+    });
+  }
+
+  // In thread and comment rendering, wrap creation forms in collapsible containers with toggle buttons
+  // Thread creation:
+  setTimeout(() => {
+    document.querySelectorAll('.toggle-create-thread').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const collapsible = this.nextElementSibling;
+        if (collapsible) collapsible.style.display = collapsible.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+  }, 0);
+
+  // Comment creation:
+  setTimeout(() => {
+    document.querySelectorAll('.toggle-add-comment').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const collapsible = this.nextElementSibling;
+        if (collapsible) collapsible.style.display = collapsible.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+  }, 0);
+
+  // After rendering threads, add event listeners for thread collapse
+  setTimeout(() => {
+    document.querySelectorAll('.threads-list .collapse-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const card = this.closest('.comment-item');
+        const content = card.querySelector('.thread-comments, .reactions-bar, .meta-info');
+        if (!content) return;
+        if (content.style.display === 'none') {
+          content.style.display = '';
+          btn.innerHTML = '&#8722;';
+        } else {
+          content.style.display = 'none';
+          btn.innerHTML = '&#9654;';
+        }
+      });
+    });
+  }, 0);
+
+  // After rendering comments, add event listeners for comment collapse
+  setTimeout(() => {
+    document.querySelectorAll('.comments-list .collapse-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const card = this.closest('.comment-item');
+        const content = card.querySelector('.comment-content, .reactions-bar, .meta-info');
+        if (!content) return;
+        if (content.style.display === 'none') {
+          content.style.display = '';
+          btn.innerHTML = '&#8722;';
+        } else {
+          content.style.display = 'none';
+          btn.innerHTML = '&#9654;';
+        }
+      });
+    });
+  }, 0);
 });
 
 // --- PATCH: REACTIONS ---
@@ -704,18 +804,23 @@ async function handleReaction(type, themaId, threadId, commentId = null) {
   if (reactions[user.uid] === type) {
     delete reactions[user.uid];
   } else {
-    // Remove any existing reaction from this user first (one reaction per user)
     delete reactions[user.uid];
     reactions[user.uid] = type;
   }
 
   await setDoc(ref, { reactions }, { merge: true });
 
-  // Reload the appropriate content to update reaction counts
+  // Only update the reaction bar for the affected item
   if (commentId) {
-    await loadCommentsForThread(themaId, threadId);
+    const commentElem = document.querySelector(`[data-comment-id="${commentId}"] .reactions-bar`);
+    if (commentElem) {
+      commentElem.innerHTML = renderReactionButtons(reactions, themaId, threadId, commentId);
+    }
   } else {
-    await loadThreadsForThema(themaId);
+    const threadElem = document.querySelector(`[data-thread-id="${threadId}"] .reactions-bar`);
+    if (threadElem) {
+      threadElem.innerHTML = renderReactionButtons(reactions, themaId, threadId);
+    }
   }
 }
 
@@ -762,7 +867,7 @@ function renderReactionButtons(reactions, themaId, threadId, commentId = null) {
       <button class="${buttonClass}" 
               onclick="handleReaction('${type}', '${themaId}', '${threadId}'${commentId ? `, '${commentId}'` : ""})" 
               title="${label}">
-        ${type} <span class="reaction-count">${count}</span>
+        ${type} <span class="reaction-count text-text-secondary">${count}</span>
       </button>
     `;
     })
@@ -927,6 +1032,34 @@ function renderContent(content) {
   return tempDiv.innerHTML;
 }
 
-// --- DM SYSTEM LOGIC (migrated from dms.js) ---
-// [PASTE ALL LOGIC FROM dms.js HERE, REMOVE import/export, FIX CONFLICTS]
-// ... existing code ...
+// --- DM SYSTEM PLACEHOLDERS (to prevent ReferenceError) ---
+function initializeDmSystem() {
+  // TODO: Implement DM system initialization
+  console.log('initializeDmSystem() called (placeholder)');
+}
+function loadConversations() {
+  // TODO: Implement DM conversations loading
+  console.log('loadConversations() called (placeholder)');
+}
+function attachDmEventListeners() {
+  // TODO: Implement DM event listeners
+  console.log('attachDmEventListeners() called (placeholder)');
+}
+function renderConversationsList() {
+  // TODO: Implement DM conversation list rendering
+  console.log('renderConversationsList() called (placeholder)');
+}
+
+// Ensure DM system initializes on DM tab click or if DM tab is active on load
+if (dmTabBtn && dmTabContent) {
+  dmTabBtn.addEventListener('click', () => {
+    initializeDmSystem();
+    setupDmEventListeners();
+  });
+  // If DM tab is active on load, initialize immediately
+  if (dmTabContent.classList.contains('active') || dmTabContent.style.display !== 'none') {
+    initializeDmSystem();
+    setupDmEventListeners();
+  }
+}
+
