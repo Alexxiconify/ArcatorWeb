@@ -670,12 +670,17 @@ function renderMobileFooterNavbar() {
   if (document.getElementById('mobile-footer-navbar')) return;
   const footer = document.createElement('nav');
   footer.id = 'mobile-footer-navbar';
-  footer.style = `position:fixed;bottom:0;left:0;width:100vw;z-index:1000;background:var(--color-bg-navbar);box-shadow:0 -2px 8px rgba(0,0,0,0.1);display:flex;justify-content:space-around;align-items:center;padding:0.5rem 0;`;
+  footer.style = `position:fixed;bottom:0;left:0;width:100vw;z-index:1000;background:var(--color-bg-navbar);box-shadow:0 -2px 8px rgba(0,0,0,0.1);display:flex;justify-content:space-around;align-items:center;padding:0.5rem 0;overflow-x:auto;`;
   footer.innerHTML = `
     <a href="index.html" class="footer-link">Home</a>
     <a href="about.html" class="footer-link">About</a>
     <a href="servers-and-games.html" class="footer-link">Servers</a>
     <a href="users.html" class="footer-link">Users</a>
+    <a href="temp-page-viewer.html" class="footer-link">Pages</a>
+    <a href="privacy.html" class="footer-link">Legal</a>
+    <a href="https://wiki.arcator.co.uk/" class="footer-link" target="_blank" rel="noopener">Wiki</a>
+    <a href="https://ssmp.arcator.co.uk/" class="footer-link" target="_blank" rel="noopener">SSMP</a>
+    <a href="https://hub.arcator.co.uk/#creative" class="footer-link" target="_blank" rel="noopener">Hub</a>
   `;
   document.body.appendChild(footer);
 }
