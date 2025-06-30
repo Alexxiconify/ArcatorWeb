@@ -312,20 +312,33 @@ function buildCommentTree(comments) {
   return roots;
 }
 
-// --- Recursive render ---
-function renderCommentTree(comments, level, themaId, threadId) {
-  return comments.map(c => {
+// --- Helper: Flatten comment tree with depth ---
+function flattenCommentTree(comments, depth = 0) {
+  let flat = [];
+  for (const c of comments) {
+    flat.push({ ...c, depth });
+    if (c.children && c.children.length) {
+      flat = flat.concat(flattenCommentTree(c.children, depth + 1));
+    }
+  }
+  return flat;
+}
+
+// --- Render flat, indented comment list ---
+function renderFlatCommentList(flatComments, themaId, threadId) {
+  return flatComments.map(c => {
     const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
-    const photoURL = c.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+    let photoURL = c.photoURL;
+    if (!photoURL || photoURL === 'null' || photoURL === 'undefined') photoURL = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
     return `
-      <div class="thread-header flex items-center gap-3 bg-card text-text-primary ml-${level * 4} border-l-2 border-gray-700" data-comment-id="${c.id}" style="position:relative;">
-        <div class="actions-right absolute top-2 right-2 flex gap-2 z-10">
+      <div class="thread-header flex items-center gap-3 bg-card text-text-primary ml-${c.depth * 4} border-l-2 border-gray-700" data-comment-id="${c.id}" style="position:relative;">
+        <div class="flex gap-2 items-center">
           ${canEdit ? `
             <button class="edit-comment-btn btn-primary btn-blue" title="Edit Comment">...</button>
             <button class="delete-comment-btn btn-primary btn-red" title="Delete Comment">...</button>
           ` : ""}
+          <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV'">
         </div>
-        <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
         <div class="flex flex-col justify-center flex-1">
           <span class="text-xs text-text-secondary">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
           <p class="comment-content text-sm mt-1 mb-0">${renderContent(c.content)}</p>
@@ -337,14 +350,13 @@ function renderCommentTree(comments, level, themaId, threadId) {
             <button class="reply-comment-btn btn-primary btn-blue text-xs" data-comment-id="${c.id}">Reply</button>
             <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
           </div>
-          ${c.children && c.children.length ? renderCommentTree(c.children, level + 1, themaId, threadId) : ''}
         </div>
       </div>
     `;
   }).join('');
 }
 
-// --- Update loadCommentsForThread to use tree ---
+// --- Update loadCommentsForThread to use flat list ---
 async function loadCommentsForThread(themaId, threadId) {
   if (!db) return;
   const commentsContainer = document.querySelector(
@@ -374,14 +386,16 @@ async function loadCommentsForThread(themaId, threadId) {
         photoURL: d.creatorPhotoURL,
         reactions: d.reactions || {},
         parentId: d.parentId || null,
+        children: [],
       });
     });
     const tree = buildCommentTree(comments);
+    const flat = flattenCommentTree(tree);
     let html = '';
-    if (tree.length === 0) {
+    if (flat.length === 0) {
       html = '<div class="no-comments text-sm text-gray-500">No comments yet.</div>';
     } else {
-      html = renderCommentTree(tree, 0, themaId, threadId);
+      html = renderFlatCommentList(flat, themaId, threadId);
     }
     html += `
       <div class="add-comment-section mt-3">
