@@ -2,7 +2,7 @@
 let EMOJI_MAP = {};
 let EMOJI_MAP_LOADED = false;
 
-fetch("./emojii.json")
+fetch("./emoji.json")
   .then((res) => res.json())
   .then((data) => {
     EMOJI_MAP = {};
@@ -22,7 +22,7 @@ export function replaceEmojis(text) {
   text = text.replace(/:joy:/gi, "😂");
   text = text.replace(/:smile:/gi, "😄");
   if (!EMOJI_MAP_LOADED) return text;
-  
+
   return text.replace(/:([a-z0-9_+-]+):/gi, (match, name) => {
     return EMOJI_MAP[name] || match;
   });
@@ -162,25 +162,25 @@ function initializeKeyboardShortcuts() {
 
 function getPressedKeys(event) {
   const keys = [];
-  
+
   if (event.ctrlKey) keys.push("Ctrl");
   if (event.altKey) keys.push("Alt");
   if (event.shiftKey) keys.push("Shift");
   if (event.metaKey) keys.push("Meta");
-  
+
   if (event.key && event.key !== "Control" && event.key !== "Alt" && event.key !== "Shift" && event.key !== "Meta") {
     keys.push(event.key.toUpperCase());
   }
-  
+
   return keys.join("+");
 }
 
 function handleKeyboardShortcut(event) {
   if (isRecordingShortcut) return;
-  
+
   const pressedKeys = getPressedKeys(event);
   const shortcutName = shortcutKeyToName[pressedKeys];
-  
+
   if (shortcutName && !disabledShortcuts.has(shortcutName)) {
     event.preventDefault();
     executeShortcut(shortcutName);
@@ -189,7 +189,7 @@ function handleKeyboardShortcut(event) {
 
 function executeShortcut(shortcutKey) {
   const url = pageUrls[shortcutKey];
-  
+
   if (url && url !== "#") {
     if (url.startsWith("http")) {
       window.open(url, "_blank");
@@ -219,7 +219,7 @@ function applyFontScalingSystem(userProfile) {
   const fontScale = userProfile?.fontScale || 1;
   const root = document.documentElement;
   root.style.fontSize = `${fontScale * 16}px`;
-  
+
   if (userProfile?.highContrast) {
     root.style.setProperty('--color-text-primary', '#FFFFFF');
     root.style.setProperty('--color-bg-card', '#000000');
@@ -251,15 +251,15 @@ function applyCustomCSS(css) {
 async function loadAndApplyGlobalUserSettings() {
   try {
     await firebaseReadyPromise;
-    
+
     if (window.auth && window.auth.currentUser) {
       const userProfile = await getUserProfileFromFirestore(window.auth.currentUser.uid);
-      
+
       if (userProfile) {
         applyFontScalingSystem(userProfile);
         applyAccessibilitySettings(userProfile.accessibility);
         applyAdvancedSettings(userProfile.advanced);
-        
+
         if (userProfile.keyboardShortcuts) {
           updateGlobalShortcuts(userProfile.keyboardShortcuts);
         }
@@ -282,17 +282,17 @@ function showSearchModal() {
       <div id="search-results"></div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   const closeButton = modal.querySelector('.close-button');
   const searchInput = modal.querySelector('#search-input');
-  
+
   closeButton.onclick = () => modal.remove();
   modal.onclick = (e) => {
     if (e.target === modal) modal.remove();
   };
-  
+
   searchInput.focus();
 }
 
@@ -319,9 +319,9 @@ function showHelpModal() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   const closeButton = modal.querySelector('.close-button');
   closeButton.onclick = () => modal.remove();
   modal.onclick = (e) => {

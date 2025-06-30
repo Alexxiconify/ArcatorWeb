@@ -455,8 +455,21 @@ textarea {
 .navbar-mobile-toggle { display: none; }
 .navbar-mobile-close { display: none; }
 @media (max-width: 768px) {
-  .navbar-links { display: none !important; }
-  .navbar-mobile-toggle { display: block !important; }
+  .navbar-links { display: flex !important; }
+  .navbar-mobile-toggle, .navbar-mobile-close { display: none !important; }
+  .navbar-mobile-menu-btn {
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: 0.75rem;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    z-index: 1002;
+    cursor: pointer;
+  }
   .navbar-mobile-menu {
     display: none;
     flex-direction: column;
@@ -470,6 +483,39 @@ textarea {
     z-index: 1001;
   }
   .navbar-mobile-menu.show { display: flex !important; }
-  .navbar-mobile-close { display: block !important; position: absolute; top: 1rem; right: 1.5rem; font-size: 2rem; color: var(--color-text-primary); background: none; border: none; z-index: 1002; cursor: pointer; }
-  .navbar-mobile-toggle.hide { display: none !important; }
 }
+
+/* Mobile menu button (centered) */
+.navbar-mobile-menu-btn { display: none; }
+@media (max-width: 768px) {
+  .navbar-mobile-toggle, .navbar-mobile-close { display: none !important; }
+  .navbar-mobile-menu-btn {
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: 0.75rem;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    z-index: 1002;
+    cursor: pointer;
+  }
+  .navbar-mobile-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-navbar, #111827);
+    border-top: 1px solid var(--color-input-border, #4B5563);
+    padding: 1rem;
+    z-index: 1001;
+  }
+  .navbar-mobile-menu.show { display: flex !important; }
+}
+
+.footer-link { flex:1; text-align:center; text-decoration:none; color:inherit; font-size:1rem; padding:0.5rem 0; }
+.footer-link:active, .footer-link:focus { background:var(--color-bg-card); }

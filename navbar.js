@@ -355,8 +355,18 @@ const navbarStyles = `
 }
 
 @media (max-width: 768px) {
+  /* Show navbar links always, scale down for small screens */
   .navbar-links {
-    display: none;
+    display: flex;
+    gap: 0.1rem;
+    padding: 0.1rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .navbar-link {
+    padding: 0 0.4rem;
+    font-size: 0.8rem;
+    height: 36px;
   }
   .navbar-mobile-toggle {
     display: block;
@@ -445,18 +455,45 @@ function setupScrollEffects() {
 }
 
 function setupMobileMenu() {
-  const mobileToggle = document.querySelector('.navbar-mobile-toggle');
+  // Only run if both .navbar and .navbar-mobile-menu exist
+  const navbar = document.querySelector('.navbar');
   const mobileMenu = document.querySelector('.navbar-mobile-menu');
-  if (mobileToggle && mobileMenu) {
-    mobileToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('show');
-    });
-    document.addEventListener('click', (e) => {
-      if (!mobileToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
-        mobileMenu.classList.remove('show');
-      }
-    });
+  if (!navbar || !mobileMenu) return;
+
+  // Remove old hamburger/X logic
+  let menuBtn = document.querySelector('.navbar-mobile-menu-btn');
+  if (!menuBtn) {
+    menuBtn = document.createElement('button');
+    menuBtn.className = 'navbar-mobile-menu-btn';
+    menuBtn.innerHTML = '&#9776;'; // ≡
+    menuBtn.setAttribute('aria-label', 'Open menu');
+    menuBtn.style.position = 'absolute';
+    menuBtn.style.left = '50%';
+    menuBtn.style.transform = 'translateX(-50%)';
+    menuBtn.style.top = '0.75rem';
+    menuBtn.style.fontSize = '2rem';
+    menuBtn.style.background = 'none';
+    menuBtn.style.border = 'none';
+    menuBtn.style.color = 'var(--color-text-primary)';
+    menuBtn.style.zIndex = '1002';
+    menuBtn.style.cursor = 'pointer';
+    document.querySelector('.navbar').appendChild(menuBtn);
   }
+
+  function toggleMenu() {
+    if (mobileMenu.classList.contains('show')) {
+      mobileMenu.classList.remove('show');
+    } else {
+      mobileMenu.classList.add('show');
+    }
+  }
+
+  menuBtn.onclick = toggleMenu;
+
+  // Hide menu on link click (dropdown style)
+  mobileMenu.querySelectorAll('a').forEach((link) => {
+    link.onclick = () => mobileMenu.classList.remove('show');
+  });
 }
 
 export function refreshNavbarProfilePicture(userProfile) {
@@ -506,60 +543,21 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
             </svg>
             Forum
           </a>
-          ${isAdmin ? `
-            <a href="admin.html" class="navbar-link">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-              </svg>
-              Admin
-            </a>
-          ` : ''}
+          <a href="admin.html" class="navbar-link">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+            </svg>
+            Admin
+          </a>
         </div>
 
         <div class="navbar-user">
           ${isLoggedIn ? `
-            <img src="${photoURL}" alt="${displayName}" class="navbar-user-avatar" onclick="toggleUserMenu()">
-            <div class="navbar-user-menu" id="user-menu">
-              <a href="users.html" class="navbar-user-menu-item">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-                Profile
-              </a>
-              <a href="#" class="navbar-user-menu-item" onclick="signOut()">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                </svg>
-                Sign Out
-              </a>
-            </div>
+            <a href="users.html"><img src="${photoURL}" alt="${displayName}" class="navbar-user-avatar" /></a>
           ` : `
-            <div class="navbar-auth-buttons">
-              <a href="users.html" class="navbar-auth-btn primary">Sign In</a>
-              <a href="users.html" class="navbar-auth-btn secondary">Sign Up</a>
-            </div>
+            <a href="users.html" class="navbar-auth-btn primary">Sign In/Up</a>
           `}
-
-          <button class="navbar-mobile-toggle" onclick="toggleMobileMenu()">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-            </svg>
-          </button>
         </div>
-      </div>
-
-      <div class="navbar-mobile-menu" id="mobile-menu">
-        <a href="about.html" class="navbar-mobile-link">About</a>
-        <a href="servers-and-games.html" class="navbar-mobile-link">Games</a>
-        <a href="forms.html" class="navbar-mobile-link">Forum</a>
-        ${isAdmin ? '<a href="admin.html" class="navbar-mobile-link">Admin</a>' : ''}
-        ${isLoggedIn ? `
-          <a href="users.html" class="navbar-mobile-link">Profile</a>
-          <a href="#" class="navbar-mobile-link" onclick="signOut()">Sign Out</a>
-        ` : `
-          <a href="users.html" class="navbar-mobile-link">Sign In</a>
-          <a href="users.html" class="navbar-mobile-link">Sign Up</a>
-        `}
       </div>
     </nav>
   `;
@@ -570,35 +568,6 @@ async function updateNavbarState(authUser, userProfile, defaultProfilePic) {
   updateNavbarForTheme();
   setupScrollEffects();
   setupMobileMenu();
-
-  window.toggleUserMenu = () => {
-    const menu = document.getElementById('user-menu');
-    if (menu) menu.classList.toggle('show');
-  };
-
-  window.toggleMobileMenu = () => {
-    const menu = document.getElementById('mobile-menu');
-    if (menu) menu.classList.toggle('show');
-  };
-
-  // Close user menu when clicking outside
-  document.addEventListener('click', (e) => {
-    const userMenu = document.getElementById('user-menu');
-    const userAvatar = document.querySelector('.navbar-user-avatar');
-
-    if (userMenu && userAvatar && !userAvatar.contains(e.target) && !userMenu.contains(e.target)) {
-      userMenu.classList.remove('show');
-    }
-  });
-
-  window.signOut = async () => {
-    try {
-      await auth.signOut();
-      window.location.reload();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 }
 
 async function applyUserTheme(userThemePreference, defaultThemeName) {
@@ -695,3 +664,28 @@ export async function forceRefreshNavbarState() {
     console.error('Error refreshing navbar state:', error);
   }
 }
+
+function renderMobileFooterNavbar() {
+  if (window.innerWidth > 768) return;
+  if (document.getElementById('mobile-footer-navbar')) return;
+  const footer = document.createElement('nav');
+  footer.id = 'mobile-footer-navbar';
+  footer.style = `position:fixed;bottom:0;left:0;width:100vw;z-index:1000;background:var(--color-bg-navbar);box-shadow:0 -2px 8px rgba(0,0,0,0.1);display:flex;justify-content:space-around;align-items:center;padding:0.5rem 0;`;
+  footer.innerHTML = `
+    <a href="index.html" class="footer-link">Home</a>
+    <a href="about.html" class="footer-link">About</a>
+    <a href="servers-and-games.html" class="footer-link">Servers</a>
+    <a href="users.html" class="footer-link">Users</a>
+  `;
+  document.body.appendChild(footer);
+}
+
+window.addEventListener('DOMContentLoaded', renderMobileFooterNavbar);
+window.addEventListener('resize', () => {
+  const el = document.getElementById('mobile-footer-navbar');
+  if (window.innerWidth <= 768) {
+    if (!el) renderMobileFooterNavbar();
+  } else {
+    if (el) el.remove();
+  }
+});

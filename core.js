@@ -26,6 +26,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./sensitive/firebase-config.js";
+import { applyTheme, getAvailableThemes } from './themes.js';
 
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
 export const appId = canvasAppId || firebaseConfig.projectId || "default-app-id";
@@ -143,7 +144,7 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
         const userProfile = await getUserProfileFromFirestore(user.uid);
         userThemePreference = userProfile?.themePreference;
       }
-      const allThemes = getAvailableThemes();
+      const allThemes = await getAvailableThemes();
       const themeToApply = allThemes.find(t => t.id === userThemePreference) || allThemes.find(t => t.id === DEFAULT_THEME_NAME);
       applyTheme(themeToApply.id, themeToApply);
     });
