@@ -1910,35 +1910,6 @@ window.deleteForm = function (formId) {
   });
 };
 
-// Initialize the admin panel when the page loads
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    // Wait for Firebase to be ready
-    await firebaseReadyPromise;
-
-    // Setup themes
-    setupThemesFirebase(db, auth, appId);
-
-    // Apply cached theme
-    const { applyCachedTheme } = await import("./themes.js");
-    await applyCachedTheme();
-
-    // Setup event listeners
-    setupEventListeners();
-
-    // Setup collapsible sections
-    setupCollapsibleSections();
-
-    // Listen for auth state changes
-    auth.onAuthStateChanged(async (user) => {
-      await updateAdminUI(user);
-    });
-  } catch (error) {
-    console.error("Error initializing admin panel:", error);
-    showMessageBox("Failed to initialize admin panel: " + error.message, true);
-  }
-});
-
 async function renderTempPagesTable() {
   const tbody = document.getElementById("temp-pages-tbody");
   if (!tbody) return;
@@ -1986,4 +1957,35 @@ async function renderTempPagesTable() {
     `;
     })
     .join("");
+}
+
+// Export the initialization function for external use
+export async function initializeAdminPanel() {
+  try {
+    // Wait for Firebase to be ready
+    await firebaseReadyPromise;
+
+    // Setup themes
+    setupThemesFirebase(db, auth, appId);
+
+    // Apply cached theme
+    const { applyCachedTheme } = await import("./themes.js");
+    await applyCachedTheme();
+
+    // Setup event listeners
+    setupEventListeners();
+
+    // Setup collapsible sections
+    setupCollapsibleSections();
+
+    // Listen for auth state changes
+    auth.onAuthStateChanged(async (user) => {
+      await updateAdminUI(user);
+    });
+
+    console.log("Admin panel initialized successfully");
+  } catch (error) {
+    console.error("Error initializing admin panel:", error);
+    showMessageBox("Failed to initialize admin panel: " + error.message, true);
+  }
 }

@@ -437,19 +437,3 @@ export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector 
     });
   });
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-// Export all Firebase instances and functions
-export { auth, db, app, firebaseReadyPromise };
-
-// Export all theme functions
-export { applyTheme, applyCachedTheme, getAvailableThemes, getCurrentTheme };
-
-// Export all navigation functions
-export { loadNavbar, loadFooter, initializePage, setupTabs };
-
-// Export all utility functions
-export { showMessageBox, showCustomConfirm, escapeHtml, getUserProfileFromFirestore, setUserProfileInFirestore }; 
