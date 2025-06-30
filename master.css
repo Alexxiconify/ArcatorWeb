@@ -451,3 +451,22 @@ textarea {
 }
 
 /* Remove emoji/media picker styles for now */
+
+.navbar-mobile-toggle { display: none; }
+@media (max-width: 768px) {
+  .navbar-links { display: none !important; }
+  .navbar-mobile-toggle { display: block !important; }
+  .navbar-mobile-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-navbar, #111827);
+    border-top: 1px solid var(--color-input-border, #4B5563);
+    padding: 1rem;
+    z-index: 1001;
+  }
+  .navbar-mobile-menu.show { display: flex !important; }
+}
