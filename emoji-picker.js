@@ -4,6 +4,20 @@
 let emojiData = [];
 let filteredEmojis = [];
 
+// --- Emoji Categories ---
+const EMOJI_CATEGORIES = [
+  {key: 'smileys', label: 'Smileys'},
+  {key: 'animals', label: 'Animals'},
+  {key: 'food', label: 'Food'},
+  {key: 'activities', label: 'Activities'},
+  {key: 'travel', label: 'Travel'},
+  {key: 'objects', label: 'Objects'},
+  {key: 'symbols', label: 'Symbols'},
+  {key: 'flags', label: 'Flags'},
+  {key: 'other', label: 'Other'},
+];
+let currentCategory = 'smileys';
+
 /**
  * Loads emoji data from the JSON file.
  */
@@ -148,16 +162,24 @@ export function renderEmojis(emojis, pickerId = "emoji-picker") {
     return;
   }
 
-  emojiList.innerHTML = "";
-
-  emojis.forEach((emoji) => {
-    const emojiElement = document.createElement("div");
-    emojiElement.className = "emoji-item";
-    emojiElement.textContent = emoji.emoji;
-    emojiElement.title = emoji.name;
-    emojiElement.onclick = () => insertEmoji(`:${emoji.name}:`, pickerId);
-    emojiList.appendChild(emojiElement);
-  });
+  // Filter by category
+  const filtered = emojis.filter(e => (e.category || 'other') === currentCategory);
+  const cols = 8;
+  let html = '<table class="emoji-table"><tbody>';
+  for (let i = 0; i < filtered.length; i += cols) {
+    html += '<tr>';
+    for (let j = 0; j < cols; j++) {
+      const emoji = filtered[i + j];
+      if (emoji) {
+        html += `<td class="emoji-item" title="${emoji.name}" onclick="insertEmoji(':${emoji.name}:', '${pickerId}')">${emoji.emoji}</td>`;
+      } else {
+        html += '<td></td>';
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  emojiList.innerHTML = html;
 }
 
 /**
@@ -241,10 +263,9 @@ export function createEmojiPickerHTML(pickerId = "emoji-picker") {
       <div class="emoji-picker-header">
         <input type="text" id="${pickerId}-search" placeholder="Search emojis..." class="emoji-search">
       </div>
-      <div id="emoji-list" class="emoji-list">
-        <!-- Emojis will be loaded here -->
-      </div>
-      
+      <div class="emoji-tabs"></div>
+      <div id="emoji-list" class="emoji-list"></div>
+
       <!-- Media Picker Section -->
       <div class="media-picker">
         <div class="media-picker-tabs">
@@ -252,7 +273,7 @@ export function createEmojiPickerHTML(pickerId = "emoji-picker") {
           <button class="media-tab" data-tab="url">🔗 URL</button>
           <button class="media-tab" data-tab="youtube">📺 YouTube</button>
         </div>
-        
+
         <!-- GIF Tab -->
         <div id="gif-tab" class="media-tab-content active">
           <div class="gif-search-container">
@@ -262,7 +283,7 @@ export function createEmojiPickerHTML(pickerId = "emoji-picker") {
             <div class="media-loading">Search for GIFs...</div>
           </div>
         </div>
-        
+
         <!-- URL Tab -->
         <div id="url-tab" class="media-tab-content">
           <div class="url-input-container">
@@ -272,7 +293,7 @@ export function createEmojiPickerHTML(pickerId = "emoji-picker") {
           </div>
           <button class="media-insert-btn" id="insert-media-btn" disabled>Insert Media</button>
         </div>
-        
+
         <!-- YouTube Tab -->
         <div id="youtube-tab" class="media-tab-content">
           <div class="url-input-container">
@@ -308,8 +329,8 @@ export function createEmojiInputContainer(
 
   return `
     <div class="emoji-input-container">
-      <${inputTag} 
-        id="${inputId}" 
+      <${inputTag}
+        id="${inputId}"
         ${inputAttributes}
         placeholder="${placeholder}"
         class="${className}"
@@ -333,8 +354,14 @@ export function initEmojiPicker(pickerId = "emoji-picker", type = "emoji") {
   if (!picker) return;
   if (type === "emoji") {
     if (emojiData.length === 0)
-      loadEmojiData().then(() => renderEmojis(emojiData, pickerId));
-    else renderEmojis(emojiData, pickerId);
+      loadEmojiData().then(() => {
+        renderEmojis(emojiData, pickerId);
+        renderEmojiTabs(pickerId);
+      });
+    else {
+      renderEmojis(emojiData, pickerId);
+      renderEmojiTabs(pickerId);
+    }
     setupEmojiPickerEventListeners(pickerId);
   } else if (type === "media") {
     setupMediaPickerEventListeners(pickerId);
@@ -369,11 +396,11 @@ function initMediaPicker(pickerId) {
 function initGifSearch(pickerId) {
   const searchInput = document.getElementById(`${pickerId}-gif-search`);
   const searchBtn = document.getElementById(`${pickerId}-gif-search-btn`);
-  
+
   if (!searchInput || !searchBtn) return;
-  
+
   let lastQuery = '';
-  
+
   // Search on input with debounce
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim();
@@ -382,7 +409,7 @@ function initGifSearch(pickerId) {
       searchGifs(q, pickerId);
     }
   });
-  
+
   // Search on button click
   searchBtn.addEventListener('click', () => {
     const q = searchInput.value.trim();
@@ -391,7 +418,7 @@ function initGifSearch(pickerId) {
       searchGifs(q, pickerId);
     }
   });
-  
+
   // Search on Enter key
   searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -412,24 +439,24 @@ function initGifSearch(pickerId) {
 async function searchGifs(query, pickerId) {
   const resultsEl = document.getElementById(`${pickerId}-gif-results`);
   if (!resultsEl) return;
-  
+
   // Show loading state
   resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem;">Searching...</div>';
-  
+
   try {
     // Load sensitive configuration
     const config = await import('./sensitive/api-keys.js');
     const apiKey = config.default.GIPHY_API_KEY;
-    
+
     const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=20&rating=pg`;
-    
+
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (data.data && data.data.length > 0) {
       const gifs = data.data.map(g => ({
         url: g.images.fixed_height.url,
@@ -505,7 +532,7 @@ function initUrlValidation(pickerId) {
       insertMediaUrl(url, pickerId);
     }
   });
-  
+
   // Allow Enter key to insert
   urlInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
@@ -549,12 +576,12 @@ async function validateMediaUrl(url, pickerId) {
     // Test if the URL is accessible (with timeout)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch(url, { 
+
+    const response = await fetch(url, {
       method: "HEAD",
       signal: controller.signal
     });
-    
+
     clearTimeout(timeoutId);
 
     if (!response.ok) {
@@ -684,7 +711,7 @@ function initYouTubeValidation(pickerId) {
       insertYouTubeUrl(url, pickerId);
     }
   });
-  
+
   // Allow Enter key to insert
   youtubeInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
@@ -1019,7 +1046,7 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
         <button class="media-tab active" data-tab="url">🔗 URL Paste</button>
         <button class="media-tab" data-tab="youtube">📺 YouTube</button>
       </div>
-      
+
       <div id="${pickerId}-gif-tab" class="media-tab-content">
         <div class="gif-search-container">
           <input type="text" id="${pickerId}-gif-search" class="gif-search-input" placeholder="Search GIFs on Giphy..." />
@@ -1027,7 +1054,7 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
         </div>
         <div class="gif-results" id="${pickerId}-gif-results"></div>
       </div>
-      
+
       <div id="${pickerId}-url-tab" class="media-tab-content active">
         <div class="url-input-container">
           <input type="url" id="${pickerId}-url-input" class="url-input" placeholder="Paste any media URL (image, video, audio, GIF)..." />
@@ -1036,7 +1063,7 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
           <button type="button" id="${pickerId}-insert-media-btn" class="btn-primary btn-blue" disabled>Insert Media</button>
         </div>
       </div>
-      
+
       <div id="${pickerId}-youtube-tab" class="media-tab-content">
         <div class="youtube-input-container">
           <input type="url" id="${pickerId}-youtube-input" class="url-input" placeholder="Paste YouTube URL..." />
@@ -1079,19 +1106,36 @@ window.toggleEmojiPicker = function (pickerId, type) {
 function renderGifResults(gifs, pickerId) {
   const resultsEl = document.getElementById(`${pickerId}-gif-results`);
   if (!resultsEl) return;
-  
+
   if (gifs.length === 0) {
     resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--color-text-secondary);">No GIFs found</div>';
     return;
   }
-  
+
   resultsEl.innerHTML = gifs.map(gif => `
-    <div class="gif-item" style="display: inline-block; margin: 0.25rem; cursor: pointer; border-radius: 0.375rem; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;" 
-         onmouseover="this.style.borderColor='var(--color-link)'" 
+    <div class="gif-item" style="display: inline-block; margin: 0.25rem; cursor: pointer; border-radius: 0.375rem; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;"
+         onmouseover="this.style.borderColor='var(--color-link)'"
          onmouseout="this.style.borderColor='transparent'"
-         onclick="insertGif('${gif.original}', '${pickerId}')" 
+         onclick="insertGif('${gif.original}', '${pickerId}')"
          title="${gif.title}">
       <img src="${gif.url}" alt="${gif.title}" style="max-width: 120px; max-height: 120px; display: block;" />
     </div>
   `).join('');
+}
+
+// --- Render Emoji Tabs ---
+function renderEmojiTabs(pickerId) {
+  const picker = document.getElementById(pickerId);
+  const tabsContainer = picker?.querySelector('.emoji-tabs');
+  if (!tabsContainer) return;
+  tabsContainer.innerHTML = EMOJI_CATEGORIES.map(cat =>
+    `<button class="emoji-tab${cat.key === currentCategory ? ' active' : ''}" data-category="${cat.key}">${cat.label}</button>`
+  ).join('');
+  tabsContainer.querySelectorAll('.emoji-tab').forEach(btn => {
+    btn.onclick = () => {
+      currentCategory = btn.dataset.category;
+      renderEmojis(filteredEmojis.length ? filteredEmojis : emojiData, pickerId);
+      renderEmojiTabs(pickerId);
+    };
+  });
 }
