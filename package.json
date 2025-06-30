@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build:css": "tailwindcss -i ./css/tailwind.css -o ./css/style.css --minify"
+  }
+} 
