@@ -3,6 +3,7 @@
 
 let emojiData = [];
 let filteredEmojis = [];
+let currentCategory = 'all';
 
 // --- Emoji Categories ---
 const EMOJI_CATEGORIES = [
@@ -16,24 +17,14 @@ const EMOJI_CATEGORIES = [
   {key: 'flags', label: 'Flags'},
   {key: 'other', label: 'Other'},
 ];
-let currentCategory = 'smileys';
 
 /**
  * Loads emoji data from the JSON file.
  */
 export async function loadEmojiData() {
-  try {
-    const response = await fetch("./emojii.json");
-    emojiData = await response.json();
-    filteredEmojis = emojiData;
-    console.log("Emoji data loaded:", emojiData.length, "emojis");
-    return emojiData;
-  } catch (error) {
-    console.error("Failed to load emoji data:", error);
-    emojiData = [];
-    filteredEmojis = [];
-    return [];
-  }
+  const response = await fetch('./emoji.json');
+  emojiData = await response.json();
+  filteredEmojis = emojiData;
 }
 
 /**
