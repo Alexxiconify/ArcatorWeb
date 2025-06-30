@@ -997,12 +997,15 @@ async function renderConversationsTable() {
   const snap = await getDocs(q);
   if (snap.empty) {
     tableBody.innerHTML = `<tr><td colspan="4" class="text-center text-text-secondary py-4">No conversations found.</td></tr>`;
+    document.getElementById('conversation-messages-container').innerHTML = '';
     return;
   }
   let html = '';
-  snap.forEach(docSnap => {
+  let firstConvoId = null;
+  snap.forEach((docSnap, idx) => {
     const convo = docSnap.data();
     const convoId = docSnap.id;
+    if (idx === 0) firstConvoId = convoId;
     const name = convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat');
     const participants = (convo.participants || []).map(uid => `<span class='text-xs'>${uid}</span>`).join(', ');
     const lastMsg = convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : '';
@@ -1036,6 +1039,12 @@ async function renderConversationsTable() {
       }
     };
   });
+  // Auto-open the first conversation if none selected
+  if (!currentConversationId && firstConvoId) {
+    openConversation(firstConvoId);
+    const firstRow = tableBody.querySelector('.conversation-row[data-convo-id="' + firstConvoId + '"]');
+    if (firstRow) firstRow.classList.add('active');
+  }
 }
 
 // Patch DM event setup to use new table
@@ -1155,43 +1164,25 @@ async function openConversation(convoId) {
         container.innerHTML = '<div class="text-center text-gray-400">No messages yet</div>';
         return;
       }
+      let html = '';
       for (const docSnap of snap.docs) {
         const msg = docSnap.data();
         const isOwn = user && (msg.sender === user.uid || msg.sender === 'Alexxiconify');
         const profile = await getUserProfile(msg.sender);
         const handle = profile.handle ? `@${escapeHtml(profile.handle)}` : escapeHtml(msg.sender);
-        const div = document.createElement('div');
-        div.className = 'message-bubble ' + (isOwn ? 'sent own-message' : 'received');
-        if (isOwn) {
-          div.style.textAlign = 'right';
-          div.style.marginLeft = 'auto';
-          div.style.maxWidth = '320px';
-          div.style.padding = '2px 6px';
-        } else {
-          div.style.maxWidth = '320px';
-          div.style.padding = '2px 6px';
-        }
-        div.innerHTML = `<div class='message-author' style='${isOwn ? 'justify-content:flex-end;text-align:right;gap:4px;' : 'justify-content:flex-start;text-align:left;gap:4px;'}display:flex;align-items:center;'><img src='${profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV'}' style='width:20px;height:20px;border-radius:50%;'><span style='font-size:12px;'>${escapeHtml(profile.displayName)}</span><span class='text-xs text-link ml-2' style='font-size:10px;'>${handle}</span></div><div class='message-content' style='font-size:13px;'>${escapeHtml(msg.content)}</div><div class='message-timestamp' style='font-size:10px;${isOwn ? 'text-align:right;display:block;' : ''}'>${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>`;
-        if (isOwn) {
-          const actions = document.createElement('div');
-          actions.className = 'message-actions';
-          actions.style = 'display:flex;justify-content:flex-end;gap:2px;margin-top:2px;';
-          actions.innerHTML = `<button class='edit-message-btn icon-btn' title='Edit' style='padding:0 2px;font-size:12px;'>✏️</button><button class='delete-message-btn icon-btn' title='Delete' style='padding:0 2px;font-size:12px;'>🗑️</button>`;
-          actions.querySelector('.edit-message-btn').onclick = async () => {
-            const newContent = prompt('Edit message:', msg.content);
-            if (newContent !== null && newContent.trim() && newContent !== msg.content) {
-              await setDoc(doc(messagesCol, docSnap.id), {content: newContent}, {merge: true});
-            }
-          };
-          actions.querySelector('.delete-message-btn').onclick = async () => {
-            if (await showCustomConfirm('Delete this message?', 'This cannot be undone.')) {
-              await deleteDoc(doc(messagesCol, docSnap.id));
-            }
-          };
-          div.appendChild(actions);
-        }
-        container.appendChild(div);
+        const photoURL = profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+        const bubbleClass = isOwn ? 'sent own-message' : 'received';
+        html += `<div class="message-bubble ${bubbleClass}" style="max-width:80%;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};background:${isOwn ? '#2563eb22' : '#23272e'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.75em 1.1em;margin-bottom:0.5em;display:flex;align-items:flex-end;gap:0.5em;">
+          ${!isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
+          <div style="flex:1;min-width:0;">
+            <div class="message-author" style="font-size:0.9em;color:#888;${isOwn ? 'text-align:right;' : ''}">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></div>
+            <div class="message-content" style="font-size:1.05em;word-break:break-word;">${escapeHtml(msg.content)}</div>
+            <div class="message-timestamp" style="font-size:0.75em;color:#aaa;${isOwn ? 'text-align:right;' : ''}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
+          </div>
+          ${isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
+        </div>`;
       }
+      container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
     }, err => {
       container.innerHTML = '<div class="text-center text-red-400">Failed to load messages</div>';
@@ -1214,3 +1205,8 @@ function renderContent(text) { return escapeHtml(text); }
 function renderConversationsList() {}
 function renderConversationDropdown() {}
 
+// Minimal helper for DM user profile
+async function getUserProfile(uid) {
+  const p = await getUserProfileFromFirestore(uid);
+  return p || {displayName: 'Anonymous', handle: 'user', photoURL: null};
+}
