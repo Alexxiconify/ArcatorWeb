@@ -241,6 +241,7 @@
   object-fit: cover !important;
   border: 1px solid var(--color-input-border) !important;
   box-sizing: border-box !important;
+  margin-right: 0.5rem !important;
 }
 
 .message-bubble .message-content {
@@ -1596,6 +1597,7 @@ select.w-full {
   object-fit: cover !important;
   border: 1px solid var(--color-input-border) !important;
   box-sizing: border-box !important;
+  margin-right: 0.5rem !important;
 }
 
 .message-bubble .message-content {
@@ -1858,7 +1860,7 @@ select.w-full {
   margin-bottom: 0.4rem;
 }
 
-/* Force DM message user icon size and shape */
+/* Compact DM message user profile image for DM bubbles */
 .message-bubble .message-author img,
 .dm-bubble-in .message-author img,
 .dm-bubble-out .message-author img,
@@ -1877,4 +1879,5 @@ select.w-full {
   object-fit: cover !important;
   border: 1px solid var(--color-input-border) !important;
   box-sizing: border-box !important;
+  margin-right: 0.5rem !important;
 }

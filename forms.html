@@ -532,6 +532,60 @@
         box-shadow: 0 2px 8px #0003;
         position: relative;
       }
+
+      .thread-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .thread-header .avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--color-input-border);
+        box-sizing: border-box;
+      }
+
+      .thread-header .meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+
+      .thread-header .meta .author {
+        font-weight: 600;
+        color: var(--color-text-primary);
+        font-size: 1rem;
+        margin-bottom: 0.1rem;
+      }
+
+      .thread-header .meta .handle {
+        font-size: 0.85rem;
+        color: var(--color-link);
+        margin-left: 0.25rem;
+      }
+
+      .thread-header .meta .created {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+      }
+
+      .thread-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 0.1rem;
+        line-height: 1.3;
+      }
+
+      .thread-description {
+        font-size: 0.98rem;
+        color: var(--color-text-secondary);
+        margin-bottom: 0.2rem;
+      }
     </style>
 
     <!-- Non-critical resources -->
