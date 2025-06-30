@@ -1,69 +1,467 @@
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Games & Servers - Arcator.co.uk</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="theme_variables.css" />
-    <link href="master.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
-      body { font-family: "Inter", sans-serif; background: var(--color-body-bg); color: var(--color-text-primary); }
-      .hero-banner { background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png"); background-size: cover; background-position: center; min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; }
-      .hero-banner::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1; }
-      .hero-content { position: relative; z-index: 2; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
-      .tab-container { display: flex; justify-content: center; margin-bottom: 2rem; border-bottom: 2px solid var(--color-input-border); }
-      .tab-btn { border: none; padding: 1rem 2rem; margin: 0 0.5rem; border-radius: 0.75rem 0.75rem 0 0; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: all 0.3s; border-bottom: 3px solid transparent; background: none; color: var(--color-text-primary); }
-      .tab-btn.active { border-bottom-color: var(--color-link); color: var(--color-link); }
-      .tab-content { display: none; }
-      .tab-content.active { display: block; }
-      .content-section { border-radius: 0.75rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); padding: 2rem; margin: 2rem 1rem; background: var(--color-bg-content-section); }
-      .feature-list { list-style-type: disc; list-style-position: inside; }
-      .feature-list li { margin-bottom: 0.5rem; line-height: 1.6; }
-      .feature-list .highlight { font-weight: 600; }
-      @media (max-width: 768px) { .tab-container { flex-direction: column; align-items: center; } .tab-btn { margin: 0.25rem 0; border-radius: 0.5rem; width: 100%; max-width: 300px; } .tab-btn.active { border-bottom-color: transparent; } }
-    </style>
-  </head>
-  <body class="antialiased">
-    <div id="navbar-placeholder"></div>
-    <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px">
-      <div class="container mx-auto px-4 text-center hero-content">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Arcator Servers & Games</h1>
-        <p class="text-xl md:text-2xl mb-8">Explore our worlds, servers, and game modes</p>
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Servers & Games - Arcator.co.uk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <!-- Link to master.css for all styles -->
+  <link href="master.css" rel="stylesheet" />
+  <!-- Favicon link -->
+  <link href="favicon.png" rel="icon" type="image/png" />
+
+  <style>
+    /* Base styles */
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: var(--color-body-bg);
+      color: var(--color-text-primary);
+      transition:
+        background-color 0.3s,
+        color 0.3s;
+    }
+
+    /* Hero Banner styles - common for all themes, retains background image */
+    .hero-banner {
+      background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Tab Navigation Styles */
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--color-input-border);
+      padding-bottom: 0;
+    }
+
+    .tab-button {
+      border: none;
+      padding: 1rem 2rem;
+      margin: 0 0.5rem;
+      border-radius: 0.75rem 0.75rem 0 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-button.active {
+      border-bottom-color: var(--color-link);
+    }
+
+    /* Content sections */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Server-specific styles */
+    .minecraft-ip-box {
+      border: 2px solid var(--color-input-border);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .text-white {
+      color: white !important;
+    }
+
+    .text-teal-300 {
+      color: var(--color-link) !important;
+    }
+
+    .text-orange-400 {
+      color: var(--color-button-yellow-hover) !important;
+    }
+
+    .text-purple-300 {
+      color: var(--color-button-purple-bg) !important;
+    }
+
+    /* Game card specific background */
+    .game-card {
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Server card styling */
+    .server-card {
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    }
+
+    .server-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .tab-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .tab-button {
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .tab-button.active {
+        border-bottom-color: transparent;
+      }
+    }
+
+    .main-section,
+    .games-section,
+    .content-section {
+      background-color: var(--color-bg-content-section);
+      color: var(--color-text-primary);
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <!-- Navbar Placeholder -->
+  <div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
+
+  <!-- Hero Section with Background Image -->
+  <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px">
+    <div class="container mx-auto px-4 text-center hero-content">
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+        Servers & Games
+      </h1>
+      <p class="text-xl md:text-2xl mb-8">
+        Explore our Minecraft servers and discover other games we play
+      </p>
+    </div>
+  </section>
+
+  <!-- Tab Navigation -->
+  <div class="container mx-auto px-4 mt-8">
+    <div class="tab-container">
+      <button class="tab-button active" onclick="showTab('servers')">
+        Minecraft Servers
+      </button>
+      <button class="tab-button" onclick="showTab('games')">
+        Other Games
+      </button>
+    </div>
+  </div>
+
+  <!-- Servers Tab Content -->
+  <div class="tab-content active" id="servers-tab">
+    <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+      <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+          Explore Our Worlds
+        </h2>
+        <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-12 text-center">
+          Arcator hosts a variety of Minecraft servers, each offering a unique
+          gameplay experience. Whether you prefer the challenge of survival,
+          the freedom of creative building, or specialized game modes, you'll
+          find a place to call home here.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <!-- Server Card 1: Survival Multiplayer (SMP) -->
+          <div class="server-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Strawberry SMP (SSMP)
+            </h3>
+            <p class="text-text-secondary mb-4">
+              Vanilla survival SMP. Build solo or team!
+            </p>
+            <p class="text-lg font-semibold text-text-secondary">
+              IP: <span class="text-white">ssmp.arcator.co.uk</span>
+            </p>
+          </div>
+
+          <!-- Server Card 2: Creative Server -->
+          <div class="server-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">Hub</h3>
+            <p class="text-text-secondary mb-4">
+              Freebuild, Plots, Peaceful Survival, and Modified Survival.
+            </p>
+
+            <p class="text-lg font-semibold text-text-secondary">
+              IP: <span class="text-white">arcator.co.uk</span>
+            </p>
+          </div>
+
+          <!-- Server Card 3 -->
+          <div class="server-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Other Servers
+            </h3>
+            <p class="text-text-secondary mb-4">
+              We host a variety of specialized servers including Factions,
+              OPFactions, Parkour, Pixelmon (modded), SkyFactory, and Sky
+              Island.
+            </p>
+          </div>
+
+          <!-- Server Card 4-->
+          <div class="server-card">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Modded Servers
+            </h3>
+            <p class="text-text-secondary mb-4">
+              Experience Minecraft with enhanced gameplay through our modded
+              servers. We offer Pixelmon, SkyFactory, and other modded
+              experiences.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
-    <div class="container mx-auto px-4 mt-8">
-      <div class="tab-container">
-        <button class="tab-btn active" data-tab="servers" id="tab-servers">Servers</button>
-        <button class="tab-btn" data-tab="games" id="tab-games">Games</button>
+  </div>
+
+  <!-- Games Tab Content -->
+  <div class="tab-content" id="games-tab">
+    <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
+      <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+          Our Favorite Non-Minecraft Games
+        </h2>
+        <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-12 text-center">
+          While Minecraft is our main hub, many Arcator community members
+          enjoy playing a variety of other games together. Join our Discord to
+          find groups, organize sessions, and discover new favorites!
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Game Card 1: Factorio -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Factorio
+            </h3>
+            <p class="text-text-secondary">
+              Build and maintain factories, automate production, and fend off
+              alien creatures in this highly addictive simulation game.
+              Perfect for those who love intricate logistics.
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://www.factorio.com/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+
+          <!-- Game Card 2: Satisfactory -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Satisfactory
+            </h3>
+            <p class="text-text-secondary">
+              An open-world factory building game with a first-person
+              perspective. Explore an alien planet, harvest resources, and
+              construct massive automated factories.
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://www.satisfactorygame.com/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+
+          <!-- Game Card 3: Kerbal Space Program (KSP) -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Kerbal Space Program
+            </h3>
+            <p class="text-text-secondary">
+              Design, build, and launch rockets and spacecraft to explore the
+              Kerbal solar system. Master orbital mechanics and conquer the
+              cosmos!
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://www.kerbalspaceprogram.com/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+
+          <!-- Game Card 4: Stellaris -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Stellaris
+            </h3>
+            <p class="text-text-secondary">
+              A grand strategy game set in space. Explore a vast galaxy,
+              encounter diverse alien races, and forge your empire through
+              diplomacy, trade, or war.
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://www.paradoxplaza.com/stellaris/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+
+          <!-- Game Card 5: Cities: Skylines -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Cities: Skylines
+            </h3>
+            <p class="text-text-secondary">
+              Build your dream city from the ground up! Manage services,
+              traffic, and citizen happiness in this modern take on classic
+              city simulation games.
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://www.paradoxplaza.com/cities-skylines/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+
+          <!-- Game Card 6: Terraria -->
+          <div class="game-card text-center">
+            <h3 class="text-2xl font-bold text-heading-card mb-4">
+              Terraria
+            </h3>
+            <p class="text-text-secondary">
+              Dig, fight, explore, build! This 2D sandbox adventure game
+              offers endless possibilities, crafting, combat, and boss battles
+              in a vibrant pixel world.
+            </p>
+            <a class="text-link hover:underline mt-4 inline-block" href="https://terraria.org/"
+              rel="noopener noreferrer" target="_blank">Official Website &rarr;</a>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="tab-content active" data-tab="servers" id="servers-tab-content">
-      <section class="content-section">
-        <h2 class="text-3xl font-bold text-heading-main mb-6">Our Servers</h2>
-        <ul class="feature-list">
-          <li><span class="highlight">Hub:</span> Creative, Survival, Modified Survival, Peaceful, Archive Worlds, Plots</li>
-          <li><span class="highlight">SSMP:</span> Survival Multiplayer Server done right.</li>
-          <li><span class="highlight">Other Servers:</span> Factions, OP Factions, OP Hardcore, Flatlands, and more</li>
-        </ul>
-      </section>
-    </div>
-    <div class="tab-content" data-tab="games" id="games-tab-content">
-      <section class="content-section">
-        <h2 class="text-3xl font-bold text-heading-main mb-6">Games</h2>
-        <ul class="feature-list">
-          <li><span class="highlight">See our main servers for all game modes and worlds.</span></li>
-        </ul>
-      </section>
-    </div>
-    <!-- Add custom space before footer -->
-    <div style="height:3rem;"></div>
-    <div id="footer-placeholder"></div>
-    <script src="app.js" type="module"></script>
-    <script type="module">
-      import { setupTabs } from './core.js';
-      import { loadNavbar, loadFooter } from './navbar.js';
-      setupTabs('.tab-btn', '.tab-content');
-      loadNavbar();
-      loadFooter();
-    </script>
-  </body> 
+    </section>
+  </div>
+
+  <!-- Footer Section -->
+  <div id="footer-placeholder"></div>
+
+  <!-- Main JavaScript -->
+  <script type="module">
+    import {
+      auth,
+      getUserProfileFromFirestore,
+      firebaseReadyPromise,
+      DEFAULT_PROFILE_PIC,
+      DEFAULT_THEME_NAME,
+    } from "./firebase-init.js";
+    import { loadNavbar, loadFooter } from "./navbar.js";
+    import {
+      getAvailableThemes,
+      applyTheme,
+      applyCachedTheme,
+    } from "./themes.js";
+
+    // Tab functionality
+    window.showTab = function (tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll(".tab-content");
+      tabContents.forEach((content) => {
+        content.classList.remove("active");
+      });
+
+      // Remove active class from all tab buttons
+      const tabButtons = document.querySelectorAll(".tab-button");
+      tabButtons.forEach((button) => {
+        button.classList.remove("active");
+      });
+
+      // Show selected tab content
+      document.getElementById(tabName + "-tab").classList.add("active");
+
+      // Add active class to clicked button
+      event.target.classList.add("active");
+    };
+
+    // Function to copy IP address to clipboard
+    window.copyIp = function (ipAddress) {
+      navigator.clipboard
+        .writeText(ipAddress)
+        .then(function () {
+          // Show success feedback
+          const button = event.target;
+          const originalText = button.textContent;
+          button.textContent = "Copied!";
+          button.style.background = "var(--color-button-green-bg)";
+
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = "";
+          }, 2000);
+        })
+        .catch(function (err) {
+          console.error("Could not copy text: ", err);
+          // Fallback for older browsers
+          const tempInput = document.createElement("input");
+          tempInput.value = ipAddress;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+        });
+    };
+
+    // Apply cached theme immediately to prevent flash
+    applyCachedTheme();
+
+    firebaseReadyPromise.then(() => {
+      auth.onAuthStateChanged(async (user) => {
+        let userProfile = null;
+        if (user) {
+          userProfile = await getUserProfileFromFirestore(user.uid);
+        }
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+        loadFooter("current-year-servers-and-games");
+        const userThemePreference = userProfile?.themePreference;
+        const allThemes = await getAvailableThemes();
+        const themeToApply =
+          allThemes.find((t) => t.id === userThemePreference) ||
+          allThemes.find((t) => t.id === "dark");
+        if (themeToApply) {
+          applyTheme(themeToApply.id, themeToApply);
+          console.log(
+            `Servers and Games page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
+          );
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
