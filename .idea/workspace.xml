@@ -4,49 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="976cc62e-06aa-478a-80ab-0475fde7df24" name="Changes" comment="v0.0.4.683">
-      <change afterPath="$PROJECT_DIR$/.editorconfig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/fileColors.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_22_2025_10_13_PM_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_22_2025_10_13_PM__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_25_2025_10_37_PM_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_25_2025_10_37_PM__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LICENSE.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/arcator website.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/css/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/apollo_key" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/deploy-smtp-apollo.ps1" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/pglite-debug.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/setup-smtp-apollo.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/favicon.ico" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/img/.gitkeep" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/js/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/js/vendor/.gitkeep" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sensitive/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sensitive/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sensitive/firebase-config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webpack.common.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webpack.config.dev.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webpack.config.prod.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/404.html" beforeDir="false" afterPath="$PROJECT_DIR$/404.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/about.html" beforeDir="false" afterPath="$PROJECT_DIR$/about.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms.css" beforeDir="false" afterPath="$PROJECT_DIR$/forms.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/navbar.js" beforeDir="false" afterPath="$PROJECT_DIR$/navbar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/page-specific.css" beforeDir="false" afterPath="$PROJECT_DIR$/page-specific.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/privacy.html" beforeDir="false" afterPath="$PROJECT_DIR$/privacy.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servers-and-games.html" beforeDir="false" afterPath="$PROJECT_DIR$/servers-and-games.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/site.webmanifest" beforeDir="false" afterPath="$PROJECT_DIR$/site.webmanifest" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users.html" beforeDir="false" afterPath="$PROJECT_DIR$/users.html" afterDir="false" />
-    </list>
+    <list default="true" id="976cc62e-06aa-478a-80ab-0475fde7df24" name="Changes" comment="v0.0.4.684" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -220,31 +178,7 @@
       <workItem from="1751123001376" duration="4705000" />
       <workItem from="1751128882750" duration="23639000" />
       <workItem from="1751206874542" duration="1035000" />
-      <workItem from="1751219027791" duration="20782000" />
-    </task>
-    <task id="LOCAL-00658" summary="v0.0.4.634">
-      <option name="closed" value="true" />
-      <created>1751220305079</created>
-      <option name="number" value="00658" />
-      <option name="presentableId" value="LOCAL-00658" />
-      <option name="project" value="LOCAL" />
-      <updated>1751220305079</updated>
-    </task>
-    <task id="LOCAL-00659" summary="v0.0.4.635">
-      <option name="closed" value="true" />
-      <created>1751220634288</created>
-      <option name="number" value="00659" />
-      <option name="presentableId" value="LOCAL-00659" />
-      <option name="project" value="LOCAL" />
-      <updated>1751220634288</updated>
-    </task>
-    <task id="LOCAL-00660" summary="v0.0.4.637">
-      <option name="closed" value="true" />
-      <created>1751221106388</created>
-      <option name="number" value="00660" />
-      <option name="presentableId" value="LOCAL-00660" />
-      <option name="project" value="LOCAL" />
-      <updated>1751221106388</updated>
+      <workItem from="1751219027791" duration="21113000" />
     </task>
     <task id="LOCAL-00661" summary="v0.0.4.638">
       <option name="closed" value="true" />
@@ -614,7 +548,31 @@
       <option name="project" value="LOCAL" />
       <updated>1751264467832</updated>
     </task>
-    <option name="localTasksCounter" value="707" />
+    <task id="LOCAL-00707" summary="v0.0.4.683">
+      <option name="closed" value="true" />
+      <created>1751265421986</created>
+      <option name="number" value="00707" />
+      <option name="presentableId" value="LOCAL-00707" />
+      <option name="project" value="LOCAL" />
+      <updated>1751265421986</updated>
+    </task>
+    <task id="LOCAL-00708" summary="v0.0.4.684">
+      <option name="closed" value="true" />
+      <created>1751265445844</created>
+      <option name="number" value="00708" />
+      <option name="presentableId" value="LOCAL-00708" />
+      <option name="project" value="LOCAL" />
+      <updated>1751265445845</updated>
+    </task>
+    <task id="LOCAL-00709" summary="v0.0.4.684">
+      <option name="closed" value="true" />
+      <created>1751265462948</created>
+      <option name="number" value="00709" />
+      <option name="presentableId" value="LOCAL-00709" />
+      <option name="project" value="LOCAL" />
+      <updated>1751265462948</updated>
+    </task>
+    <option name="localTasksCounter" value="710" />
     <servers>
       <GitHub url="https://github.com" />
     </servers>
@@ -645,7 +603,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.git" />
     </ignored-roots>
-    <MESSAGE value="v0.0.4.656" />
     <MESSAGE value="v0.0.4.657" />
     <MESSAGE value="v0.0.4.658" />
     <MESSAGE value="v0.0.4.659" />
@@ -670,7 +627,8 @@
     <MESSAGE value="v0.0.4.681" />
     <MESSAGE value="v0.0.4.682" />
     <MESSAGE value="v0.0.4.683" />
-    <option name="LAST_COMMIT_MESSAGE" value="v0.0.4.683" />
+    <MESSAGE value="v0.0.4.684" />
+    <option name="LAST_COMMIT_MESSAGE" value="v0.0.4.684" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
