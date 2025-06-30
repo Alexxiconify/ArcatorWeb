@@ -1881,3 +1881,85 @@ select.w-full {
   box-sizing: border-box !important;
   margin-right: 0.5rem !important;
 }
+
+/* Unify thread-item and comment-item UI/UX */
+.thread-item, .comment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--color-bg-card);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-input-border);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px #0003;
+}
+.thread-header, .comment-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.thread-header img, .comment-header img {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-input-border);
+  box-sizing: border-box;
+}
+.thread-header .meta, .comment-header .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.thread-header .author, .comment-header .author {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
+}
+.thread-header .handle, .comment-header .handle {
+  font-size: 0.85rem;
+  color: var(--color-link);
+  margin-left: 0.25rem;
+}
+.thread-header .created, .comment-header .created {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+.thread-actions, .comment-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.thread-content, .comment-content {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.reactions-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* --- DM SYSTEM STYLES (consolidated) --- */
+
+.text-10 {
+  font-size: 10px !important;
+  line-height: 1.2;
+}
+.text-link {
+  color: var(--color-link) !important;
+}

@@ -12,23 +12,6 @@ import { showMessageBox, showCustomConfirm } from "./utils.js";
 import { loadFooter } from "./navbar.js";
 import { renderMarkdownWithMedia, escapeHtml } from "./utils.js";
 
-// Import DM functionality
-import {
-  renderConversationsList,
-  selectConversation,
-  sendMessage,
-  deleteMessage,
-  deleteConversation,
-  populateUserHandlesDatalist,
-  unsubscribeConversationsListListener,
-  unsubscribeCurrentMessagesListener,
-  attachDmEventListeners,
-  initializeDmSystem,
-  loadConversations,
-  updateDmUiForNoConversationSelected,
-  createConversation,
-} from "./dms.js";
-
 // Import Firebase functions
 import {
   doc,
@@ -943,3 +926,7 @@ function renderContent(content) {
   renderMarkdownWithMedia(content, tempDiv);
   return tempDiv.innerHTML;
 }
+
+// --- DM SYSTEM LOGIC (migrated from dms.js) ---
+// [PASTE ALL LOGIC FROM dms.js HERE, REMOVE import/export, FIX CONFLICTS]
+// ... existing code ...
