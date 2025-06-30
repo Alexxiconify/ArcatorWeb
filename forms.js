@@ -991,13 +991,14 @@ function waitForUserAuthReady(callback) {
 async function renderConversationsTable() {
   const user = getCurrentUser();
   const tableBody = document.getElementById('conversations-table-body');
-  if (!user || !tableBody) return;
+  const messagesContainer = document.getElementById('conversation-messages-container');
+  if (!user || !tableBody || !messagesContainer) return;
   const userDmsCol = collection(db, `artifacts/${appId}/users/${user.uid}/dms`);
   const q = query(userDmsCol, orderBy('lastMessageAt', 'desc'));
   const snap = await getDocs(q);
   if (snap.empty) {
     tableBody.innerHTML = `<tr><td colspan="4" class="text-center text-text-secondary py-4">No conversations found.</td></tr>`;
-    document.getElementById('conversation-messages-container').innerHTML = '';
+    messagesContainer.style.display = 'none';
     return;
   }
   let html = '';
@@ -1006,25 +1007,23 @@ async function renderConversationsTable() {
     const convo = docSnap.data();
     const convoId = docSnap.id;
     if (idx === 0) firstConvoId = convoId;
-    const name = convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat');
-    const participants = (convo.participants || []).map(uid => `<span class='text-xs'>${uid}</span>`).join(', ');
-    const lastMsg = convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : '';
-    const lastAt = convo.lastMessageAt && convo.lastMessageAt.toDate ? new Date(convo.lastMessageAt.toDate()).toLocaleString() : '';
-    html += `<tr class="conversation-row${currentConversationId === convoId ? ' active' : ''}" data-convo-id="${convoId}">
-      <td class="font-semibold">${escapeHtml(name)}</td>
-      <td>${participants}</td>
-      <td><div class="conversation-preview">${lastMsg}</div><div class="conversation-time">${lastAt}</div></td>
+    const isActive = currentConversationId === convoId;
+    html += `<tr class="conversation-row${isActive ? ' active' : ''}" data-convo-id="${convoId}">
+      <td class="font-semibold">${escapeHtml(convo.name || (convo.type === 'group' ? 'Group Chat' : 'Private Chat'))}</td>
+      <td>${(convo.participants || []).map(uid => `<span class='text-xs'>${uid}</span>`).join(', ')}</td>
+      <td><div class="conversation-preview">${convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : ''}</div><div class="conversation-time">${convo.lastMessageAt && convo.lastMessageAt.toDate ? new Date(convo.lastMessageAt.toDate()).toLocaleString() : ''}</div></td>
       <td><button class="delete-conversation-btn" title="Delete" data-convo-id="${convoId}">🗑️</button></td>
     </tr>`;
   });
   tableBody.innerHTML = html;
-  // Row click: load messages
+  // Row click: load messages and show message area
   tableBody.querySelectorAll('.conversation-row').forEach(row => {
     row.onclick = () => {
       const convoId = row.getAttribute('data-convo-id');
       openConversation(convoId);
       tableBody.querySelectorAll('.conversation-row').forEach(r => r.classList.remove('active'));
       row.classList.add('active');
+      messagesContainer.style.display = '';
     };
   });
   // Delete button
@@ -1035,7 +1034,7 @@ async function renderConversationsTable() {
       if (await showCustomConfirm('Delete this conversation?', 'This cannot be undone.')) {
         await deleteConversation(convoId);
         renderConversationsTable();
-        document.getElementById('conversation-messages-container').innerHTML = '';
+        messagesContainer.style.display = 'none';
       }
     };
   });
@@ -1044,6 +1043,9 @@ async function renderConversationsTable() {
     openConversation(firstConvoId);
     const firstRow = tableBody.querySelector('.conversation-row[data-convo-id="' + firstConvoId + '"]');
     if (firstRow) firstRow.classList.add('active');
+    messagesContainer.style.display = '';
+  } else if (!currentConversationId) {
+    messagesContainer.style.display = 'none';
   }
 }
 
@@ -1159,31 +1161,40 @@ async function openConversation(convoId) {
     const q = query(messagesCol, orderBy('createdAt', 'asc'));
     if (dmUnsubMessages) dmUnsubMessages();
     dmUnsubMessages = onSnapshot(q, async (snap) => {
-      container.innerHTML = '';
-      if (snap.empty) {
-        container.innerHTML = '<div class="text-center text-gray-400">No messages yet</div>';
-        return;
-      }
       let html = '';
-      for (const docSnap of snap.docs) {
-        const msg = docSnap.data();
-        const isOwn = user && (msg.sender === user.uid || msg.sender === 'Alexxiconify');
-        const profile = await getUserProfile(msg.sender);
-        const handle = profile.handle ? `@${escapeHtml(profile.handle)}` : escapeHtml(msg.sender);
-        const photoURL = profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
-        const bubbleClass = isOwn ? 'sent own-message' : 'received';
-        html += `<div class="message-bubble ${bubbleClass}" style="max-width:80%;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};background:${isOwn ? '#2563eb22' : '#23272e'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.75em 1.1em;margin-bottom:0.5em;display:flex;align-items:flex-end;gap:0.5em;">
-          ${!isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
-          <div style="flex:1;min-width:0;">
-            <div class="message-author" style="font-size:0.9em;color:#888;${isOwn ? 'text-align:right;' : ''}">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></div>
-            <div class="message-content" style="font-size:1.05em;word-break:break-word;">${escapeHtml(msg.content)}</div>
-            <div class="message-timestamp" style="font-size:0.75em;color:#aaa;${isOwn ? 'text-align:right;' : ''}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
-          </div>
-          ${isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
-        </div>`;
+      if (snap.empty) {
+        html = '<div class="text-center text-gray-400">No messages yet</div>';
+      } else {
+        for (const docSnap of snap.docs) {
+          const msg = docSnap.data();
+          const isOwn = user && (msg.sender === user.uid || msg.sender === 'Alexxiconify');
+          const profile = await getUserProfile(msg.sender);
+          const handle = profile.handle ? `@${escapeHtml(profile.handle)}` : escapeHtml(msg.sender);
+          const photoURL = profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
+          const bubbleClass = isOwn ? 'sent own-message' : 'received';
+          html += `<div class="message-bubble ${bubbleClass}" style="max-width:80%;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};background:${isOwn ? '#2563eb22' : '#23272e'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.75em 1.1em;margin-bottom:0.5em;display:flex;align-items:flex-end;gap:0.5em;">
+            ${!isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
+            <div style="flex:1;min-width:0;">
+              <div class="message-author" style="font-size:0.9em;color:#888;${isOwn ? 'text-align:right;' : ''}">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></div>
+              <div class="message-content" style="font-size:1.05em;word-break:break-word;">${escapeHtml(msg.content)}</div>
+              <div class="message-timestamp" style="font-size:0.75em;color:#aaa;${isOwn ? 'text-align:right;' : ''}">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
+            </div>
+            ${isOwn ? `<img src="${photoURL}" alt="User" class="dm-message-profile-pic" style="width:2rem;height:2rem;border-radius:50%;object-fit:cover;">` : ''}
+          </div>`;
+        }
       }
+      // Add the message input field below the messages
+      html += `<div id="message-input-area" class="p-4 border-t border-input-border">
+        <form class="flex flex-row gap-2 items-end w-full" id="send-message-form">
+          <input class="form-input bg-card text-text-primary border-none rounded w-full flex-1" id="message-content-input" placeholder="Type a message..." autocomplete="off" />
+          <button class="btn-modern ml-auto" type="submit">➤</button>
+        </form>
+      </div>`;
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
+      // Re-attach send message event
+      const form = document.getElementById('send-message-form');
+      if (form) form.onsubmit = sendMessage;
     }, err => {
       container.innerHTML = '<div class="text-center text-red-400">Failed to load messages</div>';
       console.log('[dm] Failed to load messages', err);
