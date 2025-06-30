@@ -38,9 +38,7 @@ export function setupCustomThemeManagement(
   const closeButton = customThemeModal.querySelector(".close-button");
   const customThemeForm = document.getElementById("custom-theme-form");
   const themeNameInput = document.getElementById("custom-theme-name");
-  const colorInputsContainer = document.getElementById(
-    "custom-theme-color-inputs",
-  );
+  const colorInputsContainer = document.getElementById("custom-theme-color-inputs");
   const backgroundPatternSelect = document.getElementById(
     "custom-theme-background-pattern",
   );
@@ -194,6 +192,38 @@ export function setupCustomThemeManagement(
    * @returns {HTMLElement} The modal element.
    */
   function createCustomThemeModal() {
+    const colorFields = [
+      { label: 'Body BG', id: 'theme-body-bg' },
+      { label: 'Card BG', id: 'theme-card-bg' },
+      { label: 'Navbar BG', id: 'theme-navbar-bg' },
+      { label: 'Content Section BG', id: 'theme-content-section-bg' },
+      { label: 'Heading Main', id: 'theme-heading-main' },
+      { label: 'Heading Card', id: 'theme-heading-card' },
+      { label: 'Text Primary', id: 'theme-text-primary' },
+      { label: 'Text Secondary', id: 'theme-text-secondary' },
+      { label: 'Link', id: 'theme-link' },
+      { label: 'Button Blue', id: 'theme-button-blue-bg' },
+      { label: 'Button Green', id: 'theme-button-green-bg' },
+      { label: 'Button Red', id: 'theme-button-red-bg' },
+      { label: 'Button Purple', id: 'theme-button-purple-bg' },
+      { label: 'Button Yellow', id: 'theme-button-yellow-bg' },
+      { label: 'Button Indigo', id: 'theme-button-indigo-bg' },
+      { label: 'Button Text', id: 'theme-button-text' },
+      { label: 'Input BG', id: 'theme-input-bg' },
+      { label: 'Input Border', id: 'theme-input-border' },
+      { label: 'Input Text', id: 'theme-input-text' },
+      { label: 'Table TH BG', id: 'theme-table-th-bg' },
+      { label: 'Table TH Text', id: 'theme-table-th-text' },
+      { label: 'Table TD Border', id: 'theme-table-td-border' },
+      { label: 'Table Row Even BG', id: 'theme-table-row-even-bg' },
+    ];
+    const colorInputsHtml = colorFields.map(f => `
+      <div class="input-field flex items-center gap-2">
+        <label style="min-width:90px">${f.label}</label>
+        <input type="color" id="${f.id}-color" data-target="${f.id}-text" />
+        <input type="text" id="${f.id}-text" maxlength="9" style="width:80px" />
+      </div>
+    `).join("");
     const modalHtml = `
       <div id="custom-theme-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
         <div class="modal-content" style="width:98vw;max-width:900px;padding:1.5rem 1rem;box-sizing:border-box;">
@@ -204,120 +234,34 @@ export function setupCustomThemeManagement(
               <label for="custom-theme-name" class="block mb-1">Theme Name:</label>
               <input id="custom-theme-name" class="form-input w-full" maxlength="32" required />
             </div>
-            <div class="input-field">
-              <label>Body BG</label>
-              <input type="color" id="theme-body-bg" />
-            </div>
-            <div class="input-field">
-              <label>Card BG</label>
-              <input type="color" id="theme-card-bg" />
-            </div>
-            <div class="input-field">
-              <label>Navbar BG</label>
-              <input type="color" id="theme-navbar-bg" />
-            </div>
-            <div class="input-field">
-              <label>Content Section BG</label>
-              <input type="color" id="theme-content-section-bg" />
-            </div>
-            <div class="input-field">
-              <label>Heading Main</label>
-              <input type="color" id="theme-heading-main" />
-            </div>
-            <div class="input-field">
-              <label>Heading Card</label>
-              <input type="color" id="theme-heading-card" />
-            </div>
-            <div class="input-field">
-              <label>Text Primary</label>
-              <input type="color" id="theme-text-primary" />
-            </div>
-            <div class="input-field">
-              <label>Text Secondary</label>
-              <input type="color" id="theme-text-secondary" />
-            </div>
-            <div class="input-field">
-              <label>Link</label>
-              <input type="color" id="theme-link" />
-            </div>
-            <div class="input-field">
-              <label>Button Blue</label>
-              <input type="color" id="theme-button-blue-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Green</label>
-              <input type="color" id="theme-button-green-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Red</label>
-              <input type="color" id="theme-button-red-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Purple</label>
-              <input type="color" id="theme-button-purple-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Yellow</label>
-              <input type="color" id="theme-button-yellow-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Indigo</label>
-              <input type="color" id="theme-button-indigo-bg" />
-            </div>
-            <div class="input-field">
-              <label>Button Text</label>
-              <input type="color" id="theme-button-text" />
-            </div>
-            <div class="input-field">
-              <label>Input BG</label>
-              <input type="color" id="theme-input-bg" />
-            </div>
-            <div class="input-field">
-              <label>Input Border</label>
-              <input type="color" id="theme-input-border" />
-            </div>
-            <div class="input-field">
-              <label>Input Text</label>
-              <input type="color" id="theme-input-text" />
-            </div>
-            <div class="input-field">
-              <label>Table TH BG</label>
-              <input type="color" id="theme-table-th-bg" />
-            </div>
-            <div class="input-field">
-              <label>Table TH Text</label>
-              <input type="color" id="theme-table-th-text" />
-            </div>
-            <div class="input-field">
-              <label>Table TD Border</label>
-              <input type="color" id="theme-table-td-border" />
-            </div>
-            <div class="input-field">
-              <label>Table Row Even BG</label>
-              <input type="color" id="theme-table-row-even-bg" />
+            <div id="custom-theme-color-inputs" class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+              ${colorInputsHtml}
             </div>
             <div class="input-field col-span-2 text-right">
               <button type="submit" class="btn-primary btn-blue">Save Theme</button>
             </div>
           </form>
+          <ul id="custom-theme-list" class="mt-4"></ul>
         </div>
       </div>
     `;
     document.body.insertAdjacentHTML("beforeend", modalHtml);
     const modal = document.getElementById("custom-theme-modal");
-
-    // Set up color picker sync
-    const colorInputs = modal.querySelectorAll('input[type="color"]');
-    colorInputs.forEach((input) => {
-      input.addEventListener("input", function () {
-        const targetId = this.dataset.target;
-        const textInput = document.getElementById(targetId);
-        if (textInput) {
-          textInput.value = this.value;
-        }
-      });
+    // Sync color and text inputs
+    colorFields.forEach(f => {
+      const colorInput = modal.querySelector(`#${f.id}-color`);
+      const textInput = modal.querySelector(`#${f.id}-text`);
+      if (colorInput && textInput) {
+        colorInput.addEventListener("input", () => {
+          textInput.value = colorInput.value;
+        });
+        textInput.addEventListener("input", () => {
+          if (/^#([0-9a-fA-F]{3}){1,2}$/.test(textInput.value)) {
+            colorInput.value = textInput.value;
+          }
+        });
+      }
     });
-
     return modal;
   }
 

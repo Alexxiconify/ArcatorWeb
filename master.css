@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* master.css - Consolidated CSS */
 @import url('theme_variables.css');
 @import url('forms.css');
