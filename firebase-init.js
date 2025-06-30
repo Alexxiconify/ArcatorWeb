@@ -18,15 +18,8 @@ import {
   deleteDoc,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Firebase configuration object (replace with your actual config if different)
-const firebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-  authDomain: "arcator-web.firebaseapp.com",
-  projectId: "arcator-web",
-  storageBucket: "arcator-web.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnop"
-};
+// Import Firebase configuration from sensitive folder
+import { firebaseConfig } from "./sensitive/firebase-config.js";
 
 // Determine the correct appId for Firestore paths
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;

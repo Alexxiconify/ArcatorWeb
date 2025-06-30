@@ -31,15 +31,8 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-  authDomain: "arcator-web.firebaseapp.com",
-  projectId: "arcator-web",
-  storageBucket: "arcator-web.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnop"
-};
+// Import Firebase configuration from sensitive folder
+import { firebaseConfig } from "./sensitive/firebase-config.js";
 
 // Determine appId for Firestore paths
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
@@ -89,122 +82,9 @@ async function setupFirebaseCore() {
 firebaseReadyPromise = setupFirebaseCore();
 
 // ============================================================================
-// THEME MANAGEMENT
+// THEME MANAGEMENT REMOVED
+// All theme logic is handled by themes.js. Do not define or use applyTheme, applyCachedTheme, getAvailableThemes, or getCurrentTheme here.
 // ============================================================================
-
-// Theme storage and management
-const THEME_STORAGE_KEY = "arcator-theme";
-const THEME_CACHE_KEY = "arcator-theme-cache";
-
-// Default themes
-const defaultThemes = [
-  {
-    id: "dark",
-    name: "Dark",
-    colors: {
-      "--color-bg-navbar": "#111827",
-      "--color-bg-content-section": "#1f2937",
-      "--color-bg-card": "#374151",
-      "--color-heading-main": "#f9fafb",
-      "--color-heading-card": "#e5e7eb",
-      "--color-text-primary": "#f9fafb",
-      "--color-text-secondary": "#d1d5db",
-      "--color-link": "#3b82f6",
-      "--color-table-th-bg": "#374151",
-      "--color-table-th-text": "#e5e7eb",
-      "--color-table-td-border": "#4b5563",
-      "--color-table-row-even-bg": "#4b5563",
-      "--color-button-blue-bg": "#3b82f6",
-      "--color-button-blue-hover": "#2563eb",
-      "--color-button-green-bg": "#10b981",
-      "--color-button-green-hover": "#059669",
-      "--color-button-red-bg": "#ef4444",
-      "--color-button-red-hover": "#dc2626",
-      "--color-button-purple-bg": "#8b5cf6",
-      "--color-button-purple-hover": "#7c3aed",
-      "--color-button-yellow-bg": "#f59e0b",
-      "--color-button-yellow-hover": "#d97706",
-      "--color-button-indigo-bg": "#6366f1",
-      "--color-button-indigo-hover": "#4f46e5",
-      "--color-button-text": "#ffffff",
-      "--color-input-bg": "#374151",
-      "--color-input-text": "#f9fafb",
-      "--color-input-border": "#4b5563",
-    }
-  },
-  {
-    id: "light",
-    name: "Light",
-    colors: {
-      "--color-bg-navbar": "#f3f4f6",
-      "--color-bg-content-section": "#ffffff",
-      "--color-bg-card": "#f9fafb",
-      "--color-heading-main": "#111827",
-      "--color-heading-card": "#374151",
-      "--color-text-primary": "#111827",
-      "--color-text-secondary": "#6b7280",
-      "--color-link": "#3b82f6",
-      "--color-table-th-bg": "#f3f4f6",
-      "--color-table-th-text": "#374151",
-      "--color-table-td-border": "#e5e7eb",
-      "--color-table-row-even-bg": "#f9fafb",
-      "--color-button-blue-bg": "#3b82f6",
-      "--color-button-blue-hover": "#2563eb",
-      "--color-button-green-bg": "#10b981",
-      "--color-button-green-hover": "#059669",
-      "--color-button-red-bg": "#ef4444",
-      "--color-button-red-hover": "#dc2626",
-      "--color-button-purple-bg": "#8b5cf6",
-      "--color-button-purple-hover": "#7c3aed",
-      "--color-button-yellow-bg": "#f59e0b",
-      "--color-button-yellow-hover": "#d97706",
-      "--color-button-indigo-bg": "#6366f1",
-      "--color-button-indigo-hover": "#4f46e5",
-      "--color-button-text": "#ffffff",
-      "--color-input-bg": "#ffffff",
-      "--color-input-text": "#111827",
-      "--color-input-border": "#d1d5db",
-    }
-  }
-];
-
-// Theme management functions
-export function applyTheme(themeId, themeData = null) {
-  const theme = themeData || defaultThemes.find(t => t.id === themeId);
-  if (!theme) return false;
-  
-  const root = document.documentElement;
-  Object.entries(theme.colors).forEach(([property, value]) => {
-    root.style.setProperty(property, value);
-  });
-  
-  localStorage.setItem(THEME_STORAGE_KEY, themeId);
-  localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(theme));
-  
-  return true;
-}
-
-export function applyCachedTheme() {
-  const cachedTheme = localStorage.getItem(THEME_CACHE_KEY);
-  if (cachedTheme) {
-    try {
-      const theme = JSON.parse(cachedTheme);
-      applyTheme(theme.id, theme);
-      return true;
-    } catch (e) {
-      console.error("Failed to apply cached theme:", e);
-    }
-  }
-  return false;
-}
-
-export function getAvailableThemes() {
-  return defaultThemes;
-}
-
-export function getCurrentTheme() {
-  return localStorage.getItem(THEME_STORAGE_KEY) || DEFAULT_THEME_NAME;
-}
 
 // ============================================================================
 // NAVIGATION & LAYOUT
