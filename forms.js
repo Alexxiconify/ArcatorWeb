@@ -1066,7 +1066,17 @@ async function createConversation(event) {
   openConversation(convoId);
 }
 
+function showDmSections() {
+  // Show all DM sections from forms.html
+  document.getElementById('dm-panel')?.classList.remove('hidden');
+  document.getElementById('dm-panel')?.style.setProperty('display', 'grid');
+  document.getElementById('conversations-messages-panel')?.classList.remove('hidden');
+  document.getElementById('conversations-list')?.classList.remove('hidden');
+  document.getElementById('create-conversation-form')?.classList.remove('hidden');
+}
+
 function setupDmEventListeners() {
+  showDmSections();
   const form = document.getElementById('send-message-form');
   if (form) form.onsubmit = sendMessage;
   const createForm = document.getElementById('create-conversation-form');
@@ -1089,13 +1099,21 @@ function getActiveTab() {
 
 window.showTab = function (tabName) {
   setActiveTab(tabName);
-  const tabContents = document.querySelectorAll(".tab-content");
-  tabContents.forEach((content) => content.classList.remove("active"));
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  tabButtons.forEach((button) => button.classList.remove("active"));
-  document.getElementById(tabName + "-tab-content").classList.add("active");
-  const btn = document.getElementById("tab-" + tabName);
-  if (btn) btn.classList.add("active");
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach((content) => {
+    content.classList.remove('active');
+    content.style.display = 'none';
+  });
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach((button) => button.classList.remove('active'));
+  let contentId = tabName === 'dms' ? 'dm-tab-content' : tabName + '-tab-content';
+  const contentEl = document.getElementById(contentId);
+  if (contentEl) {
+    contentEl.classList.add('active');
+    contentEl.style.display = '';
+  }
+  const btn = document.getElementById('tab-' + tabName);
+  if (btn) btn.classList.add('active');
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 };
@@ -1120,3 +1138,22 @@ function renderContent(content) {
   renderMarkdownWithMedia(content, tempDiv);
   return tempDiv.innerHTML;
 }
+
+// --- Hash-based tab navigation ---
+function showTabByHash() {
+  const hash = window.location.hash.replace('#', '');
+  let tab = 'thema-all';
+  if (hash === 'dms') tab = 'dms';
+  window.showTab(tab);
+  if (tab === 'dms') setupDmEventListeners();
+}
+
+window.addEventListener('hashchange', showTabByHash);
+window.addEventListener('DOMContentLoaded', showTabByHash);
+
+document.getElementById('tab-themata-all')?.addEventListener('click', function () {
+  window.location.hash = 'thema-all';
+});
+document.getElementById('tab-dms')?.addEventListener('click', function () {
+  window.location.hash = 'dms';
+});
