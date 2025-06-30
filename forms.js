@@ -114,9 +114,10 @@ function renderThematas() {
     if (snapshot.empty) {
       themaList.innerHTML =
         '<li class="thema-item text-center text-text-secondary">No thémata found.</li>';
+      console.log("[forms] No thémata found");
       return;
     }
-
+    console.log(`[forms] Loaded ${snapshot.size} thémata`);
     snapshot.forEach((docSnap) => {
       const thema = docSnap.data();
       const themaId = docSnap.id;
@@ -750,15 +751,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Tab navigation
   if (dmTabBtn && dmTabContent) {
-    dmTabBtn.addEventListener('click', async () => {
-      await renderConversationsList();
+    dmTabBtn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('dm-tab-content').classList.add('active');
+      this.classList.add('active');
       setupDmEventListeners();
     });
-    // If DM tab is active on load, initialize immediately
-    if (dmTabContent.classList.contains('active') || dmTabContent.style.display !== 'none') {
-      renderConversationsList();
-      setupDmEventListeners();
-    }
   }
 
   const allThematasTabBtn = document.getElementById("tab-themata-all");
@@ -972,8 +971,10 @@ async function renderConversationsList() {
       list.innerHTML = '';
       if (snap.empty) {
         list.innerHTML = '<div class="text-center text-gray-400">No conversations</div>';
+        console.log('[dm] No conversations');
         return;
       }
+      console.log(`[dm] Loaded ${snap.size} conversations`);
       for (const docSnap of snap.docs) {
         const convo = docSnap.data();
         const convoId = docSnap.id;
@@ -987,9 +988,11 @@ async function renderConversationsList() {
       }
     }, err => {
       list.innerHTML = '<div class="text-center text-red-400">Failed to load conversations</div>';
+      console.log('[dm] Failed to load conversations', err);
     });
   } catch (e) {
     list.innerHTML = '<div class="text-center text-red-400">Error loading DMs</div>';
+    console.log('[dm] Error loading DMs', e);
   }
 }
 
@@ -1010,8 +1013,10 @@ async function openConversation(convoId) {
       container.innerHTML = '';
       if (snap.empty) {
         container.innerHTML = '<div class="text-center text-gray-400">No messages yet</div>';
+        console.log(`[dm] No messages in convo ${convoId}`);
         return;
       }
+      console.log(`[dm] Loaded ${snap.size} messages in convo ${convoId}`);
       for (const docSnap of snap.docs) {
         const msg = docSnap.data();
         const isOwn = msg.sender === user.uid;
@@ -1024,9 +1029,11 @@ async function openConversation(convoId) {
       container.scrollTop = container.scrollHeight;
     }, err => {
       container.innerHTML = '<div class="text-center text-red-400">Failed to load messages</div>';
+      console.log('[dm] Failed to load messages', err);
     });
   } catch (e) {
     container.innerHTML = '<div class="text-center text-red-400">Error loading messages</div>';
+    console.log('[dm] Error loading messages', e);
   }
 }
 
