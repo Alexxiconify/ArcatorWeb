@@ -1056,6 +1056,7 @@
     <div id="navbar-placeholder" class="ml-0 md:ml-8 w-full md:w-auto"></div>
   </div>
   <div class="w-full mt-8">
+    <div id="admin-controls" class="w-full flex flex-col items-center mb-6"></div>
     <div id="dynamic-page-content" class="dynamic-page-content"></div>
     <div id="comments-section"></div>
   </div>
@@ -1082,25 +1083,36 @@
       { id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1' },
       { id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2' },
     ];
-    // Render nav tabs
-    function renderTempPageNav(currentId) {
-      return `<div class="temp-page-nav justify-center mb-8">${tempPages.map(p => `<a class="btn-modern${p.id===currentId? ' active' : ''}" href="pages.html?id=${p.id}" onclick="event.preventDefault(); window.setTempPage('${p.id}')">${p.title} <span class='text-xs text-gray-400 ml-2'>(${p.id})</span></a>`).join('')}</div>`;
+    // Render nav tabs (remove ID from tab label)
+    function renderTempPageNav(currentId, isAdminUser = false) {
+      let navHtml = tempPages.map(p => `<a class="btn-modern${p.id===currentId? ' active' : ''}" href="pages.html?id=${p.id}" onclick="event.preventDefault(); window.setTempPage('${p.id}')">${p.title}</a>`).join('');
+      if (isAdminUser) {
+        navHtml += `<a class="btn-modern add-page-tab ml-2" href="#" onclick="event.preventDefault(); window.openAddPageModal()">+ Add Page</a>`;
+      }
+      return `<div class="temp-page-nav justify-center mb-8">${navHtml}</div>`;
     }
-    // Load temp page by ID
+    // On load, always default to Page 1 if no id
+    function getCurrentPageId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id') || tempPages[0].id;
+    }
     async function loadTempPage(id) {
+      if (!id) id = tempPages[0].id;
       const contentDiv = document.getElementById('dynamic-page-content');
       const commentsDiv = document.getElementById('comments-section');
-      if (!id) id = tempPages[0].id;
-      contentDiv.innerHTML = renderTempPageNav(id) + '<div class="text-center text-xl mt-12 mb-8">Loading...</div>';
+      let user = auth.currentUser;
+      let isAdminUser = false;
+      if (user) isAdminUser = isAdmin(user);
+      contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-xl mt-12 mb-8">Loading...</div>';
       commentsDiv.innerHTML = '';
       const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
       const snap = await getDoc(ref);
       if (!snap.exists()) {
-        contentDiv.innerHTML = renderTempPageNav(id) + '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
+        contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
         return;
       }
       const data = snap.data();
-      contentDiv.innerHTML = renderTempPageNav(id) + `
+      contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + `
         <div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
         <div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
         <div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
@@ -1123,7 +1135,8 @@
         html += '<div class="comments-list">';
         snap.forEach(doc => {
           const c = doc.data();
-          html += `<div class="comment-item">
+          const commentId = doc.id;
+          html += `<div class="comment-item card-modern transition-all">
             <div class="comment-header">
               <span class="comment-author">
                 <img class="comment-author-avatar" src="${c.authorPhotoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + (c.authorUid || 'anon')}" alt="avatar">
@@ -1131,6 +1144,10 @@
                   <span class="comment-author-name">${c.authorName || 'Anonymous'}</span>
                   <span class="comment-timestamp">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</span>
                 </span>
+              </span>
+              <span class="comment-edit-controls">
+                <button class="edit-btn" data-id="${commentId}" title="Edit"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg></button>
+                <button class="delete-btn" data-id="${commentId}" title="Delete"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
               </span>
             </div>
             <div class="comment-content">${c.content || ''}</div>
@@ -1163,15 +1180,115 @@
         input.value = '';
         await loadComments(pageId);
       };
+      // Add event listeners for edit/delete
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          // TODO: Implement edit comment logic
+        };
+      });
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          // TODO: Implement delete comment logic
+        };
+      });
     }
-    // Expose for nav tab click
+    // On load, set default page
+    window.addEventListener('DOMContentLoaded', () => {
+      const id = getCurrentPageId();
+      loadTempPage(id);
+    });
+    // Expose for nav tab click and add page modal
     window.setTempPage = function(id) {
       history.replaceState(null, '', `pages.html?id=${id}`);
       loadTempPage(id);
     };
-    // On load
-    const params = new URLSearchParams(window.location.search);
-    let id = params.get('id');
-    loadTempPage(id);
+    window.openAddPageModal = openAddPageModal;
+    // On auth state change, re-render nav and reload current page
+    auth.onAuthStateChanged(async (user) => {
+      renderAdminControls(user);
+      patchNavForAdmin(user);
+      const id = getCurrentPageId();
+      let isAdminUser = user && isAdmin(user);
+      document.getElementById('dynamic-page-content').innerHTML = renderTempPageNav(id, isAdminUser);
+      loadTempPage(id);
+    });
+    // Admin controls
+    const ADMIN_UIDS = [
+      'admin-uid-1', // Replace with real admin UIDs
+      'admin-uid-2',
+    ];
+    function isAdmin(user) {
+      return user && ADMIN_UIDS.includes(user.uid);
+    }
+    function renderAdminControls(user) {
+      const adminDiv = document.getElementById('admin-controls');
+      if (!isAdmin(user)) { adminDiv.innerHTML = ''; return; }
+      adminDiv.innerHTML = `<button id="add-page-btn" class="btn-modern mb-2">Add Page</button>`;
+      document.getElementById('add-page-btn').onclick = openAddPageModal;
+    }
+    // Add/Edit modal
+    function openAddPageModal() {
+      showPageModal('Add Page', '', '', async (title, content) => {
+        await addDoc(collection(db, 'artifacts/arcator-web/public/data/temp_pages'), {
+          title, content, updatedAt: serverTimestamp()
+        });
+        window.location.reload();
+      });
+    }
+    function openEditPageModal(pageId, oldTitle, oldContent) {
+      showPageModal('Edit Page', oldTitle, oldContent, async (title, content) => {
+        const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', pageId);
+        await setDoc(ref, { title, content, updatedAt: serverTimestamp() }, { merge: true });
+        window.location.reload();
+      });
+    }
+    function showPageModal(title, initTitle, initContent, onSave) {
+      let modal = document.getElementById('page-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'page-modal';
+        modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;';
+        modal.innerHTML = `<div style="background:#222;padding:2rem;border-radius:1rem;min-width:320px;max-width:90vw;">
+          <h2 class="text-2xl font-bold mb-4" id="page-modal-title"></h2>
+          <input id="page-title-input" class="form-input w-full mb-2" placeholder="Title" />
+          <textarea id="page-content-input" class="form-input w-full mb-4" rows="8" placeholder="Content (HTML allowed)"></textarea>
+          <div class="flex gap-2 justify-end">
+            <button id="page-modal-cancel" class="btn-modern">Cancel</button>
+            <button id="page-modal-save" class="btn-modern">Save</button>
+          </div>
+        </div>`;
+        document.body.appendChild(modal);
+      }
+      modal.querySelector('#page-modal-title').textContent = title;
+      modal.querySelector('#page-title-input').value = initTitle;
+      modal.querySelector('#page-content-input').value = initContent;
+      modal.style.display = 'flex';
+      modal.querySelector('#page-modal-cancel').onclick = () => { modal.style.display = 'none'; };
+      modal.querySelector('#page-modal-save').onclick = async () => {
+        const t = modal.querySelector('#page-title-input').value.trim();
+        const c = modal.querySelector('#page-content-input').value.trim();
+        if (!t || !c) return;
+        await onSave(t, c);
+        modal.style.display = 'none';
+      };
+    }
+    // Patch nav for admin (edit buttons)
+    function patchNavForAdmin(user) {
+      if (!isAdmin(user)) return;
+      document.querySelectorAll('.temp-page-nav .btn-modern').forEach((btn, i) => {
+        const page = tempPages[i];
+        if (!page) return;
+        if (!btn.querySelector('.edit-page-btn')) {
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-page-btn ml-2';
+          editBtn.title = 'Edit Page';
+          editBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg>';
+          editBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); openEditPageModal(page.id, page.title, page.content || ''); };
+          btn.appendChild(editBtn);
+        }
+      });
+    }
   </script>
 </body>
