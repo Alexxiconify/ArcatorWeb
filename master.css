@@ -1,6 +1,4 @@
 @import url('theme_variables.css');
-@import url('forms.css');
-@import url('page-specific.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -55,41 +53,34 @@
 
 /* Hero banner */
 .hero-banner {
-  background: linear-gradient(135deg, var(--color-bg-navbar) 0%, var(--color-bg-content-section) 100%);
-  background-image:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.8) 0%, rgba(31, 41, 55, 0.6) 100%),
-    url('data:image/svg+xml,<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-  background-size: cover, cover;
-  background-position: center, center;
-  background-repeat: no-repeat, no-repeat;
-  min-height: 300px;
-  height: 300px;
+    background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  margin-top: 64px;
 }
 
 .hero-banner::before {
-  content: '';
+    content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(17, 24, 39, 0.4) 0%, rgba(31, 41, 55, 0.3) 100%);
+    background: rgba(0, 0, 0, 0.5);
   z-index: 1;
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 1rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 @media (max-width: 768px) {
@@ -110,13 +101,18 @@
 
 /* Base styles */
 html {
-  color: var(--color-text-primary, #222);
-  font-size: 0.875em;
+    color: #222;
+    font-size: 1em;
   line-height: 1.4;
 }
 
-::-moz-selection, ::selection {
-  background: var(--color-link, #b3d4fc);
+::-moz-selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+::selection {
+    background: #b3d4fc;
   text-shadow: none;
 }
 
@@ -124,12 +120,17 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid var(--color-input-border, #ccc);
+    border-top: 1px solid #ccc;
   margin: 1em 0;
   padding: 0;
 }
 
-audio, canvas, iframe, img, svg, video {
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
   vertical-align: middle;
 }
 
@@ -541,3 +542,167 @@ textarea {
 
 .footer-link { flex:1; text-align:center; text-decoration:none; color:inherit; font-size:1rem; padding:0.5rem 0; }
 .footer-link:active, .footer-link:focus { background:var(--color-bg-card); }
+
+/* --- Begin: style.css --- */
+html {
+    color: #222;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+::-moz-selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+::selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+    vertical-align: middle;
+}
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* --- End: style.css --- */
+/* --- Begin: page-specific.css --- */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", sans-serif;
+    line-height: 1.6;
+    background-color: var(--color-body-bg);
+    color: var(--color-text-primary);
+    transition: background-color 0.3s,
+    color 0.3s;
+}
+
+.main-section,
+.forum-section,
+.content-section {
+    background-color: var(--color-bg-content-section);
+    color: var(--color-text-primary);
+}
+
+/* --- End: page-specific.css --- */
+
+/* --- Begin: games.html theming additions --- */
+.tab-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--color-input-border);
+    padding-bottom: 0;
+}
+
+.tab-button {
+    border: none;
+    padding: 1rem 2rem;
+    margin: 0 0.5rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+    border-bottom-color: var(--color-link);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.minecraft-ip-box {
+    border: 2px solid var(--color-input-border);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.text-white {
+    color: white !important;
+}
+
+.text-teal-300 {
+    color: var(--color-link) !important;
+}
+
+.text-orange-400 {
+    color: var(--color-button-yellow-hover) !important;
+}
+
+.text-purple-300 {
+    color: var(--color-button-purple-bg) !important;
+}
+
+.game-card, .server-card {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover, .server-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .tab-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tab-button {
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .tab-button.active {
+        border-bottom-color: transparent;
+    }
+}
+
+.main-section, .games-section, .content-section {
+    background-color: var(--color-bg-content-section);
+    color: var(--color-text-primary);
+}
+
+/* --- End: games.html theming additions --- */
