@@ -1,9 +1,28 @@
 // Import existing modules
-import {appId, auth, db, DEFAULT_PROFILE_PIC, firebaseReadyPromise, getUserProfileFromFirestore,} from "./firebase-init.js";
+import {
+  appId,
+  auth,
+  db,
+  DEFAULT_PROFILE_PIC,
+  firebaseReadyPromise,
+  getUserProfileFromFirestore,
+} from "./firebase-init.js";
 import {loadFooter, loadNavbar} from "./navbar.js";
 import {applyCachedTheme, applyTheme, getAvailableThemes,} from "./themes.js";
 import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
-import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, serverTimestamp, setDoc,} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Apply cached theme immediately to prevent flash
 applyCachedTheme();
@@ -17,7 +36,7 @@ firebaseReadyPromise.then(() => {
         uid: user.uid,
         displayName: userProfile?.displayName || user.displayName || "Anonymous",
         photoURL: userProfile?.photoURL || user.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV",
-        isAdmin: userProfile?.isAdmin || false,
+        isAdmin: typeof userProfile?.isAdmin === 'boolean' ? userProfile.isAdmin : false,
         handle: userProfile?.handle || userProfile?.displayName || user.displayName || user.uid,
       };
     } else {
@@ -145,7 +164,7 @@ function renderThematas() {
       const themaId = docSnap.id;
       if (themaId === "temp-page-SQ1f81es7k4PMdS4f1pr") return; // Hide this temp page
       const li = document.createElement("li");
-      li.className = "thema-box card-modern p-6 mb-8 rounded-xl shadow-xl border border-input-border bg-card hover:shadow-2xl transition-all";
+      li.className = "thema-box";
 
       const header = document.createElement("div");
       header.className = "flex items-center justify-between mb-2";
@@ -817,11 +836,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (e.target.closest && e.target.closest(".collapse-btn")) {
       const btn = e.target.closest(".collapse-btn");
       // Find the card (thema, thread, or comment)
-      const card = btn.closest(".thema-item, .thread-item, .comment-item");
+      const card = btn.closest(".thema-box, .thema-item, .thread-item, .comment-item");
       if (!card) return;
-      // Find the header (first child with class thread-header or comment-header or flex)
-      let header = card.querySelector(".thread-header, .comment-header, .flex");
-      if (!header) header = card.firstElementChild;
+      // For thema-box, collapse everything after the header (first child)
+      let header = card.firstElementChild;
       let collapsed = false;
       let foundHeader = false;
       Array.from(card.children).forEach(child => {
@@ -1042,8 +1060,8 @@ async function renderConversationsTable() {
       <td>${participantsHtml}</td>
       <td><span class="conversation-preview">${lastMsg}</span><span class="conversation-time">${lastDate}</span></td>
       <td class="actions-cell">
-        <button class="edit-conversation-btn" title="Edit" data-convo-id="${convoId}">✏️</button>
-        <button class="delete-conversation-btn" title="Delete" data-convo-id="${convoId}">🗑️</button>
+        <button class="edit-conversation-btn btn-edit" title="Edit" data-convo-id="${convoId}">✏️</button>
+        <button class="delete-conversation-btn btn-delete" title="Delete" data-convo-id="${convoId}">🗑️</button>
       </td>
     </tr>`;
   }
@@ -1258,11 +1276,10 @@ async function openConversation(convoId) {
               <div class="message-content">${escapeHtml(msg.content)}</div>
               <div class="message-timestamp">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
             </div>
-            ${isOwn ? `<div class="bubble-actions" style="display:none;position:absolute;top:0.3em;right:0.7em;z-index:2;">
-              <button class="edit-msg-btn btn-edit" data-msg-id="${msgId}" title="Edit">✏️</button>
-              <button class="delete-msg-btn btn-delete" data-msg-id="${msgId}" title="Delete">🗑️</button>
-            </div>` : ''}
-            ${isOwn ? `<script>document.currentScript.previousElementSibling.parentElement.onmouseenter = function(){this.querySelector('.bubble-actions').style.display='block';};document.currentScript.previousElementSibling.parentElement.onmouseleave = function(){this.querySelector('.bubble-actions').style.display='none';};</script>` : ''}
+            <div class="bubble-actions flex gap-1 ml-2" style="position:absolute;top:0.3em;right:0.7em;z-index:2;">
+              <button class="edit-msg-btn btn-edit icon-btn" data-msg-id="${msgId}" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+              <button class="delete-msg-btn btn-delete icon-btn" data-msg-id="${msgId}" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+            </div>
           </div>`;
         }
       }
