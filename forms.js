@@ -1,30 +1,9 @@
 // Import existing modules
-import {
-  appId,
-  auth,
-  db,
-  DEFAULT_PROFILE_PIC,
-  firebaseReadyPromise,
-  getUserProfileFromFirestore,
-} from "./firebase-init.js";
+import {appId, auth, db, DEFAULT_PROFILE_PIC, firebaseReadyPromise, getUserProfileFromFirestore,} from "./firebase-init.js";
 import {loadFooter, loadNavbar} from "./navbar.js";
 import {applyCachedTheme, applyTheme, getAvailableThemes,} from "./themes.js";
 import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
-
-// Import Firebase functions
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, serverTimestamp, setDoc,} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Apply cached theme immediately to prevent flash
 applyCachedTheme();
@@ -34,6 +13,15 @@ firebaseReadyPromise.then(() => {
     let userProfile = null;
     if (user) {
       userProfile = await getUserProfileFromFirestore(user.uid);
+      window.currentUser = {
+        uid: user.uid,
+        displayName: userProfile?.displayName || user.displayName || "Anonymous",
+        photoURL: userProfile?.photoURL || user.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV",
+        isAdmin: userProfile?.isAdmin || false,
+        handle: userProfile?.handle || userProfile?.displayName || user.displayName || user.uid,
+      };
+    } else {
+      window.currentUser = null;
     }
     await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
     loadFooter("current-year-forms");
@@ -157,7 +145,7 @@ function renderThematas() {
       const themaId = docSnap.id;
       if (themaId === "temp-page-SQ1f81es7k4PMdS4f1pr") return; // Hide this temp page
       const li = document.createElement("li");
-      li.className = "thema-item mb-6 p-4 bg-card rounded-lg shadow";
+      li.className = "thema-box card-modern p-6 mb-8 rounded-xl shadow-xl border border-input-border bg-card hover:shadow-2xl transition-all";
 
       const header = document.createElement("div");
       header.className = "flex items-center justify-between mb-2";
@@ -182,16 +170,16 @@ function renderThematas() {
       actions.className = "actions-right absolute top-2 right-2 flex gap-2 z-10";
 
       const editBtn = document.createElement("button");
-      editBtn.className = "edit-themata-btn icon-btn";
+      editBtn.className = "edit-themata-btn icon-btn btn-modern";
       editBtn.title = "Edit Themata";
       editBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
-      editBtn.onclick = () => openEditThemaModal(themaId, thema);
+      editBtn.onclick = () => openEditModal('thema', { themaId }, thema);
 
       const delBtn = document.createElement("button");
-      delBtn.className = "delete-themata-btn icon-btn";
+      delBtn.className = "delete-themata-btn icon-btn btn-modern";
       delBtn.title = "Delete Themata";
       delBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
-      delBtn.onclick = () => deleteThemaAndSubcollections(themaId);
+      delBtn.onclick = () => handleDelete('thema', { themaId });
 
       const canEditThema = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy));
       if (canEditThema) {
@@ -234,15 +222,10 @@ async function loadThreadsForThema(themaId) {
   threadsContainer._unsubscribeThreads = onSnapshot(q, async (threadsSnapshot) => {
     let threadsHtml = [];
     threadsHtml.push(`
-      <div class="create-thread-section mb-2">
-        <button type="button" class="toggle-create-thread btn-primary btn-blue mb-2">＋ New Thread</button>
-        <div class="create-thread-collapsible" style="display:none;">
-          <form class="create-thread-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" style="margin-bottom:0;">
-            <input type="text" class="form-input flex-1 min-w-0 mb-0" placeholder="Thread title" required style="margin-bottom:0; min-width:120px;" />
-            <textarea class="form-input flex-1 min-w-0 mb-0" placeholder="Initial comment" rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;" ></textarea>
-            <button type="submit" class="btn-primary btn-blue ml-0" style="margin-bottom:0;">Create</button>
-          </form>
-        </div>
+      <div class="create-thread-form form-container flex flex-col md:flex-row items-center gap-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" style="margin-bottom:0;">
+        <input type="text" class="form-input flex-1 min-w-0 mb-0 bg-card text-text-primary border-input-border" placeholder="Thread title" required />
+        <input type="text" class="form-input flex-1 min-w-0 mb-0 bg-card text-text-primary border-input-border" placeholder="Thread description" required />
+        <button type="submit" class="btn-modern ml-0">Create Thread</button>
       </div>
     `);
     if (threadsSnapshot.empty) {
@@ -274,18 +257,18 @@ async function loadThreadsForThema(themaId) {
         const threadCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         threadsHtml.push(`
           <div class="thread-header flex items-center gap-3 bg-card text-text-primary" data-thread-id="${threadDoc.id}" style="position:relative;">
-            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV';this.classList.add('img-error')" onload="this.classList.remove('img-error')">
             <div class="flex flex-col justify-center flex-1">
               <div class="flex items-center w-full">
-                <span class="text-xs text-text-secondary">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-10 text-link text-text-primary ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
+                <span class="text-xs text-text-primary font-semibold">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-meta-info ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
                 <div class="flex gap-2 ml-auto actions-right">
                   ${canEditThread ? `
-                    <button class="edit-thread-btn icon-btn" title="Edit Thread">
+                    <button class="edit-thread-btn btn-edit" title="Edit Thread">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </button>
-                    <button class="delete-thread-btn icon-btn" title="Delete Thread">
+                    <button class="delete-thread-btn btn-delete" title="Delete Thread">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
@@ -293,11 +276,11 @@ async function loadThreadsForThema(themaId) {
                   ` : ""}
                 </div>
               </div>
-              <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title)}</span>
-              <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment)}</p>
+              <span class="font-bold text-lg leading-tight mb-0.5">${escapeHtml(thread.title || "Untitled Thread")}</span>
+              <p class="comment-content text-sm mt-1 mb-0">${renderContent(thread.initialComment || "No description provided.")}</p>
               <div class="flex items-center justify-between mt-1 w-full">
                 <div class="reactions-bar">${renderReactionButtons(thread.reactions, themaId, threadDoc.id)}</div>
-                <span class="meta-info text-xs ml-4" style="margin-left:auto;">${createdAt}</span>
+                <span class="meta-info text-xs text-text-secondary ml-4">${createdAt}</span>
               </div>
             </div>
           </div>
@@ -353,21 +336,22 @@ function renderNestedComments(comments, themaId, threadId, depth = 0) {
     const canEdit = window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === c.createdBy);
     let photoURL = c.photoURL;
     if (!photoURL || photoURL === 'null' || photoURL === 'undefined') photoURL = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
-    let connectors = '';
+    // SVG connector for nested replies
+    let connector = '';
     if (depth > 0) {
-      connectors = `<div class='vertical-connector'></div><div class='horizontal-connector'></div>`;
+      connector = `<svg class="comment-connector-svg" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1='16' y1='0' x2='16' y2='100%' stroke='var(--color-input-border)' stroke-width='2' /><line x1='10' y1='24' x2='20' y2='24' stroke='var(--color-input-border)' stroke-width='2' /></svg>`;
     }
     return `
-      <div class="thread-header depth-${depth} flex items-start text-text-primary mb-2 p-3" data-comment-id="${c.id}" style="position:relative;min-height:40px;">
-        ${connectors}
-        <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV'">
+      <div class="thread-header depth-${depth} flex items-start text-text-primary mb-2 p-3" data-comment-id="${c.id}">
+        ${connector}
+        <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2 flex-shrink-0">
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between">
-            <span class="text-xs text-text-secondary truncate">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link text-text-primary ml-1">@${escapeHtml(c.handle || "user")}</span></span>
+            <span class="text-xs text-text-primary font-semibold truncate">${escapeHtml(c.displayName || "Anonymous")} <span class="text-[10px] text-link ml-1">@${escapeHtml(c.handle || "user")}</span></span>
             <div class="flex gap-1 ml-2 actions-right">
               ${canEdit ? `
-                <button class="edit-comment-btn icon-btn" title="Edit Comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                <button class="delete-comment-btn icon-btn" title="Delete Comment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                <button class="edit-comment-btn btn-edit" title="Edit Comment">✏️</button>
+                <button class="delete-comment-btn btn-delete" title="Delete Comment">🗑️</button>
               ` : ""}
             </div>
           </div>
@@ -377,7 +361,7 @@ function renderNestedComments(comments, themaId, threadId, depth = 0) {
               <button class="reply-comment-btn btn-primary btn-blue text-xs px-2 py-0.5" data-comment-id="${c.id}">Reply</button>
               <div class="flex items-center gap-2 reactions-bar">${renderReactionButtons(c.reactions, themaId, threadId, c.id)}</div>
             </div>
-            <span class="meta-info text-xs text-right ml-2 whitespace-nowrap">${c.createdAt}</span>
+            <span class="meta-info text-xs text-text-secondary text-right ml-2 whitespace-nowrap">${c.createdAt}</span>
           </div>
           <div class="reply-form-container" id="reply-form-${c.id}" style="display:none;"></div>
           ${c.children && c.children.length ? `<div class="mt-2">${renderNestedComments(c.children, themaId, threadId, depth + 1)}</div>` : ''}
@@ -423,45 +407,16 @@ async function loadCommentsForThread(themaId, threadId) {
     const tree = buildCommentTree(comments);
     const flat = flattenCommentTree(tree);
     let html = '';
-    if (flat.length === 0) {
-      html = `<div class="flex items-center gap-4 no-comments-row w-full">
-        <button class="toggle-add-comment btn-primary btn-blue mb-0 mr-4">＋ Add Comment</button>
-        <div class="flex-1 text-center no-comments text-sm text-gray-500 mb-0">No comments yet.</div>
-      </div>
-      <div class="add-comment-collapsible" style="display:none;"></div>`;
-    } else {
-      html = renderNestedComments(tree, themaId, threadId);
-      html += `
-        <div class="add-comment-section mt-3">
-          <button type="button" class="toggle-add-comment btn-primary btn-blue mb-2">＋ Add Comment</button>
-          <div class="add-comment-collapsible" style="display:none;">
-            <form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
-              <textarea class="form-input flex-1 min-w-0 mb-0 text-sm" placeholder="Add a comment..." rows="1" required style="margin-bottom:0; min-width:120px; resize:vertical;"></textarea>
-              <button type="submit" class="btn-primary btn-blue text-sm ml-0" style="margin-bottom:0;">Add Comment</button>
-            </form>
-          </div>
-        </div>
-      `;
+    html += `<form class="add-comment-form form-container flex flex-col md:flex-row items-center gap-2 bg-card rounded-lg shadow mb-2" data-thema-id="${themaId}" data-thread-id="${threadId}">
+      <textarea class="form-input flex-1 min-w-0 mb-0 text-sm bg-card text-text-primary border-input-border" placeholder="Add a comment..." rows="1" required style="min-width:120px;resize:vertical;"></textarea>
+      <button type="submit" class="btn-modern text-sm ml-0">Add Comment</button>
+    </form>`;
+    // Render comments if any
+    if (flat.length > 0) {
+      html += renderNestedComments(tree, themaId, threadId);
     }
     commentsContainer.innerHTML = html;
-    // Attach toggle for empty state
-    if (flat.length === 0) {
-      const btn = commentsContainer.querySelector('.toggle-add-comment');
-      const formDiv = commentsContainer.querySelector('.add-comment-collapsible');
-      if (btn && formDiv) {
-        btn.onclick = () => {
-          btn.style.display = 'none';
-          formDiv.style.display = 'block';
-          formDiv.innerHTML = `<form class=\"add-comment-form flex flex-row items-center gap-2 ml-0\" data-thema-id=\"${themaId}\" data-thread-id=\"${threadId}\" style=\"margin-bottom:0;\">
-            <textarea class=\"form-input flex-1 min-w-0 mb-0 text-sm\" placeholder=\"Add a comment...\" rows=\"1\" required style=\"margin-bottom:0; min-width:120px; resize:vertical;\"></textarea>
-            <button type=\"submit\" class=\"btn-primary btn-blue text-sm ml-0\" style=\"margin-bottom:0;\">Add Comment</button>
-          </form>`;
-          setupCommentEventListeners(themaId, threadId);
-        };
-      }
-    } else {
-      setupCommentEventListeners(themaId, threadId);
-    }
+    setupCommentEventListeners(themaId, threadId);
   });
 }
 
@@ -474,16 +429,18 @@ function setupThreadEventListeners(themaId) {
   threadsContainer.querySelectorAll(".create-thread-form").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const titleInput = form.querySelector('input[type="text"]');
+      const titleInput = form.querySelector('input[placeholder="Thread title"]');
+      const descInput = form.querySelector('input[placeholder="Thread description"]');
       const commentInput = form.querySelector("textarea");
-
-      if (titleInput.value.trim() && commentInput.value.trim()) {
+      if (titleInput.value.trim() && descInput.value.trim() && commentInput.value.trim()) {
         await addCommentThread(
           themaId,
           titleInput.value.trim(),
+          descInput.value.trim(),
           commentInput.value.trim(),
         );
         titleInput.value = "";
+        descInput.value = "";
         commentInput.value = "";
       }
     });
@@ -498,12 +455,27 @@ function setupThreadEventListeners(themaId) {
       const descElem = threadElem.querySelector(".comment-content");
       const oldTitle = titleElem ? titleElem.textContent : "";
       const oldDesc = descElem ? descElem.textContent : "";
-      const newTitle = prompt("Edit thread title:", oldTitle);
-      if (newTitle === null) return;
-      const newDesc = prompt("Edit thread description:", oldDesc);
-      if (newDesc === null) return;
-      await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId), { title: newTitle, initialComment: newDesc }, { merge: true });
-      showMessageBox("Thread updated.");
+      // Replace with input fields and Save/Cancel
+      titleElem.innerHTML = `<input class='form-input w-full mb-1' value='${escapeHtml(oldTitle)}' />`;
+      descElem.innerHTML = `<textarea class='form-input w-full mb-1' rows='2'>${escapeHtml(oldDesc)}</textarea>
+        <div class='flex gap-2 mt-1'>
+          <button class='save-edit-thread-btn btn-edit text-xs'>Save</button>
+          <button class='cancel-edit-thread-btn btn-delete text-xs'>Cancel</button>
+        </div>`;
+      // Save handler
+      descElem.querySelector('.save-edit-thread-btn').onclick = async () => {
+        const newTitle = titleElem.querySelector('input').value.trim();
+        const newDesc = descElem.querySelector('textarea').value.trim();
+        if (!newTitle || !newDesc) return showMessageBox('Title and description required', true);
+        await setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${themaId}/threads`, threadId), { title: newTitle, initialComment: newDesc }, { merge: true });
+        showMessageBox('Thread updated.');
+        await loadThreadsForThema(themaId);
+      };
+      // Cancel handler
+      descElem.querySelector('.cancel-edit-thread-btn').onclick = () => {
+        titleElem.textContent = oldTitle;
+        descElem.textContent = oldDesc;
+      };
     });
   });
 
@@ -550,8 +522,8 @@ function setupCommentEventListeners(themaId, threadId) {
       // Replace with input field and Save/Cancel
       contentElem.innerHTML = `<textarea id="edit-comment-content" class="form-input w-full" rows="2">${escapeHtml(oldContent)}</textarea>
         <div class='flex gap-2 mt-1'>
-          <button class='save-edit-comment-btn btn-primary btn-blue text-xs'>Save</button>
-          <button class='cancel-edit-comment-btn btn-primary btn-red text-xs'>Cancel</button>
+          <button class='save-edit-comment-btn btn-modern text-xs'>Save</button>
+          <button class='cancel-edit-comment-btn btn-modern text-xs'>Cancel</button>
         </div>`;
       // Save handler
       contentElem.querySelector('.save-edit-comment-btn').onclick = async () => {
@@ -582,8 +554,8 @@ function setupCommentEventListeners(themaId, threadId) {
       replyFormDiv.style.display = "block";
       replyFormDiv.innerHTML = `<form class='reply-form flex flex-row items-center gap-2 ml-0' data-parent-id='${commentId}' style='margin-bottom:0;'>
         <textarea class='form-input flex-1 min-w-0 mb-0 text-sm' placeholder='Reply...' rows='1' required style='margin-bottom:0; min-width:120px; resize:vertical;'></textarea>
-        <button type='submit' class='btn-primary btn-blue text-sm ml-0' style='margin-bottom:0;'>Reply</button>
-        <button type='button' class='btn-primary btn-red text-sm ml-0 cancel-reply-btn' style='margin-bottom:0;'>Cancel</button>
+        <button type='submit' class='btn-modern text-sm ml-0' style='margin-bottom:0;'>Reply</button>
+        <button type='button' class='btn-modern text-sm ml-0 cancel-reply-btn' style='margin-bottom:0;'>Cancel</button>
       </form>`;
       // Submit handler
       const form = replyFormDiv.querySelector('form');
@@ -622,7 +594,7 @@ function setupCommentEventListeners(themaId, threadId) {
 }
 
 // Add comment thread
-async function addCommentThread(themaId, title, initialComment) {
+async function addCommentThread(themaId, title, description, initialComment) {
   if (!auth.currentUser) {
     showMessageBox("You must be logged in to create a thread.", true);
     return;
@@ -635,6 +607,7 @@ async function addCommentThread(themaId, title, initialComment) {
     );
     await addDoc(threadsCol, {
       title: title,
+      description: description,
       initialComment: initialComment,
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid,
@@ -1286,8 +1259,8 @@ async function openConversation(convoId) {
               <div class="message-timestamp">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
             </div>
             ${isOwn ? `<div class="bubble-actions" style="display:none;position:absolute;top:0.3em;right:0.7em;z-index:2;">
-              <button class="edit-msg-btn" data-msg-id="${msgId}" title="Edit" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1em;margin-right:0.2em;">✏️</button>
-              <button class="delete-msg-btn" data-msg-id="${msgId}" title="Delete" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1em;">🗑️</button>
+              <button class="edit-msg-btn btn-edit" data-msg-id="${msgId}" title="Edit">✏️</button>
+              <button class="delete-msg-btn btn-delete" data-msg-id="${msgId}" title="Delete">🗑️</button>
             </div>` : ''}
             ${isOwn ? `<script>document.currentScript.previousElementSibling.parentElement.onmouseenter = function(){this.querySelector('.bubble-actions').style.display='block';};document.currentScript.previousElementSibling.parentElement.onmouseleave = function(){this.querySelector('.bubble-actions').style.display='none';};</script>` : ''}
           </div>`;
@@ -1352,4 +1325,58 @@ function renderConversationDropdown() {}
 async function getUserProfile(uid) {
   const p = await getUserProfileFromFirestore(uid);
   return p || {displayName: 'Anonymous', handle: 'user', photoURL: null};
+}
+
+// --- Edit and Delete Button Logic Unification ---
+// Helper: Open edit modal or prompt for all editable fields
+function openEditModal(type, ids, data) {
+  // type: 'thema', 'thread', 'comment'
+  // ids: {themaId, threadId, commentId}
+  // data: {name, description, title, content, ...}
+  let fields = [];
+  let labels = [];
+  let values = [];
+  if (type === 'thema') {
+    fields = ['name', 'description'];
+    labels = ['Théma Name', 'Théma Description'];
+    values = [data.name || '', data.description || ''];
+  } else if (type === 'thread') {
+    fields = ['title', 'description'];
+    labels = ['Thread Title', 'Thread Description'];
+    values = [data.title || '', data.description || ''];
+  } else if (type === 'comment') {
+    fields = ['content'];
+    labels = ['Comment'];
+    values = [data.content || ''];
+  }
+  // Use prompt for each field (simple, can be replaced with modal)
+  let newValues = [];
+  for (let i = 0; i < fields.length; ++i) {
+    const v = prompt(`Edit ${labels[i]}:`, values[i]);
+    if (v === null) return; // Cancelled
+    newValues.push(v);
+  }
+  // Save changes
+  if (type === 'thema') {
+    setDoc(doc(db, `artifacts/${appId}/public/data/thematas`, ids.themaId), { name: newValues[0], description: newValues[1] }, { merge: true });
+    showMessageBox('Théma updated.');
+  } else if (type === 'thread') {
+    setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads`, ids.threadId), { title: newValues[0], description: newValues[1] }, { merge: true });
+    showMessageBox('Thread updated.');
+  } else if (type === 'comment') {
+    setDoc(doc(db, `artifacts/${appId}/public/data/thematas/${ids.themaId}/threads/${ids.threadId}/comments`, ids.commentId), { content: newValues[0] }, { merge: true });
+    showMessageBox('Comment updated.');
+  }
+}
+// Helper: Unified delete confirmation and action
+async function handleDelete(type, ids) {
+  let msg = '';
+  if (type === 'thema') msg = 'Delete this Théma and all its threads and comments?';
+  else if (type === 'thread') msg = 'Delete this thread and all its comments?';
+  else if (type === 'comment') msg = 'Delete this comment?';
+  const confirmed = await showCustomConfirm(msg, 'This action cannot be undone.');
+  if (!confirmed) return;
+  if (type === 'thema') await deleteThemaAndSubcollections(ids.themaId);
+  else if (type === 'thread') await deleteThreadAndSubcollection(ids.themaId, ids.threadId);
+  else if (type === 'comment') await deleteComment(ids.themaId, ids.threadId, ids.commentId);
 }

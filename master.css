@@ -12,7 +12,10 @@
 .text-heading-main { color: var(--color-heading-main); }
 .text-heading-card { color: var(--color-heading-card); }
 .text-text-primary { color: var(--color-text-primary); }
-.text-text-secondary { color: var(--color-text-secondary); }
+
+.text-text-secondary {
+  color: #444 !important;
+}
 .text-link { color: var(--color-link); }
 .hover\:text-link:hover { color: var(--color-link); }
 
@@ -245,8 +248,16 @@ textarea {
 .gap-6 { gap: 1.5rem; }
 
 /* Typography */
-.text-xs { font-size: 0.75rem; line-height: 1rem; color: var(--color-text-secondary) !important; }
-.text-sm { font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary) !important; }
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #444 !important;
+}
 .text-base { font-size: 1rem; line-height: 1.5rem; color: var(--color-text-primary) !important; }
 .text-lg { font-size: 1.125rem; line-height: 1.75rem; color: var(--color-text-primary) !important; }
 .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
@@ -620,12 +631,10 @@ body {
 .tab-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid var(--color-input-border);
     padding-bottom: 0;
 }
 
-.tab-button {
+.tab-btn, .tab-button {
     border: none;
     padding: 1rem 2rem;
     margin: 0 0.5rem;
@@ -635,10 +644,17 @@ body {
     font-size: 1.1rem;
     transition: all 0.3s ease;
     border-bottom: 3px solid transparent;
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
-.tab-button.active {
+.tab-btn.active, .tab-button.active {
     border-bottom-color: var(--color-link);
+  background: var(--color-bg-content-section);
+  color: var(--color-link);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  z-index: 2;
 }
 
 .tab-content {
@@ -688,14 +704,14 @@ body {
         align-items: center;
     }
 
-    .tab-button {
+  .tab-btn, .tab-button {
         margin: 0.25rem 0;
         border-radius: 0.5rem;
         width: 100%;
         max-width: 300px;
     }
 
-    .tab-button.active {
+  .tab-btn.active, .tab-button.active {
         border-bottom-color: transparent;
     }
 }
@@ -746,27 +762,25 @@ body {
 }
 
 .btn-modern {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
+  background: var(--color-button-blue-bg, #2563eb) !important;
+  color: var(--color-button-text, #fff) !important;
   border: none;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  text-decoration: none;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s;
 }
 
 .btn-modern:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px;
+  background: var(--color-link, #3b82f6) !important;
+  color: var(--color-button-text, #fff) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  filter: brightness(1.08);
 }
 
 .btn-modern:active {
-  transform: translateY(0);
+  background: var(--color-button-blue-bg, #1d4ed8) !important;
+  color: var(--color-button-text, #fff) !important;
+  filter: brightness(0.98);
 }
 
 .tab-container {
@@ -914,3 +928,250 @@ body {
 }
 
 /* --- End: DM Section Input Theming for forms.html --- */
+
+/* --- Begin: Reddit-style Nested Comments for forms.html --- */
+/* Indent replies and add SVG connector lines for nested comments */
+.thread-header[class*="depth-"] {
+  position: relative;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.thread-header.depth-1 {
+  margin-left: 1.5em;
+  padding-left: 1.5em;
+}
+
+.thread-header.depth-2 {
+  margin-left: 3em;
+  padding-left: 1.5em;
+}
+
+.thread-header.depth-3 {
+  margin-left: 4.5em;
+  padding-left: 1.5em;
+}
+
+.thread-header.depth-4 {
+  margin-left: 6em;
+  padding-left: 1.5em;
+}
+
+.thread-header.depth-5 {
+  margin-left: 7.5em;
+  padding-left: 1.5em;
+}
+
+/* SVG connector for nested replies */
+.comment-connector-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 1.2em;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+/* Hide connector for top-level comments */
+.thread-header.depth-0 .comment-connector-svg {
+  display: none;
+}
+
+/* Reply button styling */
+.reply-comment-btn {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2em 0.7em;
+  border-radius: 0.4em;
+  transition: background 0.15s, color 0.15s;
+  margin-left: 0.2em;
+}
+
+.reply-comment-btn:hover {
+  background: var(--color-bg-navbar, #23272e);
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+/* Indent reply form to match comment depth */
+.reply-form-container {
+  margin-left: 2.2em;
+}
+
+/* Make sure comment content and meta info align with indentation */
+.thread-header .comment-content,
+.thread-header .meta-info {
+  margin-left: 0;
+}
+
+/* Responsive: reduce indent on mobile */
+@media (max-width: 600px) {
+  .thread-header.depth-1 {
+    margin-left: 0.8em;
+    padding-left: 0.8em;
+  }
+
+  .thread-header.depth-2 {
+    margin-left: 1.6em;
+    padding-left: 0.8em;
+  }
+
+  .thread-header.depth-3 {
+    margin-left: 2.4em;
+    padding-left: 0.8em;
+  }
+
+  .thread-header.depth-4 {
+    margin-left: 3.2em;
+    padding-left: 0.8em;
+  }
+
+  .thread-header.depth-5 {
+    margin-left: 4em;
+    padding-left: 0.8em;
+  }
+
+  .reply-form-container {
+    margin-left: 1.2em;
+  }
+}
+
+/* --- End: Reddit-style Nested Comments for forms.html --- */
+
+/* --- Begin: Consistent Small Profile Pic Sizing --- */
+.dm-message-profile-pic,
+img.profile-pic,
+img.avatar,
+img.user-avatar,
+img:not(.profile-pic-large):not(.avatar-large):not(.profile-pic-xl):not(.avatar-xl)[class*="profile-pic"],
+img:not(.profile-pic-large):not(.avatar-large):not(.profile-pic-xl):not(.avatar-xl)[class*="avatar"] {
+  width: 2rem !important;
+  height: 2rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  max-width: 2rem !important;
+  max-height: 2rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Large avatars (for explicit large profile pics only) */
+.profile-pic-large,
+.avatar-large,
+.profile-pic-xl,
+.avatar-xl {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  min-width: 3.5rem !important;
+  min-height: 3.5rem !important;
+  max-width: 3.5rem !important;
+  max-height: 3.5rem !important;
+}
+
+/* --- End: Consistent Small Profile Pic Sizing --- */
+
+.btn-edit {
+  background: var(--color-button-yellow-bg, #facc15) !important;
+  color: var(--color-button-text, #222) !important;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-weight: 600;
+  font-size: 1em;
+  padding: 0.5em 1em;
+  transition: all 0.15s;
+}
+
+.btn-edit:hover {
+  background: var(--color-button-yellow-bg, #fde047) !important;
+  color: var(--color-button-text, #111) !important;
+  filter: brightness(1.08);
+}
+
+.btn-edit:active {
+  background: var(--color-button-yellow-bg, #eab308) !important;
+  color: var(--color-button-text, #111) !important;
+  filter: brightness(0.98);
+}
+
+.btn-delete {
+  background: var(--color-button-red-bg, #ef4444) !important;
+  color: var(--color-button-text, #fff) !important;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-weight: 600;
+  font-size: 1em;
+  padding: 0.5em 1em;
+  transition: all 0.15s;
+}
+
+.btn-delete:hover {
+  background: var(--color-button-red-bg, #f87171) !important;
+  color: var(--color-button-text, #fff) !important;
+  filter: brightness(1.08);
+}
+
+.btn-delete:active {
+  background: var(--color-button-red-bg, #b91c1c) !important;
+  color: var(--color-button-text, #fff) !important;
+  filter: brightness(0.98);
+}
+
+.reaction-btn {
+  background: transparent !important;
+  color: inherit;
+  border: 1.5px solid var(--color-input-border, #374151);
+  border-radius: 0.5rem;
+  padding: 0.3em 0.7em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.reaction-btn:hover, .reaction-btn:focus {
+  background: rgba(var(--color-link-rgb, 59, 130, 246), 0.12) !important;
+  color: var(--color-link, #3b82f6) !important;
+  border-color: var(--color-link, #3b82f6);
+}
+
+.reaction-btn:active {
+  background: rgba(var(--color-link-rgb, 59, 130, 246), 0.18) !important;
+  border-color: var(--color-link, #a0e1ff);
+}
+
+/* Remove or override any global span color rule */
+span {
+  color: var(--color-link, #ffffff);
+}
+
+.meta-info {
+  color: var(--color-link, #ffffff) !important;
+  opacity: 0.85;
+}
+
+.reaction-count {
+  color: var(--color-text-primary, #fff) !important;
+}
+
+.text-meta-info {
+  color: var(--color-link, #e1e9f5) !important;
+  opacity: 0.85;
+}

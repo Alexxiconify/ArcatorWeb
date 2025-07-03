@@ -418,8 +418,6 @@
     }
 
     .reaction-btn {
-      background: #23272e;
-      color: #bfc7d5;
       border: 1px solid #333a;
       border-radius: 999px;
       padding: 2px 10px;
@@ -431,8 +429,6 @@
     }
 
     .reaction-btn:hover {
-      background: #1a1d22;
-      color: #fff;
     }
 
     .reaction-count {
@@ -651,17 +647,20 @@
   <div class="tab-content" id="thema-all-tab-content">
     <!-- All Thémata Section -->
     <div class="all-themata-section">
-      <button class="btn-primary btn-blue mb-2" id="toggle-create-thema">＋ New Théma</button>
-      <div id="create-thema-collapsible" style="display:none;">
-        <form class="form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2"
-              id="create-thema-form">
-          <input class="form-input flex-1 min-w-0 mb-0" id="new-thema-name" placeholder="Théma Name" required
-                 type="text"/>
-          <input class="form-input flex-1 min-w-0 mb-0" id="new-thema-description" placeholder="Théma Description" required
-                 type="text"/>
-          <button class="btn-primary btn-blue ml-0" type="submit">Create Théma</button>
+      <form class="form-container flex flex-row gap-4 items-center bg-card rounded-lg shadow mb-4 p-4"
+            id="create-thema-form">
+        <div class="relative flex-1">
+          <input class="form-input bg-card text-text-primary border-input-border w-full pl-9" id="new-thema-name"
+                 name="new-thema-name" placeholder="Théma Name" required type="text"/>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-link text-xl">📚</span>
+        </div>
+        <div class="relative flex-2">
+          <input class="form-input bg-card text-text-primary border-input-border w-full pl-9" id="new-thema-description"
+                 name="new-thema-description" placeholder="Théma Description" required type="text"/>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-link text-xl">📝</span>
+        </div>
+        <button class="btn-modern ml-2" type="submit">Create Théma</button>
         </form>
-      </div>
       <ul id="thema-boxes"></ul>
     </div>
   </div>
@@ -731,20 +730,7 @@
         <!-- Create New Thread -->
         <div class="card-modern p-4 mb-4">
           <h3 class="text-lg font-bold mb-4">Create New Thread</h3>
-          <form class="space-y-4" id="create-thread-form">
-            <div class="form-group">
-              <label class="form-label" for="new-thread-title">Thread Title</label>
-              <input class="form-input" id="new-thread-title" placeholder="Enter thread title" required type="text"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="new-thread-initial-comment">Initial Comment</label>
-              <div id="new-thread-initial-comment-container"></div>
-              <textarea id="new-thread-initial-comment" style="display:none"></textarea>
-            </div>
-            <button class="btn-modern" type="submit">
-              <span>Create Thread</span>
-            </button>
-          </form>
+          <!-- Thread creation form is rendered dynamically by forms.js -->
         </div>
 
         <!-- Threads List -->
@@ -779,16 +765,7 @@
         <!-- Add Comment -->
         <div class="card-modern p-4 mb-4">
           <h3 class="text-lg font-bold mb-4">Add Comment</h3>
-          <form class="space-y-4" id="add-comment-form">
-            <div class="form-group">
-              <label class="form-label" for="new-comment-content">Your Comment</label>
-              <div id="new-comment-content-container"></div>
-              <textarea id="new-comment-content" style="display:none"></textarea>
-            </div>
-            <button class="btn-modern" type="submit">
-              <span>Add Comment</span>
-            </button>
-          </form>
+          <!-- Comment form is rendered dynamically by forms.js -->
         </div>
         <!-- Comments List -->
         <div class="space-y-4" id="comment-list">
