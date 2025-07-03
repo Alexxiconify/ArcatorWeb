@@ -469,6 +469,7 @@ function setupThreadEventListeners(themaId) {
   threadsContainer.querySelectorAll(".edit-thread-btn").forEach((button) => {
     button.addEventListener("click", async (event) => {
       const threadElem = event.target.closest("[data-thread-id]");
+      if (!threadElem) return;
       const threadId = threadElem.dataset.threadId;
       const titleElem = threadElem.querySelector(".font-bold");
       const descElem = threadElem.querySelector(".comment-content");
@@ -500,7 +501,9 @@ function setupThreadEventListeners(themaId) {
 
   threadsContainer.querySelectorAll(".delete-thread-btn").forEach((button) => {
     button.addEventListener("click", async (event) => {
-      const threadId = event.target.closest(".thread-item").dataset.threadId;
+      const threadElem = event.target.closest("[data-thread-id]");
+      if (!threadElem) return;
+      const threadId = threadElem.dataset.threadId;
       const confirmed = await showCustomConfirm(
         "Delete this thread?",
         "All comments will also be deleted.",
