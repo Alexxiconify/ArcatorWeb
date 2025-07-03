@@ -4,21 +4,17 @@
   <meta charset="UTF-8">
   <meta content="width=device-width,initial-scale=1" name="viewport">
   <title>Forms - Arcator.co.uk</title>
-  <link href="master.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="theme_variables.css" rel="stylesheet">
-  <link href="css/style.css" rel="stylesheet">
+  <link href="dist/style.bundle.css" rel="stylesheet">
   <link href="favicon.png" rel="icon" type="image/png">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 <div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
 <section class="hero-banner rounded-b-lg shadow-xl"
          style="margin-top:64px;background-image:url('https://jylina.arcator.co.uk/standalone/img/creativespawn.png');background-size:cover;background-position:center;min-height:250px;display:flex;align-items:center;justify-content:center;position:relative">
   <div style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:1"></div>
-  <div class="container mx-auto px-4 text-center hero-content"><h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main"
-                                                                   id="hero-title">
-    Community Forum</h1>
+  <div class="container mx-auto px-4 text-center hero-content"><h1
+    class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main" id="hero-title">Community
+    Forum</h1>
     <p class="text-xl md:text-2xl mb-8 text-heading-card">Connect, discuss, and share with the Arcator community</p>
   </div>
 </section>
@@ -32,11 +28,10 @@
       <button class="btn-primary btn-blue mb-2" id="toggle-create-thema">＋ New Théma</button>
       <div id="create-thema-collapsible" style="display:none">
         <form class="form-container flex flex-col md:flex-row items-center gap-2 p-2 bg-card rounded-lg shadow mb-2"
-              id="create-thema-form">
-          <input class="form-input flex-1 min-w-0 mb-0" id="new-thema-name" placeholder="Théma Name" required
-                 type="text"> <input class="form-input flex-1 min-w-0 mb-0" id="new-thema-description"
-                                                                placeholder="Théma Description" required
-                                                                type="text">
+              id="create-thema-form"><input class="form-input flex-1 min-w-0 mb-0" id="new-thema-name"
+                                            placeholder="Théma Name" required type="text"> <input
+          class="form-input flex-1 min-w-0 mb-0" id="new-thema-description" placeholder="Théma Description" required
+          type="text">
           <button class="btn-primary btn-blue ml-0" type="submit">Create Théma</button>
         </form>
       </div>
@@ -160,10 +155,8 @@
 <div id="footer-placeholder"></div>
 <div id="forms-content" style="display:none"></div>
 <div id="loading-spinner" style="display:none"></div>
-<script src="app.js" type="module"></script>
-<script src="forms.js" type="module"></script>
+<script src="dist/all.bundle.js" type="module"></script>
 <script defer="defer" src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script defer="defer" src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
-<script src="forms-init.js" type="module"></script>
 </body>
 </html>

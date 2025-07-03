@@ -172,9 +172,9 @@ textarea {
 }
 
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
-  (min-resolution: 1.25dppx),
-  (min-resolution: 120dpi) {
+(-webkit-min-device-pixel-ratio: 1.25),
+(min-resolution: 1.25dppx),
+(min-resolution: 120dpi) {
   /* Style adjustments for high resolution devices */
 }
 
@@ -265,3 +265,82 @@ body {
 
 /* (All other CSS from forms.html lines 13-246 goes here) */
 /* --- End: Extracted from forms.html --- */
+
+/* --- Begin: forms.css --- */
+/* forms.css */
+/* This file can be used for any additional forms-specific CSS not already inlined in forms.html */
+
+/* Example: If you want to add unique styles not covered by theme_variables.css or inlined styles */
+.hero-banner {
+  /* Add any specific overrides or new styles for the hero banner here if needed */
+  /* For example, if you wanted a specific image just for forms.html */
+  /* background-image: url('path/to/your/forms-hero-image.png'); */
+}
+
+.hero-banner.low-res {
+  background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn-lowres.jpg");
+  filter: blur(2px) brightness(0.8);
+}
+
+.hero-banner.high-res {
+  background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+  transition: filter 0.5s,
+  background-image 0.5s;
+  filter: none;
+}
+
+/* Styles for the Théma/Thread/Comment structure */
+.thema-item,
+.thread-item,
+.comment-item {
+  transition: transform 0.2s ease-in-out,
+  box-shadow 0.2s ease-in-out;
+}
+
+.thema-item:hover,
+.thread-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Specific button styling if not handled by theme_variables.css already */
+.btn-primary {
+  transition: background-color 0.2s ease,
+  transform 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+/* Adjust padding/margin for better mobile responsiveness if needed */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+}
+
+/* Enhanced Features Styles */
+
+/* Reaction Styles */
+.reactions-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.reaction-btn {
+  background: var(--color-bg-card) !important;
+  color: var(--color-link) !important;
+  border: 1px solid var(--color-input-border) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-right: 0.25rem;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+/* ... rest of forms.css ... */
+/* --- End: forms.css --- */
