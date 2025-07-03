@@ -869,4 +869,48 @@ body {
   }
 }
 
-/* --- End: forms.html theming additions --- */
+/* --- Begin: DM Section Input Theming for forms.html --- */
+#dm-tab-content input,
+#dm-tab-content select,
+#dm-tab-content textarea,
+#dm-tab-content .form-input,
+#dm-tab-content .form-select {
+  background-color: var(--color-input-bg) !important;
+  color: var(--color-input-text) !important;
+  border: 1px solid var(--color-input-border) !important;
+  border-radius: 0.5rem !important;
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#dm-tab-content input:focus,
+#dm-tab-content select:focus,
+#dm-tab-content textarea:focus,
+#dm-tab-content .form-input:focus,
+#dm-tab-content .form-select:focus {
+  outline: none;
+  border-color: var(--color-link) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+#dm-tab-content input::placeholder,
+#dm-tab-content textarea::placeholder {
+  color: var(--color-placeholder) !important;
+  opacity: 1;
+}
+
+#dm-tab-content input[disabled],
+#dm-tab-content select[disabled],
+#dm-tab-content textarea[disabled] {
+  background-color: var(--color-bg-card) !important;
+  color: var(--color-text-secondary) !important;
+  cursor: not-allowed;
+}
+
+#dm-tab-content .form-input,
+#dm-tab-content .form-select {
+  box-shadow: none;
+}
+
+/* --- End: DM Section Input Theming for forms.html --- */
