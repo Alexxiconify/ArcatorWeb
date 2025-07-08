@@ -7,9 +7,9 @@ import {
   firebaseReadyPromise,
   getUserProfileFromFirestore,
 } from "./firebase-init.js";
-import {loadFooter, loadNavbar} from "./navbar.js";
+import {loadFooter, loadNavbar} from "./core.js";
 import {applyCachedTheme, applyTheme, getAvailableThemes,} from "./themes.js";
-import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
+import {escapeHtml, showCustomConfirm, showMessageBox, setupTabs} from "./utils.js";
 import {
   addDoc,
   collection,

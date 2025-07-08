@@ -1,5 +1,5 @@
-// Shared Emoji Picker Module
-// This module provides emoji picker functionality that can be used across all pages
+// emoji-picker.js: Emoji picker functionality
+import { showMessageBox, escapeHtml } from "./utils.js";
 
 let emojiData = [];
 let filteredEmojis = [];
@@ -723,27 +723,7 @@ function validateYouTubeUrl(url, pickerId) {
   }
 }
 
-/**
- * Extracts video ID from YouTube URL.
- * @param {string} url - The YouTube URL.
- * @returns {string|null} The video ID or null if invalid.
- */
-function extractYouTubeVideoId(url) {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/v\/([^&\n?#]+)/,
-    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) {
-      return match[1];
-    }
-  }
-
-  return null;
-}
+// YouTube video ID extraction moved to utils.js
 
 /**
  * Inserts a YouTube URL into the target input.

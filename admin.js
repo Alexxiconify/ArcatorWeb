@@ -24,13 +24,11 @@ import {
   testEmailJSConnection,
   getEmailJSStatus,
   saveCredentials,
-} from "./emailjs-integration.js";
-import {
   sendEmailViaSMTP,
   testSMTPServerConnection,
   getSMTPServerStatus,
   initializeSMTPIntegration,
-} from "./smtp-integration.js";
+} from "./email-integration.js";
 import {
   doc,
   getDoc,

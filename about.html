@@ -660,9 +660,7 @@
   <div id="footer-placeholder"></div>
   <script src="app.js" type="module"></script>
   <script type="module">
-    import { initializePage } from './core.js';
-    import { setupTabs } from './core.js';
-    import { loadFooter } from './navbar.js';
+    import { initializePage, setupTabs, loadFooter } from './core.js';
     initializePage('about');
     setupTabs('.tab-btn', '.tab-content');
     loadFooter();
