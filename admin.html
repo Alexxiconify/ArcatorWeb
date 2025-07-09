@@ -190,7 +190,7 @@
   <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
 
   <!-- Hero Section -->
-  <section class="hero-banner rounded-b-lg shadow-xl" style="margin-top: 64px">
+  <section class="hero-banner rounded-b-lg shadow-xl"  style="margin-top: 0; width: 100vw; max-width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;">
     <div class="container mx-auto px-4 text-center hero-content">
       <h1 id="hero-title" class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main">
         Admin
@@ -579,10 +579,8 @@
                     <div class="input-field" id="custom-recipients-section" style="display: none">
                       <label for="email-recipients" class="form-label">Select Recipients:</label>
                       <div class="bg-input-bg border border-input-border rounded-lg p-3 max-h-48 overflow-y-auto">
-                        <div id="email-recipients-list" class="space-y-2">
-                          <!-- Recipients will be populated here -->
+                        <div id="email-recipients-list" class="space-y-2">                          <!-- Recipients will be populated here -->
                         </div>
-                        <input id="email-recipients" type="hidden" />
                       </div>
                     </div>
 
@@ -621,30 +619,30 @@
                     Email History
                   </h4>
                   <div class="w-full">
-                    <table class="w-full text-left table-auto text-xs">
+                    <table class="w-full text-left table-auto text-xs text-white">
                       <thead>
                         <tr class="bg-table-th-bg">
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             DATE
                           </th>
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             RECIPIENTS
                           </th>
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             SUBJECT
                           </th>
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             STATUS
                           </th>
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             METHOD
                           </th>
-                          <th class="px-2 py-1 text-table-th-text text-xs">
+                          <th class="px-2 py-1 text-table-th-text text-xs text-white">
                             ACTIONS
                           </th>
                         </tr>
                       </thead>
-                      <tbody id="email-history-tbody">
+                      <tbody id="email-history-tbody text-white">
                         <tr>
                           <td class="text-center py-4 text-text-secondary text-xs" colspan="6">
                             No emails sent yet.
@@ -664,21 +662,6 @@
 
   <!-- Message Box Element -->
   <div id="message-box" class="message-box"></div>
-
-  <!-- Custom Confirmation Modal (for delete operations) -->
-  <div id="custom-confirm-modal" class="custom-confirm-modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <p class="mb-4 text-lg" id="confirm-message"></p>
-      <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
-      <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">
-        Yes
-      </button>
-      <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">
-        Cancel
-      </button>
-    </div>
-  </div>
 
   <!-- Footer Section -->
   <div id="footer-placeholder"></div>

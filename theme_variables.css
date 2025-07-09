@@ -1,8 +1,8 @@
 :root {
   /* Default variables - these act as fallbacks if a specific theme doesn't define them */
   --color-body-bg: #1f2937;
-  --color-text-primary: #e5e7eb;
-  --color-text-secondary: #9ca3af;
+  --color-text-primary: #fff;
+  --color-text-secondary: #e5e7eb;
   --color-link: #60a5fa;
   --color-link-hover: #3b82f6;
   --color-bg-navbar: #111827;
@@ -36,8 +36,6 @@
   --color-table-row-even-bg: #374151;
   --color-modal-bg: #2d3748;
   --color-modal-text: #e5e7eb;
-  --color-modal-input-bg: #374151;
-  --color-modal-input-text: #e5e7eb;
     --color-message-box-bg-success: #4caf50;
     --color-message-box-bg-error: #f44336;
   --font-family-body: "Inter", sans-serif;
@@ -49,6 +47,10 @@
   --color-btn-hover-text: #fff;
   --color-btn-active-bg: #1e40af;
   --color-btn-active-text: #fff;
+}
+
+body, html {
+  color: var(--color-text-primary, #fff);
 }
 .theme-dark {
   --color-body-bg: #1f2937;

@@ -83,36 +83,25 @@ function generateNavbarHTML(user, userProfile, defaultProfilePic) {
   const displayName = userProfile?.displayName || user?.displayName || "Guest";
   // Modernized navbar with divider, blur, and smaller button
   return `
-    <nav class="bg-navbar-footer text-white shadow-lg fixed top-0 left-0 right-0 z-50" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1.5px solid var(--color-input-border);">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-between w-14 py-1">
-          <!-- Left side: Logo and navigation links -->
-          <div class="flex space-x-8">
+    <nav class="bg-navbar-footer fixed top-0 left-0 right-0 z-50">
+        <div class="flex justify-between items-center">
             <a href="index.html" class="text-lg font-bold whitespace-nowrap text-white">Arcator</a>
-            <div class="flex items-center space-x-6">
-              <a href="index.html" class="text-sm hover:text-link transition-colors text-white">Home</a>
-              <a href="about.html" class="text-sm hover:text-link transition-colors text-white">About</a>
-              <a href="games.html" class="text-sm hover:text-link transition-colors text-white">Games</a>
-              <a href="forms.html" class="text-sm hover:text-link transition-colors text-white">Community</a>
-              <a href="pages.html" class="text-sm hover:text-link transition-colors text-white">Pages</a>
-              <a href="privacy.html" class="text-sm hover:text-link transition-colors text-white">Privacy</a>
+            <a href="about.html" class="text-sm hover:text-link transition-colors text-white">About</a>
+            <a href="games.html" class="text-sm hover:text-link transition-colors text-white">Games</a>
+            <a href="forms.html" class="text-sm hover:text-link transition-colors text-white">Forms</a>
+            <a href="pages.html" class="text-sm hover:text-link transition-colors text-white">Pages</a>
+            <a href="privacy.html" class="text-sm hover:text-link transition-colors text-white">Privacy</a>
               <a href="admin.html" class="text-sm hover:text-link transition-colors text-white">Admin</a>
-            </div>
-          </div>
-          <!-- Divider -->
-          <div class="hidden md:block h-8 w-px bg-input-border mx-4" style="background:var(--color-input-border);"></div>
-          <!-- Right side: User section -->
-          <div class="flex items-center">
             ${user ? `
               <div class="flex items-center space-x-2">
                 <button id="logout-btn" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Logout</button>
-                <img src="${profilePic}" alt="Profile" class="navbar-profile-icon" style="vertical-align: middle;">
-                <span class="text-xs font-medium text-white">${displayName}</span>
+                <a href="users.html" class="text-xs font-medium text-white">
+                <img src="${profilePic}" class="navbar-profile-icon" style="vertical-align: middle;">
+                ${displayName}</a>
               </div>
             ` : `
               <a href="users.html" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Login</a>
             `}
-          </div>
         </div>
       </div>
     </nav>
@@ -196,18 +185,14 @@ export function loadFooter(yearElementId = null) {
   const currentYear = new Date().getFullYear();
   
   footerPlaceholder.innerHTML = `
-    <footer class="bg-navbar-footer text-white text-xs">
-      <div class="border-t border-input-border mt-8 pt-6 text-center">
-        <p class="text-xs mb-1" style="margin-bottom:0.25em;">
-          <a href="about.html" class="hover:text-link transition-colors">About</a>
-          <a href="games.html" class="hover:text-link transition-colors ml-2">Games</a>
-          <a href="forms.html" class="hover:text-link transition-colors ml-2">Community</a>
-          <a href="privacy.html" class="hover:text-link transition-colors ml-2">Privacy</a>
-          <a href="https://discord.gg/arcator" target="_blank" class="hover:text-link transition-colors ml-2">Discord</a>
-        </p>
-        <p class="text-xs" style="margin-bottom:0;">
-          ©2012-${yearElementId ? `<span id="${yearElementId}">${currentYear}</span>` : currentYear} Arcator.co.uk A community-driven Minecraft server network.
-        </p>
+    <footer class="bg-navbar-footer">
+      <div class="text-center">
+          <a class="text-white text-xs" href="about.html" class="hover:text-link transition-colors">About</a>
+          <a class="text-white text-xs" href="games.html" class="hover:text-link transition-colors ml-2">Games</a>
+          <a class="text-white text-xs" href="forms.html" class="hover:text-link transition-colors ml-2">Community</a>
+          <a class="text-white text-xs" href="privacy.html" class="hover:text-link transition-colors ml-2">Privacy</a>
+          <a class="text-white text-xs" href="https://discord.gg/arcator" target="_blank" class="hover:text-link transition-colors ml-2">Discord</a>
+        <p class="text-xs">©2012-${yearElementId ? `<span class="text-whitetext-xs" id="${yearElementId}">${currentYear}</span>` : currentYear} Arcator.co.uk A community-driven Minecraft server network.</p>
       </div>
     </footer>
   `;
