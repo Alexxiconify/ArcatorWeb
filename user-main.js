@@ -25,7 +25,7 @@ import {
   getAvailableThemes,
   cacheUserTheme,
 } from "./themes.js";
-import { loadNavbar } from "./navbar.js"; // Ensure loadNavbar is imported
+import { loadNavbar } from "./core.js"; // Ensure loadNavbar is imported
 
 // Import global shortcut functions from app.js
 import {

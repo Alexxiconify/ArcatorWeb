@@ -81,29 +81,36 @@ export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTh
 function generateNavbarHTML(user, userProfile, defaultProfilePic) {
   const profilePic = userProfile?.photoURL || defaultProfilePic;
   const displayName = userProfile?.displayName || user?.displayName || "Guest";
-  
+  // Modernized navbar with divider, blur, and smaller button
   return `
-    <nav class="bg-navbar-footer text-text-primary shadow-lg fixed top-0 left-0 right-0 z-50">
+    <nav class="bg-navbar-footer text-white shadow-lg fixed top-0 left-0 right-0 z-50" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1.5px solid var(--color-input-border);">
       <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <a href="index.html" class="text-xl font-bold text-heading-main">Arcator.co.uk</a>
-            <div class="hidden md:flex space-x-4">
-              <a href="about.html" class="hover:text-link transition-colors">About</a>
-              <a href="games.html" class="hover:text-link transition-colors">Games</a>
-              <a href="forms.html" class="hover:text-link transition-colors">Community</a>
+        <div class="flex justify-between w-14 py-1">
+          <!-- Left side: Logo and navigation links -->
+          <div class="flex space-x-8">
+            <a href="index.html" class="text-lg font-bold whitespace-nowrap text-white">Arcator</a>
+            <div class="flex items-center space-x-6">
+              <a href="index.html" class="text-sm hover:text-link transition-colors text-white">Home</a>
+              <a href="about.html" class="text-sm hover:text-link transition-colors text-white">About</a>
+              <a href="games.html" class="text-sm hover:text-link transition-colors text-white">Games</a>
+              <a href="forms.html" class="text-sm hover:text-link transition-colors text-white">Community</a>
+              <a href="pages.html" class="text-sm hover:text-link transition-colors text-white">Pages</a>
+              <a href="privacy.html" class="text-sm hover:text-link transition-colors text-white">Privacy</a>
+              <a href="admin.html" class="text-sm hover:text-link transition-colors text-white">Admin</a>
             </div>
           </div>
-          
-          <div class="flex items-center space-x-4">
+          <!-- Divider -->
+          <div class="hidden md:block h-8 w-px bg-input-border mx-4" style="background:var(--color-input-border);"></div>
+          <!-- Right side: User section -->
+          <div class="flex items-center">
             ${user ? `
               <div class="flex items-center space-x-2">
-                <img src="${profilePic}" alt="Profile" class="w-8 h-8 rounded-full">
-                <span class="hidden sm:inline">${displayName}</span>
-                <button id="logout-btn" class="btn-primary btn-red text-sm">Logout</button>
+                <button id="logout-btn" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Logout</button>
+                <img src="${profilePic}" alt="Profile" class="navbar-profile-icon" style="vertical-align: middle;">
+                <span class="text-xs font-medium text-white">${displayName}</span>
               </div>
             ` : `
-              <a href="users.html" class="btn-primary btn-blue">Login</a>
+              <a href="users.html" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Login</a>
             `}
           </div>
         </div>
@@ -116,6 +123,7 @@ function generateNavbarHTML(user, userProfile, defaultProfilePic) {
  * Sets up navbar event listeners.
  */
 function setupNavbarEventListeners() {
+  // Logout button
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
@@ -128,6 +136,46 @@ function setupNavbarEventListeners() {
       }
     });
   }
+  
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+  
+  if (mobileMenuBtn && mobileMenu) {
+    mobileMenuBtn.addEventListener("click", () => {
+      const isHidden = mobileMenu.classList.contains("hidden");
+      if (isHidden) {
+        mobileMenu.classList.remove("hidden");
+        mobileMenuBtn.innerHTML = `
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        `;
+      } else {
+        mobileMenu.classList.add("hidden");
+        mobileMenuBtn.innerHTML = `
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        `;
+      }
+    });
+  }
+  
+  // Close mobile menu when clicking outside
+  document.addEventListener("click", (event) => {
+    if (mobileMenu && mobileMenuBtn) {
+      const isClickInside = mobileMenu.contains(event.target) || mobileMenuBtn.contains(event.target);
+      if (!isClickInside && !mobileMenu.classList.contains("hidden")) {
+        mobileMenu.classList.add("hidden");
+        mobileMenuBtn.innerHTML = `
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        `;
+      }
+    }
+  });
 }
 
 // ============================================================================
@@ -148,83 +196,24 @@ export function loadFooter(yearElementId = null) {
   const currentYear = new Date().getFullYear();
   
   footerPlaceholder.innerHTML = `
-    <footer class="bg-navbar-footer text-text-primary py-8 mt-16">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 class="text-lg font-bold mb-4">Arcator.co.uk</h3>
-            <p class="text-text-secondary">A community-driven Minecraft server network.</p>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-4">Quick Links</h4>
-            <ul class="space-y-2">
-              <li><a href="about.html" class="hover:text-link transition-colors">About</a></li>
-              <li><a href="games.html" class="hover:text-link transition-colors">Games</a></li>
-              <li><a href="forms.html" class="hover:text-link transition-colors">Community</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-4">Resources</h4>
-            <ul class="space-y-2">
-              <li><a href="privacy.html" class="hover:text-link transition-colors">Privacy</a></li>
-              <li><a href="https://discord.gg/arcator" target="_blank" class="hover:text-link transition-colors">Discord</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-4">Connect</h4>
-            <p class="text-text-secondary">Join our community!</p>
-            <div class="mt-2">
-              <a href="https://discord.gg/arcator" target="_blank" class="btn-primary btn-blue text-sm">Join Discord</a>
-            </div>
-          </div>
-        </div>
-        <div class="border-t border-input-border mt-8 pt-8 text-center">
-          <p class="text-text-secondary">
-            © ${yearElementId ? `<span id="${yearElementId}">${currentYear}</span>` : currentYear} Arcator.co.uk. All rights reserved.
-          </p>
-        </div>
+    <footer class="bg-navbar-footer text-white text-xs">
+      <div class="border-t border-input-border mt-8 pt-6 text-center">
+        <p class="text-xs mb-1" style="margin-bottom:0.25em;">
+          <a href="about.html" class="hover:text-link transition-colors">About</a>
+          <a href="games.html" class="hover:text-link transition-colors ml-2">Games</a>
+          <a href="forms.html" class="hover:text-link transition-colors ml-2">Community</a>
+          <a href="privacy.html" class="hover:text-link transition-colors ml-2">Privacy</a>
+          <a href="https://discord.gg/arcator" target="_blank" class="hover:text-link transition-colors ml-2">Discord</a>
+        </p>
+        <p class="text-xs" style="margin-bottom:0;">
+          ©2012-${yearElementId ? `<span id="${yearElementId}">${currentYear}</span>` : currentYear} Arcator.co.uk A community-driven Minecraft server network.
+        </p>
       </div>
     </footer>
   `;
 }
 
-// ============================================================================
-// USER PROFILE MANAGEMENT
-// ============================================================================
-
-/**
- * Gets user profile from Firestore.
- * @param {string} uid - The user UID.
- * @returns {Promise<Object|null>} - The user profile or null.
- */
-export async function getUserProfileFromFirestore(uid) {
-  try {
-    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
-    return userDoc.exists() ? userDoc.data() : null;
-  } catch (error) {
-    console.error("Error getting user profile:", error);
-    return null;
-  }
-}
-
-/**
- * Sets user profile in Firestore.
- * @param {string} uid - The user UID.
- * @param {Object} profileData - The profile data to set.
- * @returns {Promise<boolean>} - Whether the operation was successful.
- */
-export async function setUserProfileInFirestore(uid, profileData) {
-  try {
-    await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid), {
-      ...profileData,
-      lastUpdated: serverTimestamp(),
-    });
-    return true;
-  } catch (error) {
-    console.error("Error setting user profile:", error);
-    return false;
-  }
-}
+// User profile functions are imported from firebase-init.js
 
 // ============================================================================
 // PAGE INITIALIZATION
@@ -312,17 +301,3 @@ export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector 
     });
   });
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export {
-  setupFirebaseCore,
-  loadNavbar,
-  loadFooter,
-  getUserProfileFromFirestore,
-  setUserProfileInFirestore,
-  initializePage,
-  setupTabs,
-};

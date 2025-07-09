@@ -54,6 +54,55 @@
 .text-purple-400 { color: var(--color-button-purple-bg) !important; }
 .hover\:text-white:hover { color: var(--color-text-primary) !important; }
 
+/* Navbar Profile Icon Constraints */
+.navbar-profile-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--color-input-border) !important;
+  transition: border-color 0.3s ease !important;
+}
+
+.navbar-profile-icon:hover {
+  border-color: var(--color-link) !important;
+}
+
+/* Navbar link styles - remove underlines */
+nav a {
+  text-decoration: none !important;
+}
+
+nav a:hover {
+  text-decoration: none !important;
+}
+
+nav a:focus {
+  text-decoration: none !important;
+}
+
+nav a:visited {
+  text-decoration: none !important;
+}
+
+/* Mobile Menu Styles */
+.mobile-menu-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure navbar is always on top */
+.navbar-fixed {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 50 !important;
+}
+
 /* Hero banner */
 .hero-banner {
     background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
@@ -1214,4 +1263,33 @@ input.form-input, textarea.form-input {
 
 .thema-description {
   color: var(--color-text-secondary, #b0b8c1);
+}
+
+/* Navbar small button style */
+.navbar-btn-sm {
+  font-size: 0.6rem !important;
+  padding: 0rem 0.45rem !important;
+  height: 1.5rem !important;
+  min-height: 1rem !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+
+.navbar-btn-sm:hover {
+  background: var(--color-button-blue-hover) !important;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.13);
+}
+
+/* Navbar divider style */
+.bg-input-border {
+  background: var(--color-input-border) !important;
+}
+
+/* Navbar background blur for modern look */
+.bg-navbar-footer {
+  background-color: var(--color-bg-navbar);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-input-border);
 }

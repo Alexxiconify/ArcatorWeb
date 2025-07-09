@@ -65,6 +65,9 @@ export function showCustomConfirm(message, submessage = "") {
       return;
     }
 
+    // Ensure modal is hidden by default
+    modal.style.display = "none";
+
     const messageEl = document.getElementById("confirm-message");
     const submessageEl = document.getElementById("confirm-submessage");
     const yesBtn = document.getElementById("confirm-yes");
@@ -352,27 +355,6 @@ function initializeUtilityElements() {
     messageBox.className = "message-box";
     messageBox.style.display = "none";
     document.body.appendChild(messageBox);
-  }
-
-  // Create custom confirm modal if it doesn't exist
-  if (!document.getElementById("custom-confirm-modal")) {
-    const modal = document.createElement("div");
-    modal.id = "custom-confirm-modal";
-    modal.className = "custom-confirm-modal";
-    modal.innerHTML = `
-      <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <p class="mb-4 text-lg" id="confirm-message"></p>
-        <p class="mb-6 text-sm text-text-secondary" id="confirm-submessage"></p>
-        <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mr-4">
-          Yes
-        </button>
-        <button id="confirm-no" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full">
-          Cancel
-        </button>
-      </div>
-    `;
-    document.body.appendChild(modal);
   }
 }
 

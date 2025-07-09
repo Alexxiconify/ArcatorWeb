@@ -5,8 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Account</title>
-  <!-- Tailwind CSS CDN -->
-  <link rel="stylesheet" href="css/style.css" />
+  <!-- Production CSS -->
   <!-- Google Fonts - Inter and others -->
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
@@ -1876,7 +1875,7 @@
       DEFAULT_PROFILE_PIC,
       DEFAULT_THEME_NAME,
     } from "./firebase-init.js";
-    import { loadNavbar, loadFooter } from "./navbar.js";
+    import { loadNavbar, loadFooter } from "./core.js";
     import {
       getAvailableThemes,
       applyTheme,
@@ -1894,13 +1893,13 @@
         if (user) {
           userProfile = await getUserProfileFromFirestore(user.uid);
         }
-        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
+        await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
         loadFooter("current-year-users");
         const userThemePreference = userProfile?.themePreference;
         const allThemes = await getAvailableThemes();
         const themeToApply =
           allThemes.find((t) => t.id === userThemePreference) ||
-          allThemes.find((t) => t.id === "dark");
+          allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
         if (themeToApply) {
           applyTheme(themeToApply.id, themeToApply);
           console.log(

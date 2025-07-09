@@ -17,7 +17,7 @@ import {
   applyTheme,
   getAvailableThemes,
 } from "./themes.js";
-import { loadNavbar } from "./navbar.js";
+import { loadNavbar } from "./core.js";
 import {
   initializeEmailJS,
   sendEmailWithEmailJS,
