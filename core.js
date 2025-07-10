@@ -161,18 +161,51 @@ function setupNavbarEventListeners() {
     const tabButtons = document.querySelectorAll(tabButtonSelector);
     const tabContents = document.querySelectorAll(tabContentSelector);
 
+    function activateTab(tabName, updateHash = false) {
+      let found = false;
+      tabButtons.forEach(btn => {
+        const btnTab = btn.getAttribute('data-tab');
+        if (btnTab === tabName) {
+          btn.classList.add('active');
+          found = true;
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      tabContents.forEach(content => {
+        const contentTab = content.getAttribute('data-tab');
+        if (contentTab === tabName) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+      if (updateHash && found) {
+        history.replaceState(null, '', `#${tabName}`);
+      }
+    }
+
+    // Tab click event
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
         const targetTab = button.getAttribute('data-tab');
-        // Remove active class from all buttons and contents
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-        // Add active class to clicked button and corresponding content
-        button.classList.add('active');
-        const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetTab}"]`);
-        if (targetContent) {
-          targetContent.classList.add('active');
-        }
+        activateTab(targetTab, true);
       });
+    });
+
+    // On page load, activate tab from hash if present
+    const hash = window.location.hash.replace(/^#/, '');
+    if (hash) {
+      activateTab(hash);
+    } else if (tabButtons.length > 0) {
+      // Default: activate first tab
+      const firstTab = tabButtons[0].getAttribute('data-tab');
+      activateTab(firstTab);
+    }
+
+    // Listen for hash changes (browser navigation)
+    window.addEventListener('hashchange', () => {
+      const newHash = window.location.hash.replace(/^#/, '');
+      if (newHash) activateTab(newHash);
     });
   }
