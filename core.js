@@ -1,22 +1,11 @@
 // core.js: Core functionality for the Arcator website
-import {
-  auth,
-  db,
-  appId,
-  firebaseReadyPromise,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME,
-  getUserProfileFromFirestore,
-  setUserProfileInFirestore,
-} from "./firebase-init.js";
-import {
-  getAvailableThemes,
-  applyTheme,
-  applyCachedTheme,
-} from "./themes.js";
-import { showMessageBox, showCustomConfirm, escapeHtml } from "./utils.js";
+import {auth, firebaseReadyPromise, getCurrentUser,} from "./firebase-init.js";
+import {showMessageBox} from "./utils.js";
 
+// ============================================================================
 // FIREBASE CORE SETUP
+// ============================================================================
+
 async function setupFirebaseCore() {
   try {
     await firebaseReadyPromise;
@@ -29,7 +18,10 @@ async function setupFirebaseCore() {
   }
 }
 
-// NAVBAR MANAGEMENT
+// ============================================================================
+// NAVBAR SYSTEM
+// ============================================================================
+
 export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTheme) {
   try {
     const navbarPlaceholder = document.getElementById("navbar-placeholder");
@@ -37,16 +29,10 @@ export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTh
       console.warn("Navbar placeholder not found");
       return;
     }
-    // Apply user theme if available
-    if (userProfile?.themePreference) {
-      const themes = await getAvailableThemes();
-      const userTheme = themes.find(t => t.id === userProfile.themePreference);
-      if (userTheme) {
-        applyTheme(userTheme.id, userTheme);
-      }
-    }
-    // Render navbar content
-    navbarPlaceholder.innerHTML = generateNavbarHTML(user, userProfile, defaultProfilePic);
+
+      const navbarHTML = generateNavbarHTML(user, userProfile, defaultProfilePic);
+      navbarPlaceholder.innerHTML = navbarHTML;
+
     setupNavbarEventListeners();
   } catch (error) {
     console.error("Error loading navbar:", error);
@@ -54,28 +40,35 @@ export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTh
 }
 
 function generateNavbarHTML(user, userProfile, defaultProfilePic) {
-  const profilePic = userProfile?.photoURL || defaultProfilePic;
+    const profilePic = userProfile?.photoURL || user?.photoURL || defaultProfilePic;
   const displayName = userProfile?.displayName || user?.displayName || "Guest";
+    const handle = userProfile?.handle || user?.handle || "";
+
   return `
-    <nav class="bg-navbar-footer fixed top-0 left-0 right-0 z-50">
-        <div class="flex justify-between items-center">
-            <a href="index.html" class="text-lg font-bold whitespace-nowrap text-white">Arcator</a>
-            <a href="about.html" class="text-sm hover:text-link transition-colors text-white">About</a>
-            <a href="games.html" class="text-sm hover:text-link transition-colors text-white">Games</a>
-            <a href="forms.html" class="text-sm hover:text-link transition-colors text-white">Forms</a>
-            <a href="pages.html" class="text-sm hover:text-link transition-colors text-white">Pages</a>
-            <a href="privacy.html" class="text-sm hover:text-link transition-colors text-white">Privacy</a>
-              <a href="admin.html" class="text-sm hover:text-link transition-colors text-white">Admin</a>
-            ${user ? `
-              <div class="flex items-center space-x-2">
-                <button id="logout-btn" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Logout</button>
-                <a href="users.html" class="text-xs font-medium text-white">
-                <img src="${profilePic}" class="navbar-profile-icon" style="vertical-align: middle;">
-                ${displayName}</a>
-              </div>
-            ` : `
-              <a href="users.html" class="btn-primary btn-blue navbar-btn-sm text-xs px-3 py-1 text-white rounded-md shadow-sm transition hover:bg-blue-700" style="min-width:unset;">Login</a>
-            `}
+    <nav class="bg-navbar-footer text-white p-4 shadow-lg navbar-fixed">
+      <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <a href="index.html" class="text-xl font-bold hover:text-link transition-colors">Arcator.co.uk</a>
+          <div class="hidden md:flex space-x-4">
+            <a href="index.html" class="hover:text-link transition-colors">Home</a>
+            <a href="about.html" class="hover:text-link transition-colors">About</a>
+            <a href="games.html" class="hover:text-link transition-colors">Servers</a>
+            <a href="forms.html" class="hover:text-link transition-colors">Community</a>
+            <a href="users.html" class="hover:text-link transition-colors">Settings</a>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          ${user ? `
+            <div class="flex items-center space-x-2">
+              <img src="${profilePic}" alt="Profile" class="w-8 h-8 rounded-full navbar-profile-icon">
+              <span class="hidden sm:inline">${displayName}</span>
+              ${handle ? `<span class="hidden lg:inline text-gray-300">@${handle}</span>` : ''}
+            </div>
+            <button onclick="logout()" class="btn-primary btn-red navbar-btn-sm">Logout</button>
+          ` : `
+            <a href="users.html" class="btn-primary btn-blue navbar-btn-sm">Login</a>
+          `}
         </div>
       </div>
     </nav>
@@ -83,129 +76,145 @@ function generateNavbarHTML(user, userProfile, defaultProfilePic) {
 }
 
 function setupNavbarEventListeners() {
-  // Logout button
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      try {
-        await auth.signOut();
-        window.location.href = "index.html";
-      } catch (error) {
-        console.error("Logout error:", error);
-        showMessageBox("Logout failed", true);
-      }
-    });
-  }
+    // Logout function
+    window.logout = async () => {
+        try {
+            await auth.signOut();
+            window.location.reload();
+        } catch (error) {
+            console.error("Logout failed:", error);
+            showMessageBox("Logout failed", true);
+        }
+    };
 }
-  // FOOTER MANAGEMENT
-  export function loadFooter(yearElementId = null) {
+
+// ============================================================================
+// FOOTER SYSTEM
+// ============================================================================
+
+export function loadFooter(yearElementId = null) {
     const footerPlaceholder = document.getElementById("footer-placeholder");
     if (!footerPlaceholder) {
-      console.warn("Footer placeholder not found");
-      return;
+        console.warn("Footer placeholder not found");
+        return;
     }
 
     const currentYear = new Date().getFullYear();
-  
+    const yearText = yearElementId ?
+        `<span id="${yearElementId}">${currentYear}</span>` :
+        currentYear;
+
     footerPlaceholder.innerHTML = `
-    <footer class="bg-navbar-footer">
-      <div class="text-center">
-          <a class="text-white text-xs" href="about.html" class="hover:text-link transition-colors">About</a>
-          <a class="text-white text-xs" href="games.html" class="hover:text-link transition-colors ml-2">Games</a>
-          <a class="text-white text-xs" href="forms.html" class="hover:text-link transition-colors ml-2">Community</a>
-          <a class="text-white text-xs" href="privacy.html" class="hover:text-link transition-colors ml-2">Privacy</a>
-          <a class="text-white text-xs" href="https://discord.gg/arcator" target="_blank" class="hover:text-link transition-colors ml-2">Discord</a>
-        <p class="text-xs">©2012-${yearElementId ? `<span class="text-whitetext-xs" id="${yearElementId}">${currentYear}</span>` : currentYear} Arcator.co.uk A community-driven Minecraft server network.</p>
+    <footer class="bg-navbar-footer text-white py-8 mt-16">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 class="text-lg font-bold mb-4">Arcator.co.uk</h3>
+            <p class="text-gray-300">A community-driven Minecraft server network.</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+            <div class="space-y-2">
+              <a href="about.html" class="footer-link block">About</a>
+              <a href="games.html" class="footer-link block">Servers</a>
+              <a href="forms.html" class="footer-link block">Community</a>
+              <a href="privacy.html" class="footer-link block">Privacy</a>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold mb-4">Connect</h3>
+            <div class="space-y-2">
+              <a href="https://discord.gg/arcator" target="_blank" class="footer-link block">Discord</a>
+              <a href="https://github.com/arcator" target="_blank" class="footer-link block">GitHub</a>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-600 mt-8 pt-8 text-center">
+          <p>&copy; ${yearText} Arcator.co.uk. All rights reserved.</p>
+        </div>
       </div>
     </footer>
   `;
-  }
+}
 
-  // PAGE INITIALIZATION
-  export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
+// ============================================================================
+// PAGE INITIALIZATION
+// ============================================================================
+
+export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
     const initFunction = async () => {
-      try {
-        await setupFirebaseCore();
-        await applyCachedTheme();
-        await loadNavbar(null, null, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-        loadFooter(yearElementId);
-        auth.onAuthStateChanged(async (user) => {
-          let userProfile = null;
-          if (user) {
-            userProfile = await getUserProfileFromFirestore(user.uid);
-          }
-          await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-          if (userProfile?.themePreference) {
-            const themes = await getAvailableThemes();
-            const userTheme = themes.find(t => t.id === userProfile.themePreference);
-            if (userTheme) {
-              applyTheme(userTheme.id, userTheme);
-            }
-          }
-        });
-        console.log(`Page ${pageName} initialized successfully`);
-      } catch (error) {
-        console.error(`Error initializing page ${pageName}:`, error);
-        showMessageBox("Failed to initialize page", true);
-      }
-    };
-    if (useWindowLoad) {
-      window.addEventListener("load", initFunction);
-    } else {
-      await initFunction();
-    }
-  }
+        try {
+            // Setup Firebase core
+            const firebaseReady = await setupFirebaseCore();
+            if (!firebaseReady) return;
 
-  // TAB MANAGEMENT
-  export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
+            // Load navbar and footer
+            const currentUser = getCurrentUser();
+            await loadNavbar(currentUser, null, "https://placehold.co/32x32/1F2937/E5E7EB?text=AV", "dark");
+            loadFooter(yearElementId);
+
+            // Page-specific initialization
+            if (pageName === 'about') {
+                // About page specific logic
+                console.log("About page initialized");
+            } else if (pageName === 'admin') {
+                // Admin page specific logic
+                console.log("Admin page initialized");
+            } else if (pageName === 'forms') {
+                // Forms page specific logic
+                console.log("Forms page initialized");
+            }
+
+            console.log(`${pageName} page initialized successfully`);
+        } catch (error) {
+            console.error("Failed to initialize page:", error);
+            showMessageBox("Failed to initialize page", true);
+        }
+    };
+
+    if (useWindowLoad) {
+        window.addEventListener('load', initFunction);
+    } else {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFunction);
+    } else {
+            initFunction();
+        }
+    }
+}
+
+// ============================================================================
+// TAB SYSTEM
+// ============================================================================
+
+export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
     const tabButtons = document.querySelectorAll(tabButtonSelector);
     const tabContents = document.querySelectorAll(tabContentSelector);
 
     function activateTab(tabName, updateHash = false) {
-      let found = false;
-      tabButtons.forEach(btn => {
-        const btnTab = btn.getAttribute('data-tab');
-        if (btnTab === tabName) {
-          btn.classList.add('active');
-          found = true;
-        } else {
-          btn.classList.remove('active');
+        tabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+        });
+
+        tabContents.forEach(content => {
+            content.classList.toggle('active', content.getAttribute('data-tab') === tabName);
+        });
+
+        if (updateHash) {
+            window.location.hash = tabName;
         }
-      });
-      tabContents.forEach(content => {
-        const contentTab = content.getAttribute('data-tab');
-        if (contentTab === tabName) {
-          content.classList.add('active');
-        } else {
-          content.classList.remove('active');
-        }
-      });
-      if (updateHash && found) {
-        history.replaceState(null, '', `#${tabName}`);
-      }
     }
 
-    // Tab click event
     tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const targetTab = button.getAttribute('data-tab');
-        activateTab(targetTab, true);
-      });
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+            activateTab(tabName, true);
+        });
     });
 
-    // On page load, activate tab from hash if present
-    const hash = window.location.hash.replace(/^#/, '');
+    // Initialize from hash
+    const hash = window.location.hash.slice(1);
     if (hash) {
-      activateTab(hash);
-    } else if (tabButtons.length > 0) {
-      // Default: activate first tab
-      const firstTab = tabButtons[0].getAttribute('data-tab');
-      activateTab(firstTab);
+        activateTab(hash);
     }
-
-    // Listen for hash changes (browser navigation)
-    window.addEventListener('hashchange', () => {
-      const newHash = window.location.hash.replace(/^#/, '');
-      if (newHash) activateTab(newHash);
-    });
-  }
+}

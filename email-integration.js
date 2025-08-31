@@ -1,27 +1,23 @@
-// email-integration.js: Consolidated email functionality
-import { showMessageBox } from "./utils.js";
+// email-integration.js: Unified email integration system
 
 // ============================================================================
 // EMAILJS INTEGRATION
 // ============================================================================
 
-let emailJSInitialized = false;
-let emailJSPublicKey = null;
-let emailJSServiceId = null;
-let emailJSTemplateId = null;
+let emailjsInitialized = false;
+let emailjsPublicKey = null;
+let emailjsServiceId = null;
+let emailjsTemplateId = null;
 
 /**
- * Checks if EmailJS script is loaded.
- * @returns {boolean} - Whether EmailJS is available.
+ * Check if EmailJS script is loaded
  */
 function checkEmailJSScript() {
-  return typeof emailjs !== 'undefined';
+    return typeof window.emailjs !== 'undefined';
 }
 
 /**
- * Initializes EmailJS.
- * @param {string} publicKey - The EmailJS public key.
- * @returns {Promise<Object>} - Initialization result.
+ * Initialize EmailJS
  */
 export async function initializeEmailJS(publicKey = null) {
   try {
@@ -29,107 +25,91 @@ export async function initializeEmailJS(publicKey = null) {
       return { success: false, error: "EmailJS script not loaded" };
     }
 
-    const key = publicKey || loadCredentials().publicKey;
-    if (!key || key === "YOUR_EMAILJS_PUBLIC_KEY") {
-      return { success: false, error: "EmailJS public key not configured" };
+      const credentials = loadCredentials();
+      if (publicKey) {
+          emailjsPublicKey = publicKey;
+      } else if (credentials.publicKey) {
+          emailjsPublicKey = credentials.publicKey;
+      } else {
+          return {success: false, error: "No EmailJS public key provided"};
     }
 
-    emailjs.init(key);
-    emailJSInitialized = true;
-    emailJSPublicKey = key;
-    
+      window.emailjs.init(emailjsPublicKey);
+      emailjsServiceId = credentials.serviceId || "service_7pm3neh";
+      emailjsTemplateId = credentials.templateId || "template_1gv17ca";
+      emailjsInitialized = true;
+
     return { success: true };
   } catch (error) {
-    console.error("EmailJS initialization error:", error);
+      console.error("EmailJS initialization failed:", error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Loads EmailJS credentials from localStorage.
- * @returns {Object} - The credentials object.
+ * Load saved credentials
  */
 function loadCredentials() {
   try {
-    const stored = localStorage.getItem('emailjs_credentials');
-    return stored ? JSON.parse(stored) : {
-      publicKey: null,
-      serviceId: null,
-      templateId: null
-    };
-  } catch (error) {
-    console.warn("Failed to load EmailJS credentials:", error);
-    return {
-      publicKey: null,
-      serviceId: null,
-      templateId: null
-    };
+      const saved = localStorage.getItem('emailjs_credentials');
+      return saved ? JSON.parse(saved) : {};
+  } catch {
+      return {};
   }
 }
 
 /**
- * Saves EmailJS credentials to localStorage.
- * @param {string} publicKey - The public key.
- * @param {string} serviceId - The service ID.
- * @param {string} templateId - The template ID.
+ * Save credentials
  */
 export function saveCredentials(publicKey, serviceId, templateId) {
   try {
     const credentials = { publicKey, serviceId, templateId };
     localStorage.setItem('emailjs_credentials', JSON.stringify(credentials));
-    emailJSPublicKey = publicKey;
-    emailJSServiceId = serviceId;
-    emailJSTemplateId = templateId;
+      emailjsPublicKey = publicKey;
+      emailjsServiceId = serviceId;
+      emailjsTemplateId = templateId;
+      return true;
   } catch (error) {
-    console.warn("Failed to save EmailJS credentials:", error);
+      console.error("Failed to save credentials:", error);
+      return false;
   }
 }
 
 /**
- * Sends email using EmailJS.
- * @param {string} toEmail - The recipient email.
- * @param {string} subject - The email subject.
- * @param {string} message - The email message.
- * @param {Object} options - Additional options.
- * @returns {Promise<Object>} - Send result.
+ * Send email via EmailJS
  */
 export async function sendEmailWithEmailJS(toEmail, subject, message, options = {}) {
   try {
-    if (!emailJSInitialized) {
+      if (!emailjsInitialized) {
       const initResult = await initializeEmailJS();
       if (!initResult.success) {
-        return { success: false, error: initResult.error };
+          throw new Error(initResult.error);
       }
     }
-
-    const credentials = loadCredentials();
-    const serviceId = options.serviceId || credentials.serviceId || "service_7pm3neh";
-    const templateId = options.templateId || credentials.templateId || "template_1gv17ca";
 
     const templateParams = {
       to_email: toEmail,
       subject: subject,
       message: message,
       from_name: options.fromName || "Arcator.co.uk",
-      reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com",
+        reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com"
     };
 
-    const result = await emailjs.send(serviceId, templateId, templateParams);
+      const result = await window.emailjs.send(
+          emailjsServiceId,
+          emailjsTemplateId,
+          templateParams
+      );
+
     return { success: true, messageId: result.text };
   } catch (error) {
-    console.error("EmailJS send error:", error);
+      console.error("EmailJS send failed:", error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Sends email using EmailJS template.
- * @param {string} toEmail - The recipient email.
- * @param {string} subject - The email subject.
- * @param {string} message - The email message.
- * @param {string} templateType - The template type.
- * @param {Object} options - Additional options.
- * @returns {Promise<Object>} - Send result.
+ * Send email with template
  */
 export async function sendEmailWithTemplate(
   toEmail,
@@ -139,145 +119,147 @@ export async function sendEmailWithTemplate(
   options = {}
 ) {
   try {
-    if (!emailJSInitialized) {
+      if (!emailjsInitialized) {
       const initResult = await initializeEmailJS();
       if (!initResult.success) {
-        return { success: false, error: initResult.error };
+          throw new Error(initResult.error);
       }
     }
 
-    const credentials = loadCredentials();
-    const serviceId = credentials.serviceId || "service_7pm3neh";
-    const templateId = credentials.templateId || "template_1gv17ca";
-
+      // Template-specific parameters
     const templateParams = {
       to_email: toEmail,
       subject: subject,
       message: message,
       from_name: options.fromName || "Arcator.co.uk",
-      reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com",
-      template_type: templateType,
+        reply_to: options.replyTo || "noreply@arcator-web.firebaseapp.com"
     };
 
-    const result = await emailjs.send(serviceId, templateId, templateParams);
+      // Add template-specific customizations
+      if (templateType === "announcement") {
+          templateParams.template_type = "announcement";
+      } else if (templateType === "newsletter") {
+          templateParams.template_type = "newsletter";
+      }
+
+      const result = await window.emailjs.send(
+          emailjsServiceId,
+          emailjsTemplateId,
+          templateParams
+      );
+
     return { success: true, messageId: result.text, templateUsed: templateType };
   } catch (error) {
-    console.error("EmailJS template send error:", error);
+      console.error("EmailJS template send failed:", error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Tests EmailJS connection.
- * @returns {Promise<Object>} - Test result.
+ * Test EmailJS connection
  */
 export async function testEmailJSConnection() {
   try {
-    if (!checkEmailJSScript()) {
-      return { success: false, error: "EmailJS script not loaded" };
+      if (!emailjsInitialized) {
+          const initResult = await initializeEmailJS();
+          if (!initResult.success) {
+              return {success: false, error: initResult.error};
+          }
     }
 
-    const credentials = loadCredentials();
-    if (!credentials.publicKey || credentials.publicKey === "YOUR_EMAILJS_PUBLIC_KEY") {
-      return { success: false, error: "EmailJS not configured" };
-    }
+      // Send test email
+      const testResult = await sendEmailWithEmailJS(
+          "test@example.com",
+          "Test Email",
+          "This is a test email from Arcator.co.uk",
+          {fromName: "Test System"}
+      );
 
-    const initResult = await initializeEmailJS();
-    if (!initResult.success) {
-      return { success: false, error: initResult.error };
-    }
-
-    return { success: true, message: "EmailJS connection successful" };
+      return testResult;
   } catch (error) {
-    console.error("EmailJS connection test error:", error);
+      console.error("EmailJS connection test failed:", error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Gets EmailJS status.
- * @returns {Object} - Status information.
+ * Get EmailJS status
  */
 export function getEmailJSStatus() {
-  const credentials = loadCredentials();
   return {
     scriptLoaded: checkEmailJSScript(),
-    initialized: emailJSInitialized,
-    publicKey: credentials.publicKey,
-    serviceId: credentials.serviceId,
-    templateId: credentials.templateId,
-    readyToSend: emailJSInitialized && credentials.publicKey && credentials.serviceId && credentials.templateId,
+      initialized: emailjsInitialized,
+      publicKey: emailjsPublicKey,
+      serviceId: emailjsServiceId,
+      templateId: emailjsTemplateId,
+      readyToSend: emailjsInitialized && emailjsPublicKey && emailjsServiceId && emailjsTemplateId
   };
 }
 
 /**
- * Clears EmailJS credentials.
+ * Clear credentials
  */
 export function clearCredentials() {
   try {
     localStorage.removeItem('emailjs_credentials');
-    emailJSInitialized = false;
-    emailJSPublicKey = null;
-    emailJSServiceId = null;
-    emailJSTemplateId = null;
+      emailjsPublicKey = null;
+      emailjsServiceId = null;
+      emailjsTemplateId = null;
+      emailjsInitialized = false;
+      return true;
   } catch (error) {
-    console.warn("Failed to clear EmailJS credentials:", error);
+      console.error("Failed to clear credentials:", error);
+      return false;
   }
 }
 
 // ============================================================================
-// SMTP INTEGRATION
+// SMTP INTEGRATION (PLACEHOLDER)
 // ============================================================================
 
 let smtpConnected = false;
 let smtpReady = false;
 
 /**
- * Sends email via SMTP.
- * @param {Object} emailData - The email data.
- * @returns {Promise<Object>} - Send result.
+ * Send email via SMTP (placeholder)
  */
 export function sendEmailViaSMTP(emailData) {
-  // SMTP integration placeholder - would require backend implementation
   console.warn("SMTP integration not implemented");
-  return Promise.resolve({ 
-    success: false, 
-    error: "SMTP integration not implemented" 
+    return Promise.resolve({
+        success: false,
+        error: "SMTP integration not implemented"
   });
 }
 
 /**
- * Tests SMTP server connection.
- * @returns {Promise<Object>} - Test result.
+ * Test SMTP connection (placeholder)
  */
 export function testSMTPServerConnection() {
-  // SMTP test placeholder
-  return Promise.resolve({ 
-    success: false, 
-    error: "SMTP integration not implemented" 
+    console.warn("SMTP integration not implemented");
+    return Promise.resolve({
+        success: false,
+        error: "SMTP integration not implemented"
   });
 }
 
 /**
- * Gets SMTP server status.
- * @returns {Object} - Status information.
+ * Get SMTP status
  */
 export function getSMTPServerStatus() {
   return {
     connected: smtpConnected,
-    ready: smtpReady,
+      ready: smtpReady
   };
 }
 
 /**
- * Initializes SMTP integration.
- * @returns {Promise<Object>} - Initialization result.
+ * Initialize SMTP integration (placeholder)
  */
 export function initializeSMTPIntegration() {
-  // SMTP initialization placeholder
-  return Promise.resolve({ 
-    success: true, 
-    message: "SMTP integration not implemented" 
+    console.warn("SMTP integration not implemented");
+    return Promise.resolve({
+        success: false,
+        error: "SMTP integration not implemented"
   });
 }
 
@@ -286,12 +268,7 @@ export function initializeSMTPIntegration() {
 // ============================================================================
 
 /**
- * Sends email using the best available method.
- * @param {string} toEmail - The recipient email.
- * @param {string} subject - The email subject.
- * @param {string} message - The email message.
- * @param {Object} options - Additional options.
- * @returns {Promise<Object>} - Send result.
+ * Send email using best available method
  */
 export async function sendEmail(toEmail, subject, message, options = {}) {
   // Try EmailJS first
@@ -312,47 +289,44 @@ export async function sendEmail(toEmail, subject, message, options = {}) {
     });
   }
 
-  return { 
-    success: false, 
-    error: "No email service available" 
+    return {
+        success: false,
+        error: "No email service available"
   };
 }
 
 /**
- * Tests email service connection.
- * @returns {Promise<Object>} - Test result.
+ * Test email connection
  */
 export async function testEmailConnection() {
   // Try EmailJS first
   const emailjsResult = await testEmailJSConnection();
   if (emailjsResult.success) {
-    return { success: true, method: "EmailJS", message: "EmailJS connection successful" };
+      return {success: true, method: "EmailJS"};
   }
 
   // Try SMTP
   const smtpResult = await testSMTPServerConnection();
   if (smtpResult.success) {
-    return { success: true, method: "SMTP", message: "SMTP connection successful" };
+      return {success: true, method: "SMTP"};
   }
 
-  return { 
-    success: false, 
-    error: "No email service available" 
+    return {
+        success: false,
+        error: "No email service available"
   };
 }
 
 /**
- * Gets overall email service status.
- * @returns {Object} - Status information.
+ * Get overall email service status
  */
 export function getEmailServiceStatus() {
   const emailjsStatus = getEmailJSStatus();
   const smtpStatus = getSMTPServerStatus();
-  
+
   return {
     emailjs: emailjsStatus,
     smtp: smtpStatus,
-    hasService: emailjsStatus.readyToSend || smtpStatus.connected,
-    preferredMethod: emailjsStatus.readyToSend ? "EmailJS" : "SMTP",
+      hasService: emailjsStatus.readyToSend || smtpStatus.connected
   };
-} 
+}

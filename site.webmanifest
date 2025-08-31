@@ -1,6 +1,6 @@
 {
-  "short_name": "",
-  "name": "",
+  "short_name": "T",
+  "name": "Test",
   "icons": [{
     "src": "icon.png",
     "type": "image/png",
