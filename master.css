@@ -1615,3 +1615,330 @@ nav a:visited {
 .hover\:bg-indigo-700:hover {
     background-color: var(--color-button-indigo-hover) !important;
 }
+
+/* Utility classes to replace inline styles */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.margin-top-1rem {
+    margin-top: 1rem;
+}
+
+.margin-bottom-1em {
+    margin-bottom: 1em;
+}
+
+.margin-bottom-0 {
+    margin-bottom: 0;
+}
+
+.margin-left-0 {
+    margin-left: 0;
+}
+
+.padding-0-25rem-0-5rem {
+    padding: 0.25rem 0.5rem;
+}
+
+.width-100 {
+    width: 100%;
+}
+
+.max-width-100 {
+    max-width: 100%;
+}
+
+.min-width-40px {
+    min-width: 40px;
+}
+
+.min-width-2-5em {
+    min-width: 2.5em;
+}
+
+.width-24px {
+    width: 24px;
+}
+
+.height-24px {
+    height: 24px;
+}
+
+.width-32px {
+    width: 32px;
+}
+
+.height-32px {
+    height: 32px;
+}
+
+.opacity-0-25 {
+    opacity: 0.25;
+}
+
+.height-2-25rem {
+    height: 2.25rem;
+}
+
+.min-height-2-25rem {
+    min-height: 2.25rem;
+}
+
+.max-width-300px {
+    max-width: 300px;
+}
+
+.margin-bottom-0-25rem {
+    margin-bottom: 0.25rem;
+}
+
+.font-size-0-85em {
+    font-size: 0.85em;
+}
+
+.margin-left-8px {
+    margin-left: 8px;
+}
+
+.display-inline-block {
+    display: inline-block;
+}
+
+.font-size-1rem {
+    font-size: 1rem;
+}
+
+.line-height-1-2 {
+    line-height: 1.2;
+}
+
+.border-top-2px-solid-link {
+    border-top: 2px solid var(--color-link);
+}
+
+.line-height-1 {
+    line-height: 1;
+}
+
+.height-0 {
+    height: 0;
+}
+
+.accent-color-link {
+    accent-color: var(--color-link);
+}
+
+.display-flex {
+    display: flex;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.max-width-600px {
+    max-width: 600px;
+}
+
+.max-width-700px {
+    max-width: 700px;
+}
+
+.max-width-800px {
+    max-width: 800px;
+}
+
+.max-height-85vh {
+    max-height: 85vh;
+}
+
+.overflow-y-auto {
+    overflow-y: auto;
+}
+
+.display-none {
+    display: none;
+}
+
+.background-222 {
+    background: #222;
+}
+
+.padding-2rem {
+    padding: 2rem;
+}
+
+.border-radius-1rem {
+    border-radius: 1rem;
+}
+
+.min-width-320px {
+    min-width: 320px;
+}
+
+.max-width-90vw {
+    max-width: 90vw;
+}
+
+/* Link styling classes */
+.link-style {
+    color: var(--color-link, #60a5fa);
+    font-weight: 600;
+}
+
+.link-style:hover {
+    text-decoration: underline;
+}
+
+/* Settings section classes */
+.settings-section-full {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 2rem;
+}
+
+.settings-card-full {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 2rem;
+}
+
+/* Save button circle classes */
+.save-btn-circle-custom {
+    margin-left: 0;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Custom theme button classes */
+.create-custom-theme-btn {
+    height: 2.25rem;
+    min-height: 2.25rem;
+    max-width: 300px;
+}
+
+/* Profile picture URL input classes */
+.profile-picture-url-input {
+    margin-bottom: 0;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Decorative icon classes */
+.decorative-icon-container {
+    min-width: 40px;
+}
+
+.decorative-icon {
+    width: 32px;
+    height: 32px;
+    opacity: 0.25;
+}
+
+/* Checkbox container classes */
+.checkbox-container-compact {
+    margin-bottom: 0.25rem;
+}
+
+.checkbox-description {
+    font-size: 0.85em;
+    color: var(--color-text-secondary);
+    margin-left: 8px;
+    display: inline-block;
+}
+
+/* Account info text classes */
+.account-info-text {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+/* Section divider classes */
+.section-divider {
+    border-top: 2px solid var(--color-link);
+    line-height: 1;
+    height: 0;
+}
+
+/* Login required message classes */
+.login-required-message {
+    display: none;
+}
+
+/* Modal content classes */
+.modal-content-large {
+    max-width: 800px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-content-medium {
+    max-width: 700px;
+}
+
+.modal-content-small {
+    max-width: 600px;
+}
+
+/* Custom recipients section classes */
+.custom-recipients-section {
+    display: none;
+}
+
+/* Edit temp page content classes */
+.edit-temp-page-content-hidden {
+    display: none;
+}
+
+/* Conversations table classes */
+.conversations-table {
+    width: 100%;
+}
+
+/* Tab content hidden classes */
+.tab-content-hidden {
+    display: none;
+}
+
+/* Edit form modal classes */
+.edit-form-modal {
+    display: none;
+}
+
+/* Loading spinner classes */
+.loading-spinner-hidden {
+    display: none;
+}
+
+/* Signup section classes */
+.signup-section-hidden {
+    display: none;
+}
+
+/* Forgot password section classes */
+.forgot-password-section-hidden {
+    display: none;
+}
+
+/* Settings content classes */
+.settings-content-hidden {
+    display: none;
+}
+
+/* Login required message classes */
+.login-required-message-hidden {
+    display: none;
+}

@@ -1,11 +1,8 @@
 // core.js: Core functionality for the Arcator website
-import {auth, firebaseReadyPromise, getCurrentUser,} from "./firebase-init.js";
+import {auth, firebaseReadyPromise, getCurrentUser} from "./firebase-init.js";
 import {showMessageBox} from "./utils.js";
 
-// ============================================================================
 // FIREBASE CORE SETUP
-// ============================================================================
-
 async function setupFirebaseCore() {
   try {
     await firebaseReadyPromise;
@@ -18,10 +15,7 @@ async function setupFirebaseCore() {
   }
 }
 
-// ============================================================================
 // NAVBAR SYSTEM
-// ============================================================================
-
 export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTheme) {
   try {
     const navbarPlaceholder = document.getElementById("navbar-placeholder");
@@ -88,10 +82,7 @@ function setupNavbarEventListeners() {
     };
 }
 
-// ============================================================================
 // FOOTER SYSTEM
-// ============================================================================
-
 export function loadFooter(yearElementId = null) {
     const footerPlaceholder = document.getElementById("footer-placeholder");
     if (!footerPlaceholder) {
@@ -137,10 +128,7 @@ export function loadFooter(yearElementId = null) {
   `;
 }
 
-// ============================================================================
 // PAGE INITIALIZATION
-// ============================================================================
-
 export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
     const initFunction = async () => {
         try {
@@ -155,13 +143,10 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
 
             // Page-specific initialization
             if (pageName === 'about') {
-                // About page specific logic
                 console.log("About page initialized");
             } else if (pageName === 'admin') {
-                // Admin page specific logic
                 console.log("Admin page initialized");
             } else if (pageName === 'forms') {
-                // Forms page specific logic
                 console.log("Forms page initialized");
             }
 
@@ -183,10 +168,7 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
     }
 }
 
-// ============================================================================
 // TAB SYSTEM
-// ============================================================================
-
 export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
     const tabButtons = document.querySelectorAll(tabButtonSelector);
     const tabContents = document.querySelectorAll(tabContentSelector);

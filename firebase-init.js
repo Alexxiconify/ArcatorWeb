@@ -1,38 +1,28 @@
 // firebase-init.js - Centralized Firebase Initialization
+import {getApp, getApps, initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
-  initializeApp,
-  getApps,
-  getApp,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithCustomToken,
+    getAuth,
+    onAuthStateChanged,
+    signInWithCustomToken
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
+    deleteDoc,
+    doc,
+    getDoc,
+    getFirestore,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-import { firebaseConfig } from "./sensitive/firebase-config.js";
+import {firebaseConfig} from "./sensitive/config.js";
 
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
 export const appId = canvasAppId || firebaseConfig.projectId || "default-app-id";
-
 export let app;
 export let auth;
 export let db;
 export let currentUser = null;
-
 export const DEFAULT_PROFILE_PIC = "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
 export const DEFAULT_THEME_NAME = "dark";
-export const ADMIN_UIDS = [
-  "CEch8cXWemSDQnM3dHVKPt0RGpn2",
-  "OoeTK1HmebQyOf3gEiCKAHVtD6l2",
-];
+export const ADMIN_UIDS = ["CEch8cXWemSDQnM3dHVKPt0RGpn2", "OoeTK1HmebQyOf3gEiCKAHVtD6l2",];
 
 let firebaseReadyResolve;
 export const firebaseReadyPromise = new Promise((resolve) => {
@@ -42,7 +32,7 @@ export const firebaseReadyPromise = new Promise((resolve) => {
 export async function getUserProfileFromFirestore(uid) {
   await firebaseReadyPromise;
   if (!db) return null;
-  
+
   try {
     const docSnap = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
     return docSnap.exists() ? { uid: docSnap.id, ...docSnap.data() } : null;
@@ -55,7 +45,7 @@ export async function getUserProfileFromFirestore(uid) {
 export async function setUserProfileInFirestore(uid, profileData) {
   await firebaseReadyPromise;
   if (!db) return false;
-  
+
   try {
     await setDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid), profileData, { merge: true });
     if (auth.currentUser?.uid === uid) {
@@ -73,7 +63,7 @@ export { setUserProfileInFirestore as updateUserProfileInFirestore };
 export async function deleteUserProfileFromFirestore(uid) {
   await firebaseReadyPromise;
   if (!db) return false;
-  
+
   try {
     await deleteDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
     return true;
