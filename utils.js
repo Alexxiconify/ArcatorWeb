@@ -1,337 +1,194 @@
-// utils.js: Utility functions for the Arcator website
-import {collection, doc, getDoc, getDocs,} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import{auth,db,appId,firebaseReadyPromise}from"./firebase-init.js";
+import{doc,getDoc,setDoc,collection,getDocs,query,where,orderBy,limit,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// ============================================================================
-// UI UTILITIES
-// ============================================================================
+export function showMessageBox(message,isError=false,allowHtml=false){
+const messageBox=document.getElementById("message-box");
+if(!messageBox){console.warn("Message box element not found");return;}
+messageBox.textContent="";messageBox.className=`message-box ${isError?"error":"success"}`;
+if(allowHtml){messageBox.innerHTML=message;}else{messageBox.textContent=message;}
+messageBox.style.display="block";setTimeout(()=>{messageBox.style.display="none";},5000);}
 
-export function showMessageBox(message, isError = false, allowHtml = false) {
-  const messageBox = document.getElementById("message-box");
-  if (!messageBox) {
-    console.warn("Message box element not found");
-    return;
-  }
+export function showCustomConfirm(message,submessage=""){
+return new Promise((resolve)=>{
+const modal=document.getElementById("custom-confirm-modal");
+if(!modal){console.warn("Custom confirm modal not found");resolve(false);return;}
+modal.style.display="none";
+const messageEl=document.getElementById("confirm-message");
+const submessageEl=document.getElementById("confirm-submessage");
+const yesBtn=document.getElementById("confirm-yes");
+const noBtn=document.getElementById("confirm-no");
+if(messageEl)messageEl.textContent=message;
+if(submessageEl)submessageEl.textContent=submessage;
+const handleYes=()=>{modal.style.display="none";resolve(true);};
+const handleNo=()=>{modal.style.display="none";resolve(false);};
+yesBtn.onclick=handleYes;noBtn.onclick=handleNo;modal.style.display="flex";});}
 
-  messageBox.textContent = "";
-  messageBox.className = `message-box ${isError ? "error" : "success"}`;
+export function escapeHtml(text){
+const div=document.createElement("div");div.textContent=text;return div.innerHTML;}
 
-  if (allowHtml) {
-    messageBox.innerHTML = message;
-  } else {
-    messageBox.textContent = message;
-  }
+export function parseCSVLine(line){
+const result=[];let current='';let inQuotes=false;
+for(let i=0;i<line.length;i++){
+const char=line[i];
+if(char==='"'){inQuotes=!inQuotes;}
+else if(char===','&&!inQuotes){result.push(current.trim());current='';}
+else{current+=char;}}
+result.push(current.trim());return result.map(val=>val.replace(/^"|"$/g,''));}
 
-  messageBox.style.display = "block";
-  setTimeout(() => {
-    messageBox.style.display = "none";
-  }, 5000);
-}
+export function parseCSV(csvText){
+const lines=csvText.trim().split('\n');
+if(lines.length<2)return[];
+const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
+const data=[];
+for(let i=1;i<lines.length;i++){
+const values=parseCSVLine(lines[i]);
+if(values.length>=2){
+const row={interest:values[0]||'',members:values[1]||'0',category:'Gaming',description:``};
+const players=[];
+for(let j=2;j<values.length;j++){
+if(values[j]&&values[j].trim()!==''){players.push(headers[j]||`Player ${j}`);}}
+if(players.length>0){row.description+=`Users: ${players.join(', ')}`;}
+if(row.interest&&row.interest.trim()!==''){data.push(row);}}}
+return data;}
 
-export function showCustomConfirm(message, submessage = "") {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("custom-confirm-modal");
-    if (!modal) {
-      console.warn("Custom confirm modal not found");
-      resolve(false);
-      return;
-    }
+export function parseDonationsCSV(csvText){
+const lines=csvText.trim().split('\n');
+if(lines.length<2)return[];
+const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+const data=[];
+for(let i=1;i<lines.length;i++){
+const values=lines[i].split(',');
+const row={};
+headers.forEach((header,idx)=>{row[header]=values[idx]||'';});
+data.push({
+expense:row['expense']||row['expenses']||'',
+cost:row['cost']||'',
+description:row['description']||'',
+donor:row['donor']||row['donation']||row['donations']||''});}
+return data;}
 
-    // Ensure modal is hidden by default
-    modal.style.display = "none";
+export function parseMachinesCSV(csvText){
+const lines=csvText.trim().split('\n');
+if(lines.length<2)return[];
+const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+const data=[];
+for(let i=1;i<lines.length;i++){
+const values=lines[i].split(',');
+const row={};
+headers.forEach((header,idx)=>{row[header]=values[idx]||'';});
+data.push({
+name:row['machine name']||row['name']||'',
+owner:row['owner']||'',
+location:row['location']||'',
+purpose:row['purpose']||'',
+internalId:row['s# (internal)']||row['internalid']||'',
+notes:row['notes']||''});}
+return data;}
 
-    const messageEl = document.getElementById("confirm-message");
-    const submessageEl = document.getElementById("confirm-submessage");
-    const yesBtn = document.getElementById("confirm-yes");
-    const noBtn = document.getElementById("confirm-no");
+export function convertDiscordUrlToReliableCDN(url){
+if(!url||typeof url!=='string')return url;
+if(url.includes('cdn.discordapp.com')||url.includes('media.discordapp.net')){
+return url.replace(/\.(png|jpg|jpeg|gif|webp)\?.*$/,'.$1');}
+return url;}
 
-    if (messageEl) messageEl.textContent = message;
-    if (submessageEl) submessageEl.textContent = submessage;
+export async function uploadImageToImgBB(imageFile,apiKey){
+try{
+const formData=new FormData();
+formData.append('image',imageFile);
+formData.append('key',apiKey);
+const response=await fetch('https://api.imgbb.com/1/upload',{
+method:'POST',body:formData});
+if(!response.ok)throw new Error('Upload failed');
+const data=await response.json();
+if(data.success){return data.data.url;}
+else{throw new Error(data.error?.message||'Upload failed');}}
+catch(error){console.error('ImgBB upload error:',error);throw error;}}
 
-    const handleYes = () => {
-      modal.style.display = "none";
-      resolve(true);
-    };
+export function validatePhotoURL(url){
+if(!url||typeof url!=='string')return false;
+const validExtensions=['.jpg','.jpeg','.png','.gif','.webp'];
+const lowerUrl=url.toLowerCase();
+return validExtensions.some(ext=>lowerUrl.includes(ext))||
+lowerUrl.includes('cdn.discordapp.com')||
+lowerUrl.includes('media.discordapp.net')||
+lowerUrl.includes('imgbb.com')||
+lowerUrl.includes('i.imgur.com');}
 
-    const handleNo = () => {
-      modal.style.display = "none";
-      resolve(false);
-    };
+export async function testImageURL(url,timeout=5000){
+return new Promise((resolve)=>{
+const img=new Image();
+const timer=setTimeout(()=>{img.src='';resolve(false);},timeout);
+img.onload=()=>{clearTimeout(timer);resolve(true);};
+img.onerror=()=>{clearTimeout(timer);resolve(false);};
+img.src=url;});}
 
-    yesBtn.onclick = handleYes;
-    noBtn.onclick = handleNo;
+export function renderMediaContent(url,containerId){
+const container=document.getElementById(containerId);
+if(!container)return;
+container.innerHTML='';
+if(!url||!validateMediaUrl(url)){container.innerHTML='<p>Invalid media URL</p>';return;}
+const videoId=extractYouTubeVideoId(url);
+if(videoId){
+container.innerHTML=`<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+return;}
+if(url.match(/\.(jpg|jpeg|png|gif|webp)$/i)){
+container.innerHTML=`<img src="${url}" alt="Media content" style="max-width:100%;height:auto;">`;
+return;}
+container.innerHTML=`<p>Unsupported media type: ${url}</p>`;}
 
-    modal.style.display = "flex";
-  });
-}
+export function validateMediaUrl(url){
+if(!url||typeof url!=='string')return false;
+const videoId=extractYouTubeVideoId(url);
+if(videoId)return true;
+const imageExtensions=['.jpg','.jpeg','.png','.gif','.webp'];
+const lowerUrl=url.toLowerCase();
+return imageExtensions.some(ext=>lowerUrl.includes(ext));}
 
-export function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
+export function createMediaPreview(url,containerId){
+const container=document.getElementById(containerId);
+if(!container)return;
+container.innerHTML='';
+if(!url||!validateMediaUrl(url)){container.innerHTML='<p>Invalid media URL</p>';return;}
+const videoId=extractYouTubeVideoId(url);
+if(videoId){
+container.innerHTML=`<div style="position:relative;width:100%;height:200px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+<img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" alt="YouTube thumbnail" style="max-width:100%;max-height:100%;object-fit:cover;border-radius:8px;">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:8px 16px;border-radius:4px;">▶ Play</div>
+</div>`;
+return;}
+if(url.match(/\.(jpg|jpeg|png|gif|webp)$/i)){
+container.innerHTML=`<img src="${url}" alt="Media preview" style="max-width:100%;max-height:200px;object-fit:cover;border-radius:8px;">`;
+return;}
+container.innerHTML=`<p>Unsupported media type: ${url}</p>`;}
 
-// ============================================================================
-// USER UTILITIES
-// ============================================================================
+export function extractYouTubeVideoId(url){
+if(!url||typeof url!=='string')return null;
+const patterns=[
+/^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
+/^https?:\/\/youtu\.be\/([^?]+)/,
+/^https?:\/\/(?:www\.)?youtube\.com\/embed\/([^?]+)/];
+for(const pattern of patterns){
+const match=url.match(pattern);
+if(match)return match[1];}
+return null;}
 
-export function sanitizeHandle(input) {
-  return input.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
-}
+export async function resolveHandlesToUids(handles){
+if(!Array.isArray(handles)||handles.length===0)return [];
+try{
+const handlesRef=collection(db,'handles');
+const q=query(handlesRef,where('handle','in',handles));
+const snapshot=await getDocs(q);
+const uidMap={};
+snapshot.forEach(doc=>{
+const data=doc.data();
+if(data.handle&&data.uid){uidMap[data.handle]=data.uid;}});
+return handles.map(handle=>uidMap[handle]||null);}
+catch(error){console.error('Error resolving handles:',error);return handles.map(()=>null);}}
 
-export function validatePhotoURL(photoURL, defaultPic) {
-  if (!photoURL || photoURL.trim() === "") {
-    return defaultPic;
-  }
-  return photoURL.trim();
-}
-
-export async function testImageURL(url) {
-  try {
-    const response = await fetch(url, { method: "HEAD" });
-    return response.ok;
-  } catch (error) {
-    console.warn("Failed to test image URL:", url, error);
-    return false;
-  }
-}
-
-export async function validateAndTestPhotoURL(photoURL, defaultPic) {
-  const validatedURL = validatePhotoURL(photoURL, defaultPic);
-  if (validatedURL === defaultPic) return validatedURL;
-
-  const isAccessible = await testImageURL(validatedURL);
-  return isAccessible ? validatedURL : defaultPic;
-}
-
-// ============================================================================
-// TEXT PROCESSING
-// ============================================================================
-
-export function parseEmojis(text) {
-  // Basic emoji parsing - can be enhanced
-  return text.replace(/:\w+:/g, (match) => {
-    // Convert emoji codes to actual emojis
-    const emojiMap = {
-      ":smile:": "😊",
-      ":heart:": "❤️",
-      ":thumbsup:": "👍",
-      ":fire:": "🔥",
-    };
-    return emojiMap[match] || match;
-  });
-}
-
-export function parseMentions(text) {
-  return text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
-}
-
-// ============================================================================
-// FIREBASE UTILITIES
-// ============================================================================
-
-export async function resolveHandlesToUids(handles, db, appId) {
-  const handleToUid = {};
-  try {
-    const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-    const querySnapshot = await getDocs(usersRef);
-    querySnapshot.forEach((doc) => {
-      const userData = doc.data();
-      if (userData.handle && handles.includes(userData.handle)) {
-        handleToUid[userData.handle] = doc.id;
-      }
-    });
-  } catch (error) {
-    console.error("Error resolving handles to UIDs:", error);
-  }
-  return handleToUid;
-}
-
-export async function getUserProfileFromFirestore(uid, db, appId) {
-  try {
-    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
-    return userDoc.exists() ? userDoc.data() : null;
-  } catch (error) {
-    console.error("Error getting user profile:", error);
-    return null;
-  }
-}
-
-// ============================================================================
-// MEDIA UTILITIES
-// ============================================================================
-
-/**
- * Converts Discord URL to reliable CDN.
- * @param {string} discordURL - The Discord URL.
- * @returns {Promise<string>} - The converted URL.
- */
-export async function convertDiscordUrlToReliableCDN(discordURL) {
-  if (!discordURL || !discordURL.includes('discord.com')) {
-    return discordURL;
-  }
-
-  try {
-    // Convert Discord CDN URL to a more reliable format
-    const url = new URL(discordURL);
-    if (url.hostname === 'cdn.discordapp.com' || url.hostname === 'media.discordapp.net') {
-      // Add size parameter for better performance
-      url.searchParams.set('size', '1024');
-      return url.toString();
-    }
-    return discordURL;
-  } catch (error) {
-    console.warn("Failed to convert Discord URL:", error);
-    return discordURL;
-  }
-}
-
-export async function uploadImageToImgBB(imageURL, albumId = null) {
-  console.warn("ImgBB upload not implemented");
-  return imageURL;
-}
-
-export async function convertDiscordUrlToImgBBAlbum(discordURL, albumId) {
-  const convertedURL = await convertDiscordUrlToReliableCDN(discordURL);
-  return await uploadImageToImgBB(convertedURL, albumId);
-}
-
-export function getRecommendedCDNServices() {
-  return [
-    { name: "ImgBB", url: "https://imgbb.com/" },
-    { name: "Cloudinary", url: "https://cloudinary.com/" },
-    { name: "Imgur", url: "https://imgur.com/" },
-  ];
-}
-
-export function createImageUploadHelper(targetElementId) {
-  return {
-    targetElement: document.getElementById(targetElementId),
-    showUploadDialog() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          this.handleFileUpload(file);
-        }
-      };
-      input.click();
-    },
-    async handleFileUpload(file) {
-      // Implementation would depend on your upload service
-      console.log("File upload not implemented:", file.name);
-    },
-    setImageUrl(url) {
-      if (this.targetElement) {
-        this.targetElement.value = url;
-        this.targetElement.dispatchEvent(new Event('change'));
-      }
-    }
-  };
-}
-
-// ============================================================================
-// INITIALIZATION
-// ============================================================================
-
-function initializeUtilityElements() {
-  if (!document.getElementById("message-box")) {
-    const messageBox = document.createElement("div");
-    messageBox.id = "message-box";
-    messageBox.className = "message-box";
-    messageBox.style.display = "none";
-    document.body.appendChild(messageBox);
-  }
-}
-
-// Initialize utilities when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeUtilityElements);
-} else {
-  initializeUtilityElements();
-}
-
-// ============================================================================
-// MEDIA RENDERING
-// ============================================================================
-
-export function renderMediaContent(text) {
-  if (!text) return '';
-  // YouTube video embedding
-  const youtubeRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+))/g;
-  text = text.replace(youtubeRegex, (match, url, videoId) => {
-    return `<div class="youtube-embed"><iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`;
-  });
-  // Image embedding
-  const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
-  text = text.replace(imageRegex, (match, url) => {
-    return `<img src="${url}" alt="Embedded image" class="embedded-image" style="max-width: 100%; height: auto;">`;
-  });
-  return text;
-}
-
-export function validateMediaUrl(url) {
-  if (!url) return false;
-  try {
-    const urlObj = new URL(url);
-    const validProtocols = ['http:', 'https:'];
-    const validDomains = ['youtube.com', 'youtu.be', 'imgur.com', 'imgbb.com', 'cloudinary.com'];
-    return validProtocols.includes(urlObj.protocol) &&
-           (validDomains.some(domain => urlObj.hostname.includes(domain)) ||
-            url.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm)$/i));
-  } catch {
-    return false;
-  }
-}
-
-export function createMediaPreview(url, type) {
-  if (type === 'youtube') {
-    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)?.[1];
-    if (videoId) {
-      return `<iframe width="320" height="180" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    }
-  } else if (type === 'image') {
-    return `<img src="${url}" alt="Preview" style="max-width: 320px; max-height: 180px; object-fit: cover;">`;
-  }
-  return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-}
-
-export function renderMarkdownWithMedia(content, targetElement) {
-  if (!targetElement) return;
-  // Basic markdown to HTML conversion
-  let html = content
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-    .replace(/\*(.*)\*/gim, '<em>$1</em>')
-    .replace(/`(.*)`/gim, '<code>$1</code>')
-      .replace(/\n/gim, '<br>');
-  // Add media rendering
-  html = renderMediaContent(html);
-  targetElement.innerHTML = html;
-}
-
-// ============================================================================
-// TAB UTILITIES
-// ============================================================================
-
-export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
-  const tabButtons = document.querySelectorAll(tabButtonSelector);
-  const tabContents = document.querySelectorAll(tabContentSelector);
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
-      // Remove active class from all buttons and contents
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
-      // Add active class to clicked button and corresponding content
-      button.classList.add('active');
-      const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetTab}"]`);
-      if (targetContent) {
-        targetContent.classList.add('active');
-      }
-    });
-  });
-}
+export async function getUserProfileFromFirestore(uid){
+if(!uid)return null;
+try{
+const userDoc=await getDoc(doc(db,'users',uid));
+if(userDoc.exists()){return userDoc.data();}
+return null;}
+catch(error){console.error('Error fetching user profile:',error);return null;}}
