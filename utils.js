@@ -1,380 +1,487 @@
 // utils.js: Utility functions for the Arcator website
-import {appId, db} from "./firebase-init.js";
-import {collection, doc, getDoc, getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  auth,
+  db,
+  appId,
+  firebaseReadyPromise,
+} from "./firebase-init.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// MESSAGE BOX SYSTEM
+// ============================================================================
+// UI UTILITIES
+// ============================================================================
+
+/**
+ * Shows a message box with the given message.
+ * @param {string} message - The message to display.
+ * @param {boolean} isError - Whether this is an error message.
+ * @param {boolean} allowHtml - Whether to allow HTML in the message.
+ */
 export function showMessageBox(message, isError = false, allowHtml = false) {
-  const messageBox = document.getElementById("message-box") || createMessageBox();
+  const messageBox = document.getElementById("message-box");
+  if (!messageBox) {
+    console.warn("Message box element not found");
+    return;
+  }
+
+  messageBox.textContent = "";
   messageBox.className = `message-box ${isError ? "error" : "success"}`;
-  messageBox.innerHTML = allowHtml ? message : escapeHtml(message);
+  
+  if (allowHtml) {
+    messageBox.innerHTML = message;
+  } else {
+    messageBox.textContent = message;
+  }
+
   messageBox.style.display = "block";
   setTimeout(() => {
     messageBox.style.display = "none";
   }, 5000);
 }
 
+/**
+ * Shows a custom confirmation dialog.
+ * @param {string} message - The main message.
+ * @param {string} submessage - The submessage.
+ * @returns {Promise<boolean>} - Whether the user confirmed.
+ */
 export function showCustomConfirm(message, submessage = "") {
   return new Promise((resolve) => {
-    const modal = document.createElement("div");
-    modal.className = "modal";
-    modal.style.display = "flex";
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h3>${escapeHtml(message)}</h3>
-        ${submessage ? `<p>${escapeHtml(submessage)}</p>` : ""}
-        <div class="flex gap-2 mt-4">
-          <button class="btn-primary btn-blue confirm-yes">Yes</button>
-          <button class="btn-primary btn-red confirm-no">No</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
+    const modal = document.getElementById("custom-confirm-modal");
+    if (!modal) {
+      console.warn("Custom confirm modal not found");
+      resolve(false);
+      return;
+    }
+
+    // Ensure modal is hidden by default
+    modal.style.display = "none";
+
+    const messageEl = document.getElementById("confirm-message");
+    const submessageEl = document.getElementById("confirm-submessage");
+    const yesBtn = document.getElementById("confirm-yes");
+    const noBtn = document.getElementById("confirm-no");
+
+    if (messageEl) messageEl.textContent = message;
+    if (submessageEl) submessageEl.textContent = submessage;
 
     const handleYes = () => {
       modal.style.display = "none";
       resolve(true);
     };
+
     const handleNo = () => {
       modal.style.display = "none";
       resolve(false);
     };
 
-    modal.querySelector(".confirm-yes").addEventListener("click", handleYes);
-    modal.querySelector(".confirm-no").addEventListener("click", handleNo);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) handleNo();
-    });
+    yesBtn.onclick = handleYes;
+    noBtn.onclick = handleNo;
+
+    modal.style.display = "flex";
   });
 }
 
+/**
+ * Escapes HTML special characters.
+ * @param {string} text - The text to escape.
+ * @returns {string} - The escaped text.
+ */
 export function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
 
-// CSV PARSING UTILITIES
-export function parseCSVLine(line) {
-  const result = [];
-  let current = "";
-  let inQuotes = false;
+// ============================================================================
+// USER UTILITIES
+// ============================================================================
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current);
-      current = "";
-    } else {
-      current += char;
-    }
+/**
+ * Sanitizes a handle for use in the system.
+ * @param {string} input - The input handle.
+ * @returns {string} - The sanitized handle.
+ */
+export function sanitizeHandle(input) {
+  return input.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
+}
+
+/**
+ * Validates a photo URL and returns a default if invalid.
+ * @param {string} photoURL - The photo URL to validate.
+ * @param {string} defaultPic - The default picture URL.
+ * @returns {string} - The validated photo URL.
+ */
+export function validatePhotoURL(photoURL, defaultPic) {
+  if (!photoURL || photoURL.trim() === "") {
+    return defaultPic;
   }
-  result.push(current);
-  return result.map(val => val.replace(/^"|"$/g, ''));
+  return photoURL.trim();
 }
 
-export function parseCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  const data = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i]);
-    if (values.length >= 2) {
-      const row = {interest: values[0] || '', members: values[1] || '0', category: 'Gaming', description: ``};
-      const players = [];
-      for (let j = 2; j < values.length; j++) {
-        if (values[j] && values[j].trim() !== '') {
-          players.push(headers[j] || `Player ${j}`);
-        }
-      }
-      if (players.length > 0) {
-        row.description += `Users: ${players.join(', ')}`;
-      }
-      if (row.interest && row.interest.trim() !== '') {
-        data.push(row);
-      }
-    }
-  }
-  return data;
-}
-
-export function parseDonationsCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-  const data = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',');
-    const row = {};
-    headers.forEach((header, idx) => {
-      row[header] = values[idx] || '';
-    });
-    data.push({
-      expense: row['expense'] || row['expenses'] || '',
-      cost: row['cost'] || '',
-      description: row['description'] || '',
-      donor: row['donor'] || row['donation'] || row['donations'] || ''
-    });
-  }
-  return data;
-}
-
-export function parseMachinesCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-  const data = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',');
-    const row = {};
-    headers.forEach((header, idx) => {
-      row[header] = values[idx] || '';
-    });
-    data.push({
-      name: row['name'] || '',
-      owner: row['owner'] || '',
-      location: row['location'] || '',
-      purpose: row['purpose'] || '',
-      internalId: row['internal id'] || row['internalid'] || '',
-      notes: row['notes'] || ''
-    });
-  }
-  return data;
-}
-
-// URL AND MEDIA UTILITIES
-export function convertDiscordUrlToReliableCDN(url) {
-  if (!url) return null;
-  return url.replace(/^https:\/\/cdn\.discordapp\.com/, 'https://media.discordapp.net');
-}
-
-export async function uploadImageToImgBB(imageFile, apiKey) {
-  const formData = new FormData();
-  formData.append('image', imageFile);
-  formData.append('key', apiKey);
-
+/**
+ * Tests if an image URL is accessible.
+ * @param {string} url - The URL to test.
+ * @returns {Promise<boolean>} - Whether the image is accessible.
+ */
+export async function testImageURL(url) {
   try {
-    const response = await fetch('https://api.imgbb.com/1/upload', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await response.json();
-    return data.success ? data.data.url : null;
+    const response = await fetch(url, { method: "HEAD" });
+    return response.ok;
   } catch (error) {
-    console.error('Error uploading image:', error);
-    return null;
-  }
-}
-
-export function validatePhotoURL(url) {
-  if (!url) return false;
-  try {
-    new URL(url);
-    return true;
-  } catch {
+    console.warn("Failed to test image URL:", url, error);
     return false;
   }
 }
 
-export async function testImageURL(url, timeout = 5000) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const timer = setTimeout(() => {
-      img.onload = img.onerror = null;
-      resolve(false);
-    }, timeout);
+/**
+ * Validates and tests a photo URL.
+ * @param {string} photoURL - The photo URL to validate.
+ * @param {string} defaultPic - The default picture URL.
+ * @returns {Promise<string>} - The validated photo URL.
+ */
+export async function validateAndTestPhotoURL(photoURL, defaultPic) {
+  const validatedURL = validatePhotoURL(photoURL, defaultPic);
+  if (validatedURL === defaultPic) return validatedURL;
+  
+  const isAccessible = await testImageURL(validatedURL);
+  return isAccessible ? validatedURL : defaultPic;
+}
 
-    img.onload = () => {
-      clearTimeout(timer);
-      resolve(true);
+// ============================================================================
+// TEXT PROCESSING
+// ============================================================================
+
+/**
+ * Parses emojis in text.
+ * @param {string} text - The text to parse.
+ * @returns {string} - The text with emojis parsed.
+ */
+export function parseEmojis(text) {
+  // Basic emoji parsing - can be enhanced
+  return text.replace(/:\w+:/g, (match) => {
+    // Convert emoji codes to actual emojis
+    const emojiMap = {
+      ":smile:": "😊",
+      ":heart:": "❤️",
+      ":thumbsup:": "👍",
+      ":fire:": "🔥",
     };
-
-    img.onerror = () => {
-      clearTimeout(timer);
-      resolve(false);
-    };
-
-    img.src = url;
+    return emojiMap[match] || match;
   });
 }
 
-export function renderMediaContent(url, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container || !url) return;
+/**
+ * Parses mentions in text.
+ * @param {string} text - The text to parse.
+ * @returns {string} - The text with mentions parsed.
+ */
+export function parseMentions(text) {
+  return text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+}
 
-  const extension = url.split('.').pop().toLowerCase();
-  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension);
-  const isVideo = ['mp4', 'webm', 'ogg'].includes(extension);
-  const isAudio = ['mp3', 'wav', 'ogg'].includes(extension);
+// ============================================================================
+// FIREBASE UTILITIES
+// ============================================================================
 
-  if (isImage) {
-    container.innerHTML = `<img src="${url}" alt="Media content" style="max-width: 100%; height: auto;">`;
-  } else if (isVideo) {
-    container.innerHTML = `<video controls style="max-width: 100%;"><source src="${url}" type="video/${extension}"></video>`;
-  } else if (isAudio) {
-    container.innerHTML = `<audio controls><source src="${url}" type="audio/${extension}"></audio>`;
-  } else {
-    container.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">View Media</a>`;
+/**
+ * Resolves handles to UIDs.
+ * @param {string[]} handles - The handles to resolve.
+ * @param {Object} db - The Firestore database instance.
+ * @param {string} appId - The app ID.
+ * @returns {Promise<Object>} - Mapping of handles to UIDs.
+ */
+export async function resolveHandlesToUids(handles, db, appId) {
+  const handleToUid = {};
+  
+  try {
+    const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+    const querySnapshot = await getDocs(usersRef);
+    
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data();
+      if (userData.handle && handles.includes(userData.handle)) {
+        handleToUid[userData.handle] = doc.id;
+      }
+    });
+  } catch (error) {
+    console.error("Error resolving handles to UIDs:", error);
+  }
+  
+  return handleToUid;
+}
+
+/**
+ * Gets a user profile from Firestore.
+ * @param {string} uid - The user UID.
+ * @param {Object} db - The Firestore database instance.
+ * @param {string} appId - The app ID.
+ * @returns {Promise<Object|null>} - The user profile or null.
+ */
+export async function getUserProfileFromFirestore(uid, db, appId) {
+  try {
+    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
+    return userDoc.exists() ? userDoc.data() : null;
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    return null;
   }
 }
 
+// ============================================================================
+// MEDIA UTILITIES
+// ============================================================================
+
+/**
+ * Converts Discord URL to reliable CDN.
+ * @param {string} discordURL - The Discord URL.
+ * @returns {Promise<string>} - The converted URL.
+ */
+export async function convertDiscordUrlToReliableCDN(discordURL) {
+  if (!discordURL || !discordURL.includes('discord.com')) {
+    return discordURL;
+  }
+
+  try {
+    // Convert Discord CDN URL to a more reliable format
+    const url = new URL(discordURL);
+    if (url.hostname === 'cdn.discordapp.com' || url.hostname === 'media.discordapp.net') {
+      // Add size parameter for better performance
+      url.searchParams.set('size', '1024');
+      return url.toString();
+    }
+    return discordURL;
+  } catch (error) {
+    console.warn("Failed to convert Discord URL:", error);
+    return discordURL;
+  }
+}
+
+/**
+ * Uploads image to ImgBB.
+ * @param {string} imageURL - The image URL.
+ * @param {string} albumId - The album ID.
+ * @returns {Promise<string>} - The uploaded image URL.
+ */
+export async function uploadImageToImgBB(imageURL, albumId = null) {
+  // This would require ImgBB API key and implementation
+  // For now, return the original URL
+  console.warn("ImgBB upload not implemented");
+  return imageURL;
+}
+
+/**
+ * Converts Discord URL to ImgBB album.
+ * @param {string} discordURL - The Discord URL.
+ * @param {string} albumId - The album ID.
+ * @returns {Promise<string>} - The converted URL.
+ */
+export async function convertDiscordUrlToImgBBAlbum(discordURL, albumId) {
+  const convertedURL = await convertDiscordUrlToReliableCDN(discordURL);
+  return await uploadImageToImgBB(convertedURL, albumId);
+}
+
+/**
+ * Gets recommended CDN services.
+ * @returns {Array} - List of recommended CDN services.
+ */
+export function getRecommendedCDNServices() {
+  return [
+    { name: "ImgBB", url: "https://imgbb.com/" },
+    { name: "Cloudinary", url: "https://cloudinary.com/" },
+    { name: "Imgur", url: "https://imgur.com/" },
+  ];
+}
+
+/**
+ * Creates an image upload helper.
+ * @param {string} targetElementId - The target element ID.
+ * @returns {Object} - The upload helper object.
+ */
+export function createImageUploadHelper(targetElementId) {
+  return {
+    targetElement: document.getElementById(targetElementId),
+    
+    showUploadDialog() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          this.handleFileUpload(file);
+        }
+      };
+      input.click();
+    },
+    
+    async handleFileUpload(file) {
+      // Implementation would depend on your upload service
+      console.log("File upload not implemented:", file.name);
+    },
+    
+    setImageUrl(url) {
+      if (this.targetElement) {
+        this.targetElement.value = url;
+        this.targetElement.dispatchEvent(new Event('change'));
+      }
+    }
+  };
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+/**
+ * Initializes utility elements.
+ */
+function initializeUtilityElements() {
+  // Create message box if it doesn't exist
+  if (!document.getElementById("message-box")) {
+    const messageBox = document.createElement("div");
+    messageBox.id = "message-box";
+    messageBox.className = "message-box";
+    messageBox.style.display = "none";
+    document.body.appendChild(messageBox);
+  }
+}
+
+// Initialize utilities when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeUtilityElements);
+} else {
+  initializeUtilityElements();
+}
+
+// ============================================================================
+// MEDIA RENDERING
+// ============================================================================
+
+/**
+ * Renders media content in text.
+ * @param {string} text - The text containing media.
+ * @returns {string} - The rendered HTML.
+ */
+export function renderMediaContent(text) {
+  if (!text) return '';
+  
+  // YouTube video embedding
+  const youtubeRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+))/g;
+  text = text.replace(youtubeRegex, (match, url, videoId) => {
+    return `<div class="youtube-embed"><iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`;
+  });
+  
+  // Image embedding
+  const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
+  text = text.replace(imageRegex, (match, url) => {
+    return `<img src="${url}" alt="Embedded image" class="embedded-image" style="max-width: 100%; height: auto;">`;
+  });
+  
+  return text;
+}
+
+/**
+ * Validates media URL.
+ * @param {string} url - The URL to validate.
+ * @returns {boolean} - Whether the URL is valid.
+ */
 export function validateMediaUrl(url) {
   if (!url) return false;
+  
   try {
-    new URL(url);
-    return true;
+    const urlObj = new URL(url);
+    const validProtocols = ['http:', 'https:'];
+    const validDomains = ['youtube.com', 'youtu.be', 'imgur.com', 'imgbb.com', 'cloudinary.com'];
+    
+    return validProtocols.includes(urlObj.protocol) && 
+           (validDomains.some(domain => urlObj.hostname.includes(domain)) ||
+            url.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm)$/i));
   } catch {
     return false;
   }
 }
 
-export function createMediaPreview(url, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="media-preview">
-      <img src="${url}" alt="Preview" style="max-width: 100px; max-height: 100px; object-fit: cover;">
-      <span>${url}</span>
-    </div>
-  `;
-}
-
-// YOUTUBE UTILITIES
-export function extractYouTubeVideoId(url) {
-  if (!url) return null;
-
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/v\/([^&\n?#]+)/,
-    /youtube\.com\/watch\?.*&v=([^&\n?#]+)/
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
+/**
+ * Creates media preview.
+ * @param {string} url - The media URL.
+ * @param {string} type - The media type.
+ * @returns {string} - The preview HTML.
+ */
+export function createMediaPreview(url, type) {
+  if (type === 'youtube') {
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)?.[1];
+    if (videoId) {
+      return `<iframe width="320" height="180" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+  } else if (type === 'image') {
+    return `<img src="${url}" alt="Preview" style="max-width: 320px; max-height: 180px; object-fit: cover;">`;
   }
-
-  return null;
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
 }
 
-// USER PROFILE UTILITIES
-export async function resolveHandlesToUids(handles) {
-  if (!db || !handles || handles.length === 0) return {};
-
-  const result = {};
-  const handlesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
-
-  try {
-    const querySnapshot = await getDocs(handlesRef);
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.handle && handles.includes(data.handle)) {
-        result[data.handle] = doc.id;
-      }
-    });
-  } catch (error) {
-    console.error('Error resolving handles:', error);
-  }
-
-  return result;
+/**
+ * Renders markdown with media support.
+ * @param {string} content - The markdown content.
+ * @param {HTMLElement} targetElement - The target element.
+ */
+export function renderMarkdownWithMedia(content, targetElement) {
+  if (!targetElement) return;
+  
+  // Basic markdown to HTML conversion
+  let html = content
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*)\*/gim, '<em>$1</em>')
+    .replace(/`(.*)`/gim, '<code>$1</code>')
+    .replace(/\n/gim, '<br>');
+  
+  // Add media rendering
+  html = renderMediaContent(html);
+  
+  targetElement.innerHTML = html;
 }
 
-export async function getUserProfileFromFirestore(uid) {
-  if (!db || !uid) return null;
+// ============================================================================
+// TAB UTILITIES
+// ============================================================================
 
-  try {
-    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
-    return userDoc.exists() ? {uid, ...userDoc.data()} : null;
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return null;
-  }
-}
-
-export function sanitizeHandle(handle) {
-  if (!handle) return '';
-  return handle.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
-}
-
-export function generateRandomNameAndHandle() {
-  const adjectives = ['Swift', 'Bright', 'Clever', 'Brave', 'Wise', 'Kind', 'Calm', 'Bold'];
-  const nouns = ['Wolf', 'Eagle', 'Lion', 'Bear', 'Fox', 'Hawk', 'Tiger', 'Dragon'];
-  const numbers = Math.floor(Math.random() * 999) + 1;
-
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const displayName = `${adjective}${noun}`;
-  const handle = `${displayName.toLowerCase()}${numbers}`;
-
-  return {displayName, handle};
-}
-
-export function generateColoredProfilePic(displayName) {
-  const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
-  ];
-
-  const color = colors[displayName.length % colors.length];
-  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${color.slice(1)}&color=fff&size=128&bold=true`;
-}
-
-// UI UTILITIES
+/**
+ * Sets up tab functionality.
+ * @param {string} tabButtonSelector - The tab button selector.
+ * @param {string} tabContentSelector - The tab content selector.
+ */
 export function setupTabs(tabButtonSelector = '.tab-button', tabContentSelector = '.tab-content') {
   const tabButtons = document.querySelectorAll(tabButtonSelector);
   const tabContents = document.querySelectorAll(tabContentSelector);
 
-  function activateTab(tabName, updateHash = false) {
-    tabButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
-    });
-
-    tabContents.forEach(content => {
-      content.classList.toggle('active', content.getAttribute('data-tab') === tabName);
-    });
-
-    if (updateHash) {
-      window.location.hash = tabName;
-    }
-  }
-
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
-      const tabName = button.getAttribute('data-tab');
-      activateTab(tabName, true);
+      const targetTab = button.getAttribute('data-tab');
+      
+      // Remove active class from all buttons and contents
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Add active class to clicked button and corresponding content
+      button.classList.add('active');
+      const targetContent = document.querySelector(`${tabContentSelector}[data-tab="${targetTab}"]`);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
     });
   });
-
-  const hash = window.location.hash.slice(1);
-  if (hash) {
-    activateTab(hash);
-  }
-}
-
-export function togglePasswordVisibility(inputId, button) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-
-  if (input.type === 'password') {
-    input.type = 'text';
-    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
-  } else {
-    input.type = 'password';
-    button.innerHTML = '<i class="fas fa-eye"></i>';
-  }
-}
-
-// MESSAGE BOX CREATION
-function createMessageBox() {
-  const messageBox = document.createElement('div');
-  messageBox.id = 'message-box';
-  messageBox.className = 'message-box';
-  messageBox.style.display = 'none';
-  document.body.appendChild(messageBox);
-  return messageBox;
 }

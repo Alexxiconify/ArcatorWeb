@@ -1,4 +1,9 @@
-import {applyTheme, deleteCustomTheme, getAvailableThemes, saveCustomTheme} from "./themes.js";
+import {
+  applyTheme,
+  getAvailableThemes,
+  saveCustomTheme,
+  deleteCustomTheme,
+} from "./themes.js";
 
 /**
  * Sets up the functionality for managing custom themes.
@@ -12,22 +17,38 @@ import {applyTheme, deleteCustomTheme, getAvailableThemes, saveCustomTheme} from
  * @param {User} currentUser - The currently authenticated Firebase user.
  * @param {function} showCustomConfirm - Function to show custom confirmation dialogs.
  */
-export function setupCustomThemeManagement(db, auth, appId, showMessageBox, populateThemeSelect, userThemeSelect, defaultThemeName, currentUser, showCustomConfirm) {
+export function setupCustomThemeManagement(
+  db,
+  auth,
+  appId,
+  showMessageBox,
+  populateThemeSelect,
+  userThemeSelect,
+  defaultThemeName,
+  currentUser,
+  showCustomConfirm,
+) {
   let currentCustomThemeId = null;
+
   // Ensure the modal HTML is added to the DOM if it's not already there
   const customThemeModal =
     document.getElementById("custom-theme-modal") || createCustomThemeModal();
+
   // Get DOM elements for the modal
   const closeButton = customThemeModal.querySelector(".close-button");
   const customThemeForm = document.getElementById("custom-theme-form");
   const themeNameInput = document.getElementById("custom-theme-name");
   const colorInputsContainer = document.getElementById("custom-theme-color-inputs");
-    const backgroundPatternSelect = document.getElementById("custom-theme-background-pattern");
+  const backgroundPatternSelect = document.getElementById(
+    "custom-theme-background-pattern",
+  );
   const saveCustomThemeBtn = document.getElementById("save-custom-theme-btn");
   const customThemeList = document.getElementById("custom-theme-list");
 
   // Trigger button to open the modal (from settings.html)
-    const createCustomThemeBtn = document.getElementById("create-custom-theme-btn");
+  const createCustomThemeBtn = document.getElementById(
+    "create-custom-theme-btn",
+  );
   if (createCustomThemeBtn) {
     createCustomThemeBtn.addEventListener("click", async () => {
       openCustomThemeModal();

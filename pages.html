@@ -19,6 +19,7 @@
     * {
       box-sizing: border-box;
     }
+
     html,
     body {
       margin: 0;
@@ -1071,6 +1072,8 @@
     import { auth, getUserProfileFromFirestore } from './firebase-init.js';
     // Init theme/navbar/footer
     initializePage('pages');
+    loadFooter();
+    loadNavbar();
     // Firestore init
     let app, db;
     if (!getApps().length) app = initializeApp(firebaseConfig);

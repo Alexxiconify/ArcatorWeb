@@ -7,6 +7,9 @@
   <title>About - Arcator.co.uk</title>
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <!-- Link to theme_variables.css for centralized CSS variables -->
+    <link href="theme_variables.css" rel="stylesheet"/>
+    <!-- Link to master.css for all styles -->
   <link href="master.css" rel="stylesheet" />
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png" />
@@ -277,10 +280,18 @@
           </h2>
           <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
             <p>
-              Arcator.co.uk started in <span class="font-semibold text-text-primary">October 2010</span> from a passion
-              for Minecraft. We've grown from a small venture into a vibrant community hub. Our mission is to provide a
-              fun, safe environment for Minecraft players. We foster creativity and friendships while upholding our core
-              values.
+                Arcator.co.uk began in
+                <span class="font-semibold text-text-primary">October 2010</span>
+                from a passion for Minecraft and a desire to create a stable,
+                engaging community. What started as a small venture grew into a
+                vibrant hub for players seeking unique experiences.
+            </p>
+              <p>
+                  Our mission is to provide a long-lasting, fun, and safe
+                  environment for Minecraft players of all ages. We foster
+                  creativity, friendships, and continuous improvement while
+                  upholding the core values that have defined us for over a
+                  decade.
             </p>
           </div>
         </div>
@@ -295,7 +306,8 @@
                 Community First
               </h3>
               <p class="text-text-secondary">
-                Welcoming atmosphere where every player feels respected.
+                  Welcoming and inclusive atmosphere where every player feels
+                  respected and heard.
               </p>
             </div>
             <div class="content-card">
@@ -303,7 +315,8 @@
                 Innovation & Fun
               </h3>
               <p class="text-text-secondary">
-                Explore new ways to enhance Minecraft with fresh content.
+                  Constantly explore new ways to enhance the Minecraft
+                  experience with fresh content and features.
               </p>
             </div>
             <div class="content-card">
@@ -311,7 +324,8 @@
                 Stability & Reliability
               </h3>
               <p class="text-text-secondary">
-                Robust infrastructure for smooth, low-lag gameplay with high uptime.
+                  Robust infrastructure ensuring smooth, low-lag gameplay with
+                  high uptime and secure data.
               </p>
             </div>
             <div class="content-card">
@@ -319,7 +333,8 @@
                 Communication
               </h3>
               <p class="text-text-secondary">
-                Open communication about server development and community decisions.
+                  Open communication sharing insights into server development
+                  and community decisions.
               </p>
             </div>
           </div>
@@ -330,7 +345,9 @@
             Join Our Thriving Community!
           </h2>
           <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
-            Connect with builders, join events, and be part of a welcoming community.
+              Connect with fellow builders, participate in events, and be part
+              of a welcoming community that shares your love for creativity and
+              adventure.
           </p>
           <div class="about-btn-row">
             <a href="https://discord.gg/arcator" target="_blank" rel="noopener noreferrer" class="btn-modern btn-blue">Join Our Discord</a>
@@ -360,11 +377,15 @@
         </h2>
         <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
           <p>
-            Our Discord server is the hub for chat, announcements, support, and connecting with members.
-            Share builds, join activities, or just chat with friends.
+              Our Discord server is the primary hub for real-time chat,
+              announcements, support, and connecting with other members. Whether
+              you're looking for group activities, sharing your latest builds,
+              or just a friendly chat, our Discord is the place to be.
           </p>
           <p>
-            Beyond Discord, we encourage sharing diverse interests for a welcoming environment.
+              Beyond Discord, we encourage members to share their diverse
+              interests, fostering a rich and welcoming environment for
+              everyone.
           </p>
         </div>
         <div class="about-btn-row">
@@ -633,12 +654,16 @@
         </h2>
         <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
           <p>
-            Arcator's stability comes from dedicated server infrastructure.
-            We use powerful machines and strategic network configurations for seamless, low-latency gameplay.
+              Arcator's stability and performance are built upon a foundation of
+              dedicated and well-maintained server infrastructure. We utilize a
+              blend of powerful machines and strategic network configurations to
+              ensure a seamless and low-latency experience for all our players
+              across various Minecraft servers and services.
           </p>
           <p>
-            Our setup is designed for efficiency, reliability, and scalability,
-            hosting diverse gamemodes and providing robust redundancy.
+              Our setup is designed for efficiency, reliability, and
+              scalability, allowing us to host diverse gamemodes, critical
+              background services, and provide robust redundancy measures.
           </p>
         </div>
 
@@ -667,7 +692,9 @@
           </table>
         </div>
         <p class="text-lg mt-12 text-text-secondary text-center">
-          This setup efficiently manages our network, from hosting Minecraft servers to providing redundancy.
+            This setup allows us to efficiently manage different aspects of the
+            network, from hosting Minecraft servers to handling critical
+            background services and providing redundancy.
         </p>
       </div>
     </section>
@@ -676,12 +703,589 @@
   <div id="footer-placeholder"></div>
   <script src="app.js" type="module"></script>
   <script type="module">
-      import {initializePage, setupTabs} from './core.js';
-    import {initializeAboutPage} from './about.js';
-
+      import {initializePage, setupTabs, loadFooter} from './core.js';
     initializePage('about');
     setupTabs('.tab-btn', '.tab-content');
-    initializeAboutPage();
+      loadFooter();
+
+      // Census/Interests data loading functionality
+      let interestsData = [];
+      let filteredData = [];
+      let currentSort = {column: 'interest', direction: 'asc'};
+      let interestsLoaded = false;
+      let interests2025Loaded = false;
+      let interests2020Loaded = false;
+      let donationsLoaded = false;
+      let machinesLoaded = false;
+      let interests2025Data = [];
+      let interests2020Data = [];
+      let donationsData = [];
+      let machinesData = [];
+
+      // Google Sheets URL - convert to CSV export
+      const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?gid=1977273024#gid=1977273024';
+      const CSV_URL = SHEETS_URL.replace('/edit?gid=', '/export?format=csv&gid=');
+
+      // Initialize interests functionality when census tab is shown
+      document.addEventListener('DOMContentLoaded', function () {
+          const censusTab = document.getElementById('tab-census');
+          let censusDataLoaded = false;
+
+          // Check if we're already on census tab (hash navigation)
+          if (window.location.hash === '#census') {
+              loadAllCensusTables();
+              censusDataLoaded = true;
+          }
+
+          if (censusTab) {
+              censusTab.addEventListener('click', function () {
+                  if (!censusDataLoaded) {
+                      loadAllCensusTables();
+                      censusDataLoaded = true;
+                  }
+              });
+          }
+
+          // Setup retry button
+          const retryBtn = document.getElementById('retry-interests-btn');
+          if (retryBtn) {
+              retryBtn.addEventListener('click', function () {
+                  interestsLoaded = false;
+                  loadInterestsData();
+              });
+          }
+
+          // Setup search functionality
+          const searchInput = document.getElementById('interests-search');
+          if (searchInput) {
+              searchInput.addEventListener('input', filterInterests);
+          }
+
+          // Setup category filter
+          const categoryFilter = document.getElementById('interests-category-filter');
+          if (categoryFilter) {
+              categoryFilter.addEventListener('change', filterInterests);
+          }
+
+          // Census group tab switching logic
+          const groupTabButtons = document.querySelectorAll('.census-group-tab-btn');
+          const groupTables = document.querySelectorAll('.census-group-table');
+          groupTabButtons.forEach(btn => {
+              btn.addEventListener('click', function () {
+                  // Remove active from all buttons
+                  groupTabButtons.forEach(b => b.classList.remove('active'));
+                  // Add active to clicked
+                  btn.classList.add('active');
+                  // Hide all tables
+                  groupTables.forEach(table => table.classList.add('hidden'));
+                  // Show the selected group table
+                  const group = btn.getAttribute('data-group');
+                  const showTable = document.getElementById('census-group-' + group);
+                  if (showTable) showTable.classList.remove('hidden');
+                  // Render the correct table
+                  if (group === '2025') renderInterests2025Table();
+                  else if (group === '2020') renderInterests2020Table();
+                  else if (group === 'donations') renderDonationsTable();
+                  else if (group === 'machines') renderMachinesTable();
+              });
+          });
+      });
+
+      async function loadInterestsData() {
+          const loadingEl = document.getElementById('interests-loading');
+          const errorEl = document.getElementById('interests-error');
+          const tableContainer = document.getElementById('interests-table-container');
+
+          // Show loading state
+          if (loadingEl) loadingEl.classList.remove('hidden');
+          if (errorEl) errorEl.classList.add('hidden');
+          if (tableContainer) tableContainer.classList.add('hidden');
+
+          try {
+              console.log('Loading interests data from:', CSV_URL);
+              const response = await fetch(CSV_URL);
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const csvText = await response.text();
+              console.log('CSV data received:', csvText.substring(0, 200) + '...');
+
+              interestsData = parseCSV(csvText);
+              console.log('Parsed interests data:', interestsData.length, 'items');
+
+              if (interestsData.length > 0) {
+                  // Populate category filter
+                  populateCategoryFilter();
+
+                  // Show table
+                  if (loadingEl) loadingEl.classList.add('hidden');
+                  if (tableContainer) tableContainer.classList.remove('hidden');
+
+                  // Initial render
+                  filteredData = [...interestsData];
+                  renderInterestsTable();
+                  updateInterestsCount();
+                  interestsLoaded = true;
+              } else {
+                  throw new Error('No data found in spreadsheet');
+              }
+          } catch (error) {
+              console.error('Error loading interests data:', error);
+
+              // Show error state
+              if (loadingEl) loadingEl.classList.add('hidden');
+              if (errorEl) errorEl.classList.remove('hidden');
+              interestsLoaded = false;
+          }
+      }
+
+      async function loadAllCensusTables() {
+          await Promise.all([
+              loadInterests2025(),
+              loadInterests2020(),
+              loadDonations(),
+              loadMachines()
+          ]);
+      }
+
+      async function loadInterests2025() {
+          if (interests2025Loaded) return;
+          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=1977273024';
+          try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('Failed to fetch 2025 interests');
+              const csvText = await response.text();
+              interests2025Data = parseCSV(csvText);
+              interests2025Loaded = true;
+              renderInterests2025Table();
+          } catch (e) {
+              console.error(e);
+          }
+      }
+
+      async function loadInterests2020() {
+          if (interests2020Loaded) return;
+          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=0';
+          try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('Failed to fetch 2020 interests');
+              const csvText = await response.text();
+              interests2020Data = parseCSV(csvText);
+              interests2020Loaded = true;
+              renderInterests2020Table();
+          } catch (e) {
+              console.error(e);
+          }
+      }
+
+      async function loadDonations() {
+          if (donationsLoaded) return;
+          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=759735980';
+          try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('Failed to fetch donations');
+              const csvText = await response.text();
+              donationsData = parseDonationsCSV(csvText);
+              donationsLoaded = true;
+              console.log('Parsed Donations:', donationsData);
+              renderDonationsTable();
+          } catch (e) {
+              console.error(e);
+          }
+      }
+
+      async function loadMachines() {
+          if (machinesLoaded) return;
+          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=752318281';
+          try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('Failed to fetch machines');
+              const csvText = await response.text();
+              machinesData = parseMachinesCSV(csvText);
+              machinesLoaded = true;
+              console.log('Parsed Machines:', machinesData);
+              renderMachinesTable();
+          } catch (e) {
+              console.error(e);
+          }
+      }
+
+      function parseCSV(csvText) {
+          const lines = csvText.trim().split('\n');
+          if (lines.length < 2) return [];
+
+          const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+          const data = [];
+
+          for (let i = 1; i < lines.length; i++) {
+              const values = parseCSVLine(lines[i]);
+              if (values.length >= 2) { // At least interest name and total players
+                  const row = {
+                      interest: values[0] || '',
+                      members: values[1] || '0',
+                      category: 'Gaming', // Default category since this is a gaming interests sheet
+                      description: ``
+                  };
+
+                  // Add player participation data
+                  const players = [];
+                  for (let j = 2; j < values.length; j++) {
+                      if (values[j] && values[j].trim() !== '') {
+                          players.push(headers[j] || `Player ${j}`);
+                      }
+                  }
+
+                  if (players.length > 0) {
+                      row.description += `Users: ${players.join(', ')}`;
+                  }
+
+                  // Only add rows that have an interest name
+                  if (row.interest && row.interest.trim() !== '') {
+                      data.push(row);
+                  }
+              }
+          }
+
+          return data;
+      }
+
+      function parseCSVLine(line) {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+
+          for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+
+              if (char === '"') {
+                  inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                  result.push(current.trim());
+                  current = '';
+              } else {
+                  current += char;
+              }
+          }
+
+          result.push(current.trim());
+          return result.map(val => val.replace(/^"|"$/g, ''));
+      }
+
+      function parseDonationsCSV(csvText) {
+          const lines = csvText.trim().split('\n');
+          if (lines.length < 2) return [];
+          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+          const data = [];
+          for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(',');
+              const row = {};
+              headers.forEach((header, idx) => {
+                  row[header] = values[idx] || '';
+              });
+              data.push({
+                  expense: row['expense'] || row['expenses'] || '',
+                  cost: row['cost'] || '',
+                  description: row['description'] || '',
+                  donor: row['donor'] || row['donation'] || row['donations'] || ''
+              });
+          }
+          return data;
+      }
+
+      function parseMachinesCSV(csvText) {
+          const lines = csvText.trim().split('\n');
+          if (lines.length < 2) return [];
+          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+          const data = [];
+          for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(',');
+              const row = {};
+              headers.forEach((header, idx) => {
+                  row[header] = values[idx] || '';
+              });
+              data.push({
+                  name: row['machine name'] || row['name'] || '',
+                  owner: row['owner'] || '',
+                  location: row['location'] || '',
+                  purpose: row['purpose'] || '',
+                  internalId: row['s# (internal)'] || row['internalid'] || '',
+                  notes: row['notes'] || ''
+              });
+          }
+          return data;
+      }
+
+      function populateCategoryFilter() {
+          const categoryFilter = document.getElementById('interests-category-filter');
+          if (!categoryFilter) return;
+
+          const categories = [...new Set(interestsData.map(item => item.category || '').filter(Boolean))];
+          categories.sort();
+
+          // Clear existing options except "All Categories"
+          categoryFilter.innerHTML = '<option value="">All Categories</option>';
+
+          categories.forEach(category => {
+              const option = document.createElement('option');
+              option.value = category;
+              option.textContent = category;
+              categoryFilter.appendChild(option);
+          });
+      }
+
+      function filterInterests() {
+          const searchTerm = document.getElementById('interests-search')?.value.toLowerCase() || '';
+          const categoryFilter = document.getElementById('interests-category-filter')?.value || '';
+
+          filteredData = interestsData.filter(item => {
+              const matchesSearch = !searchTerm ||
+                  (item.interest && item.interest.toLowerCase().includes(searchTerm)) ||
+                  (item.description && item.description.toLowerCase().includes(searchTerm));
+
+              const matchesCategory = !categoryFilter ||
+                  (item.category && item.category === categoryFilter);
+
+              return matchesSearch && matchesCategory;
+          });
+
+          renderInterestsTable();
+      }
+
+      function renderInterestsTable() {
+          const tbody = document.getElementById('interests-table-body');
+          const noResults = document.getElementById('interests-no-results');
+
+          if (!tbody) return;
+
+          tbody.innerHTML = '';
+
+          if (filteredData.length === 0) {
+              if (noResults) noResults.classList.remove('hidden');
+              return;
+          }
+
+          if (noResults) noResults.classList.add('hidden');
+
+          filteredData.forEach(item => {
+              const row = document.createElement('tr');
+              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+
+              row.innerHTML = `
+          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+        `;
+
+              tbody.appendChild(row);
+          });
+      }
+
+      function renderInterests2025Table() {
+          const tbody = document.getElementById('interests-table-body');
+          const noResults = document.getElementById('interests-no-results');
+          console.log('Rendering 2025 Interests:', interests2025Data);
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          if (interests2025Data.length === 0) {
+              if (noResults) noResults.classList.remove('hidden');
+              return;
+          }
+          if (noResults) noResults.classList.add('hidden');
+          interests2025Data.forEach(item => {
+              const row = document.createElement('tr');
+              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+              row.innerHTML = `
+          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+        `;
+              tbody.appendChild(row);
+          });
+      }
+
+      function renderInterests2020Table() {
+          const tbody = document.getElementById('interests-2020-table-body');
+          const noResults = document.getElementById('interests-2020-no-results');
+          console.log('Rendering 2020 Interests:', interests2020Data);
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          if (interests2020Data.length === 0) {
+              if (noResults) noResults.classList.remove('hidden');
+              return;
+          }
+          if (noResults) noResults.classList.add('hidden');
+          interests2020Data.forEach(item => {
+              const row = document.createElement('tr');
+              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+              row.innerHTML = `
+          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+        `;
+              tbody.appendChild(row);
+          });
+      }
+
+      function renderDonationsTable() {
+          const tbody = document.getElementById('donations-table-body');
+          const noResults = document.getElementById('donations-no-results');
+          console.log('Rendering Donations:', donationsData);
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          if (donationsData.length === 0) {
+              if (noResults) noResults.classList.remove('hidden');
+              return;
+          }
+          if (noResults) noResults.classList.add('hidden');
+          donationsData.forEach(item => {
+              const row = document.createElement('tr');
+              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+              row.innerHTML = `
+          <td class="px-6 py-4 text-left">${escapeHtml(item.expense || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.cost || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.donor || '')}</td>
+        `;
+              tbody.appendChild(row);
+          });
+      }
+
+      function renderMachinesTable() {
+          const tbody = document.getElementById('machines-table-body');
+          const noResults = document.getElementById('machines-no-results');
+          console.log('Rendering Machines:', machinesData);
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          if (machinesData.length === 0) {
+              if (noResults) noResults.classList.remove('hidden');
+              return;
+          }
+          if (noResults) noResults.classList.add('hidden');
+          machinesData.forEach(item => {
+              const row = document.createElement('tr');
+              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+              row.innerHTML = `
+          <td class="px-6 py-4 text-left">${escapeHtml(item.name || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.owner || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.location || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.purpose || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.internalId || '')}</td>
+          <td class="px-6 py-4 text-left">${escapeHtml(item.notes || '')}</td>
+        `;
+              tbody.appendChild(row);
+          });
+      }
+
+      function updateInterestsCount() {
+          const countEl = document.getElementById('interests-count');
+          if (countEl) {
+              countEl.textContent = filteredData.length;
+          }
+      }
+
+      function escapeHtml(text) {
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+      }
+
+      // Global sort functions for table headers
+      window.sortTable = function (column) {
+          if (currentSort.column === column) {
+              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+              currentSort.column = column;
+              currentSort.direction = 'asc';
+          }
+
+          filteredData.sort((a, b) => {
+              let aVal = a[column] || '';
+              let bVal = b[column] || '';
+
+              // Handle numeric values
+              if (column === 'members') {
+                  aVal = parseInt(aVal) || 0;
+                  bVal = parseInt(bVal) || 0;
+              } else {
+                  aVal = aVal.toString().toLowerCase();
+                  bVal = bVal.toString().toLowerCase();
+              }
+
+              if (currentSort.direction === 'asc') {
+                  return aVal > bVal ? 1 : -1;
+              } else {
+                  return aVal < bVal ? 1 : -1;
+              }
+          });
+
+          renderInterestsTable();
+      };
+
+      window.sortTable2025 = function (column) {
+          if (currentSort.column === column) {
+              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+              currentSort.column = column;
+              currentSort.direction = 'asc';
+          }
+
+          interests2025Data.sort((a, b) => {
+              let aVal = a[column] || '';
+              let bVal = b[column] || '';
+
+              // Handle numeric values
+              if (column === 'members') {
+                  aVal = parseInt(aVal) || 0;
+                  bVal = parseInt(bVal) || 0;
+              } else {
+                  aVal = aVal.toString().toLowerCase();
+                  bVal = bVal.toString().toLowerCase();
+              }
+
+              if (currentSort.direction === 'asc') {
+                  return aVal > bVal ? 1 : -1;
+              } else {
+                  return aVal < bVal ? 1 : -1;
+              }
+          });
+
+          renderInterests2025Table();
+      };
+
+      window.sortTable2020 = function (column) {
+          if (currentSort.column === column) {
+              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+              currentSort.column = column;
+              currentSort.direction = 'asc';
+          }
+
+          interests2020Data.sort((a, b) => {
+              let aVal = a[column] || '';
+              let bVal = b[column] || '';
+
+              // Handle numeric values
+              if (column === 'members') {
+                  aVal = parseInt(aVal) || 0;
+                  bVal = parseInt(bVal) || 0;
+              } else {
+                  aVal = aVal.toString().toLowerCase();
+                  bVal = bVal.toString().toLowerCase();
+              }
+
+              if (currentSort.direction === 'asc') {
+                  return aVal > bVal ? 1 : -1;
+              } else {
+                  return aVal < bVal ? 1 : -1;
+              }
+          });
+
+          renderInterests2020Table();
+      };
   </script>
 </body>
 

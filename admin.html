@@ -12,7 +12,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
     rel="stylesheet" />
   <!-- Link to the CSS variables -->
-    <!-- Consolidated CSS -->
+    <link href="theme_variables.css" rel="stylesheet"/>
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="favicon.png" />
   <!-- EmailJS Script -->
@@ -209,7 +209,8 @@
           Access Denied
         </h2>
         <p class="text-lg text-text-secondary mb-8">
-            You must be logged in to access this page. Some sections require admin privileges.
+            You must be logged in to access this page. Some sections require
+            administrator privileges.
         </p>
         <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
       </div>
@@ -242,7 +243,8 @@
                 </li>
               </ul>
               <p class="text-xs text-text-secondary">
-                  See wiki for SSH setup. Use Mosh on port 220, user <b>mcsa</b>.
+                  See wiki for SSH key setup, Termius config, and host details.
+                  Use Mosh for high-speed, port 220, user <b>mcsa</b>.
               </p>
             </div>
           </details>
@@ -675,13 +677,19 @@
           getUserProfileFromFirestore,
           firebaseReadyPromise,
           DEFAULT_PROFILE_PIC,
-          DEFAULT_THEME_NAME
+          DEFAULT_THEME_NAME,
       } from "./firebase-init.js";
     import { loadNavbar, loadFooter } from "./core.js";
-      import {getAvailableThemes, applyTheme, applyCachedTheme} from "./themes.js";
+      import {
+          getAvailableThemes,
+          applyTheme,
+          applyCachedTheme,
+      } from "./themes.js";
+
     // Apply cached theme immediately to prevent flash
     applyCachedTheme();
-    firebaseReadyPromise.then(() => {
+
+      firebaseReadyPromise.then(() => {
       auth.onAuthStateChanged(async (user) => {
         let userProfile = null;
         if (user) {

@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function for checking admin privileges
+    function isAppAdmin(userId) {
+      // These UIDs should match your ADMIN_UIDS in firebase-init.js
+      return userId in ['CEch8cXWemSDQnM3dHVKPt0RGpn2', 'OoeTK1HmebQyOf3gEiCKAHVtD6l2'];
+    }
+
+    // --- 1. Private User Data (User-specific) ---
+    match /artifacts/{appId}/users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // --- 2.1 User Profiles ---
+    match /artifacts/{appId}/public/data/user_profiles/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && (request.auth.uid == userId || isAppAdmin(request.auth.uid));
+      allow update, delete: if request.auth != null && (request.auth.uid == userId || isAppAdmin(request.auth.uid));
+    }
+
+    // --- 2.2 Site-wide/Global Custom Themes ---
+    match /artifacts/{appId}/public/data/custom_themes/{themeId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && isAppAdmin(request.auth.uid);
+    }
+
+    // --- 2.3 Thémata (subreddits) ---
+    match /artifacts/{appId}/public/data/thematas/{themaId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.authorId == request.auth.uid || isAppAdmin(request.auth.uid));
+
+      // Threads inside a thema
+      match /threads/{threadId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && (resource.data.createdBy == request.auth.uid || isAppAdmin(request.auth.uid));
+
+        // Comments under threads in themata
+        match /comments/{commentId} {
+          allow read: if true;
+          allow create: if request.auth != null;
+          allow update, delete: if request.auth != null && (
+            resource.data.createdBy == request.auth.uid ||
+            get(/databases/$(database)/documents/artifacts/$(appId)/public/data/thematas/$(themaId)/threads/$(threadId)).data.createdBy == request.auth.uid ||
+            isAppAdmin(request.auth.uid)
+          );
+        }
+      }
+    }
+
+    // --- 2.4 Global Threads (site-wide, not tied to a thema) ---
+    match /artifacts/{appId}/public/data/threads/{threadId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.createdBy == request.auth.uid || isAppAdmin(request.auth.uid));
+
+      // Comments under global threads
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && (
+          resource.data.createdBy == request.auth.uid ||
+          get(/databases/$(database)/documents/artifacts/$(appId)/public/data/threads/$(threadId)).data.createdBy == request.auth.uid ||
+          isAppAdmin(request.auth.uid)
+        );
+      }
+    }
+
+    // --- 2.5 Announcements ---
+    match /artifacts/{appId}/public/data/announcements/{announcementId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && isAppAdmin(request.auth.uid);
+    }
+
+    // --- 2.6 Direct Messages (Updated path structure) ---
+    match /artifacts/{appId}/users/{userId}/dms/{conversationId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Messages within conversations
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // --- 2.7 Other Specific Public Data Collections ---
+    match /artifacts/{appId}/public/data/dynamic_pages/{pagePath} {
+      allow read: if request.auth != null;
+    }
+    match /artifacts/{appId}/public/data/temp_pages/{documentId} {
+      allow read: if true;
+      allow write: if request.auth != null && isAppAdmin(request.auth.uid);
+    }
+    match /artifacts/{appId}/public/data/roadmap_todos/{todoId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAppAdmin(request.auth.uid);
+    }
+
+    // --- 3. Generic Public Data Catch-all ---
+    match /artifacts/{appId}/public/data/{otherCollection=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAppAdmin(request.auth.uid);
+    }
+
+    // Email history: only authenticated users can read, only admins can create
+    match /artifacts/{appId}/public/data/email_history/{emailId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.token.admin == true;
+      allow update, delete: if false;
+    }
+  }
+} 
