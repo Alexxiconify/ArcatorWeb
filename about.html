@@ -1,1292 +1,1224 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About - Arcator.co.uk</title>
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-    <!-- Link to theme_variables.css for centralized CSS variables -->
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>About - Arcator.co.uk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
     <link href="theme_variables.css" rel="stylesheet"/>
-    <!-- Link to master.css for all styles -->
-  <link href="master.css" rel="stylesheet" />
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <style>
-    /* Base styles, will be overridden by CSS variables from themes.js */
-    body {
-      font-family: "Inter", sans-serif;
-      transition:
-        background-color 0.3s ease,
-        color 0.3s ease;
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-    }
+    <link href="master.css" rel="stylesheet"/>
+    <link href="favicon.png" rel="icon" type="image/png"/>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            transition: background-color 0.3s ease,
+            color 0.3s ease;
+            background-color: var(--color-body-bg);
+            color: var(--color-text-primary);
+        }
 
-    /* Hero Banner styles - common for all themes, retains background image */
-    .hero-banner {
-      background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 400px;
-      /* Increased height for visual impact */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
+        .hero-banner {
+            background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-    .hero-banner::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      /* Dark overlay for text readability */
-      z-index: 1;
-    }
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
 
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px var(--color-hero-shadow, rgba(0, 0, 0, 0.7));
-    }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-shadow: 2px 2px 4px var(--color-hero-shadow, rgba(0, 0, 0, 0.7));
+        }
 
-    /* Feature card specific styling */
-    .feature-card {
-      border-radius: 0.75rem;
-      padding: 2rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-      transition:
-        transform 0.3s ease-in-out,
-        box-shadow 0.3s ease-in-out;
-    }
+        .feature-card {
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease-in-out,
+            box-shadow 0.3s ease-in-out;
+        }
 
-    .feature-card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
-    }
+        .feature-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
+        }
 
-    .minecraft-ip-box {
-      border: 2px solid var(--color-input-border);
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
+        .minecraft-ip-box {
+            border: 2px solid var(--color-input-border);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
 
-    .text-white {
-      /* Ensure white text remains white where explicitly needed, e.g., IP addresses */
-      color: white !important;
-    }
+        .text-white {
+            color: white !important;
+        }
 
-    /* Content section styling */
-    .content-section {
-      border-radius: 0.75rem;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      margin: 2rem 1rem;
-    }
+        .content-section {
+            border-radius: 0.75rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem 1rem;
+        }
 
-    .content-card {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s ease-in-out;
-    }
+        .content-card {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
 
-    .content-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-    }
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
 
-    /* List styling */
-    .feature-list {
-      list-style-type: disc;
-      list-style-position: inside;
-    }
+        .feature-list {
+            list-style-type: disc;
+            list-style-position: inside;
+        }
 
-    .feature-list li {
-      margin-bottom: 0.5rem;
-      line-height: 1.6;
-    }
+        .feature-list li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
 
-    .feature-list .highlight {
-      font-weight: 600;
-    }
+        .feature-list .highlight {
+            font-weight: 600;
+        }
 
-    .tab-container {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid var(--color-input-border);
-    }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--color-input-border);
+        }
 
-    .tab-button {
-      border: none;
-      padding: 1rem 2rem;
-      margin: 0 0.5rem;
-      border-radius: 0.75rem 0.75rem 0 0;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: all 0.3s;
-      border-bottom: 3px solid transparent;
-    }
+        .tab-button {
+            border: none;
+            padding: 1rem 2rem;
+            margin: 0 0.5rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
 
-    .tab-button.active {
-      border-bottom-color: var(--color-link);
-    }
+        .tab-button.active {
+            border-bottom-color: var(--color-link);
+        }
 
-    .tab-content {
-      display: none;
-    }
+        .tab-content {
+            display: none;
+        }
 
-    .tab-content.active {
-      display: block;
-    }
+        .tab-content.active {
+            display: block;
+        }
 
-    @media (max-width: 768px) {
-      .tab-container {
-        flex-direction: column;
-        align-items: center;
-      }
+        @media (max-width: 768px) {
+            .tab-container {
+                flex-direction: column;
+                align-items: center;
+            }
 
-      .tab-button {
-        margin: 0.25rem 0;
-        border-radius: 0.5rem;
-        width: 100%;
-        max-width: 300px;
-      }
+            .tab-button {
+                margin: 0.25rem 0;
+                border-radius: 0.5rem;
+                width: 100%;
+                max-width: 300px;
+            }
 
-      .tab-button.active {
-        border-bottom-color: transparent;
-      }
-    }
+            .tab-button.active {
+                border-bottom-color: transparent;
+            }
+        }
 
-    /* Button layout fix for about.html */
-    .about-btn-row {
-      display: flex;
-      flex-direction: row;
-      gap: 1.5rem;
-      justify-content: center;
-      align-items: stretch;
-      margin-top: 3rem;
-      flex-wrap: wrap;
-    }
-    .about-btn-row .btn-modern {
-      min-width: 200px;
-      max-width: 320px;
-      flex: 1 1 200px;
-      margin: 0;
-      min-height: 56px;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      font-weight: 600;
-    }
-    @media (max-width: 640px) {
-      .about-btn-row {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .about-btn-row .btn-modern {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-      }
-    }
+        .about-btn-row {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: stretch;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+        .about-btn-row .btn-modern {
+            min-width: 200px;
+            max-width: 320px;
+            flex: 1 1 200px;
+            margin: 0;
+            min-height: 56px;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
 
-    /* Census Group Tabs */
-    .census-group-tab-btn {
-      border: none;
-      padding: 0.75rem 1.5rem;
-      margin: 0 0.25rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: all 0.3s;
-      background-color: var(--color-input-border);
-      color: var(--color-text-primary);
-    }
+        @media (max-width: 640px) {
+            .about-btn-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
 
-    .census-group-tab-btn:hover {
-      background-color: var(--color-link);
-      color: white;
-    }
+            .about-btn-row .btn-modern {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+        }
 
-    .census-group-tab-btn.active {
-      background-color: var(--color-link);
-      color: white;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    .census-group-table {
-      margin-top: 2rem;
-      border-radius: 0.75rem;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-    }
-  </style>
+        .census-group-tab-btn {
+            border: none;
+            padding: 0.75rem 1.5rem;
+            margin: 0 0.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: var(--color-input-border);
+            color: var(--color-text-primary);
+        }
+
+        .census-group-tab-btn:hover {
+            background-color: var(--color-link);
+            color: white;
+        }
+
+        .census-group-tab-btn.active {
+            background-color: var(--color-link);
+            color: white;
+        }
+
+        .census-group-table {
+            margin-top: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+    </style>
 </head>
-
 <body class="antialiased">
-  <!-- Navbar Placeholder -->
-  <div id="navbar-placeholder" class="w-full absolute top-0 left-0"></div>
-
-  <!-- Hero Section with Background Image -->
-  <section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
-    <!-- Added margin-top to account for fixed navbar height -->
+<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
+<section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
     <div class="container mx-auto px-4 text-center hero-content">
-      <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
-        About Arcator.co.uk
-      </h1>
-      <p class="text-xl md:text-2xl mb-8">
-        Our Journey, Community, and Interests
-      </p>
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
+            About Arcator.co.uk
+        </h1>
+        <p class="text-xl md:text-2xl mb-8">
+            Our Journey, Community, and Interests
+        </p>
     </div>
-  </section>
-
-  <!-- Main Content Section -->
-  <div class="container mx-auto px-4 mt-8">
+</section>
+<div class="container mx-auto px-4 mt-8">
     <div class="tab-container">
-      <button class="tab-btn active" data-tab="about" id="tab-about">About</button>
-      <button class="tab-btn" data-tab="discord" id="tab-discord">Discord</button>
-      <button class="tab-btn" data-tab="census" id="tab-census">Census</button>
-      <button class="tab-btn" data-tab="infrastructure" id="tab-infrastructure">Infrastructure</button>
+        <button class="tab-btn active" data-tab="about" id="tab-about">About</button>
+        <button class="tab-btn" data-tab="discord" id="tab-discord">Discord</button>
+        <button class="tab-btn" data-tab="census" id="tab-census">Census</button>
+        <button class="tab-btn" data-tab="infrastructure" id="tab-infrastructure">Infrastructure</button>
     </div>
-  </div>
-
-  <div class="tab-content active" data-tab="about" id="about-tab-content">
-    <!-- About content from original about.html -->
+</div>
+<div class="tab-content active" data-tab="about" id="about-tab-content">
     <section class="content-section">
-      <div class="container mx-auto px-4">
-        <!-- Our Story & Mission -->
-        <div class="mb-12">
-          <h2 class="text-4xl font-bold text-heading-main text-center mb-8">
-            Our Story & Mission
-          </h2>
-          <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
-            <p>
-                Arcator.co.uk began in
-                <span class="font-semibold text-text-primary">October 2010</span>
-                from a passion for Minecraft and a desire to create a stable,
-                engaging community. What started as a small venture grew into a
-                vibrant hub for players seeking unique experiences.
-            </p>
-              <p>
-                  Our mission is to provide a long-lasting, fun, and safe
-                  environment for Minecraft players of all ages. We foster
-                  creativity, friendships, and continuous improvement while
-                  upholding the core values that have defined us for over a
-                  decade.
-            </p>
-          </div>
-        </div>
-        <!-- Our Core Values -->
-        <div class="mb-12">
-          <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-            Our Core Values
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div class="content-card">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                Community First
-              </h3>
-              <p class="text-text-secondary">
-                  Welcoming and inclusive atmosphere where every player feels
-                  respected and heard.
-              </p>
+        <div class="container mx-auto px-4">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold text-heading-main text-center mb-8">
+                    Our Story & Mission
+                </h2>
+                <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
+                    <p>
+                        Arcator.co.uk began in
+                        <span class="font-semibold text-text-primary">October 2010</span>
+                        from a passion for Minecraft and a desire to create a stable,
+                        engaging community. What started as a small venture grew into a
+                        vibrant hub for players seeking unique experiences.
+                    </p>
+                    <p>
+                        Our mission is to provide a long-lasting, fun, and safe
+                        environment for Minecraft players of all ages. We foster
+                        creativity, friendships, and continuous improvement while
+                        upholding the core values that have defined us for over a
+                        decade.
+                    </p>
+                </div>
             </div>
-            <div class="content-card">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                Innovation & Fun
-              </h3>
-              <p class="text-text-secondary">
-                  Constantly explore new ways to enhance the Minecraft
-                  experience with fresh content and features.
-              </p>
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                    Our Core Values
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    <div class="content-card">
+                        <h3 class="text-2xl font-bold text-heading-card mb-3">
+                            Community First
+                        </h3>
+                        <p class="text-text-secondary">
+                            Welcoming and inclusive atmosphere where every player feels
+                            respected and heard.
+                        </p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-2xl font-bold text-heading-card mb-3">
+                            Innovation & Fun
+                        </h3>
+                        <p class="text-text-secondary">
+                            Constantly explore new ways to enhance the Minecraft
+                            experience with fresh content and features.
+                        </p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-2xl font-bold text-heading-card mb-3">
+                            Stability & Reliability
+                        </h3>
+                        <p class="text-text-secondary">
+                            Robust infrastructure ensuring smooth, low-lag gameplay with
+                            high uptime and secure data.
+                        </p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-2xl font-bold text-heading-card mb-3">
+                            Communication
+                        </h3>
+                        <p class="text-text-secondary">
+                            Open communication sharing insights into server development
+                            and community decisions.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="content-card">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                Stability & Reliability
-              </h3>
-              <p class="text-text-secondary">
-                  Robust infrastructure ensuring smooth, low-lag gameplay with
-                  high uptime and secure data.
-              </p>
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-heading-main mb-6">
+                    Join Our Thriving Community!
+                </h2>
+                <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
+                    Connect with fellow builders, participate in events, and be part
+                    of a welcoming community that shares your love for creativity and
+                    adventure.
+                </p>
+                <div class="about-btn-row">
+                    <a class="btn-modern btn-blue" href="https://discord.gg/arcator" rel="noopener noreferrer"
+                       target="_blank">Join Our Discord</a>
+                    <a class="btn-modern btn-green"
+                       href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank">View Community
+                        Interests</a>
+                </div>
             </div>
-            <div class="content-card">
-              <h3 class="text-2xl font-bold text-heading-card mb-3">
-                Communication
-              </h3>
-              <p class="text-text-secondary">
-                  Open communication sharing insights into server development
-                  and community decisions.
-              </p>
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                    Online Maps
+                </h2>
+                <div class="about-btn-row">
+                    <a class="btn-modern btn-blue" href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer"
+                       target="_blank">Bluemap SSMP</a>
+                    <a class="btn-modern btn-blue" href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer"
+                       target="_blank">Bluemap Hub</a>
+                </div>
             </div>
-          </div>
         </div>
-        <!-- Community Highlights -->
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold text-heading-main mb-6">
-            Join Our Thriving Community!
-          </h2>
-          <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
-              Connect with fellow builders, participate in events, and be part
-              of a welcoming community that shares your love for creativity and
-              adventure.
-          </p>
-          <div class="about-btn-row">
-            <a href="https://discord.gg/arcator" target="_blank" rel="noopener noreferrer" class="btn-modern btn-blue">Join Our Discord</a>
-            <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank" class="btn-modern btn-green">View Community Interests</a>
-          </div>
-        </div>
-        <!-- External Services -->
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-            Online Maps
-          </h2>
-          <div class="about-btn-row">
-            <a href="https://ssmp.arcator.co.uk/" rel="noopener noreferrer" target="_blank" class="btn-modern btn-blue">Bluemap SSMP</a>
-            <a href="https://hub.arcator.co.uk/#creative" rel="noopener noreferrer" target="_blank" class="btn-modern btn-blue">Bluemap Hub</a>
-          </div>
-        </div>
-      </div>
     </section>
-  </div>
-
-  <div class="tab-content" data-tab="discord" id="discord-tab-content">
-    <!-- Community content from original community.html -->
+</div>
+<div class="tab-content" data-tab="discord" id="discord-tab-content">
     <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-          Connect & Engage
-        </h2>
-        <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
-          <p>
-              Our Discord server is the primary hub for real-time chat,
-              announcements, support, and connecting with other members. Whether
-              you're looking for group activities, sharing your latest builds,
-              or just a friendly chat, our Discord is the place to be.
-          </p>
-          <p>
-              Beyond Discord, we encourage members to share their diverse
-              interests, fostering a rich and welcoming environment for
-              everyone.
-          </p>
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                Connect & Engage
+            </h2>
+            <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6">
+                <p>
+                    Our Discord server is the primary hub for real-time chat,
+                    announcements, support, and connecting with other members. Whether
+                    you're looking for group activities, sharing your latest builds,
+                    or just a friendly chat, our Discord is the place to be.
+                </p>
+                <p>
+                    Beyond Discord, we encourage members to share their diverse
+                    interests, fostering a rich and welcoming environment for
+                    everyone.
+                </p>
+            </div>
+            <div class="about-btn-row">
+                <a class="btn-modern btn-blue" href="https://discord.gg/arcator" rel="noopener noreferrer"
+                   target="_blank">Join Our Discord</a>
+                <a class="btn-modern btn-green"
+                   href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank">View Community Interests</a>
+            </div>
         </div>
-        <div class="about-btn-row">
-          <a href="https://discord.gg/arcator" target="_blank" rel="noopener noreferrer" class="btn-modern btn-blue">Join Our Discord</a>
-          <a href="https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?usp=sharing" rel="noopener noreferrer" target="_blank" class="btn-modern btn-green">View Community Interests</a>
-        </div>
-      </div>
     </section>
     <section class="py-16 bg-card rounded-lg shadow-inner mx-4 my-8">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-          Discord Features
-        </h2>
-        <div class="max-w-4xl mx-auto">
-          <table class="discord-features-table">
-            <thead>
-              <tr>
-                <th class="py-3 px-6 text-xl">Feature</th>
-                <th class="py-3 px-6 text-xl">What You'll Find</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Community Chat
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Engage in lively discussions about Minecraft, share your
-                    builds, ask questions, and connect with players from
-                    around the world.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Server Status
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Get real-time updates about server status, maintenance,
-                    and any issues.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Voice Channels
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Join voice channels to chat while playing, coordinate
-                    group activities, or just hang out with fellow community
-                    members.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Events & Announcements
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Stay informed about upcoming events, competitions, server
-                    updates, and community announcements.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Help & Support
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Get help from staff and experienced players, report
-                    issues, and find answers to your questions quickly.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td class="py-4 px-6 font-semibold text-text-primary">
-                  Build Showcase
-                </td>
-                <td class="py-4 px-6">
-                  <p class="text-text-secondary">
-                    Share screenshots and videos of your creations, get
-                    feedback from the community, and inspire others with your
-                    builds.
-                  </p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                Discord Features
+            </h2>
+            <div class="max-w-4xl mx-auto">
+                <table class="discord-features-table">
+                    <thead>
+                    <tr>
+                        <th class="py-3 px-6 text-xl">Feature</th>
+                        <th class="py-3 px-6 text-xl">What You'll Find</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Community Chat
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Engage in lively discussions about Minecraft, share your
+                                builds, ask questions, and connect with players from
+                                around the world.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Server Status
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Get real-time updates about server status, maintenance,
+                                and any issues.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Voice Channels
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Join voice channels to chat while playing, coordinate
+                                group activities, or just hang out with fellow community
+                                members.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Events & Announcements
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Stay informed about upcoming events, competitions, server
+                                updates, and community announcements.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Help & Support
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Get help from staff and experienced players, report
+                                issues, and find answers to your questions quickly.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 px-6 font-semibold text-text-primary">
+                            Build Showcase
+                        </td>
+                        <td class="py-4 px-6">
+                            <p class="text-text-secondary">
+                                Share screenshots and videos of your creations, get
+                                feedback from the community, and inspire others with your
+                                builds.
+                            </p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </div>
     </section>
     <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-          Why Join Our Discord?
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
-          <div class="feature-card">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">
-              Real-time Chat & Support
-            </h3>
-            <p class="text-text-secondary">
-              Get instant help, chat with staff, and connect with other
-              players who share your passion for Minecraft and more.
-            </p>
-          </div>
-          <div class="feature-card">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">
-              Event Participation
-            </h3>
-            <p class="text-text-secondary">
-              Be the first to know about upcoming server events, mini-games,
-              building contests, and community gatherings.
-            </p>
-          </div>
-          <div class="feature-card">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">
-              Announcements & Updates
-            </h3>
-            <p class="text-text-secondary">
-              Stay informed with server status updates, new feature releases,
-              and important community news directly in Discord.
-            </p>
-          </div>
-          <div class="feature-card">
-            <h3 class="text-2xl font-bold text-heading-card mb-4">
-              Share Your Creations
-            </h3>
-            <p class="text-text-secondary">
-              Showcase your Minecraft builds, share fan art, or just hang out
-              in voice channels with friends.
-            </p>
-          </div>
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                Why Join Our Discord?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+                <div class="feature-card">
+                    <h3 class="text-2xl font-bold text-heading-card mb-4">
+                        Real-time Chat & Support
+                    </h3>
+                    <p class="text-text-secondary">
+                        Get instant help, chat with staff, and connect with other
+                        players who share your passion for Minecraft and more.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="text-2xl font-bold text-heading-card mb-4">
+                        Event Participation
+                    </h3>
+                    <p class="text-text-secondary">
+                        Be the first to know about upcoming server events, mini-games,
+                        building contests, and community gatherings.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="text-2xl font-bold text-heading-card mb-4">
+                        Announcements & Updates
+                    </h3>
+                    <p class="text-text-secondary">
+                        Stay informed with server status updates, new feature releases,
+                        and important community news directly in Discord.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h3 class="text-2xl font-bold text-heading-card mb-4">
+                        Share Your Creations
+                    </h3>
+                    <p class="text-text-secondary">
+                        Showcase your Minecraft builds, share fan art, or just hang out
+                        in voice channels with friends.
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
     </section>
-  </div>
-
-  <div class="tab-content" data-tab="census" id="census-tab-content">
-    <!-- Group Tabs: move here, directly below Census tab -->
+</div>
+<div class="tab-content" data-tab="census" id="census-tab-content">
     <div class="flex flex-row gap-2 mb-4" id="census-group-tabs">
-      <button class="census-group-tab-btn active" data-group="2025">2025 Interests</button>
-      <button class="census-group-tab-btn" data-group="2020">2020 Interests</button>
-      <button class="census-group-tab-btn" data-group="donations">Donations</button>
-      <button class="census-group-tab-btn" data-group="machines">Machines</button>
+        <button class="census-group-tab-btn active" data-group="2025">2025 Interests</button>
+        <button class="census-group-tab-btn" data-group="2020">2020 Interests</button>
+        <button class="census-group-tab-btn" data-group="donations">Donations</button>
+        <button class="census-group-tab-btn" data-group="machines">Machines</button>
     </div>
-    <!-- Interests content with Google Sheets data table -->
     <section class="py-10 bg-card rounded-lg shadow-inner mx-2 my-6">
-      <div class="container mx-auto px-2">
-        <!-- Loading State -->
-        <div class="flex justify-center items-center py-8" id="interests-loading">
-        <!-- Error State -->
-        <div class="hidden text-center py-8" id="interests-error">
-          <div class="text-red-400 text-lg mb-2">
-            ⚠️ Unable to load interests data
-          </div>
-          <p class="text-text-secondary mb-2 text-base">
-            We're having trouble loading the community interests. Please try again later.
-          </p>
-          <button class="btn-primary btn-blue" id="retry-interests-btn">
-            Retry Loading
-          </button>
-        </div>
-
-        <!-- Table Container -->
-        <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center justify-between">
-          <div class="flex flex-row gap-2 items-center w-full sm:w-auto">
-            <div class="input-field w-full">
-              <span id="interests-count">0</span> interests found
-          </div>
-        </div>
-        <!-- Table Groups -->
-        <div id="census-group-2025" class="census-group-table">
-          <div class="overflow-x-auto rounded-lg">
-            <table class="w-full bg-card border border-input-border rounded-lg text-base" id="interests-table">
-              <thead class="bg-table-th-bg">
-                <tr>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2025('interest')">Interest <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2025('category')">Category <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2025('members')">Members <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold text-base border-b border-table-td-border">Description</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-table-td-border" id="interests-table-body"></tbody>
-            </table>
-          </div>
-          <div class="hidden text-center py-8" id="interests-no-results">
-            <div class="text-text-secondary text-lg mb-2">🔍 No interests found</div>
-            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
-          </div>
-        </div>
-        <div id="census-group-2020" class="census-group-table hidden">
-          <div class="overflow-x-auto rounded-lg">
-            <table class="w-full bg-card border border-input-border rounded-lg text-base" id="interests-2020-table">
-              <thead class="bg-table-th-bg">
-                <tr>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2020('interest')">Interest <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2020('category')">Category <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border" onclick="sortTable2020('members')">Members <span class="inline-block align-middle ml-1 text-xs">⇅</span></th>
-                  <th class="px-3 py-2 text-left text-table-th-text font-semibold text-base border-b border-table-td-border">Description</th>
-                </tr>
-              </thead>
-              <tbody id="interests-2020-table-body"></tbody>
-            </table>
-          </div>
-          <div class="hidden text-center py-8" id="interests-2020-no-results">
-            <div class="text-text-secondary text-lg mb-2">🔍 No interests found</div>
-            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
-          </div>
-        </div>
-        <div id="census-group-donations" class="census-group-table hidden">
-          <div class="overflow-x-auto rounded-lg">
-            <table class="w-full bg-card border border-input-border rounded-lg text-base" id="donations-table">
-              <thead class="bg-table-th-bg">
-                <tr>
-                  <th>Expense</th>
-                  <th>Cost</th>
-                  <th>Description</th>
-                  <th>Donor</th>
-                </tr>
-              </thead>
-              <tbody id="donations-table-body"></tbody>
-            </table>
-          </div>
-          <div class="hidden text-center py-8" id="donations-no-results">
-            <div class="text-text-secondary text-lg mb-2">🔍 No donations found</div>
-            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
-          </div>
-        </div>
-        <div id="census-group-machines" class="census-group-table hidden">
-          <div class="overflow-x-auto rounded-lg">
-            <table class="w-full bg-card border border-input-border rounded-lg text-base" id="machines-table">
-              <thead class="bg-table-th-bg">
-                <tr>
-                  <th>Name</th>
-                  <th>Owner</th>
-                  <th>Location</th>
-                  <th>Purpose</th>
-                  <th>Internal ID</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="machines-table-body"></tbody>
-            </table>
-          </div>
-          <div class="hidden text-center py-8" id="machines-no-results">
-            <div class="text-text-secondary text-lg mb-2">🔍 No machines found</div>
-            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
-          </div>
-        </div>
-      </div>
+        <div class="container mx-auto px-2">
+            <div class="flex justify-center items-center py-8" id="interests-loading">
+                <div class="hidden text-center py-8" id="interests-error">
+                    <div class="text-red-400 text-lg mb-2">
+                        ⚠️ Unable to load interests data
+                    </div>
+                    <p class="text-text-secondary mb-2 text-base">
+                        We're having trouble loading the community interests. Please try again later.
+                    </p>
+                    <button class="btn-primary btn-blue" id="retry-interests-btn">
+                        Retry Loading
+                    </button>
+                </div>
+                <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center justify-between">
+                    <div class="flex flex-row gap-2 items-center w-full sm:w-auto">
+                        <div class="input-field w-full">
+                            <span id="interests-count">0</span> interests found
+                        </div>
+                    </div>
+                    <div class="census-group-table" id="census-group-2025">
+                        <div class="overflow-x-auto rounded-lg">
+                            <table class="w-full bg-card border border-input-border rounded-lg text-base"
+                                   id="interests-table">
+                                <thead class="bg-table-th-bg">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2025('interest')">Interest <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2025('category')">Category <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2025('members')">Members <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold text-base border-b border-table-td-border">
+                                        Description
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-table-td-border" id="interests-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="hidden text-center py-8" id="interests-no-results">
+                            <div class="text-text-secondary text-lg mb-2">🔍 No interests found</div>
+                            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
+                        </div>
+                    </div>
+                    <div class="census-group-table hidden" id="census-group-2020">
+                        <div class="overflow-x-auto rounded-lg">
+                            <table class="w-full bg-card border border-input-border rounded-lg text-base"
+                                   id="interests-2020-table">
+                                <thead class="bg-table-th-bg">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2020('interest')">Interest <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2020('category')">Category <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold cursor-pointer hover:bg-opacity-80 text-base border-b border-table-td-border"
+                                        onclick="sortTable2020('members')">Members <span
+                                            class="inline-block align-middle ml-1 text-xs">⇅</span></th>
+                                    <th class="px-3 py-2 text-left text-table-th-text font-semibold text-base border-b border-table-td-border">
+                                        Description
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="interests-2020-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="hidden text-center py-8" id="interests-2020-no-results">
+                            <div class="text-text-secondary text-lg mb-2">🔍 No interests found</div>
+                            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
+                        </div>
+                    </div>
+                    <div class="census-group-table hidden" id="census-group-donations">
+                        <div class="overflow-x-auto rounded-lg">
+                            <table class="w-full bg-card border border-input-border rounded-lg text-base"
+                                   id="donations-table">
+                                <thead class="bg-table-th-bg">
+                                <tr>
+                                    <th>Expense</th>
+                                    <th>Cost</th>
+                                    <th>Description</th>
+                                    <th>Donor</th>
+                                </tr>
+                                </thead>
+                                <tbody id="donations-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="hidden text-center py-8" id="donations-no-results">
+                            <div class="text-text-secondary text-lg mb-2">🔍 No donations found</div>
+                            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
+                        </div>
+                    </div>
+                    <div class="census-group-table hidden" id="census-group-machines">
+                        <div class="overflow-x-auto rounded-lg">
+                            <table class="w-full bg-card border border-input-border rounded-lg text-base"
+                                   id="machines-table">
+                                <thead class="bg-table-th-bg">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Owner</th>
+                                    <th>Location</th>
+                                    <th>Purpose</th>
+                                    <th>Internal ID</th>
+                                    <th>Notes</th>
+                                </tr>
+                                </thead>
+                                <tbody id="machines-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="hidden text-center py-8" id="machines-no-results">
+                            <div class="text-text-secondary text-lg mb-2">🔍 No machines found</div>
+                            <p class="text-text-secondary text-base">Try adjusting your search terms or filters.</p>
+                        </div>
+                    </div>
+                </div>
     </section>
-  </div>
-
-  <div class="tab-content" data-tab="infrastructure" id="infrastructure-tab-content">
-    <!-- Infrastructure content from original infrastructure.html -->
+</div>
+<div class="tab-content" data-tab="infrastructure" id="infrastructure-tab-content">
     <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
-          Our Robust Network Setup
-        </h2>
-        <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
-          <p>
-              Arcator's stability and performance are built upon a foundation of
-              dedicated and well-maintained server infrastructure. We utilize a
-              blend of powerful machines and strategic network configurations to
-              ensure a seamless and low-latency experience for all our players
-              across various Minecraft servers and services.
-          </p>
-          <p>
-              Our setup is designed for efficiency, reliability, and
-              scalability, allowing us to host diverse gamemodes, critical
-              background services, and provide robust redundancy measures.
-          </p>
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-heading-main text-center mb-10">
+                Our Robust Network Setup
+            </h2>
+            <div class="max-w-4xl mx-auto text-lg leading-relaxed text-text-secondary space-y-6 text-center">
+                <p>
+                    Arcator's stability and performance are built upon a foundation of
+                    dedicated and well-maintained server infrastructure. We utilize a
+                    blend of powerful machines and strategic network configurations to
+                    ensure a seamless and low-latency experience for all our players
+                    across various Minecraft servers and services.
+                </p>
+                <p>
+                    Our setup is designed for efficiency, reliability, and
+                    scalability, allowing us to host diverse gamemodes, critical
+                    background services, and provide robust redundancy measures.
+                </p>
+            </div>
+            <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
+                <table class="min-w-full bg-card">
+                    <thead>
+                    <tr class="bg-table-th-bg text-table-th-text">
+                        <th class="py-3 px-6 text-xl text-left">Hostname</th>
+                        <th class="py-3 px-6 text-xl text-left">Primary Role</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="text-text-primary border-t border-table-td-border">
+                        <td class="text-left">jylina</td>
+                        <td class="text-left">Main Minecraft Server Host (s1)</td>
+                    </tr>
+                    <tr class="text-text-primary bg-table-row-even-bg border-t border-table-td-border">
+                        <td class="text-left">thoth</td>
+                        <td class="text-left">Raspberry Pi Minecraft Server (s2) / Backup Services</td>
+                    </tr>
+                    <tr class="text-text-primary border-t border-table-td-border">
+                        <td class="text-left">sputnik</td>
+                        <td class="text-left">Web Server / Load Balancer (s9)</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-lg mt-12 text-text-secondary text-center">
+                This setup allows us to efficiently manage different aspects of the
+                network, from hosting Minecraft servers to handling critical
+                background services and providing redundancy.
+            </p>
         </div>
-
-        <div class="mt-12 overflow-x-auto rounded-lg shadow-xl">
-          <table class="min-w-full bg-card">
-            <thead>
-              <tr class="bg-table-th-bg text-table-th-text">
-                <th class="py-3 px-6 text-xl text-left">Hostname</th>
-                <th class="py-3 px-6 text-xl text-left">Primary Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="text-text-primary border-t border-table-td-border">
-                <td class="text-left">jylina</td>
-                <td class="text-left">Main Minecraft Server Host (s1)</td>
-              </tr>
-              <tr class="text-text-primary bg-table-row-even-bg border-t border-table-td-border">
-                <td class="text-left">thoth</td>
-                <td class="text-left">Raspberry Pi Minecraft Server (s2) / Backup Services</td>
-              </tr>
-              <tr class="text-text-primary border-t border-table-td-border">
-                <td class="text-left">sputnik</td>
-                <td class="text-left">Web Server / Load Balancer (s9)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="text-lg mt-12 text-text-secondary text-center">
-            This setup allows us to efficiently manage different aspects of the
-            network, from hosting Minecraft servers to handling critical
-            background services and providing redundancy.
-        </p>
-      </div>
     </section>
-  </div>
+</div>
+<div id="footer-placeholder"></div>
+<script src="app.js" type="module"></script>
+<script type="module">
+    import {initializePage, setupTabs, loadFooter} from './core.js';
 
-  <div id="footer-placeholder"></div>
-  <script src="app.js" type="module"></script>
-  <script type="module">
-      import {initializePage, setupTabs, loadFooter} from './core.js';
     initializePage('about');
     setupTabs('.tab-btn', '.tab-content');
-      loadFooter();
-
-      // Census/Interests data loading functionality
-      let interestsData = [];
-      let filteredData = [];
-      let currentSort = {column: 'interest', direction: 'asc'};
-      let interestsLoaded = false;
-      let interests2025Loaded = false;
-      let interests2020Loaded = false;
-      let donationsLoaded = false;
-      let machinesLoaded = false;
-      let interests2025Data = [];
-      let interests2020Data = [];
-      let donationsData = [];
-      let machinesData = [];
-
-      // Google Sheets URL - convert to CSV export
-      const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?gid=1977273024#gid=1977273024';
-      const CSV_URL = SHEETS_URL.replace('/edit?gid=', '/export?format=csv&gid=');
-
-      // Initialize interests functionality when census tab is shown
-      document.addEventListener('DOMContentLoaded', function () {
-          const censusTab = document.getElementById('tab-census');
-          let censusDataLoaded = false;
-
-          // Check if we're already on census tab (hash navigation)
-          if (window.location.hash === '#census') {
-              loadAllCensusTables();
-              censusDataLoaded = true;
-          }
-
-          if (censusTab) {
-              censusTab.addEventListener('click', function () {
-                  if (!censusDataLoaded) {
-                      loadAllCensusTables();
-                      censusDataLoaded = true;
-                  }
-              });
-          }
-
-          // Setup retry button
-          const retryBtn = document.getElementById('retry-interests-btn');
-          if (retryBtn) {
-              retryBtn.addEventListener('click', function () {
-                  interestsLoaded = false;
-                  loadInterestsData();
-              });
-          }
-
-          // Setup search functionality
-          const searchInput = document.getElementById('interests-search');
-          if (searchInput) {
-              searchInput.addEventListener('input', filterInterests);
-          }
-
-          // Setup category filter
-          const categoryFilter = document.getElementById('interests-category-filter');
-          if (categoryFilter) {
-              categoryFilter.addEventListener('change', filterInterests);
-          }
-
-          // Census group tab switching logic
-          const groupTabButtons = document.querySelectorAll('.census-group-tab-btn');
-          const groupTables = document.querySelectorAll('.census-group-table');
-          groupTabButtons.forEach(btn => {
-              btn.addEventListener('click', function () {
-                  // Remove active from all buttons
-                  groupTabButtons.forEach(b => b.classList.remove('active'));
-                  // Add active to clicked
-                  btn.classList.add('active');
-                  // Hide all tables
-                  groupTables.forEach(table => table.classList.add('hidden'));
-                  // Show the selected group table
-                  const group = btn.getAttribute('data-group');
-                  const showTable = document.getElementById('census-group-' + group);
-                  if (showTable) showTable.classList.remove('hidden');
-                  // Render the correct table
-                  if (group === '2025') renderInterests2025Table();
-                  else if (group === '2020') renderInterests2020Table();
-                  else if (group === 'donations') renderDonationsTable();
-                  else if (group === 'machines') renderMachinesTable();
-              });
-          });
-      });
-
-      async function loadInterestsData() {
-          const loadingEl = document.getElementById('interests-loading');
-          const errorEl = document.getElementById('interests-error');
-          const tableContainer = document.getElementById('interests-table-container');
-
-          // Show loading state
-          if (loadingEl) loadingEl.classList.remove('hidden');
-          if (errorEl) errorEl.classList.add('hidden');
-          if (tableContainer) tableContainer.classList.add('hidden');
-
-          try {
-              console.log('Loading interests data from:', CSV_URL);
-              const response = await fetch(CSV_URL);
-              if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-              }
-
-              const csvText = await response.text();
-              console.log('CSV data received:', csvText.substring(0, 200) + '...');
-
-              interestsData = parseCSV(csvText);
-              console.log('Parsed interests data:', interestsData.length, 'items');
-
-              if (interestsData.length > 0) {
-                  // Populate category filter
-                  populateCategoryFilter();
-
-                  // Show table
-                  if (loadingEl) loadingEl.classList.add('hidden');
-                  if (tableContainer) tableContainer.classList.remove('hidden');
-
-                  // Initial render
-                  filteredData = [...interestsData];
-                  renderInterestsTable();
-                  updateInterestsCount();
-                  interestsLoaded = true;
-              } else {
-                  throw new Error('No data found in spreadsheet');
-              }
-          } catch (error) {
-              console.error('Error loading interests data:', error);
-
-              // Show error state
-              if (loadingEl) loadingEl.classList.add('hidden');
-              if (errorEl) errorEl.classList.remove('hidden');
-              interestsLoaded = false;
-          }
-      }
-
-      async function loadAllCensusTables() {
-          await Promise.all([
-              loadInterests2025(),
-              loadInterests2020(),
-              loadDonations(),
-              loadMachines()
-          ]);
-      }
-
-      async function loadInterests2025() {
-          if (interests2025Loaded) return;
-          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=1977273024';
-          try {
-              const response = await fetch(url);
-              if (!response.ok) throw new Error('Failed to fetch 2025 interests');
-              const csvText = await response.text();
-              interests2025Data = parseCSV(csvText);
-              interests2025Loaded = true;
-              renderInterests2025Table();
-          } catch (e) {
-              console.error(e);
-          }
-      }
-
-      async function loadInterests2020() {
-          if (interests2020Loaded) return;
-          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=0';
-          try {
-              const response = await fetch(url);
-              if (!response.ok) throw new Error('Failed to fetch 2020 interests');
-              const csvText = await response.text();
-              interests2020Data = parseCSV(csvText);
-              interests2020Loaded = true;
-              renderInterests2020Table();
-          } catch (e) {
-              console.error(e);
-          }
-      }
-
-      async function loadDonations() {
-          if (donationsLoaded) return;
-          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=759735980';
-          try {
-              const response = await fetch(url);
-              if (!response.ok) throw new Error('Failed to fetch donations');
-              const csvText = await response.text();
-              donationsData = parseDonationsCSV(csvText);
-              donationsLoaded = true;
-              console.log('Parsed Donations:', donationsData);
-              renderDonationsTable();
-          } catch (e) {
-              console.error(e);
-          }
-      }
-
-      async function loadMachines() {
-          if (machinesLoaded) return;
-          const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=752318281';
-          try {
-              const response = await fetch(url);
-              if (!response.ok) throw new Error('Failed to fetch machines');
-              const csvText = await response.text();
-              machinesData = parseMachinesCSV(csvText);
-              machinesLoaded = true;
-              console.log('Parsed Machines:', machinesData);
-              renderMachinesTable();
-          } catch (e) {
-              console.error(e);
-          }
-      }
-
-      function parseCSV(csvText) {
-          const lines = csvText.trim().split('\n');
-          if (lines.length < 2) return [];
-
-          const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-          const data = [];
-
-          for (let i = 1; i < lines.length; i++) {
-              const values = parseCSVLine(lines[i]);
-              if (values.length >= 2) { // At least interest name and total players
-                  const row = {
-                      interest: values[0] || '',
-                      members: values[1] || '0',
-                      category: 'Gaming', // Default category since this is a gaming interests sheet
-                      description: ``
-                  };
-
-                  // Add player participation data
-                  const players = [];
-                  for (let j = 2; j < values.length; j++) {
-                      if (values[j] && values[j].trim() !== '') {
-                          players.push(headers[j] || `Player ${j}`);
-                      }
-                  }
-
-                  if (players.length > 0) {
-                      row.description += `Users: ${players.join(', ')}`;
-                  }
-
-                  // Only add rows that have an interest name
-                  if (row.interest && row.interest.trim() !== '') {
-                      data.push(row);
-                  }
-              }
-          }
-
-          return data;
-      }
-
-      function parseCSVLine(line) {
-          const result = [];
-          let current = '';
-          let inQuotes = false;
-
-          for (let i = 0; i < line.length; i++) {
-              const char = line[i];
-
-              if (char === '"') {
-                  inQuotes = !inQuotes;
-              } else if (char === ',' && !inQuotes) {
-                  result.push(current.trim());
-                  current = '';
-              } else {
-                  current += char;
-              }
-          }
-
-          result.push(current.trim());
-          return result.map(val => val.replace(/^"|"$/g, ''));
-      }
-
-      function parseDonationsCSV(csvText) {
-          const lines = csvText.trim().split('\n');
-          if (lines.length < 2) return [];
-          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-          const data = [];
-          for (let i = 1; i < lines.length; i++) {
-              const values = lines[i].split(',');
-              const row = {};
-              headers.forEach((header, idx) => {
-                  row[header] = values[idx] || '';
-              });
-              data.push({
-                  expense: row['expense'] || row['expenses'] || '',
-                  cost: row['cost'] || '',
-                  description: row['description'] || '',
-                  donor: row['donor'] || row['donation'] || row['donations'] || ''
-              });
-          }
-          return data;
-      }
-
-      function parseMachinesCSV(csvText) {
-          const lines = csvText.trim().split('\n');
-          if (lines.length < 2) return [];
-          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-          const data = [];
-          for (let i = 1; i < lines.length; i++) {
-              const values = lines[i].split(',');
-              const row = {};
-              headers.forEach((header, idx) => {
-                  row[header] = values[idx] || '';
-              });
-              data.push({
-                  name: row['machine name'] || row['name'] || '',
-                  owner: row['owner'] || '',
-                  location: row['location'] || '',
-                  purpose: row['purpose'] || '',
-                  internalId: row['s# (internal)'] || row['internalid'] || '',
-                  notes: row['notes'] || ''
-              });
-          }
-          return data;
-      }
-
-      function populateCategoryFilter() {
-          const categoryFilter = document.getElementById('interests-category-filter');
-          if (!categoryFilter) return;
-
-          const categories = [...new Set(interestsData.map(item => item.category || '').filter(Boolean))];
-          categories.sort();
-
-          // Clear existing options except "All Categories"
-          categoryFilter.innerHTML = '<option value="">All Categories</option>';
-
-          categories.forEach(category => {
-              const option = document.createElement('option');
-              option.value = category;
-              option.textContent = category;
-              categoryFilter.appendChild(option);
-          });
-      }
-
-      function filterInterests() {
-          const searchTerm = document.getElementById('interests-search')?.value.toLowerCase() || '';
-          const categoryFilter = document.getElementById('interests-category-filter')?.value || '';
-
-          filteredData = interestsData.filter(item => {
-              const matchesSearch = !searchTerm ||
-                  (item.interest && item.interest.toLowerCase().includes(searchTerm)) ||
-                  (item.description && item.description.toLowerCase().includes(searchTerm));
-
-              const matchesCategory = !categoryFilter ||
-                  (item.category && item.category === categoryFilter);
-
-              return matchesSearch && matchesCategory;
-          });
-
-          renderInterestsTable();
-      }
-
-      function renderInterestsTable() {
-          const tbody = document.getElementById('interests-table-body');
-          const noResults = document.getElementById('interests-no-results');
-
-          if (!tbody) return;
-
-          tbody.innerHTML = '';
-
-          if (filteredData.length === 0) {
-              if (noResults) noResults.classList.remove('hidden');
-              return;
-          }
-
-          if (noResults) noResults.classList.add('hidden');
-
-          filteredData.forEach(item => {
-              const row = document.createElement('tr');
-              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
-
-              row.innerHTML = `
-          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
-        `;
-
-              tbody.appendChild(row);
-          });
-      }
-
-      function renderInterests2025Table() {
-          const tbody = document.getElementById('interests-table-body');
-          const noResults = document.getElementById('interests-no-results');
-          console.log('Rendering 2025 Interests:', interests2025Data);
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          if (interests2025Data.length === 0) {
-              if (noResults) noResults.classList.remove('hidden');
-              return;
-          }
-          if (noResults) noResults.classList.add('hidden');
-          interests2025Data.forEach(item => {
-              const row = document.createElement('tr');
-              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
-              row.innerHTML = `
-          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
-        `;
-              tbody.appendChild(row);
-          });
-      }
-
-      function renderInterests2020Table() {
-          const tbody = document.getElementById('interests-2020-table-body');
-          const noResults = document.getElementById('interests-2020-no-results');
-          console.log('Rendering 2020 Interests:', interests2020Data);
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          if (interests2020Data.length === 0) {
-              if (noResults) noResults.classList.remove('hidden');
-              return;
-          }
-          if (noResults) noResults.classList.add('hidden');
-          interests2020Data.forEach(item => {
-              const row = document.createElement('tr');
-              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
-              row.innerHTML = `
-          <td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
-        `;
-              tbody.appendChild(row);
-          });
-      }
-
-      function renderDonationsTable() {
-          const tbody = document.getElementById('donations-table-body');
-          const noResults = document.getElementById('donations-no-results');
-          console.log('Rendering Donations:', donationsData);
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          if (donationsData.length === 0) {
-              if (noResults) noResults.classList.remove('hidden');
-              return;
-          }
-          if (noResults) noResults.classList.add('hidden');
-          donationsData.forEach(item => {
-              const row = document.createElement('tr');
-              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
-              row.innerHTML = `
-          <td class="px-6 py-4 text-left">${escapeHtml(item.expense || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.cost || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.donor || '')}</td>
-        `;
-              tbody.appendChild(row);
-          });
-      }
-
-      function renderMachinesTable() {
-          const tbody = document.getElementById('machines-table-body');
-          const noResults = document.getElementById('machines-no-results');
-          console.log('Rendering Machines:', machinesData);
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          if (machinesData.length === 0) {
-              if (noResults) noResults.classList.remove('hidden');
-              return;
-          }
-          if (noResults) noResults.classList.add('hidden');
-          machinesData.forEach(item => {
-              const row = document.createElement('tr');
-              row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
-              row.innerHTML = `
-          <td class="px-6 py-4 text-left">${escapeHtml(item.name || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.owner || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.location || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.purpose || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.internalId || '')}</td>
-          <td class="px-6 py-4 text-left">${escapeHtml(item.notes || '')}</td>
-        `;
-              tbody.appendChild(row);
-          });
-      }
-
-      function updateInterestsCount() {
-          const countEl = document.getElementById('interests-count');
-          if (countEl) {
-              countEl.textContent = filteredData.length;
-          }
-      }
-
-      function escapeHtml(text) {
-          const div = document.createElement('div');
-          div.textContent = text;
-          return div.innerHTML;
-      }
-
-      // Global sort functions for table headers
-      window.sortTable = function (column) {
-          if (currentSort.column === column) {
-              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-          } else {
-              currentSort.column = column;
-              currentSort.direction = 'asc';
-          }
-
-          filteredData.sort((a, b) => {
-              let aVal = a[column] || '';
-              let bVal = b[column] || '';
-
-              // Handle numeric values
-              if (column === 'members') {
-                  aVal = parseInt(aVal) || 0;
-                  bVal = parseInt(bVal) || 0;
-              } else {
-                  aVal = aVal.toString().toLowerCase();
-                  bVal = bVal.toString().toLowerCase();
-              }
-
-              if (currentSort.direction === 'asc') {
-                  return aVal > bVal ? 1 : -1;
-              } else {
-                  return aVal < bVal ? 1 : -1;
-              }
-          });
-
-          renderInterestsTable();
-      };
-
-      window.sortTable2025 = function (column) {
-          if (currentSort.column === column) {
-              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-          } else {
-              currentSort.column = column;
-              currentSort.direction = 'asc';
-          }
-
-          interests2025Data.sort((a, b) => {
-              let aVal = a[column] || '';
-              let bVal = b[column] || '';
-
-              // Handle numeric values
-              if (column === 'members') {
-                  aVal = parseInt(aVal) || 0;
-                  bVal = parseInt(bVal) || 0;
-              } else {
-                  aVal = aVal.toString().toLowerCase();
-                  bVal = bVal.toString().toLowerCase();
-              }
-
-              if (currentSort.direction === 'asc') {
-                  return aVal > bVal ? 1 : -1;
-              } else {
-                  return aVal < bVal ? 1 : -1;
-              }
-          });
-
-          renderInterests2025Table();
-      };
-
-      window.sortTable2020 = function (column) {
-          if (currentSort.column === column) {
-              currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-          } else {
-              currentSort.column = column;
-              currentSort.direction = 'asc';
-          }
-
-          interests2020Data.sort((a, b) => {
-              let aVal = a[column] || '';
-              let bVal = b[column] || '';
-
-              // Handle numeric values
-              if (column === 'members') {
-                  aVal = parseInt(aVal) || 0;
-                  bVal = parseInt(bVal) || 0;
-              } else {
-                  aVal = aVal.toString().toLowerCase();
-                  bVal = bVal.toString().toLowerCase();
-              }
-
-              if (currentSort.direction === 'asc') {
-                  return aVal > bVal ? 1 : -1;
-              } else {
-                  return aVal < bVal ? 1 : -1;
-              }
-          });
-
-          renderInterests2020Table();
-      };
-  </script>
+    loadFooter();
+    // Census/Interests data loading functionality
+    let interestsData = [];
+    let filteredData = [];
+    let currentSort = {column: 'interest', direction: 'asc'};
+    let interestsLoaded = false;
+    let interests2025Loaded = false;
+    let interests2020Loaded = false;
+    let donationsLoaded = false;
+    let machinesLoaded = false;
+    let interests2025Data = [];
+    let interests2020Data = [];
+    let donationsData = [];
+    let machinesData = [];
+    // Google Sheets URL - convert to CSV export
+    const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/edit?gid=1977273024#gid=1977273024';
+    const CSV_URL = SHEETS_URL.replace('/edit?gid=', '/export?format=csv&gid=');
+    // Initialize interests functionality when census tab is shown
+    document.addEventListener('DOMContentLoaded', function () {
+        const censusTab = document.getElementById('tab-census');
+        let censusDataLoaded = false;
+// Check if we're already on census tab (hash navigation)
+        if (window.location.hash === '#census') {
+            loadAllCensusTables();
+            censusDataLoaded = true;
+        }
+        if (censusTab) {
+            censusTab.addEventListener('click', function () {
+                if (!censusDataLoaded) {
+                    loadAllCensusTables();
+                    censusDataLoaded = true;
+                }
+            });
+        }
+// Setup retry button
+        const retryBtn = document.getElementById('retry-interests-btn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', function () {
+                interestsLoaded = false;
+                loadInterestsData();
+            });
+        }
+// Setup search functionality
+        const searchInput = document.getElementById('interests-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterInterests);
+        }
+// Setup category filter
+        const categoryFilter = document.getElementById('interests-category-filter');
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', filterInterests);
+        }
+// Census group tab switching logic
+        const groupTabButtons = document.querySelectorAll('.census-group-tab-btn');
+        const groupTables = document.querySelectorAll('.census-group-table');
+        groupTabButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+// Remove active from all buttons
+                groupTabButtons.forEach(b => b.classList.remove('active'));
+// Add active to clicked
+                btn.classList.add('active');
+// Hide all tables
+                groupTables.forEach(table => table.classList.add('hidden'));
+// Show the selected group table
+                const group = btn.getAttribute('data-group');
+                const showTable = document.getElementById('census-group-' + group);
+                if (showTable) showTable.classList.remove('hidden');
+// Render the correct table
+                if (group === '2025') renderInterests2025Table();
+                else if (group === '2020') renderInterests2020Table();
+                else if (group === 'donations') renderDonationsTable();
+                else if (group === 'machines') renderMachinesTable();
+            });
+        });
+    });
+
+    async function loadInterestsData() {
+        const loadingEl = document.getElementById('interests-loading');
+        const errorEl = document.getElementById('interests-error');
+        const tableContainer = document.getElementById('interests-table-container');
+// Show loading state
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (errorEl) errorEl.classList.add('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
+        try {
+            console.log('Loading interests data from:', CSV_URL);
+            const response = await fetch(CSV_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const csvText = await response.text();
+            console.log('CSV data received:', csvText.substring(0, 200) + '...');
+            interestsData = parseCSV(csvText);
+            console.log('Parsed interests data:', interestsData.length, 'items');
+            if (interestsData.length > 0) {
+// Populate category filter
+                populateCategoryFilter();
+// Show table
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (tableContainer) tableContainer.classList.remove('hidden');
+// Initial render
+                filteredData = [...interestsData];
+                renderInterestsTable();
+                updateInterestsCount();
+                interestsLoaded = true;
+            } else {
+                throw new Error('No data found in spreadsheet');
+            }
+        } catch (error) {
+            console.error('Error loading interests data:', error);
+// Show error state
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (errorEl) errorEl.classList.remove('hidden');
+            interestsLoaded = false;
+        }
+    }
+
+    async function loadAllCensusTables() {
+        await Promise.all([
+            loadInterests2025(),
+            loadInterests2020(),
+            loadDonations(),
+            loadMachines()
+        ]);
+    }
+
+    async function loadInterests2025() {
+        if (interests2025Loaded) return;
+        const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=1977273024';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch 2025 interests');
+            const csvText = await response.text();
+            interests2025Data = parseCSV(csvText);
+            interests2025Loaded = true;
+            renderInterests2025Table();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function loadInterests2020() {
+        if (interests2020Loaded) return;
+        const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=0';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch 2020 interests');
+            const csvText = await response.text();
+            interests2020Data = parseCSV(csvText);
+            interests2020Loaded = true;
+            renderInterests2020Table();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function loadDonations() {
+        if (donationsLoaded) return;
+        const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=759735980';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch donations');
+            const csvText = await response.text();
+            donationsData = parseDonationsCSV(csvText);
+            donationsLoaded = true;
+            console.log('Parsed Donations:', donationsData);
+            renderDonationsTable();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function loadMachines() {
+        if (machinesLoaded) return;
+        const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=752318281';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch machines');
+            const csvText = await response.text();
+            machinesData = parseMachinesCSV(csvText);
+            machinesLoaded = true;
+            console.log('Parsed Machines:', machinesData);
+            renderMachinesTable();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length >= 2) { // At least interest name and total players
+                const row = {
+                    interest: values[0] || '',
+                    members: values[1] || '0',
+                    category: 'Gaming', // Default category since this is a gaming interests sheet
+                    description: ``
+                };
+// Add player participation data
+                const players = [];
+                for (let j = 2; j < values.length; j++) {
+                    if (values[j] && values[j].trim() !== '') {
+                        players.push(headers[j] || `Player ${j}`);
+                    }
+                }
+                if (players.length > 0) {
+                    row.description += `Users: ${players.join(', ')}`;
+                }
+// Only add rows that have an interest name
+                if (row.interest && row.interest.trim() !== '') {
+                    data.push(row);
+                }
+            }
+        }
+        return data;
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result.map(val => val.replace(/^"|"$/g, ''));
+    }
+
+    function parseDonationsCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            const row = {};
+            headers.forEach((header, idx) => {
+                row[header] = values[idx] || '';
+            });
+            data.push({
+                expense: row['expense'] || row['expenses'] || '',
+                cost: row['cost'] || '',
+                description: row['description'] || '',
+                donor: row['donor'] || row['donation'] || row['donations'] || ''
+            });
+        }
+        return data;
+    }
+
+    function parseMachinesCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            const row = {};
+            headers.forEach((header, idx) => {
+                row[header] = values[idx] || '';
+            });
+            data.push({
+                name: row['machine name'] || row['name'] || '',
+                owner: row['owner'] || '',
+                location: row['location'] || '',
+                purpose: row['purpose'] || '',
+                internalId: row['s# (internal)'] || row['internalid'] || '',
+                notes: row['notes'] || ''
+            });
+        }
+        return data;
+    }
+
+    function populateCategoryFilter() {
+        const categoryFilter = document.getElementById('interests-category-filter');
+        if (!categoryFilter) return;
+        const categories = [...new Set(interestsData.map(item => item.category || '').filter(Boolean))];
+        categories.sort();
+// Clear existing options except "All Categories"
+        categoryFilter.innerHTML = '<option value="">All Categories</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+    }
+
+    function filterInterests() {
+        const searchTerm = document.getElementById('interests-search')?.value.toLowerCase() || '';
+        const categoryFilter = document.getElementById('interests-category-filter')?.value || '';
+        filteredData = interestsData.filter(item => {
+            const matchesSearch = !searchTerm ||
+                (item.interest && item.interest.toLowerCase().includes(searchTerm)) ||
+                (item.description && item.description.toLowerCase().includes(searchTerm));
+            const matchesCategory = !categoryFilter ||
+                (item.category && item.category === categoryFilter);
+            return matchesSearch && matchesCategory;
+        });
+        renderInterestsTable();
+    }
+
+    function renderInterestsTable() {
+        const tbody = document.getElementById('interests-table-body');
+        const noResults = document.getElementById('interests-no-results');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (filteredData.length === 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            return;
+        }
+        if (noResults) noResults.classList.add('hidden');
+        filteredData.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+            row.innerHTML = `
+<td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+`;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderInterests2025Table() {
+        const tbody = document.getElementById('interests-table-body');
+        const noResults = document.getElementById('interests-no-results');
+        console.log('Rendering 2025 Interests:', interests2025Data);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (interests2025Data.length === 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            return;
+        }
+        if (noResults) noResults.classList.add('hidden');
+        interests2025Data.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+            row.innerHTML = `
+<td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+`;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderInterests2020Table() {
+        const tbody = document.getElementById('interests-2020-table-body');
+        const noResults = document.getElementById('interests-2020-no-results');
+        console.log('Rendering 2020 Interests:', interests2020Data);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (interests2020Data.length === 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            return;
+        }
+        if (noResults) noResults.classList.add('hidden');
+        interests2020Data.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+            row.innerHTML = `
+<td class="px-6 py-4 text-left">${escapeHtml(item.interest || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.category || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.members || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+`;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderDonationsTable() {
+        const tbody = document.getElementById('donations-table-body');
+        const noResults = document.getElementById('donations-no-results');
+        console.log('Rendering Donations:', donationsData);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (donationsData.length === 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            return;
+        }
+        if (noResults) noResults.classList.add('hidden');
+        donationsData.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+            row.innerHTML = `
+<td class="px-6 py-4 text-left">${escapeHtml(item.expense || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.cost || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.description || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.donor || '')}</td>
+`;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderMachinesTable() {
+        const tbody = document.getElementById('machines-table-body');
+        const noResults = document.getElementById('machines-no-results');
+        console.log('Rendering Machines:', machinesData);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (machinesData.length === 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            return;
+        }
+        if (noResults) noResults.classList.add('hidden');
+        machinesData.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'text-text-primary border-t border-table-td-border hover:bg-table-row-hover-bg';
+            row.innerHTML = `
+<td class="px-6 py-4 text-left">${escapeHtml(item.name || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.owner || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.location || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.purpose || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.internalId || '')}</td>
+<td class="px-6 py-4 text-left">${escapeHtml(item.notes || '')}</td>
+`;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateInterestsCount() {
+        const countEl = document.getElementById('interests-count');
+        if (countEl) {
+            countEl.textContent = filteredData.length;
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Global sort functions for table headers
+    window.sortTable = function (column) {
+        if (currentSort.column === column) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+        }
+        filteredData.sort((a, b) => {
+            let aVal = a[column] || '';
+            let bVal = b[column] || '';
+// Handle numeric values
+            if (column === 'members') {
+                aVal = parseInt(aVal) || 0;
+                bVal = parseInt(bVal) || 0;
+            } else {
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+            }
+            if (currentSort.direction === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+        renderInterestsTable();
+    };
+    window.sortTable2025 = function (column) {
+        if (currentSort.column === column) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+        }
+        interests2025Data.sort((a, b) => {
+            let aVal = a[column] || '';
+            let bVal = b[column] || '';
+// Handle numeric values
+            if (column === 'members') {
+                aVal = parseInt(aVal) || 0;
+                bVal = parseInt(bVal) || 0;
+            } else {
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+            }
+            if (currentSort.direction === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+        renderInterests2025Table();
+    };
+    window.sortTable2020 = function (column) {
+        if (currentSort.column === column) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+        }
+        interests2020Data.sort((a, b) => {
+            let aVal = a[column] || '';
+            let bVal = b[column] || '';
+// Handle numeric values
+            if (column === 'members') {
+                aVal = parseInt(aVal) || 0;
+                bVal = parseInt(bVal) || 0;
+            } else {
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+            }
+            if (currentSort.direction === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+        renderInterests2020Table();
+    };
+</script>
 </body>
-
 </html>

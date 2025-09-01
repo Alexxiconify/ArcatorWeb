@@ -1,1075 +1,1045 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="page-title-display">Loading...</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Link to the CSS variables for theming -->
-  <link rel="stylesheet" href="theme_variables.css">
-  <!-- Link to master.css for all styles -->
-  <link href="master.css" rel="stylesheet">
-  <!-- Favicon link -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <style>
-    /* Critical CSS for immediate rendering */
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-      background-color: var(--color-body-bg);
-      color: var(--color-text-primary);
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .main-section,
-    .forum-section,
-    .content-section {
-      background-color: var(--color-bg-content-section);
-      color: var(--color-text-primary);
-    }
-
-    /* Hero Banner styles - common for all themes, retains background image */
-    .hero-banner {
-      background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 250px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-banner::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    }
-
-    /* Loading skeleton */
-    .skeleton {
-      background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      border-radius: 0.375rem;
-    }
-
-    @keyframes loading {
-      0% {
-        background-position: 200% 0;
-      }
-
-      100% {
-        background-position: -200% 0;
-      }
-    }
-
-    /* Smooth transitions */
-    .transition-all {
-      transition: all 0.2s ease-in-out;
-    }
-
-    /* Modern card design */
-    .card-modern {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px -1px;
-      transition: all 0.2s ease-in-out;
-    }
-
-    .card-modern:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px;
-    }
-
-    /* Improved button design */
-    .btn-modern {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      border-radius: 0.5rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      text-decoration: none;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-    }
-
-    .btn-modern:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px;
-    }
-
-    .btn-modern:active {
-      transform: translateY(0);
-    }
-
-    /* Temporary Page Navigation Tabs */
-    .temp-page-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--color-input-border);
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-link) var(--color-bg-navbar);
-    }
-
-    /* Webkit (Chrome, Safari) scrollbar styling */
-    .temp-page-nav::-webkit-scrollbar {
-      height: 8px;
-    }
-
-    .temp-page-nav::-webkit-scrollbar-track {
-      background: var(--color-bg-navbar);
-      border-radius: 10px;
-    }
-
-    .temp-page-nav::-webkit-scrollbar-thumb {
-      background-color: var(--color-link);
-      border-radius: 10px;
-      border: 2px solid var(--color-bg-navbar);
-    }
-
-    .temp-page-nav button {
-      flex-shrink: 0;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-      white-space: nowrap;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border: 1px solid transparent;
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-    }
-
-    .temp-page-nav button:hover {
-      background-color: var(--color-link);
-      color: var(--color-button-text);
-    }
-
-    .temp-page-nav button.active {
-      font-weight: 700;
-      background-color: var(--color-link);
-      color: var(--color-button-text);
-    }
-
-    /* HTML content styling within the viewer */
-    .html-content {
-      line-height: 1.7;
-      word-wrap: break-word;
-      background-color: var(--color-input-bg);
-      color: var(--color-input-text);
-      border: 1px solid var(--color-input-border);
-    }
-
-    /* General HTML element styling to match theme */
-    .html-content h1,
-    .html-content h2,
-    .html-content h3,
-    .html-content h4,
-    .html-content h5,
-    .html-content h6 {
-      margin-top: 1.5em;
-      margin-bottom: 0.8em;
-      font-weight: 700;
-      line-height: 1.2;
-      color: var(--color-heading-main);
-    }
-
-    .html-content h1 {
-      font-size: 2.5rem;
-    }
-
-    .html-content h2 {
-      font-size: 2rem;
-    }
-
-    .html-content h3 {
-      font-size: 1.75rem;
-    }
-
-    .html-content h4 {
-      font-size: 1.5rem;
-    }
-
-    .html-content h5 {
-      font-size: 1.25rem;
-    }
-
-    .html-content h6 {
-      font-size: 1rem;
-    }
-
-    .html-content p {
-      margin-bottom: 1em;
-      line-height: 1.6;
-      color: var(--color-text-primary);
-    }
-
-    .html-content ul,
-    .html-content ol {
-      margin-bottom: 1em;
-      padding-left: 2em;
-    }
-
-    .html-content ul li,
-    .html-content ol li {
-      margin-bottom: 0.5em;
-      color: var(--color-text-primary);
-    }
-
-    .html-content a {
-      text-decoration: underline;
-      font-weight: 500;
-      color: var(--color-link);
-    }
-
-    .html-content a:hover {
-      color: var(--color-link-hover);
-    }
-
-    .html-content strong {
-      font-weight: 700;
-      color: var(--color-text-primary);
-    }
-
-    .html-content em {
-      font-style: italic;
-      color: var(--color-text-primary);
-    }
-
-    .html-content blockquote {
-      border-left: 4px solid var(--color-link);
-      padding-left: 1em;
-      margin: 1em 0;
-      font-style: italic;
-      color: var(--color-text-secondary);
-    }
-
-    .html-content code {
-      border-radius: 0.25rem;
-      padding: 0.2em 0.4em;
-      font-family: 'Roboto Mono', monospace;
-      font-size: 0.9em;
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-    }
-
-    .html-content pre {
-      border-radius: 0.5rem;
-      padding: 1em;
-      overflow-x: auto;
-      margin-bottom: 1.5em;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-      background-color: var(--color-bg-navbar);
-    }
-
-    .html-content pre code {
-      padding: 0;
-      background-color: transparent;
-      font-size: 1em;
-    }
-
-    .html-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 1em;
-    }
-
-    .html-content th,
-    .html-content td {
-      border: 1px solid var(--color-input-border);
-      padding: 0.75em;
-      text-align: left;
-    }
-
-    .html-content th {
-      font-weight: bold;
-      background-color: var(--color-table-th-bg);
-      color: var(--color-table-th-text);
-    }
-
-    .html-content td {
-      color: var(--color-text-primary);
-    }
-
-    .html-content tr:nth-child(even) {
-      background-color: var(--color-table-row-even-bg);
-    }
-
-    .html-content hr {
-      border: none;
-      border-top: 1px solid var(--color-input-border);
-      margin: 2em 0;
-    }
-
-    .html-content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 0.5rem;
-    }
-
-    /* Comments styling */
-    .comments-section {
-      background-color: var(--color-bg-card);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-    }
-
-    .comments-header {
-      border-bottom: 1px solid var(--color-input-border);
-      padding-bottom: 1rem;
-    }
-
-    .add-comment-section {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .add-comment-form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .add-comment-form textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      background-color: var(--color-input-bg);
-      color: var(--color-input-text);
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .add-comment-form textarea:focus {
-      outline: none;
-      border-color: var(--color-link);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-    }
-
-    .add-comment-form button {
-      align-self: flex-start;
-      padding: 0.75rem 1.5rem;
-      font-size: 0.875rem;
-    }
-
-    .comments-list {
-      margin-top: 1.5rem;
-    }
-
-    .comment-item {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      background-color: var(--color-bg-card);
-    }
-
-    .comment-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .comment-author {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .comment-author-avatar {
-      width: 2rem;
-      height: 2rem;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .comment-author-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .comment-author-name {
-      font-weight: 600;
-      color: var(--color-text-primary);
-      font-size: 0.875rem;
-    }
-
-    .comment-timestamp {
-      font-size: 0.75rem;
-      color: var(--color-text-secondary);
-    }
-
-    .comment-content {
-      color: var(--color-text-primary);
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .comment-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--color-input-border);
-    }
-
-    .comment-actions button {
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.75rem;
-      background: transparent;
-      border: 1px solid var(--color-input-border);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .comment-actions button:hover {
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-    }
-
-    .comment-actions button.delete-btn:hover {
-      background-color: var(--color-button-red-bg);
-      color: var(--color-button-text);
-      border-color: var(--color-button-red-bg);
-    }
-
-    .no-comments {
-      text-align: center;
-      padding: 2rem;
-      color: var(--color-text-secondary);
-      font-style: italic;
-    }
-
-    .comments-loading {
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .comments-error {
-      text-align: center;
-      padding: 2rem;
-      color: var(--color-button-red-bg);
-    }
-
-    /* Status indicator */
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid var(--color-input-border);
-      margin: 1rem auto;
-      max-width: 300px;
-    }
-
-    .status-dot {
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 50%;
-    }
-
-    .status-dot.online {
-      background: #10B981;
-    }
-
-    .status-dot.loading {
-      background: #F59E0B;
-    }
-
-    .status-dot.offline {
-      background: #6B7280;
-    }
-
-    /* Form improvements */
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Collapsible sections */
-    .collapsible {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.75rem;
-      overflow: hidden;
-      margin-bottom: 1rem;
-    }
-
-    .collapsible-header {
-      padding: 1rem 1.5rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: background-color 0.2s ease-in-out;
-    }
-
-    .collapsible-content {
-      padding: 1.5rem;
-    }
-
-    /* Loading states */
-    .loading-spinner {
-      display: inline-block;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 2px solid var(--color-input-border);
-      border-radius: 50%;
-      border-top-color: var(--color-link);
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .tab-container {
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-
-      .tab-btn {
-        width: 100%;
-        text-align: center;
-      }
-
-      .collapsible-header {
-        padding: 0.75rem 1rem;
-      }
-
-      .collapsible-content {
-        padding: 1rem;
-      }
-    }
-
-    /* Message box styling */
-    .message-box {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .message-box.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .message-box.error {
-      background-color: var(--color-button-red-bg);
-    }
-
-    .message-box.success {
-      background-color: var(--color-button-green-bg);
-    }
-
-    /* Custom confirm modal styling */
-    .custom-confirm-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      display: none;
-    }
-
-    .custom-confirm-modal .modal-content {
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px;
-      text-align: center;
-      position: relative;
-      max-width: 400px;
-      width: 90%;
-    }
-
-    .custom-confirm-modal .close-button {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .custom-confirm-modal .close-button:hover,
-    .custom-confirm-modal .close-button:focus {
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    /* DM chat bubbles */
-    .dm-bubble-in {
-      border-radius: 1.2em 1.2em 1.2em 0.4em;
-      padding: 0.75em 1.1em;
-      margin-bottom: 0.1em;
-      box-shadow: 0 2px 8px;
-      max-width: 80%;
-      word-break: break-word;
-    }
-
-    .dm-bubble-out {
-      border-radius: 1.2em 1.2em 0.4em 1.2em;
-      padding: 0.75em 1.1em;
-      margin-bottom: 0.1em;
-      box-shadow: 0 2px 8px;
-      max-width: 80%;
-      word-break: break-word;
-    }
-
-    .thema-item,
-    .thread-item,
-    .comment-item {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .comment-item {
-      padding-left: 1.5rem;
-    }
-
-    .meta-info {
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
-    }
-
-    .thema-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.5rem;
-    }
-
-    .thema-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .thema-actions button {
-      padding: 0.25rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 2rem;
-      height: 2rem;
-    }
-
-    .thema-threads {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--color-input-border);
-    }
-
-    .thread-item {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .thread-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.5rem;
-    }
-
-    .thread-actions {
-      display: flex;
-      gap: 0.25rem;
-    }
-
-    .thread-actions button {
-      padding: 0.25rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 1.5rem;
-      height: 1.5rem;
-    }
-
-    .thread-comments {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--color-input-border);
-    }
-
-    .comment-item {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.375rem;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .comment-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .comment-content {
-      flex: 1;
-      margin: 0;
-    }
-
-    .comment-actions {
-      display: flex;
-      gap: 0.25rem;
-      flex-shrink: 0;
-    }
-
-    .comment-actions button {
-      padding: 0.25rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 1.5rem;
-      height: 1.5rem;
-    }
-
-    .create-thread-section,
-    .add-comment-section {
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .create-thread-form,
-    .add-comment-form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .create-thread-form input,
-    .create-thread-form textarea,
-    .add-comment-form textarea {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-    }
-
-    .create-thread-form input:focus,
-    .create-thread-form textarea:focus,
-    .add-comment-form textarea:focus {
-      outline: none;
-      border-color: var(--color-link);
-      box-shadow: 0 0 0 2px;
-    }
-
-    .create-thread-form button,
-    .add-comment-form button {
-      align-self: flex-start;
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-    }
-
-    .no-threads,
-    .no-comments {
-      text-align: center;
-      font-style: italic;
-      padding: 1rem;
-    }
-
-    .threads-loading,
-    .comments-loading {
-      text-align: center;
-      padding: 1rem;
-    }
-
-    .error {
-      text-align: center;
-      padding: 1rem;
-    }
-
-    .user-card .user-avatar {
-      width: 1.5rem;
-      height: 1.5rem;
-      min-width: 1.5rem;
-      min-height: 1.5rem;
-      max-width: 1.5rem;
-      max-height: 1.5rem;
-    }
-
-    /* Comment edit controls */
-    .comment-edit-controls {
-      display: flex;
-      gap: 0.25rem;
-    }
-
-    .edit-btn {
-      padding: 0.25rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      border: 1px solid var(--color-input-border);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-width: 2rem;
-      height: 2rem;
-    }
-
-    .edit-btn:hover {
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-      border-color: var(--color-link);
-    }
-
-    .comment-edit-controls .delete-btn {
-      padding: 0.25rem;
-      border-radius: 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      border: 1px solid var(--color-input-border);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-width: 2rem;
-      height: 2rem;
-    }
-
-    .comment-edit-controls .delete-btn:hover {
-      background-color: var(--color-button-red-bg);
-      color: var(--color-button-text);
-      border-color: var(--color-button-red-bg);
-    }
-
-    /* Comment edit form */
-    .comment-edit-form {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.375rem;
-      background-color: var(--color-input-bg);
-    }
-
-    .edit-comment-textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 0.5rem;
-      border: 1px solid var(--color-input-border);
-      border-radius: 0.25rem;
-      background-color: var(--color-bg-card);
-      color: var(--color-text-primary);
-      font-size: 0.875rem;
-      resize: vertical;
-    }
-
-    .edit-comment-textarea:focus {
-      outline: none;
-      border-color: var(--color-link);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-    }
-
-    .edit-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .save-edit-btn,
-    .cancel-edit-btn {
-      padding: 0.375rem 0.75rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid var(--color-input-border);
-    }
-
-    .save-edit-btn {
-      background-color: var(--color-button-green-bg);
-      color: var(--color-button-text);
-      border-color: var(--color-button-green-bg);
-    }
-
-    .save-edit-btn:hover {
-      background-color: var(--color-button-green-hover);
-      border-color: var(--color-button-green-hover);
-    }
-
-    .cancel-edit-btn {
-      background-color: transparent;
-      color: var(--color-text-secondary);
-    }
-
-    .cancel-edit-btn:hover {
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-    }
-
-    /* Comment reactions */
-    .comment-reactions {
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--color-input-border);
-    }
-
-    .reaction-buttons {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .reaction-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.375rem 0.75rem;
-      border-radius: 1rem;
-      background-color: transparent;
-      border: 1px solid var(--color-input-border);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .reaction-btn:hover {
-      background-color: var(--color-bg-navbar);
-      color: var(--color-text-primary);
-      border-color: var(--color-link);
-      transform: translateY(-1px);
-    }
-
-    .reaction-btn.active {
-      background-color: var(--color-link);
-      color: var(--color-button-text);
-      border-color: var(--color-link);
-    }
-
-    .reaction-count {
-      font-size: 0.75rem;
-      font-weight: 600;
-      min-width: 1rem;
-      text-align: center;
-    }
-
-    /* Edited indicator */
-    .edited-indicator {
-      font-size: 0.75rem;
-      color: var(--color-text-secondary);
-      font-style: italic;
-      margin-left: 0.5rem;
-    }
-
-    /* Hidden class */
-    .hidden {
-      display: none !important;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title id="page-title-display">Loading...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="theme_variables.css" rel="stylesheet">
+    <link href="master.css" rel="stylesheet">
+    <link href="favicon.png" rel="icon" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            background-color: var(--color-body-bg);
+            color: var(--color-text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-section,
+        .forum-section,
+        .content-section {
+            background-color: var(--color-bg-content-section);
+            color: var(--color-text-primary);
+        }
+
+        .hero-banner {
+            background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 0.375rem;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .transition-all {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .card-modern {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .card-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px;
+        }
+
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px;
+        }
+
+        .btn-modern:active {
+            transform: translateY(0);
+        }
+
+        .temp-page-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--color-input-border);
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-link) var(--color-bg-navbar);
+        }
+
+        .temp-page-nav::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .temp-page-nav::-webkit-scrollbar-track {
+            background: var(--color-bg-navbar);
+            border-radius: 10px;
+        }
+
+        .temp-page-nav::-webkit-scrollbar-thumb {
+            background-color: var(--color-link);
+            border-radius: 10px;
+            border: 2px solid var(--color-bg-navbar);
+        }
+
+        .temp-page-nav button {
+            flex-shrink: 0;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid transparent;
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+        }
+
+        .temp-page-nav button:hover {
+            background-color: var(--color-link);
+            color: var(--color-button-text);
+        }
+
+        .temp-page-nav button.active {
+            font-weight: 700;
+            background-color: var(--color-link);
+            color: var(--color-button-text);
+        }
+
+        .html-content {
+            line-height: 1.7;
+            word-wrap: break-word;
+            background-color: var(--color-input-bg);
+            color: var(--color-input-text);
+            border: 1px solid var(--color-input-border);
+        }
+
+        .html-content h1,
+        .html-content h2,
+        .html-content h3,
+        .html-content h4,
+        .html-content h5,
+        .html-content h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-heading-main);
+        }
+
+        .html-content h1 {
+            font-size: 2.5rem;
+        }
+
+        .html-content h2 {
+            font-size: 2rem;
+        }
+
+        .html-content h3 {
+            font-size: 1.75rem;
+        }
+
+        .html-content h4 {
+            font-size: 1.5rem;
+        }
+
+        .html-content h5 {
+            font-size: 1.25rem;
+        }
+
+        .html-content h6 {
+            font-size: 1rem;
+        }
+
+        .html-content p {
+            margin-bottom: 1em;
+            line-height: 1.6;
+            color: var(--color-text-primary);
+        }
+
+        .html-content ul,
+        .html-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+
+        .html-content ul li,
+        .html-content ol li {
+            margin-bottom: 0.5em;
+            color: var(--color-text-primary);
+        }
+
+        .html-content a {
+            text-decoration: underline;
+            font-weight: 500;
+            color: var(--color-link);
+        }
+
+        .html-content a:hover {
+            color: var(--color-link-hover);
+        }
+
+        .html-content strong {
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .html-content em {
+            font-style: italic;
+            color: var(--color-text-primary);
+        }
+
+        .html-content blockquote {
+            border-left: 4px solid var(--color-link);
+            padding-left: 1em;
+            margin: 1em 0;
+            font-style: italic;
+            color: var(--color-text-secondary);
+        }
+
+        .html-content code {
+            border-radius: 0.25rem;
+            padding: 0.2em 0.4em;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+        }
+
+        .html-content pre {
+            border-radius: 0.5rem;
+            padding: 1em;
+            overflow-x: auto;
+            margin-bottom: 1.5em;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            background-color: var(--color-bg-navbar);
+        }
+
+        .html-content pre code {
+            padding: 0;
+            background-color: transparent;
+            font-size: 1em;
+        }
+
+        .html-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+
+        .html-content th,
+        .html-content td {
+            border: 1px solid var(--color-input-border);
+            padding: 0.75em;
+            text-align: left;
+        }
+
+        .html-content th {
+            font-weight: bold;
+            background-color: var(--color-table-th-bg);
+            color: var(--color-table-th-text);
+        }
+
+        .html-content td {
+            color: var(--color-text-primary);
+        }
+
+        .html-content tr:nth-child(even) {
+            background-color: var(--color-table-row-even-bg);
+        }
+
+        .html-content hr {
+            border: none;
+            border-top: 1px solid var(--color-input-border);
+            margin: 2em 0;
+        }
+
+        .html-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+        }
+
+        .comments-section {
+            background-color: var(--color-bg-card);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .comments-header {
+            border-bottom: 1px solid var(--color-input-border);
+            padding-bottom: 1rem;
+        }
+
+        .add-comment-section {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .add-comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .add-comment-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: var(--color-input-bg);
+            color: var(--color-input-text);
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .add-comment-form textarea:focus {
+            outline: none;
+            border-color: var(--color-link);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .add-comment-form button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .comments-list {
+            margin-top: 1.5rem;
+        }
+
+        .comment-item {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: var(--color-bg-card);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comment-author-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-author-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-author-name {
+            font-weight: 600;
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+        }
+
+        .comment-timestamp {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+
+        .comment-content {
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--color-input-border);
+        }
+
+        .comment-actions button {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            background: transparent;
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .comment-actions button:hover {
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+        }
+
+        .comment-actions button.delete-btn:hover {
+            background-color: var(--color-button-red-bg);
+            color: var(--color-button-text);
+            border-color: var(--color-button-red-bg);
+        }
+
+        .no-comments {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        .comments-loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .comments-error {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-button-red-bg);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--color-input-border);
+            margin: 1rem auto;
+            max-width: 300px;
+        }
+
+        .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #10B981;
+        }
+
+        .status-dot.loading {
+            background: #F59E0B;
+        }
+
+        .status-dot.offline {
+            background: #6B7280;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .collapsible {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .collapsible-header {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .collapsible-content {
+            padding: 1.5rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid var(--color-input-border);
+            border-radius: 50%;
+            border-top-color: var(--color-link);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tab-container {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .tab-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .collapsible-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .collapsible-content {
+                padding: 1rem;
+            }
+        }
+
+        .message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-box.error {
+            background-color: var(--color-button-red-bg);
+        }
+
+        .message-box.success {
+            background-color: var(--color-button-green-bg);
+        }
+
+        .custom-confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .custom-confirm-modal .modal-content {
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px;
+            text-align: center;
+            position: relative;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .custom-confirm-modal .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .custom-confirm-modal .close-button:hover,
+        .custom-confirm-modal .close-button:focus {
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .dm-bubble-in {
+            border-radius: 1.2em 1.2em 1.2em 0.4em;
+            padding: 0.75em 1.1em;
+            margin-bottom: 0.1em;
+            box-shadow: 0 2px 8px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        .dm-bubble-out {
+            border-radius: 1.2em 1.2em 0.4em 1.2em;
+            padding: 0.75em 1.1em;
+            margin-bottom: 0.1em;
+            box-shadow: 0 2px 8px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        .thema-item,
+        .thread-item,
+        .comment-item {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-item {
+            padding-left: 1.5rem;
+        }
+
+        .meta-info {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .thema-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .thema-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .thema-actions button {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            height: 2rem;
+        }
+
+        .thema-threads {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-input-border);
+        }
+
+        .thread-item {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .thread-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .thread-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .thread-actions button {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .thread-comments {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-input-border);
+        }
+
+        .comment-item {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .comment-content {
+            flex: 1;
+            margin: 0;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .comment-actions button {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .create-thread-section,
+        .add-comment-section {
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .create-thread-form,
+        .add-comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .create-thread-form input,
+        .create-thread-form textarea,
+        .add-comment-form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .create-thread-form input:focus,
+        .create-thread-form textarea:focus,
+        .add-comment-form textarea:focus {
+            outline: none;
+            border-color: var(--color-link);
+            box-shadow: 0 0 0 2px;
+        }
+
+        .create-thread-form button,
+        .add-comment-form button {
+            align-self: flex-start;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .no-threads,
+        .no-comments {
+            text-align: center;
+            font-style: italic;
+            padding: 1rem;
+        }
+
+        .threads-loading,
+        .comments-loading {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .error {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .user-card .user-avatar {
+            width: 1.5rem;
+            height: 1.5rem;
+            min-width: 1.5rem;
+            min-height: 1.5rem;
+            max-width: 1.5rem;
+            max-height: 1.5rem;
+        }
+
+        .comment-edit-controls {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .edit-btn {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 2rem;
+            height: 2rem;
+        }
+
+        .edit-btn:hover {
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+            border-color: var(--color-link);
+        }
+
+        .comment-edit-controls .delete-btn {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 2rem;
+            height: 2rem;
+        }
+
+        .comment-edit-controls .delete-btn:hover {
+            background-color: var(--color-button-red-bg);
+            color: var(--color-button-text);
+            border-color: var(--color-button-red-bg);
+        }
+
+        .comment-edit-form {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.375rem;
+            background-color: var(--color-input-bg);
+        }
+
+        .edit-comment-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.5rem;
+            border: 1px solid var(--color-input-border);
+            border-radius: 0.25rem;
+            background-color: var(--color-bg-card);
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+
+        .edit-comment-textarea:focus {
+            outline: none;
+            border-color: var(--color-link);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .save-edit-btn,
+        .cancel-edit-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--color-input-border);
+        }
+
+        .save-edit-btn {
+            background-color: var(--color-button-green-bg);
+            color: var(--color-button-text);
+            border-color: var(--color-button-green-bg);
+        }
+
+        .save-edit-btn:hover {
+            background-color: var(--color-button-green-hover);
+            border-color: var(--color-button-green-hover);
+        }
+
+        .cancel-edit-btn {
+            background-color: transparent;
+            color: var(--color-text-secondary);
+        }
+
+        .cancel-edit-btn:hover {
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+        }
+
+        .comment-reactions {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--color-input-border);
+        }
+
+        .reaction-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .reaction-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            background-color: transparent;
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .reaction-btn:hover {
+            background-color: var(--color-bg-navbar);
+            color: var(--color-text-primary);
+            border-color: var(--color-link);
+            transform: translateY(-1px);
+        }
+
+        .reaction-btn.active {
+            background-color: var(--color-link);
+            color: var(--color-button-text);
+            border-color: var(--color-link);
+        }
+
+        .reaction-count {
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 1rem;
+            text-align: center;
+        }
+
+        .edited-indicator {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            font-style: italic;
+            margin-left: 0.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-  <div class="flex flex-col md:flex-row items-center mt-6 mb-0">
+<div class="flex flex-col md:flex-row items-center mt-6 mb-0">
     <div class="flex-1">
-      <section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
-        <div class="text-center hero-content max-width-100vw">
-          <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
-          <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
-        </div>
-      </section>
+        <section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
+            <div class="text-center hero-content max-width-100vw">
+                <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">Pages</h1>
+                <p class="text-xl md:text-2xl mb-8">View Custom Pages</p>
+            </div>
+        </section>
     </div>
     <div id="navbar-placeholder" class="ml-0 md:ml-8 w-full md:w-auto"></div>
-  </div>
-  <div class="w-full mt-8">
+</div>
+<div class="w-full mt-8">
     <div id="admin-controls" class="w-full flex flex-col items-center mb-6"></div>
     <div id="dynamic-page-content" class="dynamic-page-content"></div>
     <div id="comments-section"></div>
-  </div>
-  <div id="footer-placeholder"></div>
-  <script src="app.js" type="module"></script>
-  <!--suppress SpellCheckingInspection -->
-  <script type="module">
-    import { initializePage, loadFooter } from './core.js';
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { firebaseConfig } from './sensitive/firebase-config.js';
-    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { loadNavbar } from './core.js';
-    import { auth, getUserProfileFromFirestore } from './firebase-init.js';
+</div>
+<div id="footer-placeholder"></div>
+<script src="app.js" type="module"></script>
+<script type="module">
+    import {initializePage, loadFooter} from './core.js';
+    import {getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {firebaseConfig} from './sensitive/firebase-config.js';
+    import {initializeApp, getApps} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import {loadNavbar} from './core.js';
+    import {auth, getUserProfileFromFirestore} from './firebase-init.js';
     // Init theme/navbar/footer
     initializePage('pages');
     loadFooter();
@@ -1081,241 +1051,271 @@
     db = getFirestore(app);
     // Temp pages list
     const tempPages = [
-      { id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1' },
-      { id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2' },
+        {id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1'},
+        {id: 'SQ1f81es7k4PMdS4f1pr', title: 'Page 2'},
     ];
+
     // Render nav tabs (remove ID from tab label)
     function renderTempPageNav(currentId, isAdminUser = false) {
-      let navHtml = tempPages.map(p => `<a class="btn-modern${p.id===currentId? ' active' : ''}" href="pages.html?id=${p.id}" onclick="event.preventDefault(); window.setTempPage('${p.id}')">${p.title}</a>`).join('');
-      if (isAdminUser) {
-        navHtml += `<a class="btn-modern add-page-tab ml-2" href="#" onclick="event.preventDefault(); window.openAddPageModal()">+ Add Page</a>`;
-      }
-      return `<div class="temp-page-nav justify-center mb-8">${navHtml}</div>`;
+        let navHtml = tempPages.map(p => `<a class="btn-modern${p.id === currentId ? ' active' : ''}" href="pages.html?id=${p.id}" onclick="event.preventDefault(); window.setTempPage('${p.id}')">${p.title}</a>`).join('');
+        if (isAdminUser) {
+            navHtml += `<a class="btn-modern add-page-tab ml-2" href="#" onclick="event.preventDefault(); window.openAddPageModal()">+ Add Page</a>`;
+        }
+        return `<div class="temp-page-nav justify-center mb-8">${navHtml}</div>`;
     }
+
     // On load, always default to Page 1 if no id
     function getCurrentPageId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('id') || tempPages[0].id;
+        const params = new URLSearchParams(window.location.search);
+        return params.get('id') || tempPages[0].id;
     }
+
     async function loadTempPage(id) {
-      if (!id) id = tempPages[0].id;
-      const contentDiv = document.getElementById('dynamic-page-content');
-      const commentsDiv = document.getElementById('comments-section');
-      let user = auth.currentUser;
-      let isAdminUser = false;
-      if (user) isAdminUser = isAdmin(user);
-      contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-xl mt-12 mb-8">Loading...</div>';
-      commentsDiv.innerHTML = '';
-      const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
-        return;
-      }
-      const data = snap.data();
-      contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + `
-        <div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
-        <div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
-        <div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
-      `;
-      await loadComments(id);
-    }
-    // Comments logic
-    import { collection, query, orderBy, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    async function loadComments(pageId) {
-      const commentsDiv = document.getElementById('comments-section');
-      commentsDiv.innerHTML = '<div class="comments-loading">Loading comments...</div>';
-      const commentsRef = collection(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`);
-      const q = query(commentsRef, orderBy('createdAt', 'asc'));
-      const snap = await getDocs(q);
-      let html = `<div class="comments-section"><div class="comments-header text-2xl font-bold mb-4">Comments</div>`;
-      html += `<form id="add-comment-form" class="add-comment-form mb-6"><textarea id="comment-input" placeholder="Add a comment..."></textarea><button type="submit" class="btn-modern">Post</button></form>`;
-      if (snap.empty) {
-        html += '<div class="no-comments">No comments yet.</div>';
-      } else {
-        html += '<div class="comments-list">';
-        snap.forEach(doc => {
-          const c = doc.data();
-          const commentId = doc.id;
-          html += `<div class="comment-item card-modern transition-all">
-            <div class="comment-header">
-              <span class="comment-author">
-                <img class="comment-author-avatar" src="${c.authorPhotoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + (c.authorUid || 'anon')}" alt="avatar">
-                <span class="comment-author-info">
-                  <span class="comment-author-name">${c.authorName || 'Anonymous'}</span>
-                  <span class="comment-timestamp">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</span>
-                </span>
-              </span>
-              <span class="comment-edit-controls">
-                <button class="edit-btn" data-id="${commentId}" title="Edit"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg></button>
-                <button class="delete-btn" data-id="${commentId}" title="Delete"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
-              </span>
-            </div>
-            <div class="comment-content">${c.content || ''}</div>
-          </div>`;
-        });
-        html += '</div>';
-      }
-      html += '</div>';
-      commentsDiv.innerHTML = html;
-      document.getElementById('add-comment-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const input = document.getElementById('comment-input');
-        const content = input.value.trim();
-        if (!content) return;
+        if (!id) id = tempPages[0].id;
+        const contentDiv = document.getElementById('dynamic-page-content');
+        const commentsDiv = document.getElementById('comments-section');
         let user = auth.currentUser;
-        let authorName = 'Anonymous', authorPhotoURL = '', authorUid = '';
-        if (user) {
-          authorUid = user.uid;
-          const profile = await getUserProfileFromFirestore(user.uid);
-          authorName = profile?.displayName || user.displayName || 'User';
-          authorPhotoURL = profile?.photoURL || user.photoURL || '';
+        let isAdminUser = false;
+        if (user) isAdminUser = isAdmin(user);
+        contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-xl mt-12 mb-8">Loading...</div>';
+        commentsDiv.innerHTML = '';
+        const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', id);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+            contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + '<div class="text-center text-red-400 text-xl mt-12">Page not found.</div>';
+            return;
         }
-        await addDoc(collection(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`), {
-          content,
-          authorName,
-          authorPhotoURL,
-          authorUid,
-          createdAt: serverTimestamp(),
-        });
-        input.value = '';
-        await loadComments(pageId);
-      };
-      // Add event listeners for edit/delete
-      document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.onclick = async (e) => {
-          e.preventDefault();
-          const commentId = btn.getAttribute('data-id');
-          const commentDiv = btn.closest('.comment-item');
-          const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
-          const c = cSnap.data();
-          let user = auth.currentUser;
-          let isAdminUser = user && isAdmin(user);
-          if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
-          // Replace content with edit form
-          const origContent = c.content || '';
-          commentDiv.querySelector('.comment-content').innerHTML = `<form class='comment-edit-form'><textarea class='edit-comment-textarea'>${origContent}</textarea><div class='edit-actions'><button type='submit' class='save-edit-btn'>Save</button><button type='button' class='cancel-edit-btn'>Cancel</button></div></form>`;
-          const form = commentDiv.querySelector('.comment-edit-form');
-          form.onsubmit = async (ev) => {
-            ev.preventDefault();
-            const newContent = form.querySelector('.edit-comment-textarea').value.trim();
-            if (!newContent) return;
-            await setDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId), { content: newContent }, { merge: true });
-            await loadComments(pageId);
-          };
-          form.querySelector('.cancel-edit-btn').onclick = () => { loadComments(pageId); };
-        };
-      });
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = async (e) => {
-          e.preventDefault();
-          const commentId = btn.getAttribute('data-id');
-          const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
-          const c = cSnap.data();
-          let user = auth.currentUser;
-          let isAdminUser = user && isAdmin(user);
-          if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
-          if (!confirm('Delete this comment?')) return;
-          await deleteDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
-          await loadComments(pageId);
-        };
-      });
+        const data = snap.data();
+        contentDiv.innerHTML = renderTempPageNav(id, isAdminUser) + `
+<div class="dynamic-page-header text-4xl font-bold mb-6 text-heading-main">${data.title || 'Untitled'}</div>
+<div class="dynamic-page-meta text-sm text-text-secondary mb-8">Last updated: ${data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'Unknown'}</div>
+<div class="dynamic-page-body prose max-w-none">${data.content || ''}</div>
+`;
+        await loadComments(id);
     }
+
+    // Comments logic
+    import {
+        collection,
+        query,
+        orderBy,
+        getDocs,
+        addDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    async function loadComments(pageId) {
+        const commentsDiv = document.getElementById('comments-section');
+        commentsDiv.innerHTML = '<div class="comments-loading">Loading comments...</div>';
+        const commentsRef = collection(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`);
+        const q = query(commentsRef, orderBy('createdAt', 'asc'));
+        const snap = await getDocs(q);
+        let html = `<div class="comments-section"><div class="comments-header text-2xl font-bold mb-4">Comments</div>`;
+        html += `<form id="add-comment-form" class="add-comment-form mb-6"><textarea id="comment-input" placeholder="Add a comment..."></textarea><button type="submit" class="btn-modern">Post</button></form>`;
+        if (snap.empty) {
+            html += '<div class="no-comments">No comments yet.</div>';
+        } else {
+            html += '<div class="comments-list">';
+            snap.forEach(doc => {
+                const c = doc.data();
+                const commentId = doc.id;
+                html += `<div class="comment-item card-modern transition-all">
+<div class="comment-header">
+<span class="comment-author">
+<img class="comment-author-avatar" src="${c.authorPhotoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + (c.authorUid || 'anon')}" alt="avatar">
+<span class="comment-author-info">
+<span class="comment-author-name">${c.authorName || 'Anonymous'}</span>
+<span class="comment-timestamp">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</span>
+</span>
+</span>
+<span class="comment-edit-controls">
+<button class="edit-btn" data-id="${commentId}" title="Edit"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg></button>
+<button class="delete-btn" data-id="${commentId}" title="Delete"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
+</span>
+</div>
+<div class="comment-content">${c.content || ''}</div>
+</div>`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        commentsDiv.innerHTML = html;
+        document.getElementById('add-comment-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('comment-input');
+            const content = input.value.trim();
+            if (!content) return;
+            let user = auth.currentUser;
+            let authorName = 'Anonymous', authorPhotoURL = '', authorUid = '';
+            if (user) {
+                authorUid = user.uid;
+                const profile = await getUserProfileFromFirestore(user.uid);
+                authorName = profile?.displayName || user.displayName || 'User';
+                authorPhotoURL = profile?.photoURL || user.photoURL || '';
+            }
+            await addDoc(collection(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`), {
+                content,
+                authorName,
+                authorPhotoURL,
+                authorUid,
+                createdAt: serverTimestamp(),
+            });
+            input.value = '';
+            await loadComments(pageId);
+        };
+// Add event listeners for edit/delete
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                const commentId = btn.getAttribute('data-id');
+                const commentDiv = btn.closest('.comment-item');
+                const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+                const c = cSnap.data();
+                let user = auth.currentUser;
+                let isAdminUser = user && isAdmin(user);
+                if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
+// Replace content with edit form
+                const origContent = c.content || '';
+                commentDiv.querySelector('.comment-content').innerHTML = `<form class='comment-edit-form'><textarea class='edit-comment-textarea'>${origContent}</textarea><div class='edit-actions'><button type='submit' class='save-edit-btn'>Save</button><button type='button' class='cancel-edit-btn'>Cancel</button></div></form>`;
+                const form = commentDiv.querySelector('.comment-edit-form');
+                form.onsubmit = async (ev) => {
+                    ev.preventDefault();
+                    const newContent = form.querySelector('.edit-comment-textarea').value.trim();
+                    if (!newContent) return;
+                    await setDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId), {content: newContent}, {merge: true});
+                    await loadComments(pageId);
+                };
+                form.querySelector('.cancel-edit-btn').onclick = () => {
+                    loadComments(pageId);
+                };
+            };
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                const commentId = btn.getAttribute('data-id');
+                const cSnap = await getDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+                const c = cSnap.data();
+                let user = auth.currentUser;
+                let isAdminUser = user && isAdmin(user);
+                if (!user || (c.authorUid !== user.uid && !isAdminUser)) return;
+                if (!confirm('Delete this comment?')) return;
+                await deleteDoc(doc(db, `artifacts/arcator-web/public/data/temp_pages/${pageId}/comments`, commentId));
+                await loadComments(pageId);
+            };
+        });
+    }
+
     // On load, set default page
     window.addEventListener('DOMContentLoaded', () => {
-      const id = getCurrentPageId();
-      loadTempPage(id);
+        const id = getCurrentPageId();
+        loadTempPage(id);
     });
     // Expose for nav tab click and add page modal
-    window.setTempPage = function(id) {
-      history.replaceState(null, '', `pages.html?id=${id}`);
-      loadTempPage(id);
+    window.setTempPage = function (id) {
+        history.replaceState(null, '', `pages.html?id=${id}`);
+        loadTempPage(id);
     };
     window.openAddPageModal = openAddPageModal;
     // On auth state change, re-render nav and reload current page
     auth.onAuthStateChanged(async (user) => {
-      renderAdminControls(user);
-      patchNavForAdmin(user);
-      const id = getCurrentPageId();
-      let isAdminUser = user && isAdmin(user);
-      document.getElementById('dynamic-page-content').innerHTML = renderTempPageNav(id, isAdminUser);
-      await loadTempPage(id);
+        renderAdminControls(user);
+        patchNavForAdmin(user);
+        const id = getCurrentPageId();
+        let isAdminUser = user && isAdmin(user);
+        document.getElementById('dynamic-page-content').innerHTML = renderTempPageNav(id, isAdminUser);
+        await loadTempPage(id);
     });
     // Admin controls
     const ADMIN_UIDS = [
-      'admin-uid-1', // Replace with real admin UIDs
-      'admin-uid-2',
+        'admin-uid-1', // Replace with real admin UIDs
+        'admin-uid-2',
     ];
+
     function isAdmin(user) {
-      return user && ADMIN_UIDS.includes(user.uid);
+        return user && ADMIN_UIDS.includes(user.uid);
     }
+
     function renderAdminControls(user) {
-      const adminDiv = document.getElementById('admin-controls');
-      if (!isAdmin(user)) { adminDiv.innerHTML = ''; return; }
-      adminDiv.innerHTML = `<button id="add-page-btn" class="btn-modern mb-2">Add Page</button>`;
-      document.getElementById('add-page-btn').onclick = openAddPageModal;
+        const adminDiv = document.getElementById('admin-controls');
+        if (!isAdmin(user)) {
+            adminDiv.innerHTML = '';
+            return;
+        }
+        adminDiv.innerHTML = `<button id="add-page-btn" class="btn-modern mb-2">Add Page</button>`;
+        document.getElementById('add-page-btn').onclick = openAddPageModal;
     }
+
     // Add/Edit modal
     function openAddPageModal() {
-      showPageModal('Add Page', '', '', async (title, content) => {
-        await addDoc(collection(db, 'artifacts/arcator-web/public/data/temp_pages'), {
-          title, content, updatedAt: serverTimestamp()
+        showPageModal('Add Page', '', '', async (title, content) => {
+            await addDoc(collection(db, 'artifacts/arcator-web/public/data/temp_pages'), {
+                title, content, updatedAt: serverTimestamp()
+            });
+            window.location.reload();
         });
-        window.location.reload();
-      });
     }
+
     function openEditPageModal(pageId, oldTitle, oldContent) {
-      showPageModal('Edit Page', oldTitle, oldContent, async (title, content) => {
-        const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', pageId);
-        await setDoc(ref, { title, content, updatedAt: serverTimestamp() }, { merge: true });
-        window.location.reload();
-      });
+        showPageModal('Edit Page', oldTitle, oldContent, async (title, content) => {
+            const ref = doc(db, 'artifacts/arcator-web/public/data/temp_pages', pageId);
+            await setDoc(ref, {title, content, updatedAt: serverTimestamp()}, {merge: true});
+            window.location.reload();
+        });
     }
+
     function showPageModal(title, initTitle, initContent, onSave) {
-      let modal = document.getElementById('page-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'page-modal';
-        modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;';
-        modal.innerHTML = `<div style="background:#222;padding:2rem;border-radius:1rem;min-width:320px;max-width:90vw;">
-          <h2 class="text-2xl font-bold mb-4" id="page-modal-title"></h2>
-          <input id="page-title-input" class="form-input w-full mb-2" placeholder="Title" />
-          <textarea id="page-content-input" class="form-input w-full mb-4" rows="8" placeholder="Content (HTML allowed)"></textarea>
-          <div class="flex gap-2 justify-end">
-            <button id="page-modal-cancel" class="btn-modern">Cancel</button>
-            <button id="page-modal-save" class="btn-modern">Save</button>
-          </div>
-        </div>`;
-        document.body.appendChild(modal);
-      }
-      modal.querySelector('#page-modal-title').textContent = title;
-      modal.querySelector('#page-title-input').value = initTitle;
-      modal.querySelector('#page-content-input').value = initContent;
-      modal.style.display = 'flex';
-      modal.querySelector('#page-modal-cancel').onclick = () => { modal.style.display = 'none'; };
-      modal.querySelector('#page-modal-save').onclick = async () => {
-        const t = modal.querySelector('#page-title-input').value.trim();
-        const c = modal.querySelector('#page-content-input').value.trim();
-        if (!t || !c) return;
-        await onSave(t, c);
-        modal.style.display = 'none';
-      };
+        let modal = document.getElementById('page-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'page-modal';
+            modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `<div style="background:#222;padding:2rem;border-radius:1rem;min-width:320px;max-width:90vw;">
+<h2 class="text-2xl font-bold mb-4" id="page-modal-title"></h2>
+<input id="page-title-input" class="form-input w-full mb-2" placeholder="Title" />
+<textarea id="page-content-input" class="form-input w-full mb-4" rows="8" placeholder="Content (HTML allowed)"></textarea>
+<div class="flex gap-2 justify-end">
+<button id="page-modal-cancel" class="btn-modern">Cancel</button>
+<button id="page-modal-save" class="btn-modern">Save</button>
+</div>
+</div>`;
+            document.body.appendChild(modal);
+        }
+        modal.querySelector('#page-modal-title').textContent = title;
+        modal.querySelector('#page-title-input').value = initTitle;
+        modal.querySelector('#page-content-input').value = initContent;
+        modal.style.display = 'flex';
+        modal.querySelector('#page-modal-cancel').onclick = () => {
+            modal.style.display = 'none';
+        };
+        modal.querySelector('#page-modal-save').onclick = async () => {
+            const t = modal.querySelector('#page-title-input').value.trim();
+            const c = modal.querySelector('#page-content-input').value.trim();
+            if (!t || !c) return;
+            await onSave(t, c);
+            modal.style.display = 'none';
+        };
     }
+
     // Patch nav for admin (edit buttons)
     function patchNavForAdmin(user) {
-      if (!isAdmin(user)) return;
-      document.querySelectorAll('.temp-page-nav .btn-modern').forEach((btn, i) => {
-        const page = tempPages[i];
-        if (!page) return;
-        if (!btn.querySelector('.edit-page-btn')) {
-          const editBtn = document.createElement('button');
-          editBtn.className = 'edit-page-btn ml-2';
-          editBtn.title = 'Edit Page';
-          editBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg>';
-          editBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); openEditPageModal(page.id, page.title, page.content || ''); };
-          btn.appendChild(editBtn);
-        }
-      });
+        if (!isAdmin(user)) return;
+        document.querySelectorAll('.temp-page-nav .btn-modern').forEach((btn, i) => {
+            const page = tempPages[i];
+            if (!page) return;
+            if (!btn.querySelector('.edit-page-btn')) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-page-btn ml-2';
+                editBtn.title = 'Edit Page';
+                editBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"></path></svg>';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    openEditPageModal(page.id, page.title, page.content || '');
+                };
+                btn.appendChild(editBtn);
+            }
+        });
     }
-  </script>
+</script>
 </body>
