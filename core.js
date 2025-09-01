@@ -24,10 +24,22 @@ export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTh
       return;
     }
 
-      const navbarHTML = generateNavbarHTML(user, userProfile, defaultProfilePic);
+      // Check if navbar is already loaded to prevent duplicates
+      if (navbarPlaceholder.innerHTML.trim() !== '') {
+          console.log("Navbar already loaded, skipping");
+          return;
+      }
+
+      // Ensure we have a valid user object
+      const currentUser = user || null;
+      const currentUserProfile = userProfile || null;
+      const profilePic = defaultProfilePic || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
+
+      const navbarHTML = generateNavbarHTML(currentUser, currentUserProfile, profilePic);
       navbarPlaceholder.innerHTML = navbarHTML;
 
     setupNavbarEventListeners();
+      console.log("Navbar loaded successfully");
   } catch (error) {
     console.error("Error loading navbar:", error);
   }
@@ -35,11 +47,19 @@ export async function loadNavbar(user, userProfile, defaultProfilePic, defaultTh
 
 function generateNavbarHTML(user, userProfile, defaultProfilePic) {
     const profilePic = userProfile?.photoURL || user?.photoURL || defaultProfilePic;
-  const displayName = userProfile?.displayName || user?.displayName || "Guest";
+    const displayName = userProfile?.displayName || user?.displayName || "Guest";
     const handle = userProfile?.handle || user?.handle || "";
 
-  return `
-    <nav class="bg-navbar-footer text-white p-4 shadow-lg navbar-fixed">
+    console.log("Generating navbar HTML with:", {
+        user: !!user,
+        userProfile: !!userProfile,
+        profilePic,
+        displayName,
+        handle
+    });
+
+    return `
+    <nav class="bg-navbar-footer text-white p-4 shadow-lg navbar-fixed" style="position: fixed; top: 0; left: 0; right: 0; z-index: 50; background-color: #1f1f1f;">
       <div class="container mx-auto flex justify-between items-center">
         <div class="flex items-center space-x-4">
           <a href="index.html" class="text-xl font-bold hover:text-link transition-colors">Arcator.co.uk</a>
@@ -90,13 +110,21 @@ export function loadFooter(yearElementId = null) {
         return;
     }
 
+    // Check if footer is already loaded to prevent duplicates
+    if (footerPlaceholder.innerHTML.trim() !== '') {
+        console.log("Footer already loaded, skipping");
+        return;
+    }
+
+    console.log("Loading footer with yearElementId:", yearElementId);
+
     const currentYear = new Date().getFullYear();
     const yearText = yearElementId ?
         `<span id="${yearElementId}">${currentYear}</span>` :
         currentYear;
 
     footerPlaceholder.innerHTML = `
-    <footer class="bg-navbar-footer text-white py-8 mt-16">
+    <footer class="bg-navbar-footer text-white py-8 mt-16" style="background-color: #1f1f1f;">
       <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -126,6 +154,8 @@ export function loadFooter(yearElementId = null) {
       </div>
     </footer>
   `;
+
+    console.log("Footer loaded successfully");
 }
 
 // PAGE INITIALIZATION
@@ -137,8 +167,8 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
             if (!firebaseReady) return;
 
             // Load navbar and footer
-            const currentUser = getCurrentUser();
-            await loadNavbar(currentUser, null, "https://placehold.co/32x32/1F2937/E5E7EB?text=AV", "dark");
+            const currentUser = await getCurrentUser();
+            await loadNavbar(currentUser, currentUser, "https://placehold.co/32x32/1F2937/E5E7EB?text=AV", "dark");
             loadFooter(yearElementId);
 
             // Page-specific initialization
@@ -162,7 +192,7 @@ export async function initializePage(pageName, yearElementId = null, useWindowLo
     } else {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initFunction);
-    } else {
+        } else {
             initFunction();
         }
     }

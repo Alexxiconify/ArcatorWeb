@@ -189,10 +189,11 @@ firebaseReadyPromise.then(() => {
 export { onAuthStateChanged };
 
 export async function getCurrentUser() {
-  const user = auth.currentUser;
-  if (!user) return null;
-
   try {
+    await firebaseReadyPromise;
+    const user = auth?.currentUser;
+    if (!user) return null;
+
     const userProfile = await getUserProfileFromFirestore(user.uid);
     return {
       uid: user.uid,
@@ -205,13 +206,6 @@ export async function getCurrentUser() {
     };
   } catch (error) {
     console.error("Error getting current user profile:", error);
-    return {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || "Anonymous",
-      photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
-      handle: null,
-      isAdmin: false,
-    };
+    return null;
   }
 }
