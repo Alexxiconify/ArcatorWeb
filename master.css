@@ -36,6 +36,7 @@
 .hover\:bg-yellow-700:hover { background-color: var(--color-button-yellow-hover) !important; }
 .bg-indigo-600 { background-color: var(--color-button-indigo-bg) !important; color: var(--color-button-text) !important; }
 .hover\:bg-indigo-700:hover { background-color: var(--color-button-indigo-hover) !important; }
+
 .navbar-profile-icon {
     width: 32px !important;
     height: 32px !important;
@@ -48,12 +49,15 @@
     border: 2px solid var(--color-input-border) !important;
     transition: border-color 0.3s ease !important;
 }
+
 .navbar-profile-icon:hover {
     border-color: var(--color-link) !important;
 }
+
 nav a {
     text-decoration: none !important;
 }
+
 nav a:hover {
     text-decoration: none !important;
 }
