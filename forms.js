@@ -1,27 +1,27 @@
 // Import existing modules
 import {
-  appId,
-  auth,
-  db,
-  DEFAULT_PROFILE_PIC,
-  firebaseReadyPromise,
-  getUserProfileFromFirestore,
+    appId,
+    auth,
+    db,
+    DEFAULT_PROFILE_PIC,
+    firebaseReadyPromise,
+    getUserProfileFromFirestore
 } from "./firebase-init.js";
 import {loadFooter, loadNavbar} from "./core.js";
-import {applyCachedTheme, applyTheme, getAvailableThemes,} from "./themes.js";
-import {escapeHtml, showCustomConfirm, showMessageBox, setupTabs} from "./utils.js";
+import {applyCachedTheme, applyTheme, getAvailableThemes} from "./themes.js";
+import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Apply cached theme immediately to prevent flash

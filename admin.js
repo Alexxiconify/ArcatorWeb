@@ -3,46 +3,39 @@
 
 // Import Firebase instances and user functions from the centralized init file
 import {
-  auth,
-  db,
-  appId,
-  firebaseReadyPromise,
-  DEFAULT_THEME_NAME,
-  updateUserProfileInFirestore,
-  currentUser as firebaseCurrentUser,
-  onAuthStateChanged,
+    appId,
+    auth,
+    currentUser as firebaseCurrentUser,
+    db,
+    DEFAULT_THEME_NAME,
+    firebaseReadyPromise,
+    onAuthStateChanged
 } from "./firebase-init.js";
+import {getAvailableThemes, setupThemesFirebase} from "./themes.js";
+import {loadNavbar} from "./core.js";
 import {
-  setupThemesFirebase,
-  applyTheme,
-  getAvailableThemes,
-} from "./themes.js";
-import { loadNavbar } from "./core.js";
-import {
-  initializeEmailJS,
-  sendEmailWithEmailJS,
-  testEmailJSConnection,
-  getEmailJSStatus,
-  saveCredentials,
-  sendEmailViaSMTP,
-  testSMTPServerConnection,
-  getSMTPServerStatus,
-  initializeSMTPIntegration,
+    getEmailJSStatus,
+    getSMTPServerStatus,
+    initializeEmailJS,
+    initializeSMTPIntegration,
+    saveCredentials,
+    sendEmailViaSMTP,
+    testEmailJSConnection,
+    testSMTPServerConnection
 } from "./email-integration.js";
 import {
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs,
-  deleteDoc,
-  addDoc,
-  updateDoc,
-  query,
-  orderBy,
-  serverTimestamp, // Ensure serverTimestamp is imported for Firestore operations
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { showMessageBox, showCustomConfirm, escapeHtml } from "./utils.js"; // Import message box and confirm utility
+import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
 
 // DOM elements - Initialize immediately after declaration
 const loadingSpinner = document.getElementById("loading-spinner");
@@ -549,7 +542,7 @@ async function renderTempPages() {
       await deleteTempPage(id);
     });
   });
-  
+
   // Also update the table
   await renderTempPagesTable();
 }
@@ -1908,7 +1901,7 @@ async function renderTempPagesTable() {
   if (!tbody) return;
 
   const pages = await fetchAllTempPages();
-  
+
   if (pages.length === 0) {
     tbody.innerHTML = `
       <tr>

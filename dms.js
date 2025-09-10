@@ -2,27 +2,27 @@
 
 import {db, getCurrentUser} from "./firebase-init.js";
 import {
-  escapeHtml,
-  getUserProfileFromFirestore,
-  renderMarkdownWithMedia,
-  resolveHandlesToUids,
-  sanitizeHandle,
-  showCustomConfirm,
-  showMessageBox,
+    escapeHtml,
+    getUserProfileFromFirestore,
+    renderMarkdownWithMedia,
+    resolveHandlesToUids,
+    sanitizeHandle,
+    showCustomConfirm,
+    showMessageBox
 } from "./utils.js";
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  writeBatch,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- DOM Elements ---

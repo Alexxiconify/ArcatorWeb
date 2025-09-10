@@ -40,7 +40,7 @@ export function triggerTwemojiRender() {
   }
 }
 
-import {firebaseReadyPromise, getUserProfileFromFirestore,} from "./firebase-init.js";
+import {firebaseReadyPromise, getUserProfileFromFirestore} from "./firebase-init.js";
 
 let keyboardShortcuts = {};
 let isRecordingShortcut = false;

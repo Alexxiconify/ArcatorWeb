@@ -1,22 +1,16 @@
 // announcements.js: Handles announcements.
 
-import { db, appId, getCurrentUser, ADMIN_UIDS } from "./firebase-init.js";
+import {appId, db, getCurrentUser} from "./firebase-init.js";
+import {getUserProfileFromFirestore, parseEmojis, parseMentions, showCustomConfirm, showMessageBox} from "./utils.js";
 import {
-  showMessageBox,
-  showCustomConfirm,
-  parseEmojis,
-  parseMentions,
-  getUserProfileFromFirestore,
-} from "./utils.js";
-import {
-  collection,
-  doc,
-  addDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- DOM Elements ---

@@ -1,9 +1,4 @@
-import {
-  applyTheme,
-  getAvailableThemes,
-  saveCustomTheme,
-  deleteCustomTheme,
-} from "./themes.js";
+import {applyTheme, deleteCustomTheme, getAvailableThemes, saveCustomTheme} from "./themes.js";
 
 /**
  * Sets up the functionality for managing custom themes.

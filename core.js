@@ -1,20 +1,13 @@
 // core.js: Core functionality for the Arcator website
 import {
-  auth,
-  db,
-  appId,
-  firebaseReadyPromise,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME,
-  getUserProfileFromFirestore,
-  setUserProfileInFirestore,
+    auth,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME,
+    firebaseReadyPromise,
+    getUserProfileFromFirestore
 } from "./firebase-init.js";
-import {
-  getAvailableThemes,
-  applyTheme,
-  applyCachedTheme,
-} from "./themes.js";
-import { showMessageBox, showCustomConfirm, escapeHtml } from "./utils.js";
+import {applyCachedTheme, applyTheme, getAvailableThemes} from "./themes.js";
+import {showMessageBox} from "./utils.js";
 
 // FIREBASE CORE SETUP
 async function setupFirebaseCore() {
@@ -106,7 +99,7 @@ function setupNavbarEventListeners() {
     }
 
     const currentYear = new Date().getFullYear();
-  
+
     footerPlaceholder.innerHTML = `
     <footer class="bg-navbar-footer">
       <div class="text-center">

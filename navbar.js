@@ -1,5 +1,5 @@
 // navbar.js - Modern navbar component
-import {auth, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore,} from "./firebase-init.js";
+import {auth, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore} from "./firebase-init.js";
 import {applyTheme, getAvailableThemes} from "./themes.js";
 
 function hexToRgb(hex) {
