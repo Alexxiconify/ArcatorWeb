@@ -4,781 +4,384 @@
   <meta charset="UTF-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Admin - Arcator.co.uk</title>
-  <link href="master.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
-          rel="stylesheet"/>
-  <link href="theme_variables.css" rel="stylesheet"/>
-  <link href="favicon.png" rel="icon" type="image/png"/>
+    <link href="./master.css" rel="stylesheet"/>
+    <link href="./page-specific.css" rel="stylesheet"/>
+    <link href="./theme_variables.css" rel="stylesheet"/>
+    <link href="./favicon.png" rel="icon" type="image/png"/>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
+    <script defer src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+    <link href="https://unpkg.com/easymde/dist/easymde.min.css" rel="stylesheet">
 </head>
-<body class="antialiased">
-<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
-<section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
-  <div class="container mx-auto px-4 text-center hero-content">
-    <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-heading-main" id="hero-title">
-      Admin
-    </h1>
-    <p class="text-xl md:text-2xl mb-8 text-heading-card" id="hero-subtitle">
-      Insights into Arcator's operations and ongoing projects.
-    </p>
-  </div>
-</section>
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8" id="admin-dev">
-  <div class="container mx-auto px-4">
-    <div class="text-center bg-card p-8 rounded-lg shadow-md mb-8" id="login-required-message" style="display: none">
-      <h2 class="text-4xl font-bold text-heading-main mb-6">
-        Access Denied
-      </h2>
-      <p class="text-lg text-text-secondary mb-8">
-        You must be logged in to access this page. Some sections require
-        administrator privileges.
-      </p>
-      <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
+<body class="bg-main text-text-primary font-sans leading-normal antialiased">
+<div id="navbar-container">
+    <!-- Navbar will be loaded here by navbar.js -->
+</div>
+
+<main class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold text-center mb-6 text-text-header">Admin Panel</h1>
+
+    <div class="text-center text-red-500 text-lg mt-8 hidden" id="login-required-message">
+        You must be logged in as an administrator to access this page.
     </div>
-    <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-      <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <details open>
-          <summary
-                  class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-            Admin Guides
-          </summary>
-          <div class="mt-4 w-full flex flex-col items-start">
-            <p class="mb-2">
-              Guides for sysadmin tasks, SSH, and server management:
-            </p>
-            <ul class="list-disc ml-6 mb-2">
-              <li>
-                <a class="text-link hover:underline" href="https://wiki.arcator.co.uk/en/Sysadmin" rel="noopener noreferrer"
-                   target="_blank">Sysadmin Wiki (SSH, server setup, keys, Mosh, etc.)</a>
-              </li>
-              <li>
-                <a class="text-link hover:underline"
-                   href="https://docs.google.com/document/d/1WvxTStjkBbQh9dp-59v1jJbaLPuofrnk_4N12mSMFo4/edit?tab=t.0" rel="noopener noreferrer" target="_blank">Arcator Internal Docs
-                  (Growth plans, admin notes)</a>
-              </li>
-              <li>
-                <a class="text-link hover:underline"
-                   href="https://docs.google.com/document/d/1jKN_u7avWxKKHo89VrR9TCtFX5Zv1A7DCgnsJtVSID4/edit" rel="noopener noreferrer" target="_blank">Vann's Command Guide</a>
-              </li>
-            </ul>
-            <p class="text-xs text-text-secondary">
-              See wiki for SSH key setup, Termius config, and host details.
-              Use Mosh for high-speed, port 220, user <b>mcsa</b>.
-            </p>
-          </div>
-        </details>
-      </div>
+
+    <div class="flex justify-center items-center mt-8" id="loading-spinner">
+        <div class="loader"></div>
     </div>
-    <div id="admin-content">
-      <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-          <details open>
-            <summary
-                    class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              User Management
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      UID
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      Display Name
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      Email
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      Theme
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      Actions
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody id="user-list-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">
-                      Loading users...
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
+
+    <div class="hidden" id="admin-content">
+        <div class="flex justify-center mb-6 space-x-4">
+            <a class="btn-primary btn-blue" href="#user-management-section">User Management</a>
+            <a class="btn-primary btn-blue" href="#page-management-section">Page Management</a>
+            <a class="btn-primary btn-blue" href="#form-management-section">Form Management</a>
+            <a class="btn-primary btn-blue" href="#email-settings-section">Email Settings</a>
+            <a class="btn-primary btn-blue" href="users.html">Login / Sign Up</a>
         </div>
-      </div>
-      <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-          <details open>
-            <summary
-                    class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Direct Messages History
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      DATE
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      FROM
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      TO
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      SUBJECT
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      CONTENT
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      ACTIONS
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody id="dm-history-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="6">
-                      No DMs found.
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-          <details open>
-            <summary
-                    class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Forms Management (Theme → Thread → Comment)
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      THEME
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      DESCRIPTION
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      THREADS
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      COMMENTS
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      ACTIONS
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody id="form-submissions-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="5">
-                      No forms found.
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-          <details open>
-            <summary
-                    class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Temporary Pages
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <form class="space-y-4 w-full" id="create-temp-page-form">
-                <div class="input-field w-full">
-                  <label class="form-label" for="temp-page-title">Page Title:</label>
-                  <input class="form-input w-full" id="temp-page-title" placeholder="Enter page title" type="text"/>
-                </div>
-                <div class="input-field w-full">
-                  <label class="form-label" for="temp-page-content">Page Content:</label>
-                  <textarea class="form-input w-full" id="temp-page-content" placeholder="Enter page content"
-                            rows="4"></textarea>
-                </div>
-                <div class="flex items-center gap-4 mb-4">
-                  <div class="checkbox-container mb-0">
-                    <input checked class="form-checkbox" id="temp-page-allow-comments-create" type="checkbox"/>
-                    <label for="temp-page-allow-comments-create">Allow Comments</label>
-                  </div>
-                  <button class="btn-primary btn-blue ml-0" type="submit">
-                    Create Temp Page
-                  </button>
-                </div>
-              </form>
-              <h4 class="text-xl font-semibold text-text-primary mt-6 mb-3">
-                Existing Temporary Pages:
-              </h4>
-              <div class="overflow-x-auto w-full" id="temp-page-list">
-                <table class="w-full text-left table-auto text-xs">
-                  <thead>
-                  <tr class="bg-table-th-bg">
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      TITLE
-                    </th>
-                    <th class="px-2 py-1 text-table-th-text text-xs">
-                      ACTIONS
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody id="temp-pages-tbody">
-                  <tr>
-                    <td class="text-center py-4 text-text-secondary text-xs" colspan="2">
-                      No temporary pages found.
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="modal" id="edit-temp-page-modal" style="display: none">
-                <div class="modal-content" style="
-max-width: 800px;
-max-height: 85vh;
-overflow-y: auto;
-">
-                  <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-heading-card">
-                      Edit Temporary Page
-                    </h3>
-                    <button
-                            class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">
-                      &times;
-                    </button>
-                  </div>
-                  <form class="space-y-6" id="edit-temp-page-form">
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4
-                              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-                        Page Information
-                      </h4>
-                      <div class="space-y-4">
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-title">Page Title:</label>
-                          <input class="form-input w-full" id="edit-temp-page-title" placeholder="Enter page title"
-                                 type="text"/>
-                        </div>
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-content">Page Content (HTML allowed):</label>
-                          <div id="edit-temp-page-content-container"></div>
-                          <textarea id="edit-temp-page-content" style="display:none"></textarea>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4
-                              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-                        Page Settings
-                      </h4>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-status">Page Status:</label>
-                          <select class="form-input w-full" id="edit-temp-page-status">
-                            <option value="active">Active</option>
-                            <option value="draft">Draft</option>
-                            <option value="archived">Archived</option>
-                          </select>
-                        </div>
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-visibility">Visibility:</label>
-                          <select class="form-input w-full" id="edit-temp-page-visibility">
-                            <option value="public">Public</option>
-                            <option value="private">Private</option>
-                            <option value="admin-only">Admin Only</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="mt-4 space-y-3">
-                        <div class="checkbox-container">
-                          <input class="form-checkbox" id="edit-temp-page-allow-comments" type="checkbox"/>
-                          <label for="edit-temp-page-allow-comments">Allow Comments</label>
-                        </div>
-                        <div class="checkbox-container">
-                          <input class="form-checkbox" id="edit-temp-page-show-author" type="checkbox"/>
-                          <label for="edit-temp-page-show-author">Show Author Information</label>
-                        </div>
-                        <div class="checkbox-container">
-                          <input class="form-checkbox" id="edit-temp-page-enable-tracking" type="checkbox"/>
-                          <label for="edit-temp-page-enable-tracking">Enable Page View Tracking</label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-card p-4 rounded-lg border border-input-border">
-                      <h4
-                              class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-                        Advanced Settings
-                      </h4>
-                      <div class="space-y-4">
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-meta-description">Meta Description:</label>
-                          <textarea class="form-input w-full h-20"
-                                    id="edit-temp-page-meta-description"
-                                    placeholder="Enter meta description for SEO..."></textarea>
-                        </div>
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-custom-css">Custom CSS:</label>
-                          <textarea class="form-input w-full h-24" id="edit-temp-page-custom-css"
-                                    placeholder="Enter custom CSS for this page..."></textarea>
-                        </div>
-                        <div class="input-field">
-                          <label class="form-label" for="edit-temp-page-custom-js">Custom JavaScript:</label>
-                          <textarea class="form-input w-full h-24"
-                                    id="edit-temp-page-custom-js"
-                                    placeholder="Enter custom JavaScript for this page..."></textarea>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
-                      <button class="btn-primary btn-red" id="cancel-temp-page-changes-btn" type="button">
-                        Cancel
-                      </button>
-                      <button class="btn-primary btn-blue" id="save-temp-page-changes-btn" type="submit">
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-      <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-        <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-          <details open>
-            <summary
-                    class="text-xl font-bold text-heading-main flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-              Email Management
-            </summary>
-            <div class="mt-4 w-full flex flex-col items-start">
-              <div class="w-full mb-6 bg-card rounded-lg border border-input-border p-6">
-                <h4 class="text-lg font-semibold text-heading-card mb-4">
-                  Compose Email
-                </h4>
-                <form class="space-y-4" id="email-compose-form">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="input-field">
-                      <label class="form-label" for="email-recipient-type">Recipient Type:</label>
-                      <select class="form-input w-full" id="email-recipient-type"></select>
-                    </div>
-                    <div class="input-field">
-                      <label class="form-label" for="email-template">Email Template:</label>
-                      <select class="form-input w-full" id="email-template"></select>
-                    </div>
-                  </div>
-                  <div class="input-field" id="custom-recipients-section" style="display: none">
-                    <label class="form-label" for="email-recipients">Select Recipients:</label>
-                    <div class="bg-input-bg border border-input-border rounded-lg p-3 max-h-48 overflow-y-auto">
-                      <div class="space-y-2" id="email-recipients-list">
-                        <!-- Recipients will be populated here -->
-                      </div>
-                    </div>
-                  </div>
-                  <div class="input-field">
-                    <label class="form-label" for="email-subject">Subject:</label>
-                    <input class="form-input w-full" id="email-subject" placeholder="Enter email subject"
-                           type="text"/>
-                  </div>
-                  <div class="input-field">
-                    <label class="form-label" for="email-body">Email Body:</label>
-                    <textarea class="form-input w-full" id="email-body" placeholder="Enter email body"
-                              rows="4"></textarea>
-                  </div>
-                  <div class="emoji-input-container">
-                    <div id="email-content-container"></div>
-                  </div>
-                  <div class="flex space-x-2">
-                    <button class="btn-primary btn-blue" type="submit">
-                      Send Email
-                    </button>
-                    <button class="btn-primary btn-blue" id="preview-email-btn" type="button">
-                      Preview
-                    </button>
-                    <button class="btn-primary btn-blue" id="save-draft-btn" type="button">
-                      Save Draft
-                    </button>
-                  </div>
-                </form>
-              </div>
-              <div class="w-full bg-card rounded-lg border border-input-border p-6 mt-8">
-                <h4 class="text-lg font-semibold text-heading-card mb-4">
-                  Email History
-                </h4>
-                <div class="w-full">
-                  <table class="w-full text-left table-auto text-xs text-white">
+
+        <!-- User Management Section -->
+        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="user-management-section">
+            <h2 class="text-2xl font-semibold text-text-header mb-4">User Management</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-main rounded-lg shadow-md">
                     <thead>
-                    <tr class="bg-table-th-bg">
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        DATE
-                      </th>
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        RECIPIENTS
-                      </th>
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        SUBJECT
-                      </th>
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        STATUS
-                      </th>
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        METHOD
-                      </th>
-                      <th class="px-2 py-1 text-table-th-text text-xs text-white">
-                        ACTIONS
-                      </th>
+                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
+                        <th class="py-3 px-2 text-left">UID</th>
+                        <th class="py-3 px-2 text-left">Display Name</th>
+                        <th class="py-3 px-2 text-left">Email</th>
+                        <th class="py-3 px-2 text-left">Theme</th>
+                        <th class="py-3 px-2 text-left">Actions</th>
                     </tr>
                     </thead>
-                    <tbody id="email-history-tbody text-white">
-                    <tr>
-                      <td class="text-center py-4 text-text-secondary text-xs" colspan="6">
-                        No emails sent yet.
-                      </td>
-                    </tr>
+                    <tbody class="text-text-primary text-sm font-light" id="user-list-tbody">
+                    <!-- User rows will be loaded here -->
                     </tbody>
-                  </table>
+                </table>
+            </div>
+        </section>
+
+        <!-- Edit User Modal -->
+        <div class="modal" id="edit-user-modal">
+            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-semibold text-text-header mb-4">Edit User Profile</h3>
+                <form class="space-y-4" id="edit-user-form">
+                    <div>
+                        <label class="form-label" for="edit-user-display-name">Display Name:</label>
+                        <input class="form-input" id="edit-user-display-name" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-handle">Handle:</label>
+                        <input class="form-input" id="edit-user-handle" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-email">Email:</label>
+                        <input class="form-input" id="edit-user-email" type="email"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-photo-url">Photo URL:</label>
+                        <input class="form-input" id="edit-user-photo-url" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-discord-url">Discord URL:</label>
+                        <input class="form-input" id="edit-user-discord-url" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-github-url">GitHub URL:</label>
+                        <input class="form-input" id="edit-user-github-url" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-theme">Theme Preference:</label>
+                        <select class="form-select" id="edit-user-theme"></select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-font-scaling">Font Scaling:</label>
+                        <select class="form-select" id="edit-user-font-scaling">
+                            <option value="small">Small</option>
+                            <option value="normal">Normal</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-notification-frequency">Notification Frequency:</label>
+                        <select class="form-select" id="edit-user-notification-frequency">
+                            <option value="immediate">Immediate</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-email-notifications" type="checkbox"/>
+                        <label class="form-label" for="edit-user-email-notifications">Email Notifications</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-discord-notifications" type="checkbox"/>
+                        <label class="form-label" for="edit-user-discord-notifications">Discord Notifications</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-push-notifications" type="checkbox"/>
+                        <label class="form-label" for="edit-user-push-notifications">Push Notifications</label>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-data-retention">Data Retention (days):</label>
+                        <input class="form-input" id="edit-user-data-retention" type="number"/>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-profile-visible" type="checkbox"/>
+                        <label class="form-label" for="edit-user-profile-visible">Profile Visible</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-activity-tracking" type="checkbox"/>
+                        <label class="form-label" for="edit-user-activity-tracking">Activity Tracking</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-third-party-sharing" type="checkbox"/>
+                        <label class="form-label" for="edit-user-third-party-sharing">Third-Party Sharing</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-high-contrast" type="checkbox"/>
+                        <label class="form-label" for="edit-user-high-contrast">High Contrast Mode</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-reduced-motion" type="checkbox"/>
+                        <label class="form-label" for="edit-user-reduced-motion">Reduced Motion</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-screen-reader" type="checkbox"/>
+                        <label class="form-label" for="edit-user-screen-reader">Screen Reader Support</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-focus-indicators" type="checkbox"/>
+                        <label class="form-label" for="edit-user-focus-indicators">Focus Indicators</label>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
+                        <select class="form-select" id="edit-user-keyboard-shortcuts">
+                            <option value="enabled">Enabled</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="edit-user-debug-mode" type="checkbox"/>
+                        <label class="form-label" for="edit-user-debug-mode">Debug Mode</label>
+                    </div>
+                    <div>
+                        <label class="form-label" for="edit-user-custom-css">Custom CSS:</label>
+                        <textarea class="form-textarea" id="edit-user-custom-css"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button class="btn-primary btn-green" id="save-user-changes-btn" type="button">Save Changes
+                        </button>
+                        <button class="btn-secondary" id="cancel-user-changes-btn" type="button">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Page Management Section -->
+        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="page-management-section">
+            <h2 class="text-2xl font-semibold text-text-header mb-4">Page Management</h2>
+            <button class="btn-primary btn-blue mb-4" id="create-new-page-btn">Create New Page</button>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-main rounded-lg shadow-md">
+                    <thead>
+                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
+                        <th class="py-3 px-2 text-left">Page ID</th>
+                        <th class="py-3 px-2 text-left">Title</th>
+                        <th class="py-3 px-2 text-left">Path</th>
+                        <th class="py-3 px-2 text-left">Visibility</th>
+                        <th class="py-3 px-2 text-left">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-text-primary text-sm font-light" id="page-list-tbody">
+                    <!-- Page rows will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Edit/Create Page Modal -->
+        <div class="modal" id="edit-temp-page-modal">
+            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-semibold text-text-header mb-4" id="page-modal-title"></h3>
+                <form class="space-y-4" id="edit-page-form">
+                    <div>
+                        <label class="form-label" for="page-id">Page ID (auto-generated):</label>
+                        <input class="form-input" id="page-id" readonly type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="page-title">Title:</label>
+                        <input class="form-input" id="page-title" required type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="page-path">Path (e.g., /my-custom-page):</label>
+                        <input class="form-input" id="page-path" required type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="page-content">Content (Markdown):</label>
+                        <textarea class="form-textarea" id="page-content"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="page-visibility">Visibility:</label>
+                        <select class="form-select" id="page-visibility">
+                            <option value="public">Public</option>
+                            <option value="private">Private (Admin Only)</option>
+                            <option value="unlisted">Unlisted (Link Only)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="page-requires-auth" type="checkbox"/>
+                        <label class="form-label" for="page-requires-auth">Requires Authentication</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="page-show-in-navbar" type="checkbox"/>
+                        <label class="form-label" for="page-show-in-navbar">Show in Navbar</label>
+                    </div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button class="btn-primary btn-green" id="save-page-changes-btn" type="submit">Save Page
+                        </button>
+                        <button class="btn-secondary" id="cancel-page-changes-btn" type="button">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Form Management Section -->
+        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="form-management-section">
+            <h2 class="text-2xl font-semibold text-text-header mb-4">Form Management</h2>
+            <button class="btn-primary btn-blue mb-4" id="create-new-form-btn">Create New Form</button>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-main rounded-lg shadow-md">
+                    <thead>
+                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
+                        <th class="py-3 px-2 text-left">Form ID</th>
+                        <th class="py-3 px-2 text-left">Name</th>
+                        <th class="py-3 px-2 text-left">Submissions</th>
+                        <th class="py-3 px-2 text-left">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-text-primary text-sm font-light" id="form-list-tbody">
+                    <!-- Form rows will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Edit/Create Form Modal -->
+        <div class="modal" id="edit-form-modal">
+            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-semibold text-text-header mb-4" id="form-modal-title"></h3>
+                <form class="space-y-4" id="edit-form-form">
+                    <div>
+                        <label class="form-label" for="form-id">Form ID (auto-generated):</label>
+                        <input class="form-input" id="form-id" readonly type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="form-name">Form Name:</label>
+                        <input class="form-input" id="form-name" required type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="form-description">Description:</label>
+                        <textarea class="form-textarea" id="form-description"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="form-fields">Form Fields (JSON):</label>
+                        <textarea class="form-textarea" id="form-fields" rows="10"></textarea>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="form-requires-auth" type="checkbox"/>
+                        <label class="form-label" for="form-requires-auth">Requires Authentication</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="form-recaptcha-enabled" type="checkbox"/>
+                        <label class="form-label" for="form-recaptcha-enabled">reCAPTCHA Enabled</label>
+                    </div>
+                    <div>
+                        <label class="form-label" for="form-email-recipients">Email Recipients
+                            (comma-separated):</label>
+                        <input class="form-input" id="form-email-recipients" type="text"/>
+                    </div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button class="btn-primary btn-green" id="save-form-changes-btn" type="submit">Save Form
+                        </button>
+                        <button class="btn-secondary" id="cancel-form-changes-btn" type="button">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Email Settings Section -->
+        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="email-settings-section">
+            <h2 class="text-2xl font-semibold text-text-header mb-4">Email Settings</h2>
+
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-text-header mb-2">EmailJS Integration</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label" for="emailjs-service-id">Service ID:</label>
+                        <input class="form-input" id="emailjs-service-id" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="emailjs-template-id">Template ID:</label>
+                        <input class="form-input" id="emailjs-template-id" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="emailjs-public-key">Public Key:</label>
+                        <input class="form-input" id="emailjs-public-key" type="text"/>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button class="btn-primary btn-blue" id="test-emailjs-btn" type="button">Test EmailJS</button>
+                        <button class="btn-primary btn-green" id="save-emailjs-credentials-btn" type="button">Save
+                            EmailJS Credentials
+                        </button>
+                    </div>
                 </div>
-              </div>
             </div>
-          </details>
-        </div>
-      </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-text-header mb-2">SMTP Server Integration</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label" for="smtp-host">Host:</label>
+                        <input class="form-input" id="smtp-host" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="smtp-port">Port:</label>
+                        <input class="form-input" id="smtp-port" type="number"/>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input class="form-checkbox" id="smtp-secure" type="checkbox"/>
+                        <label class="form-label" for="smtp-secure">Secure (SSL/TLS)</label>
+                    </div>
+                    <div>
+                        <label class="form-label" for="smtp-username">Username:</label>
+                        <input class="form-input" id="smtp-username" type="text"/>
+                    </div>
+                    <div>
+                        <label class="form-label" for="smtp-password">Password:</label>
+                        <input class="form-input" id="smtp-password" type="password"/>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button class="btn-primary btn-blue" id="test-smtp-btn" type="button">Test SMTP</button>
+                        <button class="btn-primary btn-green" id="save-smtp-credentials-btn" type="button">Save SMTP
+                            Credentials
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-  </div>
-</section>
-<div class="message-box" id="message-box"></div>
-<div id="footer-placeholder"></div>
-<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-<script src="firebase-init.js" type="module"></script>
-<script src="themes.js" type="module"></script>
-<script src="custom_theme_modal.js" type="module"></script>
-<script type="module">
-  import {
-    auth,
-    getUserProfileFromFirestore,
-    firebaseReadyPromise,
-    DEFAULT_PROFILE_PIC,
-    DEFAULT_THEME_NAME,
-  } from "./firebase-init.js";
-  import {loadNavbar, loadFooter} from "./core.js";
-  import {
-    getAvailableThemes,
-    applyTheme,
-    applyCachedTheme,
-  } from "./themes.js";
-  // Apply cached theme immediately to prevent flash
-  applyCachedTheme();
-  firebaseReadyPromise.then(() => {
-    auth.onAuthStateChanged(async (user) => {
-      let userProfile = null;
-      if (user) {
-        userProfile = await getUserProfileFromFirestore(user.uid);
-      }
-      await loadNavbar(
-              user,
-              userProfile,
-              DEFAULT_PROFILE_PIC,
-              DEFAULT_THEME_NAME,
-      );
-      loadFooter("current-year-admin-dev");
-      const userThemePreference = userProfile?.themePreference;
-      const allThemes = await getAvailableThemes();
-      const themeToApply =
-              allThemes.find((t) => t.id === userThemePreference) ||
-              allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
-      if (themeToApply) {
-        applyTheme(themeToApply.id, themeToApply);
-      }
-    });
-  });
-</script>
-<div class="modal" id="edit-user-modal" style="display: none">
-  <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto">
-    <div class="flex justify-between items-center mb-6">
-      <h3 class="text-2xl font-bold text-heading-card">
-        Edit User Profile
-      </h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary transition-colors">
-        &times;
-      </button>
-    </div>
-    <form class="space-y-6" id="edit-user-form">
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Basic Information
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-display-name">Display Name:</label>
-            <input class="form-input w-full" id="edit-user-display-name" placeholder="User's display name"
-                   type="text"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-handle">Handle:</label>
-            <input class="form-input w-full" id="edit-user-handle" placeholder="@userhandle" type="text"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-email">Email Address:</label>
-            <input class="form-input w-full" id="edit-user-email" placeholder="user@example.com" type="email"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-photo-url">Profile Picture URL:</label>
-            <input class="form-input w-full" id="edit-user-photo-url" placeholder="https://example.com/image.jpg"
-                   type="url"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-discord-url">Discord URL:</label>
-            <input class="form-input w-full" id="edit-user-discord-url" placeholder="https://discord.com/users/..."
-                   type="url"/>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-github-url">GitHub URL:</label>
-            <input class="form-input w-full" id="edit-user-github-url" placeholder="https://github.com/username"
-                   type="url"/>
-          </div>
-        </div>
-      </div>
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Preferences
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-theme">Theme Preference:</label>
-            <select class="form-input w-full" id="edit-user-theme">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="arcator-green">Arcator Green</option>
-              <option value="ocean-blue">Ocean Blue</option>
-              <option value="high-contrast">High Contrast</option>
-            </select>
-          </div>
-          <div class="input-field">
-            <label for="edit-user-font-scaling">Font Scaling:</label>
-            <select class="form-input w-full" id="edit-user-font-scaling">
-              <option value="normal">Normal</option>
-              <option value="large">Large</option>
-              <option value="extra-large">Extra Large</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Notification Settings
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-notification-frequency">Notification Frequency:</label>
-            <select class="form-input w-full" id="edit-user-notification-frequency">
-              <option value="immediate">Immediate</option>
-              <option value="hourly">Hourly</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="disabled">Disabled</option>
-            </select>
-          </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-email-notifications" type="checkbox"/>
-              <label for="edit-user-email-notifications">Email Notifications</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-discord-notifications" type="checkbox"/>
-              <label for="edit-user-discord-notifications">Discord Notifications</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-push-notifications" type="checkbox"/>
-              <label for="edit-user-push-notifications">Push Notifications</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Privacy Settings
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-data-retention">Data Retention (days):</label>
-            <select class="form-input w-full" id="edit-user-data-retention">
-              <option value="30">30 days</option>
-              <option value="90">90 days</option>
-              <option value="365">1 year</option>
-              <option value="0">Indefinite</option>
-            </select>
-          </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-profile-visible" type="checkbox"/>
-              <label for="edit-user-profile-visible">Profile Visible to Others</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-activity-tracking" type="checkbox"/>
-              <label for="edit-user-activity-tracking">Allow Activity Tracking</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-third-party-sharing" type="checkbox"/>
-              <label for="edit-user-third-party-sharing">Allow Third-party Data Sharing</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Accessibility Settings
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-high-contrast" type="checkbox"/>
-              <label for="edit-user-high-contrast">High Contrast Mode</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-reduced-motion" type="checkbox"/>
-              <label for="edit-user-reduced-motion">Reduced Motion</label>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-screen-reader" type="checkbox"/>
-              <label for="edit-user-screen-reader">Screen Reader Support</label>
-            </div>
-            <div class="checkbox-container">
-              <input class="form-checkbox" id="edit-user-focus-indicators" type="checkbox"/>
-              <label for="edit-user-focus-indicators">Enhanced Focus Indicators</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bg-card p-4 rounded-lg border border-input-border">
-        <h4 class="text-lg font-semibold text-heading-card mb-4 border-b border-dashed border-link pb-2">
-          Advanced Settings
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="input-field">
-            <label for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
-            <select class="form-input w-full" id="edit-user-keyboard-shortcuts">
-              <option value="enabled">Enabled</option>
-              <option value="disabled">Disabled</option>
-            </select>
-          </div>
-          <div class="checkbox-container">
-            <input class="form-checkbox" id="edit-user-debug-mode" type="checkbox"/>
-            <label for="edit-user-debug-mode">Debug Mode</label>
-          </div>
-        </div>
-        <div class="mt-4">
-          <label class="block text-text-secondary text-sm font-bold mb-2" for="edit-user-custom-css">Custom
-            CSS:</label>
-          <div class="emoji-input-container">
-<textarea class="w-full h-24 p-2 border border-input-border rounded bg-input-bg text-input-text" id="edit-user-custom-css"
-          placeholder="Enter custom CSS code..."></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="flex justify-end space-x-4 pt-4 border-t border-input-border">
-        <button class="btn-primary btn-red" id="cancel-user-changes-btn" type="button">
-          Cancel
-        </button>
-        <button class="btn-primary btn-blue" id="save-user-changes-btn" type="submit">
-          Save Changes
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-<div class="modal" id="edit-dm-modal" style="display: none">
-  <div class="modal-content" style="max-width: 600px">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold text-heading-card">
-        Edit Direct Message
-      </h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">
-        &times;
-      </button>
-    </div>
-    <form class="space-y-4" id="edit-dm-form">
-      <div class="input-field">
-        <label class="form-label" for="edit-dm-from">From:</label>
-        <input class="form-input w-full" id="edit-dm-from" type="text"/>
-      </div>
-      <div class="input-field">
-        <label class="form-label" for="edit-dm-to">To:</label>
-        <input class="form-input w-full" id="edit-dm-to" type="text"/>
-      </div>
-      <div class="input-field">
-        <label class="form-label" for="edit-dm-subject">Subject:</label>
-        <input class="form-input w-full" id="edit-dm-subject" type="text"/>
-      </div>
-      <div class="input-field">
-        <label class="form-label" for="edit-dm-content">Content:</label>
-        <div class="emoji-input-container">
-          <textarea class="form-input w-full h-32" id="edit-dm-content"></textarea>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button class="btn-primary btn-red" id="cancel-edit-dm-btn" type="button">
-          Cancel
-        </button>
-        <button class="btn-primary btn-blue" type="submit">
-          Save Changes
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-<div class="modal" id="edit-form-modal" style="display: none">
-  <div class="modal-content" style="max-width: 700px">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold text-heading-card">Edit Form</h3>
-      <button class="close-button text-2xl font-bold text-text-secondary hover:text-text-primary">
-        &times;
-      </button>
-    </div>
-    <form class="space-y-4" id="edit-form-form">
-      <div class="input-field">
-        <label class="form-label" for="edit-form-thema-name">Theme Name:</label>
-        <input class="form-input w-full" id="edit-form-thema-name" type="text"/>
-      </div>
-      <div class="input-field">
-        <label class="form-label" for="edit-form-thema-description">Thema Description:</label>
-        <div class="emoji-input-container">
-          <textarea class="form-input w-full h-20" id="edit-form-thema-description"></textarea>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button class="btn-primary btn-red" id="cancel-edit-form-btn" type="button">
-          Cancel
-        </button>
-        <button class="btn-primary btn-blue" type="submit">
-          Save Changes
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-<script src="admin.js" type="module"></script>
+</main>
+
+<script src="./firebase-init.js" type="module"></script>
+<script src="./themes.js" type="module"></script>
+<script src="./custom_theme_modal.js" type="module"></script>
+<script src="./admin.js" type="module"></script>
+<script src="./navbar.js" type="module"></script>
+<script src="./utils.js" type="module"></script>
+<script src="./admin-user-management.js" type="module"></script>
+<script src="./email-integration.js" type="module"></script>
+<script src="./smtp-integration.js" type="module"></script>
 </body>
 </html>

@@ -3,189 +3,48 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Arcator.co.uk - Minecraft Community Since 2010</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-    <link href="theme_variables.css" rel="stylesheet"/>
-    <link href="master.css" rel="stylesheet"/>
-    <style>
-        body {
-            font-family: "Inter", sans-serif;
-            transition: background-color 0.3s ease,
-            color 0.3s ease;
-            background-color: var(--color-body-bg);
-            color: var(--color-text-primary);
-        }
-
-        .hero-banner {
-            background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-banner::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-        }
-
-        .feature-card {
-            border-radius: 0.75rem;
-            padding: 2rem;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease-in-out,
-            box-shadow 0.3s ease-in-out;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .minecraft-ip-box {
-            border: 2px solid var(--color-border-ip-box);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .text-white {
-            color: white !important;
-        }
-    </style>
+    <title>Arcator - Home</title>
+    <link href="./theme_variables.css" rel="stylesheet"/>
+    <link href="./master.css" rel="stylesheet"/>
+    <link href="./favicon.png" rel="icon" type="image/png"/>
 </head>
-<body class="antialiased">
-<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
-<section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
-    <div class="container mx-auto px-4 text-center hero-content">
-        <h1 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight">
-            Arcator.co.uk
-        </h1>
-        <p class="text-xl md:text-3xl mb-8">Your Minecraft Home Since 2010</p>
-    </div>
-</section>
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center" id="about">
-    <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main mb-6">
-            About Arcator.co.uk
-        </h2>
-        <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
-            Arcator is a Minecraft community established in 2010. We provide a
-            stable, fun environment for players to enjoy various Minecraft
-            experiences while fostering a friendly community.
-        </p>
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-            Diverse Server Experiences
-        </h3>
-        <p class="text-text-secondary">
-            From survival to creative building and mini-games, our servers cater
-            to all playstyles.
-        </p>
-    </div>
-    <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-            Robust & Reliable Infrastructure
-        </h3>
-        <p class="text-text-secondary">
-            Powered by dedicated hardware, our servers ensure smooth, low-lag
-            gameplay with excellent uptime.
-        </p>
-    </div>
-    <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-heading-card mb-4">
-            Engaged & Friendly Community
-        </h3>
-        <p class="text-text-secondary">
-            Join our Discord, participate in events, and connect with fellow
-            Minecraft enthusiasts.
-        </p>
-    </div>
-</section>
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 text-center" id="join-us">
-    <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-heading-main mb-6">
-            Join Minecraft Server!
-        </h2>
-        <p class="text-lg leading-relaxed text-text-secondary max-w-3xl mx-auto mb-8">
-            Ready to start your Minecraft adventure?
-        </p>
-        <div class="minecraft-ip-box bg-card p-6 rounded-lg max-w-lg mx-auto shadow-xl">
-            <p class="text-3xl font-extrabold text-green-400 mb-4">IP:
-                <span class="font-semibold"
-                      id="minecraft-ip">arcator.co.uk</span>
-                <button class="btn-primary btn-green" id="copyIpButton">Copy IP</button>
-            </p>
+<body class="bg-main text-text-primary font-sans leading-normal antialiased">
+<div id="navbar-container">
+    <!-- Navbar will be loaded here by navbar.js -->
+</div>
+
+<main class="container mx-auto mt-8 p-4">
+    <section class="text-center mb-12">
+        <h1 class="text-5xl font-bold text-text-header mb-4">Welcome to Arcator</h1>
+        <p class="text-xl text-text-secondary">Your hub for community, creativity, and connection.</p>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div class="bg-secondary p-6 rounded-lg shadow-lg feature-card">
+            <h2 class="text-2xl font-semibold text-text-header mb-2">Dynamic Themes</h2>
+            <p class="text-text-secondary">Personalize your experience with a variety of themes.</p>
         </div>
-    </div>
-</section>
-<div id="footer-placeholder"></div>
-<script src="app.js" type="module"></script>
-<script type="module">
-    import {
-        auth,
-        getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-        DEFAULT_THEME_NAME,
-    } from "./firebase-init.js";
-    import {loadNavbar, loadFooter} from "./core.js";
-    import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-    } from "./themes.js";
-    // Apply cached theme immediately to prevent flash
-    applyCachedTheme();
-    firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-            let userProfile = null;
-            if (user) {
-                userProfile = await getUserProfileFromFirestore(user.uid);
-            }
-            await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-            loadFooter();
-            if (userProfile?.themePreference) {
-                const allThemes = await getAvailableThemes();
-                const themeToApply = allThemes.find(t => t.id === userProfile.themePreference) ||
-                    allThemes.find(t => t.id === DEFAULT_THEME_NAME);
-                if (themeToApply) {
-                    applyTheme(themeToApply.id, themeToApply);
-                }
-            }
-        });
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-        const copyButton = document.getElementById('copyIpButton');
-        const ipElement = document.getElementById('minecraft-ip');
-        if (copyButton && ipElement) {
-            copyButton.addEventListener('click', function () {
-                navigator.clipboard.writeText(ipElement.textContent).then(function () {
-                    copyButton.textContent = 'Copied!';
-                    setTimeout(function () {
-                        copyButton.textContent = 'Copy IP';
-                    }, 2000);
-                }).catch(function (err) {
-                    console.error('Could not copy text: ', err);
-                });
-            });
-        }
-    });
-</script>
+        <div class="bg-secondary p-6 rounded-lg shadow-lg feature-card">
+            <h2 class="text-2xl font-semibold text-text-header mb-2">User Management</h2>
+            <p class="text-text-secondary">Admins can easily manage user profiles and settings.</p>
+        </div>
+        <div class="bg-secondary p-6 rounded-lg shadow-lg feature-card">
+            <h2 class="text-2xl font-semibold text-text-header mb-2">Interactive Forms</h2>
+            <p class="text-text-secondary">Create and manage custom forms for various purposes.</p>
+        </div>
+    </section>
+
+    <section class="text-center">
+        <h2 class="text-3xl font-bold text-text-header mb-4">Join Our Community</h2>
+        <p class="text-lg text-text-secondary mb-6">Sign up today to start connecting with others!</p>
+        <a class="btn-primary btn-blue text-white" href="users.html">Get Started</a>
+    </section>
+</main>
+
+<script src="./firebase-init.js" type="module"></script>
+<script src="./themes.js" type="module"></script>
+<script src="./navbar.js" type="module"></script>
+<script src="./utils.js" type="module"></script>
+<script src="./app.js" type="module"></script>
 </body>
 </html>

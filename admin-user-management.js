@@ -1,71 +1,23 @@
 // admin-user-management.js
 
-import {appId, collection, db, deleteDoc, doc, getDocs, updateDoc,} from "./firebase-init.js";
+import {
+    appId,
+    db,
+} from "./firebase-init.js";
 
 import {getAvailableThemes} from "./themes.js";
-import {showCustomConfirm, showMessageBox} from "./utils.js";
+import {showMessageBox, showCustomConfirm} from "./utils.js";
+import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc,
+} from "./firebase-init.js";
 
 // User Management DOM elements
 const editUserModal = document.getElementById("edit-user-modal");
-const editUserDisplayNameInput = document.getElementById(
-    "edit-user-display-name",
-);
-const editUserHandleInput = document.getElementById("edit-user-handle");
-const editUserEmailInput = document.getElementById("edit-user-email");
-const editUserPhotoUrlInput = document.getElementById("edit-user-photo-url");
-const editUserDiscordUrlInput = document.getElementById(
-    "edit-user-discord-url",
-);
-const editUserGithubUrlInput = document.getElementById("edit-user-github-url");
 const editUserThemeSelect = document.getElementById("edit-user-theme");
-const editUserFontScalingSelect = document.getElementById(
-    "edit-user-font-scaling",
-);
-const editUserNotificationFrequencySelect = document.getElementById(
-    "edit-user-notification-frequency",
-);
-const editUserEmailNotificationsCheckbox = document.getElementById(
-    "edit-user-email-notifications",
-);
-const editUserDiscordNotificationsCheckbox = document.getElementById(
-    "edit-user-discord-notifications",
-);
-const editUserPushNotificationsCheckbox = document.getElementById(
-    "edit-user-push-notifications",
-);
-const editUserDataRetentionSelect = document.getElementById(
-    "edit-user-data-retention",
-);
-const editUserProfileVisibleCheckbox = document.getElementById(
-    "edit-user-profile-visible",
-);
-const editUserActivityTrackingCheckbox = document.getElementById(
-    "edit-user-activity-tracking",
-);
-const editUserThirdPartySharingCheckbox = document.getElementById(
-    "edit-user-third-party-sharing",
-);
-const editUserHighContrastCheckbox = document.getElementById(
-    "edit-user-high-contrast",
-);
-const editUserReducedMotionCheckbox = document.getElementById(
-    "edit-user-reduced-motion",
-);
-const editUserScreenReaderCheckbox = document.getElementById(
-    "edit-user-screen-reader",
-);
-const editUserFocusIndicatorsCheckbox = document.getElementById(
-    "edit-user-focus-indicators",
-);
-const editUserKeyboardShortcutsSelect = document.getElementById(
-    "edit-user-keyboard-shortcuts",
-);
-const editUserDebugModeCheckbox = document.getElementById(
-    "edit-user-debug-mode",
-);
-const editUserCustomCssTextarea = document.getElementById(
-    "edit-user-custom-css",
-);
 const saveUserChangesBtn = document.getElementById("save-user-changes-btn");
 const cancelUserChangesBtn = document.getElementById("cancel-user-changes-btn");
 
@@ -334,26 +286,27 @@ export async function deleteUserProfile (uid, displayName) {
     );
 
     if (confirmed) {
-        const userDocRef = doc(
-            db,
-            `artifacts/${appId}/public/data/user_profiles`,
-            uid,
-        );
         try {
-            await deleteDoc(userDocRef);
-            showMessageBox(
-                `User profile ${displayName} deleted successfully!`,
-                false,
+            // Delete the user document from Firestore
+            const userDocRef = doc(
+                db,
+                `artifacts/${appId}/public/data/user_profiles`,
+                uid,
             );
-            await loadUsers(); // Reload the user list
+            await deleteDoc(userDocRef);
+
+            showMessageBox("User profile deleted successfully!", false);
+
+            // Reload the user list
+            await loadUsers();
         } catch (error) {
             console.error("Error deleting user profile:", error);
-            showMessageBox(
-                `Error deleting user profile ${displayName}. ${error.message}`,
-                true,
-            );
+            showMessageBox("Error deleting user profile: " + error.message, true);
         }
     } else {
-        showMessageBox("Deletion cancelled.", false);
+        console.log("Delete user profile action was cancelled.");
     }
 }
+
+// Initial load
+loadUsers();
