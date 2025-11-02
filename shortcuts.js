@@ -4,7 +4,19 @@ let currentRecordingShortcut = null;
 let disabledShortcuts = new Set();
 let shortcutKeyToName = {};
 
-export const defaultShortcuts = {
+export {
+  initializeKeyboardShortcuts,
+  handleKeyboardShortcut,
+  getCurrentShortcuts,
+  updateGlobalShortcuts,
+  toggleShortcutDisabled,
+  testShortcutCombination,
+  executeShortcut,
+  shortcutCategories,
+  shortcutDescriptions
+};
+
+const defaultShortcuts = {
   home: "Alt+Shift+H",
   about: "Alt+Shift+A",
   servers: "Alt+Shift+S",
@@ -109,7 +121,7 @@ function getPressedKeys(event) {
   return keys.join("+");
 }
 
-function handleKeyboardShortcut(event) {
+export function handleKeyboardShortcut(event) {
   if (isRecordingShortcut) return;
 
   const pressedKeys = getPressedKeys(event);

@@ -1035,20 +1035,10 @@
 <script src="app.js" type="module"></script>
 <script type="module">
     import {initializePage, loadFooter} from './core.js';
-    import {getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import {firebaseConfig} from './sensitive/firebase-config.js';
-    import {initializeApp, getApps} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import {loadNavbar} from './core.js';
-    import {auth, getUserProfileFromFirestore} from './firebase-init.js';
+    import {doc, getDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {db, auth, getUserProfileFromFirestore, firebaseReadyPromise} from './firebase-init.js';
     // Init theme/navbar/footer
     initializePage('pages');
-    loadFooter();
-    loadNavbar();
-    // Firestore init
-    let app, db;
-    if (!getApps().length) app = initializeApp(firebaseConfig);
-    else app = getApps()[0];
-    db = getFirestore(app);
     // Temp pages list
     const tempPages = [
         {id: 'RndvNy8LShsHP8j7l1Zi', title: 'Page 1'},
@@ -1072,6 +1062,7 @@
 
     async function loadTempPage(id) {
         if (!id) id = tempPages[0].id;
+        await firebaseReadyPromise;
         const contentDiv = document.getElementById('dynamic-page-content');
         const commentsDiv = document.getElementById('comments-section');
         let user = auth.currentUser;

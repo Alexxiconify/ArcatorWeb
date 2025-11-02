@@ -1,5 +1,11 @@
 // navbar.js - Modern navbar component
-import {auth, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME, getUserProfileFromFirestore} from "./firebase-init.js";
+import {
+    auth,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME,
+    firebaseReadyPromise,
+    getUserProfileFromFirestore
+} from "./firebase-init.js";
 import {applyTheme, getAvailableThemes} from "./themes.js";
 
 function hexToRgb(hex) {
@@ -583,19 +589,58 @@ async function applyUserTheme(userThemePreference, defaultThemeName) {
 
 export async function loadNavbar(authUser, userProfile, defaultProfilePic, defaultThemeName) {
   try {
-    await updateNavbarState(authUser, userProfile, defaultProfilePic);
-    await applyUserTheme(userProfile?.themePreference, defaultThemeName);
-
-    // Set up auth state listener for automatic navbar updates
-    auth.onAuthStateChanged(async (user) => {
-      let profile = null;
-      if (user) {
-        profile = await getUserProfileFromFirestore(user.uid);
+      await firebaseReadyPromise;
+      updateNavbarState(authUser, userProfile, defaultProfilePic);
+      if (userProfile?.themePreference || defaultThemeName) {
+          if ('requestIdleCallback' in window) {
+              requestIdleCallback(async () => {
+                  try {
+                      await applyUserTheme(userProfile?.themePreference, defaultThemeName);
+                  } catch (error) {
+                      console.error('Error applying user theme:', error);
+                  }
+              }, {timeout: 500});
+          } else {
+              setTimeout(async () => {
+                  try {
+                      await applyUserTheme(userProfile?.themePreference, defaultThemeName);
+                  } catch (error) {
+                      console.error('Error applying user theme:', error);
+                  }
+              }, 0);
+          }
       }
-      await updateNavbarState(user, profile, defaultProfilePic);
-    });
+      const setupAuthListener = () => {
+          try {
+              if (auth && typeof auth.onAuthStateChanged === 'function') {
+                  auth.onAuthStateChanged(async (user) => {
+                      let profile = null;
+                      if (user) {
+                          try {
+                              profile = await getUserProfileFromFirestore(user.uid);
+                          } catch (error) {
+                              if (error.code !== 'permission-denied') {
+                                  console.error('Error fetching user profile for navbar:', error);
+                              }
+                          }
+                      }
+                      updateNavbarState(user, profile, defaultProfilePic);
+                  });
+              }
+          } catch (error) {
+              console.error('Error setting up auth listener:', error);
+          }
+      };
+      if (auth && typeof auth.onAuthStateChanged === 'function') {
+          if ('requestIdleCallback' in window) {
+              requestIdleCallback(setupAuthListener, {timeout: 300});
+          } else {
+              setTimeout(setupAuthListener, 0);
+          }
+      }
   } catch (error) {
     console.error('Error loading navbar:', error);
+      updateNavbarState(null, null, defaultProfilePic);
   }
 }
 

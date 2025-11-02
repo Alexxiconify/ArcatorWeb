@@ -3,60 +3,46 @@
 
 // Import necessary functions and variables from other modules
 import {
-  auth,
-  db,
-  appId,
-  firebaseReadyPromise,
-  DEFAULT_PROFILE_PIC,
-  DEFAULT_THEME_NAME,
-  getUserProfileFromFirestore,
-  setUserProfileInFirestore,
+    appId,
+    auth,
+    db,
+    DEFAULT_PROFILE_PIC,
+    DEFAULT_THEME_NAME,
+    firebaseReadyPromise,
+    getUserProfileFromFirestore,
+    setUserProfileInFirestore,
 } from "./firebase-init.js";
 
-import {
-  showMessageBox,
-  sanitizeHandle,
-  showCustomConfirm,
-  validatePhotoURL,
-} from "./utils.js";
-import {
-  setupThemesFirebase,
-  applyTheme,
-  getAvailableThemes,
-  cacheUserTheme,
-} from "./themes.js";
-import { loadNavbar } from "./core.js"; // Ensure loadNavbar is imported
-
+import {sanitizeHandle, showCustomConfirm, showMessageBox,} from "./utils.js";
+import {applyTheme, cacheUserTheme, getAvailableThemes, setupThemesFirebase,} from "./themes.js";
+import {loadNavbar} from "./core.js"; // Ensure loadNavbar is imported
 // Import global shortcut functions from app.js
 import {
-  defaultShortcuts,
-  shortcutCategories,
-  shortcutDescriptions,
-  testShortcutCombination,
-  getCurrentShortcuts,
-  updateGlobalShortcuts,
-  toggleShortcutDisabled,
+    defaultShortcuts,
+    getCurrentShortcuts,
+    shortcutCategories,
+    shortcutDescriptions,
+    toggleShortcutDisabled,
+    updateGlobalShortcuts,
 } from "./app.js";
 
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updateProfile,
-  onAuthStateChanged,
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  GithubAuthProvider,
+    createUserWithEmailAndPassword,
+    GithubAuthProvider,
+    GoogleAuthProvider,
+    sendPasswordResetEmail,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    updateProfile,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  setDoc, // Added setDoc for saving preferences
+    collection,
+    doc,
+    getDocs,
+    query,
+    setDoc,
+    where,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 /**
@@ -2234,8 +2220,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         const userProfile = await getUserProfileFromFirestore(user.uid);
 
         // Load and apply user profile
-        await reloadAndApplyUserProfile();
-
+        if (userProfile) {
+          await reloadAndApplyUserProfile();
+        } else {
+          console.warn("User profile not found, creating default profile");
+        }
         // Show settings content
         showSection(settingsContent);
 

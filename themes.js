@@ -1,25 +1,14 @@
 // themes.js - Theme management system
+import {appId, auth, db, firebaseReadyPromise} from "./firebase-init.js";
 import {
-  db,
-  auth,
-  appId,
-  firebaseReadyPromise,
-  DEFAULT_THEME_NAME,
-} from "./firebase-init.js";
-import { showMessageBox } from "./utils.js";
-
-import {
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  getDocs,
-  query,
-  where,
-  addDoc,
-  updateDoc,
-  serverTimestamp,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    query,
+    serverTimestamp,
+    where
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 let availableThemesCache = [];
@@ -290,7 +279,7 @@ async function fetchCustomThemes() {
       where("isActive", "==", true)
     );
     const querySnapshot = await getDocs(customThemesQuery);
-    
+
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -386,7 +375,7 @@ export async function initializeGlobalThemes() {
 
     const themesCollection = collection(db, `artifacts/${appId}/public/data/custom_themes`);
     const querySnapshot = await getDocs(themesCollection);
-    
+
     if (querySnapshot.empty) {
       return true;
     }
@@ -401,7 +390,7 @@ export async function initializeGlobalThemes() {
 export function cacheUserTheme(themeId, userId = null) {
   const cacheKey = userId ? `${THEME_CACHE_KEY}_${userId}` : THEME_CACHE_KEY;
   const timestampKey = userId ? `${THEME_CACHE_TIMESTAMP_KEY}_${userId}` : THEME_CACHE_TIMESTAMP_KEY;
-  
+
   localStorage.setItem(cacheKey, themeId);
   localStorage.setItem(timestampKey, Date.now().toString());
 }
@@ -409,20 +398,20 @@ export function cacheUserTheme(themeId, userId = null) {
 export function getCachedTheme(userId = null) {
   const cacheKey = userId ? `${THEME_CACHE_KEY}_${userId}` : THEME_CACHE_KEY;
   const timestampKey = userId ? `${THEME_CACHE_TIMESTAMP_KEY}_${userId}` : THEME_CACHE_TIMESTAMP_KEY;
-  
-  const cachedTheme = localStorage.getItem(cacheKey);
+
+    const cachedTheme = localStorage.getItem(cacheKey);
   const timestamp = localStorage.getItem(timestampKey);
-  
-  if (!cachedTheme || !timestamp) return null;
-  
-  const age = Date.now() - parseInt(timestamp);
+
+    if (!cachedTheme || !timestamp) return null;
+
+    const age = Date.now() - parseInt(timestamp);
   if (age > THEME_CACHE_DURATION) {
     localStorage.removeItem(cacheKey);
     localStorage.removeItem(timestampKey);
     return null;
   }
-  
-  return cachedTheme;
+
+    return cachedTheme;
 }
 
 export function clearCachedTheme() {
@@ -434,17 +423,23 @@ export function clearCachedTheme() {
   });
 }
 
-export async function applyCachedTheme() {
+export function applyCachedTheme() {
   const cachedThemeId = getCachedTheme();
-  if (!cachedThemeId) return false;
-
-  const themes = await getAvailableThemes();
-  const theme = themes.find(t => t.id === cachedThemeId);
-  
-  if (theme) {
-    applyTheme(theme.id, theme);
-    return true;
+    if (!cachedThemeId) return Promise.resolve(false);
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+            getAvailableThemes().then(themes => {
+                const theme = themes.find(t => t.id === cachedThemeId);
+                if (theme) applyTheme(theme.id, theme);
+            });
+        }, {timeout: 100});
+    } else {
+        setTimeout(() => {
+            getAvailableThemes().then(themes => {
+                const theme = themes.find(t => t.id === cachedThemeId);
+                if (theme) applyTheme(theme.id, theme);
+            });
+        }, 0);
   }
-  
-  return false;
+    return Promise.resolve(true);
 }
