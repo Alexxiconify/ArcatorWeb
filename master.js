@@ -11,6 +11,6 @@ export * from './user-main.js';
 export * from './announcements.js';
 export * from './custom_theme_modal.js';
 export * from './emoji-picker.js';
-export * from './emailjs-integration.js';
+export * from './email-integration.js';
 export * from './smtp-integration.js';
 export * from './app.js';
