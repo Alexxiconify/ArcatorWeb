@@ -13,7 +13,7 @@ import {
     getDocs,
     doc,
     updateDoc,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from "./firebase-init.js";
 
 // User Management DOM elements
 const editUserModal = document.getElementById("edit-user-modal");
@@ -258,44 +258,62 @@ export async function saveUserChanges() {
     }
 
     try {
+        const displayNameEl = document.getElementById("edit-user-display-name");
+        const handleEl = document.getElementById("edit-user-handle");
+        const emailEl = document.getElementById("edit-user-email");
+        const photoUrlEl = document.getElementById("edit-user-photo-url");
+        const discordUrlEl = document.getElementById("edit-user-discord-url");
+        const githubUrlEl = document.getElementById("edit-user-github-url");
+        const themeEl = document.getElementById("edit-user-theme");
+        const fontScalingEl = document.getElementById("edit-user-font-scaling");
+        const notificationFrequencyEl = document.getElementById(
+            "edit-user-notification-frequency",
+        );
+        const emailNotificationsEl = document.getElementById(
+            "edit-user-email-notifications",
+        );
+        const discordNotificationsEl = document.getElementById(
+            "edit-user-discord-notifications",
+        );
+        const pushNotificationsEl = document.getElementById("edit-user-push-notifications");
+        const dataRetentionEl = document.getElementById("edit-user-data-retention");
+        const profileVisibleEl = document.getElementById("edit-user-profile-visible");
+        const activityTrackingEl = document.getElementById("edit-user-activity-tracking");
+        const thirdPartySharingEl = document.getElementById(
+            "edit-user-third-party-sharing",
+        );
+        const highContrastEl = document.getElementById("edit-user-high-contrast");
+        const reducedMotionEl = document.getElementById("edit-user-reduced-motion");
+        const screenReaderEl = document.getElementById("edit-user-screen-reader");
+        const focusIndicatorsEl = document.getElementById("edit-user-focus-indicators");
+        const keyboardShortcutsEl = document.getElementById("edit-user-keyboard-shortcuts");
+        const debugModeEl = document.getElementById("edit-user-debug-mode");
+        const customCssEl = document.getElementById("edit-user-custom-css");
+
         const updatedData = {
-            displayName: document.getElementById("edit-user-display-name").value,
-            handle: document.getElementById("edit-user-handle").value,
-            email: document.getElementById("edit-user-email").value,
-            photoURL: document.getElementById("edit-user-photo-url").value,
-            discordURL: document.getElementById("edit-user-discord-url").value,
-            githubURL: document.getElementById("edit-user-github-url").value,
-            themePreference: document.getElementById("edit-user-theme").value,
-            fontScaling: document.getElementById("edit-user-font-scaling").value,
-            notificationFrequency: document.getElementById(
-                "edit-user-notification-frequency",
-            ).value,
-            emailNotifications: document.getElementById(
-                "edit-user-email-notifications",
-            ).checked,
-            discordNotifications: document.getElementById(
-                "edit-user-discord-notifications",
-            ).checked,
-            pushNotifications: document.getElementById("edit-user-push-notifications")
-                .checked,
-            dataRetention: document.getElementById("edit-user-data-retention").value,
-            profileVisible: document.getElementById("edit-user-profile-visible")
-                .checked,
-            activityTracking: document.getElementById("edit-user-activity-tracking")
-                .checked,
-            thirdPartySharing: document.getElementById(
-                "edit-user-third-party-sharing",
-            ).checked,
-            highContrast: document.getElementById("edit-user-high-contrast").checked,
-            reducedMotion: document.getElementById("edit-user-reduced-motion")
-                .checked,
-            screenReader: document.getElementById("edit-user-screen-reader").checked,
-            focusIndicators: document.getElementById("edit-user-focus-indicators")
-                .checked,
-            keyboardShortcuts: document.getElementById("edit-user-keyboard-shortcuts")
-                .value,
-            debugMode: document.getElementById("edit-user-debug-mode").checked,
-            customCSS: document.getElementById("edit-user-custom-css").value,
+            displayName: displayNameEl.value,
+            handle: handleEl.value,
+            email: emailEl.value,
+            photoURL: photoUrlEl.value,
+            discordURL: discordUrlEl.value,
+            githubURL: githubUrlEl.value,
+            themePreference: themeEl.value,
+            fontScaling: fontScalingEl.value,
+            notificationFrequency: notificationFrequencyEl.value,
+            emailNotifications: emailNotificationsEl.checked,
+            discordNotifications: discordNotificationsEl.checked,
+            pushNotifications: pushNotificationsEl.checked,
+            dataRetention: dataRetentionEl.value,
+            profileVisible: profileVisibleEl.checked,
+            activityTracking: activityTrackingEl.checked,
+            thirdPartySharing: thirdPartySharingEl.checked,
+            highContrast: highContrastEl.checked,
+            reducedMotion: reducedMotionEl.checked,
+            screenReader: screenReaderEl.checked,
+            focusIndicators: focusIndicatorsEl.checked,
+            keyboardShortcuts: keyboardShortcutsEl.value,
+            debugMode: debugModeEl.checked,
+            customCSS: customCssEl.value,
             lastUpdated: new Date().toISOString(),
         };
 

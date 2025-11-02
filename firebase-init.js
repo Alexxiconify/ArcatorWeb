@@ -10,7 +10,7 @@ import {
     doc,
     getDoc,
     getFirestore,
-    setDoc
+    setDoc, collection, getDocs, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import {firebaseConfig} from "./sensitive/firebase-config.js";
@@ -64,7 +64,7 @@ export async function setUserProfileInFirestore(uid, profileData) {
   }
 }
 
-export { setUserProfileInFirestore as updateUserProfileInFirestore };
+export { setUserProfileInFirestore as updateUserProfileInFirestore, collection, getDocs, doc, updateDoc };
 
 export async function deleteUserProfileFromFirestore(uid) {
   await firebaseReadyPromise;

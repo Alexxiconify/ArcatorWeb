@@ -1,44 +1,13 @@
-import {
-    appId,
-    auth,
-    currentUser as firebaseCurrentUser,
-    db,
-    DEFAULT_THEME_NAME,
-    firebaseReadyPromise,
-    onAuthStateChanged
-} from "./firebase-init.js";
+import { appId, auth, currentUser as firebaseCurrentUser, db, DEFAULT_THEME_NAME, firebaseReadyPromise, onAuthStateChanged } from "./firebase-init.js";
 import { getAvailableThemes, setupThemesFirebase } from "./themes.js";
 import { loadNavbar } from "./core.js";
-import {
-    getEmailJSStatus,
-    getSMTPServerStatus,
-    initializeEmailJS,
-    initializeSMTPIntegration,
-    saveCredentials,
-    sendEmailViaSMTP,
-    testEmailJSConnection,
-    testSMTPServerConnection
-} from "./email-integration.js";
-import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    orderBy,
-    query,
-    serverTimestamp,
-    updateDoc
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { escapeHtml, showCustomConfirm, showMessageBox } from "./utils.js";
+import { getEmailJSStatus, getSMTPServerStatus, initializeEmailJS, initializeSMTPIntegration, saveCredentials, sendEmailViaSMTP, testEmailJSConnection, testSMTPServerConnection } from "./email-integration.js";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, escapeHtml, showCustomConfirm, showMessageBox, loadUsers, openEditUserModal, deleteUserProfile, saveUserChanges } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // DOM elements - Initialize immediately after declaration
 const loadingSpinner = document.getElementById("loading-spinner");
 const loginRequiredMessage = document.getElementById("login-required-message");
 const adminContent = document.getElementById("admin-content");
-
-import { loadUsers, openEditUserModal, deleteUserProfile, saveUserChanges } from "./admin-user-management.js";
 
 // Modal close buttons
 document.querySelectorAll(".close-button").forEach((button) => {
