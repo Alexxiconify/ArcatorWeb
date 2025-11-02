@@ -162,21 +162,15 @@ firebaseReadyPromise.then(() => {
       currentUser = userProfile;
       window.currentUser = userProfile;
       if (typeof window.onUserReady === "function") window.onUserReady();
-
-      if (typeof window.refreshNavbarProfilePicture === "function") {
-        setTimeout(async () => {
-          try {
-            await window.refreshNavbarProfilePicture();
-          } catch (error) {
-            console.error("Error refreshing navbar profile picture:", error);
-          }
-        }, 100);
-      }
+      refreshNavbar();
     } else {
       currentUser = null;
       window.currentUser = null;
       if (typeof window.onUserReady === "function") window.onUserReady();
+      refreshNavbar();
+    }
 
+    async function refreshNavbar() {
       if (typeof window.refreshNavbarProfilePicture === "function") {
         setTimeout(async () => {
           try {
@@ -200,13 +194,23 @@ export async function getCurrentUser() {
 
   try {
     const userProfile = await getUserProfileFromFirestore(user.uid);
+    if (!userProfile) {
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || "Anonymous",
+        photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
+        handle: null,
+        isAdmin: false,
+      };
+    }
     return {
       uid: user.uid,
       email: user.email,
-      displayName: userProfile?.displayName || user.displayName || "Anonymous",
-      photoURL: userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_PIC,
-      handle: userProfile?.handle || null,
-      isAdmin: userProfile?.isAdmin || false,
+      displayName: userProfile.displayName || user.displayName || "Anonymous",
+      photoURL: userProfile.photoURL || user.photoURL || DEFAULT_PROFILE_PIC,
+      handle: userProfile.handle || null,
+      isAdmin: userProfile.isAdmin || false,
       ...userProfile,
     };
   } catch (error) {

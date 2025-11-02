@@ -75,14 +75,17 @@ exports.sendEmail = functions.firestore
         errorMessage = error.response.data.error;
       }
 
-      // Update email status to failed
-      await updateEmailStatus(emailId, appId, "failed", errorMessage);
+      await handleEmailError(emailId, appId, errorMessage);
     }
   });
 
 /**
  * Helper function to update email status in Firestore
  */
+async function handleEmailError(emailId, appId, errorMessage) {
+  await updateEmailStatus(emailId, appId, "failed", errorMessage);
+}
+
 async function updateEmailStatus(emailId, appId, status, message) {
   try {
     const emailRef = admin
@@ -146,17 +149,7 @@ exports.testSMTP = functions.https.onRequest(async (req, res) => {
     });
   } catch (error) {
     console.error("SMTP server test failed:", error);
-
-    let errorMessage = error.message;
-    if (error.response && error.response.data && error.response.data.error) {
-      errorMessage = error.response.data.error;
-    }
-
-    res.status(500).json({
-      success: false,
-      error: errorMessage,
-      smtpServerUrl: config.SMTP_SERVER_URL,
-    });
+    handleErrorResponse(res, error, 500, config.SMTP_SERVER_URL);
   }
 });
 
@@ -197,16 +190,7 @@ exports.sendBulkEmails = functions.https.onRequest(async (req, res) => {
     });
   } catch (error) {
     console.error("Error sending bulk emails via SMTP server:", error);
-
-    let errorMessage = error.message;
-    if (error.response && error.response.data && error.response.data.error) {
-      errorMessage = error.response.data.error;
-    }
-
-    res.status(500).json({
-      success: false,
-      error: errorMessage,
-    });
+    handleErrorResponse(res, error, 500);
   }
 });
 
@@ -226,11 +210,24 @@ exports.getSMTPStatus = functions.https.onRequest(async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting SMTP server status:", error);
-
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      smtpServerUrl: config.SMTP_SERVER_URL,
-    });
+    handleErrorResponse(res, error, 500, config.SMTP_SERVER_URL);
   }
 });
+
+async function handleErrorResponse(res, error, statusCode = 500, smtpServerUrl = null) {
+  let errorMessage = error.message;
+  if (error.response && error.response.data && error.response.data.error) {
+    errorMessage = error.response.data.error;
+  }
+
+  const errorResponse = {
+    success: false,
+    error: errorMessage,
+  };
+
+  if (smtpServerUrl) {
+    errorResponse.smtpServerUrl = smtpServerUrl;
+  }
+
+  res.status(statusCode).json(errorResponse);
+}
