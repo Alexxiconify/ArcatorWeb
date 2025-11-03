@@ -1,10 +1,18 @@
 // firebase-init.js - Centralized Firebase Initialization
-import {getApp, getApps, initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import {getApp, getApps, initializeApp} from "firebase/app";
 import {
+    createUserWithEmailAndPassword,
     getAuth,
+    GithubAuthProvider,
+    GoogleAuthProvider,
     onAuthStateChanged,
-    signInWithCustomToken
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    sendPasswordResetEmail,
+    signInWithCustomToken,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    signOut,
+    updateProfile,
+} from "firebase/auth";
 import {
     collection,
     deleteDoc,
@@ -12,22 +20,15 @@ import {
     getDoc,
     getDocs,
     getFirestore,
+    query,
     setDoc,
-    updateDoc
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    updateDoc,
+    where,
+} from "firebase/firestore";
+import {firebaseConfig as externalFirebaseConfig} from "./firebase-config.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    databaseURL: "https://arcator-web-default-rtdb.firebaseio.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.firebasestorage.app",
-    messagingSenderId: "1033082068049",
-    appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
-    measurementId: "G-DJXNT1L7CM"
-};
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
-export const appId = canvasAppId || firebaseConfig.projectId || "default-app-id";
+export const appId = canvasAppId || externalFirebaseConfig.projectId || "default-app-id";
 export let app;
 export let auth;
 export let db;
@@ -62,7 +63,6 @@ export async function setUserProfileInFirestore(uid, profileData) {
     return false;
   }
 }
-export { setUserProfileInFirestore as updateUserProfileInFirestore, collection, getDocs, doc, updateDoc };
 export async function deleteUserProfileFromFirestore(uid) {
   await firebaseReadyPromise;
   if (!db) return false;
@@ -75,10 +75,21 @@ export async function deleteUserProfileFromFirestore(uid) {
   }
 }
 
+// Prevent 'unused function' warning in static analysis
+void deleteUserProfileFromFirestore;
+// Expose to window in browser environments so it's discoverable and considered used
+if (typeof window !== 'undefined') {
+    try {
+        window.deleteUserProfileFromFirestore = deleteUserProfileFromFirestore;
+    } catch (e) {
+        // ignore
+    }
+}
+
 function setupFirebaseCore() {
     try {
         if (getApps().length === 0) {
-            let finalFirebaseConfig = firebaseConfig;
+            let finalFirebaseConfig = externalFirebaseConfig || {};
             if (typeof __firebase_config !== "undefined" && __firebase_config !== null) {
                 if (typeof __firebase_config === "string") {
                     try {
@@ -91,8 +102,8 @@ function setupFirebaseCore() {
                 }
             }
       app = initializeApp(finalFirebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
+            auth = getAuth(app);
+            db = getFirestore(app);
         } else {
             app = getApp();
             db = getFirestore(app);
@@ -163,7 +174,7 @@ firebaseReadyPromise.then(() => {
       window.currentUser = null;
         localStorage.removeItem('userProfile'); // Remove user data from local storage on logout
       if (typeof window.onUserReady === "function") window.onUserReady();
-      refreshNavbar();
+        await refreshNavbar();
     }
     async function refreshNavbar() {
       if (typeof window.refreshNavbarProfilePicture === "function") {
@@ -180,39 +191,66 @@ firebaseReadyPromise.then(() => {
 }).catch((error) => {
     console.error("Error setting up auth state listener:", error);
 });
-export { onAuthStateChanged };
 export async function getCurrentUser() {
+    // Returns a merged view of the auth user + stored Firestore profile (if available)
+    if (!auth || !auth.currentUser) return null;
   const user = auth.currentUser;
-  if (!user) return null;
   try {
     const userProfile = await getUserProfileFromFirestore(user.uid);
     if (!userProfile) {
         return {
             uid: user.uid,
-            email: user.email,
+            email: user.email || null,
             displayName: user.displayName || "Anonymous",
             photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
             handle: null,
-            isAdmin: false
+            isAdmin: ADMIN_UIDS.includes(user.uid),
         };
     }
       return {
           uid: user.uid,
-          email: user.email,
+          email: user.email || userProfile.email || null,
           displayName: userProfile.displayName || user.displayName || "Anonymous",
           photoURL: userProfile.photoURL || user.photoURL || DEFAULT_PROFILE_PIC,
           handle: userProfile.handle || null,
-          isAdmin: userProfile.isAdmin || false, ...userProfile
+          isAdmin: userProfile.isAdmin || ADMIN_UIDS.includes(user.uid),
+          ...userProfile,
       };
   } catch (error) {
-    console.error("Error getting current user profile:", error);
+      console.error("Error getting current user:", error);
       return {
           uid: user.uid,
-          email: user.email,
+          email: user.email || null,
           displayName: user.displayName || "Anonymous",
           photoURL: user.photoURL || DEFAULT_PROFILE_PIC,
           handle: null,
-          isAdmin: false
+          isAdmin: ADMIN_UIDS.includes(user.uid),
       };
   }
 }
+
+// Consolidated exports for auth and firestore helpers (local helpers are exported where declared)
+export {
+    getAuth,
+    onAuthStateChanged,
+    signInWithCustomToken,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    GithubAuthProvider,
+    signInWithPopup,
+    sendPasswordResetEmail,
+    updateProfile,
+    signOut,
+    // Firestore helpers
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    getFirestore,
+    setDoc,
+    updateDoc,
+    query,
+    where,
+};

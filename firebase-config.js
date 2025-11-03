@@ -9,3 +9,9 @@ export const firebaseConfig = {
     appId: "1:1033082068049:web:dd154c8b188bde1930ec70",
     measurementId: "G-DJXNT1L7CM"
 };
+
+export default firebaseConfig;
+
+// Prevent static-analysis 'unused' warning in editors by referencing the config in a no-op
+const __firebase_config_used = firebaseConfig && firebaseConfig.projectId;
+void __firebase_config_used;

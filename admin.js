@@ -1,4 +1,4 @@
-import {deleteDoc, getDoc} from "./firebase-init.js";
+// Admin page utilities (modal close handling)
 
 // Modal close buttons
 document.querySelectorAll(".close-button").forEach((button) => {

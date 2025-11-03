@@ -1,29 +1,40 @@
 // admin-user-management.js
 
-import {
-    appId,
-    db,
-} from "./firebase-init.js";
+import {appId, collection, db, deleteDoc, doc, getDocs, updateDoc,} from "./firebase-init.js";
 
 import {getAvailableThemes} from "./themes.js";
-import {showMessageBox, showCustomConfirm} from "./utils.js";
-import {
-    collection,
-    getDocs,
-    doc,
-    updateDoc,
-    deleteDoc,
-} from "./firebase-init.js";
+import {showCustomConfirm, showMessageBox} from "./utils.js";
 
-// User Management DOM elements
-const editUserModal = document.getElementById("edit-user-modal");
-const editUserThemeSelect = document.getElementById("edit-user-theme");
-const saveUserChangesBtn = document.getElementById("save-user-changes-btn");
-const cancelUserChangesBtn = document.getElementById("cancel-user-changes-btn");
+// User Management DOM elements (queried lazily)
+const editUserModal = () => document.getElementById("edit-user-modal");
+const editUserThemeSelect = () => document.getElementById("edit-user-theme");
+let saveUserChangesBtn = null;
+let cancelUserChangesBtn = null;
 
 // Global variables for user management
 let usersData = [];
 let currentEditingUser = null;
+
+// Wire up button event handlers after DOM is ready
+function wireUpButtons() {
+    saveUserChangesBtn = document.getElementById("save-user-changes-btn");
+    cancelUserChangesBtn = document.getElementById("cancel-user-changes-btn");
+
+    if (saveUserChangesBtn) {
+        saveUserChangesBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await saveUserChanges();
+        });
+    }
+    if (cancelUserChangesBtn) {
+        cancelUserChangesBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = editUserModal();
+            if (modal) modal.style.display = 'none';
+            currentEditingUser = null;
+        });
+    }
+}
 
 export async function loadUsers() {
     if (!db) {
@@ -39,8 +50,8 @@ export async function loadUsers() {
         );
         const querySnapshot = await getDocs(usersRef);
         usersData = [];
-        querySnapshot.forEach((doc) => {
-            usersData.push({uid: doc.id, ...doc.data()});
+        querySnapshot.forEach((d) => {
+            usersData.push({uid: d.id, ...d.data()});
         });
 
         await renderUserList();
@@ -65,8 +76,9 @@ async function renderUserList() {
         return;
     }
 
+    // Build rows with data-index attributes, attach listeners after inserting to DOM
     tbody.innerHTML = usersData
-        .map((user) => {
+        .map((user, idx) => {
             const displayName = user.displayName || "N/A";
             const email = user.email || "N/A";
             const theme = user.themePreference || "dark";
@@ -79,20 +91,12 @@ async function renderUserList() {
         <td class="px-2 py-1 text-text-secondary text-xs">${theme}</td>
         <td class="px-2 py-1 text-text-secondary text-xs">
           <div class="flex space-x-1">
-            <button 
-              onclick="openEditUserModal('${user.uid}', ${JSON.stringify(user).replace(/"/g, "&quot;")})"
-              class="text-link hover:text-link transition-colors admin-action-btn"
-              title="Edit User"
-            >
+            <button data-action="edit" data-index="${idx}" class="text-link hover:text-link transition-colors admin-action-btn" title="Edit User">
               <svg class="w-4 h-4" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </button>
-            <button 
-              onclick="deleteUserProfile('${user.uid}', '${displayName}')"
-              class="text-red-400 hover:text-red-300 transition-colors admin-action-btn"
-              title="Delete Profile"
-            >
+            <button data-action="delete" data-index="${idx}" class="text-red-400 hover:text-red-300 transition-colors admin-action-btn" title="Delete Profile">
               <svg class="w-4 h-4" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -103,6 +107,33 @@ async function renderUserList() {
     `;
         })
         .join("");
+
+    // Attach event listeners so async handlers can await internals
+    tbody.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            try {
+                const idx = Number(btn.getAttribute('data-index'));
+                const u = usersData[idx];
+                if (!u) return;
+                await openEditUserModal(u.uid, u);
+            } catch (err) {
+                console.error('openEditUserModal handler error:', err);
+            }
+        });
+    });
+
+    tbody.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            try {
+                const idx = Number(btn.getAttribute('data-index'));
+                const u = usersData[idx];
+                if (!u) return;
+                await deleteUserProfile(u.uid, u.displayName || '');
+            } catch (err) {
+                console.error('deleteUserProfile handler error:', err);
+            }
+        });
+    });
 }
 
 /**
@@ -110,85 +141,105 @@ async function renderUserList() {
  * @param {string} uid - The UID of the user to edit.
  * @param {Object} userData - The complete user profile data.
  */
-export function openEditUserModal(uid, userData) {
-    console.log("DEBUG: Opening edit modal for user:", uid, userData);
+export async function openEditUserModal(uid, userData) {
+    // Accept userData as an object or a string (inline onclick may pass a string)
+    let parsedUserData = userData;
+    if (typeof userData === 'string') {
+        try {
+            // HTML embedding used &quot; for quotes; convert back
+            const normalized = userData.replace(/&quot;/g, '"');
+            parsedUserData = JSON.parse(normalized);
+        } catch (e) {
+            console.warn('openEditUserModal: failed to parse userData string, falling back to raw value', e);
+            // keep as string if parsing fails
+            parsedUserData = userData;
+        }
+    }
+
+    console.log("DEBUG: Opening edit modal for user:", uid, parsedUserData);
 
     // Store the current user being edited
-    currentEditingUser = {uid, ...userData};
+    currentEditingUser = {uid, ...(parsedUserData || {})};
 
-    // Populate form fields
-    document.getElementById("edit-user-display-name").value =
-        userData.displayName || "";
-    document.getElementById("edit-user-handle").value = userData.handle || "";
-    document.getElementById("edit-user-email").value = userData.email || "";
-    document.getElementById("edit-user-photo-url").value =
-        userData.photoURL || "";
-    document.getElementById("edit-user-discord-url").value =
-        userData.discordURL || "";
-    document.getElementById("edit-user-github-url").value =
-        userData.githubURL || "";
+    // Populate form fields (guard DOM queries)
+    const setVal = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    };
+    const setChecked = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = !!value;
+    };
 
-    // Populate theme select
-    populateEditUserThemeSelect(userData.themePreference);
+    setVal('edit-user-display-name', parsedUserData?.displayName || '');
+    setVal('edit-user-handle', parsedUserData?.handle || '');
+    setVal('edit-user-email', parsedUserData?.email || '');
+    setVal('edit-user-photo-url', parsedUserData?.photoURL || '');
+    setVal('edit-user-discord-url', parsedUserData?.discordURL || '');
+    setVal('edit-user-github-url', parsedUserData?.githubURL || '');
 
-    // Populate other fields
-    document.getElementById("edit-user-font-scaling").value =
-        userData.fontScaling || "normal";
-    document.getElementById("edit-user-notification-frequency").value =
-        userData.notificationFrequency || "immediate";
-    document.getElementById("edit-user-email-notifications").checked =
-        userData.emailNotifications || false;
-    document.getElementById("edit-user-discord-notifications").checked =
-        userData.discordNotifications || false;
-    document.getElementById("edit-user-push-notifications").checked =
-        userData.pushNotifications || false;
-    document.getElementById("edit-user-data-retention").value =
-        userData.dataRetention || "365";
-    document.getElementById("edit-user-profile-visible").checked =
-        userData.profileVisible !== false;
-    document.getElementById("edit-user-activity-tracking").checked =
-        userData.activityTracking !== false;
-    document.getElementById("edit-user-third-party-sharing").checked =
-        userData.thirdPartySharing || false;
-    document.getElementById("edit-user-high-contrast").checked =
-        userData.highContrast || false;
-    document.getElementById("edit-user-reduced-motion").checked =
-        userData.reducedMotion || false;
-    document.getElementById("edit-user-screen-reader").checked =
-        userData.screenReader || false;
-    document.getElementById("edit-user-focus-indicators").checked =
-        userData.focusIndicators || false;
-    document.getElementById("edit-user-keyboard-shortcuts").value =
-        userData.keyboardShortcuts || "enabled";
-    document.getElementById("edit-user-debug-mode").checked =
-        userData.debugMode || false;
-    document.getElementById("edit-user-custom-css").value =
-        userData.customCSS || "";
+    // Ensure theme select is populated before continuing
+    try {
+        await populateEditUserThemeSelect(parsedUserData?.themePreference);
+    } catch (e) {
+        console.warn("Failed to populate theme select:", e);
+    }
+
+    setVal('edit-user-font-scaling', parsedUserData?.fontScaling || 'normal');
+    setVal('edit-user-notification-frequency', parsedUserData?.notificationFrequency || 'immediate');
+    setChecked('edit-user-email-notifications', parsedUserData?.emailNotifications || false);
+    setChecked('edit-user-discord-notifications', parsedUserData?.discordNotifications || false);
+    setChecked('edit-user-push-notifications', parsedUserData?.pushNotifications || false);
+    setVal('edit-user-data-retention', parsedUserData?.dataRetention || '365');
+    setChecked('edit-user-profile-visible', parsedUserData?.profileVisible !== false);
+    setChecked('edit-user-activity-tracking', parsedUserData?.activityTracking !== false);
+    setChecked('edit-user-third-party-sharing', parsedUserData?.thirdPartySharing || false);
+    setChecked('edit-user-high-contrast', parsedUserData?.highContrast || false);
+    setChecked('edit-user-reduced-motion', parsedUserData?.reducedMotion || false);
+    setChecked('edit-user-screen-reader', parsedUserData?.screenReader || false);
+    setChecked('edit-user-focus-indicators', parsedUserData?.focusIndicators || false);
+    setVal('edit-user-keyboard-shortcuts', parsedUserData?.keyboardShortcuts || 'enabled');
+    setChecked('edit-user-debug-mode', parsedUserData?.debugMode || false);
+    setVal('edit-user-custom-css', parsedUserData?.customCSS || '');
 
     // Show the modal
-    const modal = document.getElementById("edit-user-modal");
-    modal.style.display = "flex";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
+    const modal = editUserModal();
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+    }
 }
 
 /**
  * Populates the theme selection dropdown in the edit user modal.
  * @param {string} selectedThemeId - The currently selected theme ID for the user.
  */
-async function populateEditUserThemeSelect(selectedThemeId) {
-    editUserThemeSelect.innerHTML = ""; // Clear existing options
+export async function populateEditUserThemeSelect(selectedThemeId) {
+    // If the reference isn't available, re-query the DOM to be robust
+    const selectEl = editUserThemeSelect() || document.getElementById('edit-user-theme');
+    if (!selectEl) {
+        console.warn('Theme select element (#edit-user-theme) not found');
+        return [];
+    }
+
+    selectEl.innerHTML = ''; // Clear existing options
     const availableThemes = await getAvailableThemes(); // From themes.js
-    availableThemes.forEach((theme) => {
-        const option = document.createElement("option");
-        option.value = theme.id;
-        option.textContent = theme.name;
-        editUserThemeSelect.appendChild(option);
-    });
-    editUserThemeSelect.value = selectedThemeId; // Set the current theme
-    console.log(
-        `DEBUG: Edit User Theme Select populated with selected theme: ${selectedThemeId}`,
-    );
+    if (Array.isArray(availableThemes)) {
+        availableThemes.forEach((theme) => {
+            const option = document.createElement('option');
+            option.value = theme.id;
+            option.textContent = theme.name;
+            selectEl.appendChild(option);
+        });
+    }
+    // Try to set the value; if not available, ignore
+    try {
+        selectEl.value = selectedThemeId;
+    } catch (e) { /* ignore */
+    }
+    console.log(`DEBUG: Edit User Theme Select populated with selected theme: ${selectedThemeId}`);
+    return availableThemes;
 }
 
 export async function saveUserChanges() {
@@ -265,7 +316,8 @@ export async function saveUserChanges() {
         await updateDoc(userDocRef, updatedData);
 
         showMessageBox("User profile updated successfully!", false);
-        editUserModal.style.display = "none";
+        const modal = editUserModal();
+        if (modal) modal.style.display = 'none';
         currentEditingUser = null;
 
         // Reload the user list to show updated data
@@ -308,5 +360,31 @@ export async function deleteUserProfile (uid, displayName) {
     }
 }
 
-// Initial load
-loadUsers();
+// Export element getters so other modules can import if needed
+export function getEditUserModalElement() {
+    return document.getElementById('edit-user-modal');
+}
+
+export function getEditUserThemeSelectElement() {
+    return document.getElementById('edit-user-theme');
+}
+
+// Ensure functions are available globally for inline onclick handlers
+if (typeof window !== 'undefined') {
+    window.openEditUserModal = openEditUserModal;
+    window.deleteUserProfile = deleteUserProfile;
+    window.saveUserChanges = saveUserChanges;
+    window.loadUsers = loadUsers;
+    window.populateEditUserThemeSelect = populateEditUserThemeSelect;
+}
+
+// Initial load of users and wiring when the script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsers().catch(e => console.error('loadUsers failed:', e));
+        wireUpButtons();
+    });
+} else {
+    loadUsers().catch(e => console.error('loadUsers failed:', e));
+    wireUpButtons();
+}

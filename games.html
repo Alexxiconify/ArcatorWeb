@@ -173,7 +173,7 @@
         auth.onAuthStateChanged(async user => {
             const profile = user ? await getUserProfileFromFirestore(user.uid) : null;
             await loadNavbar(user, profile, DEFAULT_PROFILE_PIC, "dark");
-            loadFooter("current-year");
+            await loadFooter("current-year");
             const allThemes = await getAvailableThemes();
             const theme = allThemes.find(t => t.id === profile?.themePreference) || allThemes.find(t => t.id === "dark");
             theme && applyTheme(theme.id, theme);

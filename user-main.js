@@ -5,27 +5,25 @@
 import {
     appId,
     auth,
+    collection,
     db,
     DEFAULT_PROFILE_PIC,
     DEFAULT_THEME_NAME,
+    doc,
     firebaseReadyPromise,
+    getDocs,
     getUserProfileFromFirestore,
+    query,
+    setDoc,
     setUserProfileInFirestore,
+    where,
 } from "./firebase-init.js";
 
 import {sanitizeHandle, showCustomConfirm, showMessageBox,} from "./utils.js";
 import {applyTheme, cacheUserTheme, getAvailableThemes, setupThemesFirebase,} from "./themes.js";
 import {loadNavbar} from "./core.js"; // Ensure loadNavbar is imported
 // Import global shortcut functions from app.js
-import {
-    defaultShortcuts,
-    getCurrentShortcuts,
-    shortcutCategories,
-    shortcutDescriptions,
-    toggleShortcutDisabled,
-    updateGlobalShortcuts,
-} from "./app.js";
-
+import {getCurrentShortcuts} from "./shortcuts.js";
 import {
     createUserWithEmailAndPassword,
     GithubAuthProvider,
@@ -33,17 +31,8 @@ import {
     sendPasswordResetEmail,
     signInWithEmailAndPassword,
     signInWithPopup,
-    updateProfile,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-import {
-    collection,
-    doc,
-    getDocs,
-    query,
-    setDoc,
-    where,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    updateProfile
+} from '@firebase/auth';
 
 /**
  * Toggle password visibility for input fields
@@ -57,7 +46,7 @@ function togglePasswordVisibility(inputId, button) {
   if (input.type === "password") {
     input.type = "text";
     button.innerHTML = `
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 24 24">
         <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
       </svg>
     `;
@@ -65,7 +54,7 @@ function togglePasswordVisibility(inputId, button) {
   } else {
     input.type = "password";
     button.innerHTML = `
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 24 24">
         <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
         <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
       </svg>
@@ -324,7 +313,6 @@ function generateColoredProfilePic(displayName) {
 
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
-
 // --- DOM Elements --
 // Auth sections
 const signInSection = document.getElementById("signin-section");
@@ -338,11 +326,9 @@ const signInEmailInput = document.getElementById("signin-email");
 const signInPasswordInput = document.getElementById("signin-password");
 const signInButton = document.getElementById("signin-btn");
 const goToSignUpLink = document.getElementById("go-to-signup-link");
-const goToForgotPasswordLink = document.getElementById(
-  "go-to-forgot-password-link",
-);
+const goToForgotPasswordLink = document.getElementById("go-to-forgot-password-link");
 
-// Sign Up elements
+// Provided, generate colored profile pic
 const signUpEmailInput = document.getElementById("signup-email");
 const signUpPasswordInput = document.getElementById("signup-password");
 const signUpConfirmPasswordInput = document.getElementById(
@@ -399,87 +385,26 @@ const backgroundOpacityValue = document.getElementById(
   "background-opacity-value",
 );
 
-// Notification settings
-const emailNotificationsCheckbox = document.getElementById(
-  "email-notifications-checkbox",
-);
-const inappNotificationsCheckbox = document.getElementById(
-  "inapp-notifications-checkbox",
-);
-const announcementNotificationsCheckbox = document.getElementById(
-  "announcement-notifications-checkbox",
-);
-const communityNotificationsCheckbox = document.getElementById(
-  "community-notifications-checkbox",
-);
-const securityNotificationsCheckbox = document.getElementById(
-  "security-notifications-checkbox",
-);
-const maintenanceNotificationsCheckbox = document.getElementById(
-  "maintenance-notifications-checkbox",
-);
-const notificationFrequencySelect = document.getElementById(
-  "notification-frequency-select",
-);
+// Notification settings (elements accessed lazily inside handlers)
 const saveNotificationsBtn = document.getElementById("save-notifications-btn");
 
-// Privacy settings
-const profileVisibilityCheckbox = document.getElementById(
-  "profile-visibility-checkbox",
-);
-const activityVisibilityCheckbox = document.getElementById(
-  "activity-visibility-checkbox",
-);
-const analyticsConsentCheckbox = document.getElementById(
-  "analytics-consent-checkbox",
-);
-const dataRetentionSelect = document.getElementById("data-retention-select");
+// Privacy settings (elements accessed lazily inside handlers)
 const exportDataBtn = document.getElementById("export-data-btn");
 const importDataBtn = document.getElementById("import-data-btn");
 const savePrivacyBtn = document.getElementById("save-privacy-btn");
 
-// Accessibility settings
-const highContrastCheckbox = document.getElementById("high-contrast-checkbox");
-const largeCursorCheckbox = document.getElementById("large-cursor-checkbox");
-const focusIndicatorsCheckbox = document.getElementById(
-  "focus-indicators-checkbox",
-);
-const colorblindFriendlyCheckbox = document.getElementById(
-  "colorblind-friendly-checkbox",
-);
-const reducedMotionCheckbox = document.getElementById(
-  "reduced-motion-checkbox",
-);
-const disableAnimationsCheckbox = document.getElementById(
-  "disable-animations-checkbox",
-);
-const skipLinksCheckbox = document.getElementById("skip-links-checkbox");
-const readingGuideCheckbox = document.getElementById("reading-guide-checkbox");
-const syntaxHighlightingCheckbox = document.getElementById(
-  "syntax-highlighting-checkbox",
-);
-const wordSpacingCheckbox = document.getElementById("word-spacing-checkbox");
+// Accessibility settings (elements accessed lazily inside handlers)
 const saveAccessibilityBtn = document.getElementById("save-accessibility-btn");
 
-// Advanced settings
-const lowBandwidthModeCheckbox = document.getElementById(
-  "low-bandwidth-mode-checkbox",
-);
-const disableImagesCheckbox = document.getElementById(
-  "disable-images-checkbox",
-);
+// Advanced settings - keep controls that are used elsewhere
+const lowBandwidthModeCheckbox = document.getElementById("low-bandwidth-mode-checkbox");
+const disableImagesCheckbox = document.getElementById("disable-images-checkbox");
 const minimalUiCheckbox = document.getElementById("minimal-ui-checkbox");
 const debugModeCheckbox = document.getElementById("debug-mode-checkbox");
-const showPerformanceMetricsCheckbox = document.getElementById(
-  "show-performance-metrics-checkbox",
-);
-const enableExperimentalFeaturesCheckbox = document.getElementById(
-  "enable-experimental-features-checkbox",
-);
+const showPerformanceMetricsCheckbox = document.getElementById("show-performance-metrics-checkbox");
+const enableExperimentalFeaturesCheckbox = document.getElementById("enable-experimental-features-checkbox");
 const customCssTextarea = document.getElementById("custom-css-textarea");
-const keyboardShortcutsToggle = document.getElementById(
-  "keyboard-shortcuts-toggle",
-);
+const keyboardShortcutsToggle = document.getElementById("keyboard-shortcuts-toggle");
 const saveAdvancedBtn = document.getElementById("save-advanced-btn");
 const resetAdvancedBtn = document.getElementById("reset-advanced-btn");
 
@@ -578,7 +503,7 @@ async function handleSignIn() {
   }
   showLoading();
   try {
-    const userCredential = await signInWithEmailAndPassword(
+      await signInWithEmailAndPassword(
       auth,
       email,
       password,
@@ -633,7 +558,7 @@ async function handleSignUp() {
     // Generate random name and handle if not provided
     let finalDisplayName = displayName;
     let finalHandle = handle;
-    let profilePicUrl = DEFAULT_PROFILE_PIC;
+      let profilePicUrl;
 
     if (!finalDisplayName) {
       const randomData = generateRandomNameAndHandle();
@@ -686,23 +611,21 @@ async function handleSignUp() {
     }
     console.log("DEBUG: Handle is unique. Proceeding with user creation.");
 
-    const userCredential = await createUserWithEmailAndPassword(
+      await createUserWithEmailAndPassword(
       auth,
       email,
       password,
     );
-    const user = userCredential.user;
-    console.log("DEBUG: Firebase user created:", user.uid);
 
     // Use generated profile picture
-    await updateProfile(user, {
+      await updateProfile(auth.currentUser, {
       displayName: finalDisplayName,
       photoURL: profilePicUrl,
     });
     console.log("DEBUG: User profile updated in Firebase Auth.");
 
     const userProfileData = {
-      uid: user.uid,
+        uid: auth.currentUser.uid,
       displayName: finalDisplayName,
       email: email,
       photoURL: profilePicUrl,
@@ -712,7 +635,7 @@ async function handleSignUp() {
       isAdmin: false, // Default to not admin
       handle: finalHandle, // Store the sanitized handle
     };
-    await setUserProfileInFirestore(user.uid, userProfileData);
+      await setUserProfileInFirestore(auth.currentUser.uid, userProfileData);
     console.log("DEBUG: User profile saved to Firestore.");
 
     showMessageBox("Account created successfully! Please sign in.", false);
@@ -879,10 +802,8 @@ async function reloadAndApplyUserProfile() {
 
   // Update profile picture display
   if (profilePictureDisplay) {
-    const photoURL = userProfile.photoURL || DEFAULT_PROFILE_PIC;
-    profilePictureDisplay.src = photoURL;
-    profilePictureDisplay.alt =
-      userProfile.displayName || "User Profile Picture";
+      profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
+      profilePictureDisplay.alt = userProfile.displayName || "User Profile Picture";
   }
 
   // Use advancedSettings for UI controls and font scaling
@@ -1043,55 +964,6 @@ async function reloadAndApplyUserProfile() {
     customCssTextarea.value = advancedSettings.customCSS;
   }
 
-  // Add keyboard shortcuts setting
-  const keyboardShortcutsSelect = document.getElementById(
-    "keyboard-shortcuts-toggle",
-  );
-  if (keyboardShortcutsSelect) {
-    keyboardShortcutsSelect.value =
-      advancedSettings.keyboardShortcuts || "enabled";
-  }
-
-  // Apply advanced settings to the page
-  applyAdvancedSettings(advancedSettings);
-  if (advancedSettings.customCSS) {
-    applyCustomCSS(advancedSettings.customCSS);
-  }
-
-  // Apply background pattern with opacity
-  const backgroundPattern = userProfile.backgroundPattern || "none";
-  const backgroundOpacity = userProfile.backgroundOpacity || "50";
-  const opacity = backgroundOpacity / 100;
-
-  if (backgroundPattern === "none") {
-    document.body.style.backgroundImage = "none";
-  } else if (backgroundPattern === "dots") {
-    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,${opacity}) 1px, transparent 1px), linear-gradient(rgba(0,0,0,${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = "20px 20px";
-  } else if (backgroundPattern === "grid") {
-    document.body.style.backgroundImage = `linear-gradient(to right, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = "40px 40px";
-  } else if (backgroundPattern === "diagonal") {
-    document.body.style.backgroundImage = `linear-gradient(45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%), linear-gradient(-45deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25%)`;
-    document.body.style.backgroundSize = "60px 60px";
-  } else if (backgroundPattern === "circles") {
-    document.body.style.backgroundImage = `radial-gradient(circle, rgba(0, 0, 0, ${opacity}) 1px, transparent 1px)`;
-    document.body.style.backgroundSize = "30px 30px";
-  } else if (backgroundPattern === "hexagons") {
-    document.body.style.backgroundImage = `linear-gradient(60deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%), linear-gradient(120deg, rgba(0, 0, 0, ${opacity}) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, ${opacity}) 75%)`;
-    document.body.style.backgroundSize = "40px 40px";
-  }
-
-  // Load and apply keyboard shortcuts
-  if (advancedSettings.keyboardShortcutsConfig) {
-    updateGlobalShortcuts({
-      ...defaultShortcuts,
-      ...advancedSettings.keyboardShortcutsConfig,
-    });
-  } else {
-    updateGlobalShortcuts({ ...defaultShortcuts });
-  }
-
   // Load disabled shortcuts
   if (advancedSettings.disabledShortcuts) {
     advancedSettings.disabledShortcuts.forEach((shortcutName) => {
@@ -1135,34 +1007,6 @@ function updateShortcutUI() {
       }
     }
   });
-}
-
-// Function to save shortcuts to Firebase
-async function saveShortcutsToFirebase() {
-  // Get current user from Firebase auth
-  const currentUser = auth.currentUser;
-  if (!currentUser) {
-    showMessageBox("You must be logged in to save keyboard shortcuts.", true);
-    return;
-  }
-
-  const currentShortcuts = getCurrentShortcuts();
-  const disabledShortcutsList = Array.from(disabledShortcuts);
-
-  const updates = {
-    advancedSettings: {
-      keyboardShortcutsConfig: currentShortcuts,
-      disabledShortcuts: disabledShortcutsList,
-    },
-  };
-
-  try {
-    await setUserProfileInFirestore(currentUser.uid, updates);
-    showMessageBox("Keyboard shortcuts saved successfully!", false);
-  } catch (error) {
-    console.error("Error saving shortcuts:", error);
-    showMessageBox("Error saving keyboard shortcuts.", true);
-  }
 }
 
 // Comprehensive font scaling system
@@ -1920,8 +1764,7 @@ async function handleSaveAdvanced() {
   }
 
   // Save keyboard shortcuts configuration
-  const currentShortcuts = getCurrentShortcuts();
-  advancedSettings.keyboardShortcutsConfig = currentShortcuts;
+    advancedSettings.keyboardShortcutsConfig = getCurrentShortcuts();
 
   // Get disabled shortcuts
   const disabledShortcuts = [];
@@ -2269,7 +2112,8 @@ function setupEventListeners() {
   }
 
   // Sign up form - handle both button click and form submit
-  if (signUpButton) {
+
+    if (signUpButton) {
     signUpButton.addEventListener("click", handleSignUp);
   }
 
@@ -2576,46 +2420,4 @@ function setupEventListeners() {
       }
     });
   });
-}
-
-// Helper function to get pressed keys (imported from app.js logic)
-function getPressedKeys(event) {
-  const keys = [];
-  if (event.altKey) keys.push("Alt");
-  if (event.ctrlKey) keys.push("Ctrl");
-  if (event.shiftKey) keys.push("Shift");
-  if (event.metaKey) keys.push("Meta");
-  if (event.key && !["Alt", "Ctrl", "Shift", "Meta"].includes(event.key)) {
-    const keyMap = {
-      " ": "Space",
-      Enter: "Enter",
-      Escape: "Escape",
-      Tab: "Tab",
-      Backspace: "Backspace",
-      Delete: "Delete",
-      ArrowUp: "Up",
-      ArrowDown: "Down",
-      ArrowLeft: "Left",
-      ArrowRight: "Right",
-      Home: "Home",
-      End: "End",
-      PageUp: "PageUp",
-      PageDown: "PageDown",
-      Insert: "Insert",
-      F1: "F1",
-      F2: "F2",
-      F3: "F3",
-      F4: "F4",
-      F5: "F5",
-      F6: "F6",
-      F7: "F7",
-      F8: "F8",
-      F9: "F9",
-      F10: "F10",
-      F11: "F11",
-      F12: "F12",
-    };
-    keys.push(keyMap[event.key] || event.key.toUpperCase());
-  }
-  return keys.join("+");
 }

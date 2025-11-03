@@ -16,7 +16,7 @@ export {
   shortcutDescriptions
 };
 
-const defaultShortcuts = {
+export const defaultShortcuts = {
   home: "Alt+Shift+H",
   about: "Alt+Shift+A",
   servers: "Alt+Shift+S",
