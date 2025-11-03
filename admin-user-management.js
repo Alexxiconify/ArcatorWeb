@@ -67,6 +67,11 @@ export async function loadUsers() {
 async function renderUserList() {
     const tbody = document.getElementById("user-list-tbody");
 
+    if (!tbody) {
+        console.warn('renderUserList: #user-list-tbody not found in DOM, skipping render.');
+        return;
+    }
+
     if (!usersData || usersData.length === 0) {
         tbody.innerHTML = `
       <tr>
@@ -387,4 +392,22 @@ if (document.readyState === 'loading') {
 } else {
     loadUsers().catch(e => console.error('loadUsers failed:', e));
     wireUpButtons();
+}
+
+// Ensure the admin panel refreshes its user list when the auth/user profile becomes ready
+if (typeof window !== 'undefined') {
+    const _prevOnUserReady = window.onUserReady;
+    window.onUserReady = async function () {
+        try {
+            await loadUsers();
+        } catch (e) {
+            console.error('onUserReady: loadUsers failed', e);
+        }
+        try {
+            // preserve previous handler behavior
+            if (typeof _prevOnUserReady === 'function') await _prevOnUserReady();
+        } catch (e) {
+            console.error('onUserReady: previous handler failed', e);
+        }
+    };
 }
