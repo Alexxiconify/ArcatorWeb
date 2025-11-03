@@ -27,6 +27,12 @@ import {
     where,
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {firebaseConfig as externalFirebaseConfig} from "./firebase-config.js";
+import {getAppId, getFirebaseConfig, getInitialAuthToken} from './runtime-globals.js';
+
+// Prefer injected runtime globals (if any) read via helper getters
+const __app_id = getAppId();
+const __firebase_config = getFirebaseConfig();
+const __initial_auth_token = getInitialAuthToken();
 
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
 export const appId = canvasAppId || externalFirebaseConfig.projectId || "default-app-id";
@@ -63,28 +69,6 @@ export async function setUserProfileInFirestore(uid, profileData) {
     console.error("Error updating user profile:", error);
     return false;
   }
-}
-export async function deleteUserProfileFromFirestore(uid) {
-  await firebaseReadyPromise;
-  if (!db) return false;
-  try {
-    await deleteDoc(doc(db, `artifacts/${appId}/public/data/user_profiles`, uid));
-    return true;
-  } catch (error) {
-    console.error("Error deleting user profile:", error);
-    return false;
-  }
-}
-
-// Prevent 'unused function' warning in static analysis
-void deleteUserProfileFromFirestore;
-// Expose to window in browser environments so it's discoverable and considered used
-if (typeof window !== 'undefined') {
-    try {
-        window.deleteUserProfileFromFirestore = deleteUserProfileFromFirestore;
-    } catch (e) {
-        // ignore
-    }
 }
 
 function setupFirebaseCore() {
@@ -170,7 +154,7 @@ firebaseReadyPromise.then(() => {
         localStorage.setItem('userProfile', JSON.stringify(userProfile)); // Store user data in local storage
       if (typeof window.onUserReady === "function") window.onUserReady();
         // Refresh navbar/profile UI; do not forcibly redirect to the same page as it can create reload loops
-      refreshNavbar();
+      await refreshNavbar();
     } else {
       currentUser = null;
       window.currentUser = null;

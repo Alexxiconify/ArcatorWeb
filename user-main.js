@@ -11,6 +11,7 @@ import {
     DEFAULT_THEME_NAME,
     doc,
     firebaseReadyPromise,
+    getCurrentUser,
     getDocs,
     getUserProfileFromFirestore,
     query,
@@ -23,7 +24,7 @@ import {sanitizeHandle, showCustomConfirm, showMessageBox,} from "./utils.js";
 import {applyTheme, cacheUserTheme, getAvailableThemes, setupThemesFirebase,} from "./themes.js";
 import {loadNavbar} from "./core.js"; // Ensure loadNavbar is imported
 // Import global shortcut functions from app.js
-import {getCurrentShortcuts} from "./shortcuts.js";
+import {getCurrentShortcuts, toggleShortcutDisabled, updateGlobalShortcuts} from "./shortcuts.js";
 import {
     createUserWithEmailAndPassword,
     GithubAuthProvider,
@@ -1822,7 +1823,8 @@ function applyCustomCSS(css) {
 
 // Apply advanced settings
 function applyAdvancedSettings(settings) {
-  if (settings.debugMode) {
+    settings.disableImages = undefined;
+    if (settings.debugMode) {
     document.body.classList.add("debug-mode");
   } else {
     document.body.classList.remove("debug-mode");

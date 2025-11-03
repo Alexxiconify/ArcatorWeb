@@ -366,14 +366,6 @@ export async function deleteUserProfile (uid, displayName) {
 }
 
 // Export element getters so other modules can import if needed
-export function getEditUserModalElement() {
-    return document.getElementById('edit-user-modal');
-}
-
-export function getEditUserThemeSelectElement() {
-    return document.getElementById('edit-user-theme');
-}
-
 // Ensure functions are available globally for inline onclick handlers
 if (typeof window !== 'undefined') {
     window.openEditUserModal = openEditUserModal;
