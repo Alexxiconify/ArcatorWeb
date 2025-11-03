@@ -1,5 +1,5 @@
 // firebase-init.js - Centralized Firebase Initialization
-import {getApp, getApps, initializeApp} from "firebase/app";
+import {getApp, getApps, initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
     createUserWithEmailAndPassword,
     getAuth,
@@ -12,7 +12,7 @@ import {
     signInWithPopup,
     signOut,
     updateProfile,
-} from "firebase/auth";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     collection,
     deleteDoc,
@@ -24,7 +24,7 @@ import {
     setDoc,
     updateDoc,
     where,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {firebaseConfig as externalFirebaseConfig} from "./firebase-config.js";
 
 const canvasAppId = typeof __app_id !== "undefined" ? __app_id : null;
@@ -139,7 +139,10 @@ setTimeout(async () => {
 }, 2000);
 firebaseReadyPromise.then(() => {
   onAuthStateChanged(auth, async (user) => {
-      document.getElementById('display-name').textContent = user?.displayName || 'Guest';
+      const _displayNameEl = typeof document !== 'undefined' ? document.getElementById('display-name') : null;
+      if (_displayNameEl) {
+          _displayNameEl.textContent = user?.displayName || 'Guest';
+      }
     if (user) {
       let userProfile = await getUserProfileFromFirestore(user.uid);
       if (!userProfile) {

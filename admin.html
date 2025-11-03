@@ -16,6 +16,9 @@
 <body class="bg-main text-text-primary font-sans leading-normal antialiased">
 <div id="navbar-container">
     <!-- Navbar will be loaded here by navbar.js -->
+    <!-- Minimal placeholder for firebase-init to write the display name into so pages that load firebase-init
+         before the navbar don't throw when trying to set textContent on a missing element. -->
+    <span id="display-name" style="display:none">Guest</span>
 </div>
 
 <main class="container mx-auto mt-8 p-4">
@@ -341,7 +344,8 @@
 
             <div>
                 <h3 class="text-xl font-semibold text-text-header mb-2">SMTP Server Integration</h3>
-                <div class="space-y-4">
+                <!-- Wrap SMTP fields in a form so password inputs are contained in a form (avoids browser console warning) -->
+                <form class="space-y-4" id="smtp-form">
                     <div>
                         <label class="form-label" for="smtp-host">Host:</label>
                         <input class="form-input" id="smtp-host" type="text"/>
@@ -368,7 +372,7 @@
                             Credentials
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </section>
     </div>
