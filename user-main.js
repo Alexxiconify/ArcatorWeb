@@ -1,6 +1,7 @@
 // user-main.js - Main script for the User Account page
 // Handles authentication UI, user settings, and interactions.
 
+      try { saveLocalSettings(currentUser.uid, { advancedSettings }); } catch(e) { console.warn('Failed to cache advanced settings locally', e); }
 // Import necessary functions and variables from other modules
 import {
     appId,
@@ -11,7 +12,6 @@ import {
     DEFAULT_THEME_NAME,
     doc,
     firebaseReadyPromise,
-    getCurrentUser,
     getDocs,
     getUserProfileFromFirestore,
     query,
@@ -415,6 +415,90 @@ const githubSignInBtn = document.getElementById("github-signin-btn");
 const googleSignUpBtn = document.getElementById("google-signup-btn");
 const githubSignUpBtn = document.getElementById("github-signup-btn");
 
+// Local in-browser settings cache (memory) helpers
+const DEFAULT_USER_SETTINGS = {
+  advancedSettings: {
+    fontSize: "16px",
+    fontFamily: "Inter, sans-serif",
+    backgroundPattern: "none",
+    headingSizeMultiplier: "1.6",
+    lineHeight: "1.6",
+    letterSpacing: "0px",
+    backgroundOpacity: "50",
+    keyboardShortcuts: "enabled",
+    disabledShortcuts: [],
+    customCSS: "",
+    lowBandwidthMode: false,
+    disableImages: false,
+    minimalUi: false,
+    debugMode: false,
+    showPerformanceMetrics: false,
+    enableExperimentalFeatures: false,
+  },
+  notificationSettings: {},
+  privacySettings: {},
+  accessibilitySettings: {},
+};
+
+function getLocalSettingsKey(uid) {
+  return `arcator_user_settings_${uid}`;
+}
+
+function loadLocalSettings(uid) {
+  if (!uid) return null;
+  try {
+    const raw = localStorage.getItem(getLocalSettingsKey(uid));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.warn("Failed to parse local settings", e);
+    return null;
+  }
+}
+
+function saveLocalSettings(uid, settings) {
+  if (!uid) return;
+  try {
+    const toSave = Object.assign({}, loadLocalSettings(uid) || {}, settings || {});
+    localStorage.setItem(getLocalSettingsKey(uid), JSON.stringify(toSave));
+  } catch (e) {
+    console.warn("Failed to save local settings", e);
+  }
+}
+
+function mergeSettingsWithLocal(profile, uid) {
+  if (!profile) return profile;
+  const local = loadLocalSettings(uid);
+  if (!local) return profile;
+  // Merge shallowly - prefer server profile but allow local advancedSettings to override
+  const merged = Object.assign({}, profile);
+  merged.advancedSettings = Object.assign(
+    {},
+    profile.advancedSettings || {},
+    local.advancedSettings || {},
+  );
+  merged.notificationSettings = Object.assign(
+    {},
+    profile.notificationSettings || {},
+    local.notificationSettings || {},
+  );
+  merged.privacySettings = Object.assign(
+    {},
+    profile.privacySettings || {},
+    local.privacySettings || {},
+  );
+  merged.accessibilitySettings = Object.assign(
+    {},
+    profile.accessibilitySettings || {},
+    local.accessibilitySettings || {},
+  );n
+  return merged;
+}
+
+// Expose memory helpers for debugging/testing
+window.__arcator_loadLocalSettings = loadLocalSettings;
+window.__arcator_saveLocalSettings = saveLocalSettings;
+
 /**
  * Shows a specific section and hides others within the main content area.
  * This is a central control for navigation between auth forms and settings.
@@ -548,6 +632,7 @@ async function handleSignUp() {
   }
   if (password.length < 6) {
     showMessageBox("Password should be at least 6 characters.", true);
+
     return;
   }
   if (password !== confirmPassword) {
@@ -638,6 +723,13 @@ async function handleSignUp() {
     };
       await setUserProfileInFirestore(auth.currentUser.uid, userProfileData);
     console.log("DEBUG: User profile saved to Firestore.");
+
+    // Cache default advanced settings locally so the UI can immediately reflect them
+    try {
+      saveLocalSettings(auth.currentUser.uid, { advancedSettings: DEFAULT_USER_SETTINGS.advancedSettings });
+    } catch (e) {
+      console.warn('Failed to save local defaults after signup', e);
+    }
 
     showMessageBox("Account created successfully! Please sign in.", false);
     showSection(signInSection); // Redirect to sign-in after successful signup
@@ -777,38 +869,41 @@ async function reloadAndApplyUserProfile() {
   const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
   if (!userProfile) return;
 
+  // Merge server profile with any local overrides
+  const mergedProfile = mergeSettingsWithLocal(userProfile, auth.currentUser.uid) || userProfile;
+
   // --- Apply theme preference ---
   const allThemes = await getAvailableThemes();
-  const themeId = userProfile.themePreference || DEFAULT_THEME_NAME;
+  const themeId = mergedProfile.themePreference || DEFAULT_THEME_NAME;
   const themeToApply =
     allThemes.find((t) => t.id === themeId) ||
     allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
   applyTheme(themeToApply.id, themeToApply); // Minimal: always apply user or default theme
 
   // Populate profile input fields
-  if (displayNameInput) displayNameInput.value = userProfile.displayName || "";
-  if (handleInput) handleInput.value = userProfile.handle || "";
-  if (emailInput) emailInput.value = userProfile.email || "";
+  if (displayNameInput) displayNameInput.value = mergedProfile.displayName || "";
+  if (handleInput) handleInput.value = mergedProfile.handle || "";
+  if (emailInput) emailInput.value = mergedProfile.email || "";
   if (profilePictureUrlInput)
-    profilePictureUrlInput.value = userProfile.photoURL || "";
+    profilePictureUrlInput.value = mergedProfile.photoURL || "";
 
   // Update profile display elements
   if (displayNameText)
-    displayNameText.textContent = userProfile.displayName || "N/A";
+    displayNameText.textContent = mergedProfile.displayName || "N/A";
   if (handleText)
-    handleText.textContent = userProfile.handle
-      ? `@${userProfile.handle}`
+    handleText.textContent = mergedProfile.handle
+      ? `@${mergedProfile.handle}`
       : "N/A";
-  if (emailText) emailText.textContent = userProfile.email || "N/A";
+  if (emailText) emailText.textContent = mergedProfile.email || "N/A";
 
   // Update profile picture display
   if (profilePictureDisplay) {
-      profilePictureDisplay.src = userProfile.photoURL || DEFAULT_PROFILE_PIC;
-      profilePictureDisplay.alt = userProfile.displayName || "User Profile Picture";
+      profilePictureDisplay.src = mergedProfile.photoURL || DEFAULT_PROFILE_PIC;
+      profilePictureDisplay.alt = mergedProfile.displayName || "User Profile Picture";
   }
 
   // Use advancedSettings for UI controls and font scaling
-  const advSettingsLocal = userProfile.advancedSettings || {};
+  const advSettingsLocal = mergedProfile.advancedSettings || {};
   if (fontSizeSelect)
     fontSizeSelect.value = advSettingsLocal.fontSize || "16px";
   if (fontFamilySelect)
@@ -1332,6 +1427,8 @@ async function handleSavePreferences() {
     const success = await setUserProfileInFirestore(currentUser.uid, updates);
     if (success) {
       showMessageBox("Preferences saved successfully!", false);
+      // Cache locally
+      try { saveLocalSettings(currentUser.uid, { advancedSettings }); } catch(e) { console.warn('Failed to cache preferences locally', e); }
       // Auto-hide success message after 2 seconds
       setTimeout(() => {
         const messageBox = document.getElementById("message-box");
@@ -2304,46 +2401,6 @@ function setupEventListeners() {
             break;
           case "background-pattern-select":
             advSettings.backgroundPattern = select.value;
-
-// After main logic: ensure the user settings UI updates when firebase-init signals the user is ready
-                if (typeof window !== 'undefined') {
-                    const _prevOnUserReady = window.onUserReady;
-                    window.onUserReady = async function () {
-                        try {
-                            // Try to re-apply user data to UI if available
-                            const profile = window.currentUser || (await (typeof getCurrentUser === 'function' ? getCurrentUser() : Promise.resolve(null)));
-                            if (profile) {
-                                const displayNameTextEl = document.getElementById('display-name-text');
-                                const profilePicEl = document.getElementById('profile-picture-display');
-                                const displayNameInputEl = document.getElementById('display-name-input');
-                                const handleInputEl = document.getElementById('handle-input');
-                                const emailInputEl = document.getElementById('email-input');
-
-                                if (displayNameTextEl && profile.displayName) displayNameTextEl.textContent = profile.displayName;
-                                if (profilePicEl && profile.photoURL) profilePicEl.src = profile.photoURL;
-                                if (displayNameInputEl && profile.displayName) displayNameInputEl.value = profile.displayName;
-                                if (handleInputEl && profile.handle) handleInputEl.value = profile.handle;
-                                if (emailInputEl && profile.email) emailInputEl.value = profile.email;
-
-                                // Show settings content and hide login/loader if present
-                                const settingsContentEl = document.getElementById('settings-content');
-                                const loginRequiredMsg = document.getElementById('login-required-message');
-                                const loadingSpinnerEl = document.getElementById('loading-spinner');
-                                if (settingsContentEl) settingsContentEl.style.display = 'block';
-                                if (loginRequiredMsg) loginRequiredMsg.classList.add('hidden');
-                                if (loadingSpinnerEl) loadingSpinnerEl.style.display = 'none';
-                            }
-                        } catch (e) {
-                            console.error('onUserReady handler in user-main failed', e);
-                        }
-                        try {
-                            if (typeof _prevOnUserReady === 'function') await _prevOnUserReady();
-                        } catch (e) {
-                            console.error('onUserReady: previous handler failed', e);
-                        }
-                    };
-                }
-
             break;
           case "theme-select":
             userProfile.themePreference = select.value;
