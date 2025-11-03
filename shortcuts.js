@@ -4,18 +4,6 @@ let currentRecordingShortcut = null;
 let disabledShortcuts = new Set();
 let shortcutKeyToName = {};
 
-export {
-  initializeKeyboardShortcuts,
-  handleKeyboardShortcut,
-  getCurrentShortcuts,
-  updateGlobalShortcuts,
-  toggleShortcutDisabled,
-  testShortcutCombination,
-  executeShortcut,
-  shortcutCategories,
-  shortcutDescriptions
-};
-
 export const defaultShortcuts = {
   home: "Alt+Shift+H",
   about: "Alt+Shift+A",

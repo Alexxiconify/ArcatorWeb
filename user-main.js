@@ -2302,6 +2302,46 @@ function setupEventListeners() {
             break;
           case "background-pattern-select":
             advSettings.backgroundPattern = select.value;
+
+// After main logic: ensure the user settings UI updates when firebase-init signals the user is ready
+                if (typeof window !== 'undefined') {
+                    const _prevOnUserReady = window.onUserReady;
+                    window.onUserReady = async function () {
+                        try {
+                            // Try to re-apply user data to UI if available
+                            const profile = window.currentUser || (await (typeof getCurrentUser === 'function' ? getCurrentUser() : Promise.resolve(null)));
+                            if (profile) {
+                                const displayNameTextEl = document.getElementById('display-name-text');
+                                const profilePicEl = document.getElementById('profile-picture-display');
+                                const displayNameInputEl = document.getElementById('display-name-input');
+                                const handleInputEl = document.getElementById('handle-input');
+                                const emailInputEl = document.getElementById('email-input');
+
+                                if (displayNameTextEl && profile.displayName) displayNameTextEl.textContent = profile.displayName;
+                                if (profilePicEl && profile.photoURL) profilePicEl.src = profile.photoURL;
+                                if (displayNameInputEl && profile.displayName) displayNameInputEl.value = profile.displayName;
+                                if (handleInputEl && profile.handle) handleInputEl.value = profile.handle;
+                                if (emailInputEl && profile.email) emailInputEl.value = profile.email;
+
+                                // Show settings content and hide login/loader if present
+                                const settingsContentEl = document.getElementById('settings-content');
+                                const loginRequiredMsg = document.getElementById('login-required-message');
+                                const loadingSpinnerEl = document.getElementById('loading-spinner');
+                                if (settingsContentEl) settingsContentEl.style.display = 'block';
+                                if (loginRequiredMsg) loginRequiredMsg.classList.add('hidden');
+                                if (loadingSpinnerEl) loadingSpinnerEl.style.display = 'none';
+                            }
+                        } catch (e) {
+                            console.error('onUserReady handler in user-main failed', e);
+                        }
+                        try {
+                            if (typeof _prevOnUserReady === 'function') await _prevOnUserReady();
+                        } catch (e) {
+                            console.error('onUserReady: previous handler failed', e);
+                        }
+                    };
+                }
+
             break;
           case "theme-select":
             userProfile.themePreference = select.value;

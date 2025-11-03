@@ -1,6 +1,6 @@
 // admin-user-management.js
 
-import {appId, collection, db, deleteDoc, doc, getDocs, updateDoc,} from "./firebase-init.js";
+import {appId, collection, db, deleteDoc, doc, getDocs, onSnapshot, updateDoc} from "./firebase-init.js";
 
 import {getAvailableThemes} from "./themes.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
@@ -409,5 +409,50 @@ if (typeof window !== 'undefined') {
         } catch (e) {
             console.error('onUserReady: previous handler failed', e);
         }
+    };
+}
+
+let _usersUnsubscribe = null;
+
+async function startRealtimeUsersListener() {
+    if (!db) return;
+    try {
+        const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+        // If onSnapshot was provided by firebase-init, use it
+        if (typeof window !== 'undefined' && window.firebaseOnSnapshot) {
+            // support external shim (not expected, but keep it safe)
+        }
+        if (typeof onSnapshot === 'function') {
+            // remove previous listener
+            if (_usersUnsubscribe) try {
+                _usersUnsubscribe();
+            } catch (e) { /* ignore */
+            }
+            _usersUnsubscribe = onSnapshot(usersRef, (snapshot) => {
+                usersData = [];
+                snapshot.forEach((d) => usersData.push({uid: d.id, ...d.data()}));
+                // Try to render; this function guards DOM access
+                renderUserList().catch(e => console.error('renderUserList failed after snapshot update', e));
+            }, (err) => {
+                console.error('Realtime users listener error', err);
+            });
+            // expose for debugging
+            if (typeof window !== 'undefined') window._usersUnsubscribe = _usersUnsubscribe;
+        }
+    } catch (e) {
+        console.error('startRealtimeUsersListener failed:', e);
+    }
+}
+
+// Start real-time listener when firebase is ready
+if (typeof window !== 'undefined') {
+    const _prevOnUserReady2 = window.onUserReady;
+    window.onUserReady = async function () {
+        try {
+            await startRealtimeUsersListener();
+        } catch (e) {
+            console.error('onUserReady: startRealtimeUsersListener failed', e);
+        }
+        if (typeof _prevOnUserReady2 === 'function') await _prevOnUserReady2();
     };
 }

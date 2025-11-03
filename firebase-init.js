@@ -20,6 +20,7 @@ import {
     getDoc,
     getDocs,
     getFirestore,
+    onSnapshot,
     query,
     setDoc,
     updateDoc,
@@ -168,10 +169,8 @@ firebaseReadyPromise.then(() => {
       window.currentUser = userProfile;
         localStorage.setItem('userProfile', JSON.stringify(userProfile)); // Store user data in local storage
       if (typeof window.onUserReady === "function") window.onUserReady();
+        // Refresh navbar/profile UI; do not forcibly redirect to the same page as it can create reload loops
       refreshNavbar();
-        if (window.location.pathname.includes("users.html")) { // Check if current page is users.html
-            window.location.href = "users.html"; // Refresh the page
-        }
     } else {
       currentUser = null;
       window.currentUser = null;
@@ -256,4 +255,5 @@ export {
     updateDoc,
     query,
     where,
+    onSnapshot,
 };
