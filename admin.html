@@ -1,13 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Admin - Arcator.co.uk</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Admin - Arcator.co.uk</title>
     <link href="./master.css" rel="stylesheet"/>
     <link href="./page-specific.css" rel="stylesheet"/>
     <link href="./theme_variables.css" rel="stylesheet"/>
     <link href="./favicon.png" rel="icon" type="image/png"/>
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
+          }
+        }
+    </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script defer src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
@@ -315,66 +324,30 @@
         </div>
 
         <!-- Email Settings Section -->
-        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="email-settings-section">
+        <div class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="email-settings-section">
             <h2 class="text-2xl font-semibold text-text-header mb-4">Email Settings</h2>
-
-            <div class="mb-6">
-                <h3 class="text-xl font-semibold text-text-header mb-2">EmailJS Integration</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="form-label" for="emailjs-service-id">Service ID:</label>
-                        <input class="form-input" id="emailjs-service-id" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="emailjs-template-id">Template ID:</label>
-                        <input class="form-input" id="emailjs-template-id" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="emailjs-public-key">Public Key:</label>
-                        <input class="form-input" id="emailjs-public-key" type="text"/>
-                    </div>
-                    <div class="flex justify-end space-x-4">
-                        <button class="btn-primary btn-blue" id="test-emailjs-btn" type="button">Test EmailJS</button>
-                        <button class="btn-primary btn-green" id="save-emailjs-credentials-btn" type="button">Save
-                            EmailJS Credentials
+            <form class="space-y-4" id="email-settings-form">
+                <div>
+                    <label class="form-label" for="smtp-password">SMTP Password:</label>
+                    <div class="relative">
+                        <input autocomplete="new-password" class="form-input" id="smtp-password" required
+                               type="password"/>
+                        <button aria-label="Show password" class="absolute right-2 top-1/2 transform -translate-y-1/2"
+                                onclick="togglePasswordVisibility('smtp-password', this)" type="button">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"></path>
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                      stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <div>
-                <h3 class="text-xl font-semibold text-text-header mb-2">SMTP Server Integration</h3>
-                <!-- Wrap SMTP fields in a form so password inputs are contained in a form (avoids browser console warning) -->
-                <form class="space-y-4" id="smtp-form">
-                    <div>
-                        <label class="form-label" for="smtp-host">Host:</label>
-                        <input class="form-input" id="smtp-host" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="smtp-port">Port:</label>
-                        <input class="form-input" id="smtp-port" type="number"/>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="smtp-secure" type="checkbox"/>
-                        <label class="form-label" for="smtp-secure">Secure (SSL/TLS)</label>
-                    </div>
-                    <div>
-                        <label class="form-label" for="smtp-username">Username:</label>
-                        <input class="form-input" id="smtp-username" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="smtp-password">Password:</label>
-                        <input class="form-input" id="smtp-password" type="password"/>
-                    </div>
-                    <div class="flex justify-end space-x-4">
-                        <button class="btn-primary btn-blue" id="test-smtp-btn" type="button">Test SMTP</button>
-                        <button class="btn-primary btn-green" id="save-smtp-credentials-btn" type="button">Save SMTP
-                            Credentials
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </section>
+                <button class="btn-primary btn-blue" type="submit">Save Email Settings</button>
+            </form>
+        </div>
     </div>
 </main>
 

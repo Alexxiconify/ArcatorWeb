@@ -1,7 +1,7 @@
 // user-main.js - Main script for the User Account page
 // Handles authentication UI, user settings, and interactions.
 
-      try { saveLocalSettings(currentUser.uid, { advancedSettings }); } catch(e) { console.warn('Failed to cache advanced settings locally', e); }
+import {onSnapshot} from "firebase/firestore";
 // Import necessary functions and variables from other modules
 import {
     appId,
@@ -21,10 +21,10 @@ import {
 } from "./firebase-init.js";
 
 import {sanitizeHandle, showCustomConfirm, showMessageBox,} from "./utils.js";
-import {applyTheme, cacheUserTheme, getAvailableThemes, setupThemesFirebase,} from "./themes.js";
+import {applyTheme, getAvailableThemes, setupThemesFirebase,} from "./themes.js";
 import {loadNavbar} from "./core.js"; // Ensure loadNavbar is imported
 // Import global shortcut functions from app.js
-import {getCurrentShortcuts, toggleShortcutDisabled, updateGlobalShortcuts} from "./shortcuts.js";
+import {getCurrentShortcuts, toggleShortcutDisabled} from "./shortcuts.js";
 import {
     createUserWithEmailAndPassword,
     GithubAuthProvider,
@@ -34,6 +34,12 @@ import {
     signInWithPopup,
     updateProfile
 } from '@firebase/auth';
+
+try {
+    saveLocalSettings(currentUser.uid, {advancedSettings});
+} catch (e) {
+    console.warn('Failed to cache advanced settings locally', e);
+}
 
 /**
  * Toggle password visibility for input fields
@@ -491,7 +497,7 @@ function mergeSettingsWithLocal(profile, uid) {
     {},
     profile.accessibilitySettings || {},
     local.accessibilitySettings || {},
-  );n
+  );
   return merged;
 }
 
@@ -1071,6 +1077,44 @@ async function reloadAndApplyUserProfile() {
   updateShortcutUI();
 }
 
+// Function to reload user data dynamically
+function reloadUserData() {
+    // Example: Fetch user data from Firestore and update the DOM
+    getUserProfileFromFirestore(auth.currentUser.uid)
+        .then((userData) => {
+            if (userData) {
+                // Update user-related DOM elements dynamically
+                document.getElementById("user-display-name").textContent = userData.displayName;
+                document.getElementById("user-handle").textContent = userData.handle;
+                document.getElementById("user-profile-pic").src = userData.photoURL || DEFAULT_PROFILE_PIC;
+            }
+        })
+        .catch((error) => {
+            console.error("Failed to reload user data:", error);
+        });
+}
+
+// Listen for changes in user data and reload dynamically
+function setupUserDataListener() {
+    const userDocRef = doc(db, "artifacts", appId, "public", "data", "user_profiles", auth.currentUser.uid);
+    onSnapshot(userDocRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            reloadUserData();
+        } else {
+            console.warn("User document does not exist.");
+        }
+    });
+}
+
+// Call the listener setup after authentication is ready
+firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            setupUserDataListener();
+        }
+    });
+});
+
 // Function to update shortcut UI elements
 function updateShortcutUI() {
   const currentShortcuts = getCurrentShortcuts();
@@ -1381,6 +1425,41 @@ async function handleSaveProfile() {
     showMessageBox("Error updating profile.", true);
   }
 }
+
+// Add a function to reload user data dynamically
+function reloadUserData() {
+    getUserProfileFromFirestore(auth.currentUser.uid)
+        .then((userData) => {
+            // Update the DOM with the new user data
+            document.getElementById("user-display-name").textContent = userData.displayName;
+            document.getElementById("user-handle").textContent = userData.handle;
+            document.getElementById("user-profile-pic").src = userData.photoURL || DEFAULT_PROFILE_PIC;
+        })
+        .catch((error) => {
+            console.error("Failed to reload user data:", error);
+        });
+}
+
+// Listen for changes in user data and reload dynamically
+function setupUserDataListener() {
+    const userDocRef = doc(db, "artifacts", appId, "public", "data", "user_profiles", auth.currentUser.uid);
+    onSnapshot(userDocRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            reloadUserData();
+        } else {
+            console.warn("User document does not exist.");
+        }
+    });
+}
+
+// Call the listener setup after authentication is ready
+firebaseReadyPromise.then(() => {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            setupUserDataListener();
+        }
+    });
+});
 
 // Handler for saving preferences
 async function handleSavePreferences() {
@@ -2194,329 +2273,71 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 });
 
-// Setup all event listeners
-function setupEventListeners() {
-  // Sign in form - handle both button click and form submit
-  if (signInButton) {
-    signInButton.addEventListener("click", handleSignIn);
-  }
+// Auth state observer and UI router
+auth.onAuthStateChanged(async (user) => {
+    hideLoading();
 
-  // Add form submit event listener for sign-in form
-  const signInForm = document.getElementById("signin-form");
-  if (signInForm) {
-    signInForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handleSignIn();
-    });
-  }
-
-  // Sign up form - handle both button click and form submit
-
-    if (signUpButton) {
-    signUpButton.addEventListener("click", handleSignUp);
-  }
-
-  // Add form submit event listener for sign-up form
-  const signUpForm = document.getElementById("signup-form");
-  if (signUpForm) {
-    signUpForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handleSignUp();
-    });
-  }
-
-  // Forgot password form - handle both button click and form submit
-  if (resetPasswordButton) {
-    resetPasswordButton.addEventListener("click", handlePasswordReset);
-  }
-
-  // Add form submit event listener for forgot password form
-  const forgotPasswordForm = document.getElementById("forgot-password-form");
-  if (forgotPasswordForm) {
-    forgotPasswordForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handlePasswordReset();
-    });
-  }
-
-  // Navigation links - only add if sections exist
-  if (goToSignUpLink && signUpSection) {
-    goToSignUpLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      showSection(signUpSection);
-    });
-  }
-
-  if (goToSignInLink && signInSection) {
-    goToSignInLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      showSection(signInSection);
-    });
-  }
-
-  if (goToForgotPasswordLink && forgotPasswordSection) {
-    goToForgotPasswordLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      showSection(forgotPasswordSection);
-    });
-  }
-
-  if (goToSignInFromForgotLink && signInSection) {
-    goToSignInFromForgotLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      showSection(signInSection);
-    });
-  }
-
-  // Profile settings
-  if (saveProfileBtn) {
-    saveProfileBtn.addEventListener("click", handleSaveProfile);
-  }
-
-  if (savePreferencesBtn) {
-    savePreferencesBtn.addEventListener("click", handleSavePreferences);
-  }
-
-  if (saveNotificationsBtn) {
-    saveNotificationsBtn.addEventListener("click", handleSaveNotifications);
-  }
-
-  if (savePrivacyBtn) {
-    savePrivacyBtn.addEventListener("click", handleSavePrivacy);
-  }
-
-  if (saveAccessibilityBtn) {
-    saveAccessibilityBtn.addEventListener("click", handleSaveAccessibility);
-  }
-
-  if (saveAdvancedBtn) {
-    saveAdvancedBtn.addEventListener("click", handleSaveAdvanced);
-  }
-
-  if (resetAdvancedBtn) {
-    resetAdvancedBtn.addEventListener("click", handleResetAdvanced);
-  }
-
-  // Data management
-  if (exportDataBtn) {
-    exportDataBtn.addEventListener("click", handleExportData);
-  }
-
-  if (importDataBtn) {
-    importDataBtn.addEventListener("click", handleImportData);
-  }
-
-  // Social authentication
-  if (googleSignInBtn) {
-    googleSignInBtn.addEventListener("click", handleGoogleSignIn);
-  }
-
-  if (githubSignInBtn) {
-    githubSignInBtn.addEventListener("click", handleGitHubSignIn);
-  }
-
-  // Social authentication for sign-up
-  if (googleSignUpBtn) {
-    googleSignUpBtn.addEventListener("click", handleGoogleSignIn); // Same handler for both sign-in and sign-up
-  }
-
-  if (githubSignUpBtn) {
-    githubSignUpBtn.addEventListener("click", handleGitHubSignIn); // Same handler for both sign-in and sign-up
-  }
-
-  // Background opacity range slider
-  if (backgroundOpacityRange) {
-    backgroundOpacityRange.addEventListener("input", async (e) => {
-      if (backgroundOpacityValue) {
-        backgroundOpacityValue.textContent = e.target.value + "%";
-      }
-
-      // Apply immediately
-      if (auth.currentUser) {
-        const userProfile = await getUserProfileFromFirestore(
-          auth.currentUser.uid,
-        );
-        if (userProfile) {
-          const advSettings = userProfile.advancedSettings || {};
-          advSettings.backgroundOpacity = e.target.value;
-          applyFontScalingSystem({
-            ...userProfile,
-            advancedSettings: advSettings,
-          });
-
-          // Save to Firebase in background
-          try {
-            await setUserProfileInFirestore(auth.currentUser.uid, {
-              ...userProfile,
-              advancedSettings: advSettings,
-            });
-          } catch (error) {
-            console.error("Error saving background opacity:", error);
-          }
-        }
-      }
-    });
-  }
-
-  // Typography settings - update immediately when changed
-  const typographySelects = [
-    "font-size-select",
-    "font-family-select",
-    "line-height-select",
-    "letter-spacing-select",
-    "heading-size-multiplier",
-    "background-pattern-select",
-    "theme-select",
-  ];
-
-  typographySelects.forEach((selectId) => {
-    const select = document.getElementById(selectId);
-    if (select) {
-      select.addEventListener("change", async () => {
-        // Get current user profile
-        if (!auth.currentUser) return;
-        const userProfile = await getUserProfileFromFirestore(
-          auth.currentUser.uid,
-        );
-        if (!userProfile) return;
-
-        // Update the specific setting that changed
-        const advSettings = userProfile.advancedSettings || {};
-
-        switch (selectId) {
-          case "font-size-select":
-            advSettings.fontSize = select.value;
-            break;
-          case "font-family-select":
-            advSettings.fontFamily = select.value;
-            break;
-          case "line-height-select":
-            advSettings.lineHeight = select.value;
-            break;
-          case "letter-spacing-select":
-            advSettings.letterSpacing = select.value;
-            break;
-          case "heading-size-multiplier":
-            advSettings.headingSizeMultiplier = select.value;
-            break;
-          case "background-pattern-select":
-            advSettings.backgroundPattern = select.value;
-            break;
-          case "theme-select":
-            userProfile.themePreference = select.value;
-            break;
-        }
-
-        // Apply the updated settings immediately
-        if (selectId === "theme-select") {
-          // Apply theme immediately
-          const allThemes = await getAvailableThemes();
-          const selectedTheme = allThemes.find((t) => t.id === select.value);
-          if (selectedTheme) {
-            applyTheme(selectedTheme.id, selectedTheme);
-            // Cache the theme preference for future page loads
-            cacheUserTheme(selectedTheme.id, auth.currentUser.uid);
-          }
-        } else {
-          // Apply typography settings immediately
-          applyFontScalingSystem({
-            ...userProfile,
-            advancedSettings: advSettings,
-          });
-        }
-
-        // Save to Firebase in background
+    if (user) {
         try {
-          if (selectId === "theme-select") {
-            await setUserProfileInFirestore(auth.currentUser.uid, userProfile);
-          } else {
-            await setUserProfileInFirestore(auth.currentUser.uid, {
-              ...userProfile,
-              advancedSettings: advSettings,
-            });
-          }
+            // Get user profile
+            const userProfile = await getUserProfileFromFirestore(user.uid);
+
+            // Show settings UI
+            showSection(settingsContent);
+
+            // Update UI with user data
+            if (displayNameText) displayNameText.textContent = user.displayName || 'Anonymous';
+            if (emailText) emailText.textContent = user.email;
+            if (handleText && userProfile) handleText.textContent = userProfile.handle;
+            if (profilePictureDisplay) {
+                profilePictureDisplay.src = user.photoURL || DEFAULT_PROFILE_PIC;
+            }
+
+            // Show/hide admin elements based on admin status
+            const adminElements = document.querySelectorAll('.admin-only');
+            if (userProfile?.isAdmin) {
+                adminElements.forEach(el => el.style.display = 'block');
+            } else {
+                adminElements.forEach(el => el.style.display = 'none');
+            }
+
+            // Load user settings
+            await loadAndApplyUserSettings(user.uid);
         } catch (error) {
-          console.error("Error saving typography setting:", error);
+            console.error('Error loading user profile:', error);
+            showMessageBox('Error loading user profile. Please try again.', true);
         }
-      });
+    } else {
+        // User is not signed in
+        showSection(signInSection);
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
     }
-  });
+});
 
-  // Keyboard shortcuts recording
-  const shortcutInputs = document.querySelectorAll('[id^="shortcut-"]');
-  shortcutInputs.forEach((input) => {
-    let isRecording = false;
-    let currentRecordingShortcut = null;
+// Function to load and apply user settings
+async function loadAndApplyUserSettings(uid) {
+    try {
+        const userProfile = await getUserProfileFromFirestore(uid);
+        const settings = mergeSettingsWithLocal(userProfile, uid);
 
-    input.addEventListener("click", function () {
-      if (isRecording) return;
+        // Apply settings to UI
+        if (settings?.advancedSettings) {
+            const adv = settings.advancedSettings;
+            if (fontSizeSelect) fontSizeSelect.value = adv.fontSize || '16px';
+            if (fontFamilySelect) fontFamilySelect.value = adv.fontFamily || 'Inter, sans-serif';
+            if (backgroundPatternSelect) backgroundPatternSelect.value = adv.backgroundPattern || 'none';
+            if (headingSizeMultiplierSelect) headingSizeMultiplierSelect.value = adv.headingSizeMultiplier || '1.6';
+            if (lineHeightSelect) lineHeightSelect.value = adv.lineHeight || '1.6';
+            if (letterSpacingSelect) letterSpacingSelect.value = adv.letterSpacing || '0px';
+            if (backgroundOpacityRange) backgroundOpacityRange.value = adv.backgroundOpacity || '50';
+            if (keyboardShortcutsToggle) keyboardShortcutsToggle.checked = adv.keyboardShortcuts !== 'disabled';
 
-      isRecording = true;
-      currentRecordingShortcut = this.dataset.shortcut;
-      this.value = "Press keys...";
-      this.style.backgroundColor = "var(--color-button-yellow-bg)";
-      this.style.color = "var(--color-button-text)";
-    });
-
-    input.addEventListener("keydown", function (e) {
-      if (!isRecording) return;
-
-      e.preventDefault();
-      const keys = [];
-      if (e.altKey) keys.push("Alt");
-      if (e.ctrlKey) keys.push("Ctrl");
-      if (e.shiftKey) keys.push("Shift");
-      if (e.metaKey) keys.push("Meta");
-      if (e.key && !["Alt", "Ctrl", "Shift", "Meta"].includes(e.key)) {
-        keys.push(e.key.toUpperCase());
+            // Apply theme
+            if (userProfile?.theme) {
+                applyTheme(userProfile.theme);
       }
-
-      const combo = keys.join("+");
-      if (combo) {
-        this.value = combo;
-        this.style.backgroundColor = "";
-        this.style.color = "";
-        isRecording = false;
-
-        // Update the shortcut in memory
-        const currentShortcuts = getCurrentShortcuts();
-        currentShortcuts[currentRecordingShortcut] = combo;
-        updateGlobalShortcuts(currentShortcuts);
-      }
-    });
-
-    input.addEventListener("blur", function () {
-      if (isRecording) {
-        isRecording = false;
-        this.style.backgroundColor = "";
-        this.style.color = "";
-        // Restore previous value
-        const currentShortcuts = getCurrentShortcuts();
-        this.value = currentShortcuts[currentRecordingShortcut] || "";
-      }
-    });
-  });
-
-  // Shortcut disable buttons
-  const disableButtons = document.querySelectorAll(".shortcut-disable-btn");
-  disableButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const shortcutName = this.dataset.shortcut;
-      const isDisabled = this.classList.contains("disabled");
-
-      if (isDisabled) {
-        this.classList.remove("disabled");
-        this.textContent = "Disable";
-        toggleShortcutDisabled(shortcutName, false);
-        const input = document.getElementById(`shortcut-${shortcutName}`);
-        if (input) input.disabled = false;
-      } else {
-        this.classList.add("disabled");
-        this.textContent = "Disabled";
-        toggleShortcutDisabled(shortcutName, true);
-        const input = document.getElementById(`shortcut-${shortcutName}`);
-        if (input) input.disabled = true;
-      }
-    });
-  });
+        }
+    } catch (error) {
+        console.error('Error loading user settings:', error);
+    }
 }

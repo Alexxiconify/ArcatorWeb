@@ -8,7 +8,25 @@
     <link href="theme_variables.css" rel="stylesheet"/>
     <link href="master.css" rel="stylesheet"/>
     <link href="favicon.png" rel="icon" type="image/png"/>
-    </style>
+    <!-- Firebase CDN Imports -->
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
+          }
+        }
+    </script>
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
+          }
+        }
+    </script>
 </head>
 <body class="antialiased">
 <div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
@@ -567,7 +585,7 @@
             console.log('Loading interests data from:', CSV_URL);
             const response = await fetch(CSV_URL);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                new Error(`HTTP error! status: ${response.status}`);
             }
             const csvText = await response.text();
             console.log('CSV data received:', csvText.substring(0, 200) + '...');
@@ -585,7 +603,7 @@
                 updateInterestsCount();
                 interestsLoaded = true;
             } else {
-                throw new Error('No data found in spreadsheet');
+                new Error('No data found in spreadsheet');
             }
         } catch (error) {
             console.error('Error loading interests data:', error);
@@ -610,7 +628,7 @@
         const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=1977273024';
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch 2025 interests');
+            if (!response.ok) new Error('Failed to fetch 2025 interests');
             const csvText = await response.text();
             interests2025Data = parseCSV(csvText);
             interests2025Loaded = true;
@@ -625,7 +643,7 @@
         const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=0';
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch 2020 interests');
+            if (!response.ok) new Error('Failed to fetch 2020 interests');
             const csvText = await response.text();
             interests2020Data = parseCSV(csvText);
             interests2020Loaded = true;
@@ -640,7 +658,7 @@
         const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=759735980';
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch donations');
+            if (!response.ok) new Error('Failed to fetch donations');
             const csvText = await response.text();
             donationsData = parseDonationsCSV(csvText);
             donationsLoaded = true;
@@ -656,7 +674,7 @@
         const url = 'https://docs.google.com/spreadsheets/d/1T25WAAJekQAjrU-dhVtDFgiIqJHHlaGIOySToTWrrp8/export?format=csv&gid=752318281';
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch machines');
+            if (!response.ok) new Error('Failed to fetch machines');
             const csvText = await response.text();
             machinesData = parseMachinesCSV(csvText);
             machinesLoaded = true;

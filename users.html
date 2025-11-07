@@ -7,9 +7,19 @@
     <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
             rel="stylesheet"/>
-    <link href="theme_variables.css" rel="stylesheet"/>
-    <link href="master.css" rel="stylesheet"/>
-    <link href="favicon.png" rel="icon" type="image/png"/>
+    <link href="./theme_variables.css" rel="stylesheet"/>
+    <link href="./master.css" rel="stylesheet"/>
+    <link href="./favicon.png" rel="icon" type="image/png"/>
+    <!-- Firebase CDN Imports -->
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
+          }
+        }
+    </script>
     <style>
         body {
             font-family: "Inter", sans-serif;
@@ -1752,28 +1762,25 @@ height: 0;
                                     You must enter your current password to change it.
                                 </p>
                                 <form class="space-y-4" id="change-password-form">
-                                    <input autocomplete="username" name="username" type="hidden"/>
-                                    <div class="input-field">
-                                        <label for="current-password-input">Current Password:</label>
-                                        <input autocomplete="current-password" id="current-password-input"
+                                    <input aria-hidden="true" autocomplete="username" name="username" style="display: none;"
+                                           tabindex="-1" type="text"/>
+                                    <div class="mb-4">
+                                        <label class="form-label" for="current-password">Current Password</label>
+                                        <input autocomplete="current-password" id="current-password"
                                                placeholder="********"
                                                type="password"/>
                                     </div>
-                                    <div class="input-field">
-                                        <label for="new-password-input">New Password:</label>
-                                        <input autocomplete="new-password" id="new-password-input"
-                                               placeholder="********"
+                                    <div class="mb-4">
+                                        <label class="form-label" for="new-password">New Password</label>
+                                        <input autocomplete="new-password" id="new-password" placeholder="********"
                                                type="password"/>
                                     </div>
-                                    <div class="input-field">
-                                        <label for="confirm-new-password-input">Confirm New Password:</label>
-                                        <input autocomplete="new-password" id="confirm-new-password-input"
-                                               placeholder="********"
+                                    <div class="mb-4">
+                                        <label class="form-label" for="confirm-password">Confirm New Password</label>
+                                        <input autocomplete="new-password" id="confirm-password" placeholder="********"
                                                type="password"/>
                                     </div>
-                                    <button class="btn-primary btn-orange mt-2" id="change-password-btn" type="submit">
-                                        Change Password
-                                    </button>
+                                    <button class="btn-primary btn-blue w-full" type="submit">Change Password</button>
                                 </form>
                             </div>
                             <hr class="my-1" style="
@@ -1786,16 +1793,15 @@ height: 0;
                                     Enter your password to permanently delete your account.
                                 </p>
                                 <form class="space-y-4" id="delete-account-form">
-                                    <input autocomplete="username" name="username" type="hidden"/>
-                                    <div class="input-field">
-                                        <label for="delete-account-password">Confirm Password:</label>
-                                        <input autocomplete="current-password" id="delete-account-password"
+                                    <input aria-hidden="true" autocomplete="username" name="username" style="display: none;"
+                                           tabindex="-1" type="text"/>
+                                    <div class="mb-4">
+                                        <label class="form-label" for="delete-password">Confirm Password</label>
+                                        <input autocomplete="current-password" id="delete-password"
                                                placeholder="********"
                                                type="password"/>
                                     </div>
-                                    <button class="btn-primary btn-red mt-2" id="delete-account-btn" type="submit">
-                                        Delete Account
-                                    </button>
+                                    <button class="btn-primary btn-red w-full" type="submit">Delete Account</button>
                                 </form>
                             </div>
                         </div>
