@@ -33,12 +33,12 @@ class ThemeManager {
         if (this.isInitialized) return;
 
         try {
-            this.applyTheme(DEFAULT_THEME);
+            await this.applyTheme(DEFAULT_THEME);
             await this.loadUserTheme();
             this.isInitialized = true;
         } catch (error) {
             console.error('Theme initialization error:', error);
-            this.applyTheme(DEFAULT_THEME);
+            await this.applyTheme(DEFAULT_THEME);
         }
     }
 
@@ -52,35 +52,59 @@ class ThemeManager {
 
             if (!userDoc.exists()) return;
 
-            const themeId = userDoc.data()?.themePreference;
-            if (!themeId) return;
+            const userData = userDoc.data();
+            const themeId = userData?.themePreference;
+
+            if (!themeId || typeof themeId !== 'string') return;
 
             const themeDoc = await getDoc(
                 doc(db, `artifacts/${appId}/public/data/themes`, themeId)
             );
 
             if (themeDoc.exists()) {
-                this.applyTheme({id: themeDoc.id, ...themeDoc.data()});
+                const themeData = themeDoc.data();
+                if (!themeData) return;
+
+                await this.applyTheme({
+                    id: themeDoc.id,
+                    name: themeData.name || 'Custom Theme',
+                    variables: themeData.variables || {}
+                });
             }
         } catch (error) {
             console.error('Error loading user theme:', error);
         }
     }
 
-    applyTheme(theme) {
+    async applyTheme(theme) {
+        if (!theme || typeof theme !== 'object') {
+            console.error('Invalid theme object:', theme);
+            return false;
+        }
+
         try {
+            // Apply default theme variables first
             Object.entries(DEFAULT_THEME.variables).forEach(([key, value]) => {
-                this.root.style.setProperty(key, value);
+                if (typeof key === 'string' && typeof value === 'string') {
+                    this.root.style.setProperty(key, value);
+                }
             });
 
-            if (theme?.variables) {
+            // Apply custom theme variables if they exist
+            if (theme.variables && typeof theme.variables === 'object') {
                 Object.entries(theme.variables).forEach(([key, value]) => {
-                    this.root.style.setProperty(key, value);
+                    if (typeof key === 'string' && typeof value === 'string') {
+                        this.root.style.setProperty(key, value);
+                    }
                 });
             }
 
             this.currentTheme = theme;
-            this.saveThemePreference(theme.id);
+
+            if (typeof theme.id === 'string') {
+                await this.saveThemePreference(theme.id);
+            }
+
             return true;
         } catch (error) {
             console.error('Error applying theme:', error);
@@ -90,7 +114,7 @@ class ThemeManager {
     }
 
     async saveThemePreference(themeId) {
-        if (!auth.currentUser) return;
+        if (!auth.currentUser || typeof themeId !== 'string') return;
 
         try {
             await setDoc(
@@ -101,8 +125,10 @@ class ThemeManager {
                 },
                 {merge: true}
             );
+            return true;
         } catch (error) {
             console.error('Error saving theme preference:', error);
+            return false;
         }
     }
 
