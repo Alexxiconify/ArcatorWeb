@@ -1,10 +1,34 @@
-import {auth, collection, COLLECTIONS, db, getUserProfileFromFirestore, query, where} from './firebase-init.js';
+import {
+    auth,
+    collection,
+    COLLECTIONS,
+    db,
+    getDocs,
+    getUserProfileFromFirestore,
+    limit,
+    query,
+    where
+} from './firebase-init.js';
 import {dmsManager} from './dms-manager.js';
 import {showMessageBox} from './utils.js';
 
 let currentDmId = null;
 let messagesUnsubscribe = null;
 let selectedRecipients = new Map();
+
+// Cache DM participant profiles to avoid repeated fetches
+const profileCache = new Map();
+
+async function getParticipantProfile(userId) {
+    if (profileCache.has(userId)) {
+        return profileCache.get(userId);
+    }
+    const profile = await getUserProfileFromFirestore(userId);
+    if (profile) {
+        profileCache.set(userId, profile);
+    }
+    return profile;
+}
 
 async function loadDMs() {
     const dmList = document.getElementById('dm-list');
@@ -74,61 +98,68 @@ async function loadMessages(dmId) {
     // Show participant list
     const dm = await dmsManager.getDM(dmId);
     if (dm) {
-        updateParticipantList(dm.participants);
+        await updateParticipantList(dm.participants);
     }
 
-    messagesUnsubscribe = dmsManager.subscribeToMessages(dmId, async (messages) => {
-        if (messages.length === 0) {
-            messagesContainer.innerHTML = '<div class="text-center text-text-2 p-4">No messages yet</div>';
-            return;
-        }
+    try {
+        messagesUnsubscribe = dmsManager.subscribeToMessages(dmId, async (messages) => {
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = '<div class="text-center text-text-2 p-4">No messages yet</div>';
+                return;
+            }
 
-        // Get all unique sender profiles
-        const senderProfiles = new Map();
-        await Promise.all(
-            [...new Set(messages.map(m => m.sender))].map(async (senderId) => {
-                const profile = await getUserProfileFromFirestore(senderId);
-                senderProfiles.set(senderId, profile);
-            })
-        );
+            // Get all unique sender profiles using cache
+            const senderProfiles = new Map();
+            await Promise.all(
+                [...new Set(messages.map(m => m.sender))].map(async (senderId) => {
+                    const profile = await getParticipantProfile(senderId);
+                    senderProfiles.set(senderId, profile);
+                })
+            );
 
-        messagesContainer.innerHTML = messages.map(msg => {
-            const isCurrentUser = msg.sender === auth.currentUser.uid;
-            const senderProfile = senderProfiles.get(msg.sender);
+            messagesContainer.innerHTML = messages.map(msg => {
+                const isCurrentUser = msg.sender === auth.currentUser.uid;
+                const senderProfile = senderProfiles.get(msg.sender);
+                const messageDate = msg.createdAt?.toDate?.() || new Date();
 
-            return `
-                <div class="message ${isCurrentUser ? 'dm-bubble-out bg-accent ml-auto' : 'dm-bubble-in bg-surface-2'} mb-2">
-                    <div class="flex items-start gap-2 ${isCurrentUser ? 'flex-row-reverse' : ''}">
-                        <img src="${senderProfile?.photoURL || './defaultuser.png'}" 
-                             alt="${senderProfile?.displayName || 'User'}"
-                             class="w-6 h-6 rounded-full mt-1">
-                        <div class="flex flex-col">
-                            <div class="message-content">
-                                ${msg.content}
-                            </div>
-                            <div class="text-xs text-text-3 mt-1 ${isCurrentUser ? 'text-right' : ''}">
-                                ${senderProfile?.displayName || 'User'} • 
-                                ${new Date(msg.createdAt.toDate()).toLocaleString()}
-                                ${msg.edited ? ' (edited)' : ''}
-                                ${isCurrentUser ? `
-                                    <button class="ml-2 text-accent hover:text-accent-light"
-                                            onclick="editMessage('${msg.id}', '${msg.content}')">
-                                        Edit
-                                    </button>
-                                    <button class="ml-2 text-error hover:text-error-light"
-                                            onclick="deleteMessage('${msg.id}')">
-                                        Delete
-                                    </button>
-                                ` : ''}
+                return `
+                    <div class="message ${isCurrentUser ? 'dm-bubble-out bg-accent ml-auto' : 'dm-bubble-in bg-surface-2'} mb-2">
+                        <div class="flex items-start gap-2 ${isCurrentUser ? 'flex-row-reverse' : ''}">
+                            <img src="${senderProfile?.photoURL || './defaultuser.png'}" 
+                                 alt="${senderProfile?.displayName || 'User'}"
+                                 class="w-6 h-6 rounded-full mt-1">
+                            <div class="flex flex-col">
+                                <div class="message-content break-words">
+                                    ${msg.content}
+                                </div>
+                                <div class="text-xs text-text-3 mt-1 ${isCurrentUser ? 'text-right' : ''}">
+                                    ${senderProfile?.displayName || 'User'} • 
+                                    ${messageDate.toLocaleString()}
+                                    ${msg.edited ? ' (edited)' : ''}
+                                    ${isCurrentUser ? `
+                                        <button class="ml-2 text-accent hover:text-accent-light"
+                                                onclick="window.dmsActions.editMessage('${msg.id}', ${JSON.stringify(msg.content)})">
+                                            Edit
+                                        </button>
+                                        <button class="ml-2 text-error hover:text-error-light"
+                                                onclick="window.dmsActions.deleteMessage('${msg.id}')">
+                                            Delete
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
 
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        showMessageBox('Failed to load messages', true);
+        messagesContainer.innerHTML = '<div class="text-center text-error p-4">Failed to load messages</div>';
+    }
 }
 
 async function updateParticipantList(participants) {
@@ -170,61 +201,6 @@ function setupMessageForm() {
             showMessageBox('Failed to send message', true);
         }
     });
-}
-
-async function editMessage(messageId, content) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-        <div class="bg-surface p-6 rounded-lg shadow-xl max-w-md w-full">
-            <h3 class="text-xl font-bold mb-4">Edit Message</h3>
-            <form id="edit-message-form">
-                <textarea id="edit-message-content" 
-                         class="w-full p-2 bg-surface-2 border border-accent rounded"
-                         rows="4">${content}</textarea>
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" class="btn-secondary" id="cancel-edit">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const form = modal.querySelector('form');
-    const cancelBtn = modal.querySelector('#cancel-edit');
-
-    cancelBtn.addEventListener('click', () => modal.remove());
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const newContent = document.getElementById('edit-message-content').value.trim();
-        if (!newContent) {
-            showMessageBox('Message content cannot be empty', true);
-            return;
-        }
-
-        try {
-            await dmsManager.editMessage(currentDmId, messageId, newContent);
-            modal.remove();
-        } catch (error) {
-            console.error('Error editing message:', error);
-            showMessageBox('Failed to edit message', true);
-        }
-    });
-}
-
-async function deleteMessage(messageId) {
-    if (!confirm('Are you sure you want to delete this message?')) return;
-
-    try {
-        await dmsManager.deleteMessage(currentDmId, messageId);
-    } catch (error) {
-        console.error('Error deleting message:', error);
-        showMessageBox('Failed to delete message', true);
-    }
 }
 
 function setupNewConversation() {
@@ -274,7 +250,7 @@ function setupNewConversation() {
                 suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
                     item.addEventListener('click', async () => {
                         const userId = item.dataset.userId;
-                        const userProfile = await getUserProfileFromFirestore(userId);
+                        const userProfile = await getParticipantProfile(userId);
                         if (userProfile) {
                             selectedRecipients.set(userId, userProfile);
                             updateSelectedRecipients();
@@ -285,6 +261,7 @@ function setupNewConversation() {
                 });
             } catch (error) {
                 console.error('Error searching users:', error);
+                suggestionsList.innerHTML = '<div class="text-error p-2">Error searching users</div>';
             }
         }, 300);
     });
@@ -299,7 +276,7 @@ function setupNewConversation() {
             const dmId = await dmsManager.createDM([...selectedRecipients.keys()]);
             selectedRecipients.clear();
             updateSelectedRecipients();
-            loadMessages(dmId);
+            await loadMessages(dmId);
         } catch (error) {
             console.error('Error creating conversation:', error);
             showMessageBox('Failed to create conversation', true);
@@ -329,28 +306,111 @@ function removeRecipient(userId) {
     updateSelectedRecipients();
 }
 
+// DM action handlers exposed to window
+const dmsActions = {
+    async editMessage(messageId, content) {
+        await showEditMessageModal(messageId, content);
+    },
+
+    async deleteMessage(messageId) {
+        await handleDeleteMessage(messageId);
+    },
+
+    removeRecipient(userId) {
+        selectedRecipients.delete(userId);
+        updateSelectedRecipients();
+    }
+};
+
+async function showEditMessageModal(messageId, content) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-surface p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">Edit Message</h3>
+            <form id="edit-message-form">
+                <textarea id="edit-message-content" 
+                         class="w-full p-2 bg-surface-2 border border-accent rounded resize-none"
+                         rows="4">${content}</textarea>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="btn-secondary" id="cancel-edit">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const form = modal.querySelector('form');
+    const cancelBtn = modal.querySelector('#cancel-edit');
+
+    cancelBtn.addEventListener('click', () => modal.remove());
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newContent = document.getElementById('edit-message-content').value.trim();
+
+        if (!newContent) {
+            showMessageBox('Message content cannot be empty', true);
+            return;
+        }
+
+        try {
+            await dmsManager.editMessage(currentDmId, messageId, newContent);
+            modal.remove();
+        } catch (error) {
+            console.error('Error editing message:', error);
+            showMessageBox('Failed to edit message', true);
+        }
+    });
+}
+
+async function handleDeleteMessage(messageId) {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+
+    try {
+        await dmsManager.deleteMessage(currentDmId, messageId);
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        showMessageBox('Failed to delete message', true);
+    }
+}
+
 export async function initDMs() {
     if (!auth.currentUser) {
         window.location.href = './users.html';
         return;
     }
 
-    await dmsManager.init();
-    await loadDMs();
-    setupMessageForm();
-    setupNewConversation();
+    try {
+        await dmsManager.init();
+        await loadDMs();
+        setupMessageForm();
+        setupNewConversation();
 
-    // Expose necessary functions globally
-    Object.assign(window, {
-        editMessage,
-        deleteMessage,
-        removeRecipient
-    });
+        // Expose necessary functions globally
+        window.dmsActions = dmsActions;
+
+        // Set up auto-scroll for new messages
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            const observer = new MutationObserver(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+            observer.observe(messagesContainer, {childList: true, subtree: true});
+        }
+    } catch (error) {
+        console.error('Error initializing DMs:', error);
+        showMessageBox('Failed to initialize DMs', true);
+    }
 }
 
+// Cleanup on page unload
 window.addEventListener('unload', () => {
     if (messagesUnsubscribe) {
         messagesUnsubscribe();
     }
     dmsManager.cleanup();
+    profileCache.clear();
 });
