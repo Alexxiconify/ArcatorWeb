@@ -8,3 +8,5 @@ dist
 /.idea/
 /.dev/
 /node_models/
+/firestore.rules
+firestore.rules
