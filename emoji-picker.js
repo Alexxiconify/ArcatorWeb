@@ -1,9 +1,11 @@
 // emoji-picker.js: Emoji picker functionality
-import { showMessageBox, escapeHtml } from "./utils.js";
 
 let emojiData = [];
 let filteredEmojis = [];
 let currentCategory = 'all';
+let EMOJI_MAP = {};
+let EMOJI_MAP_LOADED = false;
+let EMOJI_LOAD_PROMISE = null;
 
 // --- Emoji Categories ---
 const EMOJI_CATEGORIES = [
@@ -20,11 +22,39 @@ const EMOJI_CATEGORIES = [
 
 /**
  * Loads emoji data from the JSON file.
+ * @returns {Promise<Array>} Array of emoji data
  */
-export async function loadEmojiData() {
-  const response = await fetch('./emoji.json');
-  emojiData = await response.json();
-  filteredEmojis = emojiData;
+async function loadEmojis() {
+    try {
+        const response = await fetch('./emoji.json');
+        emojiData = await response.json();
+        return emojiData;
+    } catch (error) {
+        console.error('Failed to load emojis:', error);
+        return [];
+    }
+}
+
+/**
+ * Loads the emoji map for quick lookups
+ * @returns {Promise<void>}
+ */
+function loadEmojiMap() {
+    if (EMOJI_LOAD_PROMISE) return EMOJI_LOAD_PROMISE;
+    EMOJI_LOAD_PROMISE = fetch("./emoji.json")
+        .then((res) => res.json())
+        .then((data) => {
+            EMOJI_MAP = {};
+            data.forEach((emoji) => {
+                EMOJI_MAP[emoji.shortcode] = emoji;
+            });
+            EMOJI_MAP_LOADED = true;
+        })
+        .catch((error) => {
+            console.error("Failed to load emoji map:", error);
+            EMOJI_MAP_LOADED = true;
+        });
+    return EMOJI_LOAD_PROMISE;
 }
 
 /**
@@ -155,6 +185,7 @@ export function renderEmojis(emojis, pickerId = "emoji-picker") {
     html += '<tr>';
     for (let j = 0; j < cols; j++) {
       const emoji = filtered[i + j];
+        emoji.emoji = undefined;
       if (emoji) {
         html += `<td class="emoji-item" title="${emoji.name}" onclick="insertEmoji(':${emoji.name}:', '${pickerId}')">${emoji.emoji}</td>`;
       } else {
@@ -204,8 +235,7 @@ export function insertEmoji(
   const text = targetElement.value;
 
   // Insert the emoji code at cursor position
-  const newText = text.substring(0, start) + emojiCode + text.substring(end);
-  targetElement.value = newText;
+    targetElement.value = text.substring(0, start) + emojiCode + text.substring(end);
 
   // Set cursor position after the inserted emoji
   const newCursorPos = start + emojiCode.length;
@@ -396,6 +426,11 @@ function initGifSearch(pickerId) {
   });
 }
 
+let g;
+g.images.fixed_height = undefined;
+
+g.images.fixed_height = undefined;
+
 /**
  * Searches for GIFs using GIPHY API.
  * @param {string} query - Search query.
@@ -416,8 +451,8 @@ async function searchGifs(query, pickerId) {
     const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=20&rating=pg`;
 
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+          new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -549,8 +584,8 @@ async function validateMediaUrl(url, pickerId) {
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error("URL not accessible");
+      if (!response.ok) {
+          new Error("URL not accessible");
     }
 
     urlPreview.innerHTML = "Valid media URL";
@@ -582,7 +617,7 @@ function showMediaPreview(url, extension, pickerId) {
   const audioExtensions = ["mp3", "wav", "aac", "ogg", "flac", "m4a"];
 
   if (imageExtensions.includes(extension)) {
-    mediaPreview.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 0.375rem;" onerror="this.style.display='none'">`;
+      mediaPreview.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 0.375rem;">`;
   } else if (videoExtensions.includes(extension)) {
     mediaPreview.innerHTML = `<video controls style="max-width: 200px; max-height: 200px; border-radius: 0.375rem;"><source src="${url}" type="video/${extension}">Your browser does not support the video tag.</video>`;
   } else if (audioExtensions.includes(extension)) {
@@ -792,7 +827,10 @@ function setupMediaPickerEventListeners(pickerId) {
  * @param {string} text - The text to insert.
  */
 function insertAtCursor(input, text) {
-  const start = input.selectionStart;
+    input.value = undefined;
+    input.selectionEnd = undefined;
+    input.selectionStart = undefined;
+    const start = input.selectionStart;
   const end = input.selectionEnd;
   const value = input.value;
 
@@ -848,7 +886,8 @@ export function markdownToHtml(markdown, replaceEmojis = null) {
     }
 
     // Configure marked for safe rendering
-    if (typeof marked !== "undefined") {
+      let marked;
+      if (typeof marked !== "undefined") {
       marked.setOptions({
         breaks: true, // Convert line breaks to <br>
         gfm: true, // GitHub Flavored Markdown

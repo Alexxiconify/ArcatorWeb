@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1.0" name="viewport">
-    <title>Servers & Games - Arcator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Games - Arcator</title>
+    <link href="./master.css" rel="stylesheet">
     <link href="./master.css" rel="stylesheet">
     <link href="./favicon.png" rel="icon" type="image/png">
     <style>
         body {
             font-family: "Inter", sans-serif;
             transition: .3s;
-            background: var(--color-body-bg);
             color: var(--color-text-primary)
         }
 
         .hero-banner {
-            background: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png") center/cover no-repeat;
+            background: url("./creativespawn.png") center/cover no-repeat;
             min-height: 250px;
             display: flex;
             align-items: center;
@@ -95,90 +93,79 @@
     </style>
 </head>
 <body class="antialiased">
-<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
-<section class="hero-banner rounded-b-lg shadow-xl">
+<!-- Navbar placeholder -->
+<div id="navbar-placeholder"></div>
+
+<!-- Hero Banner -->
+<section class="hero-banner">
     <div class="hero-content text-center">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4">Servers & Games</h1>
-        <p class="text-xl md:text-2xl">Explore our Minecraft servers & games</p>
+        <h1 class="text-5xl font-bold mb-4">Games</h1>
+        <p class="text-xl mb-8">Explore our gaming servers and community</p>
     </div>
 </section>
-<div class="container mx-auto px-4 mt-8">
-    <div class="tab-container">
-        <button class="tab-button active" onclick="showTab('servers')">Minecraft Servers</button>
-        <button class="tab-button" onclick="showTab('games')">Other Games</button>
-    </div>
-</div>
-<div class="tab-content active" id="servers-tab">
-    <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-bold mb-10">Explore Our Worlds</h2>
-            <p class="max-w-3xl mx-auto mb-12">Arcator hosts multiple Minecraft servers: survival, creative, factions,
-                and modded.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Strawberry SMP</h3>
-                    <p>Vanilla survival SMP. Solo or team!</p>
-                    <p><b>IP:</b> ssmp.arcator.co.uk</p></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Hub</h3>
-                    <p>Freebuild, plots, survival & more.</p>
-                    <p><b>IP:</b> arcator.co.uk</p></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Other Servers</h3>
-                    <p>Factions, Parkour, Pixelmon, SkyFactory, Sky Island.</p></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Modded</h3>
-                    <p>Pixelmon, SkyFactory & more enhanced gameplay.</p></div>
-            </div>
-        </div>
-    </section>
-</div>
-<div class="tab-content" id="games-tab">
-    <section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-bold mb-10">Other Games</h2>
-            <p class="max-w-3xl mx-auto mb-12">Besides Minecraft, we enjoy many games together.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Factorio</h3>
-                    <p>Build & automate factories.</p><a class="text-link" href="https://www.factorio.com/"
-                                                         target="_blank">Website →</a></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Satisfactory</h3>
-                    <p>First-person factory building.</p><a href="https://www.satisfactorygame.com/" target="_blank">Website
-                        →</a></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Kerbal Space Program</h3>
-                    <p>Design & launch rockets.</p><a href="https://www.kerbalspaceprogram.com/" target="_blank">Website
-                        →</a></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Stellaris</h3>
-                    <p>Explore & conquer space.</p><a href="https://www.paradoxplaza.com/stellaris/" target="_blank">Website
-                        →</a></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Cities: Skylines</h3>
-                    <p>City-building sim.</p><a href="https://www.paradoxplaza.com/cities-skylines/" target="_blank">Website
-                        →</a></div>
-                <div class="card"><h3 class="text-2xl font-bold mb-2">Terraria</h3>
-                    <p>2D sandbox adventure.</p><a href="https://terraria.org/" target="_blank">Website →</a></div>
-            </div>
-        </div>
-    </section>
-</div>
-<div id="footer-placeholder"></div>
-<script type="module">
-    import {auth, getUserProfileFromFirestore, firebaseReadyPromise, DEFAULT_PROFILE_PIC} from "./firebase-init.js";
-    import {loadNavbar, loadFooter} from "./core.js";
-    import {getAvailableThemes, applyTheme, applyCachedTheme} from "./themes.js";
 
-    window.showTab = (name) => {
-        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-        document.getElementById(name + "-tab").classList.add("active");
-        event.target.classList.add("active");
-    };
-    applyCachedTheme();
-    firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async user => {
-            const profile = user ? await getUserProfileFromFirestore(user.uid) : null;
-            await loadNavbar(user, profile, DEFAULT_PROFILE_PIC, "dark");
-            await loadFooter("current-year");
-            const allThemes = await getAvailableThemes();
-            const theme = allThemes.find(t => t.id === profile?.themePreference) || allThemes.find(t => t.id === "dark");
-            theme && applyTheme(theme.id, theme);
-        });
-    });
+<main class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Game Cards -->
+        <div class="game-card bg-card">
+            <h2 class="text-2xl font-bold mb-4">Minecraft</h2>
+            <p class="text-text-secondary mb-4">Join our Minecraft server and explore unique game modes.</p>
+            <div class="minecraft-ip-box p-4 mb-4 text-center">
+                <p class="text-sm text-text-secondary mb-2">Server IP:</p>
+                <p class="text-lg font-semibold">mc.arcator.co.uk</p>
+            </div>
+            <a class="btn-primary w-full text-center" href="https://www.minecraft.net" rel="noopener noreferrer"
+               target="_blank">Learn More</a>
+        </div>
+
+        <div class="game-card bg-card">
+            <h2 class="text-2xl font-bold mb-4">Terraria</h2>
+            <p class="text-text-secondary mb-4">Experience adventure in our modded Terraria server.</p>
+            <div class="minecraft-ip-box p-4 mb-4 text-center">
+                <p class="text-sm text-text-secondary mb-2">Server IP:</p>
+                <p class="text-lg font-semibold">terraria.arcator.co.uk</p>
+            </div>
+            <a class="btn-primary w-full text-center" href="https://terraria.org" rel="noopener noreferrer"
+               target="_blank">Learn More</a>
+        </div>
+
+        <div class="game-card bg-card">
+            <h2 class="text-2xl font-bold mb-4">Custom Games</h2>
+            <p class="text-text-secondary mb-4">Check out our collection of custom-made games and mods.</p>
+            <ul class="list-disc list-inside mb-4 text-text-secondary">
+                <li>Unique game modes</li>
+                <li>Custom plugins</li>
+                <li>Community events</li>
+            </ul>
+            <a class="btn-primary w-full text-center" href="https://store.steampowered.com" rel="noopener noreferrer"
+               target="_blank">Explore Games</a>
+        </div>
+    </div>
+</main>
+
+<!-- Footer placeholder -->
+<div id="footer-placeholder"></div>
+
+<script type="module">
+    import {initializePage} from './core.js';
+    import {themeManager} from './theme-manager.js';
+
+    // Initialize page with footer and navbar
+    async function init() {
+        try {
+            await initializePage('games', true);
+            await themeManager.init();
+        } catch (error) {
+            console.error('Error initializing page:', error);
+        }
+    }
+
+    // Start initialization
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init().catch(console.error);
+    }
 </script>
 </body>
 </html>

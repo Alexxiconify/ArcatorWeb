@@ -3,59 +3,31 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>User Account</title>
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;700&display=swap"
-            rel="stylesheet"/>
-    <link href="./theme_variables.css" rel="stylesheet"/>
-    <link href="./master.css" rel="stylesheet"/>
-    <link href="./favicon.png" rel="icon" type="image/png"/>
-    <!-- Firebase CDN Imports -->
-    <script type="importmap">
-        {
-          "imports": {
-            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
-          }
-        }
-    </script>
+    <title>User Account - Arcator</title>
+    <link href="./master.css" rel="stylesheet">
+    <link href="./favicon.png" rel="icon" type="image/png">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js" type="module"></script>
+    <!-- App Scripts -->
+    <script src="./firebase-init.js" type="module"></script>
+    <script src="./settings-manager.js" type="module"></script>
+    <script src="./user-main.js" type="module"></script>
     <style>
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: var(--color-body-bg);
-            color: var(--color-text-primary);
-            transition: background-color 0.3s,
-            color 0.3s;
-        }
-
-        .main-section,
-        .user-section,
-        .content-section {
-            background-color: var(--color-bg-content-section);
-            color: var(--color-text-primary);
-        }
-
         .hero-banner {
-            background-image: url("https://jylina.arcator.co.uk/standalone/img/creativespawn.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: url("./creativespawn.png") center/cover no-repeat;
             min-height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
         }
 
         .hero-banner::before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             background: rgba(0, 0, 0, 0.5);
             z-index: 1;
         }
@@ -63,1815 +35,682 @@
         .hero-content {
             position: relative;
             z-index: 2;
-            color: white;
+            text-align: center;
+            color: #ffffff;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-        }
-
-        .bg-content-section {
-            background-color: var(--color-bg-content-section);
-        }
-
-        .text-heading-main {
-            color: var(--color-heading-main);
-        }
-
-        .text-heading-card {
-            color: var(--color-heading-card);
-        }
-
-        .text-text-primary {
-            color: var(--color-text-primary);
-        }
-
-        .text-text-secondary {
-            color: var(--color-text-secondary);
-        }
-
-        .bg-card {
-            background-color: var(--color-bg-card);
-        }
-
-        .bg-navbar-footer {
-            background-color: var(--color-bg-navbar);
-        }
-
-        .text-link {
-            color: var(--color-link);
-        }
-
-        .hover\:text-link:hover {
-            color: var(--color-link);
-        }
-
-        .glass-card,
-        .auth-card,
-        .settings-card {
-            border-radius: 1rem;
-            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25),
-            0 1.5px 4px 0 rgba(0, 0, 0, 0.1);
-            border: 2px solid var(--color-input-border);
-            backdrop-filter: blur(8px) saturate(120%);
-            -webkit-backdrop-filter: blur(8px) saturate(120%);
-        }
-
-        .settings-section {
-            margin-bottom: 1rem;
-            padding: 0;
-        }
-
-        .settings-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .settings-card {
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-input-border);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .settings-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .settings-card summary {
-            background: var(--color-bg-content-section);
-            border: none;
-            transition: background-color 0.2s ease;
-        }
-
-        .settings-card summary:hover {
-            background: var(--color-bg-navbar);
-        }
-
-        .settings-card[open] summary {
-            border-bottom: 2px solid var(--color-link);
-            padding: 0.75rem 1rem;
-        }
-
-        .save-btn-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: var(--color-button-blue-bg);
-            color: var(--color-button-text);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .save-btn-circle:hover {
-            background: var(--color-button-blue-hover);
-            transform: translateY(-1px) scale(1.05);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-        }
-
-        .save-btn-circle:active {
-            transform: translateY(0) scale(1);
-        }
-
-        .save-btn-circle svg {
-            width: 16px;
-            height: 16px;
-            transition: transform 0.3s ease;
-        }
-
-        .save-btn-circle:hover svg {
-            transform: rotate(15deg);
-        }
-
-        .save-btn-circle::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s ease,
-            height 0.3s ease;
-        }
-
-        .save-btn-circle:hover::before {
-            width: 100%;
-            height: 100%;
-        }
-
-        .save-btn-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 0.75rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .subsection-card {
-            background: var(--color-bg-content-section);
-            border: 1px solid var(--color-input-border);
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .subsection-card:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-color: var(--color-link);
-        }
-
-        .subsection-summary {
-            padding: 0.375rem 0.5rem;
-            background: var(--color-bg-card);
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 0;
-        }
-
-        .subsection-summary:hover {
-            background: var(--color-bg-content-section);
-        }
-
-        .subsection-summary::after {
-            content: "▼";
-            font-size: 0.75rem;
-            color: var(--color-text-secondary);
-            transition: transform 0.2s ease;
-        }
-
-        .subsection-card[open] .subsection-summary::after {
-            transform: rotate(180deg);
-        }
-
-        .subsection-content {
-            padding: 0.5rem 0.75rem;
-            background: var(--color-bg-content-section);
-        }
-
-        .subsection-card.danger-zone {
-            border-color: var(--color-button-red-bg);
-            background: rgba(220, 38, 38, 0.05);
-        }
-
-        .subsection-card.danger-zone .subsection-summary {
-            background: rgba(220, 38, 38, 0.1);
-            border: none;
-        }
-
-        .subsection-card.danger-zone .subsection-summary:hover {
-            background: rgba(220, 38, 38, 0.15);
-        }
-
-        .subsection-card.danger-zone .subsection-content {
-            background: rgba(220, 38, 38, 0.05);
-        }
-
-        .settings-grid {
-            display: grid;
-            gap: 0.5rem;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            align-items: start;
-        }
-
-        .settings-grid.single-column {
-            grid-template-columns: 1fr;
-        }
-
-        .settings-grid.two-column {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .settings-grid.three-column {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .settings-grid.four-column {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .settings-card.equal-size {
-            height: fit-content;
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .settings-card.equal-size details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .settings-card.equal-size details > div {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (max-width: 1400px) {
-            .settings-grid {
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .settings-grid {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            }
-        }
-
-        @media (max-width: 992px) {
-            .settings-grid {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .settings-grid {
-                grid-template-columns: 1fr;
-                gap: 0.375rem;
-            }
-
-            .settings-card {
-                margin-bottom: 0.5rem;
-            }
-
-            .settings-card summary {
-                padding: 0.625rem 0.75rem;
-                font-size: 1.125rem;
-            }
-
-            .settings-card details > div {
-                padding: 0.75rem;
-            }
-
-            .settings-card.equal-size {
-                min-height: auto;
-            }
-
-            .input-field input,
-            .input-field select,
-            .auth-input-field input {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .settings-grid {
-                gap: 0.25rem;
-            }
-
-            .settings-card summary {
-                padding: 0.5rem 0.625rem;
-                font-size: 1rem;
-            }
-
-            .settings-card details > div {
-                padding: 0.625rem;
-            }
-        }
-
-        .settings-layout-auto {
-            display: grid;
-            gap: 1.5rem;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        }
-
-        .settings-layout-compact {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        }
-
-        .settings-layout-wide {
-            display: grid;
-            gap: 2rem;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-        }
-
-        .settings-masonry {
-            columns: 1;
-            column-gap: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-            .settings-masonry {
-                columns: 2;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .settings-masonry {
-                columns: 3;
-            }
-        }
-
-        @media (min-width: 1600px) {
-            .settings-masonry {
-                columns: 4;
-            }
-        }
-
-        .settings-masonry .settings-card {
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 1.5rem;
-            break-inside: avoid;
-        }
-
-        .auth-card {
-            max-width: 500px;
-            margin: 0 auto 2rem auto;
-            padding: 2.5rem;
-        }
-
-        .input-field,
-        .auth-input-field {
-            margin-bottom: 0.5rem;
-        }
-
-        .input-field label,
-        .auth-input-field label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-weight: 600;
-            color: var(--color-text-primary);
-            font-size: 0.95rem;
-        }
-
-        .input-field input,
-        .input-field select,
-        .auth-input-field input {
-            background: var(--color-input-bg);
-            color: var(--color-input-text);
-            border: 2px solid var(--color-input-border);
-            border-radius: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            min-height: 2.25rem;
-            height: 2.25rem;
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        .input-field input:focus,
-        .input-field select:focus,
-        .auth-input-field input:focus {
-            border-color: var(--color-link);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .input-field input::placeholder,
-        .auth-input-field input::placeholder {
-            color: var(--color-placeholder);
-        }
-
-        .btn-primary,
-        .auth-btn-primary {
-            background: var(--color-button-blue-bg);
-            color: var(--color-button-text);
-            border: none;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
-
-        .btn-primary:hover,
-        .auth-btn-primary:hover {
-            background: var(--color-button-blue-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.25);
-        }
-
-        .btn-primary:active,
-        .auth-btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-blue {
-            background: var(--color-button-blue-bg);
-        }
-
-        .btn-blue:hover {
-            background: var(--color-button-blue-hover);
-        }
-
-        .btn-green {
-            background: var(--color-button-green-bg);
-        }
-
-        .btn-green:hover {
-            background: var(--color-button-green-hover);
-        }
-
-        .btn-purple {
-            background: var(--color-button-purple-bg);
-        }
-
-        .btn-purple:hover {
-            background: var(--color-button-purple-hover);
-        }
-
-        .btn-orange {
-            background: var(--color-button-yellow-bg);
-        }
-
-        .btn-orange:hover {
-            background: var(--color-button-yellow-hover);
-        }
-
-        .btn-red {
-            background: var(--color-button-red-bg);
-        }
-
-        .btn-red:hover {
-            background: var(--color-button-red-hover);
-        }
-
-        .auth-link {
-            color: var(--color-link);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .auth-link:hover {
-            color: var(--color-link);
-            text-decoration: underline;
-            transform: translateY(-1px);
-        }
-
-        .profile-pic-large {
-            border: 4px solid var(--color-link);
-            box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.25);
-            transition: all 0.3s ease;
-        }
-
-        .profile-pic-large:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.35);
-        }
-
-        .form-checkbox {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid var(--color-input-border);
-            border-radius: 0.375rem;
-            background: var(--color-input-bg);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            flex-shrink: 0;
-        }
-
-        .form-checkbox:hover {
-            border-color: var(--color-link);
-            transform: scale(1.05);
-            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
-        }
-
-        .form-checkbox:checked {
-            background: var(--color-link);
-            border-color: var(--color-link);
-            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
-        }
-
-        .form-checkbox:checked::after {
-            content: "✓";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .form-checkbox:focus {
-            outline: none;
-            border-color: var(--color-link);
-            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
-        }
-
-        .form-checkbox:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.375rem;
-            border-radius: 0.5rem;
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-input-border);
-            margin-bottom: 0.25rem;
-            transition: all 0.3s ease;
-        }
-
-        .checkbox-container:hover {
-            border-color: var(--color-link);
-            box-shadow: 0 2px 8px rgba(99, 179, 237, 0.1);
-        }
-
-        .checkbox-container label {
-            cursor: pointer;
-            -webkit-user-select: none;
-            user-select: none;
-            font-weight: 500;
-            color: var(--color-text-primary);
-            flex: 1;
-        }
-
-        .shortcut-group {
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-input-border);
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .shortcut-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            padding: 0.375rem;
-            background: var(--color-bg-content-section);
-            border-radius: 0.375rem;
-            border: 1px solid var(--color-input-border);
-        }
-
-        .shortcut-item label {
-            min-width: 120px;
-            font-weight: 600;
-            color: var(--color-text-primary);
-        }
-
-        .shortcut-input {
-            flex: 1;
-            padding: 0.5rem;
-            background: var(--color-input-bg);
-            color: var(--color-input-text);
-            border: 1px solid var(--color-input-border);
-            border-radius: 0.375rem;
-            font-family: "Courier New", monospace;
-            font-size: 0.875rem;
-            text-align: center;
-            cursor: default;
-        }
-
-        .shortcut-input.recording {
-            background: var(--color-button-yellow-bg);
-            color: var(--color-button-text);
-            border-color: var(--color-button-yellow-hover);
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.7;
-            }
-        }
-
-        .shortcut-edit-btn,
-        .shortcut-disable-btn {
-            padding: 0.375rem 0.75rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .shortcut-edit-btn {
-            background: var(--color-button-blue-bg);
-            color: var(--color-button-text);
-        }
-
-        .shortcut-edit-btn:hover {
-            background: var(--color-button-blue-hover);
-        }
-
-        .shortcut-disable-btn {
-            background: var(--color-button-red-bg);
-            color: var(--color-button-text);
-        }
-
-        .shortcut-disable-btn:hover {
-            background: var(--color-button-red-hover);
-        }
-
-        .shortcut-disable-btn.disabled {
-            background: var(--color-text-secondary);
-            opacity: 0.5;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-input-border);
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .checkbox-container:hover {
-            background: var(--color-bg-content-section);
-            border-color: var(--color-link);
-        }
-
-        .form-checkbox {
-            appearance: none;
-            width: 1rem;
-            height: 1rem;
-            border: 1px solid var(--color-input-border);
-            border-radius: 0.25rem;
-            background: var(--color-input-bg);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s ease;
-        }
-
-        .form-checkbox:checked {
-            background: var(--color-button-blue-bg);
-            border-color: var(--color-button-blue-bg);
-        }
-
-        .form-checkbox:checked::after {
-            content: "✓";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--color-button-text);
-            font-size: 0.875rem;
-            font-weight: bold;
-        }
-
-        .form-checkbox:focus {
-            outline: 2px solid var(--color-link);
-            outline-offset: 2px;
-        }
-
-        .checkbox-container label {
-            flex: 1;
-            color: var(--color-text-primary);
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .default-option {
-            font-weight: 600;
-            color: var(--color-link);
-        }
-
-        @media (max-width: 768px) {
-            .shortcut-item {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0.5rem;
-            }
-
-            .shortcut-item label {
-                min-width: auto;
-                text-align: center;
-            }
-
-            .checkbox-container {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .btn-primary {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        select,
-        .input-field select,
-        select.w-full {
-            height: 0.5rem;
-            font-size: 0.95rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--color-input-border);
-            background: var(--color-input-bg);
-            color: var(--color-input-text);
-            box-shadow: none;
-            transition: border-color 0.2s;
-        }
-
-        select:focus {
-            border-color: var(--color-link);
-            outline: none;
-        }
-
-        .checkbox-container {
-            font-size: 0.92em;
-            border-radius: 0.35rem;
-        }
-
-        .checkbox-container label {
-            font-size: 0.95em;
-        }
-
-        .subsection-card {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .subsection-content {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .modal-content,
-        .custom-confirm-modal .modal-content,
-        .message-box {
-            background: var(--color-modal-bg);
-            color: var(--color-modal-text);
-            padding: 2rem 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-            max-width: 95vw;
-            min-width: 320px;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal[open],
-        .custom-confirm-modal[open],
-        .message-box[open] {
-            display: flex !important;
-        }
-
-        .modal .close-button,
-        .custom-confirm-modal .close-button {
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            font-size: 1.5rem;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .modal .close-button:hover,
-        .custom-confirm-modal .close-button:hover {
-            color: var(--color-link);
-        }
-
-        .login-card {
-            max-width: 350px;
-            margin: 2.5rem auto 2rem auto;
-            padding: 2rem 1.5rem 1.5rem 1.5rem;
-            background: var(--color-bg-card);
-            border-radius: 1.25rem;
-            box-shadow: 0 6px 32px 0 rgba(0, 0, 0, 0.18),
-            0 2px 4px 0 rgba(0, 0, 0, 0.1);
-            border: 2px solid var(--color-input-border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .login-card h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-heading-main);
-            margin-bottom: 1.25rem;
-            text-align: center;
-        }
-
-        .login-card form {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .login-card label {
-            font-weight: 600;
-            color: var(--color-text-primary);
-            margin-bottom: 0.25rem;
-        }
-
-        .login-card input[type="email"],
-        .login-card input[type="password"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            border: 2px solid var(--color-input-border);
-            background: var(--color-input-bg);
-            color: var(--color-input-text);
-            font-size: 1.05rem;
-            margin-bottom: 0.25rem;
-            transition: border-color 0.2s;
-        }
-
-        .login-card input:focus {
-            border-color: var(--color-link);
-            outline: none;
-        }
-
-        .login-card .auth-btn-primary {
-            width: 100%;
-            padding: 0.85rem 0;
-            font-size: 1.1rem;
-            border-radius: 0.75rem;
-            margin-top: 0.5rem;
-            font-weight: 700;
-            background: var(--color-button-blue-bg);
-            color: var(--color-button-text);
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-            transition: background 0.2s,
-            transform 0.2s;
-        }
-
-        .login-card .auth-btn-primary:hover {
-            background: var(--color-button-blue-hover);
-            transform: translateY(-2px) scale(1.03);
-        }
-
-        .login-card .divider {
-            text-align: center;
-            color: var(--color-text-secondary);
-            margin: 1rem 0 0.5rem 0;
-            font-size: 0.95rem;
-            position: relative;
-        }
-
-        .login-card .divider:before,
-        .login-card .divider:after {
-            content: "";
-            display: inline-block;
-            width: 30%;
-            height: 1px;
-            background: var(--color-input-border);
-            vertical-align: middle;
-            margin: 0 0.5rem;
-        }
-
-        .login-card .auth-link {
-            color: var(--color-link);
-            font-weight: 600;
-            text-decoration: none;
-            margin: 0 0.25rem;
-            transition: color 0.2s;
-        }
-
-        .login-card .auth-link:hover {
-            color: var(--color-link);
-            text-decoration: underline;
-        }
-
-        .login-card .password-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            position: relative;
-        }
-
-        .login-card .password-row input[type="password"],
-        .login-card .password-row input[type="text"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            padding-right: 3rem;
-            border-radius: 0.75rem;
-            border: 2px solid var(--color-input-border);
-            background: var(--color-input-bg);
-            color: var(--color-input-text);
-            font-size: 1.05rem;
-            margin-bottom: 0.25rem;
-            transition: border-color 0.2s;
-        }
-
-        .login-card .password-row input:focus {
-            border-color: var(--color-link);
-            outline: none;
-        }
-
-        .login-card .visibility-toggle {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-card .visibility-toggle:hover {
-            background: var(--color-bg-content-section);
-            color: var(--color-text-primary);
-        }
-
-        .login-card .visibility-toggle svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            transition: transform 0.2s;
-        }
-
-        .login-card .visibility-toggle:hover svg {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 1.25rem 0.5rem 1rem 0.5rem;
-                max-width: 98vw;
-            }
-
-            .login-card h2 {
-                font-size: 1.4rem;
-            }
-        }
-
-        .social-auth-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            width: 100%;
-        }
-
-        .social-auth-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--color-input-border);
-            border-radius: 0.75rem;
-            background: var(--color-bg-card);
-            color: var(--color-text-primary);
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .social-auth-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .social-auth-btn.google-btn {
-            border-color: #4285f4;
-            background: linear-gradient(135deg,
-            #4285f4 0%,
-            #34a853 50%,
-            #fbbc05 75%,
-            #ea4335 100%);
-            color: white;
-        }
-
-        .social-auth-btn.google-btn:hover {
-            background: linear-gradient(135deg,
-            #3367d6 0%,
-            #2e8b47 50%,
-            #f4b400 75%,
-            #d93025 100%);
-            border-color: #3367d6;
-        }
-
-        .social-auth-btn.github-btn {
-            border-color: #24292e;
-            background: #24292e;
-            color: white;
-        }
-
-        .social-auth-btn.github-btn:hover {
-            background: #2f363d;
-            border-color: #2f363d;
-        }
-
-        .social-icon {
-            width: 1.5rem;
-            height: 1.5rem;
-            flex-shrink: 0;
-        }
-
-        .social-auth-btn.google-btn .social-icon {
-            filter: brightness(0) invert(1);
-        }
-
-        .social-auth-btn.github-btn .social-icon {
-            fill: white;
-        }
-
-        #profile-picture-display,
-        .profile-pic-large {
-            width: 2.5rem;
-            height: 2.5rem;
-            min-width: 2.5rem;
-            min-height: 2.5rem;
-            max-width: 2.5rem;
-            max-height: 2.5rem;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--color-link);
-            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
-            transition: box-shadow 0.2s;
-        }
-
-        #profile-picture-display:hover,
-        .profile-pic-large:hover {
-            box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.25);
-        }
-
-        .social-icon {
-            width: 1.25rem;
-            height: 1.25rem;
-            min-width: 1.25rem;
-            min-height: 1.25rem;
-            max-width: 1.25rem;
-            max-height: 1.25rem;
-            vertical-align: middle;
-            display: inline-block;
-        }
-
-        .modern-slider {
-            appearance: none;
-            width: 100%;
-            height: 0.5rem;
-            border-radius: 0.25rem;
-            background: linear-gradient(90deg, var(--color-link) 0%, var(--color-link) 100%);
-            outline: none;
-            transition: background 0.3s;
-            margin: 0 0.5rem;
-        }
-
-        .modern-slider::-webkit-slider-thumb {
-            appearance: none;
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 50%;
-            background: var(--color-link);
-            border: 2px solid var(--color-bg-card);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-            transition: background 0.3s, border 0.3s;
-        }
-
-        .modern-slider:focus::-webkit-slider-thumb {
-            border: 2px solid var(--color-link);
-        }
-
-        .modern-slider::-moz-range-thumb {
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 50%;
-            background: var(--color-link);
-            border: 2px solid var(--color-bg-card);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-            transition: background 0.3s, border 0.3s;
-        }
-
-        .modern-slider:focus::-moz-range-thumb {
-            border: 2px solid var(--color-link);
-        }
-
-        .modern-slider::-ms-thumb {
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 50%;
-            background: var(--color-link);
-            border: 2px solid var(--color-bg-card);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-            transition: background 0.3s, border 0.3s;
-        }
-
-        .modern-slider:focus::-ms-thumb {
-            border: 2px solid var(--color-link);
-        }
-
-        .modern-slider::-webkit-slider-runnable-track {
-            height: 0.5rem;
-            border-radius: 0.25rem;
-            background: var(--color-input-border);
-        }
-
-        .modern-slider::-ms-fill-lower {
-            background: var(--color-link);
-        }
-
-        .modern-slider::-ms-fill-upper {
-            background: var(--color-input-border);
-        }
-
-        .modern-slider:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--color-link, #60a5fa);
         }
     </style>
 </head>
 <body class="antialiased">
-<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
-<section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
-    <div class="container mx-auto px-4 text-center hero-content padding-top-1-5rem padding-bottom-1-5rem">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-2 leading-tight">User Account</h1>
-        <p class="text-lg md:text-xl mb-4">Manage your account or sign in</p>
-    </div>
-</section>
-<section class="py-6 bg-content-section rounded-lg shadow-inner mx-2 my-4">
-    <div class="container mx-auto px-2">
-        <div class="flex justify-center items-center h-48" id="loading-spinner" style="display: none;">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+<!-- Navbar placeholder -->
+<div id="navbar-placeholder"></div>
+
+<!-- Main content -->
+<div class="container mx-auto px-4 py-8">
+    <!-- Loading Spinner -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="loading-spinner">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
         </div>
-        <div class="login-card" id="signin-section">
-            <h2>Sign In</h2>
-            <form id="signin-form">
-                <label for="signin-email">Email Address</label>
-                <input autocomplete="username" id="signin-email" placeholder="email@example.com" required type="email"/>
-                <label for="signin-password">Password</label>
-                <div class="password-row">
-                    <input autocomplete="current-password" id="signin-password" placeholder="********" required
+
+    <!-- Login/Register Section -->
+    <div class="hidden" id="auth-section">
+        <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg p-6">
+            <!-- Login Form -->
+            <form class="space-y-4" id="login-form">
+                <h2 class="text-2xl font-bold mb-4">Sign In</h2>
+                <div class="auth-input-field">
+                    <label for="login-email">Email</label>
+                    <input autocomplete="email" class="form-input" id="login-email" name="email" required type="email"/>
+                </div>
+                <div class="auth-input-field">
+                    <label for="login-password">Password</label>
+                    <input autocomplete="current-password" class="form-input" id="login-password" name="password" required
                            type="password"/>
-                    <button aria-label="Toggle password visibility" class="visibility-toggle" onclick="togglePasswordVisibility('signin-password', this)"
-                            tabindex="-1" type="button">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2"></path>
-                            <path
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
+                </div>
+                <button class="btn-primary w-full" id="login-btn" type="submit">Sign In</button>
+                <div class="text-center mt-4">
+                    <button class="text-link hover:underline" id="switch-to-register" type="button">Create Account
+                    </button>
+                    <span class="mx-2">|</span>
+                    <button class="text-link hover:underline" id="forgot-password" type="button">Forgot Password?
                     </button>
                 </div>
-                <button class="auth-btn-primary" id="signin-btn" type="submit">
-                    Sign in with Email
-                </button>
-                <div class="divider">or</div>
-                <div class="social-auth-buttons">
-                    <button class="social-auth-btn google-btn" id="google-signin-btn" type="button">
-                        <svg class="social-icon" viewBox="0 0 24 24">
-                            <path
-                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                    fill="#4285F4"/>
-                            <path
-                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                    fill="#34A853"/>
-                            <path
-                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                    fill="#FBBC05"/>
-                            <path
-                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                    fill="#EA4335"/>
-                        </svg>
+                <div class="flex items-center justify-center space-x-4 mt-4">
+                    <button class="btn-secondary" id="google-signin" type="button">
                         Sign in with Google
                     </button>
-                    <button class="social-auth-btn github-btn" id="github-signin-btn" type="button">
-                        <svg class="social-icon" viewBox="0 0 24 24">
-                            <path
-                                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                        </svg>
+                    <button class="btn-secondary" id="github-signin" type="button">
                         Sign in with GitHub
                     </button>
                 </div>
-                <div style="text-align: center; margin-top: 1rem">
-                    <a href="#" id="go-to-signup-link" style="color: var(--color-link, #60a5fa); font-weight: 600">Don't
-                        have an
-                        account? Sign Up</a>
-                    <br/>
-                    <a href="#" id="go-to-forgot-password-link"
-                       style="color: var(--color-link, #60a5fa); font-weight: 600">Forgot Password?</a>
-                </div>
             </form>
-        </div>
-        <div class="login-card" id="signup-section" style="display: none">
-            <h2>Sign Up</h2>
-            <form id="signup-form">
-                <label for="signup-email">Email Address</label>
-                <input autocomplete="username" id="signup-email" placeholder="email@example.com" required type="email"/>
-                <label for="signup-password">Password</label>
-                <div class="password-row">
-                    <input autocomplete="new-password" id="signup-password" placeholder="********" required
+
+            <!-- Register Form -->
+            <form class="hidden space-y-4" id="register-form">
+                <h2 class="text-2xl font-bold mb-4">Create Account</h2>
+                <div class="auth-input-field">
+                    <label for="register-email">Email</label>
+                    <input autocomplete="email" class="form-input" id="register-email" name="email" required
+                           type="email"/>
+                </div>
+                <div class="auth-input-field">
+                    <label for="register-password">Password</label>
+                    <input autocomplete="new-password" class="form-input" id="register-password" name="password" required
                            type="password"/>
-                    <button aria-label="Toggle password visibility" class="visibility-toggle" onclick="togglePasswordVisibility('signup-password', this)"
-                            tabindex="-1" type="button">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2"></path>
-                            <path
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                    </button>
                 </div>
-                <label for="signup-confirm-password">Confirm Password</label>
-                <div class="password-row">
-                    <input autocomplete="new-password" id="signup-confirm-password" placeholder="********" required
-                           type="password"/>
-                    <button aria-label="Toggle password visibility" class="visibility-toggle" onclick="togglePasswordVisibility('signup-confirm-password', this)"
-                            tabindex="-1" type="button">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2"></path>
-                            <path
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                    </button>
+                <div class="auth-input-field">
+                    <label for="register-confirm-password">Confirm Password</label>
+                    <input autocomplete="new-password" class="form-input" id="register-confirm-password" name="password_confirm"
+                           required type="password"/>
                 </div>
-                <label for="signup-display-name">Display Name (Optional)</label>
-                <input id="signup-display-name" placeholder="Your Display Name" type="text"/>
-                <label for="signup-handle">Handle (Optional)</label>
-                <input id="signup-handle" placeholder="@yourhandle" type="text"/>
-                <button class="auth-btn-primary" id="signup-btn" type="submit">
-                    Sign Up
-                </button>
-                <div class="divider">or</div>
-                <div class="social-auth-buttons">
-                    <button class="social-auth-btn google-btn" id="google-signup-btn" type="button">
-                        <svg class="social-icon" viewBox="0 0 24 24">
-                            <path
-                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                    fill="#4285F4"/>
-                            <path
-                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                    fill="#34A853"/>
-                            <path
-                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                    fill="#FBBC05"/>
-                            <path
-                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                    fill="#EA4335"/>
-                        </svg>
-                        Sign up with Google
+                <button class="btn-primary w-full" id="register-btn" type="submit">Create Account</button>
+                <div class="text-center mt-4">
+                    <button class="text-link hover:underline" id="switch-to-login" type="button">Already have an
+                        account? Sign In
                     </button>
-                    <button class="social-auth-btn github-btn" id="github-signup-btn" type="button">
-                        <svg class="social-icon" viewBox="0 0 24 24">
-                            <path
-                                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                        </svg>
-                        Sign up with GitHub
-                    </button>
-                </div>
-                <div style="text-align: center; margin-top: 1rem">
-                    <a href="#" id="go-to-signin-link" style="color: var(--color-link, #60a5fa); font-weight: 600">Already
-                        have
-                        an account? Sign In</a>
                 </div>
             </form>
         </div>
-        <div class="login-card" id="forgot-password-section" style="display: none">
-            <h2>Forgot Password</h2>
-            <form id="forgot-password-form">
-                <label for="forgot-password-email">Email Address</label>
-                <input autocomplete="username" id="forgot-password-email" placeholder="email@example.com" required
-                       type="email"/>
-                <button class="auth-btn-primary" id="reset-password-btn" type="submit">
-                    Send Reset Email
-                </button>
-                <div style="text-align: center; margin-top: 1rem">
-                    <a href="#" id="go-to-signin-from-forgot-link"
-                       style="color: var(--color-link, #60a5fa); font-weight: 600">Back to Sign In</a>
-                </div>
-            </form>
         </div>
-        <div id="settings-content" style="display: none">
-            <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-                <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
+
+    <!-- User Settings Section -->
+    <div class="hidden" id="settings-section">
+        <!-- Profile Settings Form -->
+        <form class="settings-section mb-8" id="profile-settings-form">
+            <div class="settings-card">
                     <details open>
-                        <summary
-                                class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-                            Profile Information
-                        </summary>
-                        <div class="mt-4 w-full flex flex-col items-center">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-center gap-4 w-full">
-                                <div class="flex-shrink-0 flex items-center justify-center md:justify-start"
-                                     style="min-width: 40px">
-                                    <img alt="Profile Preview"
-                                         class="w-10 h-10 md:w-16 md:h-16 rounded-full object-cover border-2 border-link"
-                                         id="profile-picture-display"
-                                         onerror="this.onerror=null; this.src=window.DEFAULT_PROFILE_PIC;"
-                                         src="https://placehold.co/64x64/1F2937/E5E7EB?text=AV"/>
-                                </div>
-                                <div class="flex-1 flex flex-col input-field min-w-0">
-                                    <label for="display-name-input">Display Name:</label>
-                                    <input class="w-full" id="display-name-input" placeholder="Your Display Name"
-                                           type="text"/>
-                                </div>
-                                <div class="flex-1 flex flex-col input-field min-w-0">
-                                    <label for="handle-input">Unique Handle:</label>
-                                    <input class="w-full" id="handle-input" placeholder="@yourhandle" type="text"/>
-                                </div>
-                                <div class="flex-1 flex flex-col input-field min-w-0">
-                                    <label for="email-input">Email Address:</label>
-                                    <input class="w-full" id="email-input" placeholder="your.email@example.com"
-                                           type="email"/>
-                                </div>
-                                <div class="flex-1 flex flex-col input-field min-w-0">
-                                    <label for="profile-picture-url-input">Profile Picture URL:</label>
-                                    <div class="flex items-center gap-2">
-                                        <input class="w-full" id="profile-picture-url-input"
-                                               placeholder="https://example.com/your-image.jpg"
-                                               style="margin-bottom: 0; padding: 0.25rem 0.5rem;" type="url"/>
-                                        <button class="save-btn-circle ml-0" id="save-profile-btn"
-                                                style="margin-left: 0; width: 40px; height: 40px; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center;">
-                                            <svg fill="none" stroke="currentColor" style="width: 24px; height: 24px"
-                                                 viewBox="0 0 24 24">
-                                                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"
-                                                      stroke-width="2">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
+                        <summary class="text-lg font-semibold p-4 cursor-pointer">Profile Settings</summary>
+                        <div class="p-4">
+                            <div class="auth-input-field">
+                                <label for="display-name-input">Display Name</label>
+                                <input autocomplete="nickname" class="form-input" id="display-name-input" maxlength="50" minlength="2"
+                                       name="display_name" required type="text"/>
+                                <span class="error-message" id="display-name-error"></span>
                             </div>
+
+                            <div class="auth-input-field mt-4">
+                                <label for="handle-input">Handle</label>
+                                <input autocomplete="username" class="form-input" id="handle-input" name="handle" pattern="[a-z0-9_.]{3,30}"
+                                       required type="text"/>
+                                <span class="error-message" id="handle-error"></span>
+                            </div>
+
+                            <div class="auth-input-field mt-4">
+                                <label for="email-input">Email</label>
+                                <input autocomplete="email" class="form-input" id="email-input" name="email" required
+                                       type="email"/>
+                                <span class="error-message" id="email-error"></span>
+                            </div>
+
+                            <button class="btn-primary mt-6" id="save-profile-btn" type="submit">
+                                Save Changes
+                            </button>
                         </div>
                     </details>
                 </div>
-                <div class="hidden md:flex items-center justify-center" style="min-width: 40px">
-                    <svg fill="none" stroke="currentColor" style="width: 32px; height: 32px; opacity: 0.25"
-                         viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                        <path
-                                d="M12 14c-2.5 0-4-1.5-4-4s1.5-4 4-4 4 1.5 4 4-1.5 4-4 4zm0 2c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4z"/>
-                    </svg>
-                </div>
-                <div class="hidden md:flex items-center justify-center" style="min-width: 40px">
-                    <svg fill="none" stroke="currentColor" style="width: 32px; height: 32px; opacity: 0.25"
-                         viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                </div>
-                <div class="settings-section" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-                    <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-                        <details open>
-                            <summary
-                                    class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-                                Personalize Experience
-                            </summary>
-                            <div class="mt-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2">
-                                    <h4
-                                            class="text-lg font-semibold text-heading-card mb-2 mt-2 border-b border-dashed border-link pb-1">
-                                        Theme & Appearance
-                                    </h4>
-                                </div>
-                                <div class="input-field">
-                                    <label for="theme-select">Select Theme:</label>
-                                    <select id="theme-select"></select>
-                                </div>
-                                <div class="input-field">
-                                    <label for="background-pattern-select">Background Pattern:</label>
-                                    <select class="w-full" id="background-pattern-select">
-                                        <option class="default-option" value="none">
-                                            None
-                                        </option>
-                                        <option value="dots">Dots</option>
-                                        <option value="grid">Grid</option>
-                                        <option value="diagonal">Diagonal Lines</option>
-                                        <option value="circles">Circles</option>
-                                        <option value="hexagons">Hexagons</option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2 flex flex-col md:flex-row md:items-center gap-2 justify-center text-center">
-                                    <div class="flex-1 input-field mb-0 flex flex-col md:flex-row md:items-center md:justify-end gap-2">
-                                        <label class="w-full md:w-auto text-center md:text-right mb-1 md:mb-0 mr-2"
-                                               for="background-opacity-range">Background Pattern Opacity:</label>
-                                        <input class="w-full md:w-56 modern-slider" id="background-opacity-range"
-                                               max="100" min="0" style="accent-color: var(--color-link);" type="range"
-                                               value="10"/>
-                                        <span class="ml-2 text-sm font-semibold text-text-secondary"
-                                              id="background-opacity-value"
-                                              style="min-width: 2.5em;">10%</span>
-                                    </div>
-                                    <div class="flex-1 flex flex-col md:flex-row md:justify-start items-center md:items-center mb-0">
-                                        <button class="btn-primary btn-purple w-full md:w-auto mx-auto md:ml-4"
-                                                id="create-custom-theme-btn"
-                                                style="height:2.25rem;min-height:2.25rem;max-width:300px;">Create/Manage
-                                            Custom Themes
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <h4
-                                            class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
-                                        Typography
-                                    </h4>
-                                </div>
-                                <div class="input-field">
-                                    <label for="font-size-select">Base Font Size:</label>
-                                    <select class="w-full" id="font-size-select">
-                                        <option value="12px">Extra Small (12px)</option>
-                                        <option value="14px">Small (14px)</option>
-                                        <option class="default-option" value="16px">
-                                            Medium (16px)
-                                        </option>
-                                        <option value="18px">Large (18px)</option>
-                                        <option value="20px">Extra Large (20px)</option>
-                                        <option value="22px">XXL (22px)</option>
-                                        <option value="24px">XXXL (24px)</option>
-                                    </select>
-                                </div>
-                                <div class="input-field">
-                                    <label for="heading-size-multiplier">Heading Size Multiplier:</label>
-                                    <select class="w-full" id="heading-size-multiplier">
-                                        <option value="1.2">Small (1.2x)</option>
-                                        <option value="1.4">Medium (1.4x)</option>
-                                        <option class="default-option" value="1.6">
-                                            Large (1.6x)
-                                        </option>
-                                        <option value="1.8">Extra Large (1.8x)</option>
-                                        <option value="2.0">XXL (2.0x)</option>
-                                        <option value="2.5">XXXL (2.5x)</option>
-                                    </select>
-                                    <p class="text-text-secondary text-sm mt-1">
-                                        Controls how much larger headings are compared to body
-                                        text.
-                                    </p>
-                                </div>
-                                <div class="input-field">
-                                    <label for="font-family-select">Font Family:</label>
-                                    <select class="w-full" id="font-family-select">
-                                        <option class="default-option" value="Inter, sans-serif">
-                                            Inter (Modern)
-                                        </option>
-                                        <option value="Roboto Mono, monospace">
-                                            Roboto Mono (Monospace)
-                                        </option>
-                                        <option value="Open Sans, sans-serif">
-                                            Open Sans (Clean)
-                                        </option>
-                                        <option value="Roboto, sans-serif">
-                                            Roboto (Google)
-                                        </option>
-                                        <option value="Lato, sans-serif">
-                                            Lato (Friendly)
-                                        </option>
-                                        <option value="Poppins, sans-serif">
-                                            Poppins (Geometric)
-                                        </option>
-                                        <option value="Source Sans Pro, sans-serif">
-                                            Source Sans Pro (Professional)
-                                        </option>
-                                        <option value="Ubuntu, sans-serif">
-                                            Ubuntu (System-like)
-                                        </option>
-                                        <option value="Merriweather, serif">
-                                            Merriweather (Serif)
-                                        </option>
-                                        <option value="Playfair Display, serif">
-                                            Playfair Display (Elegant)
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="input-field">
-                                    <label for="line-height-select">Line Height:</label>
-                                    <select class="w-full" id="line-height-select">
-                                        <option value="1.2">Tight (1.2)</option>
-                                        <option value="1.4">Compact (1.4)</option>
-                                        <option class="default-option" value="1.6">
-                                            Normal (1.6)
-                                        </option>
-                                        <option value="1.8">Relaxed (1.8)</option>
-                                        <option value="2.0">Loose (2.0)</option>
-                                        <option value="2.2">Very Loose (2.2)</option>
-                                    </select>
-                                    <p class="text-text-secondary text-sm mt-1">
-                                        Controls spacing between lines of text.
-                                    </p>
-                                </div>
-                                <div class="input-field">
-                                    <label for="letter-spacing-select">Letter Spacing:</label>
-                                    <select class="w-full" id="letter-spacing-select">
-                                        <option class="default-option" value="0px">
-                                            Normal (0px)
-                                        </option>
-                                        <option value="1px">Loose (1px)</option>
-                                        <option value="2px">Very Loose (2px)</option>
-                                    </select>
-                                    <p class="text-text-secondary text-sm mt-1">
-                                        Controls spacing between letters.
-                                    </p>
-                                </div>
-                                <div class="col-span-2">
-                                    <h4
-                                            class="text-lg font-semibold text-heading-card mb-2 mt-4 border-b border-dashed border-link pb-1">
-                                        Accessibility
-                                    </h4>
-                                </div>
-                                <div class="checkbox-container" style="margin-bottom: 0.25rem">
-                                    <input class="form-checkbox" id="reduced-motion-checkbox" type="checkbox"/>
-                                    <label for="reduced-motion-checkbox">Reduced Motion
-                                        <span style="
-font-size: 0.85em;
-color: var(--color-text-secondary);
-margin-left: 8px;
-display: inline-block;
-">Removes most transitions and animations for less
-motion.</span></label>
-                                </div>
-                                <div class="checkbox-container" style="margin-bottom: 0.25rem">
-                                    <input class="form-checkbox" id="disable-animations-checkbox" type="checkbox"/>
-                                    <label for="disable-animations-checkbox">Disable Animations
-                                        <span style="
-font-size: 0.85em;
-color: var(--color-text-secondary);
-margin-left: 8px;
-display: inline-block;
-">Disables all non-essential animations for
-accessibility.</span></label>
-                                </div>
+        </form>
+
+        <!-- Password Change Form -->
+        <form class="settings-section mb-8" id="change-password-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Change Password</summary>
+                    <div class="p-4 space-y-4">
+                        <!-- Hidden username field for accessibility -->
+                        <label for="password-username">
+                        </label><input aria-hidden="true"
+                                       autocomplete="username"
+                                       class="hidden"
+                                       id="password-username"
+                                       name="username"
+                                       tabindex="-1"
+                                       type="text"/>
+
+                        <div class="auth-input-field">
+                            <label for="current-password">Current Password</label>
+                            <input autocomplete="current-password"
+                                   class="form-input"
+                                   id="current-password"
+                                   minlength="6"
+                                   name="current_password"
+                                   required
+                                   type="password"/>
+                            <span class="error-message" id="current-password-error"></span>
+                        </div>
+
+                        <div class="auth-input-field">
+                            <label for="new-password">New Password</label>
+                            <input autocomplete="new-password"
+                                   class="form-input"
+                                   id="new-password"
+                                   minlength="6"
+                                   name="new_password"
+                                   required
+                                   type="password"/>
+                            <span class="error-message" id="new-password-error"></span>
+                        </div>
+
+                        <div class="auth-input-field">
+                            <label for="confirm-new-password">Confirm New Password</label>
+                            <input autocomplete="new-password"
+                                   class="form-input"
+                                   id="confirm-new-password"
+                                   minlength="6"
+                                   name="new_password_confirm"
+                                   required
+                                   type="password"/>
+                            <span class="error-message" id="confirm-new-password-error"></span>
                             </div>
-                        </details>
+
+                        <button class="btn-primary" type="submit">Change Password</button>
                     </div>
+                </details>
+            </div>
+        </form>
+
+        <!-- Theme Settings -->
+        <div class="settings-section mb-8">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Theme Settings</summary>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="theme-list">
+                            <!-- Themes will be populated here -->
+                        </div>
+                    </div>
+                </details>
                 </div>
-                <div class="settings-card" style="width: 100%; max-width: 100%; margin-bottom: 2rem">
-                    <details open>
-                        <summary
-                                class="text-xl font-bold text-heading-card flex items-center gap-2 cursor-pointer select-none justify-center text-center">
-                            Account & Security
-                        </summary>
-                        <div class="mt-4 flex flex-col gap-6">
-                            <div>
-                                <div class="text-text-primary mb-2">
-                                    <div><span id="last-login-time"></span></div>
-                                    <div><span id="account-creation-time"></span></div>
+        </div>
+
+        <!-- Notification Settings -->
+        <form class="settings-section mb-8" id="notification-settings-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Notification Settings</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="email-notifications">Email Notifications</label>
+                                <input class="form-checkbox" id="email-notifications" type="checkbox"/>
                                 </div>
-                                <div class="text-text-primary text-center mb-2"
-                                     style="font-size: 1rem; line-height: 1.2">
-                                    Control your privacy settings, manage your data, and
-                                    configure notifications.
-                                </div>
+                            <div class="flex items-center justify-between">
+                                <label for="inapp-notifications">In-App Notifications</label>
+                                <input class="form-checkbox" id="inapp-notifications" type="checkbox"/>
                             </div>
-                            <hr class="my-1" style="
-border-top: 2px solid var(--color-link);
-line-height: 1;
-height: 0;
-"/>
-                            <div>
-                                <div class="checkbox-container mb-2">
-                                    <input class="form-checkbox" id="profile-visibility-checkbox" type="checkbox"/>
-                                    <label for="profile-visibility-checkbox">Make Profile Public</label>
+                            <div class="flex items-center justify-between">
+                                <label for="announcement-notifications">Announcement Notifications</label>
+                                <input class="form-checkbox" id="announcement-notifications" type="checkbox"/>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="community-notifications">Community Updates</label>
+                                <input class="form-checkbox" id="community-notifications" type="checkbox"/>
                                 </div>
-                                <div class="checkbox-container mb-2">
-                                    <input class="form-checkbox" id="activity-visibility-checkbox" type="checkbox"/>
-                                    <label for="activity-visibility-checkbox">Show Activity Status</label>
+                            <div class="flex items-center justify-between">
+                                <label for="maintenance-notifications">Maintenance Updates</label>
+                                <input class="form-checkbox" id="maintenance-notifications" type="checkbox"/>
                                 </div>
-                                <div class="checkbox-container mb-2">
-                                    <input class="form-checkbox" id="analytics-consent-checkbox" type="checkbox"/>
-                                    <label for="analytics-consent-checkbox">Allow Analytics & Usage Data</label>
+                            <button class="btn-primary mt-4" type="submit">Save Notification Settings</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </form>
+
+        <!-- Privacy Settings -->
+        <form class="settings-section mb-8" id="privacy-settings-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Privacy Settings</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="profile-visibility">Public Profile</label>
+                                <input class="form-checkbox" id="profile-visibility" type="checkbox"/>
                                 </div>
-                                <div class="flex flex-row gap-2 mt-2 w-full">
-                                    <button class="btn-primary btn-green flex-1" id="export-data-btn">Export My Data
-                                    </button>
-                                    <button class="btn-primary btn-purple flex-1" id="import-data-btn">Import Data
-                                    </button>
+                            <div class="flex items-center justify-between">
+                                <label for="activity-visibility">Show Activity Status</label>
+                                <input class="form-checkbox" id="activity-visibility" type="checkbox"/>
                                 </div>
-                                <div class="input-field mt-2">
-                                    <label for="data-retention-select">Data Retention Period:</label>
-                                    <select class="w-full" id="data-retention-select">
-                                        <option value="30">30 days</option>
-                                        <option class="default-option" value="90">
-                                            90 days
-                                        </option>
-                                        <option value="180">6 months</option>
-                                        <option value="365">1 year</option>
-                                        <option value="0">Indefinitely</option>
+                            <div class="flex items-center justify-between">
+                                <label for="data-retention">Data Retention Period</label>
+                                <select class="form-select" id="data-retention">
+                                    <option value="30">30 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="180">180 days</option>
+                                    <option value="365">1 year</option>
                                     </select>
                                 </div>
+                            <button class="btn-primary mt-4" type="submit">Save Privacy Settings</button>
                             </div>
-                            <hr class="my-1" style="
-border-top: 2px solid var(--color-link);
-line-height: 1;
-height: 0;
-"/>
-                            <div>
-                                <div class="checkbox-container mb-2">
-                                    <input class="form-checkbox" id="email-notifications-checkbox" type="checkbox"/>
-                                    <label for="email-notifications-checkbox">Receive Email Notifications</label>
-                                </div>
-                                <div class="checkbox-container mb-2">
-                                    <input class="form-checkbox" id="inapp-notifications-checkbox" type="checkbox"/>
-                                    <label for="inapp-notifications-checkbox">Receive In-App Notifications</label>
-                                </div>
-                                <div class="input-field mt-2">
-                                    <label for="notification-frequency-select">Email Frequency:</label>
-                                    <select class="w-full" id="notification-frequency-select">
-                                        <option class="default-option" value="immediate">
-                                            Immediate
-                                        </option>
-                                        <option value="hourly">Hourly Digest</option>
-                                        <option value="daily">Daily Digest</option>
-                                        <option value="weekly">Weekly Digest</option>
-                                        <option value="never">Never</option>
-                                    </select>
-                                </div>
+                    </div>
+                </details>
+            </div>
+        </form>
+
+        <!-- Accessibility Settings -->
+        <form class="settings-section mb-8" id="accessibility-settings-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Accessibility Settings</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="high-contrast">High Contrast Mode</label>
+                                <input class="form-checkbox" id="high-contrast" type="checkbox"/>
                             </div>
-                            <hr class="my-1" style="
-border-top: 2px solid var(--color-link);
-line-height: 1;
-height: 0;
-"/>
-                            <div>
-                                <p class="text-text-secondary text-sm mb-4">
-                                    You must enter your current password to change it.
-                                </p>
-                                <form class="space-y-4" id="change-password-form">
-                                    <input aria-hidden="true" autocomplete="username" name="username" style="display: none;"
-                                           tabindex="-1" type="text"/>
-                                    <div class="mb-4">
-                                        <label class="form-label" for="current-password">Current Password</label>
-                                        <input autocomplete="current-password" id="current-password"
-                                               placeholder="********"
-                                               type="password"/>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="form-label" for="new-password">New Password</label>
-                                        <input autocomplete="new-password" id="new-password" placeholder="********"
-                                               type="password"/>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="form-label" for="confirm-password">Confirm New Password</label>
-                                        <input autocomplete="new-password" id="confirm-password" placeholder="********"
-                                               type="password"/>
-                                    </div>
-                                    <button class="btn-primary btn-blue w-full" type="submit">Change Password</button>
-                                </form>
+                            <div class="flex items-center justify-between">
+                                <label for="font-size">Font Size</label>
+                                <select class="form-select" id="font-size">
+                                    <option value="small">Small</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="large">Large</option>
+                                    <option value="x-large">Extra Large</option>
+                                </select>
                             </div>
-                            <hr class="my-1" style="
-border-top: 2px solid var(--color-link);
-line-height: 1;
-height: 0;
-"/>
-                            <div class="danger-zone">
-                                <p class="text-text-secondary text-sm mb-4">
-                                    Enter your password to permanently delete your account.
-                                </p>
-                                <form class="space-y-4" id="delete-account-form">
-                                    <input aria-hidden="true" autocomplete="username" name="username" style="display: none;"
-                                           tabindex="-1" type="text"/>
-                                    <div class="mb-4">
-                                        <label class="form-label" for="delete-password">Confirm Password</label>
-                                        <input autocomplete="current-password" id="delete-password"
-                                               placeholder="********"
-                                               type="password"/>
-                                    </div>
-                                    <button class="btn-primary btn-red w-full" type="submit">Delete Account</button>
-                                </form>
+                            <div class="flex items-center justify-between">
+                                <label for="reduced-motion">Reduce Motion</label>
+                                <input class="form-checkbox" id="reduced-motion" type="checkbox"/>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="screen-reader">Screen Reader Support</label>
+                                <input class="form-checkbox" id="screen-reader" type="checkbox"/>
+                            </div>
+                            <button class="btn-primary mt-4" type="submit">Save Accessibility Settings</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </form>
+
+        <!-- Communication Settings -->
+        <form class="settings-section mb-8" id="communication-settings-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Communication Settings</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="dm-permissions">Direct Message Permissions</label>
+                                <select class="form-select" id="dm-permissions">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="following">Following Only</option>
+                                    <option value="none">No One</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="mention-permissions">Mention Permissions</label>
+                                <select class="form-select" id="mention-permissions">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="following">Following Only</option>
+                                    <option value="none">No One</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <button class="btn-secondary" type="button">Manage</button>
+                            </div>
+                            <button class="btn-primary mt-4" type="submit">Save Communication Settings</button>
+                            </div>
+                    </div>
+                </details>
+            </div>
+        </form>
+
+        <!-- Advanced Settings -->
+        <form class="settings-section mb-8" id="advanced-settings-form">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Advanced Settings</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="low-bandwidth">Low Bandwidth Mode</label>
+                                <input class="form-checkbox" id="low-bandwidth" type="checkbox"/>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="debug-mode">Debug Mode</label>
+                                <input class="form-checkbox" id="debug-mode" type="checkbox"/>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="keyboard-shortcuts">Enable Keyboard Shortcuts</label>
+                                <input class="form-checkbox" id="keyboard-shortcuts" type="checkbox"/>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="experimental-features">Enable Experimental Features</label>
+                                <input class="form-checkbox" id="experimental-features" type="checkbox"/>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block mb-2" for="custom-css">Custom CSS</label>
+                                <textarea class="form-textarea w-full" id="custom-css" rows="4"></textarea>
+                            </div>
+                            <button class="btn-primary mt-4" type="submit">Save Advanced Settings</button>
                             </div>
                         </div>
                     </details>
                 </div>
+        </form>
+
+        <!-- Data Management -->
+        <div class="settings-section mb-8">
+            <div class="settings-card">
+                <details>
+                    <summary class="text-lg font-semibold p-4 cursor-pointer">Data Management</summary>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Export Data</h3>
+                                <p class="text-sm text-text-secondary mb-4">Download a copy of your data</p>
+                                <button class="btn-secondary" onclick="exportUserData()" type="button">Export Data
+                                </button>
+                            </div>
+                            <div class="border-t border-border pt-4">
+                                <h3 class="text-lg font-semibold mb-2 text-danger">Danger Zone</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <button class="btn-danger" onclick="deactivateAccount()" type="button">
+                                            Deactivate Account
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="btn-danger" onclick="deleteAccount()" type="button">
+                                            Delete Account Permanently
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>
-        <div class="text-center text-text-secondary text-xl py-12" id="login-required-message" style="display: none;">
-            <p>
-                Please
-                <a class="text-link hover:underline" href="#" id="link-to-signin">sign in</a>
-                to view and manage your settings.
-            </p>
         </div>
     </div>
-</section>
+
+<!-- Footer placeholder -->
 <div id="footer-placeholder"></div>
-<script src="app.js" type="module"></script>
-<script src="user-main.js" type="module"></script>
+
 <script type="module">
     import {
-        auth,
-        getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-        DEFAULT_THEME_NAME,
-    } from "./firebase-init.js";
-    import {loadNavbar, loadFooter} from "./core.js";
-    import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-    } from "./themes.js";
-    import {setupCustomThemeManagement} from './custom_theme_modal.js';
-    import {showMessageBox, showCustomConfirm} from './utils.js';
-    // Apply cached theme immediately to prevent flash
-    applyCachedTheme();
-    firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-            let userProfile = null;
-            if (user) {
-                userProfile = await getUserProfileFromFirestore(user.uid);
+        createUserWithEmailAndPassword,
+        GithubAuthProvider,
+        GoogleAuthProvider,
+        signInWithEmailAndPassword,
+        signInWithPopup,
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {doc, getDoc, setDoc} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import {auth, db, appId} from "./firebase-init.js";
+    import {themeManager} from "./theme-manager.js";
+    import {showMessageBox} from "./utils.js";
+    import {initializePage} from "./core.js";
+
+    // Data management functions
+    async function exportUserData() {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                showMessageBox('Please sign in to export data', true);
+                return;
             }
-            await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, DEFAULT_THEME_NAME);
-            loadFooter("current-year-users");
-            const userThemePreference = userProfile?.themePreference;
-            const allThemes = await getAvailableThemes();
-            const themeToApply =
-                allThemes.find((t) => t.id === userThemePreference) ||
-                allThemes.find((t) => t.id === DEFAULT_THEME_NAME);
-            if (themeToApply) {
-                applyTheme(themeToApply.id, themeToApply);
-                console.log(
-                    `Users page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-                );
+
+            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                showMessageBox('No data found to export', true);
+                return;
             }
-// Setup custom theme modal trigger
-            setupCustomThemeManagement(
-                window.db,
-                auth,
-                window.appId || 'arcator-web',
-                showMessageBox,
-                null,
-                document.getElementById('theme-select'),
-                DEFAULT_THEME_NAME,
-                user,
-                showCustomConfirm
-            );
+
+            const userData = userDoc.data();
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = window.URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `arcator-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showMessageBox('Data exported successfully!');
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            showMessageBox('Failed to export data', true);
+        }
+    }
+
+    async function deactivateAccount() {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                showMessageBox('Please sign in to deactivate account', true);
+                return;
+            }
+
+            const confirmed = confirm('Are you sure you want to deactivate your account? This can be reversed later.');
+            if (!confirmed) return;
+
+            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+            await setDoc(userRef, {
+                isDeactivated: true,
+                deactivatedAt: new Date().toISOString()
+            }, {merge: true});
+
+            showMessageBox('Account deactivated successfully. You will be signed out.');
+            await auth.signOut();
+        } catch (error) {
+            console.error('Error deactivating account:', error);
+            showMessageBox('Failed to deactivate account', true);
+        }
+    }
+
+    async function deleteAccount() {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                showMessageBox('Please sign in to delete account', true);
+                return;
+            }
+
+            const confirmed = confirm('Are you sure you want to permanently delete your account? This action cannot be undone.');
+            if (!confirmed) return;
+
+            const reconfirmed = confirm('This will permanently delete all your data. Type DELETE to confirm.');
+            if (reconfirmed) {
+                const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+                await setDoc(userRef, {
+                    isDeleted: true,
+                    deletedAt: new Date().toISOString()
+                }, {merge: true});
+
+                await user.delete();
+                showMessageBox('Account deleted successfully.');
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            showMessageBox('Failed to delete account', true);
+        }
+    }
+
+    // Function to show/hide sections
+    function showSection(sectionId) {
+        const sections = ['auth-section', 'settings-section'];
+        sections.forEach(section => {
+            const element = document.getElementById(section);
+            if (element) {
+                if (section === sectionId) {
+                    element.classList.remove('hidden');
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                        element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    }, 50);
+                } else {
+                    element.classList.add('hidden');
+                }
+            }
         });
-    });
+    }
+
+    // Set up event listeners for authentication
+    function setupEventListeners() {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const switchToRegister = document.getElementById('switch-to-register');
+        const switchToLogin = document.getElementById('switch-to-login');
+        const googleSignIn = document.getElementById('google-signin');
+        const githubSignIn = document.getElementById('github-signin');
+        const forgotPassword = document.getElementById('forgot-password');
+
+        loginForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessageBox('Logged in successfully!');
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessageBox(error.message, true);
+            }
+        });
+
+        registerForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showMessageBox('Passwords do not match', true);
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessageBox('Account created successfully!');
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessageBox(error.message, true);
+            }
+        });
+
+        switchToRegister?.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+        });
+
+        switchToLogin?.addEventListener('click', () => {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        googleSignIn?.addEventListener('click', async () => {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                showMessageBox(error.message, true);
+            }
+        });
+
+        githubSignIn?.addEventListener('click', async () => {
+            try {
+                const provider = new GithubAuthProvider();
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error('GitHub sign-in error:', error);
+                showMessageBox(error.message, true);
+            }
+        });
+
+        forgotPassword?.addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                showMessageBox('Please enter your email address first', true);
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showMessageBox('Password reset email sent!');
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showMessageBox(error.message, true);
+            }
+        });
+
+        // Set up form event listeners
+        const forms = [
+            'profile-settings-form',
+            'change-password-form',
+            'notification-settings-form',
+            'privacy-settings-form',
+            'accessibility-settings-form',
+            'communication-settings-form',
+            'advanced-settings-form'
+        ];
+
+        forms.forEach(formId => {
+            const form = document.getElementById(formId);
+            form?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData.entries());
+
+                    const user = auth.currentUser;
+                    if (!user) {
+                        showMessageBox('Please sign in to save settings', true);
+                        return;
+                    }
+
+                    const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+                    await setDoc(userRef, {
+                        [formId.replace('-form', '')]: data,
+                        lastUpdated: new Date().toISOString()
+                    }, {merge: true});
+
+                    showMessageBox('Settings saved successfully!');
+                } catch (error) {
+                    console.error(`Error saving ${formId}:`, error);
+                    showMessageBox('Failed to save settings', true);
+                }
+            });
+        });
+    }
+
+    // Make functions available globally
+    window.exportUserData = exportUserData;
+    window.deactivateAccount = deactivateAccount;
+    window.deleteAccount = deleteAccount;
+    window.showBlockedUsers = () => import('./forms.js').then(m => m.showBlockedUsers());
+
+    // Initialize page
+    const init = async () => {
+        try {
+            await themeManager.init();
+            await initializePage('users', true);
+            setupEventListeners();
+
+            // Show the appropriate section based on auth state
+            auth.onAuthStateChanged((user) => {
+                showSection(user ? 'settings-section' : 'auth-section');
+            });
+        } catch (error) {
+            console.error('Page initialization error:', error);
+            showMessageBox('Failed to initialize page', true);
+            }
+    };
+
+    // Start initialization when document is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init().catch(error => console.error('Initialization error:', error));
+    }
 </script>
 </body>
 </html>

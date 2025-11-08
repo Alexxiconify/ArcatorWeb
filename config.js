@@ -29,7 +29,7 @@ module.exports = {
     },
 
     // SMTP Server configuration
-    SMTP_SERVER_URL: "http://apollo.arcator.co.uk:3001",
+    SMTP_SERVER_URL: "https://apollo.arcator.co.uk:3001",
     SMTP_SERVER_CONFIG: {
     host: "smtp.gmail.com",
     port: 587,

@@ -33,9 +33,6 @@ export function executeShortcut(shortcutKey, showSearchModal, showHelpModal) {
             case "help":
                 if (typeof showHelpModal === 'function') showHelpModal();
                 break;
-            case "logout":
-                handleLogout();
-                break;
         }
     }
 }
@@ -96,4 +93,19 @@ export function initShortcuts() {
             }
         }
     });
+}
+
+export class getCurrentShortcuts {
+}
+
+export class handleKeyboardShortcut {
+}
+
+export class initializeKeyboardShortcuts {
+}
+
+export class shortcutCategories {
+}
+
+export class shortcutDescriptions {
 }

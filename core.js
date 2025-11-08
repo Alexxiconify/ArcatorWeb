@@ -1,18 +1,40 @@
 // core.js - Core application functionality
-import {
-    auth,
-    currentUser,
-    db,
-    DEFAULT_PROFILE_PIC,
-    DEFAULT_THEME_NAME,
-    firebaseReadyPromise,
-    getUserProfileFromFirestore
-} from "./firebase-init.js";
-import {applyCachedTheme, applyTheme, getAvailableThemes} from "./themes.js";
-import {setupTabs, showMessageBox} from "./utils.js";
+import {auth, COLLECTIONS, db, DEFAULT_PROFILE_PIC, doc, getDoc, serverTimestamp, setDoc} from "./firebase-init.js";
+import {themeManager} from "./theme-manager.js";
+import {showMessageBox} from "./utils.js";
+
+const navbarHTML = `
+<nav class="navbar">
+    <div class="container navbar-content">
+        <div class="flex items-center gap-4">
+            <a href="./index.html" class="text-xl font-bold text-text hover:text-accent-light">Arcator</a>
+            <div class="flex items-center gap-4">
+                <a href="./index.html" class="nav-link">Home</a>
+                <a href="./games.html" class="nav-link">Games</a>
+                <a href="./forms.html" class="nav-link">Forms</a>
+                <a href="./pages.html" class="nav-link">Pages</a>
+                <a href="./about.html" class="nav-link">About</a>
+                <a href="./admin.html" class="nav-link">Admin</a>
+            </div>
+        </div>
+        <div id="user-section" class="flex items-center gap-4"></div>
+    </div>
+</nav>`;
+
+const footerHTML = `
+<footer class="footer bg-surface mt-auto">
+    <div class="container py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex gap-4">
+                <a href="https://bluemaps.arcator.co.uk" class="footer-link" target="_blank" rel="noopener">Blue Maps</a>
+                <a href="https://wiki.arcator.co.uk" class="footer-link" target="_blank" rel="noopener">Wiki</a>
+            </div>
+            <div class="text-text-2">&copy; ${new Date().getFullYear()} Arcator</div>
+        </div>
+    </div>
+</footer>`;
 
 const elementCache = new Map();
-let isNavbarLoaded = false;
 let currentNavbarUnsubscribe = null;
 
 // DOM element helpers
@@ -27,220 +49,138 @@ function getElement(id) {
 
 // Navbar functionality
 export async function loadNavbar(user, userProfile) {
-    if (isNavbarLoaded && !user) return;
+    const navbar = getElement('navbar-placeholder');
+    if (!navbar) return;
 
-    try {
-        const navbar = getElement('navbar-container');
-        if (!navbar) return;
+    navbar.innerHTML = navbarHTML;
 
-        navbar.innerHTML = generateNavbarHTML(user, userProfile);
-        setupNavbarListeners();
-        isNavbarLoaded = true;
+    const userSection = getElement('user-section');
+    if (!userSection) return;
 
-        // Apply theme
-        const userTheme = userProfile?.themePreference;
-        const allThemes = await getAvailableThemes();
-        const themeToApply = allThemes.find(t => t.id === userTheme) ||
-            allThemes.find(t => t.id === DEFAULT_THEME_NAME);
+    userSection.innerHTML = user
+        ? `<a href="./users.html" class="flex items-center gap-2">
+             <img src="${userProfile?.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" 
+                  class="profile-image">
+             <span class="text-text">${userProfile?.displayName || user.email}</span>
+           </a>`
+        : `<a href="./users.html" class="btn-primary">Sign In</a>`;
 
-        if (themeToApply) {
-            applyTheme(themeToApply.id, themeToApply);
+    // Highlight current page
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    navbar.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href').replace('./', '') === currentPage) {
+            link.classList.add('nav-link-active');
         }
-    } catch (error) {
-        console.error('Error loading navbar:', error);
-    }
+    });
 }
 
-function generateNavbarHTML(user, userProfile) {
-    const profilePic = userProfile?.photoURL || user?.photoURL || DEFAULT_PROFILE_PIC;
-    const displayName = userProfile?.displayName || user?.displayName || 'Guest';
-
-    return `
-        <nav class="bg-navbar-footer text-text-primary p-4">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="flex items-center space-x-4">
-                    <a href="./index.html" class="text-2xl font-bold">Arcator</a>
-                    <div class="hidden md:flex space-x-4">
-                        <a href="./about.html" class="hover:text-link transition-colors">About</a>
-                        <a href="./games.html" class="hover:text-link transition-colors">Games</a>
-                        <a href="./forms.html" class="hover:text-link transition-colors">Forms</a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    ${user ? `
-                        <div class="relative group">
-                            <button id="user-menu-btn" class="flex items-center space-x-2">
-                                <img src="${profilePic}" alt="Profile" class="w-8 h-8 rounded-full border-2 border-link">
-                                <span id="display-name" class="hidden md:inline">${displayName}</span>
-                            </button>
-                            <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-bg-card rounded-lg shadow-xl hidden">
-                                <div class="py-1">
-                                    <a href="./users.html" class="block px-4 py-2 hover:bg-link/10">Profile</a>
-                                    ${userProfile?.isAdmin ?
-        `<a href="./admin.html" class="block px-4 py-2 hover:bg-link/10">Admin</a>` : ''}
-                                    <button id="logout-btn" class="w-full text-left px-4 py-2 hover:bg-link/10">
-                                        Logout
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ` : `
-                        <a href="./users.html" class="btn-primary btn-blue">Sign In</a>
-                    `}
-                </div>
-            </div>
-        </nav>
-    `;
+export function loadFooter() {
+    const footer = getElement('footer-placeholder');
+    if (footer) footer.innerHTML = footerHTML;
 }
 
-function setupNavbarListeners() {
-    const userMenuBtn = getElement('user-menu-btn');
-    const userDropdown = getElement('user-dropdown');
-    const logoutBtn = getElement('logout-btn');
-    let menuTimeout;
-
-    if (userMenuBtn && userDropdown) {
-        const closeMenu = () => userDropdown.classList.add('hidden');
-        const openMenu = () => userDropdown.classList.remove('hidden');
-
-        userMenuBtn.addEventListener('mouseenter', () => {
-            clearTimeout(menuTimeout);
-            openMenu();
-        });
-
-        userMenuBtn.addEventListener('mouseleave', () => {
-            menuTimeout = setTimeout(() => {
-                if (!userDropdown.matches(':hover')) closeMenu();
-            }, 200);
-        });
-
-        userDropdown.addEventListener('mouseenter', () => clearTimeout(menuTimeout));
-        userDropdown.addEventListener('mouseleave', closeMenu);
-
-        // Handle clicks outside
-        document.addEventListener('click', (e) => {
-            if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                closeMenu();
-            }
-        });
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-                window.location.href = './index.html';
-            } catch (error) {
-                console.error('Logout failed:', error);
-                showMessageBox('Failed to logout. Please try again.', true);
-            }
-        });
-    }
-}
-
-export function loadFooter(yearElementId) {
-    if (!yearElementId) return;
-    const yearElement = getElement(yearElementId);
-    if (yearElement) {
-        yearElement.textContent = new Date().getFullYear().toString();
-    }
-}
-
-// Firebase initialization
-async function waitForFirebase() {
+async function loadUserProfile(userId) {
+    if (!userId) return null;
     try {
-        await firebaseReadyPromise;
-        if (!auth || !db) new Error("Firebase not initialized");
+        const userRef = doc(db, COLLECTIONS.USER_PROFILES, userId);
+        const userDoc = await getDoc(userRef);
+        if (!userDoc.exists()) {
+            await setDoc(userRef, {
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+                isAdmin: false,
+                themePreference: 'dark'
+            }, {merge: true});
+            return await getDoc(userRef).then(doc => doc.data());
+        }
+        return userDoc.data();
     } catch (error) {
-        console.error("Firebase initialization failed:", error);
-        throw error;
+        console.error('Error loading user profile:', error);
+        return null;
     }
 }
 
-// Initialize keyboard shortcuts
-let shortcutsInitialized = false;
+export function setupTabs(containerId, defaultTab = 0) {
+    const container = getElement(containerId);
+    if (!container) return;
 
-function initializeShortcuts() {
-    if (shortcutsInitialized) return;
+    const tabs = container.querySelectorAll('[role="tab"]');
+    const panels = container.querySelectorAll('[role="tabpanel"]');
 
-    import('./shortcuts.js')
-        .then(({initShortcuts}) => {
-            if (typeof initShortcuts === 'function') {
-                initShortcuts();
-                shortcutsInitialized = true;
+    function switchTab(oldTab, newTab) {
+        newTab.focus();
+        newTab.setAttribute('aria-selected', 'true');
+        oldTab.setAttribute('aria-selected', 'false');
+        oldTab.focus();
+
+        const newPanelId = newTab.getAttribute('aria-controls');
+        const newPanel = getElement(newPanelId);
+        const oldPanelId = oldTab.getAttribute('aria-controls');
+        const oldPanel = getElement(oldPanelId);
+
+        if (newPanel && oldPanel) {
+            newPanel.classList.remove('hidden');
+            oldPanel.classList.add('hidden');
+        }
+    }
+
+    // Set initial tab
+    if (tabs[defaultTab]) {
+        tabs[defaultTab].click();
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', e => {
+            e.preventDefault();
+            const currentTab = container.querySelector('[aria-selected="true"]');
+            if (e.currentTarget !== currentTab) {
+                switchTab(currentTab, e.currentTarget);
             }
-        })
-        .catch(error => {
-            console.error('Failed to initialize shortcuts:', error);
         });
+    });
 }
 
 // Page initialization with shortcut support
-export async function initializePage(pageName, yearElementId = null, useWindowLoad = false) {
-    const initFunction = async () => {
-        try {
-            await waitForFirebase();
-            await applyCachedTheme();
+export async function initializePage(pageName, requireAuth = false) {
+    try {
+        await themeManager.init();
 
-            // Clean up any existing auth listener
-            if (currentNavbarUnsubscribe) {
-                currentNavbarUnsubscribe();
-                currentNavbarUnsubscribe = null;
-            }
+        if (currentNavbarUnsubscribe) {
+            currentNavbarUnsubscribe();
+            currentNavbarUnsubscribe = null;
+        }
 
-            // Initialize UI without user first
-            await loadNavbar(null, null);
-            loadFooter(yearElementId);
-            initializeShortcuts();
-
-            // Set up auth listener
-            currentNavbarUnsubscribe = auth.onAuthStateChanged(async (user) => {
-                try {
-                    let userProfile = null;
-                    if (user) {
-                        userProfile = await getUserProfileFromFirestore(user.uid);
-                    }
-                    await loadNavbar(user, userProfile);
-
-                    // Apply user theme if available
-                    if (userProfile?.themePreference) {
-                        const themes = await getAvailableThemes();
-                        const userTheme = themes.find(t => t.id === userProfile.themePreference);
-                        if (userTheme) applyTheme(userTheme.id, userTheme);
-                    }
-                } catch (error) {
-                    console.error('Auth state change handler failed:', error);
-                    showMessageBox('Failed to update user state', true);
-                }
+        const user = await new Promise(resolve => {
+            const unsubscribe = auth.onAuthStateChanged(user => {
+                unsubscribe();
+                resolve(user);
             });
-
-            console.log(`Page ${pageName} initialized successfully`);
-        } catch (error) {
-            console.error(`Error initializing page ${pageName}:`, error);
-            showMessageBox("Failed to initialize page", true);
-        }
-    };
-
-    const executeInit = () => {
-        initFunction().catch(error => {
-            console.error('Page initialization failed:', error);
-            showMessageBox('Failed to initialize page', true);
         });
-    };
 
-    if (useWindowLoad) {
-        if (document.readyState === 'complete') {
-            executeInit();
-        } else {
-            window.addEventListener('load', executeInit);
+        if (requireAuth && !user) {
+            window.location.href = './users.html';
+            return;
         }
-    } else {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', executeInit);
-        } else {
-            executeInit();
+
+        const userProfile = user ? await loadUserProfile(user.uid) : null;
+        await Promise.all([loadNavbar(user, userProfile)]);
+
+        if (user) {
+            currentNavbarUnsubscribe = auth.onAuthStateChanged(async user => {
+                const profile = user ? await loadUserProfile(user.uid) : null;
+                await loadNavbar(user, profile);
+            });
         }
+
+        console.log(`Page ${pageName} initialized successfully`);
+    } catch (error) {
+        console.error('Page initialization error:', error);
+        showMessageBox('Failed to initialize page', true);
     }
+}
+
+export function getCurrentUser() {
+    return auth.currentUser;
 }
 
 // Expose global utilities safely
@@ -249,5 +189,5 @@ Object.assign(window, {
     loadNavbar: (...args) => loadNavbar(...args).catch(console.error),
     loadFooter,
     setupTabs,
-    currentUser: () => currentUser
+    getCurrentUser
 });

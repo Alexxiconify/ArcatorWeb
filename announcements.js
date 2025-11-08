@@ -1,7 +1,7 @@
 // announcements.js: Handles announcements.
 
-import {appId, db, getCurrentUser} from "./firebase-init.js";
-import {getUserProfileFromFirestore, parseEmojis, parseMentions, showCustomConfirm, showMessageBox} from "./utils.js";
+import {appId, db, getCurrentUser, getUserProfileFromFirestore} from "./firebase-init.js";
+import {showCustomConfirm, showMessageBox} from "./utils.js";
 import {
     addDoc,
     collection,
@@ -12,6 +12,7 @@ import {
     query,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {parseEmojis, parseMentions} from "./index.js";
 
 // --- DOM Elements ---
 const createAnnouncementSection = document.getElementById(
@@ -196,7 +197,7 @@ export function renderAnnouncements() {
             <p class="text-xs text-gray-500">${announcement.createdAt ? new Date(announcement.createdAt.toDate()).toLocaleString() : "N/A"}</p>
           </div>
         </div>
-        <p class="text-gray-300 mb-2">${await parseMentions(parseEmojis(announcement.content))}</p>
+        <p class="text-gray-300 mb-2">${(parseMentions(parseEmojis(announcement.content)))}</p>
         ${
           currentUser && currentUser.isAdmin
             ? `<button class="delete-announcement-btn text-red-400 hover:text-red-500 float-right transition duration-300" data-id="${announcementId}">

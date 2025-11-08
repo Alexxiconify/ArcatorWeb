@@ -1,15 +1,12 @@
-// themes.js - Theme management system
-import {appId, auth, db, firebaseReadyPromise} from "./firebase-init.js";
+import {appId, auth, db, getDocs, query} from "./firebase-init.js";
 import {
     addDoc,
     collection,
     deleteDoc,
     doc,
-    getDocs,
-    query,
     serverTimestamp,
     where
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 let availableThemesCache = [];
 const THEME_CACHE_KEY = "arcator_user_theme_preference";
@@ -271,11 +268,17 @@ export function setupThemesFirebase() {
 
 async function fetchCustomThemes() {
   try {
-    await firebaseReadyPromise;
     if (!db) return [];
 
+      if (!db) {
+          console.error("Firestore instance not initialized");
+          return [];
+      }
+
+      const themesPath = `artifacts/${appId}/public/data/themes`;
+      const themesRef = collection(db, themesPath);
     const customThemesQuery = query(
-      collection(db, `artifacts/${appId}/public/data/custom_themes`),
+        themesRef,
       where("isActive", "==", true)
     );
     const querySnapshot = await getDocs(customThemesQuery);
@@ -328,9 +331,10 @@ export function applyTheme(themeId, themeProperties) {
   return true;
 }
 
+auth.currentUser = undefined;
+
 export async function saveCustomTheme(themeData) {
   try {
-    await firebaseReadyPromise;
     if (!db || !auth.currentUser) return false;
 
     const themeDoc = {
@@ -356,7 +360,6 @@ export async function saveCustomTheme(themeData) {
 
 export async function deleteCustomTheme(themeId) {
   try {
-    await firebaseReadyPromise;
     if (!db) return false;
 
     await deleteDoc(doc(db, `artifacts/${appId}/public/data/custom_themes`, themeId));
@@ -370,7 +373,6 @@ export async function deleteCustomTheme(themeId) {
 
 export async function initializeGlobalThemes() {
   try {
-    await firebaseReadyPromise;
     if (!db) return false;
 
     const themesCollection = collection(db, `artifacts/${appId}/public/data/custom_themes`);

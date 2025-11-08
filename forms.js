@@ -1,15 +1,4 @@
-// Import existing modules
-import {
-    appId,
-    auth,
-    db,
-    DEFAULT_PROFILE_PIC,
-    firebaseReadyPromise,
-    getUserProfileFromFirestore
-} from "./firebase-init.js";
-import {loadFooter, loadNavbar} from "./core.js";
-import {applyCachedTheme, applyTheme, getAvailableThemes} from "./themes.js";
-import {escapeHtml, showCustomConfirm, showMessageBox} from "./utils.js";
+import {loadFooter} from "./core.js";
 import {
     addDoc,
     collection,
@@ -21,42 +10,12 @@ import {
     orderBy,
     query,
     serverTimestamp,
-    setDoc
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    setDoc,
+    updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import {appId, auth, db, getUserProfileFromFirestore} from "./firebase-init.js";
+import {escapeHtml} from "./index.js";
 
-// Apply cached theme immediately to prevent flash
-applyCachedTheme();
-
-firebaseReadyPromise.then(() => {
-  auth.onAuthStateChanged(async (user) => {
-    let userProfile = null;
-    if (user) {
-      userProfile = await getUserProfileFromFirestore(user.uid);
-      window.currentUser = {
-        uid: user.uid,
-        displayName: userProfile?.displayName || user.displayName || "Anonymous",
-        photoURL: userProfile?.photoURL || user.photoURL || "https://placehold.co/32x32/1F2937/E5E7EB?text=AV",
-        isAdmin: typeof userProfile?.isAdmin === 'boolean' ? userProfile.isAdmin : false,
-        handle: userProfile?.handle || userProfile?.displayName || user.displayName || user.uid,
-      };
-    } else {
-      window.currentUser = null;
-    }
-    await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-    loadFooter("current-year-forms");
-    const userThemePreference = userProfile?.themePreference;
-    const allThemes = await getAvailableThemes();
-    const themeToApply =
-      allThemes.find((t) => t.id === userThemePreference) ||
-      allThemes.find((t) => t.id === "dark");
-    if (themeToApply) {
-      applyTheme(themeToApply.id, themeToApply);
-      console.log(
-        `Forms page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-      );
-    }
-  });
-});
 
 /* forms.js: Forum-specific functionality for thémata, threads, and comments */
 
@@ -79,63 +38,40 @@ let unsubscribeThematas = null;
 // DM Tab Functionality
 let currentSortOption = "lastMessageAt_desc";
 
-// Helper: get current user info
-function getCurrentUserInfo() {
-  if (window.currentUser) {
-    return {
-      uid: window.currentUser.uid,
-      displayName: window.currentUser.displayName || "Anonymous",
-      photoURL:
-        window.currentUser.photoURL ||
-        "https://placehold.co/32x32/1F2937/E5E7EB?text=AV",
-      isAdmin: window.currentUser.isAdmin || false,
-    };
-  }
-  if (auth.currentUser) {
-    return {
-      uid: auth.currentUser.uid,
-      displayName: auth.currentUser.displayName || "Anonymous",
-      photoURL:
-        auth.currentUser.photoURL ||
-        "https://placehold.co/32x32/1F2937/E5E7EB?text=AV",
-      isAdmin: false,
-    };
-  }
-  return { uid: null, displayName: "Anonymous", photoURL: "", isAdmin: false };
-}
-
 // Add new thema
 async function addThema(name, description) {
-  if (!auth.currentUser) {
-    showMessageBox("You must be logged in to create a théma.", true);
-    return;
-  }
-  if (!db) {
-    showMessageBox("Database not initialized.", true);
-    return;
-  }
+    if (!auth.currentUser) {
+        showMessageBox("You must be logged in to create a théma.", true);
+        return;
+    }
+    if (!db) {
+        showMessageBox("Database not initialized.", true);
+        return;
+    }
 
-  try {
-    const thematasCol = collection(
-      db,
-      `artifacts/${appId}/public/data/thematas`,
-    );
-    await addDoc(thematasCol, {
-      name: name,
-      description: description,
-      createdAt: serverTimestamp(),
-      createdBy: auth.currentUser.uid,
-      creatorDisplayName: window.currentUser
-        ? window.currentUser.displayName
-        : "Anonymous",
-    });
-    showMessageBox("Théma created successfully!", false);
-    newThemaNameInput.value = "";
-    newThemaDescriptionInput.value = "";
-  } catch (error) {
-    console.error("Error creating théma:", error);
-    showMessageBox(`Error creating théma: ${error.message}`, true);
-  }
+    try {
+        const thematasCol = collection(db, `artifacts/${appId}/public/data/thematas`);
+        const docRef = await addDoc(thematasCol, {
+            name: name,
+            description: description,
+            createdAt: serverTimestamp(),
+            createdBy: auth.currentUser.uid,
+            creatorDisplayName: window.currentUser ? window.currentUser.displayName : "Anonymous",
+        });
+
+        await docRef.get(); // Ensure document is written
+        showMessageBox("Théma created successfully!", false);
+
+        // Clear form
+        newThemaNameInput.value = "";
+        newThemaDescriptionInput.value = "";
+
+        return docRef.id;
+    } catch (error) {
+        console.error("Error creating théma:", error);
+        showMessageBox(`Error creating théma: ${error.message}`, true);
+        throw error;
+    }
 }
 
 // Render thémata with Reddit-style layout
@@ -171,7 +107,7 @@ function renderThematas() {
 
       const collapseBtn = document.createElement("span");
       collapseBtn.className = "collapse-btn";
-      collapseBtn.innerHTML = `<svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        collapseBtn.innerHTML = `<svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       collapseBtn.title = "Collapse/Expand Théma";
       collapseBtn.style.cursor = "pointer";
       collapseBtn.style.display = "inline-flex";
@@ -191,13 +127,13 @@ function renderThematas() {
       const editBtn = document.createElement("button");
       editBtn.className = "edit-thread-btn icon-btn btn-edit";
       editBtn.title = "Edit Thread";
-      editBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+        editBtn.innerHTML = '<svg class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
       editBtn.onclick = () => openEditModal('thema', { themaId }, thema);
 
       const delBtn = document.createElement("button");
       delBtn.className = "delete-thread-btn icon-btn btn-delete";
       delBtn.title = "Delete Thread";
-      delBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+        delBtn.innerHTML = '<svg class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
       delBtn.onclick = () => handleDelete('thema', { themaId });
 
       const canEditThema = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thema.createdBy));
@@ -273,22 +209,22 @@ async function loadThreadsForThema(themaId) {
           userProfile.photoURL ||
           "https://placehold.co/32x32/1F2937/E5E7EB?text=AV";
         const canEditThread = (window.currentUser && (window.currentUser.isAdmin || window.currentUser.uid === thread.createdBy));
-        const threadCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+          const threadCollapseBtn = `<span class="collapse-btn" title="Collapse/Expand Thread" style="min-width:24px;min-height:24px;"><svg class="chevron transition-transform duration-200 text-link" width="16" height="16" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         threadsHtml.push(`
           <div class="thread-header flex items-center gap-3 bg-card text-text-primary" data-thread-id="${threadDoc.id}" style="position:relative;">
-            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/32x32/1F2937/E5E7EB?text=AV';this.classList.add('img-error')" onload="this.classList.remove('img-error')">
+            <img src="${photoURL}" alt="User" class="w-8 h-8 rounded-full object-cover mr-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
             <div class="flex flex-col justify-center flex-1">
               <div class="flex items-center w-full">
                 <span class="text-xs text-text-primary font-semibold">${escapeHtml(userProfile.displayName || "Anonymous")} <span class="text-meta-info ml-1">@${escapeHtml(userProfile.handle || "user")}</span></span>
                 <div class="flex gap-2 ml-auto actions-right">
                   ${canEditThread ? `
                     <button class="edit-thread-btn btn-edit" title="Edit Thread">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </button>
                     <button class="delete-thread-btn btn-delete" title="Delete Thread">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
@@ -358,7 +294,7 @@ function renderNestedComments(comments, themaId, threadId, depth = 0) {
     // SVG connector for nested replies
     let connector = '';
     if (depth > 0) {
-      connector = `<svg class="comment-connector-svg" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1='16' y1='0' x2='16' y2='100%' stroke='var(--color-input-border)' stroke-width='2' /><line x1='10' y1='24' x2='20' y2='24' stroke='var(--color-input-border)' stroke-width='2' /></svg>`;
+        connector = `<svg class="comment-connector-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><line x1='16' y1='0' x2='16' y2='100%' stroke='var(--color-input-border)' stroke-width='2' /><line x1='10' y1='24' x2='20' y2='24' stroke='var(--color-input-border)' stroke-width='2' /></svg>`;
     }
     return `
       <div class="thread-header depth-${depth} flex items-start text-text-primary mb-2 p-3" data-comment-id="${c.id}">
@@ -760,114 +696,110 @@ function openEditThemaModal(themaId, thema) {
   showMessageBox("Théma updated.");
 }
 
-// Initialize page
-document.addEventListener("DOMContentLoaded", async function () {
-  // Load footer
-  loadFooter("current-year-forms");
-
-  // Move this block to the end of DOMContentLoaded to ensure all variables are initialized
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  if (themataTabContent) themataTabContent.style.display = 'block';
-  if (allThematasTabBtn) allThematasTabBtn.classList.add('active');
-  if (dmTabContent) dmTabContent.style.display = 'none';
-  if (dmTabBtn) dmTabBtn.classList.remove('active');
-  renderThematas();
-
-  // Create thema form
-  createThemaForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const name = newThemaNameInput.value.trim();
-    const description = newThemaDescriptionInput.value.trim();
-
-    if (name && description) {
-      await addThema(name, description);
-    } else {
-      showMessageBox("Please fill in both Théma Name and Description.", true);
-    }
-  });
-
-  // Hash-based tab navigation
-  function activateTabFromHash() {
-    const hash = window.location.hash;
-    if (hash === '#dm') {
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      if (dmTabContent) dmTabContent.style.display = 'block';
-      if (dmTabBtn) dmTabBtn.classList.add('active');
-      setupDmEventListenersSafe();
-    } else {
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      if (themataTabContent) themataTabContent.style.display = 'block';
-      if (allThematasTabBtn) allThematasTabBtn.classList.add('active');
-      renderThematas();
-    }
-  }
-  window.addEventListener('hashchange', activateTabFromHash);
-  // Tab button click handlers update hash
-  dmTabBtn?.addEventListener('click', function () {
-    window.location.hash = '#dm';
-  });
-  allThematasTabBtn?.addEventListener('click', function () {
-    window.location.hash = '#thema';
-  });
-  // Activate tab on load
-  activateTabFromHash();
-
-  // Collapsible sections
-  document.querySelectorAll(".collapsible-header").forEach((header) => {
-    header.addEventListener("click", () => {
-      const content = header.nextElementSibling;
-      const icon = header.querySelector(".material-icons");
-
-      if (content.style.display === "none") {
-        content.style.display = "block";
-        icon.textContent = "expand_less";
-      } else {
-        content.style.display = "none";
-        icon.textContent = "expand_more";
-      }
-    });
-  });
-
-  // Initialize thematas
-  renderThematas();
-
-  // Add a single event listener for .collapse-btn clicks:
-  document.body.addEventListener("click", function(e) {
-    if (e.target.closest && e.target.closest(".collapse-btn")) {
-      const btn = e.target.closest(".collapse-btn");
-      // Find the card (thema, thread, or comment)
-      const card = btn.closest(".thema-box, .thema-item, .thread-item, .comment-item");
-      if (!card) return;
-      // For thema-box, collapse everything after the header (first child)
-      let header = card.firstElementChild;
-      let collapsed = false;
-      let foundHeader = false;
-      Array.from(card.children).forEach(child => {
-        if (child === header) { foundHeader = true; return; }
-        if (foundHeader) {
-          if (child.style.display === 'none') {
-            child.style.display = '';
-            collapsed = false;
-          } else {
-            child.style.display = 'none';
-            collapsed = true;
-          }
+// Helper: get current user info
+async function getCurrentUserInfo() {
+    try {
+        if (window.currentUser) {
+            return {
+                uid: window.currentUser.uid,
+                displayName: window.currentUser.displayName || "Anonymous",
+                photoURL: window.currentUser.photoURL || "./defaultuser.png",
+                isAdmin: window.currentUser.isAdmin || false,
+            };
         }
-      });
-      const chevron = btn.querySelector('.chevron');
-      if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-    }
-  });
 
-  // Wire up DM send message form
-  const sendMessageForm = document.getElementById("send-message-form");
-  if (sendMessageForm) {
-    sendMessageForm.addEventListener("submit", sendMessage);
-  }
-});
+        if (auth.currentUser) {
+            const userProfile = await getUserProfileFromFirestore(auth.currentUser.uid);
+            return {
+                uid: auth.currentUser.uid,
+                displayName: userProfile?.displayName || auth.currentUser.displayName || "Anonymous",
+                photoURL: userProfile?.photoURL || auth.currentUser.photoURL || "./defaultuser.png",
+                isAdmin: userProfile?.isAdmin || false,
+            };
+        }
+
+        return {
+            uid: null,
+            displayName: "Anonymous",
+            photoURL: "./defaultuser.png",
+            isAdmin: false
+        };
+    } catch (error) {
+        console.error("Error getting user info:", error);
+        return {
+            uid: null,
+            displayName: "Anonymous",
+            photoURL: "./defaultuser.png",
+            isAdmin: false
+        };
+    }
+}
+
+// Initialize forms module
+export async function init() {
+    try {
+        const userInfo = await getCurrentUserInfo();
+        if (createThemaForm && userInfo.uid) {
+            createThemaForm.classList.remove("hidden");
+        }
+
+        await Promise.all([
+            initThemataListener(),
+            loadFooter()
+        ]);
+    } catch (error) {
+        console.error("Error initializing forms:", error);
+        showMessageBox("Failed to initialize forms.", true);
+    }
+}
+
+// Initialize themata listener
+async function initThemataListener() {
+    try {
+        if (unsubscribeThematas) {
+            await unsubscribeThematas();
+        }
+
+        const thematasRef = collection(db, `artifacts/${appId}/public/data/thematas`);
+        const q = query(thematasRef, orderBy("createdAt", "desc"));
+
+        unsubscribeThematas = onSnapshot(q, async (snapshot) => {
+            try {
+                const thematas = [];
+                for (const doc of snapshot.docs) {
+                    const data = doc.data();
+                    thematas.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toDate?.() || new Date()
+                    });
+                }
+                await renderThematas(thematas);
+            } catch (error) {
+                console.error("Error processing themata data:", error);
+                showMessageBox("Error loading themata list.", true);
+            }
+        }, (error) => {
+            console.error("Error in themata listener:", error);
+            showMessageBox("Error watching themata updates.", true);
+        });
+
+        return unsubscribeThematas;
+    } catch (error) {
+        console.error("Error initializing themata listener:", error);
+        showMessageBox("Failed to initialize themata updates.", true);
+        throw error;
+    }
+}
+
+// Cleanup function
+export function cleanup() {
+    if (unsubscribeThematas) {
+        unsubscribeThematas()
+            .catch(error => console.error("Error unsubscribing from thematas:", error));
+        unsubscribeThematas = null;
+    }
+}
 
 // --- PATCH: REACTIONS ---
 async function handleReaction(type, themaId, threadId, commentId = null) {
@@ -1037,14 +969,14 @@ async function renderConversationsTable() {
     const isActive = currentConversationId === convoId;
     // Fetch handles for participants (async, but render as loading first)
     let participantsHtml = '<span class="text-xs text-gray-400">Loading...</span>';
-    (async () => {
-      const handles = await Promise.all((convo.participants || []).map(async uid => {
-        if (uid === user.uid) return '';
-        const p = await getUserProfile(uid);
-        return p && p.handle ? `@${escapeHtml(p.handle)}` : `<span class='text-xs text-gray-400'>unknown</span>`;
-      }));
-      const row = tableBody.querySelector(`.conversation-row[data-convo-id='${convoId}'] td:nth-child(2)`);
-      if (row) row.innerHTML = handles.filter(Boolean).join(', ');
+      await (async () => {
+          const handles = await Promise.all((convo.participants || []).map(async uid => {
+              if (uid === user.uid) return '';
+              const p = await getUserProfile(uid);
+              return p && p.handle ? `@${escapeHtml(p.handle)}` : `<span class='text-xs text-gray-400'>unknown</span>`;
+          }));
+          const row = tableBody.querySelector(`.conversation-row[data-convo-id='${convoId}'] td:nth-child(2)`);
+          if (row) row.innerHTML = handles.filter(Boolean).join(', ');
     })();
     // Last message and date on same line, date in shorthand
     let lastMsg = convo.lastMessageContent ? escapeHtml(convo.lastMessageContent) : '';
@@ -1086,7 +1018,7 @@ async function renderConversationsTable() {
       const convoId = btn.getAttribute('data-convo-id');
       if (await showCustomConfirm('Delete this conversation?', 'This cannot be undone.')) {
         await deleteConversation(convoId);
-        renderConversationsTable();
+          await renderConversationsTable();
         messagesContainer.style.display = 'none';
       }
     };
@@ -1116,12 +1048,12 @@ async function renderConversationsTable() {
           groupImage: convo.type === 'group' ? newImage : undefined,
         }, {merge: true});
       }
-      renderConversationsTable();
+        await renderConversationsTable();
     };
   });
   // Auto-open the first conversation if none selected
   if (!currentConversationId && firstConvoId) {
-    openConversation(firstConvoId);
+      await openConversation(firstConvoId);
     const firstRow = tableBody.querySelector('.conversation-row[data-convo-id="' + firstConvoId + '"]');
     if (firstRow) firstRow.classList.add('active');
     messagesContainer.style.display = '';
@@ -1138,7 +1070,6 @@ function setupDmEventListenersSafe() {
     if (form) form.onsubmit = sendMessage;
     const createForm = document.getElementById('create-conversation-form');
     if (createForm) createForm.onsubmit = createConversation;
-    renderConversationsTable();
   });
 }
 
@@ -1235,7 +1166,7 @@ async function createConversation(event) {
   for (const uid of allUids) {
     await setDoc(doc(db, `artifacts/${appId}/users/${uid}/dms`, convoId), convoData, {merge: true});
   }
-  openConversation(convoId);
+    await openConversation(convoId);
 }
 
 async function openConversation(convoId) {
@@ -1270,7 +1201,7 @@ async function openConversation(convoId) {
           const photoURL = profile.photoURL || 'https://placehold.co/32x32/1F2937/E5E7EB?text=AV';
           const bubbleClass = isOwn ? 'sent own-message' : 'received';
           const msgId = docSnap.id;
-          html += `<div class="message-bubble ${bubbleClass}" style="max-width:70vw;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.5em 0.9em;margin-bottom:0.25em;display:flex;align-items:flex-start;gap:0.5em;position:relative;width:fit-content;height:fit-content;">
+            html += `<div class="message-bubble ${bubbleClass}" style="max-width:70vw;margin:${isOwn ? '0 0 0 auto' : '0 auto 0 0'};border-radius:1.2em 1.2em ${isOwn ? '0.4em 1.2em' : '1.2em 0.4em'};padding:0.5em 0.9em;display:flex;align-items:flex-start;gap:0.5em;position:relative;width:fit-content;height:fit-content;">
             <div class="bubble-header">
               <img src="${photoURL}" alt="User" class="dm-message-profile-pic">
               <span class="message-author">${escapeHtml(profile.displayName)} <span class="text-xs text-link ml-1">${handle}</span></span>
@@ -1280,8 +1211,8 @@ async function openConversation(convoId) {
               <div class="message-timestamp">${msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleString() : ''}</div>
             </div>
             <div class="bubble-actions flex gap-1 ml-2" style="position:absolute;top:0.3em;right:0.7em;z-index:2;">
-              <button class="edit-msg-btn btn-edit icon-btn" data-msg-id="${msgId}" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-              <button class="delete-msg-btn btn-delete icon-btn" data-msg-id="${msgId}" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+              <button class="edit-msg-btn btn-edit icon-btn" data-msg-id="${msgId}" title="Edit"><svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+              <button class="delete-msg-btn btn-delete icon-btn" data-msg-id="${msgId}" title="Delete"><svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
             </div>
           </div>`;
         }
@@ -1388,6 +1319,12 @@ function openEditModal(type, ids, data) {
     showMessageBox('Comment updated.');
   }
 }
+
+let ids;
+ids.commentId = function () {
+
+};
+
 // Helper: Unified delete confirmation and action
 async function handleDelete(type, ids) {
   let msg = '';
@@ -1400,3 +1337,120 @@ async function handleDelete(type, ids) {
   else if (type === 'thread') await deleteThreadAndSubcollection(ids.themaId, ids.threadId);
   else if (type === 'comment') await deleteComment(ids.themaId, ids.threadId, ids.commentId);
 }
+
+// Blocked users management
+async function showBlockedUsers() {
+    const user = getCurrentUser();
+    if (!user) {
+        showMessageBox("You must be logged in to view blocked users.", true);
+        return;
+    }
+
+    try {
+        // Get the user's blocked users list from Firestore
+        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+        const userDoc = await getDoc(userRef);
+        const blockedUsers = userDoc.data()?.blockedUsers || [];
+
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal';
+        modalContent.innerHTML = `
+            <div class="modal-content bg-card text-text-primary p-6 rounded-lg shadow-xl max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold mb-4">Blocked Users</h2>
+                <div class="blocked-users-list space-y-3">
+                    ${blockedUsers.length ? blockedUsers.map(blockedId => `
+                        <div class="blocked-user-item flex items-center justify-between p-3 bg-bg-secondary rounded-lg" data-user-id="${blockedId}">
+                            <div class="flex items-center gap-3">
+                                <img src="./defaultuser.png" alt="User avatar" class="w-8 h-8 rounded-full">
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-text-primary loading-user-name">Loading...</span>
+                                    <span class="text-sm text-text-secondary loading-user-handle">@loading...</span>
+                                </div>
+                            </div>
+                            <button class="unblock-user-btn btn-modern" onclick="unblockUser('${blockedId}')">
+                                Unblock
+                            </button>
+                        </div>
+                    `).join('') : '<p class="text-text-secondary text-center py-4">No blocked users</p>'}
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button class="btn-modern" onclick="this.closest('.modal').remove()">Close</button>
+                </div>
+            </div>
+        `;
+
+        // Add modal to body
+        document.body.appendChild(modalContent);
+
+        // Load user details for each blocked user
+        for (const blockedId of blockedUsers) {
+            try {
+                const blockedUserRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, blockedId);
+                const blockedUserDoc = await getDoc(blockedUserRef);
+                const blockedUserData = blockedUserDoc.data();
+
+                const userItem = modalContent.querySelector(`[data-user-id="${blockedId}"]`);
+                if (userItem && blockedUserData) {
+                    const nameElem = userItem.querySelector('.loading-user-name');
+                    const handleElem = userItem.querySelector('.loading-user-handle');
+                    const avatarElem = userItem.querySelector('img');
+
+                    if (nameElem) nameElem.textContent = blockedUserData.displayName || 'Unknown User';
+                    if (handleElem) handleElem.textContent = blockedUserData.handle ? `@${blockedUserData.handle}` : '@unknown';
+                    if (avatarElem && blockedUserData.photoURL) avatarElem.src = blockedUserData.photoURL;
+                }
+            } catch (error) {
+                console.error(`Error loading blocked user ${blockedId}:`, error);
+            }
+        }
+    } catch (error) {
+        console.error('Error showing blocked users:', error);
+        showMessageBox('Failed to load blocked users', true);
+    }
+}
+
+// Function to unblock a user
+async function unblockUser(blockedUserId) {
+    const user = getCurrentUser();
+    if (!user) {
+        showMessageBox("You must be logged in to unblock users.", true);
+        return;
+    }
+
+    try {
+        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+        const userDoc = await getDoc(userRef);
+        const currentBlockedUsers = userDoc.data()?.blockedUsers || [];
+
+        // Remove the user from blocked list
+        const updatedBlockedUsers = currentBlockedUsers.filter(id => id !== blockedUserId);
+
+        // Update Firestore
+        await updateDoc(userRef, {
+            blockedUsers: updatedBlockedUsers
+        });
+
+        // Update UI
+        const blockedUserElem = document.querySelector(`[data-user-id="${blockedUserId}"]`);
+        if (blockedUserElem) {
+            blockedUserElem.remove();
+        }
+
+        // Show success message
+        showMessageBox("User unblocked successfully");
+
+        // Refresh blocked users list if empty
+        const blockedListContainer = document.querySelector('.blocked-users-list');
+        if (blockedListContainer && !blockedListContainer.children.length) {
+            blockedListContainer.innerHTML = '<p class="text-text-secondary text-center py-4">No blocked users</p>';
+        }
+    } catch (error) {
+        console.error('Error unblocking user:', error);
+        showMessageBox('Failed to unblock user', true);
+    }
+}
+
+// Initialize global functions
+window.showBlockedUsers = showBlockedUsers;
+window.unblockUser = unblockUser;

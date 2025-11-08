@@ -48,7 +48,7 @@ sensitive/
 
 Files in this folder are imported by:
 
-- `functions/index.js` - Uses `functions-config.js`
+- `functions/indexdb.js` - Uses `functions-config.js`
 - `utils.js` - Uses `api-keys.js` for ImgBB API
 - `emoji-picker.js` - Uses `api-keys.js` for Giphy API
 - `firebase-init.js` - Uses `firebase-config.js` for Firebase config

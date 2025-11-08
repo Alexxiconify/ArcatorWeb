@@ -1,0 +1,280 @@
+// auth-manager.js - Handles authentication-related functionality
+import {
+    createUserWithEmailAndPassword,
+    GithubAuthProvider,
+    GoogleAuthProvider,
+    sendPasswordResetEmail,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    signOut,
+    updateProfile
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+
+import {appId, auth, db, DEFAULT_THEME_NAME} from './firebase-init.js';
+import {showMessageBox} from './utils.js';
+
+class AuthManager {
+    constructor() {
+        this.currentUser = null;
+        this.authStateListeners = new Set();
+        this.__initial_auth_token = null;
+        this.isInitialized = false;
+    }
+
+    async init() {
+        if (this.isInitialized) return;
+
+        auth.onAuthStateChanged(async (user) => {
+            this.currentUser = user;
+            if (user) {
+                this.__initial_auth_token = await user.getIdToken();
+                await this.loadUserProfile();
+            } else {
+                this.__initial_auth_token = null;
+            }
+            this.notifyListeners();
+        });
+
+        this.isInitialized = true;
+    }
+
+    async loadUserProfile() {
+        if (!this.currentUser) return null;
+
+        try {
+            const doc = await db.collection('user_profiles').doc(this.currentUser.uid).get();
+            return doc.exists ? doc.data() : null;
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+            return null;
+        }
+    }
+
+    async createAccount(email, password, displayName, handle) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Generate profile picture if none provided
+        const profilePicUrl = generateColoredProfilePic(displayName);
+
+        // Update auth profile
+        await updateProfile(user, {
+            displayName,
+            photoURL: profilePicUrl
+        });
+
+        // Create user profile in Firestore
+        const userProfile = {
+            uid: user.uid,
+            displayName,
+            email,
+            photoURL: profilePicUrl,
+            handle,
+            createdAt: new Date(),
+            lastLoginAt: new Date(),
+            themePreference: DEFAULT_THEME_NAME,
+            isAdmin: false
+        };
+
+        await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(user.uid).set(userProfile);
+        return userProfile;
+    }
+
+    async signInWithEmailAndPassword(email, password) {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        await this.updateLastLogin(userCredential.user.uid);
+        return userCredential.user;
+    }
+
+    async signInWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+
+        if (result._tokenResponse?.isNewUser) {
+            const randomData = generateRandomNameAndHandle();
+            const displayName = result.user.displayName || randomData.displayName;
+            const handle = randomData.handle;
+            const profilePicUrl = result.user.photoURL || generateColoredProfilePic(displayName);
+
+            const userProfile = {
+                displayName,
+                email: result.user.email || "",
+                photoURL: profilePicUrl,
+                handle,
+                themePreference: DEFAULT_THEME_NAME,
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+                provider: "google"
+            };
+
+            await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(result.user.uid).set(userProfile);
+        } else {
+            await this.updateLastLogin(result.user.uid);
+        }
+
+        return result.user;
+    }
+
+    async signInWithGithub() {
+        const provider = new GithubAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+
+        if (result._tokenResponse?.isNewUser) {
+            const randomData = generateRandomNameAndHandle();
+            const displayName = result.user.displayName || randomData.displayName;
+            const handle = randomData.handle;
+            const profilePicUrl = result.user.photoURL || generateColoredProfilePic(displayName);
+
+            const userProfile = {
+                displayName,
+                email: result.user.email || "",
+                photoURL: profilePicUrl,
+                handle,
+                themePreference: DEFAULT_THEME_NAME,
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+                provider: "github"
+            };
+
+            await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(result.user.uid).set(userProfile);
+        } else {
+            await this.updateLastLogin(result.user.uid);
+        }
+
+        return result.user;
+    }
+
+    async resetPassword(email) {
+        await sendPasswordResetEmail(auth, email);
+    }
+
+    async updateLastLogin(uid) {
+        await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(uid).update({
+            lastLoginAt: new Date()
+        });
+    }
+
+    onAuthStateChanged(callback) {
+        this.authStateListeners.add(callback);
+        if (this.currentUser !== undefined) {
+            callback(this.currentUser);
+        }
+        return () => this.authStateListeners.delete(callback);
+    }
+
+    notifyListeners() {
+        this.authStateListeners.forEach(callback => callback(this.currentUser));
+    }
+
+    getCurrentUser() {
+        return this.currentUser;
+    }
+
+    getAuthToken() {
+        return this.__initial_auth_token;
+    }
+
+    isAuthenticated() {
+        return !!this.currentUser;
+    }
+
+    async signOut() {
+        try {
+            await signOut(auth);
+            this.__initial_auth_token = null;
+            return true;
+        } catch (error) {
+            console.error('Error signing out:', error);
+            return false;
+        }
+    }
+}
+
+export const authManager = new AuthManager();
+
+// Authentication functions
+export async function signIn(email, password) {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return userCredential.user;
+    } catch (error) {
+        console.error('Sign in error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function signUp(email, password) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        return userCredential.user;
+    } catch (error) {
+        console.error('Sign up error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function googleSignIn() {
+    try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        return result.user;
+    } catch (error) {
+        console.error('Google sign in error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function githubSignIn() {
+    try {
+        const provider = new GithubAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        return result.user;
+    } catch (error) {
+        console.error('GitHub sign in error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function signOutUser() {
+    try {
+        await signOut(auth);
+        showMessageBox('Signed out successfully');
+    } catch (error) {
+        console.error('Sign out error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function resetPassword(email) {
+    try {
+        await sendPasswordResetEmail(auth, email);
+        showMessageBox('Password reset email sent');
+    } catch (error) {
+        console.error('Password reset error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}
+
+export async function updateUserProfile(displayName, photoURL) {
+    try {
+        const user = auth.currentUser;
+        if (!user) new Error('No user signed in');
+
+        await updateProfile(user, {
+            displayName: displayName || user.displayName,
+            photoURL: photoURL || user.photoURL
+        });
+
+        showMessageBox('Profile updated successfully');
+    } catch (error) {
+        console.error('Profile update error:', error);
+        showMessageBox(error.message, true);
+        throw error;
+    }
+}

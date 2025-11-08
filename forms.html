@@ -4,149 +4,145 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Forms - Arcator</title>
-    <link href="./master.css" rel="stylesheet"/>
-    <link href="./page-specific.css" rel="stylesheet"/>
-    <link href="./theme_variables.css" rel="stylesheet"/>
-    <link href="./favicon.png" rel="icon" type="image/png"/>
-    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+    <link href="./master.css" rel="stylesheet">
+    <link href="./favicon.png" rel="icon" type="image/png">
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js" type="module"></script>
 </head>
-<body class="bg-main text-text-primary font-sans leading-normal antialiased">
-<div id="navbar-container">
-    <!-- Navbar will be loaded here by navbar.js -->
-</div>
+<body class="antialiased">
+<!-- Navbar placeholder -->
+<div id="navbar-placeholder"></div>
 
-<main class="container mx-auto mt-8 p-4">
-    <h1 class="text-3xl font-bold text-center mb-6 text-text-header">Forms</h1>
-
-    <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="create-dm-section">
-        <h2 class="text-2xl font-semibold text-text-header mb-4">Create Direct Message</h2>
-        <form class="space-y-4" id="create-dm-form">
-            <div class="relative">
-                <label class="form-label sr-only" for="dm-recipients">Recipients:</label>
-                <input class="form-input bg-main text-text-primary border-input-border w-full pl-10" id="dm-recipients"
-                       placeholder="Recipients (comma-separated handles)"
-                       required type="text"/>
-                <div class="icon-left"><i class="fas fa-users"></i></div>
-            </div>
-            <div class="relative">
-                <label class="form-label sr-only" for="dm-subject">Subject:</label>
-                <input class="form-input bg-main text-text-primary border-input-border w-full pl-10" id="dm-subject"
-                       placeholder="Subject"
-                       required type="text"/>
-                <div class="icon-left"><i class="fas fa-tag"></i></div>
-            </div>
-            <div>
-                <label class="form-label sr-only" for="dm-content">Message Content:</label>
-                <textarea class="form-textarea" id="dm-content" placeholder="Your message (Markdown supported)" required
-                          rows="8"></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn-primary btn-blue" type="submit">Send DM</button>
-            </div>
-        </form>
+<!-- Hero Banner -->
+<section class="hero-banner">
+    <div class="hero-content text-center">
+        <h1 class="text-5xl font-bold mb-4">Forms</h1>
+        <p class="text-xl mb-8">Submit and manage your forms</p>
+    </div>
     </section>
 
-    <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="create-chat-section">
-        <h2 class="text-2xl font-semibold text-text-header mb-4">Create Chat</h2>
-        <form class="space-y-4" id="create-chat-form">
-            <div class="flex space-x-4">
-                <div class="flex-none">
-                    <label class="form-label sr-only" for="chat-type-select">Chat Type:</label>
-                    <select class="form-input w-32" id="chat-type-select">
-                        <option value="group">Group</option>
-                        <option value="channel">Channel</option>
-                    </select>
-                </div>
-                <div class="flex-1 relative">
-                    <label class="form-label sr-only" for="chat-name">Chat Name:</label>
-                    <input class="form-input flex-1 min-w-0" id="chat-name" placeholder="Chat name (optional)"
-                           type="text"/>
-                </div>
-            </div>
-            <div class="relative">
-                <label class="form-label sr-only" for="chat-recipients">Recipients:</label>
-                <input class="form-input bg-main text-text-primary border-input-border w-full pl-10"
-                       id="chat-recipients"
-                       placeholder="Recipients (comma-separated handles)"
-                       required type="text"/>
-                <div class="icon-left"><i class="fas fa-users"></i></div>
-            </div>
-            <div class="relative">
-                <label class="form-label sr-only" for="chat-image">Chat Image URL:</label>
-                <input class="form-input w-48 bg-main text-text-primary border-input-border pl-10" id="chat-image"
-                       placeholder="Photo URL (optional)"
-                       type="text"/>
-                <div class="icon-left"><i class="fas fa-image"></i></div>
-            </div>
-            <div>
-                <label class="form-label sr-only" for="chat-description">Description:</label>
-                <textarea class="form-textarea" id="chat-description" placeholder="Chat description (optional)"
-                          rows="4"></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn-primary btn-blue" type="submit">Create Chat</button>
-            </div>
-        </form>
-    </section>
+<main class="container mx-auto px-4 py-8">
+    <!-- Loading State -->
+    <div class="flex items-center justify-center py-12" id="loading-spinner">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+    </div>
 
-    <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="create-announcement-section">
-        <h2 class="text-2xl font-semibold text-text-header mb-4">Create Announcement</h2>
-        <form class="space-y-4" id="create-announcement-form">
-            <div>
-                <label class="form-label" for="announcement-title">Title:</label>
-                <input class="form-input" id="announcement-title" required type="text"/>
-            </div>
-            <div>
-                <label class="form-label" for="announcement-content">Content:</label>
-                <textarea class="form-textarea" id="announcement-content"
-                          placeholder="Announcement content (Markdown supported)"
-                          required rows="8"></textarea>
-            </div>
-            <div>
-                <label class="form-label" for="announcement-audience">Audience:</label>
-                <select class="form-select" id="announcement-audience">
-                    <option value="all">All Users</option>
-                    <option value="admins">Admins Only</option>
-                </select>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn-primary btn-blue" type="submit">Post Announcement</button>
-            </div>
-        </form>
-    </section>
+    <!-- Forms List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden" id="forms-list">
+        <!-- Forms will be populated here -->
+    </div>
 
-    <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="contact-form-section">
-        <h2 class="text-2xl font-semibold text-text-header mb-4">Contact Us</h2>
-        <form class="space-y-4" id="contact-form">
-            <div>
-                <label class="form-label" for="contact-name">Name:</label>
-                <input class="form-input" id="contact-name" required type="text"/>
-            </div>
-            <div>
-                <label class="form-label" for="contact-email">Email:</label>
-                <input class="form-input" id="contact-email" required type="email"/>
-            </div>
-            <div>
-                <label class="form-label" for="contact-subject">Subject:</label>
-                <input class="form-input" id="contact-subject" required type="text"/>
-            </div>
-            <div>
-                <label class="form-label" for="contact-message">Message:</label>
-                <textarea class="form-textarea" id="contact-message" required rows="8"></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn-primary btn-blue" type="submit">Send Message</button>
-            </div>
-        </form>
-    </section>
+    <!-- Empty State -->
+    <div class="text-center py-12 hidden" id="empty-state">
+        <p class="text-xl text-text-secondary">No forms available at the moment.</p>
+    </div>
+
+    <!-- Create Form Button (Admin Only) -->
+    <div class="mt-8 hidden" id="admin-controls">
+        <button class="btn-primary" id="create-form-btn">
+            Create New Form
+        </button>
+    </div>
 </main>
 
-<script src="./firebase-init.js" type="module"></script>
-<script src="./themes.js" type="module"></script>
-<script src="./navbar.js" type="module"></script>
-<script src="./utils.js" type="module"></script>
-<script src="./app.js" type="module"></script>
-<script src="./forms.js" type="module"></script>
+<!-- Footer placeholder -->
+<div id="footer-placeholder"></div>
+
+<script type="module">
+    import {initializePage} from './core.js';
+    import {auth, db, appId} from './firebase-init.js';
+    import {themeManager} from './theme-manager.js';
+    import {showMessageBox} from './utils.js';
+    import {
+        collection,
+        doc,
+        getDoc,
+        getDocs
+    } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+    async function loadForms() {
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const formsList = document.getElementById('forms-list');
+        const emptyState = document.getElementById('empty-state');
+
+        try {
+            // Show loading state
+            loadingSpinner.classList.remove('hidden');
+            formsList.classList.add('hidden');
+            emptyState.classList.add('hidden');
+
+            // Get forms from Firestore
+            const formsRef = collection(db, 'forms');
+            const formsSnapshot = await getDocs(formsRef);
+            const forms = [];
+
+            formsSnapshot.forEach(doc => {
+                const data = doc.data();
+                forms.push({
+                    id: doc.id,
+                    title: data.title,
+                    description: data.description,
+                    createdAt: data.createdAt
+                });
+            });
+
+            // Update UI based on results
+            if (forms.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                formsList.innerHTML = forms.map(form => `
+                        <div class="bg-card rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                            <h3 class="text-xl font-semibold mb-2">${form.title || 'Untitled Form'}</h3>
+                            <p class="text-text-secondary mb-4">${form.description || 'No description available'}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-text-secondary">
+                                    ${form.createdAt ? new Date(form.createdAt.seconds * 1000).toLocaleDateString() : 'Date not available'}
+                                </span>
+                                <a href="./form.html?id=${form.id}" class="btn-primary">
+                                    Open Form
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                formsList.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error loading forms:', error);
+            showMessageBox('Failed to load forms. Please try again later.', true);
+        } finally {
+            loadingSpinner.classList.add('hidden');
+        }
+    }
+
+    // Initialize page
+    async function init() {
+        try {
+            await initializePage('forms', true);
+            await themeManager.init();
+            await loadForms();
+
+            // Show admin controls if user is admin
+            const adminControls = document.getElementById('admin-controls');
+            if (auth.currentUser) {
+                const userProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid);
+                const userProfile = await getDoc(userProfileRef);
+                if (userProfile.exists() && userProfile.data().isAdmin) {
+                    adminControls.classList.remove('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Error initializing page:', error);
+            showMessageBox('Failed to initialize page. Please try again later.', true);
+        }
+    }
+
+    // Start initialization
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init().catch(console.error);
+    }
+</script>
 </body>
 </html>

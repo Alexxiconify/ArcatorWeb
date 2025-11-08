@@ -1,8 +1,8 @@
 // admin-user-management.js
-import {appId, auth, db, getUserProfileFromFirestore} from "./firebase-init.js";
+import {appId, auth, collection, db, doc, getUserProfileFromFirestore, onSnapshot} from "./firebase-init.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
-import {collection, deleteDoc, doc, onSnapshot, updateDoc} from "firebase/firestore";
 import {getAvailableThemes} from "./themes.js";
+import {deleteDoc, updateDoc} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 // State management
 let usersData = [];

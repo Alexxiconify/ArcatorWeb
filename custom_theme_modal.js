@@ -23,6 +23,7 @@ export function setupCustomThemeManagement(
   currentUser,
   showCustomConfirm,
 ) {
+  userThemeSelect.value = undefined;
   let currentCustomThemeId = null;
 
   // Ensure the modal HTML is added to the DOM if it's not already there
@@ -46,7 +47,7 @@ export function setupCustomThemeManagement(
   );
   if (createCustomThemeBtn) {
     createCustomThemeBtn.addEventListener("click", async () => {
-      openCustomThemeModal();
+      await openCustomThemeModal();
       await renderCustomThemeList(); // Ensure the list is fresh when opening
     });
   }
@@ -176,7 +177,7 @@ export function setupCustomThemeManagement(
     () => (customThemeModal.style.display = "none"),
   );
   window.addEventListener("click", (e) => {
-    if (e.target == customThemeModal) {
+    if (e.target === customThemeModal) {
       customThemeModal.style.display = "none";
     }
   });
@@ -283,6 +284,8 @@ export function setupCustomThemeManagement(
 
     customThemeList.innerHTML = ""; // Clear loading message
     userCustomThemes.forEach((theme) => {
+      theme.authorEmail = undefined;
+      theme.authorEmail = undefined;
       const li = document.createElement("li");
       li.classList.add(
         "flex",
@@ -304,7 +307,7 @@ export function setupCustomThemeManagement(
           ).toLocaleDateString()
         : "Unknown";
       const authorName =
-        theme.authorDisplayName || theme.authorEmail || "Unknown User";
+          theme.authorDisplayName || theme.authorEmail || "Unknown User";
 
       li.innerHTML = `
         <div class="flex-1">
@@ -318,13 +321,13 @@ export function setupCustomThemeManagement(
         </div>
         <div class="mt-2 md:mt-0 md:ml-4 flex gap-2">
           <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm edit-custom-theme-btn" data-theme-id="${theme.id}">
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 inline mr-1" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
             Edit
           </button>
           <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm delete-custom-theme-btn" data-theme-id="${theme.id}">
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 inline mr-1" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
             Delete
@@ -391,7 +394,7 @@ export function setupCustomThemeManagement(
             await populateThemeSelect(defaultThemeName); // Re-populate and select default
             userThemeSelect.value = defaultThemeName; // Update main dropdown
             applyTheme(defaultThemeName); // Apply the default theme
-            renderCustomThemeList(); // Re-render the list
+            await renderCustomThemeList(); // Re-render the list
           } else {
             showMessageBox("Error deleting theme. Please try again.", true);
           }

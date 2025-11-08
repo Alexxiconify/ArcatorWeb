@@ -1,364 +1,210 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Admin - Arcator.co.uk</title>
-    <link href="./master.css" rel="stylesheet"/>
-    <link href="./page-specific.css" rel="stylesheet"/>
-    <link href="./theme_variables.css" rel="stylesheet"/>
-    <link href="./favicon.png" rel="icon" type="image/png"/>
-    <script type="importmap">
-        {
-          "imports": {
-            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
-          }
-        }
-    </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script defer src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-    <link href="https://unpkg.com/easymde/dist/easymde.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Admin Panel - Arcator</title>
+    <link href="./master.css" rel="stylesheet">
+    <link href="./favicon.png" rel="icon" type="image/png">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js" type="module"></script>
 </head>
-<body class="bg-main text-text-primary font-sans leading-normal antialiased">
-<div id="navbar-container">
-    <!-- Navbar will be loaded here by navbar.js -->
-    <!-- Minimal placeholder for firebase-init to write the display name into so pages that load firebase-init
-         before the navbar don't throw when trying to set textContent on a missing element. -->
-    <span id="display-name" style="display:none">Guest</span>
+<body class="antialiased">
+<div id="navbar-placeholder"></div>
+
+<!-- Loading Spinner -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="loading-spinner">
+    <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
 </div>
 
-<main class="container mx-auto mt-8 p-4">
-    <h1 class="text-3xl font-bold text-center mb-6 text-text-header">Admin Panel</h1>
+<!-- Admin Login Form -->
+<div class="container mx-auto px-4 py-8 hidden" id="admin-login-section">
+    <div class="max-w-md mx-auto bg-card rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+        <form class="space-y-4" id="admin-login-form">
+            <!-- Hidden username field for accessibility -->
+            <label for="admin-username">
+            </label><input aria-hidden="true"
+                           autocomplete="username"
+                           class="hidden"
+                           id="admin-username"
+                           name="username"
+                           tabindex="-1"
+                           type="text">
 
-    <div class="text-center text-red-500 text-lg mt-8 hidden" id="login-required-message">
-        You must be logged in as an administrator to access this page.
-    </div>
+            <div class="form-group">
+                <label for="admin-email">Email</label>
+                <input autocomplete="email"
+                       class="form-input"
+                       id="admin-email"
+                       required
+                       type="email">
+            </div>
 
-    <div class="flex justify-center items-center mt-8" id="loading-spinner">
-        <div class="loader"></div>
-    </div>
+            <div class="form-group">
+                <label for="admin-password">Password</label>
+                <input autocomplete="current-password"
+                       class="form-input"
+                       id="admin-password"
+                       required
+                       type="password">
+            </div>
 
-    <div class="hidden" id="admin-content">
-        <div class="flex justify-center mb-6 space-x-4">
-            <a class="btn-primary btn-blue" href="#user-management-section">User Management</a>
-            <a class="btn-primary btn-blue" href="#page-management-section">Page Management</a>
-            <a class="btn-primary btn-blue" href="#form-management-section">Form Management</a>
-            <a class="btn-primary btn-blue" href="#email-settings-section">Email Settings</a>
-            <a class="btn-primary btn-blue" href="./users.html">Login / Sign Up</a>
+            <button class="btn-primary w-full" type="submit">
+                Login as Admin
+            </button>
+        </form>
         </div>
+</div>
 
-        <!-- User Management Section -->
-        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="user-management-section">
-            <h2 class="text-2xl font-semibold text-text-header mb-4">User Management</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-main rounded-lg shadow-md">
-                    <thead>
-                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
-                        <th class="py-3 px-2 text-left">UID</th>
-                        <th class="py-3 px-2 text-left">Display Name</th>
-                        <th class="py-3 px-2 text-left">Email</th>
-                        <th class="py-3 px-2 text-left">Theme</th>
-                        <th class="py-3 px-2 text-left">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="text-text-primary text-sm font-light" id="user-list-tbody">
-                    <!-- User rows will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+<!-- Admin Dashboard -->
+<div class="container mx-auto px-4 py-8 hidden" id="admin-dashboard">
+    <!-- Admin sections here -->
+</div>
 
-        <!-- Edit User Modal -->
-        <div class="modal" id="edit-user-modal">
-            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-semibold text-text-header mb-4">Edit User Profile</h3>
-                <form class="space-y-4" id="edit-user-form">
-                    <div>
-                        <label class="form-label" for="edit-user-display-name">Display Name:</label>
-                        <input class="form-input" id="edit-user-display-name" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-handle">Handle:</label>
-                        <input class="form-input" id="edit-user-handle" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-email">Email:</label>
-                        <input class="form-input" id="edit-user-email" type="email"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-photo-url">Photo URL:</label>
-                        <input class="form-input" id="edit-user-photo-url" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-discord-url">Discord URL:</label>
-                        <input class="form-input" id="edit-user-discord-url" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-github-url">GitHub URL:</label>
-                        <input class="form-input" id="edit-user-github-url" type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-theme">Theme Preference:</label>
-                        <select class="form-select" id="edit-user-theme"></select>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-font-scaling">Font Scaling:</label>
-                        <select class="form-select" id="edit-user-font-scaling">
-                            <option value="small">Small</option>
-                            <option value="normal">Normal</option>
-                            <option value="large">Large</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-notification-frequency">Notification Frequency:</label>
-                        <select class="form-select" id="edit-user-notification-frequency">
-                            <option value="immediate">Immediate</option>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-email-notifications" type="checkbox"/>
-                        <label class="form-label" for="edit-user-email-notifications">Email Notifications</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-discord-notifications" type="checkbox"/>
-                        <label class="form-label" for="edit-user-discord-notifications">Discord Notifications</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-push-notifications" type="checkbox"/>
-                        <label class="form-label" for="edit-user-push-notifications">Push Notifications</label>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-data-retention">Data Retention (days):</label>
-                        <input class="form-input" id="edit-user-data-retention" type="number"/>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-profile-visible" type="checkbox"/>
-                        <label class="form-label" for="edit-user-profile-visible">Profile Visible</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-activity-tracking" type="checkbox"/>
-                        <label class="form-label" for="edit-user-activity-tracking">Activity Tracking</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-third-party-sharing" type="checkbox"/>
-                        <label class="form-label" for="edit-user-third-party-sharing">Third-Party Sharing</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-high-contrast" type="checkbox"/>
-                        <label class="form-label" for="edit-user-high-contrast">High Contrast Mode</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-reduced-motion" type="checkbox"/>
-                        <label class="form-label" for="edit-user-reduced-motion">Reduced Motion</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-screen-reader" type="checkbox"/>
-                        <label class="form-label" for="edit-user-screen-reader">Screen Reader Support</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-focus-indicators" type="checkbox"/>
-                        <label class="form-label" for="edit-user-focus-indicators">Focus Indicators</label>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-keyboard-shortcuts">Keyboard Shortcuts:</label>
-                        <select class="form-select" id="edit-user-keyboard-shortcuts">
-                            <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="edit-user-debug-mode" type="checkbox"/>
-                        <label class="form-label" for="edit-user-debug-mode">Debug Mode</label>
-                    </div>
-                    <div>
-                        <label class="form-label" for="edit-user-custom-css">Custom CSS:</label>
-                        <textarea class="form-textarea" id="edit-user-custom-css"></textarea>
-                    </div>
-                    <div class="flex justify-end space-x-4 mt-6">
-                        <button class="btn-primary btn-green" id="save-user-changes-btn" type="button">Save Changes
-                        </button>
-                        <button class="btn-secondary" id="cancel-user-changes-btn" type="button">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<!-- Footer -->
+<div id="footer-placeholder"></div>
 
-        <!-- Page Management Section -->
-        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="page-management-section">
-            <h2 class="text-2xl font-semibold text-text-header mb-4">Page Management</h2>
-            <button class="btn-primary btn-blue mb-4" id="create-new-page-btn">Create New Page</button>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-main rounded-lg shadow-md">
-                    <thead>
-                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
-                        <th class="py-3 px-2 text-left">Page ID</th>
-                        <th class="py-3 px-2 text-left">Title</th>
-                        <th class="py-3 px-2 text-left">Path</th>
-                        <th class="py-3 px-2 text-left">Visibility</th>
-                        <th class="py-3 px-2 text-left">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="text-text-primary text-sm font-light" id="page-list-tbody">
-                    <!-- Page rows will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+<script type="module">
+    import {auth, db, appId} from './firebase-init.js';
+    import {initializePage} from './core.js';
+    import {showMessageBox} from './utils.js';
+    import {themeManager} from './theme-manager.js';
+    import {
+        collection,
+        doc,
+        getDoc,
+        getDocs,
+        query,
+        orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
-        <!-- Edit/Create Page Modal -->
-        <div class="modal" id="edit-temp-page-modal">
-            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-semibold text-text-header mb-4" id="page-modal-title"></h3>
-                <form class="space-y-4" id="edit-page-form">
-                    <div>
-                        <label class="form-label" for="page-id">Page ID (auto-generated):</label>
-                        <input class="form-input" id="page-id" readonly type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="page-title">Title:</label>
-                        <input class="form-input" id="page-title" required type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="page-path">Path (e.g., /my-custom-page):</label>
-                        <input class="form-input" id="page-path" required type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="page-content">Content (Markdown):</label>
-                        <textarea class="form-textarea" id="page-content"></textarea>
-                    </div>
-                    <div>
-                        <label class="form-label" for="page-visibility">Visibility:</label>
-                        <select class="form-select" id="page-visibility">
-                            <option value="public">Public</option>
-                            <option value="private">Private (Admin Only)</option>
-                            <option value="unlisted">Unlisted (Link Only)</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="page-requires-auth" type="checkbox"/>
-                        <label class="form-label" for="page-requires-auth">Requires Authentication</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="page-show-in-navbar" type="checkbox"/>
-                        <label class="form-label" for="page-show-in-navbar">Show in Navbar</label>
-                    </div>
-                    <div class="flex justify-end space-x-4 mt-6">
-                        <button class="btn-primary btn-green" id="save-page-changes-btn" type="submit">Save Page
-                        </button>
-                        <button class="btn-secondary" id="cancel-page-changes-btn" type="button">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    // Error handling function
+    function handleError(error, context = '') {
+        console.error(`${context}:`, error);
+        showMessageBox(`Error: ${error.message || 'An unknown error occurred'}`, true);
+    }
 
-        <!-- Form Management Section -->
-        <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="form-management-section">
-            <h2 class="text-2xl font-semibold text-text-header mb-4">Form Management</h2>
-            <button class="btn-primary btn-blue mb-4" id="create-new-form-btn">Create New Form</button>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-main rounded-lg shadow-md">
-                    <thead>
-                    <tr class="bg-table-header-bg text-text-secondary uppercase text-xs leading-normal">
-                        <th class="py-3 px-2 text-left">Form ID</th>
-                        <th class="py-3 px-2 text-left">Name</th>
-                        <th class="py-3 px-2 text-left">Submissions</th>
-                        <th class="py-3 px-2 text-left">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="text-text-primary text-sm font-light" id="form-list-tbody">
-                    <!-- Form rows will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    async function checkAdminStatus(user) {
+        if (!user) return false;
+        try {
+            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+            const userDoc = await getDoc(userRef);
+            return userDoc.exists() && userDoc.data()?.isAdmin === true;
+        } catch (error) {
+            handleError(error, 'Checking admin status');
+            return false;
+        }
+    }
 
-        <!-- Edit/Create Form Modal -->
-        <div class="modal" id="edit-form-modal">
-            <div class="modal-content bg-secondary p-6 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
-                <span class="close-button">&times;</span>
-                <h3 class="text-xl font-semibold text-text-header mb-4" id="form-modal-title"></h3>
-                <form class="space-y-4" id="edit-form-form">
-                    <div>
-                        <label class="form-label" for="form-id">Form ID (auto-generated):</label>
-                        <input class="form-input" id="form-id" readonly type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="form-name">Form Name:</label>
-                        <input class="form-input" id="form-name" required type="text"/>
-                    </div>
-                    <div>
-                        <label class="form-label" for="form-description">Description:</label>
-                        <textarea class="form-textarea" id="form-description"></textarea>
-                    </div>
-                    <div>
-                        <label class="form-label" for="form-fields">Form Fields (JSON):</label>
-                        <textarea class="form-textarea" id="form-fields" rows="10"></textarea>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="form-requires-auth" type="checkbox"/>
-                        <label class="form-label" for="form-requires-auth">Requires Authentication</label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input class="form-checkbox" id="form-recaptcha-enabled" type="checkbox"/>
-                        <label class="form-label" for="form-recaptcha-enabled">reCAPTCHA Enabled</label>
-                    </div>
-                    <div>
-                        <label class="form-label" for="form-email-recipients">Email Recipients
-                            (comma-separated):</label>
-                        <input class="form-input" id="form-email-recipients" type="text"/>
-                    </div>
-                    <div class="flex justify-end space-x-4 mt-6">
-                        <button class="btn-primary btn-green" id="save-form-changes-btn" type="submit">Save Form
-                        </button>
-                        <button class="btn-secondary" id="cancel-form-changes-btn" type="button">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    async function loadAdminDashboard() {
+        try {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            loadingSpinner.classList.remove('hidden');
 
-        <!-- Email Settings Section -->
-        <div class="bg-secondary p-6 rounded-lg shadow-lg mb-8" id="email-settings-section">
-            <h2 class="text-2xl font-semibold text-text-header mb-4">Email Settings</h2>
-            <form class="space-y-4" id="email-settings-form">
-                <div>
-                    <label class="form-label" for="smtp-password">SMTP Password:</label>
-                    <div class="relative">
-                        <input autocomplete="new-password" class="form-input" id="smtp-password" required
-                               type="password"/>
-                        <button aria-label="Show password" class="absolute right-2 top-1/2 transform -translate-y-1/2"
-                                onclick="togglePasswordVisibility('smtp-password', this)" type="button">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24">
-                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"></path>
-                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                      stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <button class="btn-primary btn-blue" type="submit">Save Email Settings</button>
-            </form>
-        </div>
-    </div>
-</main>
+            // Load admin data here
+            const usersRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+            const usersQuery = query(usersRef, orderBy('createdAt', 'desc'));
+            const usersSnapshot = await getDocs(usersQuery);
 
-<script src="./firebase-init.js" type="module"></script>
-<script src="./themes.js" type="module"></script>
-<script src="./custom_theme_modal.js" type="module"></script>
-<script src="./admin.js" type="module"></script>
-<script src="./navbar.js" type="module"></script>
-<script src="./utils.js" type="module"></script>
-<script src="./admin-user-management.js" type="module"></script>
-<script src="./email-integration.js" type="module"></script>
-<script src="./smtp-integration.js" type="module"></script>
+            // Update UI with user data
+            const dashboard = document.getElementById('admin-dashboard');
+            dashboard.innerHTML = `
+                    <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- User Management Card -->
+                        <div class="bg-card p-6 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-semibold mb-4">User Management</h2>
+                            <p class="text-text-secondary mb-4">Total Users: ${usersSnapshot.size}</p>
+                            <button onclick="window.location.href='./admin-user-management.html'" class="btn-primary">
+                                Manage Users
+                            </button>
+                        </div>
+
+                        <!-- Theme Management Card -->
+                        <div class="bg-card p-6 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-semibold mb-4">Theme Management</h2>
+                            <button onclick="showThemeModal()" class="btn-primary">
+                                Manage Themes
+                            </button>
+                        </div>
+
+                        <!-- Site Settings Card -->
+                        <div class="bg-card p-6 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-semibold mb-4">Site Settings</h2>
+                            <button onclick="window.location.href='./admin-settings.html'" class="btn-primary">
+                                Manage Settings
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+            loadingSpinner.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+        } catch (error) {
+            handleError(error, 'Loading admin dashboard');
+        }
+    }
+
+    // Initialize admin page
+    async function initAdmin() {
+        try {
+            const loginSection = document.getElementById('admin-login-section');
+            const dashboard = document.getElementById('admin-dashboard');
+
+            // Initialize page components
+            await Promise.all([
+                initializePage('admin'),
+                themeManager.init()
+            ]);
+
+            // Handle auth state changes
+            auth.onAuthStateChanged(async (user) => {
+                try {
+                    if (user) {
+                        const isAdmin = await checkAdminStatus(user);
+                        if (isAdmin) {
+                            loginSection.classList.add('hidden');
+                            await loadAdminDashboard();
+                        } else {
+                            showMessageBox('Access denied. Admin privileges required.', true);
+                            window.location.href = './index.html';
+                        }
+                    } else {
+                        dashboard.classList.add('hidden');
+                        loginSection.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    handleError(error, 'Auth state change');
+                }
+            });
+
+            // Handle admin login
+            const loginForm = document.getElementById('admin-login-form');
+            loginForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const email = document.getElementById('admin-email').value;
+                    const password = document.getElementById('admin-password').value;
+                    await auth.signInWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    handleError(error, 'Admin login');
+                }
+            });
+
+        } catch (error) {
+            handleError(error, 'Initializing admin page');
+        }
+    }
+
+    // Start initialization when document is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    } else {
+        initAdmin().catch(error => handleError(error, 'Page load'));
+    }
+</script>
 </body>
 </html>
