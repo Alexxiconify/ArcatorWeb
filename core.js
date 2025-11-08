@@ -1,13 +1,18 @@
 // core.js - Core application functionality
-import {auth, COLLECTIONS, db, DEFAULT_PROFILE_PIC, doc, getDoc, serverTimestamp, setDoc} from "./firebase-init.js";
+import {auth, COLLECTIONS, db, doc, getDoc, serverTimestamp, setDoc} from "./firebase-init.js";
 import {themeManager} from "./theme-manager.js";
 import {showMessageBox} from "./utils.js";
+
+const ASSETS = {
+    DEFAULT_USER: './defaultuser.png',
+    DEFAULT_HERO: './creativespawn.png'
+};
 
 const navbarHTML = `
 <nav class="navbar">
     <div class="container navbar-content">
         <div class="flex items-center gap-4">
-            <a href="./index.html" class="text-xl font-bold text-text hover:text-accent-light">Arcator</a>
+            <a href="./index.html" class="text-xl font-bold text-text hover:text-accent-light no-underline">Arcator</a>
             <div class="flex items-center gap-4">
                 <a href="./index.html" class="nav-link">Home</a>
                 <a href="./games.html" class="nav-link">Games</a>
@@ -57,13 +62,20 @@ export async function loadNavbar(user, userProfile) {
     const userSection = getElement('user-section');
     if (!userSection) return;
 
-    userSection.innerHTML = user
-        ? `<a href="./users.html" class="flex items-center gap-2">
-             <img src="${userProfile?.photoURL || DEFAULT_PROFILE_PIC}" alt="Profile" 
-                  class="profile-image">
-             <span class="text-text">${userProfile?.displayName || user.email}</span>
-           </a>`
-        : `<a href="./users.html" class="btn-primary">Sign In</a>`;
+    if (user) {
+        const photoURL = userProfile?.photoURL || user.photoURL || ASSETS.DEFAULT_USER;
+        const displayName = userProfile?.displayName || user.displayName || user.email;
+
+        userSection.innerHTML = `
+            <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition" onclick="location.href='./users.html'">
+                <img src="${photoURL}" 
+                     alt="Profile" 
+                     class="profile-image">
+                <span class="text-text text-sm font-medium">${displayName}</span>
+            </div>`;
+    } else {
+        userSection.innerHTML = `<a href="./users.html" class="btn-primary">Sign In</a>`;
+    }
 
     // Highlight current page
     const currentPage = globalThis.location.pathname.split('/').pop() || 'index.html';

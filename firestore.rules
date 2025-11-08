@@ -1,105 +1,41 @@
-// Firestore
-Security
-Rules
-for Arcator
-    // Copy and paste
-this
-into
-Firebase
-Console > Firestore
-Database > Rules
-tab
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-                                        // Helper
-functions
-function
-isSignedIn()
-{
-return request.auth.uid != null;
-    }
-
-function
-isOwner(userId)
-{
-return request.auth.uid == userId;
-    }
-
-function
-isAdmin()
-{
-return isSignedIn() & &
-get( / databases /$(database) / documents / artifacts /$(request.auth.token.firebase.sign_in_provider == 'anonymous'
-                                                         ? 'public': 'default') / public / data / user_profiles /$(
-    request.auth.uid)).data.isAdmin == true;
-}
-
-function
-isCreator(createdBy)
-{
-return request.auth.uid == createdBy;
-}
-
-// Public
-read
-access
+                                        // Forms / Threads - allow
+authenticated
+users
 to
-forms, pages, themes(artifacts)
+read and create
 match / artifacts / {appId} / public / data / forms / {threadId}
 {
-allow
-read:
-if true;
-allow
-create:
-if isSignedIn();
+      allow read: if true;
+allow create: if
+request.auth != null;
 allow
 update:
-if isCreator(resource.data.createdBy) | | isAdmin();
-allow
-delete:
-if isCreator(resource.data.createdBy) | | isAdmin();
+if request.auth != null;
+allow delete: if
+request.auth.uid == resource.data.createdBy;
 
-// Comments
-on
-threads(submissions
-subcollection)
+// Comments / Submissions
+subcollection - allow
+anyone
+signed in to
+create
 match / submissions / {commentId}
 {
     allow
 read:
 if true;
 allow create: if
-isSignedIn();
+request.auth != null;
 allow
 update:
-if isCreator(resource.data.authorId) | | isAdmin();
+if request.auth.uid == resource.data.authorId;
 allow delete: if
-isCreator(resource.data.authorId) | | isAdmin();
+request.auth.uid == resource.data.authorId;
 }
-}
-
-// Pages
-match / artifacts / {appId} / public / data / pages / {pageId}
-{
-allow
-read:
-if true;
-allow
-create, update, delete:
-if isAdmin();
-}
-
-// Themes
-match / artifacts / {appId} / public / data / themes / {themeId}
-{
-      allow read: if true;
-allow
-write:
-if isAdmin();
 }
 
 // User
@@ -107,19 +43,33 @@ profiles - public
 readable, self - writable
 match / artifacts / {appId} / public / data / user_profiles / {userId}
 {
-      allow read: if true;
-allow
-write:
-if isOwner(userId) | | isAdmin();
+    allow
+read:
+if true;
+allow write: if
+request.auth.uid == userId;
 }
 
-// Admin
-data - admin
+// Pages - public
+read
 only
-match / artifacts / {appId} / public / data / admin / {document = **} {
-allow
-read, write:
-if isAdmin();
+match / artifacts / {appId} / public / data / pages / {pageId}
+{
+      allow read: if true;
+allow write: if
+false;
+}
+
+// Themes - public
+read
+only
+match / artifacts / {appId} / public / data / themes / {themeId}
+{
+    allow
+read:
+if true;
+allow write: if
+false;
 }
 
 // User - specific
@@ -129,43 +79,53 @@ to
 participants
 match / users / {userId} / dms / {dmId}
 {
-allow
+    allow
 read:
-if isOwner(userId);
-allow
-create:
-if isOwner(userId) & & request.resource.data.participants.hasAll([request.auth.uid]);
+if request.auth.uid == userId;
+allow create: if
+request.auth.uid == userId;
 allow
 update:
-if isOwner(userId);
-allow
-delete:
-if isOwner(userId);
+if request.auth.uid == userId;
+allow delete: if
+request.auth.uid == userId;
 
 // Messages in DMs
 match / messages / {messageId}
 {
     allow
 read:
-if isOwner(userId);
+if request.auth.uid == userId;
 allow create: if
-isOwner(userId) & & request.resource.data.sender == request.auth.uid;
+request.auth.uid == userId;
 allow
 update:
-if isOwner(userId) & & resource.data.sender == request.auth.uid;
+if request.auth.uid == userId;
 allow delete: if
-isOwner(userId) & & resource.data.sender == request.auth.uid;
+request.auth.uid == userId;
 }
 }
 
-// Generic
-catch - all - deny
-by
-default
-match / {document = **} {
+// Users
+collection
+for profile lookups
+match / users / {userId} {
+allow read: if
+true;
 allow
-read, write:
-if false;
+create:
+if request.auth.uid == userId;
+allow update: if
+request.auth.uid == userId;
+allow
+delete:
+if request.auth.uid == userId;
+}
+
+// Catch-all deny
+match / {document= **} {
+allow read, write: if
+false;
 }
 }
 }

@@ -44,7 +44,7 @@
 
         <!-- Forms Panel -->
         <div class="py-4" id="forms-panel" role="tabpanel">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="forms-list">
+            <div id="forms-list">
                 <!-- Forms will be loaded here -->
             </div>
         </div>
@@ -67,13 +67,20 @@
                     <div class="p-2 border-b border-accent-dark" id="participant-list"></div>
                     <div class="flex-1 overflow-y-auto p-4" id="messages-container"></div>
                     <form class="p-4 border-t border-accent-dark" id="message-form">
-                        <div class="flex gap-2">
-                            <label for="message-input"></label><input class="flex-1 bg-surface-2 border border-accent rounded px-3 py-2"
-                                                                      id="message-input"
-                                                                      placeholder="Type a message..."
-                                                                      type="text">
-                            <button class="btn-primary" type="submit">Send</button>
+                        <div class="flex gap-2 relative">
+                            <div class="flex-1 relative">
+                                <label for="message-input">
+
+                                </label><input autocomplete="off"
+                                               class="flex-1 bg-surface-2 border border-accent rounded px-3 py-2 w-full"
+                                               id="message-input"
+                                               placeholder="Type a message... (use @ to mention users)"
+                                               type="text">
+                                <div class="mention-suggestions hidden absolute top-full left-0 mt-1 w-full"
+                                     id="mention-suggestions"></div>
                             </div>
+                            <button class="btn-primary" type="submit">Send</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -101,7 +108,7 @@
 <div id="footer-placeholder"></div>
 
 <script type="module">
-    import {initializePage} from './core.js';
+    import {initializePage, loadFooter} from './core.js';
     import {initForms, initDMs} from './forms.js';
     import {themeManager} from './theme-manager.js';
     import {showMessageBox} from './utils.js';
@@ -117,6 +124,9 @@
             // Initialize forms and DMs
             await initForms();
             await initDMs();
+
+            // Load footer
+            await loadFooter();
 
             // Setup tabs
             const container = document.querySelector('[role="tablist"]');
@@ -147,6 +157,61 @@
             if (tabs[0]) {
                 tabs[0].click();
             }
+
+            // Add mention autocomplete to message input
+            const messageInput = document.getElementById('message-input');
+            const suggestionsDiv = document.getElementById('mention-suggestions');
+
+            // Function to insert mention into text
+            window.insertMention = function (mention) {
+                const text = messageInput.value;
+                const lastAtIndex = text.lastIndexOf('@');
+                const beforeMention = text.substring(0, lastAtIndex);
+                messageInput.value = beforeMention + mention + ' ';
+                suggestionsDiv.classList.add('hidden');
+                messageInput.focus();
+            };
+
+            if (messageInput) {
+                messageInput.addEventListener('input', async (e) => {
+                    const text = e.target.value;
+                    const lastAtIndex = text.lastIndexOf('@');
+
+                    if (lastAtIndex === -1) {
+                        suggestionsDiv.classList.add('hidden');
+                    } else {
+                        const searchTerm = text.substring(lastAtIndex + 1).trim();
+
+                        if (searchTerm.length >= 1) {
+                            const users = await window.searchUsers(searchTerm);
+
+                            if (users.length > 0) {
+                                suggestionsDiv.innerHTML = users.map(user => `
+                                    <div class="mention-item" onclick="window.insertMention('@${user.handle}')">
+                                        <img src="${user.photoURL}" alt="${user.displayName}">
+                                        <div class="mention-item-text">
+                                            <div class="mention-item-name">${user.displayName}</div>
+                                            <div class="mention-item-handle">@${user.handle}</div>
+                                        </div>
+                                    </div>
+                                `).join('');
+                                suggestionsDiv.classList.remove('hidden');
+                            } else {
+                                suggestionsDiv.classList.add('hidden');
+                            }
+                        } else {
+                            suggestionsDiv.classList.add('hidden');
+                        }
+                    }
+                });
+
+                messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        suggestionsDiv.classList.add('hidden');
+                    }
+                });
+            }
+
 
             console.log('Page forms initialized successfully');
         } catch (error) {

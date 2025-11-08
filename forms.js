@@ -13,8 +13,7 @@ import {
     serverTimestamp,
     setDoc,
     updateDoc,
-    where,
-    writeBatch
+    where
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import {updateProfile} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
@@ -102,7 +101,7 @@ async function initForms() {
 
         threadsList.innerHTML = threads.empty ?
             '<div class="empty-state">No threads available</div>' :
-            `<div class="threads-container">
+            `<div class="threads-list">
                 ${threads.docs.map(doc => createThreadCard(doc)).join('')}
             </div>`;
 
@@ -127,25 +126,52 @@ function createThreadCard(doc) {
     const date = thread.createdAt?.toDate().toLocaleDateString() || 'Unknown';
     const time = thread.createdAt?.toDate().toLocaleTimeString() || '';
 
+    // Category emoji map
+    const categoryEmojis = {
+        'announcements': '📢',
+        'gaming': '🎮',
+        'discussion': '💬',
+        'support': '🤝',
+        'feedback': '💡',
+        'default': '📝'
+    };
+
+    const emoji = categoryEmojis[thread.category] || categoryEmojis.default;
+
     return `
-        <div class="thread-card ${thread.pinned ? 'pinned' : ''}" data-thread-id="${doc.id}">
-            ${thread.pinned ? '<div class="pinned-badge">📌 Pinned</div>' : ''}
-            <div class="thread-content">
-                <h3 class="thread-title">
-                    <a href="#" onclick="window.openThread('${doc.id}'); return false;">
+        <div class="thread-card" data-thread-id="${doc.id}" onclick="window.openThread('${doc.id}')">
+            <div style="flex-shrink: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                ${emoji}
+                ${thread.pinned ? '<span style="font-size: 0.875rem;">📌</span>' : ''}
+            </div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: var(--color-text);">
                         ${thread.title}
-                    </a>
-                </h3>
-                <p class="thread-description">${thread.description}</p>
-                <div class="thread-metadata">
-                    <span class="thread-category">${thread.category}</span>
-                    ${thread.tags?.map(tag => `<span class="thread-tag">#${tag}</span>`).join('') || ''}
+                    </h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: var(--color-text-2); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        ${thread.description}
+                    </p>
                 </div>
-                <div class="thread-stats">
-                    <span class="upvotes">👍 ${thread.upvotes || 0}</span>
-                    <span class="comments">💬 ${thread.commentCount || 0}</span>
-                    <span class="timestamp" title="${date} ${time}">
-                        Posted ${formatTimeAgo(thread.createdAt?.toDate())}
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span style="display: inline-block; background: var(--color-accent); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500;">
+                        ${thread.category}
+                    </span>
+                    ${thread.tags?.slice(0, 2).map(tag => `<span style="display: inline-block; background: var(--color-surface-3); color: var(--color-text-2); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem;">#${tag}</span>`).join('') || ''}
+                </div>
+            </div>
+            
+            <div style="flex-shrink: 0; font-size: 0.875rem; color: var(--color-text-2); white-space: nowrap; display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
+                <span title="${date} ${time}" style="font-size: 0.75rem;">
+                    ${formatTimeAgo(thread.createdAt?.toDate())}
+                </span>
+                <div style="display: flex; gap: 0.75rem;">
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                        👍 <span style="font-weight: 500;">${thread.upvotes || 0}</span>
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                        💬 <span style="font-weight: 500;">${thread.commentCount || 0}</span>
                     </span>
                 </div>
             </div>
@@ -183,41 +209,38 @@ function showNewThreadModal() {
 
     const modal = createModal('Create New Thread');
     modal.querySelector('.modal-body').innerHTML = `
-        <div class="p-4">
-            <form id="new-thread-form" class="space-y-4">
-                <div class="form-field">
-                    <label>Title</label>
-                    <input type="text" id="thread-title" class="form-input w-full" 
-                           placeholder="What's on your mind?" required>
-                </div>
-                <div class="form-field">
-                    <label>Description</label>
-                    <textarea id="thread-description" class="form-input w-full" rows="4" 
-                            placeholder="Share your thoughts..." required></textarea>
-                </div>
-                <div class="form-field">
-                    <label>Category</label>
-                    <select id="thread-category" class="form-input w-full" required>
-                        <option value="">Select a category...</option>
-                        <option value="announcements">Announcements</option>
-                        <option value="gaming">Gaming</option>
-                        <option value="discussion">Discussion</option>
-                        <option value="support">Support</option>
-                        <option value="feedback">Feedback</option>
-                    </select>
-                </div>
-                <div class="form-field">
-                    <label>Tags (comma-separated)</label>
-                    <input type="text" id="thread-tags" class="form-input w-full" 
-                           placeholder="gaming, multiplayer, etc">
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" class="btn-secondary" 
-                            onclick="this.closest('.modal').remove()">Cancel</button>
-                    <button type="submit" class="btn-primary">Create Thread</button>
-                </div>
-            </form>
-        </div>
+        <form id="new-thread-form" class="space-y-4">
+            <div class="form-field">
+                <label>Title</label>
+                <input type="text" id="thread-title" class="form-input w-full" 
+                       placeholder="What's on your mind?" required>
+            </div>
+            <div class="form-field">
+                <label>Description</label>
+                <textarea id="thread-description" class="form-input w-full" rows="4" 
+                        placeholder="Share your thoughts..." required></textarea>
+            </div>
+            <div class="form-field">
+                <label>Category</label>
+                <select id="thread-category" class="form-input w-full" required>
+                    <option value="">Select a category...</option>
+                    <option value="announcements">Announcements</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="support">Support</option>
+                    <option value="feedback">Feedback</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Tags (comma-separated)</label>
+                <input type="text" id="thread-tags" class="form-input w-full" 
+                       placeholder="gaming, multiplayer, etc">
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" class="btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                <button type="submit" class="btn-primary">Create Thread</button>
+            </div>
+        </form>
     `;
 
     const form = modal.querySelector('#new-thread-form');
@@ -260,13 +283,13 @@ function showNewThreadModal() {
 }
 
 async function openThread(threadId) {
-    const modal = createModal('Loading Thread...');
+    const modal = createModal('');
     document.body.appendChild(modal);
 
     try {
         const threadDoc = await getDoc(doc(db, COLLECTIONS.FORMS, threadId));
         if (!threadDoc.exists()) {
-            modal.querySelector('.modal-content').innerHTML = '<p class="error">Thread not found</p>';
+            modal.querySelector('.modal-body').innerHTML = '<p class="error">Thread not found</p>';
             return;
         }
 
@@ -276,36 +299,37 @@ async function openThread(threadId) {
         const commentsQuery = query(commentsRef, orderBy('createdAt', 'desc'));
         const commentsSnap = await getDocs(commentsQuery);
 
-        modal.querySelector('.modal-content').innerHTML = `
+        modal.querySelector('.modal-body').innerHTML = `
             <div class="thread-view">
-                <div class="thread-header">
-                    <h2>${thread.title}</h2>
-                    <div class="thread-info">
+                <div class="thread-header mb-6">
+                    <h2 class="text-2xl font-bold mb-2">${thread.title}</h2>
+                    <div class="flex gap-4 text-sm text-text-2 mb-4">
                         <span class="author">Posted by ${creator.displayName || 'Unknown User'}</span>
                         <span class="timestamp">${formatTimeAgo(thread.createdAt?.toDate())}</span>
                     </div>
-                    <p class="description">${thread.description}</p>
-                    <div class="tags">
-                        <span class="category">${thread.category}</span>
-                        ${thread.tags?.map(tag => `<span class="tag">#${tag}</span>`).join('') || ''}
+                    <p class="description text-text-2 mb-4">${thread.description}</p>
+                    <div class="tags flex gap-2 flex-wrap">
+                        <span class="category bg-accent text-white px-3 py-1 rounded text-sm">${thread.category}</span>
+                        ${thread.tags?.map(tag => `<span class="tag bg-surface-2 px-3 py-1 rounded text-sm">#${tag}</span>`).join('') || ''}
                     </div>
                 </div>
-                <div class="comments-section">
+                
+                <div class="comments-section border-t pt-6">
                     ${auth.currentUser ? `
-                        <form id="comment-form-${threadId}" class="comment-form">
-                            <textarea placeholder="Add a comment..." required></textarea>
-                            <div class="flex justify-end mt-2">
+                        <form id="comment-form-${threadId}" class="comment-form mb-6">
+                            <textarea class="form-input w-full mb-3" placeholder="Add a comment..." required></textarea>
+                            <div class="flex justify-end">
                                 <button type="submit" class="btn-primary">Post Comment</button>
                             </div>
                         </form>
                     ` : `
-                        <div class="sign-in-prompt">
+                        <div class="sign-in-prompt bg-surface-2 p-4 rounded mb-6 text-center">
                             <p>Please <a href="#" onclick="window.showSignIn()" class="text-accent">sign in</a> to comment</p>
                         </div>
                     `}
-                    <div class="comments-list">
+                    <div class="comments-list space-y-4">
                         ${commentsSnap.empty ?
-            '<p class="no-comments">No comments yet. Be the first to share your thoughts!</p>' :
+            '<p class="no-comments text-text-2 text-center py-4">No comments yet. Be the first to share your thoughts!</p>' :
             commentsSnap.docs.map(doc => createCommentElement(doc.data())).join('')
         }
                     </div>
@@ -320,7 +344,7 @@ async function openThread(threadId) {
 
     } catch (error) {
         console.error('Error loading thread:', error);
-        modal.querySelector('.modal-content').innerHTML = '<p class="error">Failed to load thread</p>';
+        modal.querySelector('.modal-body').innerHTML = '<p class="error">Failed to load thread</p>';
     }
 }
 
@@ -354,24 +378,21 @@ async function handleCommentSubmit(event, threadId) {
             content,
             threadId,
             authorId: auth.currentUser.uid,
-            authorName: auth.currentUser.displayName,
-            authorPhoto: auth.currentUser.photoURL,
+            authorName: auth.currentUser.displayName || 'Anonymous',
+            authorPhoto: auth.currentUser.photoURL || ASSETS.DEFAULT_USER,
             createdAt: serverTimestamp()
         };
 
-        const threadRef = doc(db, COLLECTIONS.FORMS, threadId);
-        const batch = writeBatch(db);
-
-        // Add the comment
-        const commentRef = doc(collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS));
-        batch.set(commentRef, commentData);
+        // Create comment using addDoc directly to submissions subcollection
+        const submissionsRef = collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS);
+        await addDoc(submissionsRef, commentData);
 
         // Update thread stats
-        batch.update(threadRef, {
+        const threadRef = doc(db, COLLECTIONS.FORMS, threadId);
+        await updateDoc(threadRef, {
             commentCount: increment(1)
         });
 
-        await batch.commit();
 
         textarea.value = '';
         showMessageBox('Comment posted successfully');
@@ -506,17 +527,40 @@ async function createDmElement(doc) {
 function createModal(title) {
     const modal = document.createElement('div');
     modal.className = 'modal';
+
+    const closeModal = () => modal.remove();
+
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
                 <h2>${title}</h2>
-                <button onclick="this.closest('.modal').remove()">×</button>
+                <button class="modal-close-btn" aria-label="Close">×</button>
             </div>
             <div class="modal-body">
                 <div class="loading-spinner"></div>
             </div>
         </div>
     `;
+
+    // Close button functionality
+    modal.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+
+    // Close on Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
     return modal;
 }
 
@@ -565,8 +609,15 @@ function showSignIn() {
 // Add this function to handle new DM modal
 function showNewDmModal() {
     const modal = createModal('New Conversation');
+
     modal.querySelector('.modal-body').innerHTML = `
-        <div class="p-4">
+        <div class="modal-tabs">
+            <button class="modal-tab active" data-tab="create-new">Create New</button>
+            <button class="modal-tab" data-tab="recent">Recent Users</button>
+            <button class="modal-tab" data-tab="search">Search Users</button>
+        </div>
+        
+        <div id="create-new-tab" class="modal-tab-content active">
             <form id="new-dm-form" class="space-y-4">
                 <div class="form-field">
                     <label>Recipients (comma-separated usernames)</label>
@@ -583,15 +634,46 @@ function showNewDmModal() {
                     <input type="url" id="dm-image" class="form-input w-full" 
                            placeholder="https://example.com/image.jpg">
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" class="btn-secondary" 
-                            onclick="this.closest('.modal').remove()">Cancel</button>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" class="btn-secondary modal-close-btn-text">Cancel</button>
                     <button type="submit" class="btn-primary">Create</button>
                 </div>
             </form>
         </div>
+        
+        <div id="recent-tab" class="modal-tab-content hidden">
+            <div id="recent-users-list" class="space-y-2">
+                <p class="text-text-2">Loading recent users...</p>
+            </div>
+        </div>
+        
+        <div id="search-tab" class="modal-tab-content hidden">
+            <div class="form-field mb-4">
+                <input type="text" id="user-search-input" class="form-input w-full" 
+                       placeholder="Search users by name or handle...">
+            </div>
+            <div id="search-users-list" class="space-y-2">
+                <p class="text-text-2">Start typing to search...</p>
+            </div>
+        </div>
     `;
 
+    // Tab switching
+    const tabs = modal.querySelectorAll('.modal-tab');
+    const tabContents = modal.querySelectorAll('.modal-tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.add('hidden'));
+
+            tab.classList.add('active');
+            const tabId = tab.getAttribute('data-tab');
+            modal.querySelector(`#${tabId}-tab`)?.classList.remove('hidden');
+        });
+    });
+
+    // Form submission
     const form = modal.querySelector('#new-dm-form');
     form.onsubmit = async (e) => {
         e.preventDefault();
@@ -787,6 +869,60 @@ async function resolveUserHandles(handles) {
     return Array.from(userIds);
 }
 
+// Search users for mention autocomplete
+async function searchUsers(searchTerm) {
+    if (!searchTerm || searchTerm.length < 2) return [];
+
+    try {
+        const usersRef = collection(db, COLLECTIONS.USERS);
+        const cleanTerm = searchTerm.toLowerCase();
+
+        // Search by handle
+        const handleQuery = query(
+            usersRef,
+            where('handle', '>=', cleanTerm),
+            where('handle', '<=', cleanTerm + '\uf8ff')
+        );
+        const handleSnapshot = await getDocs(handleQuery);
+
+        const results = new Map();
+        handleSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            results.set(doc.id, {
+                id: doc.id,
+                displayName: data.displayName || 'Unknown',
+                handle: data.handle || '',
+                photoURL: data.photoURL || ASSETS.DEFAULT_USER
+            });
+        });
+
+        // Also search by display name
+        const nameQuery = query(
+            usersRef,
+            where('displayName', '>=', cleanTerm),
+            where('displayName', '<=', cleanTerm + '\uf8ff')
+        );
+        const nameSnapshot = await getDocs(nameQuery);
+
+        nameSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (!results.has(doc.id)) {
+                results.set(doc.id, {
+                    id: doc.id,
+                    displayName: data.displayName || 'Unknown',
+                    handle: data.handle || '',
+                    photoURL: data.photoURL || ASSETS.DEFAULT_USER
+                });
+            }
+        });
+
+        return Array.from(results.values()).slice(0, 5);
+    } catch (error) {
+        console.error('Error searching users:', error);
+        return [];
+    }
+}
+
 // Make sure all window functions are assigned properly
 Object.assign(globalThis, {
     openThread,
@@ -798,11 +934,10 @@ Object.assign(globalThis, {
     updateProfilePhoto,
     updateDmImage,
     createDmConversation,
+    searchUsers,
     handleGoogleSignIn: handleGoogleSignIn || (() => alert('Google Sign In not configured'))
 });
 
-// Export functions
-export {initForms, initDMs};
 
 async function openDm(dmId) {
     const messagesContainer = document.getElementById('messages-container');
@@ -908,3 +1043,6 @@ async function openDm(dmId) {
         messagesContainer.innerHTML = '<div class="error-state">Failed to load conversation</div>';
     }
 }
+
+// Export functions
+export {initForms, initDMs};
