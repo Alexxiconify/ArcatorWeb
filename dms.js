@@ -3,14 +3,17 @@ import {
     collection,
     COLLECTIONS,
     db,
+    doc,
     getDocs,
     getUserProfileFromFirestore,
     limit,
     query,
+    serverTimestamp,
+    setDoc,
     where
 } from './firebase-init.js';
-import {dmsManager} from './dms-manager.js';
 import {showMessageBox} from './utils.js';
+import {dmsManager} from './dms-manager.js';
 
 let currentDmId = null;
 let messagesUnsubscribe = null;
@@ -203,6 +206,52 @@ function setupMessageForm() {
     });
 }
 
+async function createDM(participantIds) {
+    if (!auth.currentUser || !participantIds?.length) {
+        showMessageBox('Invalid participants', true);
+        return null;
+    }
+
+    try {
+        // Add current user to participants if not already included
+        const allParticipants = new Set([auth.currentUser.uid, ...participantIds]);
+
+        // Check if DM already exists
+        const dmsRef = collection(db, COLLECTIONS.DMS(auth.currentUser.uid));
+        const q = query(dmsRef, where('participants', '==', Array.from(allParticipants)));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+            return snapshot.docs[0].id;
+        }
+
+        // Create new DM
+        const dmData = {
+            createdAt: serverTimestamp(),
+            participants: Array.from(allParticipants),
+            lastMessage: null,
+            lastMessageAt: null
+        };
+
+        // Create the DM for each participant
+        const dmRef = doc(collection(db, COLLECTIONS.DMS(auth.currentUser.uid)));
+        await setDoc(dmRef, dmData);
+
+        // Create reciprocal DM documents for other participants
+        await Promise.all(participantIds.map(async (participantId) => {
+            const participantDMRef = doc(db, COLLECTIONS.DMS(participantId), dmRef.id);
+            await setDoc(participantDMRef, dmData);
+        }));
+
+        return dmRef.id;
+    } catch (error) {
+        console.error('Error creating DM:', error);
+        showMessageBox('Failed to create conversation', true);
+        return null;
+    }
+}
+
+// Update the setupNewConversation function to use the local createDM function
 function setupNewConversation() {
     const newChatBtn = document.getElementById('new-chat-btn');
     const recipientInput = document.getElementById('recipient-input');
@@ -253,73 +302,50 @@ function setupNewConversation() {
                         const userProfile = await getParticipantProfile(userId);
                         if (userProfile) {
                             selectedRecipients.set(userId, userProfile);
+                            recipientInput.value = '';
+                            suggestionsList.innerHTML = '';
                             updateSelectedRecipients();
                         }
-                        recipientInput.value = '';
-                        suggestionsList.innerHTML = '';
                     });
                 });
             } catch (error) {
                 console.error('Error searching users:', error);
-                suggestionsList.innerHTML = '<div class="text-error p-2">Error searching users</div>';
             }
         }, 300);
     });
 
     newChatBtn.addEventListener('click', async () => {
-        if (selectedRecipients.size === 0) {
-            showMessageBox('Please select at least one recipient', true);
-            return;
-        }
-
-        try {
-            const dmId = await dmsManager.createDM([...selectedRecipients.keys()]);
-            selectedRecipients.clear();
-            updateSelectedRecipients();
+        const recipientIds = Array.from(selectedRecipients.keys());
+        const dmId = await createDM(recipientIds);
+        if (dmId) {
+            currentDmId = dmId;
             await loadMessages(dmId);
-        } catch (error) {
-            console.error('Error creating conversation:', error);
-            showMessageBox('Failed to create conversation', true);
+            showMessageBox('Conversation started', false);
         }
     });
 }
 
 function updateSelectedRecipients() {
-    const container = document.getElementById('selected-recipients');
-    if (!container) return;
+    const selectedList = document.getElementById('selected-recipients');
+    if (!selectedList) return;
 
-    container.innerHTML = Array.from(selectedRecipients.values())
-        .map(profile => `
-            <div class="flex items-center gap-2 bg-surface-2 rounded-full px-3 py-1">
-                <img src="${profile.photoURL || './defaultuser.png'}" 
-                     alt="${profile.displayName}"
-                     class="w-6 h-6 rounded-full object-cover">
-                <span class="text-text">${profile.displayName}</span>
-                <button class="text-text-2 hover:text-error"
-                        onclick="removeRecipient('${profile.id}')">×</button>
-            </div>
-        `).join('');
+    selectedList.innerHTML = Array.from(selectedRecipients.values()).map(profile => `
+        <div class="flex items-center gap-2 p-2 border-b border-accent-light">
+            <img src="${profile.photoURL || './defaultuser.png'}" 
+                 alt="${profile.displayName}"
+                 class="w-8 h-8 rounded-full object-cover">
+            <span class="text-text">${profile.displayName}</span>
+            <button class="ml-auto text-error hover:text-error-light"
+                    onclick="removeRecipient('${profile.id}')">
+                Remove
+            </button>
+        </div>
+    `).join('');
 }
 
-function removeRecipient(userId) {
+window.removeRecipient = (userId) => {
     selectedRecipients.delete(userId);
     updateSelectedRecipients();
-}
-
-// DM action handlers exposed to window
-const dmsActions = {
-    async editMessage(messageId, content) {
-        await showEditMessageModal(messageId, content);
-    },
-
-    async deleteMessage(messageId) {
-        await handleDeleteMessage(messageId);
-    },
-
-    removeRecipient(userId) {
-        selectedRecipients.delete(userId);
-        updateSelectedRecipients();
-    }
 };
 
 async function showEditMessageModal(messageId, content) {
@@ -329,7 +355,7 @@ async function showEditMessageModal(messageId, content) {
         <div class="bg-surface p-6 rounded-lg shadow-xl max-w-md w-full">
             <h3 class="text-xl font-bold mb-4">Edit Message</h3>
             <form id="edit-message-form">
-                <textarea id="edit-message-content" 
+                <textarea id="edit-message-content"
                          class="w-full p-2 bg-surface-2 border border-accent rounded resize-none"
                          rows="4">${content}</textarea>
                 <div class="flex justify-end gap-2 mt-4">
@@ -390,7 +416,20 @@ export async function initDMs() {
         setupNewConversation();
 
         // Expose necessary functions globally
-        window.dmsActions = dmsActions;
+        window.dmsActions = {
+            async editMessage(messageId, content) {
+                await showEditMessageModal(messageId, content);
+            },
+
+            async deleteMessage(messageId) {
+                await handleDeleteMessage(messageId);
+            },
+
+            removeRecipient(userId) {
+                selectedRecipients.delete(userId);
+                updateSelectedRecipients();
+            }
+        };
 
         // Set up auto-scroll for new messages
         const messagesContainer = document.getElementById('messages-container');
