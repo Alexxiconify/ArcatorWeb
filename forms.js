@@ -17,10 +17,10 @@ import {showMessageBox} from "./utils.js";
 import {updateProfile} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 const COLLECTIONS = {
-    FORMS: 'artifacts/forms',
-    SUBMISSIONS: 'artifacts/submissions',
-    USERS: 'artifacts/users',
-    DMS: 'artifacts/dms'
+    FORMS: 'forms',
+    SUBMISSIONS: 'submissions',
+    USERS: 'users',
+    DMS: 'dms'
 };
 
 const ASSETS = {
@@ -33,6 +33,16 @@ let currentDmId;
 let currentPhotoURL;
 let currentImageURL;
 
+// Expose functions to window immediately
+Object.assign(window, {
+    openForm: null,
+    openDm: null,
+    showSignIn: null,
+    handleGoogleSignIn: null,
+    updateProfilePhoto: null,
+    updateDmImage: null
+});
+
 // Form functionality
 async function initForms() {
     const formsList = document.getElementById('forms-list');
@@ -40,7 +50,9 @@ async function initForms() {
 
     try {
         formsList.innerHTML = '<div class="loading-spinner"></div>';
-        const formsQuery = query(collection(db, COLLECTIONS.FORMS), orderBy('createdAt', 'desc'));
+
+        const formsRef = collection(db, COLLECTIONS.FORMS);
+        const formsQuery = query(formsRef, orderBy('createdAt', 'desc'));
         const forms = await getDocs(formsQuery);
 
         formsList.innerHTML = forms.empty ?
@@ -192,50 +204,28 @@ async function initDMs() {
     const dmList = document.getElementById('dm-list');
     if (!dmList) return;
 
-    setupDmListeners();
-    await loadDMs();
-}
-
-function setupDmListeners() {
-    const createBtn = document.getElementById('new-chat-btn');
-    const messageForm = document.getElementById('message-form');
-
-    if (createBtn) {
-        createBtn.onclick = () => {
-            if (!auth.currentUser) {
-                showMessageBox('Please sign in to create conversations', true);
-                return;
-            }
-            showNewDmModal();
-        };
-    }
-
-    if (messageForm) {
-        messageForm.onsubmit = handleMessageSubmit;
-    }
-}
-
-async function loadDMs() {
-    const dmList = document.getElementById('dm-list');
-    const messagesContainer = document.getElementById('messages-container');
-    if (!dmList) return;
-
     try {
         dmList.innerHTML = '<div class="loading-spinner"></div>';
 
         if (!auth.currentUser) {
-            dmList.innerHTML = '<div class="sign-in-prompt">Please sign in to view messages</div>';
+            dmList.innerHTML = `
+                <div class="text-center p-4">
+                    <p>Please <a href="#" onclick="window.showSignIn()" class="text-accent">sign in</a> to view messages</p>
+                </div>`;
             return;
         }
 
-        const dmsRef = collection(db, `${COLLECTIONS.USERS}/${auth.currentUser.uid}/dms`);
+        const dmsRef = collection(db, COLLECTIONS.USERS, auth.currentUser.uid, COLLECTIONS.DMS);
         const q = query(dmsRef, orderBy('lastMessageAt', 'desc'));
 
-        unsubscribeDMs?.();
+        if (unsubscribeDMs) {
+            unsubscribeDMs();
+            unsubscribeDMs = null;
+        }
+
         unsubscribeDMs = onSnapshot(q, async snapshot => {
             if (snapshot.empty) {
                 dmList.innerHTML = '<div class="empty-state">No conversations yet</div>';
-                if (messagesContainer) messagesContainer.style.display = 'none';
                 return;
             }
 
@@ -245,10 +235,14 @@ async function loadDMs() {
             if (!currentDmId && snapshot.docs.length) {
                 await openDm(snapshot.docs[0].id);
             }
+        }, error => {
+            console.error('Error loading DMs:', error);
+            dmList.innerHTML = '<div class="error-state">Failed to load conversations</div>';
         });
+
     } catch (error) {
-        console.error('Error loading DMs:', error);
-        dmList.innerHTML = '<div class="error-state">Failed to load conversations</div>';
+        console.error('Error initializing DMs:', error);
+        dmList.innerHTML = '<div class="error-state">Failed to initialize conversations</div>';
     }
 }
 
@@ -266,7 +260,7 @@ async function createDmElement(doc) {
 
     return `
         <div class="dm-item ${currentDmId === doc.id ? 'active' : ''}" 
-             onclick="openDm('${doc.id}')">
+             onclick="window.openDm('${doc.id}')">
             <div class="flex items-center gap-3">
                 <img src="${dm.image || participantsProfiles[0]?.photoURL || ASSETS.DEFAULT_USER}" 
                      alt="Avatar" class="w-10 h-10 rounded-full object-cover">
@@ -407,7 +401,7 @@ async function handleMessageSubmit(event) {
             photoURL: currentPhotoURL || auth.currentUser.photoURL || ASSETS.DEFAULT_USER
         };
 
-        const dmRef = doc(db, `${COLLECTIONS.USERS}/${auth.currentUser.uid}/dms`, currentDmId);
+        const dmRef = doc(db, COLLECTIONS.USERS, auth.currentUser.uid, COLLECTIONS.DMS, currentDmId);
         const dmDoc = await getDoc(dmRef);
 
         if (!dmDoc.exists()) {
@@ -417,12 +411,25 @@ async function handleMessageSubmit(event) {
 
         const dm = dmDoc.data();
 
-        // Send message to all participants
         await Promise.all(dm.participants.map(async participantId => {
-            const messagesRef = collection(db, `${COLLECTIONS.USERS}/${participantId}/dms/${currentDmId}/messages`);
+            const messagesRef = collection(
+                db,
+                COLLECTIONS.USERS,
+                participantId,
+                COLLECTIONS.DMS,
+                currentDmId,
+                'messages'
+            );
             await addDoc(messagesRef, messageData);
 
-            await updateDoc(doc(db, `${COLLECTIONS.USERS}/${participantId}/dms`, currentDmId), {
+            const participantDmRef = doc(
+                db,
+                COLLECTIONS.USERS,
+                participantId,
+                COLLECTIONS.DMS,
+                currentDmId
+            );
+            await updateDoc(participantDmRef, {
                 lastMessage: content,
                 lastMessageAt: serverTimestamp(),
                 lastMessageSender: auth.currentUser.uid,
@@ -433,7 +440,7 @@ async function handleMessageSubmit(event) {
     } catch (error) {
         console.error('Error sending message:', error);
         showMessageBox('Failed to send message', true);
-        input.value = content; // Restore message on failure
+        input.value = content;
     }
 }
 
@@ -455,7 +462,7 @@ async function createDmConversation(userIds, name = '', image = '') {
     };
 
     await Promise.all(allParticipants.map(uid =>
-        setDoc(doc(db, `${COLLECTIONS.USERS}/${uid}/dms`, dmId), dmData)
+        setDoc(doc(db, COLLECTIONS.USERS, uid, COLLECTIONS.DMS, dmId), dmData)
     ));
 
     await openDm(dmId);
