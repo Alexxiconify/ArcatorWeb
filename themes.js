@@ -313,10 +313,6 @@ export function applyTheme(themeId, themeProperties) {
   const root = document.documentElement;
   const colors = themeProperties.colors;
 
-  Object.entries(colors).forEach(([property, value]) => {
-    root.style.setProperty(property, value);
-  });
-
   if (themeProperties.backgroundPattern) {
     root.className = root.className.replace(/pattern-\w+/g, '');
     root.classList.add(`pattern-${themeProperties.backgroundPattern}`);

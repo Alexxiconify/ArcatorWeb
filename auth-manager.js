@@ -9,9 +9,74 @@ import {
     signOut,
     updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+import {
+    collection,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
 import {appId, auth, db, DEFAULT_THEME_NAME} from './firebase-init.js';
 import {showMessageBox} from './utils.js';
+
+// Helper functions for profile generation
+function generateColoredProfilePic(displayName) {
+    const colors = [
+        '#2563eb', // Blue
+        '#059669', // Green
+        '#dc2626', // Red
+        '#7c3aed', // Purple
+        '#d97706', // Orange
+        '#0891b2', // Cyan
+    ];
+
+    // Get consistent color based on name
+    const color = colors[Math.abs(displayName.split('').reduce((acc, char) => {
+        return acc + char.charCodeAt(0);
+    }, 0)) % colors.length];
+
+    // Create a canvas to draw the profile picture
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+
+    // Draw background
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 200, 200);
+
+    // Draw initials
+    const initials = displayName
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initials, 100, 100);
+
+    return canvas.toDataURL('image/png');
+}
+
+function generateRandomNameAndHandle() {
+    const adjectives = ['Happy', 'Lucky', 'Sunny', 'Clever', 'Swift', 'Bright', 'Cool', 'Smart'];
+    const nouns = ['Fox', 'Bear', 'Wolf', 'Eagle', 'Hawk', 'Tiger', 'Lion', 'Owl'];
+    const numbers = () => Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomNum = numbers();
+
+    return {
+        displayName: `${randomAdjective} ${randomNoun}`,
+        handle: `${randomAdjective.toLowerCase()}${randomNoun}${randomNum}`
+    };
+}
 
 class AuthManager {
     constructor() {
@@ -42,8 +107,9 @@ class AuthManager {
         if (!this.currentUser) return null;
 
         try {
-            const doc = await db.collection('user_profiles').doc(this.currentUser.uid).get();
-            return doc.exists ? doc.data() : null;
+            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, this.currentUser.uid);
+            const docSnap = await getDoc(userRef);
+            return docSnap.exists() ? docSnap.data() : null;
         } catch (error) {
             console.error('Error loading user profile:', error);
             return null;
@@ -76,7 +142,8 @@ class AuthManager {
             isAdmin: false
         };
 
-        await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(user.uid).set(userProfile);
+        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+        await setDoc(userRef, userProfile);
         return userProfile;
     }
 
@@ -107,7 +174,8 @@ class AuthManager {
                 provider: "google"
             };
 
-            await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(result.user.uid).set(userProfile);
+            const profilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+            await setDoc(doc(profilesRef, result.user.uid), userProfile);
         } else {
             await this.updateLastLogin(result.user.uid);
         }
@@ -136,7 +204,8 @@ class AuthManager {
                 provider: "github"
             };
 
-            await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(result.user.uid).set(userProfile);
+            const profilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+            await setDoc(doc(profilesRef, result.user.uid), userProfile);
         } else {
             await this.updateLastLogin(result.user.uid);
         }
@@ -149,7 +218,8 @@ class AuthManager {
     }
 
     async updateLastLogin(uid) {
-        await db.collection(`artifacts/${appId}/public/data/user_profiles`).doc(uid).update({
+        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+        await updateDoc(userRef, {
             lastLoginAt: new Date()
         });
     }

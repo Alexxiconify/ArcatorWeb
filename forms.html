@@ -6,143 +6,143 @@
     <title>Forms - Arcator</title>
     <link href="./master.css" rel="stylesheet">
     <link href="./favicon.png" rel="icon" type="image/png">
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js" type="module"></script>
 </head>
-<body class="antialiased">
-<!-- Navbar placeholder -->
+<body class="bg-surface text-text">
+<!-- Navbar -->
 <div id="navbar-placeholder"></div>
 
-<!-- Hero Banner -->
-<section class="hero-banner">
-    <div class="hero-content text-center">
-        <h1 class="text-5xl font-bold mb-4">Forms</h1>
-        <p class="text-xl mb-8">Submit and manage your forms</p>
-    </div>
-    </section>
-
+<!-- Main Content -->
 <main class="container mx-auto px-4 py-8">
-    <!-- Loading State -->
-    <div class="flex items-center justify-center py-12" id="loading-spinner">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="text-4xl font-bold mb-2">Forms</h1>
+            <p class="text-xl">View and submit forms</p>
+        </div>
     </div>
 
-    <!-- Forms List -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden" id="forms-list">
-        <!-- Forms will be populated here -->
-    </div>
+    <!-- Tabs -->
+    <div class="bg-surface-2 rounded-lg p-4 mb-8" role="tablist">
+        <div class="flex gap-4 border-b border-accent-dark">
+            <button aria-controls="forms-panel"
+                    aria-selected="true"
+                    class="tab-button px-4 py-2 text-lg font-medium border-b-2 border-transparent hover:border-accent-light"
+                    data-tab="forms"
+                    role="tab">
+                Forms
+            </button>
+            <button aria-controls="dms-panel"
+                    aria-selected="false"
+                    class="tab-button px-4 py-2 text-lg font-medium border-b-2 border-transparent hover:border-accent-light"
+                    data-tab="dms"
+                    role="tab">
+                Messages
+            </button>
+        </div>
 
-    <!-- Empty State -->
-    <div class="text-center py-12 hidden" id="empty-state">
-        <p class="text-xl text-text-secondary">No forms available at the moment.</p>
-    </div>
+        <!-- Forms Panel -->
+        <div class="py-4" id="forms-panel" role="tabpanel">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="forms-list">
+                <!-- Forms will be loaded here -->
+            </div>
+        </div>
 
-    <!-- Create Form Button (Admin Only) -->
-    <div class="mt-8 hidden" id="admin-controls">
-        <button class="btn-primary" id="create-form-btn">
-            Create New Form
-        </button>
+        <!-- DMs Panel -->
+        <div class="py-4 hidden" id="dms-panel" role="tabpanel">
+            <div class="flex h-[600px]">
+                <!-- DM List -->
+                <div class="w-1/3 border-r border-accent-dark">
+                    <div class="p-4 border-b border-accent-dark">
+                        <button class="btn-primary w-full" id="new-chat-btn">New Conversation</button>
+                    </div>
+                    <div class="overflow-y-auto h-[calc(100%-64px)]" id="dm-list">
+                        <!-- DMs will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="flex-1 flex flex-col">
+                    <div class="p-2 border-b border-accent-dark" id="participant-list"></div>
+                    <div class="flex-1 overflow-y-auto p-4" id="messages-container"></div>
+                    <form class="p-4 border-t border-accent-dark" id="message-form">
+                        <div class="flex gap-2">
+                            <label for="message-input"></label><input class="flex-1 bg-surface-2 border border-accent rounded px-3 py-2"
+                                                                      id="message-input"
+                                                                      placeholder="Type a message..."
+                                                                      type="text">
+                            <button class="btn-primary" type="submit">Send</button>
+                            </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- New Chat Modal -->
+            <div class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                 id="new-chat-modal">
+                <div class="bg-surface p-6 rounded-lg shadow-xl w-full max-w-md">
+                    <h3 class="text-xl font-bold mb-4">New Conversation</h3>
+                    <div class="mb-4">
+                        <label for="recipient-input"></label><input class="w-full bg-surface-2 border border-accent rounded px-3 py-2"
+                                                                    id="recipient-input"
+                                                                    placeholder="Search users..."
+                                                                    type="text">
+                        <div class="mt-2" id="recipient-suggestions"></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4" id="selected-recipients"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
-<!-- Footer placeholder -->
+<!-- Footer -->
 <div id="footer-placeholder"></div>
 
 <script type="module">
     import {initializePage} from './core.js';
-    import {auth, db, appId} from './firebase-init.js';
-    import {themeManager} from './theme-manager.js';
-    import {showMessageBox} from './utils.js';
-    import {
-        collection,
-        doc,
-        getDoc,
-        getDocs
-    } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-
-    async function loadForms() {
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const formsList = document.getElementById('forms-list');
-        const emptyState = document.getElementById('empty-state');
-
-        try {
-            // Show loading state
-            loadingSpinner.classList.remove('hidden');
-            formsList.classList.add('hidden');
-            emptyState.classList.add('hidden');
-
-            // Get forms from Firestore
-            const formsRef = collection(db, 'forms');
-            const formsSnapshot = await getDocs(formsRef);
-            const forms = [];
-
-            formsSnapshot.forEach(doc => {
-                const data = doc.data();
-                forms.push({
-                    id: doc.id,
-                    title: data.title,
-                    description: data.description,
-                    createdAt: data.createdAt
-                });
-            });
-
-            // Update UI based on results
-            if (forms.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                formsList.innerHTML = forms.map(form => `
-                        <div class="bg-card rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-                            <h3 class="text-xl font-semibold mb-2">${form.title || 'Untitled Form'}</h3>
-                            <p class="text-text-secondary mb-4">${form.description || 'No description available'}</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-text-secondary">
-                                    ${form.createdAt ? new Date(form.createdAt.seconds * 1000).toLocaleDateString() : 'Date not available'}
-                                </span>
-                                <a href="./form.html?id=${form.id}" class="btn-primary">
-                                    Open Form
-                                </a>
-                            </div>
-                        </div>
-                    `).join('');
-                formsList.classList.remove('hidden');
-            }
-        } catch (error) {
-            console.error('Error loading forms:', error);
-            showMessageBox('Failed to load forms. Please try again later.', true);
-        } finally {
-            loadingSpinner.classList.add('hidden');
-        }
-    }
+    import {initForms} from './forms.js';
+    import {initDMs} from './dms.js';
+    import {setupTabs} from './core.js';
 
     // Initialize page
     async function init() {
-        try {
-            await initializePage('forms', true);
-            await themeManager.init();
-            await loadForms();
+        await initializePage('forms');
+        await Promise.all([
+            initForms(),
+            initDMs()
+        ]);
+        setupTabs('forms-container');
 
-            // Show admin controls if user is admin
-            const adminControls = document.getElementById('admin-controls');
-            if (auth.currentUser) {
-                const userProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid);
-                const userProfile = await getDoc(userProfileRef);
-                if (userProfile.exists() && userProfile.data().isAdmin) {
-                    adminControls.classList.remove('hidden');
-                }
-            }
-        } catch (error) {
-            console.error('Error initializing page:', error);
-            showMessageBox('Failed to initialize page. Please try again later.', true);
+        // Handle tab switching
+        const tabs = document.querySelectorAll('[role="tab"]');
+        const panels = document.querySelectorAll('[role="tabpanel"]');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active state from all tabs
+                tabs.forEach(t => {
+                    t.setAttribute('aria-selected', 'false');
+                    t.classList.remove('border-accent');
+                });
+
+                // Hide all panels
+                panels.forEach(p => p.classList.add('hidden'));
+
+                // Activate clicked tab
+                tab.setAttribute('aria-selected', 'true');
+                tab.classList.add('border-accent');
+
+                // Show corresponding panel
+                const panelId = tab.getAttribute('aria-controls');
+                document.getElementById(panelId).classList.remove('hidden');
+            });
+        });
+
+        // Activate first tab by default
+        tabs[0].click();
         }
-    }
 
-    // Start initialization
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
         init().catch(console.error);
-    }
 </script>
 </body>
 </html>

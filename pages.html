@@ -78,7 +78,7 @@
                 return;
             }
 
-            const pagesHTML = snapshot.docs.map(doc => {
+            pagesList.innerHTML = snapshot.docs.map(doc => {
                 const page = doc.data();
                 return `
                         <div class="bg-card rounded-lg shadow-lg p-6 hover:shadow-xl transition-all">
@@ -95,8 +95,6 @@
                         </div>
                     `;
             }).join('');
-
-            pagesList.innerHTML = pagesHTML;
         } catch (error) {
             handleError(error, 'Loading pages');
             pagesList.innerHTML = '<div class="col-span-full text-center text-red-500">Error loading pages</div>';

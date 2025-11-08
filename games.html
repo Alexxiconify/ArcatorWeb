@@ -5,140 +5,76 @@
     <meta content="width=device-width,initial-scale=1.0" name="viewport">
     <title>Games - Arcator</title>
     <link href="./master.css" rel="stylesheet">
-    <link href="./master.css" rel="stylesheet">
     <link href="./favicon.png" rel="icon" type="image/png">
-    <style>
-        body {
-            font-family: "Inter", sans-serif;
-            transition: .3s;
-            color: var(--color-text-primary)
-        }
-
-        .hero-banner {
-            background: url("./creativespawn.png") center/cover no-repeat;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative
-        }
-
-        .hero-banner::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, .5)
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, .7)
-        }
-
-        .tab-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--color-input-border)
-        }
-
-        .tab-button {
-            border: none;
-            padding: 1rem 2rem;
-            margin: .5rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border-radius: .75rem .75rem 0 0;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: .3s
-        }
-
-        .tab-button.active {
-            border-bottom-color: var(--color-link)
-        }
-
-        .tab-content {
-            display: none
-        }
-
-        .tab-content.active {
-            display: block
-        }
-
-        .card {
-            border-radius: .75rem;
-            padding: 1.5rem;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
-            transition: .3s
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, .3)
-        }
-
-        @media (max-width: 768px) {
-            .tab-container {
-                flex-direction: column
-            }
-
-            .tab-button {
-                width: 100%;
-                max-width: 300px
-            }
-        }
-    </style>
 </head>
-<body class="antialiased">
+<body class="bg-surface text-text min-h-screen flex flex-col">
 <!-- Navbar placeholder -->
 <div id="navbar-placeholder"></div>
 
 <!-- Hero Banner -->
-<section class="hero-banner">
-    <div class="hero-content text-center">
-        <h1 class="text-5xl font-bold mb-4">Games</h1>
-        <p class="text-xl mb-8">Explore our gaming servers and community</p>
+<section class="hero-banner mb-8 relative rounded-lg overflow-hidden">
+    <div class="hero-overlay absolute inset-0 bg-gradient-to-r from-accent-dark/90 to-accent/70"></div>
+    <img alt="Hero Image" class="w-full h-48 object-cover" src="./creativespawn.png">
+    <div class="hero-content relative z-10 p-8">
+        <h1 class="text-4xl font-bold mb-2 text-white">Games</h1>
+        <p class="text-xl text-white/90">Browse and play our curated selection of games</p>
     </div>
 </section>
 
-<main class="container mx-auto px-4 py-8">
+<main class="container mx-auto px-4 py-8 flex-1">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Featured Game -->
+        <div class="col-span-full">
+            <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3">
+                        <img alt="Featured Game" class="w-full rounded-lg shadow-md object-cover aspect-video"
+                             src="./creativespawn.png">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold mb-2">Featured Game</h2>
+                        <p class="text-text-2 mb-4">Experience our latest and most exciting game release!</p>
+                        <a class="inline-block bg-accent hover:bg-accent-light text-white font-semibold py-2 px-4 rounded transition-colors" href="https://store.steampowered.com" rel="noopener noreferrer"
+                           target="_blank">
+                            Play Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Game Cards -->
-        <div class="game-card bg-card">
-            <h2 class="text-2xl font-bold mb-4">Minecraft</h2>
-            <p class="text-text-secondary mb-4">Join our Minecraft server and explore unique game modes.</p>
-            <div class="minecraft-ip-box p-4 mb-4 text-center">
-                <p class="text-sm text-text-secondary mb-2">Server IP:</p>
-                <p class="text-lg font-semibold">mc.arcator.co.uk</p>
-            </div>
-            <a class="btn-primary w-full text-center" href="https://www.minecraft.net" rel="noopener noreferrer"
-               target="_blank">Learn More</a>
+        <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
+            <img alt="Game 1" class="w-full rounded-lg shadow-md mb-4 object-cover aspect-video"
+                 src="./creativespawn.png">
+            <h3 class="text-xl font-bold mb-2">Game 1</h3>
+            <p class="text-text-2 mb-4">An exciting adventure awaits!</p>
+            <a class="inline-block bg-accent hover:bg-accent-light text-white font-semibold py-2 px-4 rounded transition-colors" href="https://store.steampowered.com" rel="noopener noreferrer"
+               target="_blank">
+                Play Now
+            </a>
         </div>
 
-        <div class="game-card bg-card">
-            <h2 class="text-2xl font-bold mb-4">Terraria</h2>
-            <p class="text-text-secondary mb-4">Experience adventure in our modded Terraria server.</p>
-            <div class="minecraft-ip-box p-4 mb-4 text-center">
-                <p class="text-sm text-text-secondary mb-2">Server IP:</p>
-                <p class="text-lg font-semibold">terraria.arcator.co.uk</p>
-            </div>
-            <a class="btn-primary w-full text-center" href="https://terraria.org" rel="noopener noreferrer"
-               target="_blank">Learn More</a>
+        <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
+            <img alt="Game 2" class="w-full rounded-lg shadow-md mb-4 object-cover aspect-video"
+                 src="./creativespawn.png">
+            <h3 class="text-xl font-bold mb-2">Game 2</h3>
+            <p class="text-text-2 mb-4">Challenge yourself in this epic quest!</p>
+            <a class="inline-block bg-accent hover:bg-accent-light text-white font-semibold py-2 px-4 rounded transition-colors" href="https://store.steampowered.com" rel="noopener noreferrer"
+               target="_blank">
+                Play Now
+            </a>
         </div>
 
-        <div class="game-card bg-card">
-            <h2 class="text-2xl font-bold mb-4">Custom Games</h2>
-            <p class="text-text-secondary mb-4">Check out our collection of custom-made games and mods.</p>
-            <ul class="list-disc list-inside mb-4 text-text-secondary">
-                <li>Unique game modes</li>
-                <li>Custom plugins</li>
-                <li>Community events</li>
-            </ul>
-            <a class="btn-primary w-full text-center" href="https://store.steampowered.com" rel="noopener noreferrer"
-               target="_blank">Explore Games</a>
+        <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
+            <img alt="Game 3" class="w-full rounded-lg shadow-md mb-4 object-cover aspect-video"
+                 src="./creativespawn.png">
+            <h3 class="text-xl font-bold mb-2">Game 3</h3>
+            <p class="text-text-2 mb-4">Explore new worlds and make friends!</p>
+            <a class="inline-block bg-accent hover:bg-accent-light text-white font-semibold py-2 px-4 rounded transition-colors" href="https://store.steampowered.com" rel="noopener noreferrer"
+               target="_blank">
+                Play Now
+            </a>
         </div>
     </div>
 </main>
