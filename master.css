@@ -489,21 +489,6 @@ body {
     font-size: var(--font-size-lg);
 }
 
-.text-xl {
-    font-size: var(--font-size-xl);
-}
-
-.text-2xl {
-    font-size: var(--font-size-2xl);
-}
-
-.text-3xl {
-    font-size: var(--font-size-3xl);
-}
-
-.text-4xl {
-    font-size: var(--font-size-4xl);
-}
 
 .font-medium {
     font-weight: 500;
@@ -511,10 +496,6 @@ body {
 
 .font-semibold {
     font-weight: 600;
-}
-
-.font-bold {
-    font-weight: 700;
 }
 
 .min-h-screen {
@@ -567,4 +548,259 @@ body {
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
+}
+
+/* Tab Styling */
+.tab-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-2);
+    transition: color 0.2s;
+}
+
+.tab-button[aria-selected="true"] {
+    color: var(--color-text);
+    border-bottom-color: var(--color-accent-light) !important;
+}
+
+.tab-button:hover {
+    color: var(--color-text);
+}
+
+/* Threads/Forms */
+.thread-card {
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-accent-dark);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    transition: all 0.2s;
+}
+
+.thread-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.thread-card.pinned {
+    border-color: var(--color-accent);
+    background: linear-gradient(135deg, var(--color-surface-2) 0%, rgba(37, 99, 235, 0.1) 100%);
+}
+
+.pinned-badge {
+    display: inline-block;
+    background: var(--color-accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-2);
+}
+
+.thread-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.thread-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.thread-title a {
+    color: var(--color-accent-light);
+    text-decoration: none;
+}
+
+.thread-title a:hover {
+    text-decoration: underline;
+}
+
+.thread-description {
+    color: var(--color-text-2);
+    margin: 0;
+    line-height: var(--line-height-normal);
+}
+
+.thread-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.thread-category {
+    background: var(--color-accent-dark);
+    color: var(--color-text);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.thread-tag {
+    color: var(--color-accent-light);
+    padding: 0.25rem 0.5rem;
+}
+
+.thread-stats {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-2);
+}
+
+/* Comments */
+.comment {
+    background: var(--color-surface-3);
+    border-left: 2px solid var(--color-accent);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+    border-radius: var(--radius-sm);
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.comment-content {
+    color: var(--color-text-2);
+    line-height: var(--line-height-normal);
+}
+
+/* DM List */
+.dm-item {
+    border-bottom: 1px solid var(--color-surface-2);
+    padding: var(--space-3);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dm-item:hover {
+    background-color: var(--color-surface-2);
+}
+
+.dm-item.active {
+    background-color: var(--color-surface-3);
+    border-left: 3px solid var(--color-accent);
+}
+
+/* Messages */
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.message.self-end {
+    justify-content: flex-end;
+}
+
+.message-content {
+    max-width: 60%;
+    word-wrap: break-word;
+}
+
+/* Form Elements */
+.form-field {
+    margin-bottom: var(--space-4);
+}
+
+.form-field label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+    font-family: var(--font-family);
+}
+
+.form-input::placeholder {
+    color: var(--color-text-3);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-text-2);
+}
+
+.error-state {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-error);
+}
+
+/* Sign In Prompt */
+.sign-in-prompt {
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-accent-dark);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    text-align: center;
+}
+
+/* Thread View */
+.thread-view {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.thread-header {
+    border-bottom: 1px solid var(--color-accent-dark);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.thread-header h2 {
+    margin-top: 0;
+    color: var(--color-text);
+}
+
+.thread-info {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-2);
+    margin-bottom: var(--space-2);
+}
+
+.comments-section {
+    margin-top: var(--space-4);
+}
+
+.comment-form {
+    background: var(--color-surface-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+}
+
+.comment-form textarea {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--color-surface-3);
+    border: 1px solid var(--color-accent-dark);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    resize: vertical;
+    min-height: 80px;
+}
+
+.no-comments {
+    text-align: center;
+    color: var(--color-text-2);
+    padding: var(--space-4);
 }

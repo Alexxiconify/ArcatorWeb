@@ -102,49 +102,65 @@
 
 <script type="module">
     import {initializePage} from './core.js';
-    import {initForms} from './forms.js';
-    import {initDMs} from './dms.js';
-    import {setupTabs} from './core.js';
+    import {initForms, initDMs} from './forms.js';
+    import {themeManager} from './theme-manager.js';
+    import {showMessageBox} from './utils.js';
 
     // Initialize page
     async function init() {
-        await initializePage('forms');
-        await Promise.all([
-            initForms(),
-            initDMs()
-        ]);
-        setupTabs('forms-container');
+        try {
+            await Promise.all([
+                initializePage('forms'),
+                themeManager.init()
+            ]);
 
-        // Handle tab switching
-        const tabs = document.querySelectorAll('[role="tab"]');
-        const panels = document.querySelectorAll('[role="tabpanel"]');
+            // Initialize forms and DMs
+            await initForms();
+            await initDMs();
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active state from all tabs
-                tabs.forEach(t => {
-                    t.setAttribute('aria-selected', 'false');
-                    t.classList.remove('border-accent');
+            // Setup tabs
+            const container = document.querySelector('[role="tablist"]');
+            const tabs = container?.querySelectorAll('[role="tab"]') || [];
+            const panels = document.querySelectorAll('[role="tabpanel"]');
+
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // Remove active state from all tabs and hide all panels
+                    tabs.forEach(t => {
+                        t.setAttribute('aria-selected', 'false');
+                        t.classList.remove('border-accent-light');
+                    });
+                    panels.forEach(p => p.classList.add('hidden'));
+
+                    // Set active state for clicked tab and show its panel
+                    tab.setAttribute('aria-selected', 'true');
+                    tab.classList.add('border-accent-light');
+                    const panelId = tab.getAttribute('aria-controls');
+                    const panel = document.getElementById(panelId);
+                    if (panel) panel.classList.remove('hidden');
                 });
-
-                // Hide all panels
-                panels.forEach(p => p.classList.add('hidden'));
-
-                // Activate clicked tab
-                tab.setAttribute('aria-selected', 'true');
-                tab.classList.add('border-accent');
-
-                // Show corresponding panel
-                const panelId = tab.getAttribute('aria-controls');
-                document.getElementById(panelId).classList.remove('hidden');
             });
-        });
 
-        // Activate first tab by default
-        tabs[0].click();
+            // Set initial tab
+            if (tabs[0]) {
+                tabs[0].click();
+            }
+
+            console.log('Page forms initialized successfully');
+        } catch (error) {
+            console.error('Page initialization error:', error);
+            showMessageBox(`Initialization error: ${error.message}`, true);
         }
+    }
 
-        init().catch(console.error);
+    // Start initialization
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 </script>
 </body>
 </html>

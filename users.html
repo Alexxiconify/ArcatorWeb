@@ -451,7 +451,7 @@
     import {auth, db, appId} from "./firebase-init.js";
     import {themeManager} from "./theme-manager.js";
     import {showMessageBox} from "./utils.js";
-    import {initializePage} from "./core.js";
+    import {initializePage, loadFooter} from "./core.js";
 
     // Data management functions
     async function exportUserData() {
@@ -472,13 +472,13 @@
             const userData = userDoc.data();
             const dataStr = JSON.stringify(userData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = window.URL.createObjectURL(dataBlob);
+            const url = globalThis.URL.createObjectURL(dataBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `arcator-data-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
+            globalThis.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             showMessageBox('Data exported successfully!');
         } catch (error) {
@@ -693,16 +693,19 @@
     }
 
     // Make functions available globally
-    window.exportUserData = exportUserData;
-    window.deactivateAccount = deactivateAccount;
-    window.deleteAccount = deleteAccount;
-    window.showBlockedUsers = () => import('./forms.js').then(m => m.showBlockedUsers());
+    globalThis.exportUserData = exportUserData;
+    globalThis.deactivateAccount = deactivateAccount;
+    globalThis.deleteAccount = deleteAccount;
+    globalThis.showBlockedUsers = () => import('./forms.js').then(m => m.showBlockedUsers());
 
     // Initialize page
     const init = async () => {
         try {
-            await themeManager.init();
-            await initializePage('users', true);
+            await Promise.all([
+                themeManager.init(),
+                initializePage('users'),
+                loadFooter()
+            ]);
             setupEventListeners();
 
             // Show the appropriate section based on auth state
@@ -712,7 +715,7 @@
         } catch (error) {
             console.error('Page initialization error:', error);
             showMessageBox('Failed to initialize page', true);
-            }
+        }
     };
 
     // Start initialization when document is ready

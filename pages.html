@@ -39,7 +39,7 @@
 <!-- Scripts -->
 <script type="module">
     import {db, appId} from './firebase-init.js';
-    import {initializePage} from './core.js';
+    import {initializePage, loadFooter} from './core.js';
     import {showMessageBox} from './utils.js';
     import {themeManager} from './theme-manager.js';
     import {
@@ -52,18 +52,18 @@
     function handleError(error, context = '') {
         console.error(`${context}:`, error);
         showMessageBox(`Error: ${error.message || 'An unknown error occurred'}`, true);
-        }
+    }
 
     async function loadPages() {
         const pagesList = document.getElementById('pages-list');
         if (!pagesList) {
             console.error('Pages list element not found');
             return;
-            }
+        }
 
         try {
             if (!db) {
-                new Error('Firestore not initialized');
+                throw new Error('Firestore not initialized');
             }
 
             pagesList.innerHTML = '<div class="col-span-full text-center">Loading pages...</div>';
@@ -88,7 +88,7 @@
                                 <span class="text-sm text-text-secondary">
                                     Created: ${page.createdAt ? new Date(page.createdAt.toDate()).toLocaleDateString() : 'Unknown'}
                                 </span>
-                                <a href="./page.html?id=${doc.id}" class="btn-modern">
+                                <a href="./page.html?id=${doc.id}" class="btn-primary">
                                     View Page
                                 </a>
                             </div>
@@ -110,9 +110,10 @@
             ]);
 
             await loadPages();
+            await loadFooter();
         } catch (error) {
             handleError(error, 'Initializing page');
-            }
+        }
     }
 
     // Start initialization

@@ -1,128 +1,171 @@
-rules_version = '2';
+// Firestore
+Security
+Rules
+for Arcator
+    // Copy and paste
+this
+into
+Firebase
+Console > Firestore
+Database > Rules
+tab
 
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
                                         // Helper
 functions
 function
-isAuthenticated()
+isSignedIn()
 {
-return request.auth != null;
+return request.auth.uid != null;
     }
 
 function
 isOwner(userId)
 {
-return isAuthenticated() & & request.auth.uid == userId;
+return request.auth.uid == userId;
     }
 
 function
 isAdmin()
 {
-return isAuthenticated() & &
-exists( / databases /$(database) / documents / users /$(request.auth.uid)) & &
-get( / databases /$(database) / documents / users /$(request.auth.uid)).data.isAdmin == true;
+return isSignedIn() & &
+get( / databases /$(database) / documents / artifacts /$(request.auth.token.firebase.sign_in_provider == 'anonymous'
+                                                         ? 'public': 'default') / public / data / user_profiles /$(
+    request.auth.uid)).data.isAdmin == true;
 }
 
-// Default
-allow
-read
-match / {document = **} {
-      allow read: if true;
-allow
-write:
-if false;
+function
+isCreator(createdBy)
+{
+return request.auth.uid == createdBy;
 }
 
-// Users
-access - override
-default
-for sensitive data
-match / users / {userId} {
-// Allow
+// Public
 read
-for basic profile info
-      allow read: if true;
-
-// Restrict
 access
 to
-sensitive
-fields
-allow
-read:
-if resource.data.keys().hasAll(['email', 'phoneNumber', 'privateData']) & &
-    (isOwner(userId) | | isAdmin());
-
-allow
-write:
-if isOwner(userId) | | isAdmin();
-
-match / dms / {dmId}
+forms, pages, themes(artifacts)
+match / artifacts / {appId} / public / data / forms / {threadId}
 {
-    allow
-read, write:
-if isAuthenticated() & &
-        (isOwner(userId) | |
-         resource.data.participants.hasAny([request.auth.uid]));
-
-match / messages / {messageId} {
-allow read: if
-isAuthenticated() & &
-(isOwner(userId) | |
- get( / databases /$(database) / documents / users /$(userId) / dms /$(dmId)).data.participants.hasAny([
-    request.auth.uid]));
-allow
-create:
-if isAuthenticated() & &
-        request.resource.data.sender == request.auth.uid & &
-        get( / databases /$(database) / documents / users / $(userId) / dms / $(dmId)).data.participants.hasAny([request.auth.uid]);
-allow update, delete: if
-false;
-}
-}
-    }
-
-// Forms
-access - override
-default
-for submissions
-match / forms / {formId} {
 allow
 read:
 if true;
 allow
-write:
-if isAdmin();
+create:
+if isSignedIn();
+allow
+update:
+if isCreator(resource.data.createdBy) | | isAdmin();
+allow
+delete:
+if isCreator(resource.data.createdBy) | | isAdmin();
 
-match / submissions / {submissionId}
+// Comments
+on
+threads(submissions
+subcollection)
+match / submissions / {commentId}
 {
     allow
 read:
-if isAdmin() | | isOwner(resource.data.userId);
+if true;
 allow create: if
-isAuthenticated();
+isSignedIn();
 allow
-update, delete:
-if false;
+update:
+if isCreator(resource.data.authorId) | | isAdmin();
+allow delete: if
+isCreator(resource.data.authorId) | | isAdmin();
 }
 }
 
-// Admin - only
-collections
-match / admin / {document = **} {
+// Pages
+match / artifacts / {appId} / public / data / pages / {pageId}
+{
+allow
+read:
+if true;
+allow
+create, update, delete:
+if isAdmin();
+}
+
+// Themes
+match / artifacts / {appId} / public / data / themes / {themeId}
+{
+      allow read: if true;
+allow
+write:
+if isAdmin();
+}
+
+// User
+profiles - public
+readable, self - writable
+match / artifacts / {appId} / public / data / user_profiles / {userId}
+{
+      allow read: if true;
+allow
+write:
+if isOwner(userId) | | isAdmin();
+}
+
+// Admin
+data - admin
+only
+match / artifacts / {appId} / public / data / admin / {document = **} {
 allow
 read, write:
 if isAdmin();
 }
 
-// Sensitive
-data
-collections
-match / sensitive / {document = **} {
+// User - specific
+DMs - only
+accessible
+to
+participants
+match / users / {userId} / dms / {dmId}
+{
+allow
+read:
+if isOwner(userId);
+allow
+create:
+if isOwner(userId) & & request.resource.data.participants.hasAll([request.auth.uid]);
+allow
+update:
+if isOwner(userId);
+allow
+delete:
+if isOwner(userId);
+
+// Messages in DMs
+match / messages / {messageId}
+{
+    allow
+read:
+if isOwner(userId);
+allow create: if
+isOwner(userId) & & request.resource.data.sender == request.auth.uid;
+allow
+update:
+if isOwner(userId) & & resource.data.sender == request.auth.uid;
+allow delete: if
+isOwner(userId) & & resource.data.sender == request.auth.uid;
+}
+}
+
+// Generic
+catch - all - deny
+by
+default
+match / {document = **} {
 allow
 read, write:
 if false;
 }
-  }
+}
 }

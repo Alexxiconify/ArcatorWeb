@@ -56,6 +56,7 @@ export const COLLECTIONS = {
     THEMES: `artifacts/${appId}/public/data/themes`,
     PAGES: `artifacts/${appId}/public/data/pages`,
     FORMS: `artifacts/${appId}/public/data/forms`,
+    SUBMISSIONS: 'submissions',
     ADMIN: `artifacts/${appId}/public/data/admin`,
 };
 

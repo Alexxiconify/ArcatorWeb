@@ -9,8 +9,9 @@
     <link href="./favicon.png" rel="icon" type="image/png"/>
 </head>
 <body class="antialiased">
-<div class="w-full absolute top-0 left-0" id="navbar-placeholder"></div>
-<section class="hero-banner hero-banner-full rounded-b-lg shadow-xl">
+<div id="navbar-placeholder"></div>
+
+<section class="hero-banner rounded-b-lg shadow-xl">
     <div class="container mx-auto px-4 text-center hero-content">
         <h1 class="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
             Legal Information
@@ -20,7 +21,8 @@
         </p>
     </div>
 </section>
-<section class="py-16 bg-content-section rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200"
+
+<section class="py-16 bg-surface-2 rounded-lg shadow-inner mx-4 my-8 opacity-0 transition-opacity duration-200"
          id="legal-main-content">
     <div class="container mx-auto px-4">
         <div class="tab-container">
@@ -160,16 +162,10 @@
     import {
         auth,
         getUserProfileFromFirestore,
-        firebaseReadyPromise,
-        DEFAULT_PROFILE_PIC,
-
+        firebaseReadyPromise
     } from "./firebase-init.js";
     import {loadNavbar, loadFooter} from "./core.js";
-    import {
-        getAvailableThemes,
-        applyTheme,
-        applyCachedTheme,
-    } from "./themes.js";
+    import {themeManager} from "./theme-manager.js";
 
     window.showTab = function (tabName) {
         const tabContents = document.querySelectorAll(".tab-content");
@@ -179,40 +175,37 @@
         document.getElementById(tabName + "-tab").classList.add("active");
         event.target.classList.add("active");
     };
-    // Apply cached theme immediately to prevent flash
-    applyCachedTheme().then((cachedApplied) => {
-        if (cachedApplied) {
-// Show content immediately if cached theme was applied
-            document
-                .getElementById("legal-main-content")
-                .classList.remove("opacity-0");
+
+    async function init() {
+        try {
+            await Promise.all([
+                themeManager.init(),
+                firebaseReadyPromise
+            ]);
+
+            auth.onAuthStateChanged(async (user) => {
+                try {
+                    const userProfile = user ? await getUserProfileFromFirestore(user.uid) : null;
+                    await loadNavbar(user, userProfile);
+                    await loadFooter();
+
+                    document.getElementById("legal-main-content")?.classList.remove("opacity-0");
+                } catch (error) {
+                    console.error('Error initializing page:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Initialization error:', error);
         }
-    });
-    firebaseReadyPromise.then(() => {
-        auth.onAuthStateChanged(async (user) => {
-            let userProfile = null;
-            if (user) {
-                userProfile = await getUserProfileFromFirestore(user.uid);
-            }
-            await loadNavbar(user, userProfile, DEFAULT_PROFILE_PIC, "dark");
-            loadFooter("current-year-legal");
-// Apply user's theme preference
-            const userThemePreference = userProfile?.themePreference;
-            const allThemes = await getAvailableThemes();
-            const themeToApply =
-                allThemes.find((t) => t.id === userThemePreference) ||
-                allThemes.find((t) => t.id === "dark");
-            if (themeToApply) {
-                applyTheme(themeToApply.id, themeToApply);
-                document
-                    .getElementById("legal-main-content")
-                    .classList.remove("opacity-0");
-                console.log(
-                    `Legal page: Applied theme ${themeToApply.id} (${themeToApply.name})`,
-                );
-            }
-        });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 </script>
+
+
 </body>
 </html>

@@ -90,15 +90,32 @@
 <div id="footer-placeholder"></div>
 
 <script type="module">
-    import {initializePage} from './core.js';
+    import {initializePage, loadFooter} from './core.js';
     import {themeManager} from './theme-manager.js';
+    import {showMessageBox} from './utils.js';
 
     // Initialize page with footer and navbar
     async function init() {
         try {
-            await initializePage('games', true);
-            await themeManager.init();
+            await Promise.all([
+                initializePage('games'),
+                themeManager.init()
+            ]);
+            await loadFooter();
         } catch (error) {
+            console.error('Page initialization error:', error);
+            showMessageBox('Failed to initialize page', true);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+</script>
+</body>
+</html>
             console.error('Error initializing page:', error);
         }
     }
@@ -109,6 +126,5 @@
     } else {
         init().catch(console.error);
     }
-</script>
 </body>
 </html>

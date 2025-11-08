@@ -5,8 +5,6 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>About - Arcator</title>
     <link href="./master.css" rel="stylesheet"/>
-    <link href="./page-specific.css" rel="stylesheet"/>
-    <link href="./master.css" rel="stylesheet"/>
     <link href="./favicon.png" rel="icon" type="image/png"/>
 </head>
 <body class="antialiased">
@@ -15,20 +13,21 @@
 <!-- Loading Spinner -->
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="loading-spinner">
     <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
-    </div>
+</div>
 
 <main class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-center mb-6">About Arcator</h1>
-    <section class="bg-secondary p-6 rounded-lg shadow-lg mb-8">
+    <section class="bg-surface-2 p-6 rounded-lg shadow-lg mb-8">
         <h2 class="text-2xl font-semibold mb-4">Our Story</h2>
-        <p>// ...content...</p>
+        <p>Arcator is a community-driven platform designed to bring people together through gaming, creativity, and
+            meaningful connections.</p>
     </section>
 </main>
 
 <div id="footer-placeholder"></div>
 
 <script type="module">
-    import {auth, getUserProfileFromFirestore} from "./firebase-init.js";
+    import {auth, getUserProfileFromFirestore, firebaseReadyPromise} from "./firebase-init.js";
     import {loadNavbar, loadFooter} from "./core.js";
     import {handleError} from "./utils.js";
     import {themeManager} from "./theme-manager.js";
@@ -39,14 +38,14 @@
 
         try {
             loadingSpinner?.classList.remove('hidden');
+
+            await firebaseReadyPromise;
+            await themeManager.init();
+
             auth.onAuthStateChanged(async user => {
                 try {
                     const profile = user ? await getUserProfileFromFirestore(user.uid) : null;
                     await loadNavbar(user, profile);
-
-                    // Apply theme preference
-                    const theme = profile?.themePreference || 'dark';
-                    await themeManager.applyTheme(theme);
                 } catch (error) {
                     handleError(error, 'Auth State Change');
                 }
@@ -59,7 +58,7 @@
             handleError(error, 'Page Initialization');
         } finally {
             loadingSpinner?.classList.add('hidden');
-            }
+        }
     };
 
     // Start initialization
@@ -67,7 +66,7 @@
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init().catch(error => handleError(error, 'Page Load'));
-        }
+    }
 </script>
 </body>
 </html>

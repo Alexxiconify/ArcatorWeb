@@ -75,6 +75,9 @@
             // Wait for Firebase initialization
             await firebaseReadyPromise;
 
+            // Initialize theme first
+            await themeManager.init();
+
             auth.onAuthStateChanged(async user => {
                 try {
                     const profile = user ? await getUserProfileFromFirestore(user.uid) : null;
@@ -82,7 +85,7 @@
 
                     // Apply theme preference
                     const theme = profile?.themePreference || 'dark';
-                    themeManager.applyTheme(theme);
+                    themeManager.applyTheme({id: theme, name: theme, variables: {}});
                 } catch (error) {
                     handleError(error, 'Auth State Change');
                 }
@@ -102,8 +105,13 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        init().catch(error => handleError(error, 'Page Load'));
+        init();
     }
 </script>
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init().catch(error => handleError(error, 'Page Load'));
+    }
 </body>
 </html>

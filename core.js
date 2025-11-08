@@ -66,7 +66,7 @@ export async function loadNavbar(user, userProfile) {
         : `<a href="./users.html" class="btn-primary">Sign In</a>`;
 
     // Highlight current page
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentPage = globalThis.location.pathname.split('/').pop() || 'index.html';
     navbar.querySelectorAll('.nav-link').forEach(link => {
         if (link.getAttribute('href').replace('./', '') === currentPage) {
             link.classList.add('nav-link-active');
@@ -163,7 +163,7 @@ export async function initializePage(pageName, requireAuth = false) {
         }
 
         const userProfile = user ? await loadUserProfile(user.uid) : null;
-        await Promise.all([loadNavbar(user, userProfile)]);
+        await loadNavbar(user, userProfile);
 
         if (user) {
             currentNavbarUnsubscribe = auth.onAuthStateChanged(async user => {
@@ -182,12 +182,3 @@ export async function initializePage(pageName, requireAuth = false) {
 export function getCurrentUser() {
     return auth.currentUser;
 }
-
-// Expose global utilities safely
-Object.assign(window, {
-    initializePage,
-    loadNavbar: (...args) => loadNavbar(...args).catch(console.error),
-    loadFooter,
-    setupTabs,
-    getCurrentUser
-});
