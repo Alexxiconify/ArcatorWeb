@@ -43,7 +43,6 @@
         query,
         orderBy
     } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-    import {appId} from "./firebase-init";
 
     function handleError(error, context = '') {
         console.error(`${context}:`, error);
@@ -64,8 +63,7 @@
 
             pagesList.innerHTML = '<div class="col-span-full text-center">Loading pages...</div>';
 
-            const pagesPath = `artifacts/${appId}/public/data/pages`;
-            const pagesRef = collection(db, pagesPath);
+            const pagesRef = collection(db, COLLECTIONS.PAGES);
             const pagesQuery = query(pagesRef, orderBy('createdAt', 'desc'));
             const snapshot = await getDocs(pagesQuery);
 
