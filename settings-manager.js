@@ -29,6 +29,10 @@ const DEFAULT_USER_SETTINGS = {
         syntaxHighlighting: true,
         wordSpacing: '0'
     },
+    communication: {
+        dmPermissions: 'everyone',
+        mentionPermissions: 'everyone'
+    },
     notifications: {
         emailNotifications: true,
         inAppNotifications: true,
@@ -615,6 +619,18 @@ export class SettingsManager {
             guide.style.display = 'block';
         } else {
             guide.style.display = 'none';
+        }
+    }
+
+    toggleTextToSpeech(enabled) {
+        // Simple TTS toggle: enable/disable a CSS class and store preference (no heavy TTS engine included)
+        const root = document.documentElement;
+        root.classList.toggle('text-to-speech-enabled', !!enabled);
+        // If enabling and browser supports speechSynthesis, set a short welcome to verify
+        if (enabled && typeof window.speechSynthesis !== 'undefined') {
+            const utter = new SpeechSynthesisUtterance('Text to speech enabled');
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utter);
         }
     }
 

@@ -123,6 +123,27 @@ class ThemeManager {
         }
     }
 
+    toggleTheme() {
+        // simple toggle between default and last applied theme
+        const current = this.getCurrentTheme();
+        if (current && current.id && current.id !== DEFAULT_THEME.id) {
+            // switch back to default
+            this.applyTheme(DEFAULT_THEME).catch(() => {
+            });
+        } else {
+            // no custom theme available, keep DEFAULT; if there is a stored themePreference, try to load it
+            const stored = this.currentTheme;
+            if (stored && stored.id && stored.id !== DEFAULT_THEME.id) {
+                this.applyTheme(stored).catch(() => {
+                });
+            } else {
+                // nothing to toggle to; reapply DEFAULT
+                this.applyTheme(DEFAULT_THEME).catch(() => {
+                });
+            }
+        }
+    }
+
     getCurrentTheme() {
         return this.currentTheme || DEFAULT_THEME;
     }
