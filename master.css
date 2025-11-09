@@ -89,6 +89,17 @@ body {
     background: var(--color-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Make layout a column so footer can stick to bottom on short pages */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Ensure main expands to fill available space between header and footer */
+main {
+    width: 100%;
+    flex: 1 0 auto;
 }
 
 /* Layout */
@@ -97,10 +108,6 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 var(--container-padding);
-}
-
-main {
-    width: 100%;
 }
 
 .hidden {
@@ -138,20 +145,23 @@ main {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Hero Section */
-.hero-banner {
+/* Hero Section (alias for older .hero-banner) */
+.hero-section {
     position: relative;
-    height: 300px;
+    height: 320px;
     width: 100%;
     margin-bottom: 2rem;
     border-radius: 0.5rem;
     overflow: hidden;
+    background-image: var(--default-hero-image);
+    background-size: cover;
+    background-position: center;
 }
 
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4); /* Lighter overlay */
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45));
     z-index: 1;
 }
 
@@ -252,8 +262,16 @@ main {
     font-size: var(--font-size-4xl);
 }
 
+.text-5xl {
+    font-size: 3rem;
+}
+
 .font-bold {
     font-weight: 700;
+}
+
+.font-sans {
+    font-family: var(--font-family), sans-serif;
 }
 
 .text-center {
@@ -310,6 +328,16 @@ main {
     border-bottom: 2px solid var(--color-accent);
 }
 
+/* Navbar brand/link adjustments */
+.navbar .container a.text-xl {
+    color: var(--color-accent-light);
+    text-decoration: none;
+}
+
+.navbar .container a.text-xl:hover {
+    color: var(--color-accent);
+}
+
 /* Profile image in navbar */
 .profile-image {
     width: 2rem;
@@ -318,6 +346,8 @@ main {
     object-fit: cover;
     border: 2px solid var(--color-accent);
     flex-shrink: 0;
+    max-width: 40px;
+    max-height: 40px;
 }
 
 /* Navbar links styling */
@@ -340,6 +370,7 @@ main {
     border-top: 1px solid var(--color-accent-dark);
     padding: var(--space-4) 0;
     margin-top: auto;
+    flex-shrink: 0;
 }
 
 .footer-link {
@@ -411,6 +442,78 @@ main {
     margin-bottom: var(--space-3);
 }
 
+/* Compatibility utility classes referenced in HTML */
+.bg-main {
+    background: var(--color-bg);
+}
+
+.bg-secondary {
+    background: var(--color-card);
+}
+
+.text-text-primary {
+    color: var(--color-text);
+}
+
+.text-text-secondary {
+    color: var(--color-text-2);
+}
+
+.text-text-header {
+    color: var(--color-text);
+}
+
+.bg-surface {
+    background: var(--color-surface);
+}
+
+.bg-surface-2 {
+    background: var(--color-surface-2);
+}
+
+.bg-surface-3 {
+    background: var(--color-surface-3);
+}
+
+.border-accent {
+    border-color: var(--color-accent);
+}
+
+.border-accent-dark {
+    border-color: var(--color-accent-dark);
+}
+
+.text-link {
+    color: var(--color-link);
+}
+
+.btn-blue {
+    background-color: var(--color-accent-light);
+}
+
+/* Alias for older class names */
+.hero-banner { /* mirror hero-section */
+    position: relative;
+    height: 320px;
+    width: 100%;
+    margin-bottom: 2rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-image: var(--default-hero-image);
+    background-size: cover;
+    background-position: center;
+}
+
+/* Ensure hero-image works across both variants */
+.hero-banner .hero-image, .hero-section .hero-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
 /* Utility classes */
 .text-error {
     color: var(--color-error);
@@ -468,8 +571,34 @@ main {
     margin-bottom: 1rem;
 }
 
+.mb-12 {
+    margin-bottom: 3rem;
+}
+
 .mt-auto {
     margin-top: auto;
+}
+
+.mt-8 {
+    margin-top: 2rem;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.flex-1 {
+    flex: 1 1 0;
 }
 
 .rounded-sm {
@@ -723,11 +852,6 @@ main {
     flex: 1;
 }
 
-.thread-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
-
 
 /* Utility classes */
 .line-clamp-2 {
@@ -969,4 +1093,27 @@ main {
 .mention-item-handle {
     color: var(--color-text-2);
     font-size: 12px;
+}
+
+/* Layout helpers for injected placeholders */
+#footer-placeholder {
+    /* Ensure the placeholder pushes to bottom when body is short */
+    margin-top: auto;
+    display: block;
+}
+
+#navbar-placeholder {
+    /* Keep navbar placeholder from collapsing and ensure width */
+    width: 100%;
+}
+
+/* Ensure hero content is responsive and centered */
+@media (min-width: 1024px) {
+    .hero-content h1 {
+        font-size: 4rem;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+    }
 }

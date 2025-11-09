@@ -296,41 +296,47 @@ async function openThread(threadId) {
         const thread = threadDoc.data();
         const creator = await getUserProfile(thread.createdBy);
         const commentsRef = collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS);
-        const commentsQuery = query(commentsRef, orderBy('createdAt', 'desc'));
+        const commentsQuery = query(commentsRef, orderBy('createdAt', 'asc'));
         const commentsSnap = await getDocs(commentsQuery);
 
         modal.querySelector('.modal-body').innerHTML = `
-            <div class="thread-view">
-                <div class="thread-header mb-6">
-                    <h2 class="text-2xl font-bold mb-2">${thread.title}</h2>
-                    <div class="flex gap-4 text-sm text-text-2 mb-4">
+            <div class="thread-view" style="max-height: 600px; overflow-y: auto;">
+                <div class="thread-header mb-6 pb-6 border-b border-accent-dark">
+                    <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 700;">${thread.title}</h2>
+                    <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: var(--color-text-2); margin-bottom: 1rem;">
                         <span class="author">Posted by ${creator.displayName || 'Unknown User'}</span>
                         <span class="timestamp">${formatTimeAgo(thread.createdAt?.toDate())}</span>
                     </div>
-                    <p class="description text-text-2 mb-4">${thread.description}</p>
-                    <div class="tags flex gap-2 flex-wrap">
-                        <span class="category bg-accent text-white px-3 py-1 rounded text-sm">${thread.category}</span>
-                        ${thread.tags?.map(tag => `<span class="tag bg-surface-2 px-3 py-1 rounded text-sm">#${tag}</span>`).join('') || ''}
+                    <p style="margin: 0 0 1rem 0; color: var(--color-text-2); line-height: 1.5;">${thread.description}</p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                        <span style="display: inline-block; background: var(--color-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500;">
+                            ${thread.category}
+                        </span>
+                        ${thread.tags?.map(tag => `<span style="display: inline-block; background: var(--color-surface-3); color: var(--color-text-2); padding: 0.25rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem;">#${tag}</span>`).join('') || ''}
+                    </div>
+                    <div style="display: flex; gap: 2rem; font-size: 0.875rem;">
+                        <span style="cursor: pointer;" onclick="window.addThreadReaction('${threadId}', '👍')">👍 ${thread.reactions?.['👍'] || 0} Upvotes</span>
+                        <span>💬 ${thread.commentCount || 0} Comments</span>
                     </div>
                 </div>
                 
-                <div class="comments-section border-t pt-6">
+                <div class="comments-section">
                     ${auth.currentUser ? `
-                        <form id="comment-form-${threadId}" class="comment-form mb-6">
-                            <textarea class="form-input w-full mb-3" placeholder="Add a comment..." required></textarea>
-                            <div class="flex justify-end">
+                        <form id="comment-form-${threadId}" class="comment-form mb-6 pb-6 border-b border-accent-dark">
+                            <textarea style="width: 100%; background: var(--color-surface-2); border: 1px solid var(--color-accent-dark); border-radius: 0.375rem; padding: 0.75rem; color: var(--color-text); resize: vertical; min-height: 80px;" placeholder="Add a comment..." required></textarea>
+                            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
                                 <button type="submit" class="btn-primary">Post Comment</button>
                             </div>
                         </form>
                     ` : `
-                        <div class="sign-in-prompt bg-surface-2 p-4 rounded mb-6 text-center">
+                        <div style="background: var(--color-surface-2); padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; text-align: center;">
                             <p>Please <a href="#" onclick="window.showSignIn()" class="text-accent">sign in</a> to comment</p>
                         </div>
                     `}
-                    <div class="comments-list space-y-4">
+                    <div class="comments-list" id="comments-list-${threadId}">
                         ${commentsSnap.empty ?
-            '<p class="no-comments text-text-2 text-center py-4">No comments yet. Be the first to share your thoughts!</p>' :
-            commentsSnap.docs.map(doc => createCommentElement(doc.data())).join('')
+            '<p style="text-align: center; color: var(--color-text-2); padding: 2rem 0;">No comments yet. Be the first to share your thoughts!</p>' :
+            commentsSnap.docs.map(doc => createCommentElement(doc.id, doc.data(), threadId)).join('')
         }
                     </div>
                 </div>
@@ -348,16 +354,24 @@ async function openThread(threadId) {
     }
 }
 
-function createCommentElement(comment) {
+function createCommentElement(commentId, comment, threadId, depth = 0) {
     return `
-        <div class="comment">
-            <div class="comment-header">
+        <div class="comment" style="margin-left: ${depth * 2}rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-surface-2); border-left: 2px solid var(--color-accent); border-radius: 0.375rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <img src="${comment.authorPhoto || ASSETS.DEFAULT_USER}" 
-                     alt="Avatar" class="w-6 h-6 rounded-full">
-                <span class="author">${comment.authorName || 'Unknown User'}</span>
-                <span class="timestamp">${formatTimeAgo(comment.createdAt?.toDate())}</span>
+                     alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                <span style="font-weight: 600; color: var(--color-text);">${comment.authorName || 'Unknown User'}</span>
+                <span style="font-size: 0.75rem; color: var(--color-text-2);">${formatTimeAgo(comment.createdAt?.toDate())}</span>
             </div>
-            <div class="comment-content">${comment.content}</div>
+            <p style="margin: 0.5rem 0; color: var(--color-text); line-height: 1.5; word-break: break-word;">${comment.content}</p>
+            <div style="display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.875rem; flex-wrap: wrap;">
+                <button onclick="window.toggleReplyForm('${commentId}', '${threadId}')" style="background: none; border: none; color: var(--color-accent); cursor: pointer; padding: 0; font-size: inherit;">💬 Reply</button>
+                <span style="cursor: pointer; color: var(--color-text-2);" onclick="window.addCommentReaction('${commentId}', '${threadId}', '👍')">👍 ${comment.reactions?.['👍'] || 0}</span>
+                <span style="cursor: pointer; color: var(--color-text-2);" onclick="window.addCommentReaction('${commentId}', '${threadId}', '❤️')">❤️ ${comment.reactions?.['❤️'] || 0}</span>
+                <span style="cursor: pointer; color: var(--color-text-2);" onclick="window.addCommentReaction('${commentId}', '${threadId}', '😂')">😂 ${comment.reactions?.['😂'] || 0}</span>
+            </div>
+            <div id="reply-form-${commentId}" class="reply-form" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-accent-dark);"></div>
+            <div id="replies-${commentId}" class="replies-container" style="margin-top: 1rem;"></div>
         </div>
     `;
 }
@@ -923,124 +937,136 @@ async function searchUsers(searchTerm) {
     }
 }
 
-// Make sure all window functions are assigned properly
-Object.assign(globalThis, {
-    openThread,
-    showNewThreadModal,
-    openDm,
-    showSignIn,
-    showNewDmModal,
-    handleMessageSubmit,
-    updateProfilePhoto,
-    updateDmImage,
-    createDmConversation,
-    searchUsers,
-    handleGoogleSignIn: handleGoogleSignIn || (() => alert('Google Sign In not configured'))
-});
+// Toggle reply form visibility
+async function toggleReplyForm(commentId, threadId) {
+    const replyForm = document.getElementById(`reply-form-${commentId}`);
+    if (!replyForm) return;
 
-
-async function openDm(dmId) {
-    const messagesContainer = document.getElementById('messages-container');
-    if (!messagesContainer) return;
-
-    currentDmId = dmId;
-
-    try {
-        messagesContainer.innerHTML = '<div class="loading-spinner"></div>';
-
-        if (!auth.currentUser) {
-            messagesContainer.innerHTML = `
-                <div class="text-center p-4">
-                    <p>Please <a href="#" onclick="window.showSignIn()" class="text-accent">sign in</a> to view messages</p>
-                </div>`;
-            return;
-        }
-
-        const dmRef = doc(db, COLLECTIONS.DMS(auth.currentUser.uid), dmId);
-        const dmDoc = await getDoc(dmRef);
-
-        if (!dmDoc.exists()) {
-            messagesContainer.innerHTML = '<div class="error-state">Conversation not found</div>';
-            return;
-        }
-
-        const dm = dmDoc.data();
-        const messagesRef = collection(db, COLLECTIONS.MESSAGES(auth.currentUser.uid, dmId));
-        const messagesQuery = query(messagesRef, orderBy('createdAt', 'asc'));
-        const messagesSnap = await getDocs(messagesQuery);
-
-        const participantProfiles = await Promise.all(
-            dm.participants
-                .filter(uid => uid !== auth.currentUser.uid)
-                .map(getUserProfile)
-        );
-
-        const dmName = dm.name || participantProfiles.map(p => p?.displayName || 'Unknown User').join(', ');
-
-        // Get avatar image with proper null/undefined handling
-        let dmImage = ASSETS.DEFAULT_USER;
-        if (dm.image) {
-            dmImage = dm.image;
-        } else if (participantProfiles && participantProfiles.length > 0 && participantProfiles[0]) {
-            dmImage = participantProfiles[0].photoURL || ASSETS.DEFAULT_USER;
-        }
-
-        messagesContainer.innerHTML = `
-            <div class="dm-header">
-                <div class="flex items-center gap-3 p-4 border-b border-surface-2">
-                    <img src="${dmImage}" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium">${dmName}</div>
-                        <div class="text-sm opacity-75">${dm.participants.length} participants</div>
-                    </div>
-                </div>
-            </div>
-            <div class="messages-list p-4 space-y-4">
-                ${messagesSnap.empty ? `
-                    <div class="text-center text-gray-500">
-                        No messages yet. Start the conversation!
-                    </div>
-                ` : messagesSnap.docs.map(doc => {
-            const message = doc.data();
-            const isOwn = message.sender === auth.currentUser.uid;
-            const messagePhotoURL = message.photoURL || ASSETS.DEFAULT_USER;
-            return `
-                        <div class="message ${isOwn ? 'self-end' : 'self-start'}">
-                            <div class="flex items-start gap-2 ${isOwn ? 'flex-row-reverse' : ''}">
-                                <img src="${messagePhotoURL}" 
-                                     alt="Avatar" class="w-8 h-8 rounded-full">
-                                <div class="message-content ${isOwn ? 'bg-accent' : 'bg-surface-2'} 
-                                                           rounded-lg p-3 max-w-xs">
-                                    ${message.content}
-                                </div>
-                            </div>
-                            <div class="text-xs opacity-50 mt-1 ${isOwn ? 'text-right' : ''}">
-                                ${message.createdAt?.toDate().toLocaleString() || ''}
-                            </div>
-                        </div>
-                    `;
-        }).join('')}
-            </div>
-            <form class="message-form p-4 border-t border-surface-2">
-                <div class="flex gap-2">
-                    <input type="text" class="form-input flex-1" 
-                           placeholder="Type your message...">
-                    <button type="submit" class="btn-primary">Send</button>
+    if (replyForm.style.display === 'none') {
+        replyForm.style.display = 'block';
+        replyForm.innerHTML = `
+            <form id="reply-submit-${commentId}" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <textarea style="width: 100%; background: var(--color-surface-3); border: 1px solid var(--color-accent-dark); border-radius: 0.375rem; padding: 0.5rem; color: var(--color-text); resize: vertical; min-height: 60px; font-family: inherit;" placeholder="Write a reply..." required></textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" onclick="document.getElementById('reply-form-${commentId}').style.display = 'none';" style="background: var(--color-surface-3); border: 1px solid var(--color-accent-dark); color: var(--color-text); padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer;">Cancel</button>
+                    <button type="submit" style="background: var(--color-accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-weight: 500;">Reply</button>
                 </div>
             </form>
         `;
 
-        // Setup message form handler
-        const form = messagesContainer.querySelector('.message-form');
-        form.onsubmit = handleMessageSubmit;
+        document.getElementById(`reply-submit-${commentId}`).onsubmit = async (e) => {
+            e.preventDefault();
+            const textarea = e.target.querySelector('textarea');
+            const replyContent = textarea.value.trim();
+            if (!replyContent) return;
 
-        // Scroll to bottom
-        const messagesList = messagesContainer.querySelector('.messages-list');
-        messagesList.scrollTop = messagesList.scrollHeight;
+            try {
+                // Create reply as a nested comment
+                const replyData = {
+                    content: replyContent,
+                    threadId,
+                    parentCommentId: commentId,
+                    authorId: auth.currentUser.uid,
+                    authorName: auth.currentUser.displayName || 'Anonymous',
+                    authorPhoto: auth.currentUser.photoURL || ASSETS.DEFAULT_USER,
+                    createdAt: serverTimestamp(),
+                    reactions: {}
+                };
 
+                const submissionsRef = collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS);
+                await addDoc(submissionsRef, replyData);
+
+                // Update parent comment reply count
+                const parentRef = doc(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS, commentId);
+                await updateDoc(parentRef, {
+                    replyCount: increment(1)
+                });
+
+                replyForm.style.display = 'none';
+                showMessageBox('Reply posted successfully');
+
+                // Reload thread to show new reply
+                const modal = document.querySelector('.modal');
+                if (modal) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    openThread(threadId);
+                }
+            } catch (error) {
+                console.error('Error posting reply:', error);
+                showMessageBox('Failed to post reply', true);
+            }
+        };
+    } else {
+        replyForm.style.display = 'none';
+    }
+}
+
+// Add reaction to comment
+async function addCommentReaction(commentId, threadId, reaction) {
+    if (!auth.currentUser) {
+        showMessageBox('Please sign in to react', true);
+        return;
+    }
+
+    try {
+        const commentRef = doc(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS, commentId);
+        const commentDoc = await getDoc(commentRef);
+
+        if (!commentDoc.exists()) return;
+
+        const currentReactions = commentDoc.data().reactions || {};
+        const reactionKey = `${reaction}_${auth.currentUser.uid}`;
+
+        if (currentReactions[reactionKey]) {
+            // Remove reaction
+            delete currentReactions[reactionKey];
+        } else {
+            // Add reaction
+            currentReactions[reactionKey] = true;
+        }
+
+        await updateDoc(commentRef, {reactions: currentReactions});
+
+        // Reload to show updated reaction count
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            openThread(threadId);
+        }
     } catch (error) {
-        console.error('Error loading conversation:', error);
-        messagesContainer.innerHTML = '<div class="error-state">Failed to load conversation</div>';
+        console.error('Error adding reaction:', error);
+    }
+}
+
+// Add reaction to thread
+async function addThreadReaction(threadId, reaction) {
+    if (!auth.currentUser) {
+        showMessageBox('Please sign in to react', true);
+        return;
+    }
+
+    try {
+        const threadRef = doc(db, COLLECTIONS.FORMS, threadId);
+        const threadDoc = await getDoc(threadRef);
+
+        if (!threadDoc.exists()) return;
+
+        const currentReactions = threadDoc.data().reactions || {};
+        const reactionKey = `${reaction}_${auth.currentUser.uid}`;
+
+        if (currentReactions[reactionKey]) {
+            // Remove reaction
+            delete currentReactions[reactionKey];
+        } else {
+            // Add reaction
+            currentReactions[reactionKey] = true;
+        }
+
+        await updateDoc(threadRef, {reactions: currentReactions});
+
+        // Reload to show updated reaction count
+        openThread(threadId);
+    } catch (error) {
+        console.error('Error adding reaction:', error);
     }
 }
 
