@@ -73,6 +73,7 @@
 /* Base Styles */
 html {
     box-sizing: border-box;
+    height: 100%;
 }
 
 *, *:before, *:after {
@@ -89,16 +90,28 @@ body {
     background: var(--color-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
 
     /* Make layout a column so footer can stick to bottom on short pages */
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
 }
 
 /* Ensure main expands to fill available space between header and footer */
 main {
     width: 100%;
+    flex: 1 0 auto;
+}
+
+/* Ensure direct children of body participate correctly in the flex layout.
+   This makes the footer push to the bottom when content is short. */
+body > * {
+    /* default: do not grow */
+    flex: 0 0 auto;
+}
+
+/* Make main fill remaining space so footer is pushed to bottom */
+body > main {
     flex: 1 0 auto;
 }
 
@@ -1100,6 +1113,8 @@ main {
     /* Ensure the placeholder pushes to bottom when body is short */
     margin-top: auto;
     display: block;
+    flex-shrink: 0;
+    width: 100%;
 }
 
 #navbar-placeholder {
