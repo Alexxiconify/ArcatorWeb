@@ -1,4 +1,3 @@
-// auth-manager.js - Handles authentication-related functionality
 import {
     createUserWithEmailAndPassword,
     GithubAuthProvider,
@@ -17,10 +16,10 @@ import {
     updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
-import {appId, auth, db, DEFAULT_THEME_NAME} from './firebase-init.js';
+import {auth, COLLECTIONS, db, DEFAULT_THEME_NAME} from './firebase-init.js';
 import {showMessageBox} from './utils.js';
 
-// Helper functions for profile generation
+
 function generateColoredProfilePic(displayName) {
     const colors = [
         '#2563eb', // Blue
@@ -31,22 +30,20 @@ function generateColoredProfilePic(displayName) {
         '#0891b2', // Cyan
     ];
 
-    // Get consistent color based on name
-    const color = colors[Math.abs(displayName.split('').reduce((acc, char) => {
-        return acc + char.charCodeAt(0);
-    }, 0)) % colors.length];
 
-    // Create a canvas to draw the profile picture
+    const color = colors[Math.abs(Array.from(displayName).reduce((acc, char) => acc + char.codePointAt(0), 0)) % colors.length];
+
+
     const canvas = document.createElement('canvas');
     canvas.width = 200;
     canvas.height = 200;
     const ctx = canvas.getContext('2d');
 
-    // Draw background
+
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 200, 200);
 
-    // Draw initials
+
     const initials = displayName
         .split(' ')
         .map(word => word[0])
@@ -79,12 +76,12 @@ function generateRandomNameAndHandle() {
 }
 
 class AuthManager {
-    constructor() {
-        this.currentUser = null;
-        this.authStateListeners = new Set();
-        this.__initial_auth_token = null;
-        this.isInitialized = false;
-    }
+    currentUser = null;
+    authStateListeners = new Set();
+    __initial_auth_token = null;
+    isInitialized = false;
+
+
 
     async init() {
         if (this.isInitialized) return;
@@ -107,7 +104,7 @@ class AuthManager {
         if (!this.currentUser) return null;
 
         try {
-            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, this.currentUser.uid);
+            const userRef = doc(db, COLLECTIONS.USER_PROFILES, this.currentUser.uid);
             const docSnap = await getDoc(userRef);
             return docSnap.exists() ? docSnap.data() : null;
         } catch (error) {
@@ -120,16 +117,16 @@ class AuthManager {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Generate profile picture if none provided
+
         const profilePicUrl = generateColoredProfilePic(displayName);
 
-        // Update auth profile
+
         await updateProfile(user, {
             displayName,
             photoURL: profilePicUrl
         });
 
-        // Create user profile in Firestore
+
         const userProfile = {
             uid: user.uid,
             displayName,
@@ -142,7 +139,7 @@ class AuthManager {
             isAdmin: false
         };
 
-        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+        const userRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
         await setDoc(userRef, userProfile);
         return userProfile;
     }
@@ -174,7 +171,7 @@ class AuthManager {
                 provider: "google"
             };
 
-            const profilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+            const profilesRef = collection(db, COLLECTIONS.USER_PROFILES);
             await setDoc(doc(profilesRef, result.user.uid), userProfile);
         } else {
             await this.updateLastLogin(result.user.uid);
@@ -204,7 +201,7 @@ class AuthManager {
                 provider: "github"
             };
 
-            const profilesRef = collection(db, `artifacts/${appId}/public/data/user_profiles`);
+            const profilesRef = collection(db, COLLECTIONS.USER_PROFILES);
             await setDoc(doc(profilesRef, result.user.uid), userProfile);
         } else {
             await this.updateLastLogin(result.user.uid);
@@ -218,7 +215,7 @@ class AuthManager {
     }
 
     async updateLastLogin(uid) {
-        const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, uid);
+        const userRef = doc(db, COLLECTIONS.USER_PROFILES, uid);
         await updateDoc(userRef, {
             lastLoginAt: new Date()
         });
@@ -262,7 +259,7 @@ class AuthManager {
 
 export const authManager = new AuthManager();
 
-// Authentication functions
+
 export async function signIn(email, password) {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -334,7 +331,7 @@ export async function resetPassword(email) {
 export async function updateUserProfile(displayName, photoURL) {
     try {
         const user = auth.currentUser;
-        if (!user) new Error('No user signed in');
+        if (!user) throw new Error('No user signed in');
 
         await updateProfile(user, {
             displayName: displayName || user.displayName,

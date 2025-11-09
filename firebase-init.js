@@ -11,6 +11,7 @@ import {
     updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
 import {
+    addDoc,
     collection,
     deleteDoc,
     doc,
@@ -37,30 +38,40 @@ const firebaseConfig = {
     appId: "1:919078249743:web:050cc10de97b51f10b9830"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Constants
 export const DEFAULT_PROFILE_PIC = './defaultuser.png';
 export const DEFAULT_THEME_NAME = 'dark';
-export const appId = firebaseConfig.appId;
+export const appId = firebaseConfig.appId; // legacy app id (long string)
+export const projectId = firebaseConfig.projectId; // project id used in artifact paths (e.g. 'arcator-web')
 
-// Collection paths
+// Legacy / current collection path mapping.
+// Many legacy installs stored user profiles at top-level `user_profiles` and DMs under `artifacts/${appId}/users/.../dms`.
 export const COLLECTIONS = {
-    USERS: 'users',
-    DMS: (userId) => `users/${userId}/dms`,
-    MESSAGES: (userId, dmId) => `users/${userId}/dms/${dmId}/messages`,
-    USER_PROFILES: `artifacts/${appId}/public/data/user_profiles`,
-    THEMES: `artifacts/${appId}/public/data/themes`,
-    PAGES: `artifacts/${appId}/public/data/pages`,
-    FORMS: `artifacts/${appId}/public/data/forms`,
+    // Users/documents for profiles stored at top-level user_profiles
+    USERS: 'user_profiles',
+
+    // DMs: use projectId for artifact path to match legacy storage (/artifacts/<projectId>/users/<uid>/dms)
+    DMS: (userId) => `artifacts/${projectId}/users/${userId}/dms`,
+    MESSAGES: (userId, dmId) => `artifacts/${projectId}/users/${userId}/dms/${dmId}/messages`,
+
+    // User profiles stored at top-level `user_profiles` in legacy DBs
+    USER_PROFILES: 'user_profiles',
+
+    // Custom themes in legacy location
+    THEMES: `artifacts/${projectId}/public/data/custom_themes`,
+
+    // Pages stored under temp_pages in legacy export
+    PAGES: `artifacts/${projectId}/public/data/temp_pages`,
+
+    // Forms kept in artifacts path (fallback)
+    FORMS: `artifacts/${projectId}/public/data/forms`,
     SUBMISSIONS: 'submissions',
-    ADMIN: `artifacts/${appId}/public/data/admin`,
+    ADMIN: `artifacts/${projectId}/public/data/admin`,
 };
 
-// Firebase ready promise
 export const firebaseReadyPromise = new Promise((resolve) => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
         unsubscribe();
@@ -68,7 +79,6 @@ export const firebaseReadyPromise = new Promise((resolve) => {
     });
 });
 
-// Helper function to get user profile from Firestore
 export async function getUserProfileFromFirestore(uid) {
     if (!uid) return null;
     try {
@@ -81,7 +91,6 @@ export async function getUserProfileFromFirestore(uid) {
     }
 }
 
-// Helper function to save user profile to Firestore
 export async function setUserProfileInFirestore(uid, data) {
     if (!uid) return false;
     try {
@@ -97,7 +106,6 @@ export async function setUserProfileInFirestore(uid, data) {
     }
 }
 
-// Helper function to get DMs for a user
 export async function getUserDMs(userId) {
     if (!userId) return [];
     try {
@@ -110,7 +118,6 @@ export async function getUserDMs(userId) {
     }
 }
 
-// Helper function to get messages for a DM
 export async function getDMMessages(userId, dmId, limit = 50) {
     if (!userId || !dmId) return [];
     try {
@@ -124,13 +131,13 @@ export async function getDMMessages(userId, dmId, limit = 50) {
     }
 }
 
-// Export Firebase instances and functions
 export {
     app,
     auth,
     db,
     collection,
     doc,
+    addDoc,
     getDoc,
     getDocs,
     setDoc,

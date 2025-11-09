@@ -1,17 +1,5 @@
 import {applyTheme, deleteCustomTheme, getAvailableThemes, saveCustomTheme} from "./themes.js";
 
-/**
- * Sets up the functionality for managing custom themes.
- * @param {Firestore} db - The Firestore instance.
- * @param {Auth} auth - The Firebase Auth instance.
- * @param {string} appId - The application ID.
- * @param {function} showMessageBox - Function to display messages.
- * @param {function} populateThemeSelect - Function to refresh the theme select dropdown in settings.js.
- * @param {HTMLElement} userThemeSelect - The main theme select element from settings.html.
- * @param {string} defaultThemeName - The ID of the default theme.
- * @param {User} currentUser - The currently authenticated Firebase user.
- * @param {function} showCustomConfirm - Function to show custom confirmation dialogs.
- */
 export function setupCustomThemeManagement(
   db,
   auth,
@@ -26,11 +14,9 @@ export function setupCustomThemeManagement(
   userThemeSelect.value = undefined;
   let currentCustomThemeId = null;
 
-  // Ensure the modal HTML is added to the DOM if it's not already there
   const customThemeModal =
     document.getElementById("custom-theme-modal") || createCustomThemeModal();
 
-  // Get DOM elements for the modal
   const closeButton = customThemeModal.querySelector(".close-button");
   const customThemeForm = document.getElementById("custom-theme-form");
   const themeNameInput = document.getElementById("custom-theme-name");
@@ -41,7 +27,6 @@ export function setupCustomThemeManagement(
   const saveCustomThemeBtn = document.getElementById("save-custom-theme-btn");
   const customThemeList = document.getElementById("custom-theme-list");
 
-  // Trigger button to open the modal (from settings.html)
   const createCustomThemeBtn = document.getElementById(
     "create-custom-theme-btn",
   );
@@ -52,11 +37,9 @@ export function setupCustomThemeManagement(
     });
   }
 
-  // Handle form submission for saving/updating a custom theme
   customThemeForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     const themeName = themeNameInput.value.trim();
     if (!themeName) {
       showMessageBox(
@@ -67,7 +50,6 @@ export function setupCustomThemeManagement(
       return;
     }
 
-    // Validate theme name length
     if (themeName.length < 3) {
       showMessageBox("Theme name must be at least 3 characters long.", true);
       themeNameInput.focus();
@@ -80,7 +62,6 @@ export function setupCustomThemeManagement(
       return;
     }
 
-    // Collect all color variable values
     const variables = {};
     const inputs = colorInputsContainer.querySelectorAll('input[type="text"]');
     inputs.forEach((input) => {
@@ -88,7 +69,6 @@ export function setupCustomThemeManagement(
       variables[varName] = input.value.trim();
     });
 
-    // Add RGB version of navbar background for proper theming
     if (variables["--color-bg-navbar"]) {
       const hex = variables["--color-bg-navbar"].replace("#", "");
       const r = parseInt(hex.substr(0, 2), 16);
@@ -97,7 +77,6 @@ export function setupCustomThemeManagement(
       variables["--color-bg-navbar-rgb"] = `${r},${g},${b}`;
     }
 
-    // Add font family from the main settings page to the custom theme variables
     if (userThemeSelect && userThemeSelect.value) {
       variables["--font-family-body"] = userThemeSelect.value;
     }
@@ -111,7 +90,7 @@ export function setupCustomThemeManagement(
     };
 
     try {
-      // Show loading state
+
       const saveBtn = document.getElementById("save-custom-theme-btn");
       const originalText = saveBtn.textContent;
       saveBtn.textContent = "Saving...";
@@ -122,25 +101,21 @@ export function setupCustomThemeManagement(
       console.log("DEBUG: saveCustomTheme result:", result);
 
       if (result) {
-        // result is now the document ID (string) or false
+
         const savedThemeId = result;
         showMessageBox(`Theme "${newTheme.name}" saved successfully!`, false);
         customThemeModal.style.display = "none"; // Close modal
 
-        // Refresh the theme list
         await renderCustomThemeList();
 
-        // Refresh main theme select and set to new theme
         if (populateThemeSelect) {
           await populateThemeSelect(savedThemeId);
         }
 
-        // Ensure the new theme is selected in the main dropdown
         if (userThemeSelect) {
           userThemeSelect.value = savedThemeId;
         }
 
-        // Get the saved theme data and apply it
         const allThemes = await getAvailableThemes(true); // Force refresh to get the new theme
         const savedTheme = allThemes.find((t) => t.id === savedThemeId);
         if (savedTheme) {
@@ -151,7 +126,6 @@ export function setupCustomThemeManagement(
           );
         }
 
-        // Reset form for next use
         customThemeForm.reset();
         currentCustomThemeId = null;
       } else {
@@ -164,14 +138,13 @@ export function setupCustomThemeManagement(
       console.error("Error saving custom theme:", error);
       showMessageBox(`Error saving theme: ${error.message}`, true);
     } finally {
-      // Restore button state
+
       const saveBtn = document.getElementById("save-custom-theme-btn");
       saveBtn.textContent = "Save Custom Theme";
       saveBtn.disabled = false;
     }
   });
 
-  // Close modal functionality
   closeButton.addEventListener(
     "click",
     () => (customThemeModal.style.display = "none"),
@@ -182,11 +155,6 @@ export function setupCustomThemeManagement(
     }
   });
 
-  /**
-   * Dynamically creates and injects the custom theme modal HTML into the DOM.
-   * This is done once to ensure the modal elements exist before other JS tries to access them.
-   * @returns {HTMLElement} The modal element.
-   */
   function createCustomThemeModal() {
     const colorFields = [
       { label: 'Body BG', id: 'theme-body-bg' },
@@ -243,7 +211,7 @@ export function setupCustomThemeManagement(
     `;
     document.body.insertAdjacentHTML("beforeend", modalHtml);
     const modal = document.getElementById("custom-theme-modal");
-    // Sync color and text inputs
+
     colorFields.forEach(f => {
       const colorInput = modal.querySelector(`#${f.id}-color`);
       const textInput = modal.querySelector(`#${f.id}-text`);
@@ -261,9 +229,6 @@ export function setupCustomThemeManagement(
     return modal;
   }
 
-  /**
-   * Renders the list of custom themes.
-   */
   async function renderCustomThemeList() {
     if (!auth.currentUser) {
       customThemeList.innerHTML =
@@ -300,7 +265,6 @@ export function setupCustomThemeManagement(
       li.style.backgroundColor = "var(--color-bg-card)"; // Apply card background color
       li.style.color = "var(--color-text-primary)"; // Apply primary text color
 
-      // Format creation date
       const createdDate = theme.createdAt
         ? new Date(
             theme.createdAt.toDate ? theme.createdAt.toDate() : theme.createdAt,
@@ -337,7 +301,6 @@ export function setupCustomThemeManagement(
       customThemeList.appendChild(li);
     });
 
-    // Add event listeners for edit and delete buttons
     document.querySelectorAll(".edit-custom-theme-btn").forEach((button) => {
       button.addEventListener("click", (e) => {
         const themeId = e.target.closest("button").dataset.themeId;
@@ -350,7 +313,6 @@ export function setupCustomThemeManagement(
         const themeId = e.target.closest("button").dataset.themeId;
         console.log("DEBUG: Delete button clicked for theme ID:", themeId);
 
-        // Find the theme in the full list of available themes, not just user custom themes
         const allThemes = await getAvailableThemes();
         console.log(
           "DEBUG: All available themes:",
@@ -390,7 +352,7 @@ export function setupCustomThemeManagement(
           );
           if (await deleteCustomTheme(themeId)) {
             showMessageBox("Custom theme deleted successfully!", false);
-            // After deletion, revert to default theme if the deleted one was active
+
             await populateThemeSelect(defaultThemeName); // Re-populate and select default
             userThemeSelect.value = defaultThemeName; // Update main dropdown
             applyTheme(defaultThemeName); // Apply the default theme
@@ -405,25 +367,21 @@ export function setupCustomThemeManagement(
     });
   }
 
-  /**
-   * Opens the custom theme modal, optionally loading a theme for editing.
-   * @param {string|null} themeId - The ID of the theme to edit, or null for a new theme.
-   */
   async function openCustomThemeModal(themeId = null) {
     currentCustomThemeId = themeId;
     if (themeId) {
       await loadCustomThemeForEditing(themeId);
       themeNameInput.focus(); // Focus on name input for convenience
     } else {
-      // Reset form for a new theme
+
       customThemeForm.reset();
       themeNameInput.value = "";
-      // Populate with default colors for a new custom theme
+
       colorInputsContainer
         .querySelectorAll('input[type="text"]')
         .forEach((input) => {
           const varName = `--${input.id}`;
-          // Get current values from the document's computed style (which reflects the active theme)
+
           const computedValue = getComputedStyle(document.documentElement)
             .getPropertyValue(varName)
             .trim();
@@ -436,10 +394,6 @@ export function setupCustomThemeManagement(
     customThemeModal.style.display = "flex";
   }
 
-  /**
-   * Loads the details of a custom theme into the modal for editing.
-   * @param {string} themeId - The ID of the custom theme to load.
-   */
   async function loadCustomThemeForEditing(themeId) {
     const allThemes = await getAvailableThemes();
     const themeToEdit = allThemes.find(
@@ -465,7 +419,6 @@ export function setupCustomThemeManagement(
       }
     }
 
-    // Set values for all fields in the modal
     Object.entries(themeToEdit).forEach(([key, value]) => {
       const el = customThemeModal.querySelector(`[name="${key}"]`);
       if (el) {

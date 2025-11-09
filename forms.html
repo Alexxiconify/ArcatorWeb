@@ -8,10 +8,28 @@
     <link href="./favicon.png" rel="icon" type="image/png">
 </head>
 <body class="bg-surface text-text">
-<!-- Navbar -->
-<div id="navbar-placeholder"></div>
 
-<!-- Hero Banner -->
+<div id="navbar-placeholder">
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="flex items-center gap-4">
+                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
+                <div class="flex items-center gap-4">
+                    <a class="nav-link" href="./index.html">Home</a>
+                    <a class="nav-link" href="./games.html">Games</a>
+                    <a class="nav-link" href="./forms.html">Forms</a>
+                    <a class="nav-link" href="./pages.html">Pages</a>
+                    <a class="nav-link" href="./about.html">About</a>
+                    <a class="nav-link" href="./mod.html">Admin</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4" id="user-section">
+                <div class="sign-in-prompt">Loading…</div>
+            </div>
+        </div>
+    </nav>
+</div>
+
 <section class="hero-banner">
     <img alt="Hero" class="hero-image" src="./creativespawn.png">
     <div class="hero-overlay"></div>
@@ -21,9 +39,8 @@
     </div>
 </section>
 
-<!-- Main Content -->
 <main class="container mx-auto px-4 py-8">
-    <!-- Tabs -->
+
     <div class="bg-surface-2 rounded-lg p-4 mb-8" role="tablist">
         <div class="flex gap-4 border-b border-accent-dark">
             <button aria-controls="forms-panel"
@@ -42,27 +59,24 @@
             </button>
         </div>
 
-        <!-- Forms Panel -->
         <div class="py-4" id="forms-panel" role="tabpanel">
             <div id="forms-list">
-                <!-- Forms will be loaded here -->
+
             </div>
         </div>
 
-        <!-- DMs Panel -->
         <div class="py-4 hidden" id="dms-panel" role="tabpanel">
             <div class="flex h-[600px]">
-                <!-- DM List -->
+
                 <div class="w-1/3 border-r border-accent-dark">
                     <div class="p-4 border-b border-accent-dark">
                         <button class="btn-primary w-full" id="new-chat-btn">New Conversation</button>
                     </div>
                     <div class="overflow-y-auto h-[calc(100%-64px)]" id="dm-list">
-                        <!-- DMs will be loaded here -->
+
                     </div>
                 </div>
 
-                <!-- Messages -->
                 <div class="flex-1 flex flex-col">
                     <div class="p-2 border-b border-accent-dark" id="participant-list"></div>
                     <div class="flex-1 overflow-y-auto p-4" id="messages-container"></div>
@@ -85,7 +99,6 @@
                 </div>
             </div>
 
-            <!-- New Chat Modal -->
             <div class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
                  id="new-chat-modal">
                 <div class="bg-surface p-6 rounded-lg shadow-xl w-full max-w-md">
@@ -104,8 +117,20 @@
     </div>
 </main>
 
-<!-- Footer -->
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder">
+    <footer class="footer bg-surface">
+        <div class="container py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-4">
+                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
+                        Maps</a>
+                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
+                </div>
+                <div class="text-text-2">&copy; 2025 Arcator</div>
+            </div>
+        </div>
+    </footer>
+</div>
 
 <script type="module">
     import {initializePage, loadFooter} from './core.js';
@@ -113,7 +138,6 @@
     import {themeManager} from './theme-manager.js';
     import {showMessageBox} from './utils.js';
 
-    // Initialize page
     async function init() {
         try {
             await Promise.all([
@@ -121,14 +145,11 @@
                 themeManager.init()
             ]);
 
-            // Initialize forms and DMs
             await initForms();
             await initDMs();
 
-            // Load footer
             await loadFooter();
 
-            // Setup tabs
             const container = document.querySelector('[role="tablist"]');
             const tabs = container?.querySelectorAll('[role="tab"]') || [];
             const panels = document.querySelectorAll('[role="tabpanel"]');
@@ -137,14 +158,12 @@
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
 
-                    // Remove active state from all tabs and hide all panels
                     tabs.forEach(t => {
                         t.setAttribute('aria-selected', 'false');
                         t.classList.remove('border-accent-light');
                     });
                     panels.forEach(p => p.classList.add('hidden'));
 
-                    // Set active state for clicked tab and show its panel
                     tab.setAttribute('aria-selected', 'true');
                     tab.classList.add('border-accent-light');
                     const panelId = tab.getAttribute('aria-controls');
@@ -153,16 +172,13 @@
                 });
             });
 
-            // Set initial tab
             if (tabs[0]) {
                 tabs[0].click();
             }
 
-            // Add mention autocomplete to message input
             const messageInput = document.getElementById('message-input');
             const suggestionsDiv = document.getElementById('mention-suggestions');
 
-            // Function to insert mention into text
             window.insertMention = function (mention) {
                 const text = messageInput.value;
                 const lastAtIndex = text.lastIndexOf('@');
@@ -212,7 +228,6 @@
                 });
             }
 
-
             console.log('Page forms initialized successfully');
         } catch (error) {
             console.error('Page initialization error:', error);
@@ -220,7 +235,6 @@
         }
     }
 
-    // Start initialization
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

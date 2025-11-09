@@ -1,5 +1,4 @@
-// theme-manager.js - Theme management functionality
-import {appId, auth, db, doc, getDoc, setDoc} from './firebase-init.js';
+import {auth, COLLECTIONS, db, doc, getDoc, setDoc} from './firebase-init.js';
 import {showMessageBox} from './utils.js';
 
 const DEFAULT_THEME = {
@@ -46,9 +45,7 @@ class ThemeManager {
         if (!auth.currentUser) return;
 
         try {
-            const userDoc = await getDoc(
-                doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid)
-            );
+            const userDoc = await getDoc(doc(db, COLLECTIONS.USER_PROFILES, auth.currentUser.uid));
 
             if (!userDoc.exists()) return;
 
@@ -57,9 +54,7 @@ class ThemeManager {
 
             if (!themeId || typeof themeId !== 'string') return;
 
-            const themeDoc = await getDoc(
-                doc(db, `artifacts/${appId}/public/data/themes`, themeId)
-            );
+            const themeDoc = await getDoc(doc(db, COLLECTIONS.THEMES, themeId));
 
             if (themeDoc.exists()) {
                 const themeData = themeDoc.data();
@@ -83,14 +78,14 @@ class ThemeManager {
         }
 
         try {
-            // Apply default theme variables first
+
             Object.entries(DEFAULT_THEME.variables).forEach(([key, value]) => {
                 if (typeof key === 'string' && typeof value === 'string') {
                     this.root.style.setProperty(key, value);
                 }
             });
 
-            // Apply custom theme variables if they exist
+
             if (theme.variables && typeof theme.variables === 'object') {
                 Object.entries(theme.variables).forEach(([key, value]) => {
                     if (typeof key === 'string' && typeof value === 'string') {
@@ -117,14 +112,10 @@ class ThemeManager {
         if (!auth.currentUser || typeof themeId !== 'string') return;
 
         try {
-            await setDoc(
-                doc(db, `artifacts/${appId}/public/data/user_profiles`, auth.currentUser.uid),
-                {
-                    themePreference: themeId,
-                    lastUpdated: new Date()
-                },
-                {merge: true}
-            );
+            await setDoc(doc(db, COLLECTIONS.USER_PROFILES, auth.currentUser.uid), {
+                themePreference: themeId,
+                lastUpdated: new Date()
+            }, {merge: true});
             return true;
         } catch (error) {
             console.error('Error saving theme preference:', error);

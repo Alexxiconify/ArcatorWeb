@@ -1,7 +1,3 @@
-// runtime-globals.js - Safe getters/setters for runtime-injected globals
-// These variables may be injected by the hosting environment before scripts run.
-
-// Resolve a global container (globalThis preferred, fall back to window)
 const _global = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : {});
 
 function hasOwn(name) {
@@ -73,7 +69,7 @@ export function setInitialAuthToken(token) {
     }
 }
 
-// Prevent "unused exports" warnings
+
 void getAppId;
 void setAppId;
 void getFirebaseConfig;

@@ -7,7 +7,26 @@
     <link href="./master.css" rel="stylesheet">
 </head>
 <body>
-<div id="navbar-placeholder"></div>
+<div id="navbar-placeholder">
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="flex items-center gap-4">
+                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
+                <div class="flex items-center gap-4">
+                    <a class="nav-link" href="./index.html">Home</a>
+                    <a class="nav-link" href="./games.html">Games</a>
+                    <a class="nav-link" href="./forms.html">Forms</a>
+                    <a class="nav-link" href="./pages.html">Pages</a>
+                    <a class="nav-link" href="./about.html">About</a>
+                    <a class="nav-link" href="./mod.html">Admin</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4" id="user-section">
+                <div class="sign-in-prompt">Loading…</div>
+            </div>
+        </div>
+    </nav>
+</div>
 
 <div class="error-container">
     <h1 class="error-code">404</h1>
@@ -17,7 +36,20 @@
     </a>
 </div>
 
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder">
+    <footer class="footer bg-surface">
+        <div class="container py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-4">
+                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
+                        Maps</a>
+                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
+                </div>
+                <div class="text-text-2">&copy; 2025 Arcator</div>
+            </div>
+        </div>
+    </footer>
+</div>
 
 <script type="module">
     import {initializePage} from './core.js';

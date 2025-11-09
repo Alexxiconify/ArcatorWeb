@@ -1,4 +1,4 @@
-// Firebase configuration - sensitive data
+
 export const firebaseConfig = {
     apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
     authDomain: "arcator-web.firebaseapp.com",
@@ -12,6 +12,6 @@ export const firebaseConfig = {
 
 export default firebaseConfig;
 
-// Prevent static-analysis 'unused' warning in editors by referencing the config in a no-op
+
 const __firebase_config_used = firebaseConfig && firebaseConfig.projectId;
 void __firebase_config_used;

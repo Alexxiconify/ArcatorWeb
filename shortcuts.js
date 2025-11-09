@@ -1,21 +1,20 @@
-// shortcuts.js - Keyboard shortcuts and navigation
 import {showMessageBox} from './utils.js';
 
-// Page URL mappings
+
 const pageUrls = {
     home: './index.html',
     about: './about.html',
     games: './games.html',
     forms: './forms.html',
     users: './users.html',
-    admin: './admin.html',
+    admin: './mod.html',
     privacy: './privacy.html',
     logout: '#',
     search: '#',
     help: '#'
 };
 
-// Single export of executeShortcut
+
 export function executeShortcut(shortcutKey, showSearchModal, showHelpModal) {
     const url = pageUrls[shortcutKey];
 
@@ -50,10 +49,10 @@ async function handleLogout() {
     }
 }
 
-// Initialize keyboard shortcuts
+
 export function initShortcuts() {
     document.addEventListener('keydown', (e) => {
-        // Only handle keyboard shortcuts when not in input elements
+
         if (e.target.matches('input, textarea, select')) return;
 
         if (e.ctrlKey && !e.shiftKey && !e.altKey) {
@@ -93,19 +92,4 @@ export function initShortcuts() {
             }
         }
     });
-}
-
-export class getCurrentShortcuts {
-}
-
-export class handleKeyboardShortcut {
-}
-
-export class initializeKeyboardShortcuts {
-}
-
-export class shortcutCategories {
-}
-
-export class shortcutDescriptions {
 }

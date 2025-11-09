@@ -1,7 +1,5 @@
-/* Master CSS - Combined styles with simplified theming */
-
 :root {
-    /* OLED Dark Theme */
+
     --color-bg: #000000;
     --color-surface: #0A0A0A;
     --color-surface-2: #111111;
@@ -16,7 +14,6 @@
     --color-success: #059669;
     --color-warning: #D97706;
 
-    /* Additional theme variables */
     --color-input-border: var(--color-accent-dark);
     --color-card: var(--color-surface-2);
     --color-navbar-bg: var(--color-surface);
@@ -24,7 +21,6 @@
     --color-link: var(--color-accent-light);
     --color-link-hover: var(--color-accent);
 
-    /* Typography */
     --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-size-base: 1rem;
     --font-size-sm: 0.875rem;
@@ -37,7 +33,6 @@
     --line-height-tight: 1.25;
     --line-height-relaxed: 1.75;
 
-    /* Spacing */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
@@ -52,7 +47,6 @@
     --footer-height: 3rem;
     --container-padding: 1rem;
 
-    /* Border Radius */
     --radius-sm: 0.125rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
@@ -60,20 +54,58 @@
     --radius-2xl: 1rem;
     --radius-full: 9999px;
 
-    /* Image paths */
     --default-hero-image: url('./creativespawn.png');
     --default-user-image: url('./defaultuser.png');
 
-    /* Z-index layers */
     --z-index-navbar: 100;
     --z-index-overlay: 200;
     --z-index-modal: 300;
 }
 
-/* Base Styles */
-html {
-    box-sizing: border-box;
+html, body {
     height: 100%;
+}
+
+/* Add site-container to make header always visible and footer stick to bottom */
+.site-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.site-container > main {
+    flex: 1 0 auto;
+}
+
+/* Keep navbar sticky at top */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-index-navbar);
+    background-color: var(--color-navbar-bg);
+}
+
+/* Footer should sit at bottom when content is short */
+.footer {
+    margin-top: auto;
+    background-color: var(--color-footer-bg);
+    border-top: 1px solid var(--color-accent-dark);
+    padding: var(--space-4) 0;
+    flex-shrink: 0;
+}
+
+/* Ensure profile image is capped */
+.profile-image {
+    width: 2rem;
+    height: 2rem;
+    max-width: 40px;
+    max-height: 40px;
+    min-width: 24px;
+    min-height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-accent);
+    flex-shrink: 0;
 }
 
 *, *:before, *:after {
@@ -92,30 +124,24 @@ body {
     -moz-osx-font-smoothing: grayscale;
     height: 100%;
 
-    /* Make layout a column so footer can stick to bottom on short pages */
     display: flex;
     flex-direction: column;
 }
 
-/* Ensure main expands to fill available space between header and footer */
 main {
     width: 100%;
     flex: 1 0 auto;
 }
 
-/* Ensure direct children of body participate correctly in the flex layout.
-   This makes the footer push to the bottom when content is short. */
 body > * {
-    /* default: do not grow */
+
     flex: 0 0 auto;
 }
 
-/* Make main fill remaining space so footer is pushed to bottom */
 body > main {
     flex: 1 0 auto;
 }
 
-/* Layout */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -127,7 +153,6 @@ body > main {
     display: none !important;
 }
 
-/* Grid System */
 .grid {
     display: grid;
     gap: var(--space-4);
@@ -149,7 +174,6 @@ body > main {
     }
 }
 
-/* Additional Grid Classes */
 .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -158,7 +182,6 @@ body > main {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Hero Section (alias for older .hero-banner) */
 .hero-section {
     position: relative;
     height: 320px;
@@ -214,7 +237,6 @@ body > main {
     z-index: 0;
 }
 
-/* Cards */
 .card {
     background-color: var(--color-surface-2);
     border: 1px solid var(--color-accent-dark);
@@ -228,7 +250,6 @@ body > main {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* Buttons */
 .btn-primary {
     background-color: var(--color-accent);
     color: white;
@@ -258,7 +279,6 @@ body > main {
     border-color: var(--color-accent);
 }
 
-/* Typography */
 .text-xl {
     font-size: var(--font-size-xl);
 }
@@ -291,7 +311,6 @@ body > main {
     text-align: center;
 }
 
-/* Forms */
 .form-input {
     width: 100%;
     padding: 0.5rem;
@@ -306,14 +325,6 @@ body > main {
     border-color: var(--color-accent);
 }
 
-/* Navigation */
-.navbar {
-    background-color: var(--color-navbar-bg);
-    border-bottom: 1px solid var(--color-accent-dark);
-    position: sticky;
-    top: 0;
-    z-index: var(--z-index-navbar);
-}
 
 .navbar-content {
     height: var(--navbar-height);
@@ -341,7 +352,6 @@ body > main {
     border-bottom: 2px solid var(--color-accent);
 }
 
-/* Navbar brand/link adjustments */
 .navbar .container a.text-xl {
     color: var(--color-accent-light);
     text-decoration: none;
@@ -351,19 +361,7 @@ body > main {
     color: var(--color-accent);
 }
 
-/* Profile image in navbar */
-.profile-image {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--color-accent);
-    flex-shrink: 0;
-    max-width: 40px;
-    max-height: 40px;
-}
 
-/* Navbar links styling */
 .navbar a {
     text-decoration: none;
 }
@@ -377,15 +375,6 @@ body > main {
     text-decoration: none;
 }
 
-/* Footer */
-.footer {
-    background-color: var(--color-footer-bg);
-    border-top: 1px solid var(--color-accent-dark);
-    padding: var(--space-4) 0;
-    margin-top: auto;
-    flex-shrink: 0;
-}
-
 .footer-link {
     color: var(--color-text-2);
     text-decoration: none;
@@ -396,7 +385,6 @@ body > main {
     color: var(--color-accent-light);
 }
 
-/* Messages */
 .message {
     padding: var(--space-3);
     border-radius: var(--radius-md);
@@ -413,7 +401,6 @@ body > main {
     color: var(--color-text);
 }
 
-/* Loading States */
 .loading-overlay {
     position: fixed;
     inset: 0;
@@ -424,7 +411,6 @@ body > main {
     z-index: 999;
 }
 
-/* Loading spinner */
 .loading-spinner {
     width: 2rem;
     height: 2rem;
@@ -441,7 +427,6 @@ body > main {
     }
 }
 
-/* Settings Pages */
 .settings-section {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -455,7 +440,6 @@ body > main {
     margin-bottom: var(--space-3);
 }
 
-/* Compatibility utility classes referenced in HTML */
 .bg-main {
     background: var(--color-bg);
 }
@@ -504,8 +488,7 @@ body > main {
     background-color: var(--color-accent-light);
 }
 
-/* Alias for older class names */
-.hero-banner { /* mirror hero-section */
+.hero-banner {
     position: relative;
     height: 320px;
     width: 100%;
@@ -517,7 +500,6 @@ body > main {
     background-position: center;
 }
 
-/* Ensure hero-image works across both variants */
 .hero-banner .hero-image, .hero-section .hero-image {
     position: absolute;
     inset: 0;
@@ -527,7 +509,6 @@ body > main {
     z-index: 0;
 }
 
-/* Utility classes */
 .text-error {
     color: var(--color-error);
 }
@@ -650,7 +631,6 @@ body > main {
     font-size: var(--font-size-lg);
 }
 
-
 .font-medium {
     font-weight: 500;
 }
@@ -680,7 +660,6 @@ body > main {
     transition-duration: 0.2s;
 }
 
-/* Animations */
 .animate-spin {
     animation: spin 1s linear infinite;
 }
@@ -691,7 +670,6 @@ body > main {
     }
 }
 
-/* Modals */
 .modal {
     position: fixed;
     inset: 0;
@@ -808,7 +786,6 @@ body > main {
     color: var(--color-text);
 }
 
-/* Tab Styling */
 .tab-button {
     background: none;
     border: none;
@@ -826,7 +803,6 @@ body > main {
     color: var(--color-text);
 }
 
-/* Threads/Forms */
 #forms-list {
     display: flex !important;
     flex-direction: column !important;
@@ -865,8 +841,6 @@ body > main {
     flex: 1;
 }
 
-
-/* Utility classes */
 .line-clamp-2 {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -898,14 +872,12 @@ body > main {
     background: linear-gradient(135deg, var(--color-surface-2) 0%, rgba(37, 99, 235, 0.1) 100%);
 }
 
-
 .thread-content {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
 }
 
-/* Comments */
 .comment {
     background: var(--color-surface-3);
     border-left: 2px solid var(--color-accent);
@@ -938,7 +910,6 @@ body > main {
     word-wrap: break-word;
 }
 
-/* DM List */
 .dm-item {
     border-bottom: 1px solid var(--color-surface-2);
     padding: var(--space-3);
@@ -955,7 +926,6 @@ body > main {
     border-left: 3px solid var(--color-accent);
 }
 
-/* Messages */
 .messages-list {
     display: flex;
     flex-direction: column;
@@ -971,7 +941,6 @@ body > main {
     word-wrap: break-word;
 }
 
-/* Form Elements */
 .form-field input,
 .form-field textarea,
 .form-field select {
@@ -982,7 +951,6 @@ body > main {
     color: var(--color-text-3);
 }
 
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: var(--space-8);
@@ -995,7 +963,6 @@ body > main {
     color: var(--color-error);
 }
 
-/* Sign In Prompt */
 .sign-in-prompt {
     background: var(--color-surface-2);
     border: 1px solid var(--color-accent-dark);
@@ -1004,7 +971,6 @@ body > main {
     text-align: center;
 }
 
-/* Thread View */
 .thread-view {
     max-height: 600px;
     overflow-y: auto;
@@ -1058,7 +1024,6 @@ body > main {
     padding: var(--space-4);
 }
 
-/* User mention dropdown */
 .mention-suggestions {
     position: absolute;
     background: var(--color-surface-2);
@@ -1108,9 +1073,8 @@ body > main {
     font-size: 12px;
 }
 
-/* Layout helpers for injected placeholders */
 #footer-placeholder {
-    /* Ensure the placeholder pushes to bottom when body is short */
+
     margin-top: auto;
     display: block;
     flex-shrink: 0;
@@ -1118,11 +1082,10 @@ body > main {
 }
 
 #navbar-placeholder {
-    /* Keep navbar placeholder from collapsing and ensure width */
+
     width: 100%;
 }
 
-/* Ensure hero content is responsive and centered */
 @media (min-width: 1024px) {
     .hero-content h1 {
         font-size: 4rem;

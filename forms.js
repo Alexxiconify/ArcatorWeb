@@ -17,7 +17,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import {updateProfile} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-
 const ASSETS = {
     DEFAULT_USER: './defaultuser.png',
     DEFAULT_HERO: './creativespawn.png'
@@ -30,7 +29,6 @@ let currentImageURL;
 let currentThreadId;
 let photoURL = ASSETS.DEFAULT_USER;
 
-// Expose functions to window immediately
 Object.assign(globalThis, {
     openThread: null,
     showNewThreadModal: null,
@@ -42,7 +40,6 @@ Object.assign(globalThis, {
     photoURL: ASSETS.DEFAULT_USER
 });
 
-// Helper function to create sample threads if none exist
 async function createSampleFormsIfNeeded() {
     try {
         const threadsRef = collection(db, COLLECTIONS.FORMS);
@@ -84,7 +81,6 @@ async function createSampleFormsIfNeeded() {
     }
 }
 
-// Form functionality
 async function initForms() {
     const threadsList = document.getElementById('forms-list');
     if (!threadsList) return;
@@ -92,7 +88,6 @@ async function initForms() {
     try {
         threadsList.innerHTML = '<div class="loading-spinner"></div>';
 
-        // Check and create sample threads if needed
         await createSampleFormsIfNeeded();
 
         const threadsRef = collection(db, COLLECTIONS.FORMS);
@@ -105,7 +100,6 @@ async function initForms() {
                 ${threads.docs.map(doc => createThreadCard(doc)).join('')}
             </div>`;
 
-        // Add new thread button if user is signed in
         if (auth.currentUser) {
             threadsList.insertAdjacentHTML('beforebegin', `
                 <div class="sticky top-0 bg-surface z-10 p-4 border-b border-surface-2">
@@ -126,7 +120,6 @@ function createThreadCard(doc) {
     const date = thread.createdAt?.toDate().toLocaleDateString() || 'Unknown';
     const time = thread.createdAt?.toDate().toLocaleTimeString() || '';
 
-    // Category emoji map
     const categoryEmojis = {
         'announcements': '📢',
         'gaming': '🎮',
@@ -144,7 +137,7 @@ function createThreadCard(doc) {
                 ${emoji}
                 ${thread.pinned ? '<span style="font-size: 0.875rem;">📌</span>' : ''}
             </div>
-            
+
             <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
                 <div>
                     <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: var(--color-text);">
@@ -161,7 +154,7 @@ function createThreadCard(doc) {
                     ${thread.tags?.slice(0, 2).map(tag => `<span style="display: inline-block; background: var(--color-surface-3); color: var(--color-text-2); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem;">#${tag}</span>`).join('') || ''}
                 </div>
             </div>
-            
+
             <div style="flex-shrink: 0; font-size: 0.875rem; color: var(--color-text-2); white-space: nowrap; display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
                 <span title="${date} ${time}" style="font-size: 0.75rem;">
                     ${formatTimeAgo(thread.createdAt?.toDate())}
@@ -212,12 +205,12 @@ function showNewThreadModal() {
         <form id="new-thread-form" class="space-y-4">
             <div class="form-field">
                 <label>Title</label>
-                <input type="text" id="thread-title" class="form-input w-full" 
+                <input type="text" id="thread-title" class="form-input w-full"
                        placeholder="What's on your mind?" required>
             </div>
             <div class="form-field">
                 <label>Description</label>
-                <textarea id="thread-description" class="form-input w-full" rows="4" 
+                <textarea id="thread-description" class="form-input w-full" rows="4"
                         placeholder="Share your thoughts..." required></textarea>
             </div>
             <div class="form-field">
@@ -233,7 +226,7 @@ function showNewThreadModal() {
             </div>
             <div class="form-field">
                 <label>Tags (comma-separated)</label>
-                <input type="text" id="thread-tags" class="form-input w-full" 
+                <input type="text" id="thread-tags" class="form-input w-full"
                        placeholder="gaming, multiplayer, etc">
             </div>
             <div class="flex justify-end gap-2 mt-6">
@@ -271,7 +264,6 @@ function showNewThreadModal() {
             showMessageBox('Thread created successfully');
             modal.remove();
 
-            // Refresh the threads list
             await initForms();
         } catch (error) {
             console.error('Error creating thread:', error);
@@ -319,7 +311,7 @@ async function openThread(threadId) {
                         <span>💬 ${thread.commentCount || 0} Comments</span>
                     </div>
                 </div>
-                
+
                 <div class="comments-section">
                     ${auth.currentUser ? `
                         <form id="comment-form-${threadId}" class="comment-form mb-6 pb-6 border-b border-accent-dark">
@@ -358,7 +350,7 @@ function createCommentElement(commentId, comment, threadId, depth = 0) {
     return `
         <div class="comment" style="margin-left: ${depth * 2}rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-surface-2); border-left: 2px solid var(--color-accent); border-radius: 0.375rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <img src="${comment.authorPhoto || ASSETS.DEFAULT_USER}" 
+                <img src="${comment.authorPhoto || ASSETS.DEFAULT_USER}"
                      alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                 <span style="font-weight: 600; color: var(--color-text);">${comment.authorName || 'Unknown User'}</span>
                 <span style="font-size: 0.75rem; color: var(--color-text-2);">${formatTimeAgo(comment.createdAt?.toDate())}</span>
@@ -397,21 +389,17 @@ async function handleCommentSubmit(event, threadId) {
             createdAt: serverTimestamp()
         };
 
-        // Create comment using addDoc directly to submissions subcollection
         const submissionsRef = collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS);
         await addDoc(submissionsRef, commentData);
 
-        // Update thread stats
         const threadRef = doc(db, COLLECTIONS.FORMS, threadId);
         await updateDoc(threadRef, {
             commentCount: increment(1)
         });
 
-
         textarea.value = '';
         showMessageBox('Comment posted successfully');
 
-        // Refresh the thread view
         await openThread(threadId);
     } catch (error) {
         console.error('Error posting comment:', error);
@@ -419,7 +407,6 @@ async function handleCommentSubmit(event, threadId) {
     }
 }
 
-// DM functionality
 async function initDMs() {
     const dmList = document.getElementById('dm-list');
     const messageForm = document.getElementById('message-form');
@@ -428,7 +415,7 @@ async function initDMs() {
     if (!dmList) return;
 
     try {
-        // Show loading state
+
         dmList.innerHTML = '<div class="loading-spinner"></div>';
         if (messagesContainer) {
             messagesContainer.innerHTML = `
@@ -447,7 +434,6 @@ async function initDMs() {
             return;
         }
 
-        // Show "Start New Conversation" button at the top
         dmList.innerHTML = `
             <div class="p-4 border-b border-surface-2">
                 <button onclick="window.showNewDmModal()" class="btn-primary w-full">
@@ -512,7 +498,6 @@ async function createDmElement(doc) {
         .map(p => p?.displayName || 'Unknown User')
         .join(', ');
 
-    // Get avatar image with proper null/undefined handling
     let avatarImage = ASSETS.DEFAULT_USER;
     if (dm.image) {
         avatarImage = dm.image;
@@ -521,10 +506,10 @@ async function createDmElement(doc) {
     }
 
     return `
-        <div class="dm-item ${currentDmId === doc.id ? 'active' : ''}" 
+        <div class="dm-item ${currentDmId === doc.id ? 'active' : ''}"
              onclick="window.openDm('${doc.id}')">
             <div class="flex items-center gap-3">
-                <img src="${avatarImage}" 
+                <img src="${avatarImage}"
                      alt="Avatar" class="w-10 h-10 rounded-full object-cover">
                 <div class="flex-1 min-w-0">
                     <div class="font-medium">${dm.name || profilesText}</div>
@@ -556,10 +541,8 @@ function createModal(title) {
         </div>
     `;
 
-    // Close button functionality
     modal.querySelector('.modal-close-btn').addEventListener('click', closeModal);
 
-    // Close on Escape key
     const handleEscape = (e) => {
         if (e.key === 'Escape') {
             closeModal();
@@ -568,7 +551,6 @@ function createModal(title) {
     };
     document.addEventListener('keydown', handleEscape);
 
-    // Close on backdrop click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeModal();
@@ -586,7 +568,6 @@ async function getUserProfile(uid) {
             photoURL: ASSETS.DEFAULT_USER
         };
 
-        // Update module-level photoURL
         if (profile.photoURL) {
             photoURL = profile.photoURL;
             currentPhotoURL = profile.photoURL;
@@ -602,7 +583,6 @@ async function getUserProfile(uid) {
     }
 }
 
-// Add this function to handle sign in
 function showSignIn() {
     const modal = createModal('Sign In');
     modal.querySelector('.modal-body').innerHTML = `
@@ -620,7 +600,6 @@ function showSignIn() {
     document.body.appendChild(modal);
 }
 
-// Add this function to handle new DM modal
 function showNewDmModal() {
     const modal = createModal('New Conversation');
 
@@ -630,22 +609,22 @@ function showNewDmModal() {
             <button class="modal-tab" data-tab="recent">Recent Users</button>
             <button class="modal-tab" data-tab="search">Search Users</button>
         </div>
-        
+
         <div id="create-new-tab" class="modal-tab-content active">
             <form id="new-dm-form" class="space-y-4">
                 <div class="form-field">
                     <label>Recipients (comma-separated usernames)</label>
-                    <input type="text" id="dm-recipients" class="form-input w-full" 
+                    <input type="text" id="dm-recipients" class="form-input w-full"
                            placeholder="@user1, @user2" required>
                 </div>
                 <div class="form-field">
                     <label>Conversation Name (optional)</label>
-                    <input type="text" id="dm-name" class="form-input w-full" 
+                    <input type="text" id="dm-name" class="form-input w-full"
                            placeholder="Group Chat Name">
                 </div>
                 <div class="form-field">
                     <label>Conversation Image (optional)</label>
-                    <input type="url" id="dm-image" class="form-input w-full" 
+                    <input type="url" id="dm-image" class="form-input w-full"
                            placeholder="https://example.com/image.jpg">
                 </div>
                 <div class="flex justify-end gap-2 mt-6">
@@ -654,16 +633,16 @@ function showNewDmModal() {
                 </div>
             </form>
         </div>
-        
+
         <div id="recent-tab" class="modal-tab-content hidden">
             <div id="recent-users-list" class="space-y-2">
                 <p class="text-text-2">Loading recent users...</p>
             </div>
         </div>
-        
+
         <div id="search-tab" class="modal-tab-content hidden">
             <div class="form-field mb-4">
-                <input type="text" id="user-search-input" class="form-input w-full" 
+                <input type="text" id="user-search-input" class="form-input w-full"
                        placeholder="Search users by name or handle...">
             </div>
             <div id="search-users-list" class="space-y-2">
@@ -672,7 +651,6 @@ function showNewDmModal() {
         </div>
     `;
 
-    // Tab switching
     const tabs = modal.querySelectorAll('.modal-tab');
     const tabContents = modal.querySelectorAll('.modal-tab-content');
 
@@ -687,7 +665,6 @@ function showNewDmModal() {
         });
     });
 
-    // Form submission
     const form = modal.querySelector('#new-dm-form');
     form.onsubmit = async (e) => {
         e.preventDefault();
@@ -713,7 +690,6 @@ function showNewDmModal() {
     document.body.appendChild(modal);
 }
 
-// Add this function to handle message submission
 async function handleMessageSubmit(event) {
     event.preventDefault();
     if (!auth.currentUser || !currentDmId) return;
@@ -725,7 +701,7 @@ async function handleMessageSubmit(event) {
     input.value = '';
 
     try {
-        // Get user's profile photo URL
+
         const senderPhotoURL = auth.currentUser.photoURL || currentPhotoURL || ASSETS.DEFAULT_USER;
 
         const messageData = {
@@ -771,24 +747,20 @@ async function handleMessageSubmit(event) {
     }
 }
 
-// Compare function for consistent sorting (lexicographic, non-alphabetic)
 function compareParticipants(a, b) {
-    // Standard string comparison that doesn't sort alphabetically
-    // but instead uses Unicode code point values for consistency
+
     if (a < b) return -1;
     if (a > b) return 1;
     return 0;
 }
 
-// Helper function to create consistent DM ID
 function createDmId(participantIds) {
-    // Sort participants consistently using compare function
+
     return [...new Set(participantIds)]
         .sort(compareParticipants)
         .join('_');
 }
 
-// Add this function to create a new DM conversation
 async function createDmConversation(userIds, name = '', image = '') {
     if (!auth.currentUser || !userIds.length) return null;
 
@@ -813,12 +785,11 @@ async function createDmConversation(userIds, name = '', image = '') {
     return dmId;
 }
 
-// Add this function to update profile photo
 async function updateProfilePhoto(url) {
     if (!auth.currentUser) return;
 
     try {
-        // Update all photoURL references
+
         currentPhotoURL = url;
         photoURL = url;
 
@@ -831,7 +802,6 @@ async function updateProfilePhoto(url) {
     }
 }
 
-// Add this function to update DM image
 async function updateDmImage(dmId, url) {
     if (!auth.currentUser || !dmId) return;
 
@@ -854,7 +824,6 @@ async function updateDmImage(dmId, url) {
     }
 }
 
-// Add missing resolveUserHandles function
 async function resolveUserHandles(handles) {
     const userIds = new Set();
     for (const handle of handles) {
@@ -869,7 +838,7 @@ async function resolveUserHandles(handles) {
             if (snapshot.size > 0) {
                 userIds.add(snapshot.docs[0].id);
             } else {
-                // Try by display name if handle not found
+
                 const nameQuery = query(usersRef, where('displayName', '==', cleanHandle));
                 const nameSnapshot = await getDocs(nameQuery);
                 if (nameSnapshot.size > 0) {
@@ -883,7 +852,6 @@ async function resolveUserHandles(handles) {
     return Array.from(userIds);
 }
 
-// Search users for mention autocomplete
 async function searchUsers(searchTerm) {
     if (!searchTerm || searchTerm.length < 2) return [];
 
@@ -891,7 +859,6 @@ async function searchUsers(searchTerm) {
         const usersRef = collection(db, COLLECTIONS.USERS);
         const cleanTerm = searchTerm.toLowerCase();
 
-        // Search by handle
         const handleQuery = query(
             usersRef,
             where('handle', '>=', cleanTerm),
@@ -910,7 +877,6 @@ async function searchUsers(searchTerm) {
             });
         });
 
-        // Also search by display name
         const nameQuery = query(
             usersRef,
             where('displayName', '>=', cleanTerm),
@@ -937,7 +903,6 @@ async function searchUsers(searchTerm) {
     }
 }
 
-// Toggle reply form visibility
 async function toggleReplyForm(commentId, threadId) {
     const replyForm = document.getElementById(`reply-form-${commentId}`);
     if (!replyForm) return;
@@ -961,7 +926,7 @@ async function toggleReplyForm(commentId, threadId) {
             if (!replyContent) return;
 
             try {
-                // Create reply as a nested comment
+
                 const replyData = {
                     content: replyContent,
                     threadId,
@@ -976,7 +941,6 @@ async function toggleReplyForm(commentId, threadId) {
                 const submissionsRef = collection(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS);
                 await addDoc(submissionsRef, replyData);
 
-                // Update parent comment reply count
                 const parentRef = doc(db, COLLECTIONS.FORMS, threadId, COLLECTIONS.SUBMISSIONS, commentId);
                 await updateDoc(parentRef, {
                     replyCount: increment(1)
@@ -985,7 +949,6 @@ async function toggleReplyForm(commentId, threadId) {
                 replyForm.style.display = 'none';
                 showMessageBox('Reply posted successfully');
 
-                // Reload thread to show new reply
                 const modal = document.querySelector('.modal');
                 if (modal) {
                     await new Promise(resolve => setTimeout(resolve, 500));
@@ -1001,7 +964,6 @@ async function toggleReplyForm(commentId, threadId) {
     }
 }
 
-// Add reaction to comment
 async function addCommentReaction(commentId, threadId, reaction) {
     if (!auth.currentUser) {
         showMessageBox('Please sign in to react', true);
@@ -1018,16 +980,15 @@ async function addCommentReaction(commentId, threadId, reaction) {
         const reactionKey = `${reaction}_${auth.currentUser.uid}`;
 
         if (currentReactions[reactionKey]) {
-            // Remove reaction
+
             delete currentReactions[reactionKey];
         } else {
-            // Add reaction
+
             currentReactions[reactionKey] = true;
         }
 
         await updateDoc(commentRef, {reactions: currentReactions});
 
-        // Reload to show updated reaction count
         const modal = document.querySelector('.modal');
         if (modal) {
             openThread(threadId);
@@ -1037,7 +998,6 @@ async function addCommentReaction(commentId, threadId, reaction) {
     }
 }
 
-// Add reaction to thread
 async function addThreadReaction(threadId, reaction) {
     if (!auth.currentUser) {
         showMessageBox('Please sign in to react', true);
@@ -1054,21 +1014,19 @@ async function addThreadReaction(threadId, reaction) {
         const reactionKey = `${reaction}_${auth.currentUser.uid}`;
 
         if (currentReactions[reactionKey]) {
-            // Remove reaction
+
             delete currentReactions[reactionKey];
         } else {
-            // Add reaction
+
             currentReactions[reactionKey] = true;
         }
 
         await updateDoc(threadRef, {reactions: currentReactions});
 
-        // Reload to show updated reaction count
         openThread(threadId);
     } catch (error) {
         console.error('Error adding reaction:', error);
     }
 }
 
-// Export functions
 export {initForms, initDMs};

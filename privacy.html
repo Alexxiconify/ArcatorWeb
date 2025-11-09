@@ -9,7 +9,26 @@
     <link href="./favicon.png" rel="icon" type="image/png"/>
 </head>
 <body class="antialiased">
-<div id="navbar-placeholder"></div>
+<div id="navbar-placeholder">
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="flex items-center gap-4">
+                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
+                <div class="flex items-center gap-4">
+                    <a class="nav-link" href="./index.html">Home</a>
+                    <a class="nav-link" href="./games.html">Games</a>
+                    <a class="nav-link" href="./forms.html">Forms</a>
+                    <a class="nav-link" href="./pages.html">Pages</a>
+                    <a class="nav-link" href="./about.html">About</a>
+                    <a class="nav-link" href="./mod.html">Admin</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4" id="user-section">
+                <div class="sign-in-prompt">Loading…</div>
+            </div>
+        </div>
+    </nav>
+</div>
 
 <section class="hero-banner rounded-b-lg shadow-xl">
     <div class="container mx-auto px-4 text-center hero-content">
@@ -143,18 +162,31 @@
         </div>
     </div>
 </section>
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder">
+    <footer class="footer bg-surface">
+        <div class="container py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-4">
+                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
+                        Maps</a>
+                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
+                </div>
+                <div class="text-text-2">&copy; 2025 Arcator</div>
+            </div>
+        </div>
+    </footer>
+</div>
 <script>
     function showTab(tabName) {
-// Hide all tab contents
+
         const tabContents = document.querySelectorAll(".tab-content");
         tabContents.forEach((content) => content.classList.remove("active"));
-// Remove active class from all tab buttons
+
         const tabButtons = document.querySelectorAll(".tab-button");
         tabButtons.forEach((button) => button.classList.remove("active"));
-// Show selected tab content
+
         document.getElementById(tabName + "-tab").classList.add("active");
-// Add active class to clicked button
+
         event.target.classList.add("active");
     }
 </script>
@@ -205,7 +237,6 @@
         init();
     }
 </script>
-
 
 </body>
 </html>

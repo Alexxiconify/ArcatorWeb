@@ -1,6 +1,3 @@
-// email-integration.js
-// Placeholder for EmailJS and SMTP integration functions
-
 export function getEmailJSStatus() {
     console.log("getEmailJSStatus called");
     return {serviceId: "", templateId: "", publicKey: ""};
@@ -26,7 +23,7 @@ export function saveCredentials(type, credentials) {
 export function sendEmailViaSMTP(to, subject, body) {
     console.log(`sendEmailViaSMTP called to ${to} with subject ${subject}`);
     if (body) console.debug("Email body:", body);
-    // mark body as used explicitly for static analyzers
+
     void body;
     return Promise.resolve();
 }
@@ -41,7 +38,7 @@ export function testSMTPServerConnection() {
     return Promise.resolve(true);
 }
 
-// Default export referencing all functions (helps some static analyzers recognize usage)
+
 export default {
     getEmailJSStatus,
     getSMTPServerStatus,

@@ -1,11 +1,10 @@
-// settings-manager.js - Handles user settings and preferences
-import {appId, auth, db, doc, getDoc, getUserProfileFromFirestore, setDoc, updateDoc} from "./firebase-init.js";
+import {auth, COLLECTIONS, db, doc, getDoc, getUserProfileFromFirestore, setDoc, updateDoc} from "./firebase-init.js";
 import {storageManager} from "./storage-manager.js";
 import {authManager} from "./auth-manager.js";
 import {themeManager} from "./theme-manager.js";
 import {showMessageBox} from './utils.js';
 
-// Default user settings configuration
+
 const DEFAULT_USER_SETTINGS = {
     preferences: {
         fontSize: '16px',
@@ -59,19 +58,18 @@ const DEFAULT_USER_SETTINGS = {
 };
 
 export class SettingsManager {
-    // New: Helper to safely retrieve used heap size
-    usedJSHeapSize;
-    // New: Helper to safely retrieve total heap size
-    totalJSHeapSize;
 
-    constructor() {
-        this.currentSettings = null;
-        this.isInitialized = false;
-        this.lastFrameTime = 0;
-        this.frameCount = 0;
-        this.lastFPS = 0;
-        this.performanceMetricsInterval = null;
-    }
+    usedJSHeapSize;
+
+    totalJSHeapSize;
+    currentSettings = null;
+
+    // prefer class field declarations to satisfy linters
+    isInitialized = false;
+    lastFrameTime = 0;
+    frameCount = 0;
+    lastFPS = 0;
+    performanceMetricsInterval = null;
 
     async init() {
         if (this.isInitialized) return;
@@ -89,7 +87,7 @@ export class SettingsManager {
         if (!uid) return null;
 
         try {
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, uid);
             const snapshot = await getDoc(docRef);
             return snapshot.exists() ? snapshot.data() : null;
         } catch (error) {
@@ -102,11 +100,11 @@ export class SettingsManager {
         if (!uid) return null;
 
         try {
-            // Load user profile
+
             const userProfile = await getUserProfileFromFirestore(uid);
             if (!userProfile) return null;
 
-            // Load additional settings
+
             const settingsRef = doc(db, 'user_settings', uid);
             const settingsDoc = await getDoc(settingsRef);
 
@@ -115,16 +113,16 @@ export class SettingsManager {
                 ...(settingsDoc.exists() ? settingsDoc.data() : {})
             };
 
-            // Merge with local storage
+
             const localSettings = storageManager.get(`user_settings_${uid}`);
             this.currentSettings = {
-                // FIX: Use the explicitly defined local constant DEFAULT_USER_SETTINGS
+
                 ...DEFAULT_USER_SETTINGS,
                 ...userProfile,
                 ...localSettings
             };
 
-            // Apply settings to form
+
             this.applySettingsToForm(this.currentSettings);
             return this.currentSettings;
         } catch (error) {
@@ -134,7 +132,7 @@ export class SettingsManager {
     }
 
     applySettingsToForm(settings) {
-        // Profile settings
+
         if (settings.displayName) {
             document.getElementById('display-name-input').value = settings.displayName;
         }
@@ -145,29 +143,29 @@ export class SettingsManager {
             document.getElementById('email-input').value = settings.email;
         }
 
-        // Notification settings
+
         document.getElementById('email-notifications').checked = settings.notifications?.emailNotifications ?? true;
         document.getElementById('inapp-notifications').checked = settings.notifications?.inAppNotifications ?? true;
         document.getElementById('announcement-notifications').checked = settings.notifications?.announcementNotifications ?? true;
         document.getElementById('community-notifications').checked = settings.notifications?.communityNotifications ?? true;
         document.getElementById('maintenance-notifications').checked = settings.notifications?.maintenanceNotifications ?? true;
 
-        // Privacy settings
+
         document.getElementById('profile-visibility').checked = settings.privacy?.profileVisibility ?? true;
         document.getElementById('activity-visibility').checked = settings.privacy?.activityVisibility ?? true;
         document.getElementById('data-retention').value = settings.privacy?.dataRetention ?? '90';
 
-        // Accessibility settings
+
         document.getElementById('high-contrast').checked = settings.accessibility?.highContrast ?? false;
         document.getElementById('font-size').value = settings.accessibility?.fontSize ?? 'medium';
         document.getElementById('reduced-motion').checked = settings.accessibility?.reducedMotion ?? false;
         document.getElementById('screen-reader').checked = settings.accessibility?.screenReader ?? false;
 
-        // Communication settings
+
         document.getElementById('dm-permissions').value = settings.communication?.dmPermissions ?? 'everyone';
         document.getElementById('mention-permissions').value = settings.communication?.mentionPermissions ?? 'everyone';
 
-        // Advanced settings
+
         document.getElementById('low-bandwidth').checked = settings.advanced?.lowBandwidth ?? false;
         document.getElementById('debug-mode').checked = settings.advanced?.debugMode ?? false;
         document.getElementById('keyboard-shortcuts').checked = settings.advanced?.keyboardShortcuts ?? true;
@@ -175,7 +173,7 @@ export class SettingsManager {
         document.getElementById('custom-css').value = settings.advanced?.customCSS ?? '';
     }
 
-    // New: Getter for default settings
+
     getDefaultSettings() {
         return DEFAULT_USER_SETTINGS;
     }
@@ -206,7 +204,7 @@ export class SettingsManager {
                 lastUpdated: new Date().toISOString()
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, updates);
             showMessageBox('Profile updated successfully!');
             return true;
@@ -234,10 +232,10 @@ export class SettingsManager {
                 backgroundOpacity: document.getElementById('background-opacity-range')?.value
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {preferences, lastUpdated: new Date().toISOString()});
 
-            // Cache locally
+
             storageManager.merge(`user_settings_${user.uid}`, {preferences});
             showMessageBox('Preferences saved successfully!');
             return true;
@@ -265,7 +263,7 @@ export class SettingsManager {
                 frequency: document.getElementById('notification-frequency-select')?.value
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {notificationSettings, lastUpdated: new Date().toISOString()});
 
             showMessageBox('Notification settings saved successfully!');
@@ -291,7 +289,7 @@ export class SettingsManager {
                 dataRetention: document.getElementById('data-retention-select')?.value
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {privacySettings, lastUpdated: new Date().toISOString()});
 
             showMessageBox('Privacy settings saved successfully!');
@@ -325,7 +323,7 @@ export class SettingsManager {
                 wordSpacing: document.getElementById('word-spacing-checkbox')?.checked
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {accessibilitySettings, lastUpdated: new Date().toISOString()});
 
             await this.applyAccessibilitySettings(accessibilitySettings);
@@ -359,7 +357,7 @@ export class SettingsManager {
                     .filter(Boolean)
             };
 
-            const docRef = doc(db, 'artifacts', appId, 'public/data/user_profiles', user.uid);
+            const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {advancedSettings, lastUpdated: new Date().toISOString()});
 
             await this.applyAdvancedSettings(advancedSettings);
@@ -375,22 +373,22 @@ export class SettingsManager {
         if (!settings) return;
 
         try {
-            // Apply theme
+
             if (settings.themePreference) {
                 await themeManager.applyTheme(settings.themePreference);
             }
 
-            // Apply preferences
+
             if (settings.preferences) {
                 this.applyPreferences(settings.preferences);
             }
 
-            // Apply accessibility settings
+
             if (settings.accessibilitySettings) {
                 await this.applyAccessibilitySettings(settings.accessibilitySettings);
             }
 
-            // Apply advanced settings
+
             if (settings.advancedSettings) {
                 await this.applyAdvancedSettings(settings.advancedSettings);
             }
@@ -408,13 +406,13 @@ export class SettingsManager {
 
         const root = document.documentElement;
 
-        // Apply font settings
+
         if (preferences.fontSize) root.style.setProperty('--base-font-size', preferences.fontSize);
         if (preferences.fontFamily) root.style.setProperty('--font-family', preferences.fontFamily);
         if (preferences.letterSpacing) root.style.setProperty('--letter-spacing', preferences.letterSpacing);
         if (preferences.lineHeight) root.style.setProperty('--line-height', preferences.lineHeight);
 
-        // Apply background settings
+
         if (preferences.backgroundPattern) {
             document.body.style.backgroundImage = preferences.backgroundPattern === 'none'
                 ? 'none'
@@ -424,9 +422,9 @@ export class SettingsManager {
             root.style.setProperty('--bg-opacity', preferences.backgroundOpacity + '%');
         }
 
-        // Apply heading size multiplier
+
         if (preferences.headingSizeMultiplier) {
-            const multiplier = parseFloat(preferences.headingSizeMultiplier);
+            const multiplier = Number.parseFloat(preferences.headingSizeMultiplier);
             ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].forEach((tag, index) => {
                 const size = (1 + (6 - index) * 0.2) * multiplier;
                 root.style.setProperty(`--${tag}-size`, `${size}rem`);
@@ -439,37 +437,37 @@ export class SettingsManager {
 
         const root = document.documentElement;
 
-        // High contrast mode
+
         root.classList.toggle('high-contrast', settings.highContrast);
 
-        // Large cursor
+
         root.classList.toggle('large-cursor', settings.largeCursor);
 
-        // Focus indicators
+
         root.classList.toggle('focus-visible', settings.focusIndicators);
 
-        // Colorblind friendly mode
+
         root.classList.toggle('colorblind-friendly', settings.colorblindFriendly);
 
-        // Reduced motion
+
         root.classList.toggle('reduced-motion', settings.reducedMotion);
 
-        // Disable animations
+
         root.classList.toggle('no-animations', settings.disableAnimations);
 
-        // Skip links
+
         this.toggleSkipLinks(settings.skipLinks);
 
-        // Text to speech
+
         this.toggleTextToSpeech(settings.textToSpeech);
 
-        // Reading guide
+
         this.toggleReadingGuide(settings.readingGuide);
 
-        // Syntax highlighting
+
         this.toggleSyntaxHighlighting(settings.syntaxHighlighting);
 
-        // Word spacing
+
         if (settings.wordSpacing) {
             root.style.setProperty('--word-spacing', settings.wordSpacing + 'px');
         }
@@ -480,12 +478,12 @@ export class SettingsManager {
 
         const root = document.documentElement;
 
-        // Apply performance modes
+
         root.classList.toggle('low-bandwidth-mode', settings.lowBandwidthMode);
         root.classList.toggle('minimal-ui', settings.minimalUi);
         root.classList.toggle('debug-mode', settings.debugMode);
 
-        // Handle image loading
+
         if (settings.disableImages) {
             document.querySelectorAll('img').forEach(img => {
                 img.loading = 'lazy';
@@ -501,16 +499,11 @@ export class SettingsManager {
             });
         }
 
-        // Apply custom CSS
+
         await this.applyCustomCSS(settings.customCSS);
 
-        // Handle performance metrics
-        this.togglePerformanceMetrics(settings.showPerformanceMetrics);
-
-        // Apply experimental features
         root.classList.toggle('experimental-features', settings.enableExperimentalFeatures);
 
-        // Handle keyboard shortcuts
         if (settings.disabledShortcuts) {
             settings.disabledShortcuts.forEach(shortcut => {
                 const btn = document.querySelector(`[data-shortcut="${shortcut}"]`);
@@ -522,7 +515,7 @@ export class SettingsManager {
         }
     }
 
-    // New: Keyboard shortcuts functionality
+
     initializeKeyboardShortcuts() {
         document.addEventListener('keydown', this.handleKeyboardShortcut);
     }
@@ -532,7 +525,7 @@ export class SettingsManager {
     }
 
     handleKeyboardShortcut(event) {
-        // Don't handle shortcuts if user is typing in an input
+
         if (event.target.matches('input, textarea, [contenteditable]')) return;
 
         const shortcuts = this.getActiveShortcuts();
@@ -566,7 +559,7 @@ export class SettingsManager {
                     document.documentElement.requestFullscreen();
                 }
                 break;
-            // Add more shortcut actions as needed
+
         }
     }
 
@@ -615,9 +608,6 @@ export class SettingsManager {
         }
     }
 
-    toggleTextToSpeech(enabled) {
-        // Implement text-to-speech toggling
-    }
 
     toggleReadingGuide(enabled) {
         const guide = document.getElementById('reading-guide');
@@ -641,7 +631,12 @@ export class SettingsManager {
 
     handleError(error, context) {
         console.error(`Error in ${context}:`, error);
-        showMessageBox(`An error occurred: ${error.message}`, true);
+        // Provide a clearer message for Firestore permission problems
+        if (error?.code === 'permission-denied') {
+            showMessageBox('Insufficient permissions to access Firestore. Some features are disabled.', true);
+        } else {
+            showMessageBox(`An error occurred: ${error?.message ?? String(error)}`, true);
+        }
     }
 
     async saveSettings(sectionId, settings) {
@@ -665,7 +660,7 @@ export class SettingsManager {
     }
 
     setupEventListeners() {
-        // Profile settings
+
         document.getElementById('profile-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -676,7 +671,7 @@ export class SettingsManager {
             await this.saveSettings('profile', settings);
         });
 
-        // Notification settings
+
         document.getElementById('notification-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -689,7 +684,7 @@ export class SettingsManager {
             await this.saveSettings('notifications', settings);
         });
 
-        // Privacy settings
+
         document.getElementById('privacy-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -700,7 +695,7 @@ export class SettingsManager {
             await this.saveSettings('privacy', settings);
         });
 
-        // Accessibility settings
+
         document.getElementById('accessibility-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -712,7 +707,7 @@ export class SettingsManager {
             await this.saveSettings('accessibility', settings);
         });
 
-        // Communication settings
+
         document.getElementById('communication-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -722,7 +717,7 @@ export class SettingsManager {
             await this.saveSettings('communication', settings);
         });
 
-        // Advanced settings
+
         document.getElementById('advanced-settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const settings = {
@@ -739,79 +734,11 @@ export class SettingsManager {
 
 export const settingsManager = new SettingsManager();
 
-// Font scaling system
-function applyFontScalingSystem(userProfile) {
-    // ...existing code...
-}
 
-// Additional accessibility settings
-function applyAccessibilitySettings(settings) {
-    // ...existing code...
-}
-
-// Keyboard shortcuts management
 export function initializeKeyboardShortcuts() {
-    document.addEventListener('keydown', handleKeyboardShortcut);
+    settingsManager.initializeKeyboardShortcuts();
 }
 
 export function disableKeyboardShortcuts() {
-    document.removeEventListener('keydown', handleKeyboardShortcut);
-}
-
-function handleKeyboardShortcut(event) {
-    // Don't handle shortcuts if user is typing in an input
-    if (event.target.matches('input, textarea, [contenteditable]')) return;
-
-    const shortcuts = getActiveShortcuts();
-    const shortcut = shortcuts.find(s => matchesShortcut(event, s));
-
-    if (shortcut) {
-        event.preventDefault();
-        executeShortcut(shortcut);
-    }
-}
-
-function matchesShortcut(event, shortcut) {
-    return shortcut.key === event.key &&
-        shortcut.ctrl === event.ctrlKey &&
-        shortcut.alt === event.altKey &&
-        shortcut.shift === event.shiftKey;
-}
-
-function executeShortcut(shortcut) {
-    switch (shortcut.action) {
-        case 'toggleTheme':
-            themeManager.toggleTheme();
-            break;
-        case 'toggleSidebar':
-            document.documentElement.classList.toggle('sidebar-collapsed');
-            break;
-        case 'toggleFullscreen':
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                document.documentElement.requestFullscreen();
-            }
-            break;
-        // Add more shortcut actions as needed
-    }
-}
-
-function getActiveShortcuts() {
-    const user = authManager.getCurrentUser();
-    const settings = user ? storageManager.get(`user_settings_${user.uid}`) : null;
-
-    if (settings?.keyboardShortcuts === 'disabled') {
-        return [];
-    }
-
-    const defaultShortcuts = [
-        {key: 'd', ctrl: true, alt: false, shift: false, action: 'toggleTheme'},
-        {key: 'b', ctrl: true, alt: false, shift: false, action: 'toggleSidebar'},
-        {key: 'f', ctrl: true, alt: false, shift: false, action: 'toggleFullscreen'}
-    ];
-
-    return settings?.disabledShortcuts
-        ? defaultShortcuts.filter(s => !settings.disabledShortcuts.includes(s.action))
-        : defaultShortcuts;
+    settingsManager.disableKeyboardShortcuts();
 }

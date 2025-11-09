@@ -1,4 +1,4 @@
-import {appId, auth, db, getDocs, query} from "./firebase-init.js";
+import {auth, COLLECTIONS, db, getDocs, query} from "./firebase-init.js";
 import {
     addDoc,
     collection,
@@ -262,7 +262,7 @@ const defaultThemes = [
 ];
 
 export function setupThemesFirebase() {
-  // Legacy function for backward compatibility
+
   return true;
 }
 
@@ -275,8 +275,7 @@ async function fetchCustomThemes() {
           return [];
       }
 
-      const themesPath = `artifacts/${appId}/public/data/themes`;
-      const themesRef = collection(db, themesPath);
+    const themesRef = collection(db, COLLECTIONS.THEMES);
     const customThemesQuery = query(
         themesRef,
       where("isActive", "==", true)
@@ -341,10 +340,7 @@ export async function saveCustomTheme(themeData) {
       isActive: true,
     };
 
-    const docRef = await addDoc(
-      collection(db, `artifacts/${appId}/public/data/custom_themes`),
-      themeDoc
-    );
+    const docRef = await addDoc(collection(db, COLLECTIONS.THEMES), themeDoc);
 
     availableThemesCache = [];
     return docRef.id;
@@ -358,7 +354,7 @@ export async function deleteCustomTheme(themeId) {
   try {
     if (!db) return false;
 
-    await deleteDoc(doc(db, `artifacts/${appId}/public/data/custom_themes`, themeId));
+    await deleteDoc(doc(db, COLLECTIONS.THEMES, themeId));
     availableThemesCache = availableThemesCache.filter(theme => theme.id !== themeId);
     return true;
   } catch (error) {
@@ -371,7 +367,7 @@ export async function initializeGlobalThemes() {
   try {
     if (!db) return false;
 
-    const themesCollection = collection(db, `artifacts/${appId}/public/data/custom_themes`);
+    const themesCollection = collection(db, COLLECTIONS.THEMES);
     const querySnapshot = await getDocs(themesCollection);
 
     if (querySnapshot.empty) {

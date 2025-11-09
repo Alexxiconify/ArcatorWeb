@@ -1,4 +1,3 @@
-// ui-manager.js - Handles UI-related functionality
 import {showMessageBox} from './utils.js';
 
 class UIManager {
@@ -51,7 +50,7 @@ class UIManager {
         section.element.style.display = 'block';
         this.currentSection = sectionId;
 
-        // Update hero section if it exists
+
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
 

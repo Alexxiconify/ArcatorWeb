@@ -1,5 +1,3 @@
-// user-main.js - Main script for the User Account page
-// Handles authentication UI, user settings, and interactions.
 import {uiManager} from "./ui-manager.js";
 import {authManager} from "./auth-manager.js";
 import {SettingsManager} from "./settings-manager.js";
@@ -7,7 +5,6 @@ import {themeManager} from "./theme-manager.js";
 import {sanitizeHandle} from "./utils.js";
 import {firebaseReadyPromise} from "./firebase-init.js";
 
-// Initialize managers
 async function initializeManagers() {
     try {
         await Promise.all([
@@ -20,7 +17,6 @@ async function initializeManagers() {
     }
 }
 
-// Initialize UI elements
 function initializeUI() {
     const sections = {
         signIn: {
@@ -50,7 +46,6 @@ function initializeUI() {
         }
     };
 
-    // Register sections with UI manager
     Object.entries(sections).forEach(([key, section]) => {
         const element = document.getElementById(section.id);
         if (element) {
@@ -58,14 +53,12 @@ function initializeUI() {
         }
     });
 
-    // Set loading element
     const loadingSpinner = document.getElementById('loading-spinner');
     if (loadingSpinner) {
         uiManager.setLoadingElement(loadingSpinner);
     }
 }
 
-// Event handlers
 async function handleLogin(event) {
     event?.preventDefault();
 
@@ -140,20 +133,17 @@ async function handlePasswordReset(event) {
     }
 }
 
-// Event listeners setup
 function setupEventListeners() {
-    // Auth form listeners
+
     document.getElementById('signin-btn')?.addEventListener('click', handleLogin);
     document.getElementById('signup-btn')?.addEventListener('click', handleSignup);
     document.getElementById('reset-password-btn')?.addEventListener('click', handlePasswordReset);
 
-    // Navigation listeners
     document.getElementById('go-to-signup-link')?.addEventListener('click', () => uiManager.showSection('signup-section'));
     document.getElementById('go-to-forgot-password-link')?.addEventListener('click', () => uiManager.showSection('forgot-password-section'));
     document.getElementById('go-to-signin-link')?.addEventListener('click', () => uiManager.showSection('signin-section'));
     document.getElementById('go-to-signin-from-forgot-link')?.addEventListener('click', () => uiManager.showSection('signin-section'));
 
-    // Settings form listeners
     document.getElementById('save-preferences-btn')?.addEventListener('click', () => SettingsManager.savePreferences());
     document.getElementById('save-notifications-btn')?.addEventListener('click', () => SettingsManager.saveNotifications());
     document.getElementById('save-privacy-btn')?.addEventListener('click', () => SettingsManager.savePrivacy());
@@ -161,7 +151,6 @@ function setupEventListeners() {
     document.getElementById('save-advanced-btn')?.addEventListener('click', () => SettingsManager.saveAdvanced());
 }
 
-// Auth state observer
 function setupAuthStateObserver() {
     authManager.onAuthStateChanged(async (user) => {
         uiManager.hideLoading();
@@ -182,7 +171,6 @@ function setupAuthStateObserver() {
     });
 }
 
-// Initialize the page
 async function initializePage() {
     uiManager.showLoading();
 
@@ -199,7 +187,6 @@ async function initializePage() {
     }
 }
 
-// Start initialization when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializePage);
 } else {

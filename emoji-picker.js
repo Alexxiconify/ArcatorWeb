@@ -1,4 +1,4 @@
-// emoji-picker.js: Emoji picker functionality
+
 
 let emojiData = [];
 let filteredEmojis = [];
@@ -7,7 +7,7 @@ let EMOJI_MAP = {};
 let EMOJI_MAP_LOADED = false;
 let EMOJI_LOAD_PROMISE = null;
 
-// --- Emoji Categories ---
+
 const EMOJI_CATEGORIES = [
   {key: 'smileys', label: 'Smileys'},
   {key: 'animals', label: 'Animals'},
@@ -20,10 +20,7 @@ const EMOJI_CATEGORIES = [
   {key: 'other', label: 'Other'},
 ];
 
-/**
- * Loads emoji data from the JSON file.
- * @returns {Promise<Array>} Array of emoji data
- */
+
 async function loadEmojis() {
     try {
         const response = await fetch('./emoji.json');
@@ -35,10 +32,7 @@ async function loadEmojis() {
     }
 }
 
-/**
- * Loads the emoji map for quick lookups
- * @returns {Promise<void>}
- */
+
 function loadEmojiMap() {
     if (EMOJI_LOAD_PROMISE) return EMOJI_LOAD_PROMISE;
     EMOJI_LOAD_PROMISE = fetch("./emoji.json")
@@ -57,10 +51,7 @@ function loadEmojiMap() {
     return EMOJI_LOAD_PROMISE;
 }
 
-/**
- * Toggles the emoji picker visibility.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 export function toggleEmojiPicker(pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   if (picker.classList.contains("hidden")) {
@@ -70,10 +61,7 @@ export function toggleEmojiPicker(pickerId = "emoji-picker") {
   }
 }
 
-/**
- * Shows the emoji picker and loads emojis.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 export function showEmojiPicker(pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   if (!picker) {
@@ -100,25 +88,22 @@ export function showEmojiPicker(pickerId = "emoji-picker") {
   }, 100);
 }
 
-/**
- * Positions the emoji picker to ensure it stays within viewport bounds.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function positionEmojiPicker(pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   const container = picker?.closest(".emoji-input-container");
 
   if (!picker || !container) return;
 
-  // Reset positioning classes
+
   picker.classList.remove("position-above", "position-left", "position-right");
 
-  // Get viewport and element dimensions
+
   const viewportHeight = window.innerHeight;
   const viewportWidth = window.innerWidth;
   const containerRect = container.getBoundingClientRect();
 
-  // Temporarily show picker to get its dimensions
+
   const wasHidden = picker.classList.contains("hidden");
   if (wasHidden) {
     picker.classList.remove("hidden");
@@ -129,36 +114,30 @@ function positionEmojiPicker(pickerId = "emoji-picker") {
   const pickerHeight = pickerRect.height;
   const pickerWidth = pickerRect.width;
 
-  // Hide picker again if it was hidden
+
   if (wasHidden) {
     picker.classList.add("hidden");
     picker.style.visibility = "";
   }
 
-  // Check vertical positioning
+
   const spaceBelow = viewportHeight - containerRect.bottom;
   const spaceAbove = containerRect.top;
 
-  // If not enough space below but enough space above, position above
+
   if (spaceBelow < pickerHeight && spaceAbove > pickerHeight) {
     picker.classList.add("position-above");
   }
 
-  // Check horizontal positioning
-  // If picker would overflow right side, align to right
+
   if (containerRect.left + pickerWidth > viewportWidth) {
     picker.classList.add("position-right");
-  }
-  // If picker would overflow left side, align to left
-  else if (containerRect.right - pickerWidth < 0) {
+  } else if (containerRect.right - pickerWidth < 0) {
     picker.classList.add("position-left");
   }
 }
 
-/**
- * Hides the emoji picker.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 export function hideEmojiPicker(pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   if (picker) {
@@ -166,11 +145,7 @@ export function hideEmojiPicker(pickerId = "emoji-picker") {
   }
 }
 
-/**
- * Renders emojis in the picker.
- * @param {Array} emojis - Array of emoji objects.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 export function renderEmojis(emojis, pickerId = "emoji-picker") {
   const picker = document.getElementById(pickerId);
   const emojiList = picker?.querySelector(".emoji-list");
@@ -198,24 +173,19 @@ export function renderEmojis(emojis, pickerId = "emoji-picker") {
   emojiList.innerHTML = html;
 }
 
-/**
- * Inserts an emoji into the target input/textarea.
- * @param {string} emojiCode - The emoji code to insert (e.g., ":smile:").
- * @param {string} pickerId - The ID of the emoji picker element.
- * @param {string} targetId - The ID of the target input/textarea element.
- */
+
 export function insertEmoji(
   emojiCode,
   pickerId = "emoji-picker",
   targetId = null,
 ) {
-  // Find the target input/textarea
+
   let targetElement = null;
 
   if (targetId) {
     targetElement = document.getElementById(targetId);
   } else {
-    // Try to find the input/textarea in the same container as the picker
+
     const picker = document.getElementById(pickerId);
     if (picker) {
       const container = picker.closest(".emoji-input-container");
@@ -234,28 +204,24 @@ export function insertEmoji(
   const end = targetElement.selectionEnd;
   const text = targetElement.value;
 
-  // Insert the emoji code at cursor position
-    targetElement.value = text.substring(0, start) + emojiCode + text.substring(end);
 
-  // Set cursor position after the inserted emoji
+  targetElement.value = text.substring(0, start) + emojiCode + text.substring(end);
+
+
   const newCursorPos = start + emojiCode.length;
   targetElement.setSelectionRange(newCursorPos, newCursorPos);
 
-  // Focus back on input/textarea
+
   targetElement.focus();
 
-  // Trigger input event to notify any listeners
-  targetElement.dispatchEvent(new Event("input", { bubbles: true }));
 
-  // Hide emoji picker
+  targetElement.dispatchEvent(new Event("input", {bubbles: true}));
+
+
   hideEmojiPicker(pickerId);
 }
 
-/**
- * Filters emojis based on search term.
- * @param {string} searchTerm - The search term.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 export function filterEmojis(searchTerm, pickerId = "emoji-picker") {
   if (!searchTerm.trim()) {
     filteredEmojis = emojiData;
@@ -268,11 +234,7 @@ export function filterEmojis(searchTerm, pickerId = "emoji-picker") {
   renderEmojiTabs(pickerId);
 }
 
-/**
- * Creates an emoji picker HTML structure.
- * @param {string} pickerId - The ID for the emoji picker element.
- * @returns {string} The HTML string for the emoji picker.
- */
+
 export function createEmojiPickerHTML(pickerId = "emoji-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
@@ -324,15 +286,7 @@ export function createEmojiPickerHTML(pickerId = "emoji-picker") {
   `;
 }
 
-/**
- * Creates an emoji input container with picker button.
- * @param {string} inputId - The ID of the input/textarea element.
- * @param {string} pickerId - The ID for the emoji picker element.
- * @param {string} inputType - The type of input ('textarea' or 'text').
- * @param {string} placeholder - Placeholder text for the input.
- * @param {string} className - Additional CSS classes for the input.
- * @returns {string} The HTML string for the emoji input container.
- */
+
 export function createEmojiInputContainer(
   inputId,
   pickerId = "emoji-picker",
@@ -360,34 +314,28 @@ export function createEmojiInputContainer(
   `;
 }
 
-// Emoji/media picker temporarily disabled
+
 export function initEmojiPicker() {}
 
-/**
- * Initializes the media picker functionality.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function initMediaPicker(pickerId) {
   const picker = document.getElementById(pickerId);
   if (!picker) return;
 
-  // Setup tab switching
+
   setupMediaPickerEventListeners(pickerId);
 
-  // Initialize GIF search
+
   initGifSearch(pickerId);
 
-  // Initialize URL validation
+
   initUrlValidation(pickerId);
 
-  // Initialize YouTube validation
+
   initYouTubeValidation(pickerId);
 }
 
-/**
- * Initializes GIF search functionality.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function initGifSearch(pickerId) {
   const searchInput = document.getElementById(`${pickerId}-gif-search`);
   const searchBtn = document.getElementById(`${pickerId}-gif-search-btn`);
@@ -396,7 +344,7 @@ function initGifSearch(pickerId) {
 
   let lastQuery = '';
 
-  // Search on input with debounce
+
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim();
     if (q && q !== lastQuery) {
@@ -405,7 +353,7 @@ function initGifSearch(pickerId) {
     }
   });
 
-  // Search on button click
+
   searchBtn.addEventListener('click', () => {
     const q = searchInput.value.trim();
     if (q) {
@@ -414,7 +362,7 @@ function initGifSearch(pickerId) {
     }
   });
 
-  // Search on Enter key
+
   searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const q = searchInput.value.trim();
@@ -431,20 +379,16 @@ g.images.fixed_height = undefined;
 
 g.images.fixed_height = undefined;
 
-/**
- * Searches for GIFs using GIPHY API.
- * @param {string} query - Search query.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 async function searchGifs(query, pickerId) {
   const resultsEl = document.getElementById(`${pickerId}-gif-results`);
   if (!resultsEl) return;
 
-  // Show loading state
+
   resultsEl.innerHTML = '<div style="text-align: center; padding: 1rem;">Searching...</div>';
 
   try {
-    // Load sensitive configuration
+
     const config = await import('./sensitive/api-keys.js');
     const apiKey = config.default.GIPHY_API_KEY;
 
@@ -473,11 +417,7 @@ async function searchGifs(query, pickerId) {
   }
 }
 
-/**
- * Inserts a GIF into the target input.
- * @param {string} gifUrl - The GIF URL to insert.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 window.insertGif = function (gifUrl, pickerId) {
   const container = document
     .querySelector(`#${pickerId}`)
@@ -491,10 +431,7 @@ window.insertGif = function (gifUrl, pickerId) {
   }
 };
 
-/**
- * Initializes URL validation for media input.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function initUrlValidation(pickerId) {
   const urlInput = document.getElementById(`${pickerId}-url-input`);
   const urlPreview = document.getElementById(`${pickerId}-url-preview`);
@@ -533,7 +470,7 @@ function initUrlValidation(pickerId) {
     }
   });
 
-  // Allow Enter key to insert
+
   urlInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       const url = urlInput.value.trim();
@@ -544,22 +481,18 @@ function initUrlValidation(pickerId) {
   });
 }
 
-/**
- * Validates a media URL and shows preview.
- * @param {string} url - The URL to validate.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 async function validateMediaUrl(url, pickerId) {
   const urlPreview = document.getElementById(`${pickerId}-url-preview`);
   const mediaPreview = document.getElementById(`${pickerId}-media-preview`);
   const insertBtn = document.getElementById(`${pickerId}-insert-media-btn`);
 
   try {
-    // Basic URL validation
+
     const urlObj = new URL(url);
     const extension = urlObj.pathname.split(".").pop()?.toLowerCase();
 
-    // Check if it's a valid media file
+
     const mediaExtensions = [
       "jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico",
       "mp4", "webm", "ogg", "avi", "mov", "wmv", "flv",
@@ -573,7 +506,7 @@ async function validateMediaUrl(url, pickerId) {
       return;
     }
 
-    // Test if the URL is accessible (with timeout)
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -592,7 +525,7 @@ async function validateMediaUrl(url, pickerId) {
     urlPreview.className = "url-preview success";
     insertBtn.disabled = false;
 
-    // Show preview
+
     showMediaPreview(url, extension, pickerId);
   } catch (error) {
     console.warn("URL validation error:", error);
@@ -603,12 +536,7 @@ async function validateMediaUrl(url, pickerId) {
   }
 }
 
-/**
- * Shows a preview of the media.
- * @param {string} url - The media URL.
- * @param {string} extension - The file extension.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function showMediaPreview(url, extension, pickerId) {
   const mediaPreview = document.getElementById(`${pickerId}-media-preview`);
 
@@ -625,11 +553,7 @@ function showMediaPreview(url, extension, pickerId) {
   }
 }
 
-/**
- * Inserts a media URL into the target input.
- * @param {string} url - The media URL to insert.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function insertMediaUrl(url, pickerId) {
   const container = document
     .querySelector(`#${pickerId}`)
@@ -650,7 +574,7 @@ function insertMediaUrl(url, pickerId) {
     } else if (audioExtensions.includes(extension)) {
       markdown = `![Audio](${url})`;
     } else {
-      // For URLs without clear extension, try to detect content type
+
       if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = extractYouTubeVideoId(url);
         if (videoId) {
@@ -670,10 +594,7 @@ function insertMediaUrl(url, pickerId) {
   }
 }
 
-/**
- * Initializes YouTube URL validation.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function initYouTubeValidation(pickerId) {
   const youtubeInput = document.getElementById(`${pickerId}-youtube-input`);
   const youtubePreview = document.getElementById(`${pickerId}-youtube-preview`);
@@ -712,7 +633,7 @@ function initYouTubeValidation(pickerId) {
     }
   });
 
-  // Allow Enter key to insert
+
   youtubeInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       const url = youtubeInput.value.trim();
@@ -723,11 +644,7 @@ function initYouTubeValidation(pickerId) {
   });
 }
 
-/**
- * Validates a YouTube URL and shows preview.
- * @param {string} url - The YouTube URL to validate.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function validateYouTubeUrl(url, pickerId) {
   const urlPreview = document.querySelector(`#${pickerId} #youtube-preview`);
   const embedPreview = document.querySelector(
@@ -749,7 +666,7 @@ function validateYouTubeUrl(url, pickerId) {
     urlPreview.className = "url-preview success";
     insertBtn.disabled = false;
 
-    // Show embed preview
+
     embedPreview.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
   } catch (error) {
     urlPreview.innerHTML = "Invalid YouTube URL";
@@ -758,13 +675,7 @@ function validateYouTubeUrl(url, pickerId) {
   }
 }
 
-// YouTube video ID extraction moved to utils.js
 
-/**
- * Inserts a YouTube URL into the target input.
- * @param {string} url - The YouTube URL to insert.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
 function insertYouTubeUrl(url, pickerId) {
   const container = document
     .querySelector(`#${pickerId}`)
@@ -781,15 +692,12 @@ function insertYouTubeUrl(url, pickerId) {
   }
 }
 
-/**
- * Sets up media picker event listeners.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function setupMediaPickerEventListeners(pickerId) {
   const picker = document.getElementById(pickerId);
   if (!picker) return;
 
-  // Tab switching
+
   const tabs = picker.querySelectorAll(".media-tab");
   const tabContents = picker.querySelectorAll(".media-tab-content");
 
@@ -797,11 +705,11 @@ function setupMediaPickerEventListeners(pickerId) {
     tab.addEventListener("click", () => {
       const targetTab = tab.dataset.tab;
 
-      // Update active tab
+
       tabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
 
-      // Update active content
+
       tabContents.forEach((content) => {
         content.classList.remove("active");
         if (content.id === `${pickerId}-${targetTab}-tab`) {
@@ -811,21 +719,17 @@ function setupMediaPickerEventListeners(pickerId) {
     });
   });
 
-  // Initialize URL validation
+
   initUrlValidation(pickerId);
 
-  // Initialize GIF search
+
   initGifSearch(pickerId);
 
-  // Initialize YouTube validation
+
   initYouTubeValidation(pickerId);
 }
 
-/**
- * Inserts text at the current cursor position.
- * @param {HTMLElement} input - The input element.
- * @param {string} text - The text to insert.
- */
+
 function insertAtCursor(input, text) {
     input.value = undefined;
     input.selectionEnd = undefined;
@@ -837,16 +741,13 @@ function insertAtCursor(input, text) {
   input.value = value.substring(0, start) + text + value.substring(end);
   input.selectionStart = input.selectionEnd = start + text.length;
 
-  // Trigger input event
-  input.dispatchEvent(new Event("input", { bubbles: true }));
+
+  input.dispatchEvent(new Event("input", {bubbles: true}));
 }
 
-/**
- * Sets up emoji picker event listeners.
- * @param {string} pickerId - The ID of the emoji picker element.
- */
+
 function setupEmojiPickerEventListeners(pickerId) {
-  // Use pickerId for search input
+
   const emojiSearch = document.getElementById(`${pickerId}-search`);
   if (emojiSearch) {
     emojiSearch.classList.add('form-input', 'bg-card', 'text-text-primary', 'border-none', 'rounded', 'w-full');
@@ -854,7 +755,7 @@ function setupEmojiPickerEventListeners(pickerId) {
       filterEmojis(e.target.value, pickerId);
     });
   }
-  // Close emoji picker when clicking outside
+
   document.addEventListener("click", (e) => {
     const picker = document.getElementById(pickerId);
     const pickerBtn = document.querySelector(`.emoji-picker-btn[onclick*='${pickerId}']`);
@@ -869,24 +770,19 @@ function setupEmojiPickerEventListeners(pickerId) {
   });
 }
 
-/**
- * Converts markdown text to HTML safely with emoji support.
- * @param {string} markdown - The markdown text to convert.
- * @param {Function} replaceEmojis - Function to replace emoji codes with actual emojis.
- * @returns {string} The converted HTML.
- */
+
 export function markdownToHtml(markdown, replaceEmojis = null) {
   if (!markdown) return "";
 
   try {
-    // First, replace emojis in the text if function is provided
+
     let processedText = markdown;
     if (replaceEmojis && typeof replaceEmojis === "function") {
       processedText = replaceEmojis(markdown);
     }
 
-    // Configure marked for safe rendering
-      let marked;
+
+    let marked;
       if (typeof marked !== "undefined") {
       marked.setOptions({
         breaks: true, // Convert line breaks to <br>
@@ -896,21 +792,21 @@ export function markdownToHtml(markdown, replaceEmojis = null) {
         smartypants: true,
       });
 
-      // Convert markdown to HTML
-      const html = marked.parse(processedText);
 
-      // Basic sanitization to prevent XSS
-      const tempDiv = document.createElement("div");
+        const html = marked.parse(processedText);
+
+
+        const tempDiv = document.createElement("div");
       tempDiv.innerHTML = html;
 
-      // Remove any script tags and other potentially dangerous elements
-      const scripts = tempDiv.querySelectorAll(
+
+        const scripts = tempDiv.querySelectorAll(
         "script, iframe, object, embed, form, input, button, select, textarea",
       );
       scripts.forEach((el) => el.remove());
 
-      // Remove any onclick, onload, etc. attributes
-      const allElements = tempDiv.querySelectorAll("*");
+
+        const allElements = tempDiv.querySelectorAll("*");
       allElements.forEach((el) => {
         const attrs = el.attributes;
         for (let i = attrs.length - 1; i >= 0; i--) {
@@ -926,8 +822,8 @@ export function markdownToHtml(markdown, replaceEmojis = null) {
 
       return tempDiv.innerHTML;
     } else {
-      // Fallback if marked is not available
-      return processedText.replace(/[&<>"']/g, function (match) {
+
+        return processedText.replace(/[&<>"']/g, function (match) {
         const escape = {
           "&": "&amp;",
           "<": "&lt;",
@@ -940,7 +836,7 @@ export function markdownToHtml(markdown, replaceEmojis = null) {
     }
   } catch (error) {
     console.error("Error converting markdown to HTML:", error);
-    // Return escaped HTML if conversion fails
+
     return markdown.replace(/[&<>"']/g, function (match) {
       const escape = {
         "&": "&amp;",
@@ -954,7 +850,7 @@ export function markdownToHtml(markdown, replaceEmojis = null) {
   }
 }
 
-// Make functions globally available for backward compatibility
+
 window.toggleEmojiPicker = toggleEmojiPicker;
 window.insertEmoji = insertEmoji;
 window.filterEmojis = filterEmojis;
@@ -964,18 +860,7 @@ window.initEmojiPicker = initEmojiPicker;
 window.markdownToHtml = markdownToHtml;
 window.hideEmojiPicker = hideEmojiPicker;
 
-// --- SPLIT PICKERS ---
 
-/**
- * Creates an emoji+media input container with both pickers.
- * @param {string} inputId - The ID of the input/textarea element.
- * @param {string} emojiPickerId - The ID for the emoji picker element.
- * @param {string} mediaPickerId - The ID for the media picker element.
- * @param {string} inputType - 'textarea' or 'text'.
- * @param {string} placeholder - Placeholder text.
- * @param {string} className - Extra classes.
- * @returns {string}
- */
 export function createEmojiMediaInputContainer(
   inputId,
   emojiPickerId,
@@ -999,9 +884,7 @@ export function createEmojiMediaInputContainer(
   `;
 }
 
-/**
- * Creates emoji picker HTML only.
- */
+
 export function createSimpleEmojiPickerHTML(pickerId = "emoji-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
@@ -1014,9 +897,7 @@ export function createSimpleEmojiPickerHTML(pickerId = "emoji-picker") {
   `;
 }
 
-/**
- * Creates media picker HTML only.
- */
+
 export function createMediaPickerHTML(pickerId = "media-picker") {
   return `
     <div id="${pickerId}" class="emoji-picker hidden">
@@ -1059,12 +940,12 @@ export function createMediaPickerHTML(pickerId = "media-picker") {
   `;
 }
 
-// --- Picker toggling logic ---
+
 window.toggleEmojiPicker = function (pickerId, type) {
-  // type: 'emoji' or 'media'
+
   const picker = document.getElementById(pickerId);
   if (!picker) return;
-  // Hide all other pickers
+
   document.querySelectorAll(".emoji-picker").forEach((p) => {
     if (p !== picker) p.classList.add("hidden");
   });
@@ -1079,13 +960,13 @@ window.toggleEmojiPicker = function (pickerId, type) {
         if (s) s.focus();
       }, 100);
     } else if (type === "media") {
-      // Initialize media picker functionality
+
       setupMediaPickerEventListeners(pickerId);
     }
   }
 };
 
-// Render GIFs
+
 function renderGifResults(gifs, pickerId) {
   const resultsEl = document.getElementById(`${pickerId}-gif-results`);
   if (!resultsEl) return;
@@ -1106,7 +987,7 @@ function renderGifResults(gifs, pickerId) {
   `).join('');
 }
 
-// --- Render Emoji Tabs ---
+
 function renderEmojiTabs(pickerId) {
   const picker = document.getElementById(pickerId);
   const tabsContainer = picker?.querySelector('.emoji-tabs');

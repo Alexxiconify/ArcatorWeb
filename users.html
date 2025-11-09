@@ -6,11 +6,11 @@
     <title>User Account - Arcator</title>
     <link href="./master.css" rel="stylesheet">
     <link href="./favicon.png" rel="icon" type="image/png">
-    <!-- Firebase SDK -->
+
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js" type="module"></script>
-    <!-- App Scripts -->
+
     <script src="./firebase-init.js" type="module"></script>
     <script src="./settings-manager.js" type="module"></script>
     <script src="./user-main.js" type="module"></script>
@@ -33,7 +33,6 @@
         }
 
         .hero-content {
-            position: relative;
             z-index: 2;
             text-align: center;
             color: #ffffff;
@@ -42,10 +41,28 @@
     </style>
 </head>
 <body class="antialiased">
-<!-- Navbar placeholder -->
-<div id="navbar-placeholder"></div>
 
-<!-- Hero Banner -->
+<div id="navbar-placeholder">
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="flex items-center gap-4">
+                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
+                <div class="flex items-center gap-4">
+                    <a class="nav-link" href="./index.html">Home</a>
+                    <a class="nav-link" href="./games.html">Games</a>
+                    <a class="nav-link" href="./forms.html">Forms</a>
+                    <a class="nav-link" href="./pages.html">Pages</a>
+                    <a class="nav-link" href="./about.html">About</a>
+                    <a class="nav-link" href="./mod.html">Admin</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4" id="user-section">
+                <div class="sign-in-prompt">Loading…</div>
+            </div>
+        </div>
+    </nav>
+</div>
+
 <section class="hero-banner">
     <img alt="Hero" class="hero-image" src="./creativespawn.png">
     <div class="hero-overlay"></div>
@@ -55,528 +72,88 @@
     </div>
 </section>
 
-<!-- Main content -->
-<div class="container mx-auto px-4 py-8">
-    <!-- Loading Spinner -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="loading-spinner">
-        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
-        </div>
+<main class="container mx-auto px-4 py-8">
+    <!-- Authentication and settings sections are rendered by the script below -->
+    <div class="hidden" id="auth-section"></div>
+    <div class="hidden" id="settings-section"></div>
+</main>
 
-    <!-- Login/Register Section -->
-    <div class="hidden" id="auth-section">
-        <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg p-6">
-            <!-- Login Form -->
-            <form class="space-y-4" id="login-form">
-                <h2 class="text-2xl font-bold mb-4">Sign In</h2>
-                <div class="auth-input-field">
-                    <label for="login-email">Email</label>
-                    <input autocomplete="email" class="form-input" id="login-email" name="email" required type="email"/>
-                </div>
-                <div class="auth-input-field">
-                    <label for="login-password">Password</label>
-                    <input autocomplete="current-password" class="form-input" id="login-password" name="password" required
-                           type="password"/>
-                </div>
-                <button class="btn-primary w-full" id="login-btn" type="submit">Sign In</button>
-                <div class="text-center mt-4">
-                    <button class="text-link hover:underline" id="switch-to-register" type="button">Create Account
-                    </button>
-                    <span class="mx-2">|</span>
-                    <button class="text-link hover:underline" id="forgot-password" type="button">Forgot Password?
-                    </button>
-                </div>
-                <div class="flex items-center justify-center space-x-4 mt-4">
-                    <button class="btn-secondary" id="google-signin" type="button">
-                        Sign in with Google
-                    </button>
-                    <button class="btn-secondary" id="github-signin" type="button">
-                        Sign in with GitHub
-                    </button>
-                </div>
-            </form>
-
-            <!-- Register Form -->
-            <form class="hidden space-y-4" id="register-form">
-                <h2 class="text-2xl font-bold mb-4">Create Account</h2>
-                <div class="auth-input-field">
-                    <label for="register-email">Email</label>
-                    <input autocomplete="email" class="form-input" id="register-email" name="email" required
-                           type="email"/>
-                </div>
-                <div class="auth-input-field">
-                    <label for="register-password">Password</label>
-                    <input autocomplete="new-password" class="form-input" id="register-password" name="password" required
-                           type="password"/>
-                </div>
-                <div class="auth-input-field">
-                    <label for="register-confirm-password">Confirm Password</label>
-                    <input autocomplete="new-password" class="form-input" id="register-confirm-password" name="password_confirm"
-                           required type="password"/>
-                </div>
-                <button class="btn-primary w-full" id="register-btn" type="submit">Create Account</button>
-                <div class="text-center mt-4">
-                    <button class="text-link hover:underline" id="switch-to-login" type="button">Already have an
-                        account? Sign In
-                    </button>
-                </div>
-            </form>
-        </div>
-        </div>
-
-    <!-- User Settings Section -->
-    <div class="hidden" id="settings-section">
-        <!-- Profile Settings Form -->
-        <form class="settings-section mb-8" id="profile-settings-form">
-            <div class="settings-card">
-                    <details open>
-                        <summary class="text-lg font-semibold p-4 cursor-pointer">Profile Settings</summary>
-                        <div class="p-4">
-                            <div class="auth-input-field">
-                                <label for="display-name-input">Display Name</label>
-                                <input autocomplete="nickname" class="form-input" id="display-name-input" maxlength="50" minlength="2"
-                                       name="display_name" required type="text"/>
-                                <span class="error-message" id="display-name-error"></span>
-                            </div>
-
-                            <div class="auth-input-field mt-4">
-                                <label for="handle-input">Handle</label>
-                                <input autocomplete="username" class="form-input" id="handle-input" name="handle" pattern="[a-z0-9_.]{3,30}"
-                                       required type="text"/>
-                                <span class="error-message" id="handle-error"></span>
-                            </div>
-
-                            <div class="auth-input-field mt-4">
-                                <label for="email-input">Email</label>
-                                <input autocomplete="email" class="form-input" id="email-input" name="email" required
-                                       type="email"/>
-                                <span class="error-message" id="email-error"></span>
-                            </div>
-
-                            <button class="btn-primary mt-6" id="save-profile-btn" type="submit">
-                                Save Changes
-                            </button>
-                        </div>
-                    </details>
-                </div>
-        </form>
-
-        <!-- Password Change Form -->
-        <form class="settings-section mb-8" id="change-password-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Change Password</summary>
-                    <div class="p-4 space-y-4">
-                        <!-- Hidden username field for accessibility -->
-                        <label for="password-username">
-                        </label><input aria-hidden="true"
-                                       autocomplete="username"
-                                       class="hidden"
-                                       id="password-username"
-                                       name="username"
-                                       tabindex="-1"
-                                       type="text"/>
-
-                        <div class="auth-input-field">
-                            <label for="current-password">Current Password</label>
-                            <input autocomplete="current-password"
-                                   class="form-input"
-                                   id="current-password"
-                                   minlength="6"
-                                   name="current_password"
-                                   required
-                                   type="password"/>
-                            <span class="error-message" id="current-password-error"></span>
-                        </div>
-
-                        <div class="auth-input-field">
-                            <label for="new-password">New Password</label>
-                            <input autocomplete="new-password"
-                                   class="form-input"
-                                   id="new-password"
-                                   minlength="6"
-                                   name="new_password"
-                                   required
-                                   type="password"/>
-                            <span class="error-message" id="new-password-error"></span>
-                        </div>
-
-                        <div class="auth-input-field">
-                            <label for="confirm-new-password">Confirm New Password</label>
-                            <input autocomplete="new-password"
-                                   class="form-input"
-                                   id="confirm-new-password"
-                                   minlength="6"
-                                   name="new_password_confirm"
-                                   required
-                                   type="password"/>
-                            <span class="error-message" id="confirm-new-password-error"></span>
-                            </div>
-
-                        <button class="btn-primary" type="submit">Change Password</button>
-                    </div>
-                </details>
-            </div>
-        </form>
-
-        <!-- Theme Settings -->
-        <div class="settings-section mb-8">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Theme Settings</summary>
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="theme-list">
-                            <!-- Themes will be populated here -->
-                        </div>
-                    </div>
-                </details>
-                </div>
-        </div>
-
-        <!-- Notification Settings -->
-        <form class="settings-section mb-8" id="notification-settings-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Notification Settings</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <label for="email-notifications">Email Notifications</label>
-                                <input class="form-checkbox" id="email-notifications" type="checkbox"/>
-                                </div>
-                            <div class="flex items-center justify-between">
-                                <label for="inapp-notifications">In-App Notifications</label>
-                                <input class="form-checkbox" id="inapp-notifications" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="announcement-notifications">Announcement Notifications</label>
-                                <input class="form-checkbox" id="announcement-notifications" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="community-notifications">Community Updates</label>
-                                <input class="form-checkbox" id="community-notifications" type="checkbox"/>
-                                </div>
-                            <div class="flex items-center justify-between">
-                                <label for="maintenance-notifications">Maintenance Updates</label>
-                                <input class="form-checkbox" id="maintenance-notifications" type="checkbox"/>
-                                </div>
-                            <button class="btn-primary mt-4" type="submit">Save Notification Settings</button>
-                        </div>
-                    </div>
-                </details>
-            </div>
-        </form>
-
-        <!-- Privacy Settings -->
-        <form class="settings-section mb-8" id="privacy-settings-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Privacy Settings</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <label for="profile-visibility">Public Profile</label>
-                                <input class="form-checkbox" id="profile-visibility" type="checkbox"/>
-                                </div>
-                            <div class="flex items-center justify-between">
-                                <label for="activity-visibility">Show Activity Status</label>
-                                <input class="form-checkbox" id="activity-visibility" type="checkbox"/>
-                                </div>
-                            <div class="flex items-center justify-between">
-                                <label for="data-retention">Data Retention Period</label>
-                                <select class="form-select" id="data-retention">
-                                    <option value="30">30 days</option>
-                                    <option value="90">90 days</option>
-                                    <option value="180">180 days</option>
-                                    <option value="365">1 year</option>
-                                    </select>
-                                </div>
-                            <button class="btn-primary mt-4" type="submit">Save Privacy Settings</button>
-                            </div>
-                    </div>
-                </details>
-            </div>
-        </form>
-
-        <!-- Accessibility Settings -->
-        <form class="settings-section mb-8" id="accessibility-settings-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Accessibility Settings</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <label for="high-contrast">High Contrast Mode</label>
-                                <input class="form-checkbox" id="high-contrast" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="font-size">Font Size</label>
-                                <select class="form-select" id="font-size">
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                    <option value="x-large">Extra Large</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="reduced-motion">Reduce Motion</label>
-                                <input class="form-checkbox" id="reduced-motion" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="screen-reader">Screen Reader Support</label>
-                                <input class="form-checkbox" id="screen-reader" type="checkbox"/>
-                            </div>
-                            <button class="btn-primary mt-4" type="submit">Save Accessibility Settings</button>
-                        </div>
-                    </div>
-                </details>
-            </div>
-        </form>
-
-        <!-- Communication Settings -->
-        <form class="settings-section mb-8" id="communication-settings-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Communication Settings</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <label for="dm-permissions">Direct Message Permissions</label>
-                                <select class="form-select" id="dm-permissions">
-                                    <option value="everyone">Everyone</option>
-                                    <option value="following">Following Only</option>
-                                    <option value="none">No One</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="mention-permissions">Mention Permissions</label>
-                                <select class="form-select" id="mention-permissions">
-                                    <option value="everyone">Everyone</option>
-                                    <option value="following">Following Only</option>
-                                    <option value="none">No One</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <button class="btn-secondary" type="button">Manage</button>
-                            </div>
-                            <button class="btn-primary mt-4" type="submit">Save Communication Settings</button>
-                            </div>
-                    </div>
-                </details>
-            </div>
-        </form>
-
-        <!-- Advanced Settings -->
-        <form class="settings-section mb-8" id="advanced-settings-form">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Advanced Settings</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <label for="low-bandwidth">Low Bandwidth Mode</label>
-                                <input class="form-checkbox" id="low-bandwidth" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="debug-mode">Debug Mode</label>
-                                <input class="form-checkbox" id="debug-mode" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="keyboard-shortcuts">Enable Keyboard Shortcuts</label>
-                                <input class="form-checkbox" id="keyboard-shortcuts" type="checkbox"/>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="experimental-features">Enable Experimental Features</label>
-                                <input class="form-checkbox" id="experimental-features" type="checkbox"/>
-                            </div>
-                            <div class="mt-4">
-                                <label class="block mb-2" for="custom-css">Custom CSS</label>
-                                <textarea class="form-textarea w-full" id="custom-css" rows="4"></textarea>
-                            </div>
-                            <button class="btn-primary mt-4" type="submit">Save Advanced Settings</button>
-                            </div>
-                        </div>
-                    </details>
-                </div>
-        </form>
-
-        <!-- Data Management -->
-        <div class="settings-section mb-8">
-            <div class="settings-card">
-                <details>
-                    <summary class="text-lg font-semibold p-4 cursor-pointer">Data Management</summary>
-                    <div class="p-4">
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="text-lg font-semibold mb-2">Export Data</h3>
-                                <p class="text-sm text-text-secondary mb-4">Download a copy of your data</p>
-                                <button class="btn-secondary" onclick="exportUserData()" type="button">Export Data
-                                </button>
-                            </div>
-                            <div class="border-t border-border pt-4">
-                                <h3 class="text-lg font-semibold mb-2 text-danger">Danger Zone</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <button class="btn-danger" onclick="deactivateAccount()" type="button">
-                                            Deactivate Account
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button class="btn-danger" onclick="deleteAccount()" type="button">
-                                            Delete Account Permanently
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </details>
-            </div>
-        </div>
-        </div>
-    </div>
-
-<!-- Footer placeholder -->
 <div id="footer-placeholder"></div>
 
 <script type="module">
     import {
-        createUserWithEmailAndPassword,
         GithubAuthProvider,
         GoogleAuthProvider,
         signInWithEmailAndPassword,
-        signInWithPopup,
-        sendPasswordResetEmail
+        signInWithPopup
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     import {doc, getDoc, setDoc} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-    import {auth, db, appId} from "./firebase-init.js";
+    import {auth, db, COLLECTIONS} from "./firebase-init.js";
     import {themeManager} from "./theme-manager.js";
     import {showMessageBox} from "./utils.js";
     import {initializePage, loadFooter} from "./core.js";
 
-    // Data management functions
-    async function exportUserData() {
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-                showMessageBox('Please sign in to export data', true);
-                return;
-            }
+    // Minimal inline DOM for auth and settings to avoid large HTML inlined here.
+    const authSection = document.getElementById('auth-section');
+    const settingsSection = document.getElementById('settings-section');
 
-            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-            const userDoc = await getDoc(userRef);
-            if (!userDoc.exists()) {
-                showMessageBox('No data found to export', true);
-                return;
-            }
+    authSection.innerHTML = `
+      <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg p-6">
+        <form id="login-form" class="space-y-4">
+          <h2 class="text-2xl font-bold mb-4">Sign In</h2>
+          <div class="auth-input-field">
+            <label for="login-email">Email</label>
+            <input autocomplete="email" class="form-input" id="login-email" name="email" required type="email"/>
+          </div>
+          <div class="auth-input-field">
+            <label for="login-password">Password</label>
+            <input autocomplete="current-password" class="form-input" id="login-password" name="password" required type="password"/>
+          </div>
+          <button class="btn-primary w-full" id="login-btn" type="submit">Sign In</button>
+          <div class="flex items-center justify-center space-x-4 mt-4">
+            <button class="btn-secondary" id="google-signin" type="button">Sign in with Google</button>
+            <button class="btn-secondary" id="github-signin" type="button">Sign in with GitHub</button>
+          </div>
+        </form>
+      </div>
+    `;
 
-            const userData = userDoc.data();
-            const dataStr = JSON.stringify(userData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = globalThis.URL.createObjectURL(dataBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `arcator-data-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            globalThis.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            showMessageBox('Data exported successfully!');
-        } catch (error) {
-            console.error('Error exporting data:', error);
-            showMessageBox('Failed to export data', true);
+    settingsSection.innerHTML = `
+      <div id="settings-shell">
+        <!-- Profile settings rendered dynamically -->
+        <form id="profile-settings-form" class="settings-card p-4 bg-card rounded-lg shadow-lg">
+          <h3 class="text-lg font-semibold mb-3">Profile Settings</h3>
+          <label>Display Name</label>
+          <input id="display-name-input" class="form-input w-full" />
+          <label class="mt-3">Handle</label>
+          <input id="handle-input" class="form-input w-full" />
+          <label class="mt-3">Email</label>
+          <input id="email-input" class="form-input w-full" />
+          <div class="mt-4"><button class="btn-primary" id="save-profile-btn">Save Changes</button></div>
+        </form>
+      </div>
+    `;
+
+    function showSection(isSignedIn) {
+        if (isSignedIn) {
+            authSection.classList.add('hidden');
+            settingsSection.classList.remove('hidden');
+        } else {
+            settingsSection.classList.add('hidden');
+            authSection.classList.remove('hidden');
         }
     }
 
-    async function deactivateAccount() {
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-                showMessageBox('Please sign in to deactivate account', true);
-                return;
-            }
-
-            const confirmed = confirm('Are you sure you want to deactivate your account? This can be reversed later.');
-            if (!confirmed) return;
-
-            const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-            await setDoc(userRef, {
-                isDeactivated: true,
-                deactivatedAt: new Date().toISOString()
-            }, {merge: true});
-
-            showMessageBox('Account deactivated successfully. You will be signed out.');
-            await auth.signOut();
-        } catch (error) {
-            console.error('Error deactivating account:', error);
-            showMessageBox('Failed to deactivate account', true);
-        }
-    }
-
-    async function deleteAccount() {
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-                showMessageBox('Please sign in to delete account', true);
-                return;
-            }
-
-            const confirmed = confirm('Are you sure you want to permanently delete your account? This action cannot be undone.');
-            if (!confirmed) return;
-
-            const reconfirmed = confirm('This will permanently delete all your data. Type DELETE to confirm.');
-            if (reconfirmed) {
-                const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-                await setDoc(userRef, {
-                    isDeleted: true,
-                    deletedAt: new Date().toISOString()
-                }, {merge: true});
-
-                await user.delete();
-                showMessageBox('Account deleted successfully.');
-            }
-        } catch (error) {
-            console.error('Error deleting account:', error);
-            showMessageBox('Failed to delete account', true);
-        }
-    }
-
-    // Function to show/hide sections
-    function showSection(sectionId) {
-        const sections = ['auth-section', 'settings-section'];
-        sections.forEach(section => {
-            const element = document.getElementById(section);
-            if (element) {
-                if (section === sectionId) {
-                    element.classList.remove('hidden');
-                    element.style.opacity = '0';
-                    element.style.transform = 'translateY(20px)';
-                    setTimeout(() => {
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
-                        element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    }, 50);
-                } else {
-                    element.classList.add('hidden');
-                }
-            }
-        });
-    }
-
-    // Set up event listeners for authentication
     function setupEventListeners() {
         const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const switchToRegister = document.getElementById('switch-to-register');
-        const switchToLogin = document.getElementById('switch-to-login');
-        const googleSignIn = document.getElementById('google-signin');
-        const githubSignIn = document.getElementById('github-signin');
-        const forgotPassword = document.getElementById('forgot-password');
+        const googleSignInBtn = document.getElementById('google-signin');
+        const githubSignInBtn = document.getElementById('github-signin');
+        const saveProfileBtn = document.getElementById('save-profile-btn');
 
         loginForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 showMessageBox('Logged in successfully!');
@@ -586,37 +163,7 @@
             }
         });
 
-        registerForm?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-confirm-password').value;
-
-            if (password !== confirmPassword) {
-                showMessageBox('Passwords do not match', true);
-                return;
-            }
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessageBox('Account created successfully!');
-            } catch (error) {
-                console.error('Registration error:', error);
-                showMessageBox(error.message, true);
-            }
-        });
-
-        switchToRegister?.addEventListener('click', () => {
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-        });
-
-        switchToLogin?.addEventListener('click', () => {
-            registerForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
-
-        googleSignIn?.addEventListener('click', async () => {
+        googleSignInBtn?.addEventListener('click', async () => {
             try {
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider);
@@ -626,7 +173,7 @@
             }
         });
 
-        githubSignIn?.addEventListener('click', async () => {
+        githubSignInBtn?.addEventListener('click', async () => {
             try {
                 const provider = new GithubAuthProvider();
                 await signInWithPopup(auth, provider);
@@ -636,81 +183,50 @@
             }
         });
 
-        forgotPassword?.addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value;
-            if (!email) {
-                showMessageBox('Please enter your email address first', true);
+        saveProfileBtn?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) {
+                showMessageBox('Please sign in first', true);
                 return;
             }
-
+            const updates = {
+                displayName: document.getElementById('display-name-input').value,
+                handle: document.getElementById('handle-input').value,
+                email: document.getElementById('email-input').value,
+                lastUpdated: new Date().toISOString()
+            };
             try {
-                await sendPasswordResetEmail(auth, email);
-                showMessageBox('Password reset email sent!');
+                const userRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
+                await setDoc(userRef, updates, {merge: true});
+                showMessageBox('Profile updated');
             } catch (error) {
-                console.error('Password reset error:', error);
-                showMessageBox(error.message, true);
+                console.error('Error saving profile', error);
+                showMessageBox('Failed to save profile', true);
             }
-        });
-
-        // Set up form event listeners
-        const forms = [
-            'profile-settings-form',
-            'change-password-form',
-            'notification-settings-form',
-            'privacy-settings-form',
-            'accessibility-settings-form',
-            'communication-settings-form',
-            'advanced-settings-form'
-        ];
-
-        forms.forEach(formId => {
-            const form = document.getElementById(formId);
-            form?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                try {
-                    const formData = new FormData(e.target);
-                    const data = Object.fromEntries(formData.entries());
-
-                    const user = auth.currentUser;
-                    if (!user) {
-                        showMessageBox('Please sign in to save settings', true);
-                        return;
-                    }
-
-                    const userRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
-                    await setDoc(userRef, {
-                        [formId.replace('-form', '')]: data,
-                        lastUpdated: new Date().toISOString()
-                    }, {merge: true});
-
-                    showMessageBox('Settings saved successfully!');
-                } catch (error) {
-                    console.error(`Error saving ${formId}:`, error);
-                    showMessageBox('Failed to save settings', true);
-                }
-            });
         });
     }
 
-    // Make functions available globally
-    globalThis.exportUserData = exportUserData;
-    globalThis.deactivateAccount = deactivateAccount;
-    globalThis.deleteAccount = deleteAccount;
-    globalThis.showBlockedUsers = () => import('./forms.js').then(m => m.showBlockedUsers());
-
-    // Initialize page
     const init = async () => {
         try {
-            await Promise.all([
-                themeManager.init(),
-                initializePage('users'),
-                loadFooter()
-            ]);
+            await Promise.all([initializePage('users'), themeManager.init()]);
+            await loadFooter();
             setupEventListeners();
 
-            // Show the appropriate section based on auth state
-            auth.onAuthStateChanged((user) => {
-                showSection(user ? 'settings-section' : 'auth-section');
+            auth.onAuthStateChanged(async (user) => {
+                showSection(!!user);
+                if (user) {
+                    try {
+                        const userRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
+                        const userDoc = await getDoc(userRef);
+                        const data = userDoc.exists() ? userDoc.data() : {};
+                        document.getElementById('display-name-input').value = data.displayName || user.displayName || '';
+                        document.getElementById('handle-input').value = data.handle || '';
+                        document.getElementById('email-input').value = data.email || user.email || '';
+                    } catch (err) {
+                        console.error('Error loading profile', err);
+                    }
+                }
             });
         } catch (error) {
             console.error('Page initialization error:', error);
@@ -718,11 +234,10 @@
         }
     };
 
-    // Start initialization when document is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        init().catch(error => console.error('Initialization error:', error));
+        init().catch(err => console.error(err));
     }
 </script>
 </body>

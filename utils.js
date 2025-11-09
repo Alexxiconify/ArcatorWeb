@@ -1,15 +1,8 @@
-// utils.js - Utility functions
 
-// Message box queue
+
 const messageQueue = [];
 let messageTimeout = null;
 
-/**
- * Show a message box with custom message
- * @param {string} message - Message to display
- * @param {boolean} isError - Whether this is an error message
- * @param {number} duration - How long to show the message (ms)
- */
 export function showMessageBox(message, isError = false, duration = 3000) {
     messageQueue.push({message, isError, duration});
     if (!messageTimeout) processMessageQueue();
@@ -42,7 +35,6 @@ function getOrCreateMessageBox() {
         messageBox.className = 'message-box';
         document.body.appendChild(messageBox);
 
-        // Add styles if not already present
         if (!document.getElementById('message-box-styles')) {
             const style = document.createElement('style');
             style.id = 'message-box-styles';
@@ -78,12 +70,6 @@ function getOrCreateMessageBox() {
     return messageBox;
 }
 
-/**
- * Show a confirmation dialog
- * @param {string} message - Main message
- * @param {string} description - Detailed description
- * @returns {Promise<boolean>} User's choice
- */
 export function showCustomConfirm(message, description = '') {
     return new Promise(resolve => {
         const modal = document.createElement('div');
@@ -99,7 +85,6 @@ export function showCustomConfirm(message, description = '') {
             </div>
         `;
 
-        // Add styles if not present
         if (!document.getElementById('confirm-modal-styles')) {
             const style = document.createElement('style');
             style.id = 'confirm-modal-styles';
@@ -200,13 +185,6 @@ export function showCustomConfirm(message, description = '') {
     });
 }
 
-/**
- * Set up tabs in a container
- * @param {string} containerSelector - Container selector
- * @param {string} tabBtnSelector - Tab button selector
- * @param {string} tabContentSelector - Tab content selector
- * @param {Function} [onChange] - Callback when tab changes
- */
 export function setupTabs(containerSelector, tabBtnSelector, tabContentSelector, onChange) {
     const container = document.querySelector(containerSelector);
     if (!container) return;
@@ -233,17 +211,10 @@ export function setupTabs(containerSelector, tabBtnSelector, tabContentSelector,
         });
     });
 
-    // Set initial active tab
     const initialTab = tabButtons[0]?.getAttribute('data-tab');
     if (initialTab) setActiveTab(initialTab);
 }
 
-/**
- * Debounce function creation
- * @param {Function} func - Function to debounce
- * @param {number} wait - Wait time in milliseconds
- * @returns {Function} Debounced function
- */
 export function debounce(func, wait = 300) {
     let timeout;
     return function executedFunction(...args) {
@@ -256,11 +227,6 @@ export function debounce(func, wait = 300) {
     };
 }
 
-/**
- * Deep clone an object
- * @param {any} obj - Object to clone
- * @returns {any} Cloned object
- */
 export function deepClone(obj) {
     if (obj === null || typeof obj !== 'object') return obj;
     if (obj instanceof Date) return new Date(obj);
@@ -273,12 +239,6 @@ export function deepClone(obj) {
     return obj;
 }
 
-/**
- * Format a date for display
- * @param {Date|string|number} date - Date to format
- * @param {string} format - Format string ('full', 'short', 'time')
- * @returns {string} Formatted date string
- */
 export function formatDate(date, format = 'full') {
     const d = new Date(date);
     if (isNaN(d.getTime())) return 'Invalid Date';
@@ -297,7 +257,6 @@ export function formatDate(date, format = 'full') {
     }
 }
 
-// Utility Functions
 export function trimText(text, maxLength = 50) {
     if (text?.length > maxLength) {
         return text.substring(0, maxLength) + '...';
@@ -321,7 +280,6 @@ export function formatBytes(bytes, decimals = 2) {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
 }
 
-// Error handling utilities
 export function handleError(error, context = '') {
     console.error(`Error${context ? ` in ${context}` : ''}:`, error);
     showMessageBox(error.message || 'An error occurred', true);
@@ -336,14 +294,24 @@ export function validateInput(value, {required = false, minLength, maxLength, pa
     return null;
 }
 
-// DOM utilities
 export function createElementFromHTML(html) {
     const template = document.createElement('template');
     template.innerHTML = html.trim();
     return template.content.firstChild;
 }
 
-// Expose utilities globally
+export function showThemeModal() {
+
+    const modal = document.getElementById('custom-theme-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        return;
+    }
+    showMessageBox('Theme editor is available in Settings → Themes', false);
+}
+
 Object.assign(window, {
     showMessageBox,
     showCustomConfirm,
@@ -356,5 +324,6 @@ Object.assign(window, {
     formatBytes,
     handleError,
     validateInput,
-    createElementFromHTML
+    createElementFromHTML,
+    showThemeModal
 });

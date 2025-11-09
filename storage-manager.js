@@ -1,4 +1,4 @@
-// storage-manager.js - Handles client-side data persistence
+
 class StorageManager {
     constructor() {
         this.prefix = 'arcator_';
@@ -42,7 +42,7 @@ class StorageManager {
 
     clear() {
         try {
-            // Only clear items with our prefix
+
             Object.keys(this.storage).forEach(key => {
                 if (key.startsWith(this.prefix)) {
                     this.storage.removeItem(key);

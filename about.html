@@ -8,12 +8,39 @@
     <link href="./favicon.png" rel="icon" type="image/png"/>
 </head>
 <body class="antialiased">
-<div id="navbar-placeholder"></div>
+<div id="navbar-placeholder">
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="flex items-center gap-4">
+                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
+                <div class="flex items-center gap-4">
+                    <a class="nav-link" href="./index.html">Home</a>
+                    <a class="nav-link" href="./games.html">Games</a>
+                    <a class="nav-link" href="./forms.html">Forms</a>
+                    <a class="nav-link" href="./pages.html">Pages</a>
+                    <a class="nav-link" href="./about.html">About</a>
+                    <a class="nav-link" href="./mod.html">Admin</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4" id="user-section">
+                <div class="sign-in-prompt">Loading…</div>
+            </div>
+        </div>
+    </nav>
+</div>
 
-<!-- Loading Spinner -->
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="loading-spinner">
     <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
 </div>
+
+<section class="hero-banner">
+    <img alt="Hero" class="hero-image" src="./creativespawn.png">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="text-5xl font-extrabold mb-4 leading-tight">About Arcator</h1>
+        <p class="text-xl md:text-2xl mb-8">Learn more about our mission and community.</p>
+    </div>
+</section>
 
 <main class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-center mb-6">About Arcator</h1>
@@ -24,7 +51,20 @@
     </section>
 </main>
 
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder">
+    <footer class="footer bg-surface">
+        <div class="container py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-4">
+                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
+                        Maps</a>
+                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
+                </div>
+                <div class="text-text-2">&copy; 2025 Arcator</div>
+            </div>
+        </div>
+    </footer>
+</div>
 
 <script type="module">
     import {auth, getUserProfileFromFirestore, firebaseReadyPromise} from "./firebase-init.js";
@@ -32,7 +72,6 @@
     import {handleError} from "./utils.js";
     import {themeManager} from "./theme-manager.js";
 
-    // Initialize page
     const init = async () => {
         const loadingSpinner = document.getElementById('loading-spinner');
 
@@ -51,7 +90,6 @@
                 }
             });
 
-            // Initialize footer
             await loadFooter();
 
         } catch (error) {
@@ -61,7 +99,6 @@
         }
     };
 
-    // Start initialization
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

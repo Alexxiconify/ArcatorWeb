@@ -19,7 +19,7 @@ let currentDmId = null;
 let messagesUnsubscribe = null;
 let selectedRecipients = new Map();
 
-// Cache DM participant profiles to avoid repeated fetches
+
 const profileCache = new Map();
 
 async function getParticipantProfile(userId) {
@@ -44,7 +44,7 @@ async function loadDMs() {
         return;
     }
 
-    // Load participant profiles for each DM
+
     const dmsWithProfiles = await Promise.all(dms.map(async (dm) => {
         const profiles = await Promise.all(
             dm.participants.filter(id => id !== auth.currentUser.uid)
@@ -80,7 +80,7 @@ async function loadDMs() {
         </div>
     `).join('');
 
-    // Add click listeners
+
     dmList.querySelectorAll('.dm-item').forEach(item => {
         item.addEventListener('click', () => loadMessages(item.dataset.dmId));
     });
@@ -98,7 +98,7 @@ async function loadMessages(dmId) {
     currentDmId = dmId;
     messagesContainer.innerHTML = '<div class="text-center p-4">Loading messages...</div>';
 
-    // Show participant list
+
     const dm = await dmsManager.getDM(dmId);
     if (dm) {
         await updateParticipantList(dm.participants);
@@ -111,7 +111,7 @@ async function loadMessages(dmId) {
                 return;
             }
 
-            // Get all unique sender profiles using cache
+
             const senderProfiles = new Map();
             await Promise.all(
                 [...new Set(messages.map(m => m.sender))].map(async (senderId) => {
@@ -213,10 +213,10 @@ async function createDM(participantIds) {
     }
 
     try {
-        // Add current user to participants if not already included
+
         const allParticipants = new Set([auth.currentUser.uid, ...participantIds]);
 
-        // Check if DM already exists
+
         const dmsRef = collection(db, COLLECTIONS.DMS(auth.currentUser.uid));
         const q = query(dmsRef, where('participants', '==', Array.from(allParticipants)));
         const snapshot = await getDocs(q);
@@ -225,7 +225,7 @@ async function createDM(participantIds) {
             return snapshot.docs[0].id;
         }
 
-        // Create new DM
+
         const dmData = {
             createdAt: serverTimestamp(),
             participants: Array.from(allParticipants),
@@ -233,11 +233,11 @@ async function createDM(participantIds) {
             lastMessageAt: null
         };
 
-        // Create the DM for each participant
+
         const dmRef = doc(collection(db, COLLECTIONS.DMS(auth.currentUser.uid)));
         await setDoc(dmRef, dmData);
 
-        // Create reciprocal DM documents for other participants
+
         await Promise.all(participantIds.map(async (participantId) => {
             const participantDMRef = doc(db, COLLECTIONS.DMS(participantId), dmRef.id);
             await setDoc(participantDMRef, dmData);
@@ -251,7 +251,7 @@ async function createDM(participantIds) {
     }
 }
 
-// Update the setupNewConversation function to use the local createDM function
+
 function setupNewConversation() {
     const newChatBtn = document.getElementById('new-chat-btn');
     const recipientInput = document.getElementById('recipient-input');
@@ -405,7 +405,7 @@ async function handleDeleteMessage(messageId) {
 
 export async function initDMs() {
     if (!auth.currentUser) {
-        window.location.href = './users.html';
+        showMessageBox('Please sign in to view direct messages', true);
         return;
     }
 
@@ -415,7 +415,7 @@ export async function initDMs() {
         setupMessageForm();
         setupNewConversation();
 
-        // Expose necessary functions globally
+
         window.dmsActions = {
             async editMessage(messageId, content) {
                 await showEditMessageModal(messageId, content);
@@ -431,7 +431,7 @@ export async function initDMs() {
             }
         };
 
-        // Set up auto-scroll for new messages
+
         const messagesContainer = document.getElementById('messages-container');
         if (messagesContainer) {
             const observer = new MutationObserver(() => {
@@ -445,7 +445,7 @@ export async function initDMs() {
     }
 }
 
-// Cleanup on page unload
+
 window.addEventListener('unload', () => {
     if (messagesUnsubscribe) {
         messagesUnsubscribe();

@@ -1,5 +1,3 @@
-// announcements.js: Handles announcements.
-
 import {appId, db, getCurrentUser, getUserProfileFromFirestore} from "./firebase-init.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
 import {
@@ -14,7 +12,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {parseEmojis, parseMentions} from "./index.js";
 
-// --- DOM Elements ---
 const createAnnouncementSection = document.getElementById(
   "create-announcement-section",
 );
@@ -29,15 +26,8 @@ const noAnnouncementsMessage = document.getElementById(
   "no-announcements-message",
 );
 
-// --- State Variables ---
 let unsubscribeAnnouncements = null;
 
-// --- ANNOUNCEMENT FUNCTIONS ---
-
-/**
- * Sends a new announcement (admin only).
- * @param {string} content - The announcement content.
- */
 export async function postAnnouncement(content) {
   const currentUser = getCurrentUser();
   if (!currentUser || !currentUser.uid || !currentUser.isAdmin) {
@@ -78,10 +68,6 @@ export async function postAnnouncement(content) {
   }
 }
 
-/**
- * Deletes an announcement (admin only).
- * @param {string} announcementId - The ID of the announcement to delete.
- */
 export async function deleteAnnouncement(announcementId) {
   const currentUser = getCurrentUser();
   if (!currentUser || !currentUser.uid || !currentUser.isAdmin) {
@@ -119,11 +105,6 @@ export async function deleteAnnouncement(announcementId) {
   }
 }
 
-// --- REAL-TIME RENDERING (ONSNAPSHOT) ---
-
-/**
- * Renders the announcements in real-time.
- */
 export function renderAnnouncements() {
   if (unsubscribeAnnouncements) {
     unsubscribeAnnouncements();
@@ -136,7 +117,6 @@ export function renderAnnouncements() {
     return;
   }
 
-  // Show/hide admin announcement form
   const currentUser = getCurrentUser();
   if (currentUser && currentUser.isAdmin && createAnnouncementSection) {
     createAnnouncementSection.classList.remove("hidden");
@@ -150,7 +130,6 @@ export function renderAnnouncements() {
   );
   const q = query(announcementsCol, orderBy("createdAt", "desc"));
 
-  // Attach new listener for announcements
   unsubscribeAnnouncements = onSnapshot(
     q,
     async (snapshot) => {
@@ -209,7 +188,6 @@ export function renderAnnouncements() {
         announcementsList.appendChild(announcementElement);
       }
 
-      // Attach event listener for delete announcement buttons
       announcementsList
         .querySelectorAll(".delete-announcement-btn")
         .forEach((button) => {
@@ -226,17 +204,12 @@ export function renderAnnouncements() {
   );
 }
 
-/**
- * Unsubscribes the current announcements listener.
- */
 export function unsubscribeAnnouncementsListener() {
   if (unsubscribeAnnouncements) {
     unsubscribeAnnouncements();
     unsubscribeAnnouncements = null;
   }
 }
-
-// --- Event Handlers (exported for forms.js to attach) ---
 
 export async function handlePostAnnouncement(event) {
   event.preventDefault();

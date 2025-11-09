@@ -7,7 +7,7 @@ export async function showBlockedUsers() {
         const doc = await userRef.get();
         const blockedUsers = doc.data()?.blockedUsers || [];
 
-        // Create and show modal
+
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML = `
@@ -37,14 +37,14 @@ export async function exportUserData() {
         const userDoc = await userRef.get();
         const userData = userDoc.data();
 
-        // Get user's additional data
+
         const [settings, profile, preferences] = await Promise.all([
             db.collection('userSettings').doc(auth.currentUser.uid).get(),
             db.collection('userProfiles').doc(auth.currentUser.uid).get(),
             db.collection('userPreferences').doc(auth.currentUser.uid).get()
         ]);
 
-        // Compile user data
+
         const exportData = {
             profile: userData,
             settings: settings.data(),
@@ -52,7 +52,7 @@ export async function exportUserData() {
             exportDate: new Date().toISOString()
         };
 
-        // Create and download file
+
         const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -83,7 +83,7 @@ export async function deactivateAccount() {
         });
 
         showMessageBox('Account deactivated successfully');
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        // Do not redirect the user; let the app decide next steps.
     } catch (error) {
         console.error('Error deactivating account:', error);
         showMessageBox('Failed to deactivate account', true);
@@ -96,14 +96,14 @@ export async function deleteAccount() {
             return;
         }
 
-        // Get email verification if needed
+
         if (!auth.currentUser.emailVerified) {
             await auth.currentUser.sendEmailVerification();
             showMessageBox('Please verify your email first. Verification email sent.');
             return;
         }
 
-        // Delete user data
+
         const batch = db.batch();
         const collections = ['users', 'userSettings', 'userProfiles', 'userPreferences'];
 
@@ -116,7 +116,7 @@ export async function deleteAccount() {
         await auth.currentUser.delete();
 
         showMessageBox('Account deleted successfully');
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        // Do not redirect; let the app decide next steps.
     } catch (error) {
         console.error('Error deleting account:', error);
         showMessageBox('Failed to delete account', true);

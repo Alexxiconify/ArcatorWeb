@@ -1,4 +1,4 @@
-// constants.js - Shared constants and configuration
+
 export const APP_CONFIG = {
     name: 'Arcator',
     version: '1.0.0',
@@ -58,7 +58,7 @@ export const APP_CONFIG = {
     },
     urls: {
         home: '/',
-        login: '/login',
+        login: './users.html',
         register: '/register',
         profile: '/profile',
         settings: '/settings',
@@ -69,6 +69,7 @@ export const APP_CONFIG = {
         help: '/help',
         admin: '/admin'
     },
+    HARD_CODED_ADMIN_UID: 'CEch8cXWemSDQnM3dHVKPt0RGpn2',
     timeouts: {
         notification: 5000,
         debounce: 300,
@@ -98,7 +99,7 @@ export const APP_CONFIG = {
     }
 };
 
-// Browser-safe Firebase configuration
+
 export const FIREBASE_CONFIG = {
     apiKey: "AIzaSyARkp-8Bg9pgPUcv_KD2Ab2yvv_ktSVxkg",
     authDomain: "arcator.firebaseapp.com",
@@ -175,3 +176,6 @@ export const EVENT_TYPES = {
     THEME_CHANGE: 'theme_change',
     ERROR: 'error'
 };
+
+
+export const HARD_CODED_ADMIN_UID = APP_CONFIG.HARD_CODED_ADMIN_UID || 'CEch8cXWemSDQnM3dHVKPt0RGpn2';

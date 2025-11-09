@@ -75,7 +75,7 @@ class DMsManager {
         if (!this.currentUser || !otherUserId) return null;
 
         try {
-            // Check if DM already exists
+
             const dmsRef = collection(db, COLLECTIONS.DMS(this.currentUser.uid));
             const q = query(dmsRef, where('participants', 'array-contains', otherUserId));
             const dmsSnap = await getDocs(q);
@@ -84,7 +84,7 @@ class DMsManager {
                 return {id: dmsSnap.docs[0].id, ...dmsSnap.docs[0].data()};
             }
 
-            // Create new DM
+
             const dmData = {
                 createdAt: serverTimestamp(),
                 participants: [this.currentUser.uid, otherUserId],
@@ -95,7 +95,7 @@ class DMsManager {
             const newDmRef = doc(collection(db, COLLECTIONS.DMS(this.currentUser.uid)));
             await setDoc(newDmRef, dmData);
 
-            // Create reciprocal DM document
+
             await setDoc(doc(db, COLLECTIONS.DMS(otherUserId), newDmRef.id), dmData);
 
             return {id: newDmRef.id, ...dmData};
@@ -113,7 +113,7 @@ class DMsManager {
             const dm = await this.getDM(dmId);
             if (!dm) new Error('DM not found');
 
-            // Create message document
+
             const messageData = {
                 content,
                 sender: this.currentUser.uid,
@@ -124,7 +124,7 @@ class DMsManager {
             const messageRef = doc(collection(db, COLLECTIONS.MESSAGES(this.currentUser.uid, dmId)));
             await setDoc(messageRef, messageData);
 
-            // Update DM documents for all participants
+
             await Promise.all(dm.participants.map(async (participantId) => {
                 const participantDMRef = doc(db, COLLECTIONS.DMS(participantId), dmId);
                 await updateDoc(participantDMRef, {
@@ -182,7 +182,7 @@ class DMsManager {
 
             await deleteDoc(messageRef);
 
-            // Update last message in DM if this was the last message
+
             const dm = await this.getDM(dmId);
             if (dm && dm.lastMessage === messageDoc.data().content) {
                 const messages = await this.getRecentMessages(dmId, 1);

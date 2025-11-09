@@ -8,10 +8,9 @@
     <link href="./favicon.png" rel="icon" type="image/png">
 </head>
 <body class="bg-surface text-text min-h-screen flex flex-col">
-<!-- Navbar placeholder -->
+
 <div id="navbar-placeholder"></div>
 
-<!-- Hero Banner -->
 <section class="hero-banner">
     <img alt="Hero" class="hero-image" src="./creativespawn.png">
     <div class="hero-overlay"></div>
@@ -23,7 +22,7 @@
 
 <main class="container mx-auto px-4 py-8 flex-1">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Featured Game -->
+
         <div class="col-span-full">
             <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
                 <div class="flex flex-col md:flex-row gap-6">
@@ -44,7 +43,6 @@
             </div>
         </div>
 
-        <!-- Game Cards -->
         <div class="bg-surface-2 rounded-lg shadow-lg p-6 border border-accent-dark">
             <img alt="Minecraft" class="w-full rounded-lg shadow-md mb-4 object-cover aspect-video"
                  src="https://cdn.cloudflare.steamstatic.com/steam/apps/1672970/header.jpg">
@@ -86,15 +84,26 @@
     </div>
 </main>
 
-<!-- Footer placeholder -->
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder">
+    <footer class="footer bg-surface">
+        <div class="container py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-4">
+                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
+                        Maps</a>
+                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
+                </div>
+                <div class="text-text-2">&copy; 2025 Arcator</div>
+            </div>
+        </div>
+    </footer>
+</div>
 
 <script type="module">
     import {initializePage, loadFooter} from './core.js';
     import {themeManager} from './theme-manager.js';
     import {showMessageBox} from './utils.js';
 
-    // Initialize page with footer and navbar
     async function init() {
         try {
             await Promise.all([
@@ -114,17 +123,5 @@
         init();
     }
 </script>
-</body>
-</html>
-            console.error('Error initializing page:', error);
-        }
-    }
-
-    // Start initialization
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init().catch(console.error);
-    }
 </body>
 </html>
