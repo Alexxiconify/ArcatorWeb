@@ -1,6 +1,19 @@
-import {addDoc, collection, COLLECTIONS, db, doc, getDoc, getDocs, onSnapshot} from "./firebase-init.js";
+import {
+    addDoc,
+    auth,
+    collection,
+    COLLECTIONS,
+    db,
+    doc,
+    getDoc,
+    getDocs,
+    getUserProfileFromFirestore,
+    onSnapshot
+} from "./firebase-init.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
 import {getAvailableThemes} from "./themes.js";
+import {initializePage, loadFooter, loadNavbar} from "./core.js";
+import {themeManager} from "./theme-manager.js";
 import {deleteDoc, updateDoc} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 let usersData = [];
@@ -29,22 +42,113 @@ function setDisplayValue(elementId, value, isCheckbox = false) {
     }
 }
 
+const ADMIN_UID = 'CEch8cXWemSDQnM3dHVKPt0RGpn2';
+
+async function checkAdminAccess() {
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        showNotAdminMessage();
+        return false;
+    }
+
+    // Check if hardcoded admin UID
+    if (user.uid === ADMIN_UID) {
+        return true;
+    }
+
+    // Check if in whitelisted_admins collection
+    try {
+        const adminDocRef = doc(db, 'whitelisted_admins', user.uid);
+        const adminDocSnap = await getDoc(adminDocRef);
+
+        if (adminDocSnap.data()) {
+            return true;
+        }
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+    }
+
+    showNotAdminMessage();
+    return false;
+}
+
+function showNotAdminMessage() {
+    const adminDashboard = getElement("admin-dashboard");
+    const notAdminMessage = getElement("not-admin-message");
+
+    if (adminDashboard) adminDashboard.style.display = 'none';
+    if (notAdminMessage) notAdminMessage.style.display = 'block';
+}
+
 async function initializeAdmin() {
     try {
-        toggleAdminUI(true);
+        console.log('Starting admin initialization...');
+
+        // Initialize page layout and theme in parallel like other pages
+        await Promise.all([
+            initializePage('mod'),
+            themeManager.init()
+        ]);
+        console.log('Page and theme initialized');
+
+        // Explicitly update navbar with current user info
+        try {
+            const user = auth.currentUser;
+            console.log('Current user:', user?.uid);
+            if (user) {
+                const userProfile = await getUserProfileFromFirestore(user.uid);
+                await loadNavbar(user, userProfile);
+            } else {
+                await loadNavbar(null, null);
+            }
+        } catch (e) {
+            console.warn('Failed to update navbar:', e);
+        }
+
+        // Now check if user is admin
+        console.log('Checking admin access...');
+        const isAdmin = await checkAdminAccess();
+        console.log('Is admin:', isAdmin);
+
+        if (!isAdmin) {
+            // Load footer even if not admin
+            try {
+                loadFooter();
+            } catch (e) {
+                console.warn('Failed to load footer', e);
+            }
+            return;
+        }
+
+        // Show admin content now that user is verified as admin
+        const adminContent = getElement('admin-content');
+        if (adminContent) {
+            console.log('Showing admin content');
+            adminContent.style.display = 'grid';
+        }
+
+        console.log('Setting up listeners...');
         setupListeners();
+
+        console.log('Starting realtime users listener...');
         await startRealtimeUsersListener();
+
+        console.log('Loading pages...');
         await loadPagesForAdmin();
+
+        // Load footer after everything is loaded
+        try {
+            loadFooter();
+        } catch (e) {
+            console.warn('Failed to load footer', e);
+        }
+
+        console.log('Page mod initialized successfully');
     } catch (error) {
         console.error("Admin initialization failed:", error);
-        // Instead of showing a blocking popup, render a non-blocking admin notice and leave the page in-place.
-        const notice = document.getElementById('admin-notice');
-        if (notice) {
-            notice.textContent = 'Admin tools loaded with limited access or encountered an initialization error.';
-            notice.style.display = 'block';
-        } else {
-            showMessageBox("Failed to initialize admin interface", true);
-        }
+        showMessageBox("Failed to initialize admin interface", true);
     }
 }
 
@@ -73,23 +177,29 @@ function setupListeners() {
 }
 
 async function startRealtimeUsersListener() {
-    if (!db) return;
+    if (!db) {
+        console.warn('Database not initialized');
+        return;
+    }
     cleanup();
 
     try {
         const usersRef = collection(db, COLLECTIONS.USER_PROFILES);
+        console.log('Setting up realtime listener for:', COLLECTIONS.USER_PROFILES);
         _usersUnsubscribe = onSnapshot(usersRef, handleUsersSnapshot, (err) => {
-            // handle permission or other errors gracefully
             console.error('Realtime users listener error:', err);
             handleError(err);
         });
     } catch (error) {
+        console.error('Error setting up users listener:', error);
         handleError(error);
     }
 }
 
 function handleUsersSnapshot(snapshot) {
-    usersData = snapshot.docs.map(doc => ({uid: doc.id, ...doc.data()}));
+    console.log('Users snapshot received with', snapshot.size, 'documents');
+    usersData = Array.from(snapshot).map(doc => ({uid: doc.id, ...doc.data()}));
+    console.log('Loaded users:', usersData);
     renderUserList();
 }
 
@@ -98,19 +208,15 @@ function handleError(error) {
     // For admin page, show a non-blocking admin notice when possible.
     const notice = getElement('admin-notice');
     if (notice) {
-        notice.textContent = error && error.message ? error.message : 'An error occurred while performing admin operation';
+        notice.textContent = error?.message ? error.message : 'An error occurred while performing admin operation';
         notice.style.display = 'block';
         notice.classList.add('error');
         // If permission denied, show a clearer description.
-        if (error && error.code === 'permission-denied') {
-            notice.textContent = 'Insufficient permissions to load admin data. Sign in with an admin account or check Firestore rules.';
-        }
+        if (error?.code === 'permission-denied') {notice.textContent = 'Insufficient permissions to load admin data. Sign in with an admin account or check Firestore rules.';}
+    } else if (error?.code === 'permission-denied') {
+        showMessageBox('Insufficient permissions to access admin data. Some features are disabled.', true);
     } else {
-        if (error && error.code === 'permission-denied') {
-            showMessageBox('Insufficient permissions to access admin data. Some features are disabled.', true);
-        } else {
-            showMessageBox(error && error.message ? error.message : 'An error occurred', true);
-        }
+        showMessageBox(error?.message ? error.message : 'An error occurred', true);
     }
 }
 
@@ -299,16 +405,27 @@ async function withRetry(operation, maxRetries = 3) {
 
 async function loadPagesForAdmin() {
     const list = getElement('pages-management-list');
-    if (!list) return;
+    if (!list) {
+        console.warn('Pages management list element not found');
+        return;
+    }
+
     list.innerHTML = '<div class="text-text-2">Loading pages…</div>';
     try {
         const pagesRef = collection(db, COLLECTIONS.PAGES);
+        console.log('Fetching pages from:', COLLECTIONS.PAGES);
+
+        /** @type {import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js').QuerySnapshot} */
         const snapshot = await getDocs(pagesRef);
+
+        console.log('Pages snapshot received with', snapshot.size, 'documents');
+
         if (snapshot.empty) {
-            list.innerHTML = '<div class="text-text-2">No pages found</div>';
+            list.innerHTML = '<div class="text-text-2">No pages found. Create one to get started!</div>';
             return;
         }
-        list.innerHTML = snapshot.docs.map(docSnap => {
+
+        list.innerHTML = Array.from(snapshot).map(docSnap => {
             const p = docSnap.data();
             return `
                 <div class="p-3 bg-surface-2 rounded-lg flex justify-between items-center">
@@ -323,6 +440,7 @@ async function loadPagesForAdmin() {
                 </div>
             `;
         }).join('');
+        console.log('Pages rendered successfully');
 
         // attach listeners
         list.querySelectorAll('button[data-action]').forEach(btn => {
@@ -335,11 +453,12 @@ async function loadPagesForAdmin() {
         });
     } catch (error) {
         console.error('Error loading pages for admin:', error);
-        if (error && error.code === 'permission-denied') {
-            list.innerHTML = '<div class="text-text-2">Insufficient permissions to view pages.</div>';
+        if (error?.code === 'permission-denied') {
+            list.innerHTML = '<div class="text-text-2">Insufficient permissions to view pages. Check Firestore rules.</div>';
         } else {
-            list.innerHTML = '<div class="text-text-2">Failed to load pages</div>';
+            list.innerHTML = `<div class="text-text-2">Failed to load pages: ${error?.message || 'Unknown error'}</div>`;
         }
+        handleError(error);
     }
 }
 
@@ -382,7 +501,7 @@ async function openEditPageModal(pageId = null) {
     if (pageId) {
         try {
             const pageSnap = await getDoc(doc(db, COLLECTIONS.PAGES, pageId));
-            if (pageSnap.exists()) {
+            if (pageSnap.data()) {
                 const page = pageSnap.data();
                 modal.querySelector('#page-title').value = page.title || '';
                 modal.querySelector('#page-desc').value = page.description || '';
@@ -438,14 +557,6 @@ async function deletePage(pageId) {
 // wire create page button
 const createPageBtn = document.getElementById('create-page-btn');
 if (createPageBtn) createPageBtn.addEventListener('click', () => openEditPageModal());
-
-// call pages loader after init
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        loadPagesForAdmin().catch(() => {
-        });
-    }, 200);
-});
 
 
 // attach init

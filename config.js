@@ -12,31 +12,12 @@ module.exports = {
     },
 
 
-    IMGBB_API_KEY: "YOUR_IMGBB_API_KEY", // Replace with actual key
-
-
-    GIPHY_API_KEY: "dc6zaTOxFJmzC", // Giphy public beta key
-
-
-    EMAILJS_CONFIG: {
-    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
-    serviceId: "YOUR_EMAILJS_SERVICE_ID",
-    templateId: "YOUR_EMAILJS_TEMPLATE_ID"
-    },
-
-
     SMTP_SERVER_URL: "https://apollo.arcator.co.uk:3001",
     SMTP_SERVER_CONFIG: {
     host: "smtp.gmail.com",
     port: 587,
     user: "no-reply.aractor@gmail.com",
     pass: "ArcatorAppS3rver!2024",
-    },
-
-
-    TEST_EMAIL: {
-    to: "taylorallred04@gmail.com",
-    from: "no-reply.aractor@gmail.com",
     },
 
 

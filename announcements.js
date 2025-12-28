@@ -1,5 +1,6 @@
 import {appId, db, getCurrentUser, getUserProfileFromFirestore} from "./firebase-init.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
+import {HARD_CODED_ADMIN_UID} from "./constants.js";
 import {
     addDoc,
     collection,
@@ -30,7 +31,7 @@ let unsubscribeAnnouncements = null;
 
 export async function postAnnouncement(content) {
   const currentUser = getCurrentUser();
-  if (!currentUser || !currentUser.uid || !currentUser.isAdmin) {
+  if (!currentUser?.uid || currentUser.uid !== HARD_CODED_ADMIN_UID) {
     showMessageBox("You do not have permission to post announcements.", true);
     return;
   }
@@ -70,7 +71,7 @@ export async function postAnnouncement(content) {
 
 export async function deleteAnnouncement(announcementId) {
   const currentUser = getCurrentUser();
-  if (!currentUser || !currentUser.uid || !currentUser.isAdmin) {
+  if (!currentUser?.uid || currentUser.uid !== HARD_CODED_ADMIN_UID) {
     showMessageBox("You do not have permission to delete announcements.", true);
     return;
   }
@@ -118,7 +119,7 @@ export function renderAnnouncements() {
   }
 
   const currentUser = getCurrentUser();
-  if (currentUser && currentUser.isAdmin && createAnnouncementSection) {
+  if (currentUser?.isAdmin && createAnnouncementSection) {
     createAnnouncementSection.classList.remove("hidden");
   } else if (createAnnouncementSection) {
     createAnnouncementSection.classList.add("hidden");
@@ -178,7 +179,7 @@ export function renderAnnouncements() {
         </div>
         <p class="text-gray-300 mb-2">${(parseMentions(parseEmojis(announcement.content)))}</p>
         ${
-          currentUser && currentUser.isAdmin
+            currentUser?.isAdmin
             ? `<button class="delete-announcement-btn text-red-400 hover:text-red-500 float-right transition duration-300" data-id="${announcementId}">
             <i class="fas fa-trash-alt"></i> Delete
         </button>`

@@ -3,243 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Forms - Arcator</title>
+    <title>Forums - Arcator</title>
     <link href="./master.css" rel="stylesheet">
+    <link href="./forums.css" rel="stylesheet">
     <link href="./favicon.png" rel="icon" type="image/png">
 </head>
 <body class="bg-surface text-text">
-
-<div id="navbar-placeholder">
-    <nav class="navbar">
-        <div class="container navbar-content">
-            <div class="flex items-center gap-4">
-                <a class="text-xl font-bold no-underline" href="./index.html">Arcator</a>
-                <div class="flex items-center gap-4">
-                    <a class="nav-link" href="./index.html">Home</a>
-                    <a class="nav-link" href="./games.html">Games</a>
-                    <a class="nav-link" href="./forms.html">Forms</a>
-                    <a class="nav-link" href="./pages.html">Pages</a>
-                    <a class="nav-link" href="./about.html">About</a>
-                    <a class="nav-link" href="./mod.html">Admin</a>
-                </div>
-            </div>
-            <div class="flex items-center gap-4" id="user-section">
-                <div class="sign-in-prompt">Loading…</div>
-            </div>
-        </div>
-    </nav>
-</div>
+<div id="navbar-placeholder"></div>
 
 <section class="hero-banner">
     <img alt="Hero" class="hero-image" src="./creativespawn.png">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1>Forms</h1>
-        <p>View and submit forms</p>
+        <h1>Forums & Messages</h1>
+        <p>Community discussions and conversations</p>
     </div>
 </section>
 
-<main class="container mx-auto px-4 py-8">
+<main class="container mx-auto px-4 py-8" style="padding-bottom: calc(var(--footer-height) + 1rem); flex: 1 0 auto; min-height: 0; max-width: 1000px;">
+    <div class="tabs">
+        <button class="tab-btn active" id="forums-tab-btn">Forums</button>
+        <button class="tab-btn" id="messages-tab-btn">Messages</button>
+    </div>
 
-    <div class="bg-surface-2 rounded-lg p-4 mb-8" role="tablist">
-        <div class="flex gap-4 border-b border-accent-dark">
-            <button aria-controls="forms-panel"
-                    aria-selected="true"
-                    class="tab-button px-4 py-2 text-lg font-medium border-b-2 border-transparent hover:border-accent-light"
-                    data-tab="forms"
-                    role="tab">
-                Forms
-            </button>
-            <button aria-controls="dms-panel"
-                    aria-selected="false"
-                    class="tab-button px-4 py-2 text-lg font-medium border-b-2 border-transparent hover:border-accent-light"
-                    data-tab="dms"
-                    role="tab">
-                Messages
-            </button>
+    <!-- Forums Tab -->
+    <div class="tab-content active" id="forums-tab">
+        <div class="mb-8 flex justify-between items-center">
+            <h2 style="margin: 0; font-size: 1.5rem;">Forums</h2>
+            <button class="btn-primary" id="create-thread-btn">Create Thread</button>
         </div>
 
-        <div class="py-4" id="forms-panel" role="tabpanel">
-            <div id="forms-list">
+        <div class="create-form" id="create-thread-form">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Create New Thread</h3>
+            <form id="new-thread-form">
+                <div>
+                    <label for="thread-title">Title</label>
+                    <input type="text" id="thread-title" required>
+                </div>
+                <div>
+                    <label for="thread-description">Description</label>
+                    <textarea id="thread-description" rows="4" required></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="thread-category">Category</label>
+                        <select id="thread-category" required>
+                            <option value="">Select category...</option>
+                            <option value="announcements">Announcements</option>
+                            <option value="gaming">Gaming</option>
+                            <option value="discussion">Discussion</option>
+                            <option value="support">Support</option>
+                            <option value="feedback">Feedback</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="thread-tags">Tags (comma-separated)</label>
+                        <input type="text" id="thread-tags">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" id="cancel-thread-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Post</button>
+                </div>
+            </form>
+        </div>
 
+        <div id="forums-list">
+            <div style="text-align:center;padding:2rem;color:var(--color-text-2);">
+                <div style="display:inline-block;animation:pulse 2s infinite;">
+                    <div style="width:100%;height:100px;background:var(--color-surface-3);border-radius:0.375rem;margin-bottom:1rem;"></div>
+                    <div style="width:100%;height:100px;background:var(--color-surface-3);border-radius:0.375rem;margin-bottom:1rem;"></div>
+                    <div style="width:100%;height:100px;background:var(--color-surface-3);border-radius:0.375rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Tab -->
+    <div class="tab-content" id="messages-tab">
+        <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.5rem;">Messages</h2>
+        <div style="margin-bottom: 1.5rem;">
+            <button class="btn-primary" id="create-message-btn">New Message</button>
+        </div>
+
+        <div class="create-form" id="create-message-form" style="display:none;">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Start New Conversation</h3>
+            <div style="margin-bottom: 1rem;">
+                <label for="recipient-search">Search User (ID, Name, or @DisplayName)</label>
+                <input type="text" id="recipient-search" placeholder="Enter user ID, name, or @displayname..." style="width:100%;padding:0.75rem;border:1px solid var(--color-accent);background:var(--color-surface-3);color:var(--color-text);border-radius:0.375rem;font-family:inherit;font-size:0.9rem;margin-bottom:0.5rem;">
+                <div id="search-results" style="display:none;max-height:200px;overflow-y:auto;background:var(--color-surface-3);border:1px solid var(--color-accent);border-radius:0.375rem;margin-top:0.5rem;"></div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn-secondary" id="cancel-message-btn">Cancel</button>
+                <button type="button" class="btn-primary" id="start-conversation-btn" disabled>Start Conversation</button>
             </div>
         </div>
 
-        <div class="py-4 hidden" id="dms-panel" role="tabpanel">
-            <div class="flex h-[600px]">
-
-                <div class="w-1/3 border-r border-accent-dark">
-                    <div class="p-4 border-b border-accent-dark">
-                        <button class="btn-primary w-full" id="new-chat-btn">New Conversation</button>
-                    </div>
-                    <div class="overflow-y-auto h-[calc(100%-64px)]" id="dm-list">
-
-                    </div>
-                </div>
-
-                <div class="flex-1 flex flex-col">
-                    <div class="p-2 border-b border-accent-dark" id="participant-list"></div>
-                    <div class="flex-1 overflow-y-auto p-4" id="messages-container"></div>
-                    <form class="p-4 border-t border-accent-dark" id="message-form">
-                        <div class="flex gap-2 relative">
-                            <div class="flex-1 relative">
-                                <label for="message-input">
-
-                                </label><input autocomplete="off"
-                                               class="flex-1 bg-surface-2 border border-accent rounded px-3 py-2 w-full"
-                                               id="message-input"
-                                               placeholder="Type a message... (use @ to mention users)"
-                                               type="text">
-                                <div class="mention-suggestions hidden absolute top-full left-0 mt-1 w-full"
-                                     id="mention-suggestions"></div>
-                            </div>
-                            <button class="btn-primary" type="submit">Send</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-                 id="new-chat-modal">
-                <div class="bg-surface p-6 rounded-lg shadow-xl w-full max-w-md">
-                    <h3 class="text-xl font-bold mb-4">New Conversation</h3>
-                    <div class="mb-4">
-                        <label for="recipient-input"></label><input class="w-full bg-surface-2 border border-accent rounded px-3 py-2"
-                                                                    id="recipient-input"
-                                                                    placeholder="Search users..."
-                                                                    type="text">
-                        <div class="mt-2" id="recipient-suggestions"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-2 mb-4" id="selected-recipients"></div>
+        <div class="dm-container">
+            <div class="dm-list" id="dm-list"></div>
+            <div class="dm-messages">
+                <div class="dm-header" id="dm-header">Select a conversation</div>
+                <div class="dm-body" id="dm-body"></div>
+                <div class="dm-form" id="dm-form" style="display: none;">
+                    <label for="dm-input" style="display:none;"></label>
+                    <input type="text" id="dm-input" placeholder="Type a message...">
+                    <button class="btn-primary" id="dm-send-btn">Send</button>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-<div id="footer-placeholder">
-    <footer class="footer bg-surface">
-        <div class="container py-4">
-            <div class="flex justify-between items-center">
-                <div class="flex gap-4">
-                    <a class="footer-link" href="https://bluemaps.arcator.co.uk" rel="noopener" target="_blank">Blue
-                        Maps</a>
-                    <a class="footer-link" href="https://wiki.arcator.co.uk" rel="noopener" target="_blank">Wiki</a>
-                </div>
-                <div class="text-text-2">&copy; 2025 Arcator</div>
-            </div>
-        </div>
-    </footer>
-</div>
+<div id="footer-placeholder"></div>
 
-<script type="module">
-    import {initializePage, loadFooter} from './core.js';
-    import {initForms, initDMs} from './forms.js';
-    import {themeManager} from './theme-manager.js';
-    import {showMessageBox} from './utils.js';
-
-    async function init() {
-        try {
-            await Promise.all([
-                initializePage('forms'),
-                themeManager.init()
-            ]);
-
-            await initForms();
-            await initDMs();
-
-            await loadFooter();
-
-            const container = document.querySelector('[role="tablist"]');
-            const tabs = container?.querySelectorAll('[role="tab"]') || [];
-            const panels = document.querySelectorAll('[role="tabpanel"]');
-
-            tabs.forEach((tab, index) => {
-                tab.addEventListener('click', (e) => {
-                    e.preventDefault();
-
-                    tabs.forEach(t => {
-                        t.setAttribute('aria-selected', 'false');
-                        t.classList.remove('border-accent-light');
-                    });
-                    panels.forEach(p => p.classList.add('hidden'));
-
-                    tab.setAttribute('aria-selected', 'true');
-                    tab.classList.add('border-accent-light');
-                    const panelId = tab.getAttribute('aria-controls');
-                    const panel = document.getElementById(panelId);
-                    if (panel) panel.classList.remove('hidden');
-                });
-            });
-
-            if (tabs[0]) {
-                tabs[0].click();
-            }
-
-            const messageInput = document.getElementById('message-input');
-            const suggestionsDiv = document.getElementById('mention-suggestions');
-
-            window.insertMention = function (mention) {
-                const text = messageInput.value;
-                const lastAtIndex = text.lastIndexOf('@');
-                const beforeMention = text.substring(0, lastAtIndex);
-                messageInput.value = beforeMention + mention + ' ';
-                suggestionsDiv.classList.add('hidden');
-                messageInput.focus();
-            };
-
-            if (messageInput) {
-                messageInput.addEventListener('input', async (e) => {
-                    const text = e.target.value;
-                    const lastAtIndex = text.lastIndexOf('@');
-
-                    if (lastAtIndex === -1) {
-                        suggestionsDiv.classList.add('hidden');
-                    } else {
-                        const searchTerm = text.substring(lastAtIndex + 1).trim();
-
-                        if (searchTerm.length >= 1) {
-                            const users = await window.searchUsers(searchTerm);
-
-                            if (users.length > 0) {
-                                suggestionsDiv.innerHTML = users.map(user => `
-                                    <div class="mention-item" onclick="window.insertMention('@${user.handle}')">
-                                        <img src="${user.photoURL}" alt="${user.displayName}">
-                                        <div class="mention-item-text">
-                                            <div class="mention-item-name">${user.displayName}</div>
-                                            <div class="mention-item-handle">@${user.handle}</div>
-                                        </div>
-                                    </div>
-                                `).join('');
-                                suggestionsDiv.classList.remove('hidden');
-                            } else {
-                                suggestionsDiv.classList.add('hidden');
-                            }
-                        } else {
-                            suggestionsDiv.classList.add('hidden');
-                        }
-                    }
-                });
-
-                messageInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        suggestionsDiv.classList.add('hidden');
-                    }
-                });
-            }
-
-            console.log('Page forms initialized successfully');
-        } catch (error) {
-            console.error('Page initialization error:', error);
-            showMessageBox(`Initialization error: ${error.message}`, true);
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-</script>
+<script type="module" src="./forums-manager.js"></script>
 </body>
 </html>

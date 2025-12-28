@@ -249,6 +249,7 @@ class AuthManager {
         try {
             await signOut(auth);
             this.__initial_auth_token = null;
+
             return true;
         } catch (error) {
             console.error('Error signing out:', error);
@@ -309,6 +310,7 @@ export async function githubSignIn() {
 export async function signOutUser() {
     try {
         await signOut(auth);
+
         showMessageBox('Signed out successfully');
     } catch (error) {
         console.error('Sign out error:', error);

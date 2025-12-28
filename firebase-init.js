@@ -17,7 +17,7 @@ import {
     doc,
     getDoc,
     getDocs,
-    getFirestore,
+    initializeFirestore,
     limit,
     onSnapshot,
     orderBy,
@@ -40,22 +40,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {});
 
 export const DEFAULT_PROFILE_PIC = './defaultuser.png';
 export const DEFAULT_THEME_NAME = 'dark';
-export const appId = firebaseConfig.appId; // legacy app id (long string)
-export const projectId = firebaseConfig.projectId; // project id used in artifact paths (e.g. 'arcator-web')
-
-// Legacy / current collection path mapping.
-// Many legacy installs stored user profiles at top-level `user_profiles` and DMs under `artifacts/${appId}/users/.../dms`.
+export const appId = firebaseConfig.appId;
+export const projectId = firebaseConfig.projectId;
 export const COLLECTIONS = {
     // Users/documents for profiles stored at top-level user_profiles
     USERS: 'user_profiles',
 
-    // DMs: use projectId for artifact path to match legacy storage (/artifacts/<projectId>/users/<uid>/dms)
-    DMS: (userId) => `artifacts/${projectId}/users/${userId}/dms`,
-    MESSAGES: (userId, dmId) => `artifacts/${projectId}/users/${userId}/dms/${dmId}/messages`,
+    DMS: `artifacts/arcator-web/public/data/conversations`,
+    MESSAGES: `artifacts/arcator-web/public/data/messages`,
 
     // User profiles stored at top-level `user_profiles` in legacy DBs
     USER_PROFILES: 'user_profiles',
@@ -109,8 +105,10 @@ export async function setUserProfileInFirestore(uid, data) {
 export async function getUserDMs(userId) {
     if (!userId) return [];
     try {
-        const dmsRef = collection(db, COLLECTIONS.DMS(userId));
-        const dmsSnap = await getDocs(dmsRef);
+        const dmsRef = collection(db, COLLECTIONS.DMS);
+        // Query conversations where user is a participant
+        const q = query(dmsRef, where('participants', 'array-contains', userId));
+        const dmsSnap = await getDocs(q);
         return dmsSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
     } catch (error) {
         console.error('Error getting user DMs:', error);
@@ -118,11 +116,11 @@ export async function getUserDMs(userId) {
     }
 }
 
-export async function getDMMessages(userId, dmId, limit = 50) {
-    if (!userId || !dmId) return [];
+export async function getDMMessages(dmId, limitCount = 50) {
+    if (!dmId) return [];
     try {
-        const messagesRef = collection(db, COLLECTIONS.MESSAGES(userId, dmId));
-        const q = query(messagesRef, orderBy('createdAt', 'desc'), (limit));
+        const messagesRef = collection(db, COLLECTIONS.MESSAGES);
+        const q = query(messagesRef, where('conversationId', '==', dmId), orderBy('createdAt', 'desc'), limit(limitCount));
         const messagesSnap = await getDocs(q);
         return messagesSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
     } catch (error) {
@@ -159,3 +157,7 @@ export {
     signOut,
     updateProfile
 };
+
+export function getCurrentUser() {
+    return auth.currentUser;
+}

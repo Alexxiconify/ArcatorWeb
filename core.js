@@ -181,18 +181,10 @@ renderFooterSkeleton();
 ensureContentFills();
 watchForContentChanges();
 
-const elementCache = new Map();
 let currentNavbarUnsubscribe = null;
 
-
 function getElement(id) {
-    if (!elementCache.has(id)) {
-        const element = document.getElementById(id);
-        if (element) {
-            elementCache.set(id, element);
-        }
-    }
-    return elementCache.get(id);
+    return document.getElementById(id);
 }
 
 
@@ -334,7 +326,6 @@ export function loadFooter() {
     if (!footer) return;
     footer.innerHTML = footerHTML;
 }
-
 
 export async function initializePage(pageName, requireAuth = false) {
     try {

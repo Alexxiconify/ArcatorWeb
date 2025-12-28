@@ -108,6 +108,53 @@ html, body {
     flex-shrink: 0;
 }
 
+/* Profile image sizing - cap to navbar height */
+.profile-image,
+img[alt="Profile"],
+.user-avatar,
+.comment-avatar {
+    max-width: 2.5rem;
+    max-height: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Navbar profile images */
+#user-section img,
+.navbar img {
+    max-width: 2.5rem !important;
+    max-height: 2.5rem !important;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+}
+
+/* Forms/messages profile images */
+.message-author img,
+.comment-author img,
+.thread-author img {
+    max-width: 2.5rem;
+    max-height: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Admin user management images */
+.user-table img,
+.admin-user img {
+    max-width: 2.5rem;
+    max-height: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
 *, *:before, *:after {
     box-sizing: inherit;
 }
@@ -529,6 +576,26 @@ body > main {
     height: 100%;
 }
 
+.w-12 {
+    width: 3rem;
+}
+
+.h-12 {
+    height: 3rem;
+}
+
+.h-22 {
+    height: 5.5rem;
+}
+
+.w-10 {
+    width: 2.5rem;
+}
+
+.h-10 {
+    height: 2.5rem;
+}
+
 .flex {
     display: flex;
 }
@@ -846,6 +913,7 @@ body > main {
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 

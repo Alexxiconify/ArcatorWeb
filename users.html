@@ -119,17 +119,118 @@
     `;
 
     settingsSection.innerHTML = `
-      <div id="settings-shell">
-        <!-- Profile settings rendered dynamically -->
-        <form id="profile-settings-form" class="settings-card p-4 bg-card rounded-lg shadow-lg">
-          <h3 class="text-lg font-semibold mb-3">Profile Settings</h3>
-          <label>Display Name</label>
-          <input id="display-name-input" class="form-input w-full" />
-          <label class="mt-3">Handle</label>
-          <input id="handle-input" class="form-input w-full" />
-          <label class="mt-3">Email</label>
-          <input id="email-input" class="form-input w-full" />
-          <div class="mt-4"><button class="btn-primary" id="save-profile-btn">Save Changes</button></div>
+      <div id="settings-shell" class="max-w-4xl mx-auto">
+        <form id="profile-settings-form" class="settings-card p-6 bg-card rounded-lg shadow-lg mb-6">
+          <h3 class="text-2xl font-semibold mb-6">Profile Settings</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label>Display Name</label>
+              <input id="display-name-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>Handle</label>
+              <input id="handle-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>Email</label>
+              <input id="email-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>Photo URL</label>
+              <input id="photo-url-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>Discord URL</label>
+              <input id="discord-url-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>GitHub URL</label>
+              <input id="github-url-input" class="form-input w-full" />
+            </div>
+            <div>
+              <label>Font Scaling</label>
+              <select id="font-scaling-input" class="form-input w-full">
+                <option value="small">Small</option>
+                <option value="normal">Normal</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+            <div>
+              <label>Notification Frequency</label>
+              <select id="notification-frequency-input" class="form-input w-full">
+                <option value="immediate">Immediate</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="never">Never</option>
+              </select>
+            </div>
+            <div>
+              <label>Data Retention (days)</label>
+              <input id="data-retention-input" type="number" class="form-input w-full" value="365" />
+            </div>
+            <div>
+              <label>Keyboard Shortcuts</label>
+              <select id="keyboard-shortcuts-input" class="form-input w-full">
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-3">
+            <div class="flex items-center">
+              <input id="email-notifications-input" type="checkbox" class="form-checkbox" />
+              <label for="email-notifications-input" class="ml-2">Email Notifications</label>
+            </div>
+            <div class="flex items-center">
+              <input id="discord-notifications-input" type="checkbox" class="form-checkbox" />
+              <label for="discord-notifications-input" class="ml-2">Discord Notifications</label>
+            </div>
+            <div class="flex items-center">
+              <input id="push-notifications-input" type="checkbox" class="form-checkbox" />
+              <label for="push-notifications-input" class="ml-2">Push Notifications</label>
+            </div>
+            <div class="flex items-center">
+              <input id="profile-visible-input" type="checkbox" class="form-checkbox" />
+              <label for="profile-visible-input" class="ml-2">Profile Visible</label>
+            </div>
+            <div class="flex items-center">
+              <input id="activity-tracking-input" type="checkbox" class="form-checkbox" />
+              <label for="activity-tracking-input" class="ml-2">Activity Tracking</label>
+            </div>
+            <div class="flex items-center">
+              <input id="third-party-sharing-input" type="checkbox" class="form-checkbox" />
+              <label for="third-party-sharing-input" class="ml-2">Third Party Sharing</label>
+            </div>
+            <div class="flex items-center">
+              <input id="high-contrast-input" type="checkbox" class="form-checkbox" />
+              <label for="high-contrast-input" class="ml-2">High Contrast</label>
+            </div>
+            <div class="flex items-center">
+              <input id="reduced-motion-input" type="checkbox" class="form-checkbox" />
+              <label for="reduced-motion-input" class="ml-2">Reduced Motion</label>
+            </div>
+            <div class="flex items-center">
+              <input id="screen-reader-input" type="checkbox" class="form-checkbox" />
+              <label for="screen-reader-input" class="ml-2">Screen Reader Mode</label>
+            </div>
+            <div class="flex items-center">
+              <input id="focus-indicators-input" type="checkbox" class="form-checkbox" />
+              <label for="focus-indicators-input" class="ml-2">Focus Indicators</label>
+            </div>
+            <div class="flex items-center">
+              <input id="debug-mode-input" type="checkbox" class="form-checkbox" />
+              <label for="debug-mode-input" class="ml-2">Debug Mode</label>
+            </div>
+          </div>
+
+          <div class="mt-6 p-4 bg-surface rounded">
+            <label>Custom CSS</label>
+            <textarea id="custom-css-input" class="form-input w-full h-32 font-mono"></textarea>
+          </div>
+
+          <div class="mt-6"><button class="btn-primary" id="save-profile-btn">Save All Changes</button></div>
         </form>
       </div>
     `;
@@ -194,15 +295,34 @@
                 displayName: document.getElementById('display-name-input').value,
                 handle: document.getElementById('handle-input').value,
                 email: document.getElementById('email-input').value,
+                photoURL: document.getElementById('photo-url-input').value,
+                discordURL: document.getElementById('discord-url-input').value,
+                githubURL: document.getElementById('github-url-input').value,
+                fontScaling: document.getElementById('font-scaling-input').value,
+                notificationFrequency: document.getElementById('notification-frequency-input').value,
+                dataRetention: document.getElementById('data-retention-input').value,
+                keyboardShortcuts: document.getElementById('keyboard-shortcuts-input').value,
+                emailNotifications: document.getElementById('email-notifications-input').checked,
+                discordNotifications: document.getElementById('discord-notifications-input').checked,
+                pushNotifications: document.getElementById('push-notifications-input').checked,
+                profileVisible: document.getElementById('profile-visible-input').checked,
+                activityTracking: document.getElementById('activity-tracking-input').checked,
+                thirdPartySharing: document.getElementById('third-party-sharing-input').checked,
+                highContrast: document.getElementById('high-contrast-input').checked,
+                reducedMotion: document.getElementById('reduced-motion-input').checked,
+                screenReader: document.getElementById('screen-reader-input').checked,
+                focusIndicators: document.getElementById('focus-indicators-input').checked,
+                debugMode: document.getElementById('debug-mode-input').checked,
+                customCSS: document.getElementById('custom-css-input').value,
                 lastUpdated: new Date().toISOString()
             };
             try {
                 const userRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
                 await setDoc(userRef, updates, {merge: true});
-                showMessageBox('Profile updated');
+                showMessageBox('All settings updated successfully');
             } catch (error) {
                 console.error('Error saving profile', error);
-                showMessageBox('Failed to save profile', true);
+                showMessageBox('Failed to save settings', true);
             }
         });
     }
@@ -220,9 +340,36 @@
                         const userRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
                         const userDoc = await getDoc(userRef);
                         const data = userDoc.exists() ? userDoc.data() : {};
+
+                        // Text inputs
                         document.getElementById('display-name-input').value = data.displayName || user.displayName || '';
                         document.getElementById('handle-input').value = data.handle || '';
                         document.getElementById('email-input').value = data.email || user.email || '';
+                        document.getElementById('photo-url-input').value = data.photoURL || user.photoURL || '';
+                        document.getElementById('discord-url-input').value = data.discordURL || '';
+                        document.getElementById('github-url-input').value = data.githubURL || '';
+
+                        // Selects
+                        document.getElementById('font-scaling-input').value = data.fontScaling || 'normal';
+                        document.getElementById('notification-frequency-input').value = data.notificationFrequency || 'immediate';
+                        document.getElementById('data-retention-input').value = data.dataRetention || '365';
+                        document.getElementById('keyboard-shortcuts-input').value = data.keyboardShortcuts || 'enabled';
+
+                        // Checkboxes
+                        document.getElementById('email-notifications-input').checked = data.emailNotifications ?? true;
+                        document.getElementById('discord-notifications-input').checked = data.discordNotifications ?? false;
+                        document.getElementById('push-notifications-input').checked = data.pushNotifications ?? true;
+                        document.getElementById('profile-visible-input').checked = data.profileVisible ?? true;
+                        document.getElementById('activity-tracking-input').checked = data.activityTracking ?? true;
+                        document.getElementById('third-party-sharing-input').checked = data.thirdPartySharing ?? false;
+                        document.getElementById('high-contrast-input').checked = data.highContrast ?? false;
+                        document.getElementById('reduced-motion-input').checked = data.reducedMotion ?? false;
+                        document.getElementById('screen-reader-input').checked = data.screenReader ?? false;
+                        document.getElementById('focus-indicators-input').checked = data.focusIndicators ?? false;
+                        document.getElementById('debug-mode-input').checked = data.debugMode ?? false;
+
+                        // Textarea
+                        document.getElementById('custom-css-input').value = data.customCSS || '';
                     } catch (err) {
                         console.error('Error loading profile', err);
                     }

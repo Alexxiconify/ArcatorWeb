@@ -1,6 +1,4 @@
 import {auth, COLLECTIONS, db, doc, getDoc, getUserProfileFromFirestore, setDoc, updateDoc} from "./firebase-init.js";
-import {storageManager} from "./storage-manager.js";
-import {authManager} from "./auth-manager.js";
 import {themeManager} from "./theme-manager.js";
 import {showMessageBox} from './utils.js';
 
@@ -104,30 +102,21 @@ export class SettingsManager {
         if (!uid) return null;
 
         try {
-
+            // Only load from Firestore for logged-in users - no caching
             const userProfile = await getUserProfileFromFirestore(uid);
             if (!userProfile) return null;
-
 
             const settingsRef = doc(db, 'user_settings', uid);
             const settingsDoc = await getDoc(settingsRef);
 
             this.currentSettings = {
+                ...DEFAULT_USER_SETTINGS,
                 ...userProfile,
                 ...(settingsDoc.exists() ? settingsDoc.data() : {})
             };
 
-
-            const localSettings = storageManager.get(`user_settings_${uid}`);
-            this.currentSettings = {
-
-                ...DEFAULT_USER_SETTINGS,
-                ...userProfile,
-                ...localSettings
-            };
-
-
             this.applySettingsToForm(this.currentSettings);
+            await this.applyPreferencesToPage(this.currentSettings);
             return this.currentSettings;
         } catch (error) {
             this.handleError(error, 'Load Settings');
@@ -239,8 +228,8 @@ export class SettingsManager {
             const docRef = doc(db, COLLECTIONS.USER_PROFILES, user.uid);
             await updateDoc(docRef, {preferences, lastUpdated: new Date().toISOString()});
 
-
-            storageManager.merge(`user_settings_${user.uid}`, {preferences});
+            // Apply preferences to page immediately after saving
+            await this.applyPreferencesToPage({preferences});
             showMessageBox('Preferences saved successfully!');
             return true;
         } catch (error) {
@@ -436,6 +425,50 @@ export class SettingsManager {
         }
     }
 
+    async applyPreferencesToPage(settings) {
+        if (!settings) return;
+
+        const root = document.documentElement;
+        const prefs = settings.preferences;
+
+        if (!prefs) return;
+
+        // Apply font size
+        if (prefs.fontSize) {
+            root.style.setProperty('--font-size-base', prefs.fontSize);
+        }
+
+        // Apply font family
+        if (prefs.fontFamily) {
+            root.style.setProperty('--font-family', prefs.fontFamily);
+        }
+
+        // Apply heading size multiplier
+        if (prefs.headingSizeMultiplier) {
+            root.style.setProperty('--heading-size-multiplier', prefs.headingSizeMultiplier);
+        }
+
+        // Apply line height
+        if (prefs.lineHeight) {
+            root.style.setProperty('--line-height', prefs.lineHeight);
+        }
+
+        // Apply letter spacing
+        if (prefs.letterSpacing) {
+            root.style.setProperty('--letter-spacing', prefs.letterSpacing);
+        }
+
+        // Apply background pattern
+        if (prefs.backgroundPattern && prefs.backgroundPattern !== 'none') {
+            root.style.setProperty('--background-pattern', `url('${prefs.backgroundPattern}')`);
+        }
+
+        // Apply background opacity
+        if (prefs.backgroundOpacity) {
+            root.style.setProperty('--background-opacity', prefs.backgroundOpacity + '%');
+        }
+    }
+
     async applyAccessibilitySettings(settings) {
         if (!settings) return;
 
@@ -568,10 +601,11 @@ export class SettingsManager {
     }
 
     getActiveShortcuts() {
-        const user = authManager.getCurrentUser();
-        const settings = user ? storageManager.get(`user_settings_${user.uid}`) : null;
+        // Only apply shortcuts for logged-in users who have explicitly enabled them
+        if (!auth.currentUser) return [];
 
-        if (settings?.keyboardShortcuts === 'disabled') {
+        // Use currentSettings loaded from Firestore, not localStorage
+        if (this.currentSettings?.advanced?.keyboardShortcuts === 'disabled') {
             return [];
         }
 
@@ -581,8 +615,8 @@ export class SettingsManager {
             {key: 'f', ctrl: true, alt: false, shift: false, action: 'toggleFullscreen'}
         ];
 
-        return settings?.disabledShortcuts
-            ? defaultShortcuts.filter(s => !settings.disabledShortcuts.includes(s.action))
+        return this.currentSettings?.advanced?.disabledShortcuts
+            ? defaultShortcuts.filter(s => !this.currentSettings.advanced.disabledShortcuts.includes(s.action))
             : defaultShortcuts;
     }
 
@@ -627,7 +661,7 @@ export class SettingsManager {
         const root = document.documentElement;
         root.classList.toggle('text-to-speech-enabled', !!enabled);
         // If enabling and browser supports speechSynthesis, set a short welcome to verify
-        if (enabled && typeof window.speechSynthesis !== 'undefined') {
+        if (enabled && window.speechSynthesis) {
             const utter = new SpeechSynthesisUtterance('Text to speech enabled');
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utter);
