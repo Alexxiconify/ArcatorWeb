@@ -30,12 +30,12 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCP5Zb1CRermAKn7p_S30E8qzCbvsMxhm4",
-    authDomain: "arcator-web.firebaseapp.com",
-    projectId: "arcator-web",
-    storageBucket: "arcator-web.appspot.com",
-    messagingSenderId: "919078249743",
-    appId: "1:919078249743:web:050cc10de97b51f10b9830"
+    apiKey: "",
+    authDomain: ".firebaseapp.com",
+    projectId: "",
+    storageBucket: ".appspot.com",
+    messagingSenderId: "",
+    appId: ""
 };
 
 const app = initializeApp(firebaseConfig);
