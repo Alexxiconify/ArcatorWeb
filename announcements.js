@@ -1,16 +1,20 @@
 import {appId, db, getCurrentUser, getUserProfileFromFirestore} from "./firebase-init.js";
 import {showCustomConfirm, showMessageBox} from "./utils.js";
-import {HARD_CODED_ADMIN_UID} from "./constants.js";
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  addDoc,
+  collection,
+  db,
+  deleteDoc,
+  doc,
+  getCurrentUser,
+  getUserProfileFromFirestore,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp
+} from "./firebase-init.js";
+import {showCustomConfirm, showMessageBox} from "./utils.js";
+import {HARD_CODED_ADMIN_UID} from "./constants.js";
 import {parseEmojis, parseMentions} from "./index.js";
 
 const createAnnouncementSection = document.getElementById(
@@ -46,7 +50,7 @@ export async function postAnnouncement(content) {
 
   const announcementsCol = collection(
     db,
-    `artifacts/${appId}/public/data/announcements`,
+      'announcements',
   );
   const announcementData = {
     authorId: currentUser.uid,
@@ -94,7 +98,7 @@ export async function deleteAnnouncement(announcementId) {
 
   const announcementDocRef = doc(
     db,
-    `artifacts/${appId}/public/data/announcements`,
+      'announcements',
     announcementId,
   );
   try {
@@ -127,7 +131,7 @@ export function renderAnnouncements() {
 
   const announcementsCol = collection(
     db,
-    `artifacts/${appId}/public/data/announcements`,
+      'announcements',
   );
   const q = query(announcementsCol, orderBy("createdAt", "desc"));
 

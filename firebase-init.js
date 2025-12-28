@@ -50,8 +50,9 @@ export const COLLECTIONS = {
     // Users/documents for profiles stored at top-level user_profiles
     USERS: 'user_profiles',
 
-    DMS: `artifacts/arcator-web/public/data/conversations`,
-    MESSAGES: `artifacts/arcator-web/public/data/messages`,
+    // DMs: use projectId for artifact path to match legacy storage (/artifacts/<projectId>/users/<uid>/dms)
+    DMS: (userId) => `artifacts/${projectId}/users/${userId}/dms`,
+    MESSAGES: (userId, dmId) => `artifacts/${projectId}/users/${userId}/dms/${dmId}/messages`,
 
     // User profiles stored at top-level `user_profiles` in legacy DBs
     USER_PROFILES: 'user_profiles',
@@ -63,7 +64,7 @@ export const COLLECTIONS = {
     PAGES: `artifacts/${projectId}/public/data/temp_pages`,
 
     // Forms kept in artifacts path (fallback)
-    FORMS: `artifacts/${projectId}/public/data/forms`,
+    FORMS: 'forms',
     SUBMISSIONS: 'submissions',
     ADMIN: `artifacts/${projectId}/public/data/admin`,
 };
@@ -119,8 +120,8 @@ export async function getUserDMs(userId) {
 export async function getDMMessages(dmId, limitCount = 50) {
     if (!dmId) return [];
     try {
-        const messagesRef = collection(db, COLLECTIONS.MESSAGES);
-        const q = query(messagesRef, where('conversationId', '==', dmId), orderBy('createdAt', 'desc'), limit(limitCount));
+        const messagesRef = collection(db, COLLECTIONS.MESSAGES(userId, dmId));
+        const q = query(messagesRef, orderBy('createdAt', 'desc'), (limit));
         const messagesSnap = await getDocs(q);
         return messagesSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
     } catch (error) {
