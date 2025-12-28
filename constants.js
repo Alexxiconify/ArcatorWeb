@@ -101,12 +101,12 @@ export const APP_CONFIG = {
 
 
 export const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyARkp-8Bg9pgPUcv_KD2Ab2yvv_ktSVxkg",
-    authDomain: "arcator.firebaseapp.com",
-    projectId: "arcator",
+    apiKey: "",
+    authDomain: ".firebaseapp.com",
+    projectId: "",
     storageBucket: "arcator.appspot.com",
-    messagingSenderId: "939025670674",
-    appId: "1:939025670674:web:60950a89a07ae8295c8497"
+    messagingSenderId: "",
+    appId: ""
 };
 
 export const AUTH_ERRORS = {
